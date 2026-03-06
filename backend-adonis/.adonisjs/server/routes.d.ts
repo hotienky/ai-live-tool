@@ -36,6 +36,10 @@ export type ScannedRoutes = {
     'analytics.conversion': { paramsTuple?: []; params?: {} }
     'analytics.top_keywords': { paramsTuple?: []; params?: {} }
     'analytics.summary': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+    'notifications.unread_count': { paramsTuple?: []; params?: {} }
+    'notifications.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'notifications.mark_all_read': { paramsTuple?: []; params?: {} }
     'customers.index': { paramsTuple?: []; params?: {} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'customers.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -79,6 +83,8 @@ export type ScannedRoutes = {
     'analytics.conversion': { paramsTuple?: []; params?: {} }
     'analytics.top_keywords': { paramsTuple?: []; params?: {} }
     'analytics.summary': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+    'notifications.unread_count': { paramsTuple?: []; params?: {} }
     'customers.index': { paramsTuple?: []; params?: {} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
@@ -112,6 +118,8 @@ export type ScannedRoutes = {
     'analytics.conversion': { paramsTuple?: []; params?: {} }
     'analytics.top_keywords': { paramsTuple?: []; params?: {} }
     'analytics.summary': { paramsTuple?: []; params?: {} }
+    'notifications.index': { paramsTuple?: []; params?: {} }
+    'notifications.unread_count': { paramsTuple?: []; params?: {} }
     'customers.index': { paramsTuple?: []; params?: {} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
@@ -142,6 +150,8 @@ export type ScannedRoutes = {
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'notifications.mark_read': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'notifications.mark_all_read': { paramsTuple?: []; params?: {} }
     'customers.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'orders.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

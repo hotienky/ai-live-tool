@@ -29,7 +29,7 @@
           </button>
         </nav>
         <div class="app-header__actions">
-          <NotificationCenter ref="notifCenter" />
+          <NotificationBell />
           <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
             <UserIcon :size="14" />
             <span class="app-header__username">{{ currentUser.fullName || currentUser.name || currentUser.email }}</span>
@@ -250,6 +250,7 @@ import ScriptPrompter from './components/ScriptPrompter.vue'
 import SessionReplay from './components/SessionReplay.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
+import NotificationBell from './components/NotificationBell.vue'
 import QuickReply from './components/QuickReply.vue'
 import OrderManagement from './components/OrderManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'

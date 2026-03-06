@@ -22,6 +22,7 @@ const ExportsController = () => import('#controllers/exports_controller')
 const RepliesController = () => import('#controllers/replies_controller')
 const OrdersController = () => import('#controllers/orders_controller')
 const SchedulesController = () => import('#controllers/schedules_controller')
+const NotificationsController = () => import('#controllers/notifications_controller')
 
 // ──── Health Check ────
 router.get('/api/health', async () => {
@@ -95,6 +96,12 @@ router.group(() => {
   router.get('/analytics/conversion', [AnalyticsController, 'conversion'])
   router.get('/analytics/top-keywords', [AnalyticsController, 'topKeywords'])
   router.get('/analytics/summary', [AnalyticsController, 'summary'])
+
+  // Notifications
+  router.get('/notifications', [NotificationsController, 'index'])
+  router.get('/notifications/unread-count', [NotificationsController, 'unreadCount'])
+  router.put('/notifications/:id/read', [NotificationsController, 'markRead'])
+  router.put('/notifications/read-all', [NotificationsController, 'markAllRead'])
 
   // Customers
   router.get('/customers', [CustomersController, 'index'])

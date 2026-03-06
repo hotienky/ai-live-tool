@@ -6,6 +6,7 @@ import { analyzeComment } from '#services/ai_service'
 import { sendHotLeadAlert } from '#services/telegram_service'
 import { matchProduct } from '#services/product_match_service'
 import autoReplyService from '#services/auto_reply_service'
+import notificationService from '#services/notification_service'
 import { createConnector, type BaseConnector } from '#services/connectors'
 import { MOCK_COMMENTS, AVATARS } from '#services/mock_service'
 import LivestreamSession from '#models/livestream_session'
@@ -124,7 +125,16 @@ class ConnectionManager {
           }
 
           const lbl = typeof label === 'string' ? label : label.label
-          if (lbl === '[HOT]' || lbl === 'HOT') { stats.hot++; sendHotLeadAlert(commentData, shopName) }
+          if (lbl === '[HOT]' || lbl === 'HOT') {
+            stats.hot++; sendHotLeadAlert(commentData, shopName)
+            // In-app notification for HOT lead
+            try {
+              const shopModel = await (await import('#models/shop')).default.find(shopId)
+              if (shopModel?.userId) {
+                notificationService.hotLead(shopModel.userId, String(shopId), data.nickname, data.comment)
+              }
+            } catch { /* best-effort */ }
+          }
           else if (lbl === '[WARM]' || lbl === 'WARM') stats.warm++
           else stats.cold++
           stats.total++

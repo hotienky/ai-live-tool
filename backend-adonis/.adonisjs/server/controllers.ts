@@ -21,4 +21,5 @@ export const controllers = {
   Sessions: () => import('#controllers/sessions_controller'),
   Shops: () => import('#controllers/shops_controller'),
   Templates: () => import('#controllers/templates_controller'),
+  Notifications: () => import('#controllers/notifications_controller'),
 }

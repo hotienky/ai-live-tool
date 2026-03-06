@@ -50,6 +50,12 @@ export interface ApiDefinition {
     topKeywords: typeof routes['analytics.top_keywords']
     summary: typeof routes['analytics.summary']
   }
+  notifications: {
+    index: typeof routes['notifications.index']
+    unreadCount: typeof routes['notifications.unread_count']
+    markRead: typeof routes['notifications.mark_read']
+    markAllRead: typeof routes['notifications.mark_all_read']
+  }
   customers: {
     index: typeof routes['customers.index']
     show: typeof routes['customers.show']

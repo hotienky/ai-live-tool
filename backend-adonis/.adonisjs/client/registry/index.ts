@@ -198,6 +198,30 @@ const routes = {
     tokens: [{"old":"/api/analytics/summary","type":0,"val":"api","end":""},{"old":"/api/analytics/summary","type":0,"val":"analytics","end":""},{"old":"/api/analytics/summary","type":0,"val":"summary","end":""}],
     types: placeholder as Registry['analytics.summary']['types'],
   },
+  'notifications.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/notifications',
+    tokens: [{"old":"/api/notifications","type":0,"val":"api","end":""},{"old":"/api/notifications","type":0,"val":"notifications","end":""}],
+    types: placeholder as Registry['notifications.index']['types'],
+  },
+  'notifications.unread_count': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/notifications/unread-count',
+    tokens: [{"old":"/api/notifications/unread-count","type":0,"val":"api","end":""},{"old":"/api/notifications/unread-count","type":0,"val":"notifications","end":""},{"old":"/api/notifications/unread-count","type":0,"val":"unread-count","end":""}],
+    types: placeholder as Registry['notifications.unread_count']['types'],
+  },
+  'notifications.mark_read': {
+    methods: ["PUT"],
+    pattern: '/api/notifications/:id/read',
+    tokens: [{"old":"/api/notifications/:id/read","type":0,"val":"api","end":""},{"old":"/api/notifications/:id/read","type":0,"val":"notifications","end":""},{"old":"/api/notifications/:id/read","type":1,"val":"id","end":""},{"old":"/api/notifications/:id/read","type":0,"val":"read","end":""}],
+    types: placeholder as Registry['notifications.mark_read']['types'],
+  },
+  'notifications.mark_all_read': {
+    methods: ["PUT"],
+    pattern: '/api/notifications/read-all',
+    tokens: [{"old":"/api/notifications/read-all","type":0,"val":"api","end":""},{"old":"/api/notifications/read-all","type":0,"val":"notifications","end":""},{"old":"/api/notifications/read-all","type":0,"val":"read-all","end":""}],
+    types: placeholder as Registry['notifications.mark_all_read']['types'],
+  },
   'customers.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/customers',

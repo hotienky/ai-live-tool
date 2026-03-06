@@ -388,3 +388,38 @@ export class AutoReplyTemplateSchema extends BaseModel {
   @belongsTo(() => ShopSchema, { foreignKey: 'shopId' })
   declare shop: BelongsTo<typeof ShopSchema>
 }
+
+// ──── Notification ─────────────────────────────────────
+export class NotificationSchema extends BaseModel {
+  static table = 'notifications'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare userId: number
+
+  @column()
+  declare shopId: string | null
+
+  @column()
+  declare type: string
+
+  @column()
+  declare title: string
+
+  @column()
+  declare message: string | null
+
+  @column()
+  declare link: string | null
+
+  @column()
+  declare isRead: boolean
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+}
