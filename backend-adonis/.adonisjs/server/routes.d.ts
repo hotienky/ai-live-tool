@@ -37,6 +37,17 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.index': { paramsTuple?: []; params?: {} }
+    'orders.stats': { paramsTuple?: []; params?: {} }
+    'orders.store': { paramsTuple?: []; params?: {} }
+    'orders.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.index': { paramsTuple?: []; params?: {} }
+    'schedules.store': { paramsTuple?: []; params?: {} }
+    'schedules.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exports.leads': { paramsTuple?: []; params?: {} }
     'exports.comments': { paramsTuple?: []; params?: {} }
     'exports.customers': { paramsTuple?: []; params?: {} }
@@ -64,6 +75,11 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.index': { paramsTuple?: []; params?: {} }
+    'orders.stats': { paramsTuple?: []; params?: {} }
+    'orders.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.index': { paramsTuple?: []; params?: {} }
+    'schedules.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exports.leads': { paramsTuple?: []; params?: {} }
     'exports.comments': { paramsTuple?: []; params?: {} }
     'exports.customers': { paramsTuple?: []; params?: {} }
@@ -89,6 +105,11 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.index': { paramsTuple?: []; params?: {} }
+    'orders.stats': { paramsTuple?: []; params?: {} }
+    'orders.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.index': { paramsTuple?: []; params?: {} }
+    'schedules.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'exports.leads': { paramsTuple?: []; params?: {} }
     'exports.comments': { paramsTuple?: []; params?: {} }
     'exports.customers': { paramsTuple?: []; params?: {} }
@@ -101,6 +122,8 @@ export type ScannedRoutes = {
     'keywords.store': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'templates.store': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'products.store': { paramsTuple?: []; params?: {} }
+    'orders.store': { paramsTuple?: []; params?: {} }
+    'schedules.store': { paramsTuple?: []; params?: {} }
     'replies.generate': { paramsTuple?: []; params?: {} }
     'replies.sentiment': { paramsTuple?: []; params?: {} }
   }
@@ -108,6 +131,8 @@ export type ScannedRoutes = {
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'shops.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -115,6 +140,8 @@ export type ScannedRoutes = {
     'templates.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'shopId': ParamValue,'id': ParamValue} }
     'products.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'orders.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'schedules.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

@@ -85,6 +85,7 @@
         v-for="lead in filteredLeads"
         :key="lead.id"
         v-bind="lead"
+        @openCustomer="$emit('openCustomer', $event)"
       />
     </div>
   </div>

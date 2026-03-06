@@ -5,6 +5,7 @@
       'lead-card--hot': label === '[HOT]',
       'lead-card--warm': label === '[WARM]',
     }"
+    @click="$emit('openCustomer', { uniqueId, nickname, profilePictureUrl, label, comment })"
   >
     <!-- Label Badge -->
     <div class="lead-card__badge" :class="badgeClass">

@@ -55,6 +55,21 @@ export interface ApiDefinition {
     index: typeof routes['sessions.index']
     show: typeof routes['sessions.show']
   }
+  orders: {
+    index: typeof routes['orders.index']
+    stats: typeof routes['orders.stats']
+    store: typeof routes['orders.store']
+    show: typeof routes['orders.show']
+    update: typeof routes['orders.update']
+    destroy: typeof routes['orders.destroy']
+  }
+  schedules: {
+    index: typeof routes['schedules.index']
+    store: typeof routes['schedules.store']
+    show: typeof routes['schedules.show']
+    update: typeof routes['schedules.update']
+    destroy: typeof routes['schedules.destroy']
+  }
   exports: {
     leads: typeof routes['exports.leads']
     comments: typeof routes['exports.comments']

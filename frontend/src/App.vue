@@ -112,6 +112,8 @@
             <RotateCcw :size="14" />
           </button>
         </div>
+        <!-- Notification Center -->
+        <NotificationCenter ref="notifCenter" />
         <!-- User Menu -->
         <div class="app-header__user" v-if="currentUser">
           <span class="app-header__user-name">
@@ -147,12 +149,18 @@
     <main class="app-main" v-if="activeView === 'live'">
       <!-- Left: Lead Panel (70%) -->
       <section class="app-main__left">
-        <LeadPanel :leads="leads" />
+        <LeadPanel :leads="leads" @openCustomer="openCustomerDetail" />
       </section>
 
       <!-- Right: Chat + Stats (30%) -->
       <section class="app-main__right">
-        <ChatStream :comments="allComments" />
+        <ChatStream :comments="allComments" @reply="onQuickReply" />
+        <QuickReply
+          :visible="showQuickReply"
+          :targetComment="quickReplyTarget"
+          @close="showQuickReply = false"
+          @sent="onReplySent"
+        />
         <StatsBar :stats="stats" :viewerCount="viewerCount" />
         <SentimentGauge :comments="allComments" />
         <PricingSuggestion :comments="allComments" />
@@ -295,6 +303,23 @@ function openCustomerDetail(customer) {
 // Floating panels
 const showLuckyDraw = ref(false)
 const showPrompter = ref(false)
+
+// Quick Reply
+const showQuickReply = ref(false)
+const quickReplyTarget = ref(null)
+const notifCenter = ref(null)
+
+function onQuickReply(comment) {
+  quickReplyTarget.value = comment
+  showQuickReply.value = true
+}
+
+function onReplySent({ comment, reply }) {
+  showQuickReply.value = false
+  if (notifCenter.value) {
+    notifCenter.value.addNotification('system', `Đã gửi reply cho @${comment?.nickname || 'user'}`)
+  }
+}
 
 // Socket composable
 const {
