@@ -9,10 +9,10 @@ export type ScannedRoutes = {
     'auth.me': { paramsTuple?: []; params?: {} }
     'shops.index': { paramsTuple?: []; params?: {} }
     'shops.store': { paramsTuple?: []; params?: {} }
+    'shops.find_or_create': { paramsTuple?: []; params?: {} }
     'shops.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shops.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
-    'shops.find_or_create': { paramsTuple?: []; params?: {} }
     'keywords.index': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'keywords.store': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'keywords.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'shopId': ParamValue,'id': ParamValue} }

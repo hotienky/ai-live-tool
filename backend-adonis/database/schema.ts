@@ -50,7 +50,7 @@ export class ShopSchema extends BaseModel {
   @column()
   declare tiktokUsername: string | null
 
-  @column()
+  @column({ columnName: 'shopee_id' })
   declare shopeeShopId: string | null
 
   @column()
