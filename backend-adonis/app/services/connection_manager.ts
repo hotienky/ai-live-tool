@@ -131,6 +131,18 @@ class ConnectionManager {
             const matched = connInfo.keywords.filter((kw: any) => lower.includes(kw.keyword.toLowerCase()))
             if (matched.length > 0) {
               commentData.matchedKeywords = matched.map((kw: any) => ({ keyword: kw.keyword, color: kw.color, alertType: kw.alertType }))
+
+              // Auto-reply: emit event for keywords with auto_reply type
+              const autoReplyKws = matched.filter((kw: any) => kw.alertType === 'auto_reply' && kw.autoReplyText)
+              if (autoReplyKws.length > 0) {
+                io.to(`shop_${shopId}`).emit('auto_reply', {
+                  commentId: commentData.id,
+                  nickname: data.nickname,
+                  comment: data.comment,
+                  replyText: autoReplyKws[0].autoReplyText,
+                  keyword: autoReplyKws[0].keyword,
+                })
+              }
             }
           }
 

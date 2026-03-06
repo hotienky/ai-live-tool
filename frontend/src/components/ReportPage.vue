@@ -15,6 +15,9 @@
         <button class="report__refresh" @click="loadAll" :disabled="loading">
           <RefreshCcw :size="14" :class="{ 'spin': loading }" />
         </button>
+        <button class="report__export" @click="exportCSV" :disabled="!dailyData.length">
+          📥 Xuất CSV
+        </button>
       </div>
     </div>
 
@@ -229,6 +232,28 @@ async function loadAll() {
   }
 }
 
+function exportCSV() {
+  let csv = 'Ngày,Tổng,HOT,WARM,COLD\n'
+  dailyData.value.forEach(d => {
+    csv += `${d.date},${d.total},${d.HOT || 0},${d.WARM || 0},${d.COLD || 0}\n`
+  })
+  csv += '\nGiờ,Tổng,HOT\n'
+  hourlyData.value.forEach(h => {
+    csv += `${h.hour}:00,${h.total},${h.HOT || 0}\n`
+  })
+  csv += '\nKeyword,Số lần\n'
+  topKeywords.value.forEach(kw => {
+    csv += `${kw.word},${kw.count}\n`
+  })
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `report_${selectedDays.value}d_${new Date().toISOString().slice(0,10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 onMounted(loadAll)
 </script>
 
@@ -252,6 +277,14 @@ onMounted(loadAll)
   background: none; border: 1px solid var(--color-border); border-radius: 6px;
   padding: 6px; cursor: pointer; color: var(--color-text-secondary);
 }
+.report__export {
+  padding: 6px 14px; border-radius: 8px; border: none;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.report__export:hover { transform: scale(1.03); }
+.report__export:disabled { opacity: 0.4; cursor: not-allowed; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -263,6 +296,13 @@ onMounted(loadAll)
   display: flex; align-items: center; gap: 12px;
   padding: 16px; border-radius: 12px;
   background: var(--color-bg-secondary); border: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .report__summary { grid-template-columns: repeat(2, 1fr); }
+  .report__grid { grid-template-columns: 1fr !important; }
+  .report__header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .report__controls { width: 100%; }
 }
 .report__card-icon {
   width: 40px; height: 40px; border-radius: 10px;

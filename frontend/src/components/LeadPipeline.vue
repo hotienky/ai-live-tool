@@ -377,4 +377,15 @@ onMounted(loadData)
   margin-top: 16px; transition: opacity 0.2s;
 }
 .pipeline__modal-save:hover { opacity: 0.9; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .pipeline__board { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .pipeline__board { grid-template-columns: 1fr; }
+  .pipeline__header { flex-wrap: wrap; gap: 8px; }
+  .pipeline__summary { flex-wrap: wrap; }
+  .pipeline__modal { width: 95vw; }
+}
 </style>

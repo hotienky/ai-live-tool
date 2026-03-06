@@ -10,6 +10,7 @@ export function useSocket() {
   const crawlerStatus = ref({ status: 'connecting' })
   const viewerCount = ref(0)
   const currentShopId = ref(null)
+  const autoReplies = ref([])
 
   // Sound notification
   function playNotificationSound() {
@@ -92,6 +93,17 @@ export function useSocket() {
     socket.value.on('viewer_count', (data) => {
       viewerCount.value = data.count
     })
+
+    socket.value.on('auto_reply', (data) => {
+      autoReplies.value.unshift(data)
+      if (autoReplies.value.length > 50) autoReplies.value = autoReplies.value.slice(0, 50)
+      // Use toast if available
+      try {
+        const { useToast } = require('./useToast.js')
+        const { showToast } = useToast()
+        showToast(`🤖 Auto Reply → @${data.nickname}: ${data.replyText}`, 'info', 5000)
+      } catch { /* silent */ }
+    })
   }
 
   /**
@@ -146,6 +158,7 @@ export function useSocket() {
     crawlerStatus,
     viewerCount,
     currentShopId,
+    autoReplies,
     joinShop,
     startMock,
     resetStats,

@@ -402,4 +402,14 @@ onMounted(() => {
 }
 .settings__del-btn:hover { color: #ff3b5c; border-color: #ff3b5c; }
 .settings__empty-list { text-align: center; padding: 16px; color: var(--color-text-muted); font-size: 13px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings__tabs { flex-wrap: wrap; }
+  .settings__tab { flex: 1; min-width: 80px; justify-content: center; font-size: 11px; padding: 6px 8px; }
+  .settings__add-row { flex-wrap: wrap; }
+  .settings__input--sm { width: 100%; }
+  .settings__input--flex { width: 100%; }
+  .settings__list-item { flex-wrap: wrap; gap: 4px; }
+}
 </style>
