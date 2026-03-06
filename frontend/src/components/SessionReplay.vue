@@ -81,7 +81,7 @@
 import { ref, computed } from 'vue'
 import { PlayCircle, Film, Download, Printer } from 'lucide-vue-next'
 
-import { API_BASE as API } from '../config.js'
+import { apiFetch } from '../composables/useApi.js'
 
 const selectedSessionId = ref('')
 const selectedSession = ref(null)
@@ -123,7 +123,7 @@ const timelineDots = computed(() => {
 // Load sessions list
 async function loadSessions() {
   try {
-    const res = await fetch(`${API}/sessions?limit=50`)
+    const res = await apiFetch(`/sessions?limit=50`)
     const data = await res.json()
     sessions.value = data.data || data || []
   } catch { sessions.value = [] }
@@ -136,7 +136,7 @@ async function loadSession() {
     return
   }
   try {
-    const res = await fetch(`${API}/sessions/${selectedSessionId.value}`)
+    const res = await apiFetch(`/sessions/${selectedSessionId.value}`)
     const data = await res.json()
     selectedSession.value = data
     chatLogs.value = data.ChatLogs || data.chatLogs || data.chat_logs || []
@@ -179,7 +179,7 @@ function exportSession() {
 }
 
 function printReport() {
-  window.open(`${API}/export/report?sessionId=${selectedSessionId.value}`, '_blank')
+  window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3333/api'}/export/report?sessionId=${selectedSessionId.value}`, '_blank')
 }
 
 loadSessions()

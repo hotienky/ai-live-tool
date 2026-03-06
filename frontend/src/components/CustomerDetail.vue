@@ -130,7 +130,7 @@ const props = defineProps({
 
 defineEmits(['close'])
 
-import { API_BASE as API } from '../config.js'
+import { apiFetch } from '../composables/useApi.js'
 import { logger } from '../utils/logger.js'
 const chatLogs = ref([])
 const loading = ref(false)
@@ -150,7 +150,7 @@ watch(() => props.visible, async (v) => {
     saveSuccess.value = false
     try {
       const id = props.customer.id
-      const res = await fetch(`${API}/customers/${id}`)
+      const res = await apiFetch(`/customers/${id}`)
       const data = await res.json()
       chatLogs.value = data.ChatLogs || data.chatLogs || data.chat_logs || []
       // Load tags and notes

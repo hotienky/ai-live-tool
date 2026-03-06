@@ -4,8 +4,8 @@ import { DateTime } from 'luxon'
 import Shop from '#models/shop'
 
 export default class ScheduledLivestream extends BaseModel {
-  @column({ isPrimary: true }) declare id: number
-  @column() declare shopId: number
+  @column({ isPrimary: true }) declare id: string
+  @column() declare shopId: string
   @column() declare title: string
   @column() declare description: string | null
   @column() declare platform: string

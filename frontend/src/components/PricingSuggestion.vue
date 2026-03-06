@@ -51,7 +51,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { API_BASE } from '../config.js'
+import { apiFetch } from '../composables/useApi.js'
 import { Lightbulb, Search, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -67,9 +67,8 @@ async function analyzePricing() {
   analysis.value = null
 
   try {
-    const res = await fetch(`${API_BASE}/reply/sentiment`, {
+    const res = await apiFetch(`/reply/sentiment`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         comments: props.comments.slice(-30),
         mode: 'pricing',

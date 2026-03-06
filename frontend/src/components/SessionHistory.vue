@@ -92,7 +92,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { API_BASE } from '../config.js'
+import { apiFetch } from '../composables/useApi.js'
 import { logger } from '../utils/logger.js'
 import {
   History, X, Loader2, Radio, Flame, CircleDot,
@@ -140,9 +140,9 @@ async function fetchSessions() {
   loading.value = true
   try {
     const url = props.shopId
-      ? `${API_BASE}/sessions?shopId=${props.shopId}&limit=50`
-      : `${API_BASE}/sessions?limit=50`
-    const res = await fetch(url)
+      ? `/sessions?shopId=${props.shopId}&limit=50`
+      : `/sessions?limit=50`
+    const res = await apiFetch(url)
     sessions.value = await res.json()
   } catch (err) {
     console.error('Fetch sessions error:', err)
@@ -155,7 +155,7 @@ async function fetchSessions() {
 async function onDelete(id) {
   if (!confirm('Xóa phiên live này?')) return
   try {
-    await fetch(`${API_BASE}/sessions/${id}`, { method: 'DELETE' })
+    await apiFetch(`/sessions/${id}`, { method: 'DELETE' })
     sessions.value = sessions.value.filter(s => s.id !== id)
   } catch (err) {
     console.error('Delete session error:', err)
