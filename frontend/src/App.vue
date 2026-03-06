@@ -182,6 +182,18 @@
       v-if="activeView === 'replay'"
     />
 
+    <!-- ═══ View: Orders ═══ -->
+    <OrderManagement
+      v-if="activeView === 'orders'"
+      :shopId="currentShop?.id"
+    />
+
+    <!-- ═══ View: Schedule ═══ -->
+    <SchedulePlanner
+      v-if="activeView === 'schedule'"
+      :shopId="currentShop?.id"
+    />
+
     <!-- Customer Detail Modal -->
     <CustomerDetail
       :visible="showCustomerDetail"
@@ -238,6 +250,9 @@ import ScriptPrompter from './components/ScriptPrompter.vue'
 import SessionReplay from './components/SessionReplay.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
+import QuickReply from './components/QuickReply.vue'
+import OrderManagement from './components/OrderManagement.vue'
+import SchedulePlanner from './components/SchedulePlanner.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 
@@ -262,8 +277,10 @@ const tabs = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
   { key: 'crm', label: 'CRM', icon: Users },
+  { key: 'orders', label: 'Orders', icon: BarChart3 },
   { key: 'reports', label: 'Reports', icon: BarChart2 },
   { key: 'replay', label: 'Replay', icon: HistoryIcon },
+  { key: 'schedule', label: 'Schedule', icon: Radio },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
 

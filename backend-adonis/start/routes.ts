@@ -20,6 +20,8 @@ const CustomersController = () => import('#controllers/customers_controller')
 const SessionsController = () => import('#controllers/sessions_controller')
 const ExportsController = () => import('#controllers/exports_controller')
 const RepliesController = () => import('#controllers/replies_controller')
+const OrdersController = () => import('#controllers/orders_controller')
+const SchedulesController = () => import('#controllers/schedules_controller')
 
 // ──── Health Check ────
 router.get('/api/health', async () => {
@@ -98,6 +100,30 @@ router.group(() => {
   // Sessions
   router.get('/sessions', [SessionsController, 'index'])
   router.get('/sessions/:id', [SessionsController, 'show'])
+
+  // Orders — NEW
+  router.get('/orders', [OrdersController, 'index'])
+  router.get('/orders/stats', [OrdersController, 'stats'])
+  router.post('/orders', [OrdersController, 'store'])
+  router.get('/orders/:id', [OrdersController, 'show'])
+  router.put('/orders/:id', [OrdersController, 'update'])
+  router.delete('/orders/:id', [OrdersController, 'destroy'])
+
+  // Scheduled Livestreams — NEW
+  router.get('/schedules', [SchedulesController, 'index'])
+  router.post('/schedules', [SchedulesController, 'store'])
+  router.get('/schedules/:id', [SchedulesController, 'show'])
+  router.put('/schedules/:id', [SchedulesController, 'update'])
+  router.delete('/schedules/:id', [SchedulesController, 'destroy'])
+
+  // Customer tags — NEW
+  router.put('/customers/:id/tags', async ({ params, request, response }) => {
+    const Customer = (await import('#models/customer')).default
+    const customer = await Customer.findOrFail(params.id)
+    customer.merge(request.only(['tags', 'notes']))
+    await customer.save()
+    return response.json(customer)
+  })
 
   // Export
   router.get('/export/leads', [ExportsController, 'leads'])
