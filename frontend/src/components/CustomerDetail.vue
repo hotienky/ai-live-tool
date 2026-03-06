@@ -130,7 +130,8 @@ const props = defineProps({
 
 defineEmits(['close'])
 
-const API = 'http://localhost:3000/api'
+import { API_BASE as API } from '../config.js'
+import { logger } from '../utils/logger.js'
 const chatLogs = ref([])
 const loading = ref(false)
 const tags = ref([])

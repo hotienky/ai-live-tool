@@ -81,7 +81,7 @@
 import { ref, computed } from 'vue'
 import { PlayCircle, Film, Download, Printer } from 'lucide-vue-next'
 
-const API = 'http://localhost:3000/api'
+import { API_BASE as API } from '../config.js'
 
 const selectedSessionId = ref('')
 const selectedSession = ref(null)

@@ -119,6 +119,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useToast } from '../composables/useToast.js'
+const { showToast } = useToast()
 
 const props = defineProps({
   shopId: [Number, String],
@@ -166,7 +168,7 @@ async function createOrder() {
     showCreateModal.value = false
     newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' }
     fetchOrders(); fetchStats()
-  } catch (err) { alert('Lỗi tạo đơn: ' + err.message) }
+  } catch (err) { showToast('Lỗi tạo đơn: ' + err.message, 'error') }
 }
 
 async function updateStatus(order, newStatus) {

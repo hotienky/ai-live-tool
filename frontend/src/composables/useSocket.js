@@ -1,5 +1,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { io } from 'socket.io-client'
+import { SOCKET_URL } from '../config.js'
+import { useToast } from './useToast.js'
 
 export function useSocket() {
   const socket = ref(null)
@@ -34,7 +36,7 @@ export function useSocket() {
   const connectionLost = ref(false)
 
   function connect() {
-    socket.value = io('http://localhost:3000', {
+    socket.value = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
       reconnectionDelay: 2000,
@@ -43,7 +45,6 @@ export function useSocket() {
     socket.value.on('connect', () => {
       isConnected.value = true
       connectionLost.value = false
-      console.log('✅ Socket connected:', socket.value.id)
       if (currentShopId.value) {
         socket.value.emit('join_shop', { shopId: currentShopId.value })
       }
@@ -52,16 +53,12 @@ export function useSocket() {
     socket.value.on('disconnect', () => {
       isConnected.value = false
       connectionLost.value = true
-      console.log('❌ Socket disconnected')
     })
 
-    socket.value.io.on('reconnect_attempt', (attempt) => {
-      console.log(`🔄 Reconnecting... attempt ${attempt}`)
-    })
+    socket.value.io.on('reconnect_attempt', () => {})
 
     socket.value.io.on('reconnect', () => {
       connectionLost.value = false
-      console.log('✅ Reconnected')
     })
 
     // New comment from server (scoped to shop room)
@@ -97,9 +94,7 @@ export function useSocket() {
     socket.value.on('auto_reply', (data) => {
       autoReplies.value.unshift(data)
       if (autoReplies.value.length > 50) autoReplies.value = autoReplies.value.slice(0, 50)
-      // Use toast if available
       try {
-        const { useToast } = require('./useToast.js')
         const { showToast } = useToast()
         showToast(`🤖 Auto Reply → @${data.nickname}: ${data.replyText}`, 'info', 5000)
       } catch { /* silent */ }
@@ -122,7 +117,6 @@ export function useSocket() {
 
     if (socket.value && isConnected.value) {
       socket.value.emit('join_shop', { shopId })
-      console.log(`📌 Joined shop room: ${shopId}`)
     }
   }
 

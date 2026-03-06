@@ -66,7 +66,7 @@ import { ref, watch } from 'vue'
 const props = defineProps({
   visible: Boolean,
   targetComment: Object,
-  apiBase: { type: String, default: 'http://localhost:3000' }
+  apiBase: { type: String, default: '' }
 })
 
 const emit = defineEmits(['close', 'sent'])

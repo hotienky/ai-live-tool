@@ -173,6 +173,9 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useToast } from '../composables/useToast.js'
+import { logger } from '../utils/logger.js'
+const { showToast } = useToast()
 
 const props = defineProps({
   currentShop: { type: Object, default: null },
@@ -252,8 +255,8 @@ async function saveShopInfo() {
       method: 'PUT',
       body: JSON.stringify(shopForm.value),
     })
-    alert('✅ Đã lưu cấu hình shop')
-  } catch (e) { alert('❌ Lỗi: ' + e.message) }
+    showToast('Đã lưu cấu hình shop', 'success')
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
 async function addProduct() {
@@ -318,7 +321,7 @@ async function deleteTemplate(id) {
 
 function saveModerationConfig() {
   localStorage.setItem(`mod_config_${props.currentShop?.id}`, JSON.stringify(moderationConfig.value))
-  alert('✅ Đã lưu cấu hình moderation')
+  showToast('Đã lưu cấu hình moderation', 'success')
 }
 
 onMounted(() => {

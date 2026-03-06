@@ -81,6 +81,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useToast } from '../composables/useToast.js'
+const { showToast } = useToast()
 
 const props = defineProps({
   shopId: [Number, String],
@@ -116,7 +118,7 @@ async function createSchedule() {
     showModal.value = false
     form.value = { title: '', scheduledAt: '', durationMinutes: 60, platform: 'tiktok', script: '', description: '' }
     fetchSchedules()
-  } catch (err) { alert('Lỗi: ' + err.message) }
+  } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
 }
 
 async function cancelSchedule(s) {
@@ -131,7 +133,7 @@ async function cancelSchedule(s) {
 }
 
 function goLive(s) {
-  alert(`🔴 Sẵn sàng live: ${s.title}\nPlatform: ${s.platform}`)
+  showToast(`Sẵn sàng live: ${s.title} — ${s.platform}`, 'info')
 }
 
 function formatDateTime(d) {

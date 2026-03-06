@@ -142,6 +142,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useLeads } from '../composables/useLeads.js'
+import { logger } from '../utils/logger.js'
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
   Save, PhoneCall, CheckCircle, XCircle, ArrowRight

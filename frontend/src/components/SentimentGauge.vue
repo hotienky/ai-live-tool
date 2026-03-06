@@ -56,6 +56,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { API_BASE } from '../config.js'
 import { Target, RefreshCw, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -69,7 +70,7 @@ async function fetchSentiment() {
   if (props.comments.length === 0) return
   loading.value = true
   try {
-    const res = await fetch('http://localhost:3000/api/reply/sentiment', {
+    const res = await fetch(`${API_BASE}/reply/sentiment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ comments: props.comments.slice(-20) }),

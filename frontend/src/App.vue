@@ -227,6 +227,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { API_BASE } from './config.js'
+import { logger } from './utils/logger.js'
 import { useSocket } from './composables/useSocket.js'
 import { useShops } from './composables/useShops.js'
 import { useTTS } from './composables/useTTS.js'
@@ -424,13 +426,13 @@ async function onCreateShop(shopData) {
   try {
     const newShop = await createShop(shopData)
     selectShop(newShop)
-  } catch (err) { console.error('Error creating shop:', err) }
+  } catch (err) { logger.error('Error creating shop:', err) }
 }
 
 async function onConnectTiktok() {
   if (!currentShop.value) return
   try { await connectShop(currentShop.value.id, false) }
-  catch (err) { console.error('Connect error:', err) }
+  catch (err) { logger.error('Connect error:', err) }
 }
 
 function onStartMock() {
@@ -441,7 +443,7 @@ function onStartMock() {
 async function onDisconnect() {
   if (!currentShop.value) return
   try { await disconnectShop(currentShop.value.id) }
-  catch (err) { console.error('Disconnect error:', err) }
+  catch (err) { logger.error('Disconnect error:', err) }
 }
 
 function onResetStats() {
@@ -453,7 +455,7 @@ function onResetStats() {
 
 function onExport() {
   if (!currentShop.value) return
-  window.open(`http://localhost:3000/api/export/leads?shopId=${currentShop.value.id}&format=csv`, '_blank')
+  window.open(`${API_BASE}/export/leads?shopId=${currentShop.value.id}&format=csv`, '_blank')
 }
 
 const statusDotClass = computed(() => {

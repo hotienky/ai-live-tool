@@ -154,6 +154,7 @@
 </template>
 
 <script setup>
+import { logger } from '../utils/logger.js'
 import { ref, computed, onMounted } from 'vue'
 import {
   BarChart3, RefreshCcw, MessageSquare, Flame, TrendingUp,
