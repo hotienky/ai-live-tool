@@ -153,7 +153,7 @@ export class CustomerSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
-  @column()
+  @column({ columnName: 'platform_user_id' })
   declare uniqueId: string
 
   @column()
@@ -168,7 +168,7 @@ export class CustomerSchema extends BaseModel {
   @column()
   declare platform: string | null
 
-  @column()
+  @column({ columnName: 'total_interactions' })
   declare totalComments: number
 
   @column()
