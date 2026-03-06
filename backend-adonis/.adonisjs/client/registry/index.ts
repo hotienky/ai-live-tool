@@ -150,6 +150,18 @@ const routes = {
     tokens: [{"old":"/api/dashboard/overview","type":0,"val":"api","end":""},{"old":"/api/dashboard/overview","type":0,"val":"dashboard","end":""},{"old":"/api/dashboard/overview","type":0,"val":"overview","end":""}],
     types: placeholder as Registry['dashboard.overview']['types'],
   },
+  'dashboard.recent_leads': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/dashboard/recent-leads',
+    tokens: [{"old":"/api/dashboard/recent-leads","type":0,"val":"api","end":""},{"old":"/api/dashboard/recent-leads","type":0,"val":"dashboard","end":""},{"old":"/api/dashboard/recent-leads","type":0,"val":"recent-leads","end":""}],
+    types: placeholder as Registry['dashboard.recent_leads']['types'],
+  },
+  'dashboard.analytics': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/dashboard/analytics',
+    tokens: [{"old":"/api/dashboard/analytics","type":0,"val":"api","end":""},{"old":"/api/dashboard/analytics","type":0,"val":"dashboard","end":""},{"old":"/api/dashboard/analytics","type":0,"val":"analytics","end":""}],
+    types: placeholder as Registry['dashboard.analytics']['types'],
+  },
   'analytics.daily': {
     methods: ["GET","HEAD"],
     pattern: '/api/analytics/daily',

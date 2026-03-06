@@ -28,6 +28,8 @@ export type ScannedRoutes = {
     'leads.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.pipeline_stats': { paramsTuple?: []; params?: {} }
     'dashboard.overview': { paramsTuple?: []; params?: {} }
+    'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
+    'dashboard.analytics': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }
@@ -66,6 +68,8 @@ export type ScannedRoutes = {
     'leads.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.pipeline_stats': { paramsTuple?: []; params?: {} }
     'dashboard.overview': { paramsTuple?: []; params?: {} }
+    'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
+    'dashboard.analytics': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }
@@ -96,6 +100,8 @@ export type ScannedRoutes = {
     'leads.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.pipeline_stats': { paramsTuple?: []; params?: {} }
     'dashboard.overview': { paramsTuple?: []; params?: {} }
+    'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
+    'dashboard.analytics': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }

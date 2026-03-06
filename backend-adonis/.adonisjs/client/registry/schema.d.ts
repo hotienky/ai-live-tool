@@ -295,6 +295,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['overview']>>>
     }
   }
+  'dashboard.recent_leads': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/dashboard/recent-leads'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['recentLeads']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['recentLeads']>>>
+    }
+  }
+  'dashboard.analytics': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/dashboard/analytics'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['analytics']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['analytics']>>>
+    }
+  }
   'analytics.daily': {
     methods: ["GET","HEAD"]
     pattern: '/api/analytics/daily'

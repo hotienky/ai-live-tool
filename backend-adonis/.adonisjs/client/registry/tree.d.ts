@@ -39,6 +39,8 @@ export interface ApiDefinition {
   }
   dashboard: {
     overview: typeof routes['dashboard.overview']
+    recentLeads: typeof routes['dashboard.recent_leads']
+    analytics: typeof routes['dashboard.analytics']
   }
   analytics: {
     daily: typeof routes['analytics.daily']
