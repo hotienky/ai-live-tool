@@ -16,7 +16,7 @@ export default class ExportLeadsAction {
     if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
     const leads = await query
 
-    const headers = ['id', 'unique_id', 'nickname', 'comment', 'label', 'status', 'notes', 'product_intent', 'created_at']
+    const headers = ['id', 'uniqueId', 'nickname', 'comment', 'label', 'status', 'notes', 'productIntent', 'createdAt']
     let csv = headers.join(',') + '\n'
     for (const l of leads) {
       const s = l.serialize()

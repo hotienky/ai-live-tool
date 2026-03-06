@@ -362,7 +362,7 @@ class ConnectionManager {
   private async _saveComment(commentData: any, sessionId: number | null) {
     try {
       // Find or create customer
-      let customer = await Customer.query().where('unique_id', commentData.uniqueId).first()
+      let customer = await Customer.query().where('platform_user_id', commentData.uniqueId).first()
       if (!customer) {
         customer = await Customer.create({
           uniqueId: commentData.uniqueId,

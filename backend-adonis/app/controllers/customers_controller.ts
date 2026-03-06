@@ -15,7 +15,7 @@ export default class CustomersController {
     if (search) {
       query.where((q) => {
         q.whereILike('nickname', `%${search}%`)
-          .orWhereILike('unique_id', `%${search}%`)
+          .orWhereILike('platform_user_id', `%${search}%`)
       })
     }
 

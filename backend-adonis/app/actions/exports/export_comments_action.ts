@@ -16,7 +16,7 @@ export default class ExportCommentsAction {
     if (sessionId) query.where('sessionId', sessionId as string)
     const comments = await query
 
-    const headers = ['id', 'unique_id', 'nickname', 'comment_text', 'ai_label', 'ai_summary', 'product_intent', 'platform', 'created_at']
+    const headers = ['id', 'uniqueId', 'nickname', 'commentText', 'aiLabel', 'aiSummary', 'productIntent', 'platform', 'createdAt']
     let csv = headers.join(',') + '\n'
     for (const c of comments) {
       const s = c.serialize()

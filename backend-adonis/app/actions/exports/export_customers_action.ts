@@ -13,7 +13,7 @@ export default class ExportCustomersAction {
     if (shopId) query.where('shopId', shopId as string)
     const customers = await query
 
-    const headers = ['id', 'unique_id', 'nickname', 'total_comments', 'hot_count', 'last_label', 'platform', 'created_at']
+    const headers = ['id', 'uniqueId', 'nickname', 'totalComments', 'hotCount', 'lastLabel', 'platform', 'createdAt']
     let csv = headers.join(',') + '\n'
     for (const c of customers) {
       const s = c.serialize()
