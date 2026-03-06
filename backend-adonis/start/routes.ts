@@ -185,7 +185,7 @@ router.group(() => {
     const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
     const connectionManager = (await import('#services/connection_manager')).default
-    await connectionManager.stopConnection(Number(params.id))
+    await connectionManager.stopConnection(params.id)
     return response.json({ success: true })
   })
 
@@ -194,7 +194,7 @@ router.group(() => {
     const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
     const connectionManager = (await import('#services/connection_manager')).default
-    const stats = connectionManager.getStats(Number(params.id))
+    const stats = connectionManager.getStats(params.id)
     return response.json(stats)
   })
 
@@ -208,7 +208,7 @@ router.group(() => {
     if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
     try {
       await connectionManager.startMockConnection(
-        { id: Number(params.id), shopName: shop.shopName || 'Mock Shop', platform: shop.platform || 'tiktok' },
+        { id: params.id, shopName: shop.shopName || 'Mock Shop', platform: shop.platform || 'tiktok' },
         io
       )
       return response.json({ success: true })
