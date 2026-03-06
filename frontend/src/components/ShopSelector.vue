@@ -94,7 +94,7 @@
           v-if="newPlatform === 'youtube'"
           v-model="newYoutubeChannelId"
           type="text"
-          placeholder="YouTube Channel ID..."
+          placeholder="YouTube Video URL (vd: https://youtube.com/watch?v=xxx)"
           class="shop-selector__form-input"
           @keyup.enter="onAddShop"
         />

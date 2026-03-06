@@ -33,6 +33,18 @@
       <p class="lead-card__comment">{{ comment }}</p>
     </div>
 
+    <!-- Matched Product -->
+    <div class="lead-card__product" v-if="matchedProduct">
+      <ShoppingBag :size="13" />
+      <span class="lead-card__product-name">{{ matchedProduct.product?.name }}</span>
+      <span class="lead-card__product-price" v-if="matchedProduct.product?.price">
+        {{ Number(matchedProduct.product.price).toLocaleString() }}đ
+      </span>
+      <span class="lead-card__product-confidence">
+        {{ Math.round(matchedProduct.confidence * 100) }}% match
+      </span>
+    </div>
+
     <!-- Actions -->
     <div class="lead-card__actions">
       <a
@@ -75,7 +87,7 @@
 import { computed, ref } from 'vue'
 import {
   Flame, CircleDot, ExternalLink, MessageCircle,
-  Loader2, Bot, Copy, Check
+  Loader2, Bot, Copy, Check, ShoppingBag
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -86,6 +98,7 @@ const props = defineProps({
   profileLink: String,
   profilePictureUrl: String,
   timestamp: String,
+  matchedProduct: { type: Object, default: null },
 })
 
 const defaultAvatar = 'https://api.dicebear.com/7.x/avataaars/svg?seed=default'
@@ -173,6 +186,16 @@ async function copyReply() {
 
 .lead-card__body { margin-bottom: 12px; }
 .lead-card__comment { font-size: 14px; line-height: 1.5; color: var(--color-text-secondary); word-break: break-word; }
+
+.lead-card__product {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 10px; margin-bottom: 10px; border-radius: 6px;
+  background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.2);
+  font-size: 12px; color: #a855f7;
+}
+.lead-card__product-name { font-weight: 600; }
+.lead-card__product-price { color: var(--color-text-primary); font-weight: 700; }
+.lead-card__product-confidence { margin-left: auto; font-size: 11px; opacity: 0.7; }
 
 .lead-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .lead-card__cta {

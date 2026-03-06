@@ -16,6 +16,7 @@
         :class="{
           'chat-msg--hot': msg.label === '[HOT]',
           'chat-msg--warm': msg.label === '[WARM]',
+          'chat-msg--keyword': msg.matchedKeywords?.length > 0,
         }"
       >
         <span class="chat-msg__label" v-if="msg.label !== '[COLD]'">
@@ -25,8 +26,20 @@
         <span class="chat-msg__name" :class="nameClass(msg.label)">
           {{ msg.nickname }}:
         </span>
-        <span class="chat-msg__text" :class="textClass(msg.label)">
-          {{ msg.comment }}
+        <span class="chat-msg__text" :class="textClass(msg.label)" v-html="highlightKeywords(msg.comment, msg.matchedKeywords)">
+        </span>
+        <!-- Keyword badges -->
+        <span
+          v-for="kw in (msg.matchedKeywords || [])"
+          :key="kw.keyword"
+          class="chat-msg__kw-badge"
+          :style="{ backgroundColor: kw.color + '22', color: kw.color, borderColor: kw.color + '44' }"
+        >
+          {{ kw.keyword }}
+        </span>
+        <!-- Product match indicator -->
+        <span v-if="msg.matchedProduct" class="chat-msg__product-badge">
+          🛍️ {{ msg.matchedProduct.product?.name }}
         </span>
       </div>
     </div>
@@ -58,6 +71,24 @@ function textClass(label) {
   return {
     'chat-msg__text--cold': label === '[COLD]',
   }
+}
+
+function highlightKeywords(text, matchedKeywords) {
+  if (!text || !matchedKeywords || matchedKeywords.length === 0) return escapeHtml(text || '')
+  let html = escapeHtml(text)
+  for (const kw of matchedKeywords) {
+    const regex = new RegExp(`(${escapeRegex(kw.keyword)})`, 'gi')
+    html = html.replace(regex, `<mark style="background:${kw.color}33;color:${kw.color};border-radius:2px;padding:0 2px;">$1</mark>`)
+  }
+  return html
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 </script>
 
@@ -115,6 +146,7 @@ function textClass(label) {
   display: flex;
   align-items: flex-start;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .chat-msg--hot {
@@ -123,6 +155,10 @@ function textClass(label) {
 
 .chat-msg--warm {
   background: rgba(255, 140, 66, 0.06);
+}
+
+.chat-msg--keyword {
+  border-left: 2px solid var(--color-accent-warm);
 }
 
 .chat-msg__label {
@@ -157,4 +193,25 @@ function textClass(label) {
   color: var(--color-text-muted);
   opacity: 0.7;
 }
+
+.chat-msg__kw-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.chat-msg__product-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 </style>
+

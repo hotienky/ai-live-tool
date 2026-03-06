@@ -1,5 +1,8 @@
 <template>
-  <div class="app">
+  <!-- Login Gate -->
+  <LoginPage v-if="!isLoggedIn" @loginSuccess="onLoginSuccess" />
+
+  <div class="app" v-else>
     <!-- Top Header Bar -->
     <header class="app-header">
       <div class="app-header__left">
@@ -7,6 +10,19 @@
           <Rocket :size="20" />
           <span>AI Live Tool</span>
         </div>
+        <!-- Tab Navigation -->
+        <nav class="app-nav">
+          <button
+            v-for="tab in tabs"
+            :key="tab.key"
+            class="app-nav__tab"
+            :class="{ 'app-nav__tab--active': activeView === tab.key }"
+            @click="activeView = tab.key"
+          >
+            <component :is="tab.icon" :size="14" />
+            {{ tab.label }}
+          </button>
+        </nav>
         <!-- Shop Selector -->
         <ShopSelector
           :shops="shops"
@@ -14,17 +30,17 @@
           @select="onSelectShop"
           @create="onCreateShop"
         />
-        <div class="app-header__status">
+        <div class="app-header__status" v-if="activeView === 'live'">
           <span class="app-header__dot" :class="statusDotClass"></span>
           <span class="app-header__status-text">{{ statusText }}</span>
         </div>
       </div>
       <div class="app-header__right">
-        <div class="app-header__viewers" v-if="viewerCount > 0">
+        <div class="app-header__viewers" v-if="viewerCount > 0 && activeView === 'live'">
           <Eye :size="14" />
           {{ viewerCount.toLocaleString() }} viewers
         </div>
-        <div class="app-header__controls">
+        <div class="app-header__controls" v-if="activeView === 'live'">
           <!-- TTS Toggle -->
           <button
             class="app-header__btn app-header__btn--tts"
@@ -43,6 +59,15 @@
             title="Thống kê biểu đồ"
           >
             <BarChart3 :size="16" />
+          </button>
+          <!-- Session History -->
+          <button
+            class="app-header__btn app-header__btn--history"
+            :class="{ 'app-header__btn--history-active': showHistory }"
+            @click="showHistory = !showHistory"
+            title="Lịch sử phiên Live"
+          >
+            <History :size="16" />
           </button>
           <!-- Export -->
           <button
@@ -87,8 +112,25 @@
             <RotateCcw :size="14" />
           </button>
         </div>
+        <!-- User Menu -->
+        <div class="app-header__user" v-if="currentUser">
+          <span class="app-header__user-name">
+            <UserIcon :size="14" />
+            {{ currentUser.name }}
+          </span>
+          <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất">
+            <LogOut :size="14" />
+          </button>
+        </div>
       </div>
     </header>
+
+    <!-- Session History Panel -->
+    <SessionHistory
+      :visible="showHistory"
+      :shopId="currentShop?.id"
+      @close="showHistory = false"
+    />
 
     <!-- Stats Chart Overlay -->
     <StatsChart
@@ -98,8 +140,11 @@
       @close="showChart = false"
     />
 
-    <!-- Main Content: 2-column layout -->
-    <main class="app-main">
+    <!-- ═══ View: Dashboard ═══ -->
+    <DashboardOverview v-if="activeView === 'dashboard'" />
+
+    <!-- ═══ View: Live Monitor ═══ -->
+    <main class="app-main" v-if="activeView === 'live'">
       <!-- Left: Lead Panel (70%) -->
       <section class="app-main__left">
         <LeadPanel :leads="leads" />
@@ -113,6 +158,48 @@
         <PricingSuggestion :comments="allComments" />
       </section>
     </main>
+
+    <!-- ═══ View: CRM Pipeline ═══ -->
+    <LeadPipeline
+      v-if="activeView === 'crm'"
+      :shopId="currentShop?.id"
+    />
+
+    <!-- ═══ View: Reports ═══ -->
+    <ReportPage
+      v-if="activeView === 'reports'"
+      :shopId="currentShop?.id"
+    />
+
+    <!-- ═══ View: Settings ═══ -->
+    <ShopSettings
+      v-if="activeView === 'settings'"
+      :currentShop="currentShop"
+    />
+
+    <!-- Floating Panels (available in Live Monitor) -->
+    <div class="app-floating" v-if="activeView === 'live'">
+      <div class="app-floating__panel" v-if="showLuckyDraw">
+        <LuckyDrawPanel :comments="allComments" @close="showLuckyDraw = false" />
+      </div>
+      <div class="app-floating__panel" v-if="showPrompter">
+        <ScriptPrompter @close="showPrompter = false" />
+      </div>
+    </div>
+
+    <!-- Floating Action Buttons (Live Monitor) -->
+    <div class="app-fab" v-if="activeView === 'live'">
+      <button class="app-fab__btn app-fab__btn--draw" @click="showLuckyDraw = !showLuckyDraw" title="Lucky Draw">
+        <Gift :size="18" />
+      </button>
+      <button class="app-fab__btn app-fab__btn--script" @click="showPrompter = !showPrompter" title="Kịch bản Live">
+        <FileText :size="18" />
+      </button>
+      <button class="app-fab__btn app-fab__btn--notif" @click="toggleBrowserNotif" :title="notifEnabled ? 'Tắt thông báo' : 'Bật thông báo'">
+        <BellRing v-if="notifEnabled" :size="18" />
+        <BellOff v-else :size="18" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -128,11 +215,45 @@ import StatsBar from './components/StatsBar.vue'
 import StatsChart from './components/StatsChart.vue'
 import SentimentGauge from './components/SentimentGauge.vue'
 import PricingSuggestion from './components/PricingSuggestion.vue'
+import SessionHistory from './components/SessionHistory.vue'
+import DashboardOverview from './components/DashboardOverview.vue'
+import LeadPipeline from './components/LeadPipeline.vue'
+import ReportPage from './components/ReportPage.vue'
+import LoginPage from './components/LoginPage.vue'
+import ShopSettings from './components/ShopSettings.vue'
+import LuckyDrawPanel from './components/LuckyDrawPanel.vue'
+import ScriptPrompter from './components/ScriptPrompter.vue'
+import { useAuth } from './composables/useAuth.js'
+import { useNotifications } from './composables/useNotifications.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
-  Radio, Drama, Square, RotateCcw
+  Radio, Drama, Square, RotateCcw, History,
+  LayoutDashboard, MonitorPlay, Users, BarChart2,
+  User as UserIcon, LogOut, Settings, Gift, FileText,
+  BellRing, BellOff
 } from 'lucide-vue-next'
+
+// ── Auth ──
+const { isLoggedIn, currentUser, logout } = useAuth()
+const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
+
+function onLoginSuccess() {}
+function onLogout() { logout() }
+
+// ── Navigation ──
+const activeView = ref('live')
+const tabs = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
+  { key: 'crm', label: 'CRM', icon: Users },
+  { key: 'reports', label: 'Reports', icon: BarChart2 },
+  { key: 'settings', label: 'Settings', icon: Settings },
+]
+
+// Floating panels
+const showLuckyDraw = ref(false)
+const showPrompter = ref(false)
 
 // Socket composable
 const {
@@ -161,8 +282,9 @@ const {
 // TTS composable
 const { isEnabled: ttsEnabled, toggle: toggleTTS, announceHotLead } = useTTS()
 
-// Stats Chart
+// Stats Chart & Session History
 const showChart = ref(false)
+const showHistory = ref(false)
 const timelineData = ref([])
 let timelineInterval = null
 
@@ -188,6 +310,7 @@ watch(leads, (newLeads, oldLeads) => {
     const latest = newLeads[newLeads.length - 1]
     if (latest.label === '[HOT]') {
       announceHotLead(latest)
+      notifyHotLead(latest)
     }
   }
 }, { deep: true })
@@ -308,6 +431,43 @@ const statusText = computed(() => {
   color: #ff3b5c;
 }
 
+/* ── Tab Navigation ── */
+.app-nav {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg-primary);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.app-nav__tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.app-nav__tab:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+}
+
+.app-nav__tab--active {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
 .app-header__status {
   display: flex;
   align-items: center;
@@ -393,19 +553,22 @@ const statusText = computed(() => {
 .app-header__btn--reset:hover { color: var(--color-text-primary); background: var(--color-bg-card); }
 
 .app-header__btn--tts,
-.app-header__btn--stats {
+.app-header__btn--stats,
+.app-header__btn--history {
   background: transparent;
   color: var(--color-text-muted);
   border: 1px solid var(--color-border);
   padding: 6px 10px;
 }
 .app-header__btn--tts:hover,
-.app-header__btn--stats:hover {
+.app-header__btn--stats:hover,
+.app-header__btn--history:hover {
   color: var(--color-text-primary);
   background: var(--color-bg-card);
 }
 .app-header__btn--tts-active { color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
 .app-header__btn--stats-active { color: #ff8c42; border-color: #ff8c42; background: rgba(255, 140, 66, 0.1); }
+.app-header__btn--history-active { color: #a78bfa; border-color: #a78bfa; background: rgba(167, 139, 250, 0.1); }
 
 .app-header__btn--export {
   background: var(--color-bg-card);
@@ -420,4 +583,107 @@ const statusText = computed(() => {
 .app-main { display: flex; flex: 1; overflow: hidden; }
 .app-main__left { flex: 7; border-right: 1px solid var(--color-border); overflow: hidden; }
 .app-main__right { flex: 3; display: flex; flex-direction: column; overflow: hidden; }
+
+/* User Menu */
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+}
+.app-header__user-name {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.app-header__btn--logout {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  padding: 6px 8px;
+}
+.app-header__btn--logout:hover {
+  color: #ff3b5c;
+  border-color: #ff3b5c;
+  background: rgba(255, 59, 92, 0.08);
+}
+
+/* Floating Panels */
+.app-floating {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 50;
+}
+.app-floating__panel {
+  width: 380px;
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* FAB Buttons */
+.app-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 50;
+}
+.app-fab__btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.app-fab__btn:hover { transform: scale(1.1); }
+.app-fab__btn--draw { background: linear-gradient(135deg, #f59e0b, #ef4444); color: white; }
+.app-fab__btn--script { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+.app-fab__btn--notif { background: var(--color-bg-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+
+/* ═══ Mobile Responsive ═══ */
+@media (max-width: 1024px) {
+  .app-header { flex-wrap: wrap; padding: 8px 12px; }
+  .app-header__left { flex-wrap: wrap; gap: 8px; }
+  .app-header__controls { flex-wrap: wrap; }
+  .app-main { flex-direction: column; }
+  .app-main__left { flex: none; height: 60%; border-right: none; border-bottom: 1px solid var(--color-border); }
+  .app-main__right { flex: none; height: 40%; }
+}
+
+@media (max-width: 768px) {
+  .app-nav { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .app-nav__tab { padding: 6px 10px; font-size: 12px; }
+  .app-header__btn { padding: 5px 10px; font-size: 12px; }
+  .app-header__controls { gap: 4px; }
+  .app-header__status-text { display: none; }
+  .app-header__viewers { display: none; }
+  .app-floating__panel { width: calc(100vw - 40px); }
+}
+
+@media (max-width: 480px) {
+  .app-header { padding: 6px 8px; }
+  .app-header__logo span { display: none; }
+  .app-nav__tab span { display: none; }
+  .app-header__btn span { display: none; }
+  .app-header__user-name span { display: none; }
+}
 </style>
+

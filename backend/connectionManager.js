@@ -2,6 +2,9 @@ const { WebcastPushConnection } = require("tiktok-live-connector");
 const { analyzeComment } = require("./ai_service");
 const { sendHotLeadAlert } = require("./telegramService");
 const { createConnector, SUPPORTED_PLATFORMS } = require("./connectors");
+const { createSession, endSession } = require("./routes/sessionRoutes");
+const { saveComment } = require("./db/models");
+const { matchProduct } = require("./productMatchService");
 
 /**
  * ConnectionManager - Quản lý nhiều kết nối TikTok/Shopee đồng thời
@@ -9,11 +12,11 @@ const { createConnector, SUPPORTED_PLATFORMS } = require("./connectors");
  */
 class ConnectionManager {
   constructor() {
-    // Map<shopId, { connection, stats, username, status }>
     this.connections = new Map();
-    // Map<shopId, commentData[]> — in-memory lead storage for export
     this.leads = new Map();
   }
+
+
 
   /**
    * Lấy stats của 1 shop
@@ -59,6 +62,10 @@ class ConnectionManager {
       shopName,
       platform,
       status: "connecting",
+      peakViewers: 0,
+      sessionId: null,
+      products: [], // Cached products for matching
+      keywords: [], // Cached keywords for alerts
     };
     this.connections.set(shopId, connInfo);
 
@@ -75,6 +82,55 @@ class ConnectionManager {
       connInfo.status = "connected";
 
       console.log(`✅ [${shopName}] ${platform} Live connected! Room: ${state.roomId}, Viewers: ${state.viewerCount}`);
+
+      // Lưu session vào DB
+      try {
+        const session = await createSession({
+          shop_id: shopId,
+          platform,
+          platform_live_id: state.roomId || null,
+          status: "Active",
+          shop_name: shopName,
+          started_at: new Date(),
+        });
+        connInfo.sessionId = session.id;
+        console.log(`💾 [${shopName}] Session saved: ${session.id}`);
+      } catch (e) {
+        console.error(`⚠️ [${shopName}] Không thể lưu session:`, e.message);
+      }
+
+      // Load products for matching
+      try {
+        const { DB_ENABLED } = require("./db/connection");
+        if (DB_ENABLED) {
+          const { Product } = require("./db/models");
+          if (Product) {
+            const products = await Product.findAll({ where: { shop_id: shopId }, raw: true });
+            connInfo.products = products;
+            console.log(`📦 [${shopName}] Loaded ${products.length} products for matching`);
+          }
+        }
+      } catch (e) {
+        console.log(`⚠️ [${shopName}] Không load được products:`, e.message);
+      }
+
+      // Load keywords for alerts
+      try {
+        const { DB_ENABLED: dbOn } = require("./db/connection");
+        if (dbOn) {
+          const { ShopKeyword } = require("./db/models");
+          if (ShopKeyword) {
+            const keywords = await ShopKeyword.findAll({
+              where: { shop_id: shopId, is_active: true },
+              raw: true,
+            });
+            connInfo.keywords = keywords;
+            console.log(`🔑 [${shopName}] Loaded ${keywords.length} keywords for alerts`);
+          }
+        }
+      } catch (e) {
+        console.log(`⚠️ [${shopName}] Không load được keywords:`, e.message);
+      }
 
       io.to(`shop_${shopId}`).emit("crawler_status", {
         status: "connected",
@@ -113,11 +169,31 @@ class ConnectionManager {
           else stats.cold++;
           stats.total++;
 
+          // Product matching cho HOT/WARM
+          if ((label === "[HOT]" || label === "[WARM]") && connInfo.products.length > 0) {
+            try {
+              const match = await matchProduct(data.comment, connInfo.products);
+              if (match) commentData.matchedProduct = match;
+            } catch (e) { /* silent */ }
+          }
+
+          // Keyword matching
+          if (connInfo.keywords.length > 0) {
+            const lower = data.comment.toLowerCase();
+            const matched = connInfo.keywords.filter(kw => lower.includes(kw.keyword.toLowerCase()));
+            if (matched.length > 0) {
+              commentData.matchedKeywords = matched.map(kw => ({ keyword: kw.keyword, color: kw.color, alert_type: kw.alert_type }));
+            }
+          }
+
           io.to(`shop_${shopId}`).emit("new_comment", commentData);
           io.to(`shop_${shopId}`).emit("stats_update", { ...stats });
 
           if (!this.leads.has(shopId)) this.leads.set(shopId, []);
           this.leads.get(shopId).push(commentData);
+
+          // Lưu vào DB (consolidated)
+          saveComment(commentData, connInfo.sessionId);
 
           const labelIcon = label === "[HOT]" ? "🔥" : label === "[WARM]" ? "🟠" : "⚪";
           console.log(`${labelIcon} [${shopName}] ${label} @${data.uniqueId}: ${data.comment.substring(0, 50)}`);
@@ -129,6 +205,10 @@ class ConnectionManager {
       // Viewer count
       connector.on("roomUser", (data) => {
         io.to(`shop_${shopId}`).emit("viewer_count", { count: data.viewerCount });
+        // Track peak viewers
+        if (data.viewerCount > connInfo.peakViewers) {
+          connInfo.peakViewers = data.viewerCount;
+        }
       });
 
       // Disconnect
@@ -153,17 +233,34 @@ class ConnectionManager {
   /**
    * Chạy Mock mode cho 1 shop
    */
-  startMockConnection(shop, io) {
+  async startMockConnection(shop, io) {
     const { id: shopId, shop_name: shopName } = shop;
 
     // Ngắt cũ nếu có
     if (this.connections.has(shopId)) {
-      this.stopConnection(shopId);
+      await this.stopConnection(shopId);
     }
 
     const { MOCK_COMMENTS, AVATARS } = require("./mock_service");
     const stats = { hot: 0, warm: 0, cold: 0, total: 0, startTime: new Date().toISOString() };
     let commentIndex = 0;
+
+    // Mock viewer count
+    let mockViewers = Math.floor(800 + Math.random() * 2200);
+    let peakViewers = mockViewers;
+
+    // ⚠️ FIX: Khai báo connInfo TRƯỚC setInterval để tránh reference error
+    const connInfo = {
+      connection: null,
+      mockInterval: null,
+      viewerInterval: null,
+      stats,
+      username: "mock",
+      shopName,
+      status: "mock",
+      peakViewers,
+      sessionId: null,
+    };
 
     const interval = setInterval(() => {
       const mockData = MOCK_COMMENTS[commentIndex % MOCK_COMMENTS.length];
@@ -192,37 +289,48 @@ class ConnectionManager {
       io.to(`shop_${shopId}`).emit("new_comment", commentData);
       io.to(`shop_${shopId}`).emit("stats_update", { ...stats });
 
-      // Lưu lead cho export
       if (!this.leads.has(shopId)) this.leads.set(shopId, []);
       this.leads.get(shopId).push(commentData);
+
+      // Lưu vào DB (consolidated)
+      saveComment(commentData, connInfo.sessionId);
 
       commentIndex++;
     }, 2000 + Math.random() * 2000);
 
-    // Mock viewer count (fluctuating)
-    let mockViewers = Math.floor(800 + Math.random() * 2200);
     const viewerInterval = setInterval(() => {
-      mockViewers += Math.floor(Math.random() * 200 - 80); // ±fluctuation
+      mockViewers += Math.floor(Math.random() * 200 - 80);
       mockViewers = Math.max(100, mockViewers);
+      if (mockViewers > peakViewers) peakViewers = mockViewers;
+      connInfo.peakViewers = peakViewers;
       io.to(`shop_${shopId}`).emit("viewer_count", { count: mockViewers });
     }, 5000);
 
-    this.connections.set(shopId, {
-      connection: null,
-      mockInterval: interval,
-      viewerInterval,
-      stats,
-      username: "mock",
-      shopName,
-      status: "mock",
-    });
+    connInfo.mockInterval = interval;
+    connInfo.viewerInterval = viewerInterval;
+    this.connections.set(shopId, connInfo);
+
+    // Lưu session
+    try {
+      const session = await createSession({
+        shop_id: shopId,
+        platform: "mock",
+        platform_live_id: null,
+        status: "Active",
+        shop_name: shopName,
+        started_at: new Date(),
+      });
+      connInfo.sessionId = session.id;
+      console.log(`💾 [${shopName}] Mock session saved: ${session.id}`);
+    } catch (e) {
+      console.error(`⚠️ [${shopName}] Không thể lưu mock session:`, e.message);
+    }
 
     io.to(`shop_${shopId}`).emit("crawler_status", {
       status: "mock",
       shopName,
     });
 
-    // Emit initial viewer count
     io.to(`shop_${shopId}`).emit("viewer_count", { count: mockViewers });
 
     console.log(`🎭 [${shopName}] Mock mode started`);
@@ -232,9 +340,25 @@ class ConnectionManager {
   /**
    * Ngắt kết nối 1 shop
    */
-  stopConnection(shopId) {
+  async stopConnection(shopId) {
     const conn = this.connections.get(shopId);
     if (!conn) return;
+
+    // Lưu session vào DB trước khi xóa
+    if (conn.sessionId) {
+      try {
+        await endSession(conn.sessionId, {
+          total: conn.stats.total,
+          hot: conn.stats.hot,
+          warm: conn.stats.warm,
+          cold: conn.stats.cold,
+          peakViewers: conn.peakViewers || 0,
+        });
+        console.log(`💾 [${conn.shopName}] Session ended & saved`);
+      } catch (e) {
+        console.error(`⚠️ [${conn.shopName}] Không thể lưu session:`, e.message);
+      }
+    }
 
     if (conn.connection) {
       conn.connection.disconnect();

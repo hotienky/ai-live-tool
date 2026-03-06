@@ -3,41 +3,62 @@ const BaseConnector = require("./BaseConnector");
 /**
  * YouTubeConnector — Kết nối YouTube Live
  *
- * YouTube Live Chat API yêu cầu:
- * 1. Google Cloud Project với YouTube Data API v3 enabled
- * 2. API Key hoặc OAuth2 credentials
- * 3. liveChatId từ video broadcast
- * 4. Polling: GET liveChatMessages?liveChatId=xxx
+ * Hỗ trợ nhập:
+ * - Video URL: https://www.youtube.com/watch?v=W8I-xc7irIg
+ * - Video ID: W8I-xc7irIg
+ * - Channel ID: UCxxxxxx
  *
- * Hiện tại: Mock mode. Khi có API Key, chuyển sang real polling.
+ * Hiện tại: Mock mode (cần YouTube Data API v3 key để lấy liveChatId).
+ * Khi có API Key, sẽ polling liveChatMessages endpoint.
  */
 class YouTubeConnector extends BaseConnector {
   constructor(config) {
     super(config);
     this.pollInterval = null;
     this.mockViewers = 0;
+    this.videoId = this._extractVideoId(
+      config.youtube_channel_id || config.username || ""
+    );
   }
 
   get platform() {
     return "youtube";
   }
 
+  /**
+   * Trích xuất Video ID từ URL hoặc ID trực tiếp
+   */
+  _extractVideoId(input) {
+    if (!input) return null;
+    // Full URL: https://www.youtube.com/watch?v=W8I-xc7irIg
+    const urlMatch = input.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/live\/)([a-zA-Z0-9_-]+)/
+    );
+    if (urlMatch) return urlMatch[1];
+    // Already a video/channel ID
+    return input.trim();
+  }
+
   async connect() {
-    const channelId = this.config.youtube_channel_id || this.config.username;
-    if (!channelId) throw new Error("Cần cấu hình YouTube Channel ID");
+    if (!this.videoId) throw new Error("Cần cấu hình YouTube Video URL hoặc ID");
 
     this.status = "connecting";
-    console.log(`🎬 [YouTube] Đang kết nối YouTube Live: ${channelId}...`);
+    console.log(
+      `🎬 [YouTube] Đang kết nối YouTube Live: ${this.videoId}...`
+    );
 
-    const apiKey = this.config.youtube_api_key || process.env.YOUTUBE_API_KEY;
+    const apiKey =
+      this.config.youtube_api_key || process.env.YOUTUBE_API_KEY;
 
     if (apiKey) {
-      // Real YouTube Data API polling
-      // TODO: Implement real polling via liveChatMessages endpoint
+      // TODO: Real YouTube Data API v3 polling
+      // 1. GET https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id={videoId}&key={apiKey}
+      // 2. Lấy liveChatId từ response
+      // 3. Poll GET https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId={id}&key={apiKey}
       console.log("🎬 [YouTube] Có API Key — sẽ dùng YouTube Data API v3");
     }
 
-    // Mock mode
+    // Mock mode — giả lập comments
     this.status = "connected";
     this.mockViewers = Math.floor(2000 + Math.random() * 10000);
 
@@ -60,7 +81,10 @@ class YouTubeConnector extends BaseConnector {
       idx++;
     }, 2000 + Math.random() * 3000);
 
-    return { roomId: `yt_${channelId}`, viewerCount: this.mockViewers };
+    return {
+      roomId: `yt_${this.videoId}`,
+      viewerCount: this.mockViewers,
+    };
   }
 
   disconnect() {

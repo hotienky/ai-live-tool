@@ -12,6 +12,14 @@ const exportRoutes = require("./routes/exportRoutes");
 const replyRoutes = require("./routes/replyRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const productRoutes = require("./routes/productRoutes");
+const sessionRoutes = require("./routes/sessionRoutes");
+const leadRoutes = require("./routes/leadRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const keywordRoutes = require("./routes/keywordRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
+const authRoutes = require("./routes/authRoutes");
+const templateRoutes = require("./routes/templateRoutes");
+const { authMiddleware } = require("./middleware/authMiddleware");
 const { isConfigured: isTelegramConfigured } = require("./telegramService");
 
 const app = express();
@@ -99,11 +107,23 @@ io.on("connection", (socket) => {
 });
 
 // ──── REST API Routes ──────────────────────────────────────
+// Auth routes (always public)
+app.use("/api/auth", authRoutes);
+
+// ⬆️ Uncomment dòng dưới để bật xác thực JWT cho tất cả API routes:
+// app.use("/api", authMiddleware);
+
 app.use("/api/shops", shopRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/reply", replyRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/sessions", sessionRoutes);
+app.use("/api/leads", leadRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/shops", keywordRoutes); // /api/shops/:id/keywords
+app.use("/api/shops", templateRoutes); // /api/shops/:id/templates
+app.use("/api/analytics", analyticsRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({

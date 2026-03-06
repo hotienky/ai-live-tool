@@ -1,5 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require("dotenv").config();
+const aiQueue = require("./aiQueue");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -48,17 +49,19 @@ const model = genAI.getGenerativeModel({
  * @returns {Promise<string>} - [HOT], [WARM], hoặc [COLD]
  */
 async function analyzeComment(text) {
-  try {
-    const result = await model.generateContent(text);
-    const response = result.response.text().trim();
+  return aiQueue.enqueue(async () => {
+    try {
+      const result = await model.generateContent(text);
+      const response = result.response.text().trim();
 
-    if (response.includes("[HOT]")) return "[HOT]";
-    if (response.includes("[WARM]")) return "[WARM]";
-    return "[COLD]";
-  } catch (error) {
-    console.error("❌ Gemini API Error:", error.message);
-    return fallbackClassify(text);
-  }
+      if (response.includes("[HOT]")) return "[HOT]";
+      if (response.includes("[WARM]")) return "[WARM]";
+      return "[COLD]";
+    } catch (error) {
+      console.error("❌ Gemini API Error:", error.message);
+      return fallbackClassify(text);
+    }
+  }, fallbackClassify(text));
 }
 
 /**
