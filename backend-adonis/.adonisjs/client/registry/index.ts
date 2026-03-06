@@ -210,6 +210,18 @@ const routes = {
     tokens: [{"old":"/api/customers/:id","type":0,"val":"api","end":""},{"old":"/api/customers/:id","type":0,"val":"customers","end":""},{"old":"/api/customers/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['customers.show']['types'],
   },
+  'customers.update': {
+    methods: ["PUT"],
+    pattern: '/api/customers/:id',
+    tokens: [{"old":"/api/customers/:id","type":0,"val":"api","end":""},{"old":"/api/customers/:id","type":0,"val":"customers","end":""},{"old":"/api/customers/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['customers.update']['types'],
+  },
+  'customers.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/customers/:id',
+    tokens: [{"old":"/api/customers/:id","type":0,"val":"api","end":""},{"old":"/api/customers/:id","type":0,"val":"customers","end":""},{"old":"/api/customers/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['customers.destroy']['types'],
+  },
   'sessions.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/sessions',

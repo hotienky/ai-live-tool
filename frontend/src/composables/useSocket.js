@@ -30,15 +30,19 @@ export function useSocket() {
     }
   }
 
+  const connectionLost = ref(false)
+
   function connect() {
     socket.value = io('http://localhost:3000', {
       transports: ['websocket', 'polling'],
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
     })
 
     socket.value.on('connect', () => {
       isConnected.value = true
+      connectionLost.value = false
       console.log('✅ Socket connected:', socket.value.id)
-      // Re-join shop room on reconnect
       if (currentShopId.value) {
         socket.value.emit('join_shop', { shopId: currentShopId.value })
       }
@@ -46,7 +50,17 @@ export function useSocket() {
 
     socket.value.on('disconnect', () => {
       isConnected.value = false
+      connectionLost.value = true
       console.log('❌ Socket disconnected')
+    })
+
+    socket.value.io.on('reconnect_attempt', (attempt) => {
+      console.log(`🔄 Reconnecting... attempt ${attempt}`)
+    })
+
+    socket.value.io.on('reconnect', () => {
+      connectionLost.value = false
+      console.log('✅ Reconnected')
     })
 
     // New comment from server (scoped to shop room)
@@ -125,6 +139,7 @@ export function useSocket() {
   return {
     socket,
     isConnected,
+    connectionLost,
     leads,
     allComments,
     stats,

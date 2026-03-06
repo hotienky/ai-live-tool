@@ -53,6 +53,8 @@ export interface ApiDefinition {
   customers: {
     index: typeof routes['customers.index']
     show: typeof routes['customers.show']
+    update: typeof routes['customers.update']
+    destroy: typeof routes['customers.destroy']
   }
   sessions: {
     index: typeof routes['sessions.index']

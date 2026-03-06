@@ -205,9 +205,9 @@ async function saveCustomerInfo() {
   if (!props.customer?.id) return
   saving.value = true
   try {
-    await fetch(`${API}/customers/${props.customer.id}/tags`, {
+    const { apiFetch } = await import('../composables/useApi.js')
+    await apiFetch(`/customers/${props.customer.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         tags: tags.value.join(','),
         notes: notes.value,

@@ -38,6 +38,8 @@ export type ScannedRoutes = {
     'analytics.summary': { paramsTuple?: []; params?: {} }
     'customers.index': { paramsTuple?: []; params?: {} }
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'customers.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'customers.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'orders.index': { paramsTuple?: []; params?: {} }
@@ -140,6 +142,7 @@ export type ScannedRoutes = {
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'customers.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'orders.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
@@ -149,6 +152,7 @@ export type ScannedRoutes = {
     'templates.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'shopId': ParamValue,'id': ParamValue} }
     'products.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'leads.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'customers.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'orders.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'schedules.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }

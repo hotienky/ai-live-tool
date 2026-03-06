@@ -26,4 +26,21 @@ export default class CustomersController {
     if (!customer) return response.notFound({ error: 'Customer not found' })
     return response.json(customer)
   }
+
+  async update({ params, request, response }: HttpContext) {
+    const customer = await Customer.find(params.id)
+    if (!customer) return response.notFound({ error: 'Customer not found' })
+
+    const data = request.only(['nickname', 'tags', 'notes', 'lastLabel'])
+    customer.merge(data)
+    await customer.save()
+    return response.json(customer)
+  }
+
+  async destroy({ params, response }: HttpContext) {
+    const customer = await Customer.find(params.id)
+    if (!customer) return response.notFound({ error: 'Customer not found' })
+    await customer.delete()
+    return response.json({ message: 'Deleted' })
+  }
 }

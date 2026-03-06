@@ -156,6 +156,12 @@ export class CustomerSchema extends BaseModel {
   @column()
   declare shopId: number | null
 
+  @column({ prepare: (v: any) => typeof v === 'string' ? v : JSON.stringify(v), consume: (v: any) => typeof v === 'string' ? JSON.parse(v) : v })
+  declare tags: any
+
+  @column()
+  declare notes: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

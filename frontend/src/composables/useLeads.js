@@ -1,6 +1,5 @@
 import { ref } from 'vue'
-
-const API_BASE = 'http://localhost:3000/api'
+import { apiFetch } from './useApi.js'
 
 export function useLeads() {
   const leads = ref([])
@@ -8,9 +7,6 @@ export function useLeads() {
   const loading = ref(false)
   const error = ref(null)
 
-  /**
-   * Lấy danh sách leads
-   */
   async function fetchLeads(shopId = null, status = null) {
     loading.value = true
     try {
@@ -19,7 +15,7 @@ export function useLeads() {
       if (status) params.set('status', status)
       params.set('limit', '100')
 
-      const res = await fetch(`${API_BASE}/leads?${params}`)
+      const res = await apiFetch(`/leads?${params}`)
       const data = await res.json()
       leads.value = data.leads || []
     } catch (err) {
@@ -29,27 +25,20 @@ export function useLeads() {
     }
   }
 
-  /**
-   * Lấy thống kê pipeline
-   */
   async function fetchLeadStats(shopId = null) {
     try {
       const params = shopId ? `?shopId=${shopId}` : ''
-      const res = await fetch(`${API_BASE}/leads/stats${params}`)
+      const res = await apiFetch(`/leads/stats${params}`)
       leadStats.value = await res.json()
     } catch (err) {
       error.value = err.message
     }
   }
 
-  /**
-   * Cập nhật trạng thái lead
-   */
   async function updateLead(leadId, updates) {
     try {
-      const res = await fetch(`${API_BASE}/leads/${leadId}`, {
+      const res = await apiFetch(`/leads/${leadId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       })
       const updated = await res.json()

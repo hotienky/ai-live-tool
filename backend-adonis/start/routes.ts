@@ -99,6 +99,8 @@ router.group(() => {
   // Customers
   router.get('/customers', [CustomersController, 'index'])
   router.get('/customers/:id', [CustomersController, 'show'])
+  router.put('/customers/:id', [CustomersController, 'update'])
+  router.delete('/customers/:id', [CustomersController, 'destroy'])
 
   // Sessions
   router.get('/sessions', [SessionsController, 'index'])
@@ -119,13 +121,28 @@ router.group(() => {
   router.put('/schedules/:id', [SchedulesController, 'update'])
   router.delete('/schedules/:id', [SchedulesController, 'destroy'])
 
-  // Customer tags — NEW
-  router.put('/customers/:id/tags', async ({ params, request, response }) => {
-    const Customer = (await import('#models/customer')).default
-    const customer = await Customer.findOrFail(params.id)
-    customer.merge(request.only(['tags', 'notes']))
-    await customer.save()
-    return response.json(customer)
+  // Profile & Password
+  router.put('/auth/profile', async ({ auth, request, response }: any) => {
+    const user = auth.user
+    if (!user) return response.unauthorized({ error: 'Chưa đăng nhập' })
+    const { fullName } = request.only(['fullName'])
+    if (fullName) user.fullName = fullName
+    await user.save()
+    return response.json({ id: user.id, email: user.email, fullName: user.fullName, role: user.role })
+  })
+
+  router.put('/auth/password', async ({ auth, request, response }: any) => {
+    const user = auth.user
+    if (!user) return response.unauthorized({ error: 'Chưa đăng nhập' })
+    const { currentPassword, newPassword } = request.only(['currentPassword', 'newPassword'])
+    if (!currentPassword || !newPassword) return response.badRequest({ error: 'Thiếu thông tin' })
+    if (newPassword.length < 6) return response.badRequest({ error: 'Mật khẩu mới tối thiểu 6 ký tự' })
+    const User = (await import('#models/user')).default
+    const valid = await User.verifyCredentials(user.email, currentPassword).catch(() => null)
+    if (!valid) return response.badRequest({ error: 'Mật khẩu hiện tại không đúng' })
+    user.password = newPassword
+    await user.save()
+    return response.json({ message: 'Đổi mật khẩu thành công' })
   })
 
   // Export
@@ -184,4 +201,4 @@ router.group(() => {
       return response.internalServerError({ error: err.message })
     }
   })
-}).prefix('/api')
+}).prefix('/api').use(middleware.auth())
