@@ -13,6 +13,7 @@ export interface ApiDefinition {
     show: typeof routes['shops.show']
     update: typeof routes['shops.update']
     destroy: typeof routes['shops.destroy']
+    findOrCreate: typeof routes['shops.find_or_create']
   }
   keywords: {
     index: typeof routes['keywords.index']

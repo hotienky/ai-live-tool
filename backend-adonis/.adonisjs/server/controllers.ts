@@ -13,6 +13,7 @@ export const controllers = {
   Keywords: () => import('#controllers/keywords_controller'),
   Leads: () => import('#controllers/leads_controller'),
   NewAccount: () => import('#controllers/new_account_controller'),
+  Notifications: () => import('#controllers/notifications_controller'),
   Orders: () => import('#controllers/orders_controller'),
   Products: () => import('#controllers/products_controller'),
   Profile: () => import('#controllers/profile_controller'),
@@ -21,5 +22,4 @@ export const controllers = {
   Sessions: () => import('#controllers/sessions_controller'),
   Shops: () => import('#controllers/shops_controller'),
   Templates: () => import('#controllers/templates_controller'),
-  Notifications: () => import('#controllers/notifications_controller'),
 }

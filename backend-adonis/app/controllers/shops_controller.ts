@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Shop from '#models/shop'
+import FindOrCreateShopAction from '#actions/shops/find_or_create_shop_action'
 
 export default class ShopsController {
   async index({ auth, response }: HttpContext) {
@@ -46,42 +47,26 @@ export default class ShopsController {
   }
 
   async findOrCreate({ auth, request, response }: HttpContext) {
-    const { platform, tiktokUsername, facebookPageId, youtubeChannel, shopeeShopId, sessionName } = request.only([
-      'platform', 'tiktokUsername', 'facebookPageId', 'youtubeChannel', 'shopeeShopId', 'sessionName',
-    ])
+    const { platform, tiktokUsername, facebookPageId, youtubeChannel, shopeeShopId, sessionName } =
+      request.only([
+        'platform',
+        'tiktokUsername',
+        'facebookPageId',
+        'youtubeChannel',
+        'shopeeShopId',
+        'sessionName',
+      ])
     if (!platform) return response.badRequest({ error: 'platform is required' })
 
-    // Build lookup query by platform + identifier
-    let query = Shop.query().where('userId', auth.user!.id).where('platform', platform)
-    let identifier = ''
-    if (platform === 'tiktok' && tiktokUsername) {
-      query = query.where('tiktokUsername', tiktokUsername.replace(/^@/, ''))
-      identifier = tiktokUsername.replace(/^@/, '')
-    } else if (platform === 'facebook' && facebookPageId) {
-      query = query.where('facebookPageId', facebookPageId)
-      identifier = facebookPageId
-    } else if (platform === 'youtube' && youtubeChannel) {
-      query = query.where('youtubeChannel', youtubeChannel)
-      identifier = youtubeChannel
-    } else if (platform === 'shopee' && shopeeShopId) {
-      query = query.where('shopeeShopId', shopeeShopId)
-      identifier = shopeeShopId
-    }
-
-    let shop = await query.first()
-    if (!shop) {
-      const autoName = sessionName || `${platform} - ${identifier || 'Live'}`
-      shop = await Shop.create({
-        userId: auth.user!.id,
-        shopName: autoName,
-        platform,
-        tiktokUsername: platform === 'tiktok' ? identifier : null,
-        facebookPageId: platform === 'facebook' ? identifier : null,
-        youtubeChannel: platform === 'youtube' ? identifier : null,
-        shopeeShopId: platform === 'shopee' ? identifier : null,
-        isActive: true,
-      })
-    }
+    const shop = await FindOrCreateShopAction.handle({
+      userId: auth.user!.id,
+      platform,
+      tiktokUsername,
+      facebookPageId,
+      youtubeChannel,
+      shopeeShopId,
+      sessionName,
+    })
     return response.json(shop)
   }
 

@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Lead from '#models/lead'
 import ChatLog from '#models/chat_log'
 import { getUserShopIds } from '#services/scope_helper'
+import GetPipelineStatsAction from '#actions/leads/get_pipeline_stats_action'
 
 export default class LeadsController {
   async index({ auth, request, response }: HttpContext) {
@@ -65,21 +66,7 @@ export default class LeadsController {
   async pipelineStats({ auth, request, response }: HttpContext) {
     const { shopId } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
-
-    const statuses = ['New', 'Contacting', 'Closed', 'Ignored']
-    const pipeline: Record<string, number> = {}
-
-    for (const status of statuses) {
-      const query = Lead.query()
-        .where('status', status)
-        .whereIn('chat_log_id',
-          ChatLog.query().select('id').whereIn('shop_id', userShopIds)
-        )
-      if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
-      const count = await query.count('* as total')
-      pipeline[status] = Number(count[0].$extras.total)
-    }
-
-    return response.json({ pipeline })
+    const result = await GetPipelineStatsAction.handle({ userShopIds, shopId })
+    return response.json(result)
   }
 }

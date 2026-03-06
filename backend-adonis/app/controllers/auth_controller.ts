@@ -1,55 +1,28 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import User from '#models/user'
+import RegisterUserAction from '#actions/auth/register_user_action'
+import LoginUserAction from '#actions/auth/login_user_action'
 
 export default class AuthController {
   async register({ request, response }: HttpContext) {
     const { email, password, fullName } = request.only(['email', 'password', 'fullName'])
+    const result = await RegisterUserAction.handle({ email, password, fullName })
 
-    if (!email || !password) {
-      return response.badRequest({ error: 'Email và mật khẩu là bắt buộc' })
+    if (result.error) {
+      if (result.error.includes('đăng ký')) return response.conflict({ error: result.error })
+      return response.badRequest({ error: result.error })
     }
-    if (password.length < 6) {
-      return response.badRequest({ error: 'Mật khẩu tối thiểu 6 ký tự' })
-    }
-
-    const existing = await User.findBy('email', email)
-    if (existing) {
-      return response.conflict({ error: 'Email đã được đăng ký' })
-    }
-
-    const user = await User.create({
-      email,
-      password,
-      fullName: fullName || email.split('@')[0],
-      role: 'user',
-    })
-
-    const token = await User.accessTokens.create(user)
-
-    return response.json({
-      token: token.value!.release(),
-      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role },
-    })
+    return response.json({ token: result.token, user: result.user })
   }
 
   async login({ request, response }: HttpContext) {
     const { email, password } = request.only(['email', 'password'])
+    const result = await LoginUserAction.handle({ email, password })
 
-    if (!email || !password) {
-      return response.badRequest({ error: 'Email và mật khẩu là bắt buộc' })
+    if (result.error) {
+      if (result.error.includes('Sai')) return response.unauthorized({ error: result.error })
+      return response.badRequest({ error: result.error })
     }
-
-    const user = await User.verifyCredentials(email, password).catch(() => null)
-    if (!user) {
-      return response.unauthorized({ error: 'Sai email hoặc mật khẩu' })
-    }
-
-    const token = await User.accessTokens.create(user)
-
-    return response.json({
-      token: token.value!.release(),
-      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role },
-    })
+    return response.json({ token: result.token, user: result.user })
   }
 
   async me({ auth, response }: HttpContext) {

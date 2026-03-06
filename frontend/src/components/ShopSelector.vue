@@ -45,67 +45,9 @@
       <!-- Divider -->
       <div class="shop-selector__divider"></div>
 
-      <!-- Add Shop -->
-      <div class="shop-selector__add" v-if="!showAddForm" @click.stop="showAddForm = true">
-        <Plus :size="14" /> Thêm Shop mới
-      </div>
-
-      <!-- Add Form -->
-      <div class="shop-selector__form" v-if="showAddForm" @click.stop>
-        <input
-          v-model="newShopName"
-          type="text"
-          placeholder="Tên shop..."
-          class="shop-selector__form-input"
-          @keyup.enter="onAddShop"
-          ref="shopNameInput"
-        />
-        <select v-model="newPlatform" class="shop-selector__form-input">
-          <option value="tiktok">🎵 TikTok Live</option>
-          <option value="shopee">🛒 Shopee Live</option>
-          <option value="facebook">📘 Facebook Live</option>
-          <option value="youtube">🎬 YouTube Live</option>
-        </select>
-        <input
-          v-if="newPlatform === 'tiktok'"
-          v-model="newTiktokUsername"
-          type="text"
-          placeholder="TikTok username..."
-          class="shop-selector__form-input"
-          @keyup.enter="onAddShop"
-        />
-        <input
-          v-if="newPlatform === 'shopee'"
-          v-model="newShopeeId"
-          type="text"
-          placeholder="Shopee ID..."
-          class="shop-selector__form-input"
-          @keyup.enter="onAddShop"
-        />
-        <input
-          v-if="newPlatform === 'facebook'"
-          v-model="newFacebookPageId"
-          type="text"
-          placeholder="Facebook Page ID..."
-          class="shop-selector__form-input"
-          @keyup.enter="onAddShop"
-        />
-        <input
-          v-if="newPlatform === 'youtube'"
-          v-model="newYoutubeChannelId"
-          type="text"
-          placeholder="YouTube Video URL (vd: https://youtube.com/watch?v=xxx)"
-          class="shop-selector__form-input"
-          @keyup.enter="onAddShop"
-        />
-        <div class="shop-selector__form-actions">
-          <button class="shop-selector__form-btn shop-selector__form-btn--save" @click="onAddShop">
-            Lưu
-          </button>
-          <button class="shop-selector__form-btn shop-selector__form-btn--cancel" @click="showAddForm = false">
-            Hủy
-          </button>
-        </div>
+      <!-- Manage hint -->
+      <div class="shop-selector__hint">
+        Nhấn <strong>Phiên Live</strong> để bắt đầu phiên mới
       </div>
     </div>
   </div>
@@ -113,52 +55,24 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Store, ChevronDown, Plus } from 'lucide-vue-next'
+import { Store, ChevronDown } from 'lucide-vue-next'
 
 const props = defineProps({
   shops: { type: Array, default: () => [] },
   currentShop: { type: Object, default: null },
 })
 
-const emit = defineEmits(['select', 'create'])
+const emit = defineEmits(['select'])
 
 const isOpen = ref(false)
-const showAddForm = ref(false)
-const newShopName = ref('')
-const newTiktokUsername = ref('')
-const newPlatform = ref('tiktok')
-const newShopeeId = ref('')
-const newFacebookPageId = ref('')
-const newYoutubeChannelId = ref('')
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
-  if (!isOpen.value) showAddForm.value = false
 }
 
 function onSelectShop(shop) {
   emit('select', shop)
   isOpen.value = false
-}
-
-function onAddShop() {
-  if (!newShopName.value.trim()) return
-  const shopData = {
-    shop_name: newShopName.value.trim(),
-    platform: newPlatform.value,
-    tiktok_username: newPlatform.value === 'tiktok' ? newTiktokUsername.value.trim() || null : null,
-    shopee_id: newPlatform.value === 'shopee' ? newShopeeId.value.trim() || null : null,
-    facebook_page_id: newPlatform.value === 'facebook' ? newFacebookPageId.value.trim() || null : null,
-    youtube_channel_id: newPlatform.value === 'youtube' ? newYoutubeChannelId.value.trim() || null : null,
-  }
-  emit('create', shopData)
-  newShopName.value = ''
-  newTiktokUsername.value = ''
-  newShopeeId.value = ''
-  newFacebookPageId.value = ''
-  newYoutubeChannelId.value = ''
-  newPlatform.value = 'tiktok'
-  showAddForm.value = false
 }
 
 function statusLabel(status) {
@@ -179,7 +93,6 @@ const dotClass = computed(() => {
 function onClickOutside(e) {
   if (!e.target.closest('.shop-selector')) {
     isOpen.value = false
-    showAddForm.value = false
   }
 }
 onMounted(() => document.addEventListener('click', onClickOutside))
@@ -323,67 +236,14 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
   margin: 4px 0;
 }
 
-.shop-selector__add {
+/* Hint */
+.shop-selector__hint {
   padding: 8px 14px;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.shop-selector__add:hover {
-  background: var(--color-bg-card);
-  color: var(--color-text-primary);
-}
-
-/* Form */
-.shop-selector__form {
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.shop-selector__form-input {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-primary);
-  color: var(--color-text-primary);
-  font-size: 12px;
-  outline: none;
-}
-
-.shop-selector__form-input:focus {
-  border-color: var(--color-accent-warm);
-}
-
-.shop-selector__form-input::placeholder {
+  font-size: 11px;
   color: var(--color-text-muted);
+  text-align: center;
 }
-
-.shop-selector__form-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.shop-selector__form-btn {
-  padding: 4px 12px;
-  border-radius: 6px;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.shop-selector__form-btn--save {
-  background: var(--color-accent-warm);
-  color: white;
-}
-
-.shop-selector__form-btn--cancel {
-  background: var(--color-bg-card);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
+.shop-selector__hint strong {
+  color: var(--color-accent-warm);
 }
 </style>

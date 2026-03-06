@@ -54,6 +54,12 @@ const routes = {
     tokens: [{"old":"/api/shops/:id","type":0,"val":"api","end":""},{"old":"/api/shops/:id","type":0,"val":"shops","end":""},{"old":"/api/shops/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['shops.destroy']['types'],
   },
+  'shops.find_or_create': {
+    methods: ["POST"],
+    pattern: '/api/shops/find-or-create',
+    tokens: [{"old":"/api/shops/find-or-create","type":0,"val":"api","end":""},{"old":"/api/shops/find-or-create","type":0,"val":"shops","end":""},{"old":"/api/shops/find-or-create","type":0,"val":"find-or-create","end":""}],
+    types: placeholder as Registry['shops.find_or_create']['types'],
+  },
   'keywords.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/shops/:shopId/keywords',

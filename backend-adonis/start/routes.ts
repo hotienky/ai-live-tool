@@ -57,10 +57,10 @@ router.group(() => {
   // Shops CRUD
   router.get('/shops', [ShopsController, 'index'])
   router.post('/shops', [ShopsController, 'store'])
+  router.post('/shops/find-or-create', [ShopsController, 'findOrCreate'])
   router.get('/shops/:id', [ShopsController, 'show'])
   router.put('/shops/:id', [ShopsController, 'update'])
   router.delete('/shops/:id', [ShopsController, 'destroy'])
-  router.post('/shops/find-or-create', [ShopsController, 'findOrCreate'])
 
   // Shop Keywords
   router.get('/shops/:shopId/keywords', [KeywordsController, 'index'])

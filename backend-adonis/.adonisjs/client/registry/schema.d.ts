@@ -103,6 +103,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shops_controller').default['destroy']>>>
     }
   }
+  'shops.find_or_create': {
+    methods: ["POST"]
+    pattern: '/api/shops/find-or-create'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shops_controller').default['findOrCreate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shops_controller').default['findOrCreate']>>>
+    }
+  }
   'keywords.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/shops/:shopId/keywords'
