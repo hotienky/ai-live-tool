@@ -47,8 +47,19 @@ class ConnectionManager {
     return result
   }
 
+  // Convert snake_case keys to camelCase for connector compatibility
+  private toCamel(obj: Record<string, any>): Record<string, any> {
+    const result: Record<string, any> = {}
+    for (const key of Object.keys(obj)) {
+      const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+      result[camelKey] = obj[key]
+    }
+    return result
+  }
+
   async startConnection(shop: any, io: SocketIOServer) {
-    const { id: shopId, shopName, platform = 'tiktok' } = shop
+    const shopData = this.toCamel(shop)
+    const { id: shopId, shopName, platform = 'tiktok' } = shopData
 
     if (this.connections.has(shopId)) await this.stopConnection(shopId)
 
@@ -64,7 +75,7 @@ class ConnectionManager {
     console.log(`${icons[platform] || '📡'} [${shopName}] Đang kết nối ${platform}...`)
 
     try {
-      const connector = createConnector(platform, shop)
+      const connector = createConnector(platform, shopData)
       connInfo.connection = connector
       const state = await connector.connect()
       connInfo.status = 'connected'
@@ -202,7 +213,7 @@ class ConnectionManager {
   }
 
   async startMockConnection(shop: any, io: SocketIOServer) {
-    const { id: shopId, shopName } = shop
+    const { id: shopId, shopName, platform = 'tiktok' } = shop
     if (this.connections.has(shopId)) await this.stopConnection(shopId)
 
     const stats = { hot: 0, warm: 0, cold: 0, total: 0, startTime: new Date().toISOString() }
@@ -210,21 +221,30 @@ class ConnectionManager {
     let mockViewers = Math.floor(800 + Math.random() * 2200)
     let peakViewers = mockViewers
 
+    const mockPlatform = platform || 'tiktok'
     const connInfo: ConnInfo = {
       connection: null, mockInterval: null, viewerInterval: null,
-      stats, shopName, platform: 'mock', status: 'mock', peakViewers,
+      stats, shopName, platform: mockPlatform, status: 'mock', peakViewers,
       sessionId: null, products: [], keywords: [],
     }
+
+    const linkBuilders: Record<string, (uid: string) => string> = {
+      tiktok: (uid) => `https://www.tiktok.com/@${uid}`,
+      shopee: (uid) => `https://shopee.vn/shop/${uid}`,
+      facebook: (uid) => `https://www.facebook.com/${uid}`,
+      youtube: (uid) => `https://www.youtube.com/@${uid}`,
+    }
+    const buildLink = linkBuilders[mockPlatform] || ((uid: string) => `#${uid}`)
 
     const interval = setInterval(async () => {
       const mockData = MOCK_COMMENTS[commentIndex % MOCK_COMMENTS.length]
       const avatarUrl = AVATARS[commentIndex % AVATARS.length]
 
       const commentData: any = {
-        id: `mock_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        shopId, platform: 'mock', nickname: mockData.nickname, uniqueId: mockData.uniqueId,
+        id: `${mockPlatform}_mock_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+        shopId, platform: mockPlatform, nickname: mockData.nickname, uniqueId: mockData.uniqueId,
         comment: mockData.comment, label: mockData.expectedLabel,
-        profileLink: `https://www.tiktok.com/@${mockData.uniqueId}`,
+        profileLink: buildLink(mockData.uniqueId),
         profilePictureUrl: avatarUrl, timestamp: new Date().toISOString(),
       }
 
@@ -281,15 +301,16 @@ class ConnectionManager {
     // Save session
     try {
       const session = await LivestreamSession.create({
-        shopId, platform: 'mock', status: 'live', viewerCount: mockViewers,
+        shopId, platform: mockPlatform, status: 'live', viewerCount: mockViewers,
         commentCount: 0, hotLeadCount: 0, startedAt: new Date() as any,
       })
       connInfo.sessionId = session.id
     } catch (e: any) { console.error(`⚠️ Mock session error:`, e.message) }
 
-    io.to(`shop_${shopId}`).emit('crawler_status', { status: 'mock', shopName })
+    const icons: Record<string, string> = { tiktok: '🎵', shopee: '🛒', facebook: '📘', youtube: '🎬' }
+    io.to(`shop_${shopId}`).emit('crawler_status', { status: 'mock', platform: mockPlatform, shopName })
     io.to(`shop_${shopId}`).emit('viewer_count', { count: mockViewers })
-    console.log(`🎭 [${shopName}] Mock mode started`)
+    console.log(`🎭 ${icons[mockPlatform] || '📡'} [${shopName}] Mock mode started (${mockPlatform})`)
     return { success: true }
   }
 

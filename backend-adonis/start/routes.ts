@@ -200,7 +200,7 @@ router.group(() => {
     if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
     try {
       await connectionManager.startMockConnection(
-        { id: Number(params.id), shopName: shop.shopName || 'Mock Shop' },
+        { id: Number(params.id), shopName: shop.shopName || 'Mock Shop', platform: shop.platform || 'tiktok' },
         io
       )
       return response.json({ success: true })
