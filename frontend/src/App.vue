@@ -9,12 +9,12 @@
     </div>
     <!-- Top Header Bar -->
     <header class="app-header">
-      <div class="app-header__left">
+      <!-- Row 1: Logo + Nav + User -->
+      <div class="app-header__row1">
         <div class="app-header__logo">
-          <Rocket :size="20" />
+          <Rocket :size="18" />
           <span>AI Live Tool</span>
         </div>
-        <!-- Tab Navigation -->
         <nav class="app-nav">
           <button
             v-for="tab in tabs"
@@ -22,12 +22,26 @@
             class="app-nav__tab"
             :class="{ 'app-nav__tab--active': activeView === tab.key }"
             @click="activeView = tab.key"
+            :title="tab.label"
           >
             <component :is="tab.icon" :size="14" />
-            {{ tab.label }}
+            <span class="app-nav__label">{{ tab.label }}</span>
           </button>
         </nav>
-        <!-- Shop Selector -->
+        <div class="app-header__actions">
+          <NotificationCenter ref="notifCenter" />
+          <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
+            <UserIcon :size="14" />
+            <span class="app-header__username">{{ currentUser.fullName || currentUser.name || currentUser.email }}</span>
+          </button>
+          <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất" v-if="currentUser">
+            <LogOut :size="14" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Row 2: Shop + Live Controls (contextual) -->
+      <div class="app-header__row2">
         <ShopSelector
           :shops="shops"
           :currentShop="currentShop"
@@ -38,94 +52,41 @@
           <span class="app-header__dot" :class="statusDotClass"></span>
           <span class="app-header__status-text">{{ statusText }}</span>
         </div>
-      </div>
-      <div class="app-header__right">
         <div class="app-header__viewers" v-if="viewerCount > 0 && activeView === 'live'">
-          <Eye :size="14" />
-          {{ viewerCount.toLocaleString() }} viewers
+          <Eye :size="13" />
+          {{ viewerCount.toLocaleString() }}
         </div>
+        <div class="app-header__spacer"></div>
         <div class="app-header__controls" v-if="activeView === 'live'">
-          <!-- TTS Toggle -->
-          <button
-            class="app-header__btn app-header__btn--tts"
-            :class="{ 'app-header__btn--tts-active': ttsEnabled }"
-            @click="toggleTTS"
-            title="Đọc to comment HOT"
-          >
-            <Volume2 v-if="ttsEnabled" :size="16" />
-            <VolumeX v-else :size="16" />
+          <button class="app-header__icon-btn" :class="{ active: ttsEnabled }" @click="toggleTTS" title="TTS">
+            <Volume2 v-if="ttsEnabled" :size="15" />
+            <VolumeX v-else :size="15" />
           </button>
-          <!-- Stats Chart Toggle -->
-          <button
-            class="app-header__btn app-header__btn--stats"
-            :class="{ 'app-header__btn--stats-active': showChart }"
-            @click="showChart = !showChart"
-            title="Thống kê biểu đồ"
-          >
-            <BarChart3 :size="16" />
+          <button class="app-header__icon-btn" :class="{ active: showChart }" @click="showChart = !showChart" title="Biểu đồ">
+            <BarChart3 :size="15" />
           </button>
-          <!-- Session History -->
-          <button
-            class="app-header__btn app-header__btn--history"
-            :class="{ 'app-header__btn--history-active': showHistory }"
-            @click="showHistory = !showHistory"
-            title="Lịch sử phiên Live"
-          >
-            <History :size="16" />
+          <button class="app-header__icon-btn" :class="{ active: showHistory }" @click="showHistory = !showHistory" title="Lịch sử">
+            <History :size="15" />
           </button>
-          <!-- Export -->
-          <button
-            class="app-header__btn app-header__btn--export"
-            @click="onExport"
-            :disabled="!currentShop"
-            title="Xuất CSV"
-          >
-            <Download :size="14" />
-            Export
+          <button class="app-header__icon-btn" @click="onExport" :disabled="!currentShop" title="Export CSV">
+            <Download :size="15" />
+          </button>
+          <div class="app-header__divider"></div>
+          <button class="app-header__action-btn app-header__action-btn--connect" @click="onConnectTiktok" :disabled="!currentShop">
+            <Radio :size="13" /> Live
+          </button>
+          <button class="app-header__action-btn app-header__action-btn--mock" @click="onStartMock" :disabled="!currentShop">
+            <Drama :size="13" /> Mock
           </button>
           <button
-            class="app-header__btn app-header__btn--connect"
-            @click="onConnectTiktok"
-            :disabled="!currentShop"
-            :title="currentShop?.tiktok_username ? `Kết nối @${currentShop.tiktok_username}` : 'Chưa cấu hình TikTok'"
-          >
-            <Radio :size="14" />
-            Kết nối Live
-          </button>
-          <button
-            class="app-header__btn app-header__btn--mock"
-            @click="onStartMock"
-            :disabled="!currentShop"
-          >
-            <Drama :size="14" />
-            Mock
-          </button>
-          <button
-            class="app-header__btn app-header__btn--disconnect"
+            class="app-header__action-btn app-header__action-btn--stop"
             @click="onDisconnect"
-            :disabled="!currentShop"
             v-if="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'"
           >
-            <Square :size="14" />
-            Ngắt
+            <Square :size="13" /> Ngắt
           </button>
-          <button
-            class="app-header__btn app-header__btn--reset"
-            @click="onResetStats"
-          >
+          <button class="app-header__icon-btn" @click="onResetStats" title="Reset">
             <RotateCcw :size="14" />
-          </button>
-        </div>
-        <!-- Notification Center -->
-        <NotificationCenter ref="notifCenter" />
-        <!-- User Menu -->
-        <div class="app-header__user" v-if="currentUser">
-          <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ">
-            <UserIcon :size="14" />
-            {{ currentUser.fullName || currentUser.name || currentUser.email }}
-          </button>
-          <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất">
-            <LogOut :size="14" />
           </button>
         </div>
       </div>
@@ -525,13 +486,10 @@ const statusText = computed(() => {
 
 .app-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
+  flex-direction: column;
   background: var(--color-bg-secondary);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
-  gap: 16px;
 }
 
 .connection-lost {
@@ -549,80 +507,101 @@ const statusText = computed(() => {
   50% { opacity: 0.7; }
 }
 
-.app-header__left {
+/* ── Row 1: Logo + Nav + User ── */
+.app-header__row1 {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
 .app-header__logo {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   background: linear-gradient(135deg, #ff3b5c, #ff8c42);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   white-space: nowrap;
+  margin-right: 4px;
 }
-
-.app-header__logo svg {
-  color: #ff3b5c;
-}
+.app-header__logo svg { color: #ff3b5c; }
 
 /* ── Tab Navigation ── */
 .app-nav {
   display: flex;
-  gap: 2px;
+  gap: 1px;
   background: var(--color-bg-primary);
   border-radius: 8px;
   padding: 2px;
+  flex: 1;
 }
-
 .app-nav__tab {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
+  gap: 4px;
+  padding: 5px 10px;
   border-radius: 6px;
   border: none;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
-
 .app-nav__tab:hover {
   color: var(--color-text-primary);
   background: var(--color-bg-card);
 }
-
 .app-nav__tab--active {
   color: var(--color-text-primary);
   background: var(--color-bg-secondary);
   font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
+
+/* User actions area */
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding-left: 12px;
+  border-left: 1px solid var(--color-border);
+}
+.app-header__username {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Row 2: Shop + Controls ── */
+.app-header__row2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+}
+
+.app-header__spacer { flex: 1; }
 
 .app-header__status {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 12px;
   color: var(--color-text-secondary);
 }
-
 .app-header__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
 }
-
 .app-header__dot--live {
   background: var(--color-success);
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
@@ -633,17 +612,11 @@ const statusText = computed(() => {
 .app-header__dot--error { background: var(--color-accent-hot); }
 .app-header__status-text { white-space: nowrap; }
 
-.app-header__right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
 .app-header__viewers {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -651,125 +624,108 @@ const statusText = computed(() => {
 .app-header__controls {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.app-header__btn {
+/* Icon-only toggle buttons */
+.app-header__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-header__icon-btn:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-card);
+}
+.app-header__icon-btn.active {
+  color: #38bdf8;
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+.app-header__icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Vertical divider */
+.app-header__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border);
+  margin: 0 4px;
+}
+
+/* Action buttons (Connect, Mock, Stop) */
+.app-header__action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 14px;
-  border-radius: 8px;
+  gap: 4px;
+  padding: 5px 12px;
+  border-radius: 6px;
   border: none;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
-.app-header__btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.app-header__btn--connect { background: var(--color-accent-hot); color: white; }
-.app-header__btn--connect:hover:not(:disabled) { background: #e63350; transform: scale(1.03); }
-
-.app-header__btn--mock {
+.app-header__action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.app-header__action-btn--connect { background: var(--color-accent-hot); color: white; }
+.app-header__action-btn--connect:hover:not(:disabled) { background: #e63350; }
+.app-header__action-btn--mock {
   background: var(--color-bg-card);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
 }
-.app-header__btn--mock:hover:not(:disabled) {
+.app-header__action-btn--mock:hover:not(:disabled) {
   background: var(--color-bg-card-hover);
   color: var(--color-text-primary);
 }
+.app-header__action-btn--stop { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+.app-header__action-btn--stop:hover { background: #991b1b; }
 
-.app-header__btn--disconnect { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
-.app-header__btn--disconnect:hover:not(:disabled) { background: #991b1b; }
-
-.app-header__btn--reset {
-  background: transparent;
-  color: var(--color-text-muted);
+/* Shared .app-header__btn styles (profile, logout) */
+.app-header__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
   border: 1px solid var(--color-border);
-  padding: 6px 10px;
-}
-.app-header__btn--reset:hover { color: var(--color-text-primary); background: var(--color-bg-card); }
-
-.app-header__btn--tts,
-.app-header__btn--stats,
-.app-header__btn--history {
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
   background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  padding: 6px 10px;
-}
-.app-header__btn--tts:hover,
-.app-header__btn--stats:hover,
-.app-header__btn--history:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-card);
-}
-.app-header__btn--tts-active { color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.1); }
-.app-header__btn--stats-active { color: #ff8c42; border-color: #ff8c42; background: rgba(255, 140, 66, 0.1); }
-.app-header__btn--history-active { color: #a78bfa; border-color: #a78bfa; background: rgba(167, 139, 250, 0.1); }
-
-.app-header__btn--export {
-  background: var(--color-bg-card);
   color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
 }
-.app-header__btn--export:hover:not(:disabled) {
-  background: var(--color-bg-card-hover);
-  color: var(--color-text-primary);
-}
+.app-header__btn:hover { color: var(--color-text-primary); background: var(--color-bg-card); }
+.app-header__btn--profile:hover { color: #818cf8; border-color: #818cf8; background: rgba(129, 140, 248, 0.08); }
+.app-header__btn--logout { padding: 5px 8px; }
+.app-header__btn--logout:hover { color: #ff3b5c; border-color: #ff3b5c; background: rgba(255, 59, 92, 0.08); }
 
 .app-main { display: flex; flex: 1; overflow: hidden; }
 .app-main__left { flex: 7; border-right: 1px solid var(--color-border); overflow: hidden; }
 .app-main__right { flex: 3; display: flex; flex-direction: column; overflow: hidden; }
 
-/* User Menu */
-.app-header__user {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding-left: 12px;
-  border-left: 1px solid var(--color-border);
+/* Responsive */
+@media (max-width: 1024px) {
+  .app-nav__label { display: none; }
+  .app-nav__tab { padding: 5px 8px; }
+  .app-header__username { display: none; }
 }
-.app-header__user-name {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-.app-header__btn--logout {
-  background: transparent;
-  color: var(--color-text-muted);
-  border: 1px solid var(--color-border);
-  padding: 6px 8px;
-}
-.app-header__btn--logout:hover {
-  color: #ff3b5c;
-  border-color: #ff3b5c;
-  background: rgba(255, 59, 92, 0.08);
-}
-.app-header__btn--profile {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.app-header__btn--profile:hover {
-  color: #818cf8;
-  border-color: #818cf8;
-  background: rgba(129, 140, 248, 0.08);
+@media (max-width: 768px) {
+  .app-header__row1 { gap: 6px; padding: 6px 10px; }
+  .app-header__row2 { flex-wrap: wrap; gap: 6px; padding: 6px 10px; }
+  .app-header__controls { flex-wrap: wrap; }
 }
 
 /* Floating Panels */
