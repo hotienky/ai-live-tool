@@ -42,6 +42,9 @@ export class ShopSchema extends BaseModel {
   declare shopName: string
 
   @column()
+  declare userId: number
+
+  @column()
   declare platform: string
 
   @column()

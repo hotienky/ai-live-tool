@@ -2,28 +2,36 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Shop from '#models/shop'
 
 export default class ShopsController {
-  async index({ response }: HttpContext) {
-    const shops = await Shop.query().orderBy('created_at', 'desc')
+  async index({ auth, response }: HttpContext) {
+    const shops = await Shop.query()
+      .where('userId', auth.user!.id)
+      .orderBy('created_at', 'desc')
     return response.json(shops)
   }
 
-  async store({ request, response }: HttpContext) {
+  async store({ auth, request, response }: HttpContext) {
     const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel'])
     if (!data.shopName) {
       return response.badRequest({ error: 'shopName is required' })
     }
-    const shop = await Shop.create({ ...data, isActive: true })
+    const shop = await Shop.create({ ...data, userId: auth.user!.id, isActive: true })
     return response.json(shop)
   }
 
-  async show({ params, response }: HttpContext) {
-    const shop = await Shop.find(params.id)
+  async show({ auth, params, response }: HttpContext) {
+    const shop = await Shop.query()
+      .where('id', params.id)
+      .where('userId', auth.user!.id)
+      .first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
     return response.json(shop)
   }
 
-  async update({ params, request, response }: HttpContext) {
-    const shop = await Shop.find(params.id)
+  async update({ auth, params, request, response }: HttpContext) {
+    const shop = await Shop.query()
+      .where('id', params.id)
+      .where('userId', auth.user!.id)
+      .first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
 
     const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel', 'isActive'])
@@ -32,8 +40,11 @@ export default class ShopsController {
     return response.json(shop)
   }
 
-  async destroy({ params, response }: HttpContext) {
-    const shop = await Shop.find(params.id)
+  async destroy({ auth, params, response }: HttpContext) {
+    const shop = await Shop.query()
+      .where('id', params.id)
+      .where('userId', auth.user!.id)
+      .first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
     await shop.delete()
     return response.json({ success: true })

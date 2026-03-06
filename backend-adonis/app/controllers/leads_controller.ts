@@ -1,29 +1,46 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Lead from '#models/lead'
-import db from '@adonisjs/lucid/services/db'
+import ChatLog from '#models/chat_log'
+import { getUserShopIds } from '#services/scope_helper'
 
 export default class LeadsController {
-  async index({ request, response }: HttpContext) {
+  async index({ auth, request, response }: HttpContext) {
     const { shopId, status, page = 1, limit = 50 } = request.qs()
-    const query = Lead.query().orderBy('created_at', 'desc')
+    const userShopIds = await getUserShopIds(auth.user!.id)
+
+    const query = Lead.query()
+      .whereIn('chat_log_id',
+        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+      )
+      .orderBy('created_at', 'desc')
 
     if (status) query.where('status', status)
-    if (shopId) {
-      query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
-    }
+    if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
 
     const leads = await query.paginate(Number(page), Number(limit))
     return response.json(leads)
   }
 
-  async show({ params, response }: HttpContext) {
-    const lead = await Lead.find(params.id)
+  async show({ auth, params, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const lead = await Lead.query()
+      .where('id', params.id)
+      .whereIn('chat_log_id',
+        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+      )
+      .first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
     return response.json(lead)
   }
 
-  async update({ params, request, response }: HttpContext) {
-    const lead = await Lead.find(params.id)
+  async update({ auth, params, request, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const lead = await Lead.query()
+      .where('id', params.id)
+      .whereIn('chat_log_id',
+        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+      )
+      .first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
 
     const data = request.only(['status', 'notes', 'productIntent'])
@@ -32,24 +49,33 @@ export default class LeadsController {
     return response.json(lead)
   }
 
-  async destroy({ params, response }: HttpContext) {
-    const lead = await Lead.find(params.id)
+  async destroy({ auth, params, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const lead = await Lead.query()
+      .where('id', params.id)
+      .whereIn('chat_log_id',
+        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+      )
+      .first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
     await lead.delete()
     return response.json({ success: true })
   }
 
-  async pipelineStats({ request, response }: HttpContext) {
+  async pipelineStats({ auth, request, response }: HttpContext) {
     const { shopId } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
 
     const statuses = ['New', 'Contacting', 'Closed', 'Ignored']
     const pipeline: Record<string, number> = {}
 
     for (const status of statuses) {
-      const query = Lead.query().where('status', status)
-      if (shopId) {
-        query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
-      }
+      const query = Lead.query()
+        .where('status', status)
+        .whereIn('chat_log_id',
+          ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+        )
+      if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
       const count = await query.count('* as total')
       pipeline[status] = Number(count[0].$extras.total)
     }

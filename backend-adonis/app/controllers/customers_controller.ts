@@ -1,10 +1,15 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Customer from '#models/customer'
+import { getUserShopIds } from '#services/scope_helper'
 
 export default class CustomersController {
-  async index({ request, response }: HttpContext) {
+  async index({ auth, request, response }: HttpContext) {
     const { shopId, search, page = 1, limit = 50 } = request.qs()
-    const query = Customer.query().orderBy('updated_at', 'desc')
+    const userShopIds = await getUserShopIds(auth.user!.id)
+
+    const query = Customer.query()
+      .whereIn('shop_id', userShopIds)
+      .orderBy('updated_at', 'desc')
 
     if (shopId) query.where('shop_id', shopId)
     if (search) {
@@ -18,17 +23,23 @@ export default class CustomersController {
     return response.json(customers)
   }
 
-  async show({ params, response }: HttpContext) {
+  async show({ auth, params, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const customer = await Customer.query()
       .where('id', params.id)
+      .whereIn('shop_id', userShopIds)
       .preload('chatLogs')
       .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
     return response.json(customer)
   }
 
-  async update({ params, request, response }: HttpContext) {
-    const customer = await Customer.find(params.id)
+  async update({ auth, params, request, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const customer = await Customer.query()
+      .where('id', params.id)
+      .whereIn('shop_id', userShopIds)
+      .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
 
     const data = request.only(['nickname', 'tags', 'notes', 'lastLabel'])
@@ -37,8 +48,12 @@ export default class CustomersController {
     return response.json(customer)
   }
 
-  async destroy({ params, response }: HttpContext) {
-    const customer = await Customer.find(params.id)
+  async destroy({ auth, params, response }: HttpContext) {
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const customer = await Customer.query()
+      .where('id', params.id)
+      .whereIn('shop_id', userShopIds)
+      .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
     await customer.delete()
     return response.json({ message: 'Deleted' })

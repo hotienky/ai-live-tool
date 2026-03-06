@@ -2,10 +2,12 @@ import type { HttpContext } from '@adonisjs/core/http'
 import ChatLog from '#models/chat_log'
 import Lead from '#models/lead'
 import db from '@adonisjs/lucid/services/db'
+import { getUserShopIds } from '#services/scope_helper'
 
 export default class AnalyticsController {
-  async daily({ request, response }: HttpContext) {
+  async daily({ auth, request, response }: HttpContext) {
     const { shopId, days = 7 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
@@ -13,6 +15,7 @@ export default class AnalyticsController {
       .select(db.raw("DATE(created_at) as date"), 'ai_label')
       .count('* as count')
       .where('created_at', '>=', startDate.toISOString())
+      .whereIn('shop_id', userShopIds)
       .groupByRaw('DATE(created_at), ai_label')
       .orderByRaw('DATE(created_at) ASC')
 
@@ -30,8 +33,9 @@ export default class AnalyticsController {
     return response.json({ daily: Object.values(dateMap) })
   }
 
-  async hourly({ request, response }: HttpContext) {
+  async hourly({ auth, request, response }: HttpContext) {
     const { shopId, date } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const targetDate = date ? new Date(date) : new Date()
     const startOfDay = new Date(targetDate)
     startOfDay.setHours(0, 0, 0, 0)
@@ -42,6 +46,7 @@ export default class AnalyticsController {
       .select(db.raw("EXTRACT(HOUR FROM created_at) as hour"), 'ai_label')
       .count('* as count')
       .whereBetween('created_at', [startOfDay.toISOString(), endOfDay.toISOString()])
+      .whereIn('shop_id', userShopIds)
       .groupByRaw('EXTRACT(HOUR FROM created_at), ai_label')
 
     if (shopId) query.where('shop_id', shopId)
@@ -57,8 +62,9 @@ export default class AnalyticsController {
     return response.json({ hourly })
   }
 
-  async conversion({ request, response }: HttpContext) {
+  async conversion({ auth, request, response }: HttpContext) {
     const { days = 30 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
@@ -69,6 +75,9 @@ export default class AnalyticsController {
       const result = await Lead.query()
         .where('status', status)
         .where('created_at', '>=', startDate.toISOString())
+        .whereIn('chat_log_id',
+          ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+        )
         .count('* as total')
       funnel.push({ status, count: Number(result[0].$extras.total) })
     }
@@ -80,14 +89,16 @@ export default class AnalyticsController {
     return response.json({ funnel, totalLeads, closedCount, conversionRate })
   }
 
-  async topKeywords({ request, response }: HttpContext) {
+  async topKeywords({ auth, request, response }: HttpContext) {
     const { shopId, days = 7, limit = 20 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
     const query = ChatLog.query()
       .select('commentText')
       .where('created_at', '>=', startDate.toISOString())
+      .whereIn('shop_id', userShopIds)
       .limit(5000)
     if (shopId) query.where('shopId', shopId)
     const comments = await query
@@ -105,7 +116,7 @@ export default class AnalyticsController {
     for (const row of comments) {
       if (!row.commentText) continue
       const words = row.commentText.toLowerCase()
-        .replace(/[.,!?;:()[\]{}"'`~@#$%^&*+=|\\/><]/g, ' ')
+        .replace(/[.,!?;:()[\]{}\"'`~@#$%^&*+=|\\/><]/g, ' ')
         .split(/\s+/)
         .filter((w: string) => w.length >= 3 && !STOP.has(w) && !/^\d+$/.test(w))
       for (const w of words) freq[w] = (freq[w] || 0) + 1
@@ -119,8 +130,9 @@ export default class AnalyticsController {
     return response.json({ keywords })
   }
 
-  async summary({ request, response }: HttpContext) {
+  async summary({ auth, request, response }: HttpContext) {
     const { shopId, days = 7 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
@@ -128,6 +140,7 @@ export default class AnalyticsController {
       .select('ai_label')
       .count('* as count')
       .where('created_at', '>=', startDate.toISOString())
+      .whereIn('shop_id', userShopIds)
       .groupBy('ai_label')
     if (shopId) query.where('shop_id', shopId)
     const stats = await query

@@ -2,18 +2,23 @@ import type { HttpContext } from '@adonisjs/core/http'
 import ChatLog from '#models/chat_log'
 import Lead from '#models/lead'
 import Customer from '#models/customer'
-import db from '@adonisjs/lucid/services/db'
+import { getUserShopIds } from '#services/scope_helper'
 
 export default class ExportsController {
-  async leads({ request, response }: HttpContext) {
+  async leads({ auth, request, response }: HttpContext) {
     const { shopId, format = 'csv' } = request.qs()
-    const where: any = {}
-    if (shopId) where.shop_id = shopId
+    const userShopIds = await getUserShopIds(auth.user!.id)
 
-    const leads = await Lead.query().if(shopId, (q) => q.where('shopId', shopId as string)).orderBy('created_at', 'desc')
+    const query = Lead.query()
+      .whereIn('chat_log_id',
+        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+      )
+      .orderBy('created_at', 'desc')
+    if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
+    const leads = await query
 
     if (format === 'csv') {
-      const headers = ['id', 'uniqueId', 'nickname', 'comment', 'label', 'status', 'notes', 'productIntent', 'createdAt']
+      const headers = ['id', 'unique_id', 'nickname', 'comment', 'label', 'status', 'notes', 'product_intent', 'created_at']
       let csv = headers.join(',') + '\n'
       for (const l of leads) {
         const s = l.serialize()
@@ -26,15 +31,20 @@ export default class ExportsController {
     return response.json(leads)
   }
 
-  async comments({ request, response }: HttpContext) {
+  async comments({ auth, request, response }: HttpContext) {
     const { shopId, sessionId, format = 'csv' } = request.qs()
-    const query = ChatLog.query().orderBy('created_at', 'desc').limit(10000)
+    const userShopIds = await getUserShopIds(auth.user!.id)
+
+    const query = ChatLog.query()
+      .whereIn('shop_id', userShopIds)
+      .orderBy('created_at', 'desc')
+      .limit(10000)
     if (shopId) query.where('shopId', shopId as string)
     if (sessionId) query.where('sessionId', sessionId as string)
     const comments = await query
 
     if (format === 'csv') {
-      const headers = ['id', 'uniqueId', 'nickname', 'commentText', 'aiLabel', 'aiSummary', 'productIntent', 'platform', 'createdAt']
+      const headers = ['id', 'unique_id', 'nickname', 'comment_text', 'ai_label', 'ai_summary', 'product_intent', 'platform', 'created_at']
       let csv = headers.join(',') + '\n'
       for (const c of comments) {
         const s = c.serialize()
@@ -47,14 +57,18 @@ export default class ExportsController {
     return response.json(comments)
   }
 
-  async customers({ request, response }: HttpContext) {
+  async customers({ auth, request, response }: HttpContext) {
     const { shopId, format = 'csv' } = request.qs()
-    const query = Customer.query().orderBy('updated_at', 'desc')
+    const userShopIds = await getUserShopIds(auth.user!.id)
+
+    const query = Customer.query()
+      .whereIn('shop_id', userShopIds)
+      .orderBy('updated_at', 'desc')
     if (shopId) query.where('shopId', shopId as string)
     const customers = await query
 
     if (format === 'csv') {
-      const headers = ['id', 'uniqueId', 'nickname', 'totalComments', 'hotCount', 'lastLabel', 'platform', 'createdAt']
+      const headers = ['id', 'unique_id', 'nickname', 'total_comments', 'hot_count', 'last_label', 'platform', 'created_at']
       let csv = headers.join(',') + '\n'
       for (const c of customers) {
         const s = c.serialize()
@@ -67,15 +81,18 @@ export default class ExportsController {
     return response.json(customers)
   }
 
-  async report({ request, response }: HttpContext) {
+  async report({ auth, request, response }: HttpContext) {
     const { shopId, days = 7 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
     let totalComments = 0, totalHot = 0, totalWarm = 0, totalCold = 0, totalLeads = 0, conversionRate = 0
 
     try {
-      const query = ChatLog.query().where('created_at', '>=', startDate.toISOString())
+      const query = ChatLog.query()
+        .where('created_at', '>=', startDate.toISOString())
+        .whereIn('shop_id', userShopIds)
       if (shopId) query.where('shopId', shopId as string)
       const comments = await query
 
@@ -84,7 +101,11 @@ export default class ExportsController {
       totalWarm = comments.filter((c) => c.aiLabel === 'WARM').length
       totalCold = comments.filter((c) => c.aiLabel === 'COLD').length
 
-      const leads = await Lead.query().where('created_at', '>=', startDate.toISOString())
+      const leads = await Lead.query()
+        .where('created_at', '>=', startDate.toISOString())
+        .whereIn('chat_log_id',
+          ChatLog.query().select('id').whereIn('shop_id', userShopIds)
+        )
       totalLeads = leads.length
       const closed = leads.filter((l) => l.status === 'Closed').length
       conversionRate = totalLeads > 0 ? Math.round((closed / totalLeads) * 100) : 0

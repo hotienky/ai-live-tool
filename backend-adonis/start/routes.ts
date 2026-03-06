@@ -155,14 +155,14 @@ router.group(() => {
   router.post('/reply/generate', [RepliesController, 'generate'])
   router.post('/reply/sentiment', [RepliesController, 'sentiment'])
 
-  // Shop actions (connect/disconnect via ConnectionManager)
-  router.post('/shops/:id/connect', async ({ params, response }) => {
+  // Shop actions (connect/disconnect via ConnectionManager) — user scoped
+  router.post('/shops/:id/connect', async ({ auth, params, response }) => {
     const connectionManager = (await import('#services/connection_manager')).default
     const { getIO } = await import('#start/socket')
     const io = getIO()
     if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
     const Shop = (await import('#models/shop')).default
-    const shop = await Shop.find(params.id)
+    const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
     try {
       const result = await connectionManager.startConnection(shop.serialize(), io)
@@ -172,28 +172,35 @@ router.group(() => {
     }
   })
 
-  router.post('/shops/:id/disconnect', async ({ params, response }) => {
+  router.post('/shops/:id/disconnect', async ({ auth, params, response }) => {
+    const Shop = (await import('#models/shop')).default
+    const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
+    if (!shop) return response.notFound({ error: 'Shop not found' })
     const connectionManager = (await import('#services/connection_manager')).default
     await connectionManager.stopConnection(Number(params.id))
     return response.json({ success: true })
   })
 
-  router.get('/shops/:id/stats', async ({ params, response }) => {
+  router.get('/shops/:id/stats', async ({ auth, params, response }) => {
+    const Shop = (await import('#models/shop')).default
+    const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
+    if (!shop) return response.notFound({ error: 'Shop not found' })
     const connectionManager = (await import('#services/connection_manager')).default
     const stats = connectionManager.getStats(Number(params.id))
     return response.json(stats)
   })
 
-  router.post('/shops/:id/mock', async ({ params, response }) => {
+  router.post('/shops/:id/mock', async ({ auth, params, response }) => {
+    const Shop = (await import('#models/shop')).default
+    const shop = await Shop.query().where('id', params.id).where('userId', auth.user!.id).first()
+    if (!shop) return response.notFound({ error: 'Shop not found' })
     const connectionManager = (await import('#services/connection_manager')).default
     const { getIO } = await import('#start/socket')
     const io = getIO()
     if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
-    const Shop = (await import('#models/shop')).default
-    const shop = await Shop.find(params.id)
     try {
       await connectionManager.startMockConnection(
-        { id: Number(params.id), shopName: shop?.shopName || 'Mock Shop' },
+        { id: Number(params.id), shopName: shop.shopName || 'Mock Shop' },
         io
       )
       return response.json({ success: true })
