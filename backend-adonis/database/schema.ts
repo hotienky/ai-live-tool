@@ -1,6 +1,9 @@
 import { BaseModel, column, hasMany, belongsTo } from '@adonisjs/lucid/orm'
 import type { HasMany, BelongsTo } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
+import SnakeCaseSerializer from '../app/strategies/snake_case_serializer.js'
+
+BaseModel.namingStrategy = new SnakeCaseSerializer()
 
 // ──── 1. User ──────────────────────────────────────────
 export class UserSchema extends BaseModel {
