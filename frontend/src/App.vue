@@ -120,10 +120,10 @@
         <NotificationCenter ref="notifCenter" />
         <!-- User Menu -->
         <div class="app-header__user" v-if="currentUser">
-          <span class="app-header__user-name">
+          <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ">
             <UserIcon :size="14" />
-            {{ currentUser.name }}
-          </span>
+            {{ currentUser.fullName || currentUser.name || currentUser.email }}
+          </button>
           <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất">
             <LogOut :size="14" />
           </button>
@@ -250,6 +250,17 @@
         <button class="shortcuts-close" @click="showShortcuts = false">Đóng</button>
       </div>
     </div>
+
+    <!-- Profile Modal -->
+    <ProfileModal
+      v-if="showProfile"
+      :currentUser="currentUser"
+      @close="showProfile = false"
+      @updated="onProfileUpdated"
+    />
+
+    <!-- Toast Notifications -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -279,6 +290,8 @@ import NotificationCenter from './components/NotificationCenter.vue'
 import QuickReply from './components/QuickReply.vue'
 import OrderManagement from './components/OrderManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'
+import ToastContainer from './components/ToastContainer.vue'
+import ProfileModal from './components/ProfileModal.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
@@ -297,6 +310,10 @@ const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrow
 
 function onLoginSuccess() {}
 function onLogout() { logout() }
+function onProfileUpdated(user) {
+  currentUser.value = user
+  showProfile.value = false
+}
 
 // ── Navigation ──
 const activeView = ref('live')
@@ -393,6 +410,7 @@ const { isEnabled: ttsEnabled, toggle: toggleTTS, announceHotLead } = useTTS()
 // Stats Chart & Session History
 const showChart = ref(false)
 const showHistory = ref(false)
+const showProfile = ref(false)
 const timelineData = ref([])
 let timelineInterval = null
 
@@ -734,6 +752,24 @@ const statusText = computed(() => {
   color: #ff3b5c;
   border-color: #ff3b5c;
   background: rgba(255, 59, 92, 0.08);
+}
+.app-header__btn--profile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.app-header__btn--profile:hover {
+  color: #818cf8;
+  border-color: #818cf8;
+  background: rgba(129, 140, 248, 0.08);
 }
 
 /* Floating Panels */
