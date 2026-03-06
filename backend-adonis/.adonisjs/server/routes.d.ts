@@ -37,6 +37,12 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'exports.leads': { paramsTuple?: []; params?: {} }
+    'exports.comments': { paramsTuple?: []; params?: {} }
+    'exports.customers': { paramsTuple?: []; params?: {} }
+    'exports.report': { paramsTuple?: []; params?: {} }
+    'replies.generate': { paramsTuple?: []; params?: {} }
+    'replies.sentiment': { paramsTuple?: []; params?: {} }
   }
   GET: {
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -58,6 +64,10 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'exports.leads': { paramsTuple?: []; params?: {} }
+    'exports.comments': { paramsTuple?: []; params?: {} }
+    'exports.customers': { paramsTuple?: []; params?: {} }
+    'exports.report': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -79,6 +89,10 @@ export type ScannedRoutes = {
     'customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'sessions.index': { paramsTuple?: []; params?: {} }
     'sessions.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'exports.leads': { paramsTuple?: []; params?: {} }
+    'exports.comments': { paramsTuple?: []; params?: {} }
+    'exports.customers': { paramsTuple?: []; params?: {} }
+    'exports.report': { paramsTuple?: []; params?: {} }
   }
   POST: {
     'auth.register': { paramsTuple?: []; params?: {} }
@@ -87,6 +101,8 @@ export type ScannedRoutes = {
     'keywords.store': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'templates.store': { paramsTuple: [ParamValue]; params: {'shopId': ParamValue} }
     'products.store': { paramsTuple?: []; params?: {} }
+    'replies.generate': { paramsTuple?: []; params?: {} }
+    'replies.sentiment': { paramsTuple?: []; params?: {} }
   }
   PUT: {
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

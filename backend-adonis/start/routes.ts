@@ -18,9 +18,29 @@ const DashboardController = () => import('#controllers/dashboard_controller')
 const AnalyticsController = () => import('#controllers/analytics_controller')
 const CustomersController = () => import('#controllers/customers_controller')
 const SessionsController = () => import('#controllers/sessions_controller')
+const ExportsController = () => import('#controllers/exports_controller')
+const RepliesController = () => import('#controllers/replies_controller')
 
 // ──── Health Check ────
-router.get('/api/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+router.get('/api/health', async () => {
+  const connectionManager = (await import('#services/connection_manager')).default
+  const { isConfigured } = await import('#services/telegram_service')
+  const aiQueue = (await import('#services/ai_queue')).default
+  return {
+    status: 'ok',
+    uptime: process.uptime(),
+    activeConnections: connectionManager.connections.size,
+    telegram: isConfigured(),
+    aiQueue: aiQueue.getStats(),
+    timestamp: new Date().toISOString(),
+  }
+})
+
+// Supported platforms
+router.get('/api/platforms', async () => {
+  const { SUPPORTED_PLATFORMS } = await import('#services/connectors')
+  return SUPPORTED_PLATFORMS
+})
 
 // ──── Auth Routes (Public) ────
 router.group(() => {
@@ -79,15 +99,60 @@ router.group(() => {
   router.get('/sessions', [SessionsController, 'index'])
   router.get('/sessions/:id', [SessionsController, 'show'])
 
-  // Shop actions (connect/disconnect handled by socket/services)
+  // Export
+  router.get('/export/leads', [ExportsController, 'leads'])
+  router.get('/export/comments', [ExportsController, 'comments'])
+  router.get('/export/customers', [ExportsController, 'customers'])
+  router.get('/export/report', [ExportsController, 'report'])
+
+  // Reply
+  router.post('/reply/generate', [RepliesController, 'generate'])
+  router.post('/reply/sentiment', [RepliesController, 'sentiment'])
+
+  // Shop actions (connect/disconnect via ConnectionManager)
   router.post('/shops/:id/connect', async ({ params, response }) => {
-    // Will be handled by ConnectionManager service
-    return response.json({ message: 'Use Socket.IO to connect', shopId: params.id })
+    const connectionManager = (await import('#services/connection_manager')).default
+    const { getIO } = await import('#start/socket')
+    const io = getIO()
+    if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
+    const Shop = (await import('#models/shop')).default
+    const shop = await Shop.find(params.id)
+    if (!shop) return response.notFound({ error: 'Shop not found' })
+    try {
+      const result = await connectionManager.startConnection(shop.serialize(), io)
+      return response.json(result)
+    } catch (err: any) {
+      return response.internalServerError({ error: err.message })
+    }
   })
+
   router.post('/shops/:id/disconnect', async ({ params, response }) => {
-    return response.json({ message: 'Use Socket.IO to disconnect', shopId: params.id })
+    const connectionManager = (await import('#services/connection_manager')).default
+    await connectionManager.stopConnection(Number(params.id))
+    return response.json({ success: true })
   })
+
   router.get('/shops/:id/stats', async ({ params, response }) => {
-    return response.json({ shopId: params.id, stats: {} })
+    const connectionManager = (await import('#services/connection_manager')).default
+    const stats = connectionManager.getStats(Number(params.id))
+    return response.json(stats)
+  })
+
+  router.post('/shops/:id/mock', async ({ params, response }) => {
+    const connectionManager = (await import('#services/connection_manager')).default
+    const { getIO } = await import('#start/socket')
+    const io = getIO()
+    if (!io) return response.serviceUnavailable({ error: 'Socket.IO not ready' })
+    const Shop = (await import('#models/shop')).default
+    const shop = await Shop.find(params.id)
+    try {
+      await connectionManager.startMockConnection(
+        { id: Number(params.id), shopName: shop?.shopName || 'Mock Shop' },
+        io
+      )
+      return response.json({ success: true })
+    } catch (err: any) {
+      return response.internalServerError({ error: err.message })
+    }
   })
 }).prefix('/api')

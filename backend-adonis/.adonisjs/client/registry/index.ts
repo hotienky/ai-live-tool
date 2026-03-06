@@ -204,6 +204,42 @@ const routes = {
     tokens: [{"old":"/api/sessions/:id","type":0,"val":"api","end":""},{"old":"/api/sessions/:id","type":0,"val":"sessions","end":""},{"old":"/api/sessions/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['sessions.show']['types'],
   },
+  'exports.leads': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/export/leads',
+    tokens: [{"old":"/api/export/leads","type":0,"val":"api","end":""},{"old":"/api/export/leads","type":0,"val":"export","end":""},{"old":"/api/export/leads","type":0,"val":"leads","end":""}],
+    types: placeholder as Registry['exports.leads']['types'],
+  },
+  'exports.comments': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/export/comments',
+    tokens: [{"old":"/api/export/comments","type":0,"val":"api","end":""},{"old":"/api/export/comments","type":0,"val":"export","end":""},{"old":"/api/export/comments","type":0,"val":"comments","end":""}],
+    types: placeholder as Registry['exports.comments']['types'],
+  },
+  'exports.customers': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/export/customers',
+    tokens: [{"old":"/api/export/customers","type":0,"val":"api","end":""},{"old":"/api/export/customers","type":0,"val":"export","end":""},{"old":"/api/export/customers","type":0,"val":"customers","end":""}],
+    types: placeholder as Registry['exports.customers']['types'],
+  },
+  'exports.report': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/export/report',
+    tokens: [{"old":"/api/export/report","type":0,"val":"api","end":""},{"old":"/api/export/report","type":0,"val":"export","end":""},{"old":"/api/export/report","type":0,"val":"report","end":""}],
+    types: placeholder as Registry['exports.report']['types'],
+  },
+  'replies.generate': {
+    methods: ["POST"],
+    pattern: '/api/reply/generate',
+    tokens: [{"old":"/api/reply/generate","type":0,"val":"api","end":""},{"old":"/api/reply/generate","type":0,"val":"reply","end":""},{"old":"/api/reply/generate","type":0,"val":"generate","end":""}],
+    types: placeholder as Registry['replies.generate']['types'],
+  },
+  'replies.sentiment': {
+    methods: ["POST"],
+    pattern: '/api/reply/sentiment',
+    tokens: [{"old":"/api/reply/sentiment","type":0,"val":"api","end":""},{"old":"/api/reply/sentiment","type":0,"val":"reply","end":""},{"old":"/api/reply/sentiment","type":0,"val":"sentiment","end":""}],
+    types: placeholder as Registry['replies.sentiment']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

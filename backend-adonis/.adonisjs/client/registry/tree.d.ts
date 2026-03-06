@@ -55,4 +55,14 @@ export interface ApiDefinition {
     index: typeof routes['sessions.index']
     show: typeof routes['sessions.show']
   }
+  exports: {
+    leads: typeof routes['exports.leads']
+    comments: typeof routes['exports.comments']
+    customers: typeof routes['exports.customers']
+    report: typeof routes['exports.report']
+  }
+  replies: {
+    generate: typeof routes['replies.generate']
+    sentiment: typeof routes['replies.sentiment']
+  }
 }

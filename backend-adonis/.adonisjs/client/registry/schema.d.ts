@@ -403,4 +403,76 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/sessions_controller').default['show']>>>
     }
   }
+  'exports.leads': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/export/leads'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['leads']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['leads']>>>
+    }
+  }
+  'exports.comments': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/export/comments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['comments']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['comments']>>>
+    }
+  }
+  'exports.customers': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/export/customers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['customers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['customers']>>>
+    }
+  }
+  'exports.report': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/export/report'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['report']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/exports_controller').default['report']>>>
+    }
+  }
+  'replies.generate': {
+    methods: ["POST"]
+    pattern: '/api/reply/generate'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/replies_controller').default['generate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/replies_controller').default['generate']>>>
+    }
+  }
+  'replies.sentiment': {
+    methods: ["POST"]
+    pattern: '/api/reply/sentiment'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/replies_controller').default['sentiment']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/replies_controller').default['sentiment']>>>
+    }
+  }
 }
