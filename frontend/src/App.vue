@@ -177,6 +177,18 @@
       :currentShop="currentShop"
     />
 
+    <!-- ═══ View: Session Replay ═══ -->
+    <SessionReplay
+      v-if="activeView === 'replay'"
+    />
+
+    <!-- Customer Detail Modal -->
+    <CustomerDetail
+      :visible="showCustomerDetail"
+      :customer="selectedCustomer"
+      @close="showCustomerDetail = false"
+    />
+
     <!-- Floating Panels (available in Live Monitor) -->
     <div class="app-floating" v-if="activeView === 'live'">
       <div class="app-floating__panel" v-if="showLuckyDraw">
@@ -223,6 +235,9 @@ import LoginPage from './components/LoginPage.vue'
 import ShopSettings from './components/ShopSettings.vue'
 import LuckyDrawPanel from './components/LuckyDrawPanel.vue'
 import ScriptPrompter from './components/ScriptPrompter.vue'
+import SessionReplay from './components/SessionReplay.vue'
+import CustomerDetail from './components/CustomerDetail.vue'
+import NotificationCenter from './components/NotificationCenter.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 
@@ -231,7 +246,7 @@ import {
   Radio, Drama, Square, RotateCcw, History,
   LayoutDashboard, MonitorPlay, Users, BarChart2,
   User as UserIcon, LogOut, Settings, Gift, FileText,
-  BellRing, BellOff
+  BellRing, BellOff, History as HistoryIcon
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -248,8 +263,17 @@ const tabs = [
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
   { key: 'crm', label: 'CRM', icon: Users },
   { key: 'reports', label: 'Reports', icon: BarChart2 },
+  { key: 'replay', label: 'Replay', icon: HistoryIcon },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
+
+// Customer detail modal
+const showCustomerDetail = ref(false)
+const selectedCustomer = ref(null)
+function openCustomerDetail(customer) {
+  selectedCustomer.value = customer
+  showCustomerDetail.value = true
+}
 
 // Floating panels
 const showLuckyDraw = ref(false)
