@@ -10,6 +10,8 @@ function getAuthHeaders() {
   return headers
 }
 
+let isRedirecting = false
+
 export async function apiFetch(path, options = {}) {
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`
   const res = await fetch(url, {
@@ -20,12 +22,14 @@ export async function apiFetch(path, options = {}) {
     },
   })
 
-  // Auto-redirect to login on 401
-  if (res.status === 401) {
+  // Handle 401 — clear auth state but don't reload (let the app handle it)
+  if (res.status === 401 && !isRedirecting) {
+    isRedirecting = true
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
-    window.location.reload()
-    throw new Error('Unauthorized')
+    // Dispatch event so useAuth can react without reload
+    window.dispatchEvent(new Event('auth:logout'))
+    isRedirecting = false
   }
 
   return res

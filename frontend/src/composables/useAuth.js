@@ -12,6 +12,14 @@ export function useAuth() {
 
   const isLoggedIn = computed(() => !!token.value)
 
+  // Listen for forced logout from apiFetch 401 handler
+  if (typeof window !== 'undefined') {
+    window.addEventListener('auth:logout', () => {
+      token.value = null
+      currentUser.value = null
+    })
+  }
+
   /**
    * Đăng nhập
    */
