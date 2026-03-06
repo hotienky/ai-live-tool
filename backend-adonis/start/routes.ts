@@ -87,6 +87,7 @@ router.group(() => {
   router.get('/dashboard/overview', [DashboardController, 'overview'])
   router.get('/dashboard/recent-leads', [DashboardController, 'recentLeads'])
   router.get('/dashboard/analytics', [DashboardController, 'analytics'])
+  router.get('/dashboard/top-customers', [DashboardController, 'topCustomers'])
 
   // Analytics
   router.get('/analytics/daily', [AnalyticsController, 'daily'])

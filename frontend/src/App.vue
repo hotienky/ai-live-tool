@@ -154,7 +154,7 @@
 
       <!-- Right: Chat + Stats (30%) -->
       <section class="app-main__right">
-        <ChatStream :comments="allComments" @reply="onQuickReply" />
+        <ChatStream ref="chatStreamRef" :comments="allComments" @reply="onQuickReply" />
         <QuickReply
           :visible="showQuickReply"
           :targetComment="quickReplyTarget"
@@ -232,6 +232,20 @@
         <BellOff v-else :size="18" />
       </button>
     </div>
+
+    <!-- Keyboard Shortcuts Help -->
+    <div class="shortcuts-overlay" v-if="showShortcuts" @click.self="showShortcuts = false">
+      <div class="shortcuts-modal">
+        <h3>⌨️ Phím tắt</h3>
+        <div class="shortcuts-list">
+          <div v-for="s in shortcuts" :key="s.keys" class="shortcut-item">
+            <kbd>{{ s.keys }}</kbd>
+            <span>{{ s.desc }}</span>
+          </div>
+        </div>
+        <button class="shortcuts-close" @click="showShortcuts = false">Đóng</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -263,6 +277,7 @@ import OrderManagement from './components/OrderManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
+import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -308,6 +323,28 @@ const showPrompter = ref(false)
 const showQuickReply = ref(false)
 const quickReplyTarget = ref(null)
 const notifCenter = ref(null)
+const chatStreamRef = ref(null)
+const showShortcuts = ref(false)
+
+// Keyboard shortcuts
+const { shortcuts } = useKeyboardShortcuts({
+  onSwitchTab: (tab) => { activeView.value = tab },
+  onToggleSearch: () => {
+    if (activeView.value !== 'live') activeView.value = 'live'
+    if (chatStreamRef.value) {
+      chatStreamRef.value.showSearch = !chatStreamRef.value.showSearch
+    }
+  },
+  onStartMock: () => onStartMock(),
+  onCloseModal: () => {
+    showCustomerDetail.value = false
+    showQuickReply.value = false
+    showLuckyDraw.value = false
+    showPrompter.value = false
+    showShortcuts.value = false
+  },
+  onToggleHelp: () => { showShortcuts.value = !showShortcuts.value },
+})
 
 function onQuickReply(comment) {
   quickReplyTarget.value = comment
@@ -751,5 +788,38 @@ const statusText = computed(() => {
   .app-header__btn span { display: none; }
   .app-header__user-name span { display: none; }
 }
+
+/* Keyboard Shortcuts Overlay */
+.shortcuts-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.shortcuts-modal {
+  background: var(--color-bg-secondary); border-radius: 16px;
+  padding: 24px; width: 360px; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+.shortcuts-modal h3 { margin: 0 0 16px 0; font-size: 16px; }
+.shortcuts-list { display: flex; flex-direction: column; gap: 8px; }
+.shortcut-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid var(--color-border);
+}
+.shortcut-item:last-child { border-bottom: none; }
+.shortcut-item kbd {
+  background: rgba(255,255,255,0.08); border: 1px solid var(--color-border);
+  border-radius: 6px; padding: 3px 10px; font-family: monospace;
+  font-size: 12px; font-weight: 600; color: #818cf8;
+}
+.shortcut-item span { font-size: 13px; color: var(--color-text-secondary); }
+.shortcuts-close {
+  margin-top: 16px; width: 100%; padding: 8px; border-radius: 8px;
+  background: rgba(255,255,255,0.06); border: 1px solid var(--color-border);
+  color: var(--color-text-secondary); font-size: 13px; cursor: pointer;
+}
+.shortcuts-close:hover { border-color: #818cf8; color: #818cf8; }
 </style>
 

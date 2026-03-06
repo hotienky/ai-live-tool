@@ -162,6 +162,12 @@ const routes = {
     tokens: [{"old":"/api/dashboard/analytics","type":0,"val":"api","end":""},{"old":"/api/dashboard/analytics","type":0,"val":"dashboard","end":""},{"old":"/api/dashboard/analytics","type":0,"val":"analytics","end":""}],
     types: placeholder as Registry['dashboard.analytics']['types'],
   },
+  'dashboard.top_customers': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/dashboard/top-customers',
+    tokens: [{"old":"/api/dashboard/top-customers","type":0,"val":"api","end":""},{"old":"/api/dashboard/top-customers","type":0,"val":"dashboard","end":""},{"old":"/api/dashboard/top-customers","type":0,"val":"top-customers","end":""}],
+    types: placeholder as Registry['dashboard.top_customers']['types'],
+  },
   'analytics.daily': {
     methods: ["GET","HEAD"],
     pattern: '/api/analytics/daily',

@@ -148,4 +148,31 @@ export default class DashboardController {
       conversion: { funnel, totalLeads, closedCount, rate: conversionRate },
     })
   }
+
+  /**
+   * Top customers — by comment count + HOT ratio
+   */
+  async topCustomers({ request, response }: HttpContext) {
+    const { limit = 10 } = request.qs()
+
+    const customers = await db
+      .from('chat_logs')
+      .select('nickname')
+      .count('* as total_comments')
+      .sum(db.raw("CASE WHEN ai_label = '[HOT]' THEN 1 ELSE 0 END") as any)
+      .groupBy('nickname')
+      .orderBy('total_comments', 'desc')
+      .limit(Number(limit))
+
+    const result = customers.map((c: any) => ({
+      nickname: c.nickname,
+      totalComments: Number(c.total_comments),
+      hotCount: Number(c.sum || 0),
+      hotRate: Number(c.total_comments) > 0
+        ? Math.round((Number(c.sum || 0) / Number(c.total_comments)) * 100)
+        : 0,
+    }))
+
+    return response.json(result)
+  }
 }

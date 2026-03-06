@@ -41,6 +41,7 @@ export interface ApiDefinition {
     overview: typeof routes['dashboard.overview']
     recentLeads: typeof routes['dashboard.recent_leads']
     analytics: typeof routes['dashboard.analytics']
+    topCustomers: typeof routes['dashboard.top_customers']
   }
   analytics: {
     daily: typeof routes['analytics.daily']

@@ -28,6 +28,64 @@
         </div>
       </div>
 
+      <!-- Tags Section -->
+      <div class="customer-modal__section customer-modal__tags-section">
+        <h4 class="customer-modal__section-title">
+          <Tag :size="14" /> Tags
+        </h4>
+        <div class="customer-modal__tags">
+          <span
+            v-for="(tag, i) in tags"
+            :key="i"
+            class="customer-modal__tag"
+            :class="tagClass(tag)"
+          >
+            {{ tag }}
+            <button class="customer-modal__tag-remove" @click="removeTag(i)">×</button>
+          </span>
+          <div class="customer-modal__tag-add" v-if="!addingTag">
+            <button class="customer-modal__tag-btn" @click="addingTag = true">
+              <Plus :size="12" /> Thêm tag
+            </button>
+          </div>
+          <div class="customer-modal__tag-input-wrap" v-else>
+            <input
+              ref="tagInputRef"
+              v-model="newTag"
+              class="customer-modal__tag-input"
+              placeholder="VIP, Loyal..."
+              @keydown.enter="addTag"
+              @keydown.escape="addingTag = false"
+            />
+            <div class="customer-modal__tag-presets">
+              <button v-for="p in tagPresets" :key="p" class="preset-btn" @click="addPresetTag(p)">{{ p }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="customer-modal__section">
+        <h4 class="customer-modal__section-title">
+          <FileText :size="14" /> Ghi chú
+        </h4>
+        <textarea
+          v-model="notes"
+          class="customer-modal__notes"
+          placeholder="Ghi chú về khách hàng này..."
+          rows="3"
+        ></textarea>
+        <button
+          class="customer-modal__save-btn"
+          @click="saveCustomerInfo"
+          :disabled="saving"
+        >
+          <Save :size="13" />
+          {{ saving ? 'Đang lưu...' : 'Lưu thông tin' }}
+        </button>
+        <span v-if="saveSuccess" class="customer-modal__save-ok">✅ Đã lưu!</span>
+      </div>
+
       <!-- Timeline -->
       <div class="customer-modal__section">
         <h4 class="customer-modal__section-title">
@@ -62,8 +120,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
-import { X, Clock, Download } from 'lucide-vue-next'
+import { ref, watch, nextTick } from 'vue'
+import { X, Clock, Download, Tag, Plus, FileText, Save } from 'lucide-vue-next'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -75,19 +133,93 @@ defineEmits(['close'])
 const API = 'http://localhost:3000/api'
 const chatLogs = ref([])
 const loading = ref(false)
+const tags = ref([])
+const notes = ref('')
+const newTag = ref('')
+const addingTag = ref(false)
+const tagInputRef = ref(null)
+const saving = ref(false)
+const saveSuccess = ref(false)
+
+const tagPresets = ['VIP', 'Mua nhiều', 'Hay hỏi', 'Tiềm năng', 'Đã chốt', 'Cần follow-up']
 
 watch(() => props.visible, async (v) => {
   if (v && props.customer) {
     loading.value = true
+    saveSuccess.value = false
     try {
       const id = props.customer.id
       const res = await fetch(`${API}/customers/${id}`)
       const data = await res.json()
       chatLogs.value = data.ChatLogs || data.chatLogs || data.chat_logs || []
-    } catch { chatLogs.value = [] }
+      // Load tags and notes
+      const rawTags = data.tags || props.customer.tags
+      tags.value = rawTags ? (typeof rawTags === 'string' ? rawTags.split(',').map(t => t.trim()).filter(Boolean) : rawTags) : []
+      notes.value = data.notes || props.customer.notes || ''
+    } catch {
+      chatLogs.value = []
+      tags.value = []
+      notes.value = ''
+    }
     loading.value = false
   }
 })
+
+watch(addingTag, (v) => {
+  if (v) nextTick(() => tagInputRef.value?.focus())
+})
+
+function addTag() {
+  const t = newTag.value.trim()
+  if (t && !tags.value.includes(t)) {
+    tags.value.push(t)
+  }
+  newTag.value = ''
+  addingTag.value = false
+}
+
+function addPresetTag(preset) {
+  if (!tags.value.includes(preset)) {
+    tags.value.push(preset)
+  }
+  addingTag.value = false
+}
+
+function removeTag(index) {
+  tags.value.splice(index, 1)
+}
+
+function tagClass(tag) {
+  const map = {
+    'VIP': 'tag--vip',
+    'Mua nhiều': 'tag--buyer',
+    'Hay hỏi': 'tag--asker',
+    'Tiềm năng': 'tag--potential',
+    'Đã chốt': 'tag--closed',
+    'Cần follow-up': 'tag--followup',
+  }
+  return map[tag] || 'tag--default'
+}
+
+async function saveCustomerInfo() {
+  if (!props.customer?.id) return
+  saving.value = true
+  try {
+    await fetch(`${API}/customers/${props.customer.id}/tags`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tags: tags.value.join(','),
+        notes: notes.value,
+      }),
+    })
+    saveSuccess.value = true
+    setTimeout(() => saveSuccess.value = false, 3000)
+  } catch (err) {
+    console.error('Save failed:', err)
+  }
+  saving.value = false
+}
 
 function getLabelBadge(label) {
   if (!label) return '—'
@@ -131,7 +263,7 @@ function exportCSV() {
 
 .customer-modal__content {
   background: var(--color-bg-secondary); border-radius: 16px;
-  width: 480px; max-height: 80vh; overflow-y: auto;
+  width: 520px; max-height: 85vh; overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   animation: slideUp 0.3s ease-out;
 }
@@ -161,6 +293,71 @@ function exportCSV() {
 .customer-modal__stat-value--hot { color: #ef4444; }
 .customer-modal__stat-label { font-size: 11px; color: var(--color-text-muted); }
 
+/* Tags */
+.customer-modal__tags-section { border-bottom: 1px solid var(--color-border); }
+.customer-modal__tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.customer-modal__tag {
+  display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 12px; border: 1px solid;
+}
+.tag--vip { background: rgba(234,179,8,0.15); color: #eab308; border-color: rgba(234,179,8,0.3); }
+.tag--buyer { background: rgba(16,185,129,0.15); color: #10b981; border-color: rgba(16,185,129,0.3); }
+.tag--asker { background: rgba(59,130,246,0.15); color: #3b82f6; border-color: rgba(59,130,246,0.3); }
+.tag--potential { background: rgba(168,85,247,0.15); color: #a855f7; border-color: rgba(168,85,247,0.3); }
+.tag--closed { background: rgba(239,68,68,0.15); color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.tag--followup { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+.tag--default { background: rgba(107,114,128,0.15); color: #9ca3af; border-color: rgba(107,114,128,0.3); }
+.customer-modal__tag-remove {
+  background: none; border: none; color: inherit; cursor: pointer;
+  font-size: 14px; line-height: 1; opacity: 0.6;
+}
+.customer-modal__tag-remove:hover { opacity: 1; }
+.customer-modal__tag-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.06); border: 1px dashed var(--color-border);
+  border-radius: 12px; padding: 3px 10px; color: var(--color-text-muted);
+  font-size: 11px; cursor: pointer; transition: all 0.2s;
+}
+.customer-modal__tag-btn:hover { border-color: #818cf8; color: #818cf8; }
+.customer-modal__tag-input-wrap {
+  display: flex; flex-direction: column; gap: 6px; width: 100%;
+}
+.customer-modal__tag-input {
+  background: rgba(255,255,255,0.06); border: 1px solid var(--color-border);
+  border-radius: 6px; padding: 5px 10px; color: #fff; font-size: 12px;
+  outline: none; width: 150px;
+}
+.customer-modal__tag-input:focus { border-color: #818cf8; }
+.customer-modal__tag-presets { display: flex; flex-wrap: wrap; gap: 4px; }
+.preset-btn {
+  background: rgba(255,255,255,0.04); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 2px 8px; color: var(--color-text-muted);
+  font-size: 10px; cursor: pointer; transition: all 0.15s;
+}
+.preset-btn:hover { border-color: #818cf8; color: #818cf8; background: rgba(129,140,248,0.08); }
+
+/* Notes */
+.customer-modal__notes {
+  width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border);
+  border-radius: 8px; padding: 10px; color: #fff; font-size: 13px;
+  resize: vertical; font-family: inherit; box-sizing: border-box; outline: none;
+}
+.customer-modal__notes:focus { border-color: #818cf8; }
+.customer-modal__notes::placeholder { color: var(--color-text-muted); }
+.customer-modal__save-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-top: 8px; padding: 7px 14px; border-radius: 8px;
+  background: linear-gradient(135deg, #059669, #10b981); color: white;
+  border: none; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.customer-modal__save-btn:hover { transform: scale(1.02); box-shadow: 0 4px 12px rgba(5,150,105,0.3); }
+.customer-modal__save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.customer-modal__save-ok {
+  margin-left: 8px; font-size: 12px; color: #10b981;
+  animation: fadeIn 0.3s;
+}
+
 .customer-modal__section { padding: 14px 20px; }
 .customer-modal__section-title {
   font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;
@@ -174,9 +371,7 @@ function exportCSV() {
   background: var(--color-bg-primary); border: 1px solid var(--color-border);
 }
 .customer-modal__log-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.customer-modal__label {
-  font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
-}
+.customer-modal__label { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
 .customer-modal__label--hot { background: rgba(239,68,68,0.15); color: #ef4444; }
 .customer-modal__label--warm { background: rgba(245,158,11,0.15); color: #f59e0b; }
 .customer-modal__label--cold { background: rgba(107,114,128,0.15); color: #6b7280; }

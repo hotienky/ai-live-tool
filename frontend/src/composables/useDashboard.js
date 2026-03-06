@@ -6,6 +6,7 @@ export function useDashboard() {
   const overview = ref(null)
   const recentLeads = ref([])
   const analytics = ref({ daily: [], conversion: {} })
+  const topCustomers = ref([])
   const loading = ref(false)
 
   async function fetchOverview() {
@@ -40,13 +41,24 @@ export function useDashboard() {
     }
   }
 
+  async function fetchTopCustomers(limit = 10) {
+    try {
+      const res = await fetch(`${API_BASE}/dashboard/top-customers?limit=${limit}`)
+      topCustomers.value = await res.json()
+    } catch (err) {
+      console.error('fetchTopCustomers error:', err)
+    }
+  }
+
   return {
     overview,
     recentLeads,
     analytics,
+    topCustomers,
     loading,
     fetchOverview,
     fetchRecentLeads,
     fetchAnalytics,
+    fetchTopCustomers,
   }
 }

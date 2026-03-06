@@ -319,6 +319,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['analytics']>>>
     }
   }
+  'dashboard.top_customers': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/dashboard/top-customers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['topCustomers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['topCustomers']>>>
+    }
+  }
   'analytics.daily': {
     methods: ["GET","HEAD"]
     pattern: '/api/analytics/daily'

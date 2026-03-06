@@ -30,6 +30,7 @@ export type ScannedRoutes = {
     'dashboard.overview': { paramsTuple?: []; params?: {} }
     'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
     'dashboard.analytics': { paramsTuple?: []; params?: {} }
+    'dashboard.top_customers': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }
@@ -70,6 +71,7 @@ export type ScannedRoutes = {
     'dashboard.overview': { paramsTuple?: []; params?: {} }
     'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
     'dashboard.analytics': { paramsTuple?: []; params?: {} }
+    'dashboard.top_customers': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }
@@ -102,6 +104,7 @@ export type ScannedRoutes = {
     'dashboard.overview': { paramsTuple?: []; params?: {} }
     'dashboard.recent_leads': { paramsTuple?: []; params?: {} }
     'dashboard.analytics': { paramsTuple?: []; params?: {} }
+    'dashboard.top_customers': { paramsTuple?: []; params?: {} }
     'analytics.daily': { paramsTuple?: []; params?: {} }
     'analytics.hourly': { paramsTuple?: []; params?: {} }
     'analytics.conversion': { paramsTuple?: []; params?: {} }
