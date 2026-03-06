@@ -62,6 +62,9 @@ export class ShopSchema extends BaseModel {
   @column()
   declare isActive: boolean
 
+  @column()
+  declare autoReplyEnabled: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

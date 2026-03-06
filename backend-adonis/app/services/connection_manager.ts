@@ -5,6 +5,7 @@ import type { Server as SocketIOServer } from 'socket.io'
 import { analyzeComment } from '#services/ai_service'
 import { sendHotLeadAlert } from '#services/telegram_service'
 import { matchProduct } from '#services/product_match_service'
+import autoReplyService from '#services/auto_reply_service'
 import { createConnector, type BaseConnector } from '#services/connectors'
 import { MOCK_COMMENTS, AVATARS } from '#services/mock_service'
 import LivestreamSession from '#models/livestream_session'
@@ -146,6 +147,29 @@ class ConnectionManager {
             }
           }
 
+          // Auto-reply by label (HOT/WARM → template)
+          try {
+            const shopModel = await (await import('#models/shop')).default.find(shopId)
+            if (shopModel?.autoReplyEnabled) {
+              const reply = await autoReplyService.shouldAutoReply(shopId, data.uniqueId, commentData.label)
+              if (reply.shouldReply && reply.templateText) {
+                const replyText = autoReplyService.personalizeText(reply.templateText, {
+                  nickname: data.nickname,
+                  product: commentData.matchedProduct?.product?.name || '',
+                  shop: shopName,
+                })
+                commentData.autoReply = replyText
+                io.to(`shop_${shopId}`).emit('auto_reply', {
+                  commentId: commentData.id,
+                  nickname: data.nickname,
+                  comment: data.comment,
+                  replyText,
+                  triggerLabel: reply.triggerLabel,
+                })
+              }
+            }
+          } catch { /* auto-reply is best-effort */ }
+
           io.to(`shop_${shopId}`).emit('new_comment', commentData)
           io.to(`shop_${shopId}`).emit('stats_update', { ...stats })
 
@@ -192,7 +216,7 @@ class ConnectionManager {
       sessionId: null, products: [], keywords: [],
     }
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
       const mockData = MOCK_COMMENTS[commentIndex % MOCK_COMMENTS.length]
       const avatarUrl = AVATARS[commentIndex % AVATARS.length]
 
@@ -208,6 +232,29 @@ class ConnectionManager {
       else if (commentData.label === '[WARM]') stats.warm++
       else stats.cold++
       stats.total++
+
+      // Auto-reply for mock mode too
+      try {
+        const shopModel = await (await import('#models/shop')).default.find(shopId)
+        if (shopModel?.autoReplyEnabled) {
+          const reply = await autoReplyService.shouldAutoReply(shopId, mockData.uniqueId, commentData.label)
+          if (reply.shouldReply && reply.templateText) {
+            const replyText = autoReplyService.personalizeText(reply.templateText, {
+              nickname: mockData.nickname,
+              product: '',
+              shop: shopName,
+            })
+            commentData.autoReply = replyText
+            io.to(`shop_${shopId}`).emit('auto_reply', {
+              commentId: commentData.id,
+              nickname: mockData.nickname,
+              comment: mockData.comment,
+              replyText,
+              triggerLabel: reply.triggerLabel,
+            })
+          }
+        }
+      } catch { /* auto-reply is best-effort */ }
 
       io.to(`shop_${shopId}`).emit('new_comment', commentData)
       io.to(`shop_${shopId}`).emit('stats_update', { ...stats })

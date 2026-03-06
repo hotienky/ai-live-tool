@@ -111,29 +111,58 @@
 
       <!-- ═══ Tab: Auto Reply ═══ -->
       <div v-if="activeTab === 'replies'" class="settings__panel">
-        <h3 class="settings__panel-title">💬 Mẫu trả lời nhanh</h3>
+        <h3 class="settings__panel-title">💬 Mẫu trả lời tự động</h3>
+
+        <!-- Master Toggle -->
+        <div class="settings__toggle-row">
+          <label class="settings__switch">
+            <input type="checkbox" v-model="autoReplyEnabled" @change="toggleAutoReply" />
+            <span class="settings__switch-slider"></span>
+          </label>
+          <span class="settings__toggle-label">
+            Auto-Reply {{ autoReplyEnabled ? '🟢 Đang bật' : '🔴 Đang tắt' }}
+          </span>
+          <span class="settings__toggle-hint">Tự động reply cho comment HOT/WARM</span>
+        </div>
+
         <div class="settings__add-row">
           <select v-model="newTemplate.trigger_label" class="settings__input settings__input--sm">
             <option value="HOT">Khi HOT</option>
             <option value="WARM">Khi WARM</option>
             <option value="keyword">Theo keyword</option>
           </select>
-          <input v-model="newTemplate.template_text" placeholder="Nội dung mẫu trả lời..." class="settings__input settings__input--flex" />
+          <input v-model="newTemplate.template_text" placeholder="VD: Cảm ơn {{nickname}}, mình inbox bạn nhé!" class="settings__input settings__input--flex" />
           <button class="settings__add-btn" @click="addTemplate">
             <Plus :size="14" /> Thêm
           </button>
         </div>
+        <p class="settings__variable-hint">
+          Biến hỗ trợ: <code>{{nickname}}</code> <code>{{product}}</code> <code>{{shop}}</code>
+          — Cooldown: 1 reply/user/5 phút
+        </p>
         <div class="settings__list">
           <div v-for="t in templates" :key="t.id" class="settings__list-item">
-            <span class="settings__kw-badge" style="background: rgba(59,130,246,0.15); color: #3b82f6; border-color: #3b82f6">
+            <span class="settings__kw-badge" :style="labelStyle(t.trigger_label)">
               {{ t.trigger_label }}
             </span>
             <span class="settings__item-reply">{{ t.template_text }}</span>
+            <span v-if="t.is_active" class="settings__active-badge">Active</span>
             <button class="settings__del-btn" @click="deleteTemplate(t.id)">
               <Trash2 :size="12" />
             </button>
           </div>
           <p v-if="templates.length === 0" class="settings__empty-list">Chưa có mẫu trả lời</p>
+        </div>
+
+        <!-- Auto-reply Log -->
+        <div v-if="autoReplyLog.length > 0" class="settings__log">
+          <h4 class="settings__log-title">📋 Lịch sử auto-reply gần nhất</h4>
+          <div v-for="(log, i) in autoReplyLog" :key="i" class="settings__log-item">
+            <span class="settings__log-user">@{{ log.nickname }}</span>
+            <span class="settings__log-label" :class="'label--' + (log.triggerLabel || '').toLowerCase()">{{ log.triggerLabel }}</span>
+            <span class="settings__log-text">→ {{ log.replyText }}</span>
+            <span class="settings__log-time">{{ formatTime(log.time) }}</span>
+          </div>
         </div>
       </div>
 
@@ -213,6 +242,10 @@ const moderationConfig = ref({
   maxPerMinute: 5,
 })
 
+// Auto-reply state
+const autoReplyEnabled = ref(false)
+const autoReplyLog = ref([])
+
 watch(() => props.currentShop, (shop) => {
   if (shop) loadAll(shop)
 }, { immediate: true })
@@ -224,6 +257,7 @@ async function loadAll(shop) {
     shopee_shop_id: shop.shopee_shop_id || '',
     facebook_page_id: shop.facebook_page_id || '',
   }
+  autoReplyEnabled.value = !!shop.auto_reply_enabled
   await Promise.all([loadProducts(shop.id), loadKeywords(shop.id), loadTemplates(shop.id)])
 }
 
@@ -330,6 +364,40 @@ onMounted(() => {
     if (saved) moderationConfig.value = JSON.parse(saved)
   }
 })
+
+async function toggleAutoReply() {
+  if (!props.currentShop) return
+  try {
+    await apiFetch(`/shops/${props.currentShop.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ autoReplyEnabled: autoReplyEnabled.value }),
+    })
+    showToast(autoReplyEnabled.value ? 'Auto-reply đã bật' : 'Auto-reply đã tắt', 'success')
+  } catch (e) {
+    showToast('Lỗi: ' + e.message, 'error')
+    autoReplyEnabled.value = !autoReplyEnabled.value
+  }
+}
+
+function labelStyle(label) {
+  const colors = { HOT: '#ef4444', WARM: '#f59e0b', keyword: '#3b82f6' }
+  const c = colors[label] || '#6b7280'
+  return { background: c + '18', color: c, borderColor: c }
+}
+
+function formatTime(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+// Listen for auto_reply events from socket
+function handleAutoReplyEvent(data) {
+  autoReplyLog.value.unshift({ ...data, time: new Date().toISOString() })
+  if (autoReplyLog.value.length > 20) autoReplyLog.value.pop()
+}
+
+defineExpose({ handleAutoReplyEvent })
 </script>
 
 <style scoped>
@@ -415,4 +483,52 @@ onMounted(() => {
   .settings__input--flex { width: 100%; }
   .settings__list-item { flex-wrap: wrap; gap: 4px; }
 }
+
+/* Auto-reply Toggle */
+.settings__toggle-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--color-bg-primary); border-radius: 10px;
+  margin-bottom: 16px; border: 1px solid var(--color-border);
+}
+.settings__switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.settings__switch input { opacity: 0; width: 0; height: 0; }
+.settings__switch-slider {
+  position: absolute; inset: 0; background: #555; border-radius: 24px;
+  cursor: pointer; transition: 0.3s;
+}
+.settings__switch-slider::before {
+  content: ''; position: absolute; width: 18px; height: 18px;
+  left: 3px; top: 3px; background: white; border-radius: 50%;
+  transition: 0.3s;
+}
+.settings__switch input:checked + .settings__switch-slider { background: #10b981; }
+.settings__switch input:checked + .settings__switch-slider::before { transform: translateX(20px); }
+.settings__toggle-label { font-size: 14px; font-weight: 700; }
+.settings__toggle-hint { font-size: 11px; color: var(--color-text-muted); margin-left: auto; }
+.settings__variable-hint {
+  font-size: 11px; color: var(--color-text-muted); margin: -8px 0 14px;
+}
+.settings__variable-hint code {
+  background: var(--color-bg-primary); padding: 1px 5px; border-radius: 3px;
+  font-size: 10px; border: 1px solid var(--color-border);
+}
+.settings__active-badge {
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  background: rgba(16,185,129,0.15); color: #10b981; font-weight: 600;
+}
+
+/* Auto-reply Log */
+.settings__log { margin-top: 20px; }
+.settings__log-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.settings__log-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+  background: var(--color-bg-primary); border-radius: 6px; font-size: 12px;
+  margin-bottom: 4px;
+}
+.settings__log-user { font-weight: 600; color: var(--color-text-primary); }
+.settings__log-label { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; }
+.label--hot { background: rgba(239,68,68,0.15); color: #ef4444; }
+.label--warm { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.settings__log-text { flex: 1; color: var(--color-text-secondary); }
+.settings__log-time { font-size: 10px; color: var(--color-text-muted); }
 </style>

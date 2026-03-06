@@ -34,7 +34,7 @@ export default class ShopsController {
       .first()
     if (!shop) return response.notFound({ error: 'Shop not found' })
 
-    const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel', 'isActive'])
+    const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel', 'isActive', 'autoReplyEnabled'])
     shop.merge(data)
     await shop.save()
     return response.json(shop)
