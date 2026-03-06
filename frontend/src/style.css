@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Custom Design Tokens ──────────────────────────────── */
+:root {
+  --color-bg-primary: #0f0f1a;
+  --color-bg-secondary: #1a1a2e;
+  --color-bg-card: #16213e;
+  --color-bg-card-hover: #1c2a4a;
+  --color-accent-hot: #ff3b5c;
+  --color-accent-hot-glow: rgba(255, 59, 92, 0.3);
+  --color-accent-warm: #ff8c42;
+  --color-accent-warm-glow: rgba(255, 140, 66, 0.2);
+  --color-accent-cold: #6b7280;
+  --color-text-primary: #e2e8f0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+  --color-border: #2d3748;
+  --color-success: #10b981;
+}
+
+/* ── Base Styles ───────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  height: 100vh;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ── HOT Card Pulse Animation ─────────────────────────── */
+@keyframes hotPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--color-accent-hot-glow),
+                0 0 15px var(--color-accent-hot-glow);
+  }
+  50% {
+    box-shadow: 0 0 15px var(--color-accent-hot-glow),
+                0 0 35px var(--color-accent-hot-glow),
+                0 0 50px rgba(255, 59, 92, 0.1);
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chatSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
