@@ -1,5 +1,7 @@
 const { WebcastPushConnection } = require("tiktok-live-connector");
 const { analyzeComment } = require("./ai_service");
+const { sendHotLeadAlert } = require("./telegramService");
+const { createConnector, SUPPORTED_PLATFORMS } = require("./connectors");
 
 /**
  * ConnectionManager - Quản lý nhiều kết nối TikTok/Shopee đồng thời
@@ -9,6 +11,8 @@ class ConnectionManager {
   constructor() {
     // Map<shopId, { connection, stats, username, status }>
     this.connections = new Map();
+    // Map<shopId, commentData[]> — in-memory lead storage for export
+    this.leads = new Map();
   }
 
   /**
@@ -36,16 +40,12 @@ class ConnectionManager {
   }
 
   /**
-   * Kết nối TikTok Live cho 1 shop
-   * @param {object} shop - Shop object từ DB { id, shop_name, tiktok_username }
+   * Kết nối Live cho 1 shop — hỗ trợ multi-platform
+   * @param {object} shop - Shop object { id, shop_name, platform, tiktok_username, ... }
    * @param {object} io - Socket.io server
    */
   async startConnection(shop, io) {
-    const { id: shopId, tiktok_username: username, shop_name: shopName } = shop;
-
-    if (!username) {
-      throw new Error(`Shop "${shopName}" chưa cấu hình TikTok username`);
-    }
+    const { id: shopId, shop_name: shopName, platform = "tiktok" } = shop;
 
     // Ngắt kết nối cũ nếu có
     if (this.connections.has(shopId)) {
@@ -56,82 +56,92 @@ class ConnectionManager {
     const connInfo = {
       connection: null,
       stats,
-      username,
       shopName,
+      platform,
       status: "connecting",
     };
     this.connections.set(shopId, connInfo);
 
-    console.log(`🎬 [${shopName}] Đang kết nối TikTok @${username}...`);
+    const platformIcons = { tiktok: "🎵", shopee: "🛒", facebook: "📘", youtube: "🎬" };
+    const icon = platformIcons[platform] || "📡";
+
+    console.log(`${icon} [${shopName}] Đang kết nối ${platform}...`);
 
     try {
-      const tiktokConn = new WebcastPushConnection(username);
-      connInfo.connection = tiktokConn;
+      const connector = createConnector(platform, shop);
+      connInfo.connection = connector;
 
-      const state = await tiktokConn.connect();
+      const state = await connector.connect();
       connInfo.status = "connected";
 
-      console.log(`✅ [${shopName}] TikTok Live connected! Room: ${state.roomId}, Viewers: ${state.viewerCount}`);
+      console.log(`✅ [${shopName}] ${platform} Live connected! Room: ${state.roomId}, Viewers: ${state.viewerCount}`);
 
-      // Emit status to shop room
       io.to(`shop_${shopId}`).emit("crawler_status", {
         status: "connected",
-        username,
+        platform,
         shopName,
       });
 
+      // Profile link builders
+      const profileLinkBuilders = {
+        tiktok: (uid) => `https://www.tiktok.com/@${uid}`,
+        shopee: (uid) => `https://shopee.vn/shop/${uid}`,
+        facebook: (uid) => `https://www.facebook.com/${uid}`,
+        youtube: (uid) => `https://www.youtube.com/@${uid}`,
+      };
+      const buildLink = profileLinkBuilders[platform] || ((uid) => `#${uid}`);
+
       // Chat listener
-      tiktokConn.on("chat", async (data) => {
+      connector.on("chat", async (data) => {
         try {
           const label = await analyzeComment(data.comment);
-          const profileLink = `https://www.tiktok.com/@${data.uniqueId}`;
-
           const commentData = {
-            id: `tt_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            id: `${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             shopId,
-            platform: "tiktok",
+            platform,
             nickname: data.nickname,
             uniqueId: data.uniqueId,
             comment: data.comment,
             label,
-            profileLink,
+            profileLink: buildLink(data.uniqueId),
             profilePictureUrl: data.profilePictureUrl,
             timestamp: new Date().toISOString(),
           };
 
-          // Update shop stats
-          if (label === "[HOT]") stats.hot++;
+          if (label === "[HOT]") { stats.hot++; sendHotLeadAlert(commentData, shopName); }
           else if (label === "[WARM]") stats.warm++;
           else stats.cold++;
           stats.total++;
 
-          // Emit chỉ vào room của shop này
           io.to(`shop_${shopId}`).emit("new_comment", commentData);
           io.to(`shop_${shopId}`).emit("stats_update", { ...stats });
 
-          const icon = label === "[HOT]" ? "🔥" : label === "[WARM]" ? "🟠" : "⚪";
-          console.log(`${icon} [${shopName}] ${label} @${data.uniqueId}: ${data.comment.substring(0, 50)}`);
+          if (!this.leads.has(shopId)) this.leads.set(shopId, []);
+          this.leads.get(shopId).push(commentData);
+
+          const labelIcon = label === "[HOT]" ? "🔥" : label === "[WARM]" ? "🟠" : "⚪";
+          console.log(`${labelIcon} [${shopName}] ${label} @${data.uniqueId}: ${data.comment.substring(0, 50)}`);
         } catch (err) {
           console.error(`❌ [${shopName}] Error processing comment:`, err.message);
         }
       });
 
       // Viewer count
-      tiktokConn.on("roomUser", (data) => {
+      connector.on("roomUser", (data) => {
         io.to(`shop_${shopId}`).emit("viewer_count", { count: data.viewerCount });
       });
 
       // Disconnect
-      tiktokConn.on("disconnected", () => {
+      connector.on("disconnected", () => {
         connInfo.status = "disconnected";
-        console.log(`⚠️ [${shopName}] TikTok Live ngắt kết nối`);
+        console.log(`⚠️ [${shopName}] ${platform} Live ngắt kết nối`);
         io.to(`shop_${shopId}`).emit("crawler_status", { status: "disconnected" });
       });
 
       return { success: true, roomId: state.roomId, viewers: state.viewerCount };
     } catch (err) {
       connInfo.status = "error";
-      console.error(`❌ [${shopName}] Không thể kết nối TikTok @${username}:`, err.message);
+      console.error(`❌ [${shopName}] Không thể kết nối ${platform}:`, err.message);
       io.to(`shop_${shopId}`).emit("crawler_status", {
         status: "error",
         message: err.message,
@@ -172,13 +182,19 @@ class ConnectionManager {
         timestamp: new Date().toISOString(),
       };
 
-      if (commentData.label === "[HOT]") stats.hot++;
-      else if (commentData.label === "[WARM]") stats.warm++;
+      if (commentData.label === "[HOT]") {
+        stats.hot++;
+        sendHotLeadAlert(commentData, shopName);
+      } else if (commentData.label === "[WARM]") stats.warm++;
       else stats.cold++;
       stats.total++;
 
       io.to(`shop_${shopId}`).emit("new_comment", commentData);
       io.to(`shop_${shopId}`).emit("stats_update", { ...stats });
+
+      // Lưu lead cho export
+      if (!this.leads.has(shopId)) this.leads.set(shopId, []);
+      this.leads.get(shopId).push(commentData);
 
       commentIndex++;
     }, 2000 + Math.random() * 2000);

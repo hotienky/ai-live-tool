@@ -2,7 +2,7 @@
   <div class="shop-selector">
     <!-- Current Shop Display -->
     <div class="shop-selector__current" @click="toggleDropdown">
-      <span class="shop-selector__icon">🏪</span>
+      <span class="shop-selector__icon"><Store :size="16" /></span>
       <span class="shop-selector__name" v-if="currentShop">
         {{ currentShop.shop_name }}
       </span>
@@ -12,7 +12,7 @@
       <span class="shop-selector__status" v-if="currentShop?.connectionStatus">
         <span class="shop-selector__dot" :class="dotClass"></span>
       </span>
-      <span class="shop-selector__arrow">▾</span>
+      <span class="shop-selector__arrow"><ChevronDown :size="14" /></span>
     </div>
 
     <!-- Dropdown -->
@@ -47,7 +47,7 @@
 
       <!-- Add Shop -->
       <div class="shop-selector__add" v-if="!showAddForm" @click.stop="showAddForm = true">
-        ➕ Thêm Shop mới
+        <Plus :size="14" /> Thêm Shop mới
       </div>
 
       <!-- Add Form -->
@@ -60,10 +60,41 @@
           @keyup.enter="onAddShop"
           ref="shopNameInput"
         />
+        <select v-model="newPlatform" class="shop-selector__form-input">
+          <option value="tiktok">🎵 TikTok Live</option>
+          <option value="shopee">🛒 Shopee Live</option>
+          <option value="facebook">📘 Facebook Live</option>
+          <option value="youtube">🎬 YouTube Live</option>
+        </select>
         <input
+          v-if="newPlatform === 'tiktok'"
           v-model="newTiktokUsername"
           type="text"
           placeholder="TikTok username..."
+          class="shop-selector__form-input"
+          @keyup.enter="onAddShop"
+        />
+        <input
+          v-if="newPlatform === 'shopee'"
+          v-model="newShopeeId"
+          type="text"
+          placeholder="Shopee ID..."
+          class="shop-selector__form-input"
+          @keyup.enter="onAddShop"
+        />
+        <input
+          v-if="newPlatform === 'facebook'"
+          v-model="newFacebookPageId"
+          type="text"
+          placeholder="Facebook Page ID..."
+          class="shop-selector__form-input"
+          @keyup.enter="onAddShop"
+        />
+        <input
+          v-if="newPlatform === 'youtube'"
+          v-model="newYoutubeChannelId"
+          type="text"
+          placeholder="YouTube Channel ID..."
           class="shop-selector__form-input"
           @keyup.enter="onAddShop"
         />
@@ -82,6 +113,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Store, ChevronDown, Plus } from 'lucide-vue-next'
 
 const props = defineProps({
   shops: { type: Array, default: () => [] },
@@ -94,6 +126,10 @@ const isOpen = ref(false)
 const showAddForm = ref(false)
 const newShopName = ref('')
 const newTiktokUsername = ref('')
+const newPlatform = ref('tiktok')
+const newShopeeId = ref('')
+const newFacebookPageId = ref('')
+const newYoutubeChannelId = ref('')
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value
@@ -107,12 +143,21 @@ function onSelectShop(shop) {
 
 function onAddShop() {
   if (!newShopName.value.trim()) return
-  emit('create', {
+  const shopData = {
     shop_name: newShopName.value.trim(),
-    tiktok_username: newTiktokUsername.value.trim() || null,
-  })
+    platform: newPlatform.value,
+    tiktok_username: newPlatform.value === 'tiktok' ? newTiktokUsername.value.trim() || null : null,
+    shopee_id: newPlatform.value === 'shopee' ? newShopeeId.value.trim() || null : null,
+    facebook_page_id: newPlatform.value === 'facebook' ? newFacebookPageId.value.trim() || null : null,
+    youtube_channel_id: newPlatform.value === 'youtube' ? newYoutubeChannelId.value.trim() || null : null,
+  }
+  emit('create', shopData)
   newShopName.value = ''
   newTiktokUsername.value = ''
+  newShopeeId.value = ''
+  newFacebookPageId.value = ''
+  newYoutubeChannelId.value = ''
+  newPlatform.value = 'tiktok'
   showAddForm.value = false
 }
 

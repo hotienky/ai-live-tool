@@ -8,6 +8,11 @@ const { startMockComments, stopMockComments } = require("./mock_service");
 const { syncDatabase } = require("./db/models");
 const connectionManager = require("./connectionManager");
 const shopRoutes = require("./routes/shopRoutes");
+const exportRoutes = require("./routes/exportRoutes");
+const replyRoutes = require("./routes/replyRoutes");
+const customerRoutes = require("./routes/customerRoutes");
+const productRoutes = require("./routes/productRoutes");
+const { isConfigured: isTelegramConfigured } = require("./telegramService");
 
 const app = express();
 const server = http.createServer(app);
@@ -95,6 +100,10 @@ io.on("connection", (socket) => {
 
 // ──── REST API Routes ──────────────────────────────────────
 app.use("/api/shops", shopRoutes);
+app.use("/api/export", exportRoutes);
+app.use("/api/reply", replyRoutes);
+app.use("/api/customers", customerRoutes);
+app.use("/api/products", productRoutes);
 
 app.get("/api/health", (req, res) => {
   res.json({
@@ -102,7 +111,14 @@ app.get("/api/health", (req, res) => {
     mode: MOCK_MODE ? "mock" : "live",
     uptime: process.uptime(),
     activeConnections: connectionManager.connections.size,
+    telegram: isTelegramConfigured(),
   });
+});
+
+// Supported platforms
+const { SUPPORTED_PLATFORMS } = require("./connectors");
+app.get("/api/platforms", (req, res) => {
+  res.json(SUPPORTED_PLATFORMS);
 });
 
 // ──── Start Server ──────────────────────────────────────────

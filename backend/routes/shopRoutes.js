@@ -61,7 +61,11 @@ router.get("/", async (req, res) => {
 // ──── POST /api/shops ────────────────────────────────────
 router.post("/", async (req, res) => {
   try {
-    const { shop_name, tiktok_username, shopee_id, owner_email, subscription_plan } = req.body;
+    const {
+      shop_name, tiktok_username, shopee_id,
+      facebook_page_id, youtube_channel_id, platform,
+      owner_email, subscription_plan
+    } = req.body;
 
     if (!shop_name) {
       return res.status(400).json({ error: "shop_name là bắt buộc" });
@@ -73,6 +77,9 @@ router.post("/", async (req, res) => {
         shop_name,
         tiktok_username: tiktok_username || null,
         shopee_id: shopee_id || null,
+        facebook_page_id: facebook_page_id || null,
+        youtube_channel_id: youtube_channel_id || null,
+        platform: platform || "tiktok",
         owner_email: owner_email || null,
         subscription_plan: subscription_plan || "Free",
       });
@@ -85,6 +92,9 @@ router.post("/", async (req, res) => {
       shop_name,
       tiktok_username: tiktok_username || null,
       shopee_id: shopee_id || null,
+      facebook_page_id: facebook_page_id || null,
+      youtube_channel_id: youtube_channel_id || null,
+      platform: platform || "tiktok",
       owner_email: owner_email || null,
       is_active: true,
       subscription_plan: subscription_plan || "Free",
@@ -93,6 +103,7 @@ router.post("/", async (req, res) => {
     inMemoryShops.push(newShop);
     res.status(201).json(newShop);
   } catch (err) {
+    console.error("❌ Create shop error:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -149,7 +160,7 @@ router.delete("/:id", async (req, res) => {
 router.post("/:id/connect", async (req, res) => {
   try {
     const { id } = req.params;
-    const { mock } = req.body; // { mock: true } để chạy mock mode
+    const { mock } = req.body;
 
     // Tìm shop
     let shop;
@@ -170,8 +181,20 @@ router.post("/:id/connect", async (req, res) => {
       return res.json(result);
     }
 
-    if (!shop.tiktok_username) {
-      return res.status(400).json({ error: "Shop chưa cấu hình TikTok username" });
+    // Kiểm tra cấu hình theo platform
+    const platform = shop.platform || "tiktok";
+    const configMap = {
+      tiktok: { field: "tiktok_username", label: "TikTok username" },
+      shopee: { field: "shopee_id", label: "Shopee ID" },
+      facebook: { field: "facebook_page_id", label: "Facebook Page ID" },
+      youtube: { field: "youtube_channel_id", label: "YouTube Channel ID" },
+    };
+
+    const platformConfig = configMap[platform];
+    if (platformConfig && !shop[platformConfig.field]) {
+      return res.status(400).json({
+        error: `Shop chưa cấu hình ${platformConfig.label}`,
+      });
     }
 
     const result = await connectionManager.startConnection(shop, io);

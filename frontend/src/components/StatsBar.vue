@@ -2,7 +2,7 @@
   <div class="stats-bar">
     <!-- Viewer Count -->
     <div class="stats-bar__item stats-bar__item--viewers" v-if="viewerCount > 0">
-      <span class="stats-bar__icon">👁️</span>
+      <span class="stats-bar__icon"><Eye :size="15" /></span>
       <div class="stats-bar__data">
         <span class="stats-bar__value stats-bar__value--viewers">{{ viewerCount.toLocaleString() }}</span>
         <span class="stats-bar__label">VIEWERS</span>
@@ -10,21 +10,21 @@
     </div>
     <div class="stats-bar__divider" v-if="viewerCount > 0"></div>
     <div class="stats-bar__item stats-bar__item--hot">
-      <span class="stats-bar__icon">🔥</span>
+      <span class="stats-bar__icon"><Flame :size="15" /></span>
       <div class="stats-bar__data">
         <span class="stats-bar__value stats-bar__value--hot">{{ stats.hot }}</span>
         <span class="stats-bar__label">HOT</span>
       </div>
     </div>
     <div class="stats-bar__item stats-bar__item--warm">
-      <span class="stats-bar__icon">🟠</span>
+      <span class="stats-bar__icon"><CircleDot :size="15" /></span>
       <div class="stats-bar__data">
         <span class="stats-bar__value stats-bar__value--warm">{{ stats.warm }}</span>
         <span class="stats-bar__label">WARM</span>
       </div>
     </div>
     <div class="stats-bar__item stats-bar__item--cold">
-      <span class="stats-bar__icon">⚪</span>
+      <span class="stats-bar__icon"><Circle :size="15" /></span>
       <div class="stats-bar__data">
         <span class="stats-bar__value">{{ stats.cold }}</span>
         <span class="stats-bar__label">COLD</span>
@@ -32,7 +32,7 @@
     </div>
     <div class="stats-bar__divider"></div>
     <div class="stats-bar__item stats-bar__item--total">
-      <span class="stats-bar__icon">📊</span>
+      <span class="stats-bar__icon"><BarChart2 :size="15" /></span>
       <div class="stats-bar__data">
         <span class="stats-bar__value">{{ stats.total }}</span>
         <span class="stats-bar__label">Total</span>
@@ -60,6 +60,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { Eye, Flame, CircleDot, Circle, BarChart2 } from 'lucide-vue-next'
 
 const props = defineProps({
   stats: {

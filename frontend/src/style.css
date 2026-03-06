@@ -95,3 +95,15 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ── Spinner (Lucide Loader2) ────────────────────────── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.sentiment-gauge__spin,
+.pricing-suggestion__spin {
+  animation: spin 1s linear infinite;
+}
+

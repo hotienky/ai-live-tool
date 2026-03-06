@@ -1,13 +1,13 @@
 <template>
   <div class="chat-stream">
     <div class="chat-stream__header">
-      <h3 class="chat-stream__title">💬 Live Chat</h3>
+      <h3 class="chat-stream__title"><MessagesSquare :size="15" /> Live Chat</h3>
       <span class="chat-stream__count">{{ comments.length }} tin nhắn</span>
     </div>
 
     <div class="chat-stream__list" ref="chatListRef">
       <div v-if="comments.length === 0" class="chat-stream__empty">
-        <span>⏳</span> Chờ bình luận...
+        <Clock :size="14" /> Chờ bình luận...
       </div>
       <div
         v-for="msg in comments"
@@ -19,7 +19,8 @@
         }"
       >
         <span class="chat-msg__label" v-if="msg.label !== '[COLD]'">
-          {{ msg.label === '[HOT]' ? '🔥' : '🟠' }}
+          <Flame v-if="msg.label === '[HOT]'" :size="12" />
+          <CircleDot v-else :size="12" />
         </span>
         <span class="chat-msg__name" :class="nameClass(msg.label)">
           {{ msg.nickname }}:
@@ -34,6 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { MessagesSquare, Clock, Flame, CircleDot } from 'lucide-vue-next'
 
 const props = defineProps({
   comments: {

@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize, DB_ENABLED } = require("./connection");
 
-let Shop, LivestreamSession, Customer, ChatLog, Lead;
+let Shop, LivestreamSession, Customer, ChatLog, Lead, Product;
 
 if (DB_ENABLED && sequelize) {
   // ──── 1. shops ─────────────────────────────────────────
@@ -24,6 +24,18 @@ if (DB_ENABLED && sequelize) {
       shopee_id: {
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      facebook_page_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      youtube_channel_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      platform: {
+        type: DataTypes.STRING,
+        defaultValue: "tiktok", // tiktok, shopee, facebook, youtube
       },
       owner_email: {
         type: DataTypes.STRING,
@@ -210,6 +222,51 @@ if (DB_ENABLED && sequelize) {
 
   ChatLog.hasOne(Lead, { foreignKey: "chat_log_id" });
   Lead.belongsTo(ChatLog, { foreignKey: "chat_log_id" });
+
+  // ──── 6. products ────────────────────────────────────────
+  Product = sequelize.define(
+    "Product",
+    {
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+      },
+      shop_id: {
+        type: DataTypes.UUID,
+        references: { model: "shops", key: "id" },
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      price: {
+        type: DataTypes.DECIMAL(12, 0),
+        defaultValue: 0,
+      },
+      image_url: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      keywords: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
+        defaultValue: [],
+      },
+      is_live: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+    },
+    {
+      tableName: "products",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    }
+  );
+
+  Shop.hasMany(Product, { foreignKey: "shop_id" });
+  Product.belongsTo(Shop, { foreignKey: "shop_id" });
 }
 
 /**
@@ -224,7 +281,7 @@ async function syncDatabase() {
   try {
     await sequelize.authenticate();
     console.log("📦 Database: Kết nối PostgreSQL thành công!");
-    await sequelize.sync({ alter: false });
+    await sequelize.sync({ alter: true });
     console.log("📦 Database: Đã sync tất cả models");
   } catch (error) {
     console.error("❌ Database: Không thể kết nối:", error.message);
@@ -287,6 +344,7 @@ module.exports = {
   Customer,
   ChatLog,
   Lead,
+  Product,
   syncDatabase,
   saveComment,
 };
