@@ -60,6 +60,7 @@ router.group(() => {
   router.get('/shops/:id', [ShopsController, 'show'])
   router.put('/shops/:id', [ShopsController, 'update'])
   router.delete('/shops/:id', [ShopsController, 'destroy'])
+  router.post('/shops/find-or-create', [ShopsController, 'findOrCreate'])
 
   // Shop Keywords
   router.get('/shops/:shopId/keywords', [KeywordsController, 'index'])

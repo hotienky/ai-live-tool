@@ -72,11 +72,8 @@
             <Download :size="15" />
           </button>
           <div class="app-header__divider"></div>
-          <button class="app-header__action-btn app-header__action-btn--connect" @click="onConnectTiktok" :disabled="!currentShop">
-            <Radio :size="13" /> Live
-          </button>
-          <button class="app-header__action-btn app-header__action-btn--mock" @click="onStartMock" :disabled="!currentShop">
-            <Drama :size="13" /> Mock
+          <button class="app-header__action-btn app-header__action-btn--connect" @click="showLiveModal = true" :disabled="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'">
+            <Radio :size="13" /> Phiên Live
           </button>
           <button
             class="app-header__action-btn app-header__action-btn--stop"
@@ -222,6 +219,13 @@
 
     <!-- Toast Notifications -->
     <ToastContainer />
+
+    <!-- Live Session Modal -->
+    <LiveSessionModal
+      v-if="showLiveModal"
+      @close="showLiveModal = false"
+      @started="onLiveSessionStarted"
+    />
   </div>
 </template>
 
@@ -254,6 +258,7 @@ import NotificationBell from './components/NotificationBell.vue'
 import QuickReply from './components/QuickReply.vue'
 import OrderManagement from './components/OrderManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'
+import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
 import { useAuth } from './composables/useAuth.js'
@@ -310,6 +315,7 @@ const quickReplyTarget = ref(null)
 const notifCenter = ref(null)
 const chatStreamRef = ref(null)
 const showShortcuts = ref(false)
+const showLiveModal = ref(false)
 
 // Keyboard shortcuts
 const { shortcuts } = useKeyboardShortcuts({
@@ -439,6 +445,14 @@ async function onConnectTiktok() {
 function onStartMock() {
   if (!currentShop.value) return
   startMock(currentShop.value.id, currentShop.value.shop_name)
+}
+
+async function onLiveSessionStarted(shop, mock) {
+  // Refresh shops, select the new shop, join socket
+  await fetchShops()
+  const found = shops.value.find(s => s.id === shop.id)
+  if (found) selectShop(found)
+  activeView.value = 'live'
 }
 
 async function onDisconnect() {
