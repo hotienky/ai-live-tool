@@ -118,10 +118,10 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
   shopId: [Number, String],
-  apiBase: { type: String, default: 'http://localhost:3000' }
 })
 
 const orders = ref([])
@@ -139,10 +139,10 @@ watch(filterStatus, () => fetchOrders())
 
 async function fetchOrders() {
   try {
-    let url = `${props.apiBase}/api/orders?limit=50`
+    let url = `/orders?limit=50`
     if (props.shopId) url += `&shopId=${props.shopId}`
     if (filterStatus.value) url += `&status=${filterStatus.value}`
-    const res = await fetch(url)
+    const res = await apiFetch(url)
     const data = await res.json()
     orders.value = data.data || data || []
   } catch { orders.value = [] }
@@ -150,18 +150,17 @@ async function fetchOrders() {
 
 async function fetchStats() {
   try {
-    let url = `${props.apiBase}/api/orders/stats`
+    let url = `/orders/stats`
     if (props.shopId) url += `?shopId=${props.shopId}`
-    const res = await fetch(url)
+    const res = await apiFetch(url)
     stats.value = await res.json()
   } catch { /* silent */ }
 }
 
 async function createOrder() {
   try {
-    await fetch(`${props.apiBase}/api/orders`, {
+    await apiFetch('/orders', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...newOrder.value, shopId: props.shopId, status: 'pending', paymentStatus: 'unpaid' })
     })
     showCreateModal.value = false
@@ -171,10 +170,10 @@ async function createOrder() {
 }
 
 async function updateStatus(order, newStatus) {
+  if (newStatus === 'cancelled' && !confirm('Hủy đơn hàng này?')) return
   try {
-    await fetch(`${props.apiBase}/api/orders/${order.id}`, {
+    await apiFetch(`/orders/${order.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus })
     })
     fetchOrders(); fetchStats()

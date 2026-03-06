@@ -130,9 +130,9 @@ async function onSuggestReply() {
   loadingReply.value = true
   suggestedReply.value = ''
   try {
-    const res = await fetch('http://localhost:3000/api/reply/suggest', {
+    const { apiFetch } = await import('../composables/useApi.js')
+    const res = await apiFetch('/reply/suggest', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ comment: props.comment, label: props.label, nickname: props.nickname }),
     })
     const data = await res.json()

@@ -172,12 +172,11 @@ import {
   Settings, Store, Save, Plus, Trash2,
   Link, ShoppingBag, Key, MessageCircle, Shield
 } from 'lucide-vue-next'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
   currentShop: { type: Object, default: null },
 })
-
-const API = 'http://localhost:3000/api'
 
 const activeTab = ref('connection')
 const tabs = [
@@ -227,21 +226,21 @@ async function loadAll(shop) {
 
 async function loadProducts(shopId) {
   try {
-    const res = await fetch(`${API}/products?shopId=${shopId}`)
+    const res = await apiFetch(`/products?shopId=${shopId}`)
     products.value = await res.json()
   } catch { products.value = [] }
 }
 
 async function loadKeywords(shopId) {
   try {
-    const res = await fetch(`${API}/shops/${shopId}/keywords`)
+    const res = await apiFetch(`/shops/${shopId}/keywords`)
     keywords.value = await res.json()
   } catch { keywords.value = [] }
 }
 
 async function loadTemplates(shopId) {
   try {
-    const res = await fetch(`${API}/shops/${shopId}/templates`)
+    const res = await apiFetch(`/shops/${shopId}/templates`)
     templates.value = await res.json()
   } catch { templates.value = [] }
 }
@@ -249,9 +248,8 @@ async function loadTemplates(shopId) {
 async function saveShopInfo() {
   if (!props.currentShop) return
   try {
-    await fetch(`${API}/shops/${props.currentShop.id}`, {
+    await apiFetch(`/shops/${props.currentShop.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(shopForm.value),
     })
     alert('✅ Đã lưu cấu hình shop')
@@ -261,9 +259,8 @@ async function saveShopInfo() {
 async function addProduct() {
   if (!newProduct.value.name || !props.currentShop) return
   try {
-    await fetch(`${API}/products`, {
+    await apiFetch('/products', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...newProduct.value, shopId: props.currentShop.id }),
     })
     newProduct.value = { name: '', price: '', keywords: '' }
@@ -272,8 +269,9 @@ async function addProduct() {
 }
 
 async function deleteProduct(id) {
+  if (!confirm('Xóa sản phẩm này?')) return
   try {
-    await fetch(`${API}/products/${id}`, { method: 'DELETE' })
+    await apiFetch(`/products/${id}`, { method: 'DELETE' })
     await loadProducts(props.currentShop.id)
   } catch (e) { console.error(e) }
 }
@@ -281,9 +279,8 @@ async function deleteProduct(id) {
 async function addKeyword() {
   if (!newKeyword.value.keyword || !props.currentShop) return
   try {
-    await fetch(`${API}/shops/${props.currentShop.id}/keywords`, {
+    await apiFetch(`/shops/${props.currentShop.id}/keywords`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newKeyword.value),
     })
     newKeyword.value = { keyword: '', alert_type: 'highlight', color: '#ff3b5c', auto_reply_text: '' }
@@ -292,8 +289,9 @@ async function addKeyword() {
 }
 
 async function deleteKeyword(id) {
+  if (!confirm('Xóa keyword này?')) return
   try {
-    await fetch(`${API}/shops/${props.currentShop.id}/keywords/${id}`, { method: 'DELETE' })
+    await apiFetch(`/shops/${props.currentShop.id}/keywords/${id}`, { method: 'DELETE' })
     await loadKeywords(props.currentShop.id)
   } catch (e) { console.error(e) }
 }
@@ -301,9 +299,8 @@ async function deleteKeyword(id) {
 async function addTemplate() {
   if (!newTemplate.value.template_text || !props.currentShop) return
   try {
-    await fetch(`${API}/shops/${props.currentShop.id}/templates`, {
+    await apiFetch(`/shops/${props.currentShop.id}/templates`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newTemplate.value),
     })
     newTemplate.value = { trigger_label: 'HOT', template_text: '' }
@@ -312,8 +309,9 @@ async function addTemplate() {
 }
 
 async function deleteTemplate(id) {
+  if (!confirm('Xóa mẫu trả lời này?')) return
   try {
-    await fetch(`${API}/shops/${props.currentShop.id}/templates/${id}`, { method: 'DELETE' })
+    await apiFetch(`/shops/${props.currentShop.id}/templates/${id}`, { method: 'DELETE' })
     await loadTemplates(props.currentShop.id)
   } catch (e) { console.error(e) }
 }

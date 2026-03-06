@@ -95,9 +95,9 @@ async function generateAIReply() {
   if (!props.targetComment) return
   loading.value = true
   try {
-    const res = await fetch(`${props.apiBase}/api/reply/generate`, {
+    const { apiFetch } = await import('../composables/useApi.js')
+    const res = await apiFetch('/reply/generate', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         comment: props.targetComment.comment,
         label: props.targetComment.label,

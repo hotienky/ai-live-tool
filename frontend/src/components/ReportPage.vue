@@ -156,10 +156,10 @@ import {
   BarChart3, RefreshCcw, MessageSquare, Flame, TrendingUp,
   Calculator, Target
 } from 'lucide-vue-next'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({ shopId: { type: String, default: null } })
 
-const API_BASE = 'http://localhost:3000/api'
 const selectedDays = ref(7)
 const loading = ref(false)
 const summary = ref(null)
@@ -208,11 +208,11 @@ async function loadAll() {
   const params = `shopId=${props.shopId || ''}&days=${selectedDays.value}`
   try {
     const [sumRes, dailyRes, hourlyRes, convRes, kwRes] = await Promise.all([
-      fetch(`${API_BASE}/analytics/summary?${params}`),
-      fetch(`${API_BASE}/analytics/daily?${params}`),
-      fetch(`${API_BASE}/analytics/hourly?${params}`),
-      fetch(`${API_BASE}/analytics/conversion?${params}`),
-      fetch(`${API_BASE}/analytics/top-keywords?${params}&limit=30`),
+      apiFetch(`/analytics/summary?${params}`),
+      apiFetch(`/analytics/daily?${params}`),
+      apiFetch(`/analytics/hourly?${params}`),
+      apiFetch(`/analytics/conversion?${params}`),
+      apiFetch(`/analytics/top-keywords?${params}&limit=30`),
     ])
     summary.value = await sumRes.json()
     const dailyJson = await dailyRes.json()

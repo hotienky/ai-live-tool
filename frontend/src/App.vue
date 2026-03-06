@@ -3,6 +3,10 @@
   <LoginPage v-if="!isLoggedIn" @loginSuccess="onLoginSuccess" />
 
   <div class="app" v-else>
+    <!-- Connection Lost Banner -->
+    <div class="connection-lost" v-if="connectionLost">
+      ⚠️ Mất kết nối server — đang thử kết nối lại...
+    </div>
     <!-- Top Header Bar -->
     <header class="app-header">
       <div class="app-header__left">
@@ -361,6 +365,7 @@ function onReplySent({ comment, reply }) {
 // Socket composable
 const {
   isConnected,
+  connectionLost,
   leads,
   allComments,
   stats,
@@ -509,6 +514,21 @@ const statusText = computed(() => {
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   gap: 16px;
+}
+
+.connection-lost {
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: pulse-bg 2s ease-in-out infinite;
+  z-index: 100;
+}
+@keyframes pulse-bg {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
 .app-header__left {

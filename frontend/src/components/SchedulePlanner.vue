@@ -80,10 +80,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
   shopId: [Number, String],
-  apiBase: { type: String, default: 'http://localhost:3000' }
 })
 
 const schedules = ref([])
@@ -100,18 +100,17 @@ onMounted(fetchSchedules)
 
 async function fetchSchedules() {
   try {
-    let url = `${props.apiBase}/api/schedules`
+    let url = `/schedules`
     if (props.shopId) url += `?shopId=${props.shopId}`
-    const res = await fetch(url)
+    const res = await apiFetch(url)
     schedules.value = await res.json()
   } catch { schedules.value = [] }
 }
 
 async function createSchedule() {
   try {
-    await fetch(`${props.apiBase}/api/schedules`, {
+    await apiFetch('/schedules', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...form.value, shopId: props.shopId })
     })
     showModal.value = false
@@ -123,9 +122,8 @@ async function createSchedule() {
 async function cancelSchedule(s) {
   if (!confirm('Hủy lịch livestream này?')) return
   try {
-    await fetch(`${props.apiBase}/api/schedules/${s.id}`, {
+    await apiFetch(`/schedules/${s.id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'cancelled' })
     })
     fetchSchedules()
