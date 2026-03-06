@@ -65,6 +65,21 @@ export class ShopSchema extends BaseModel {
   @column()
   declare autoReplyEnabled: boolean
 
+  @column()
+  declare facebookAccessToken: string | null
+
+  @column()
+  declare youtubeApiKey: string | null
+
+  @column()
+  declare shopeePartnerId: string | null
+
+  @column()
+  declare shopeePartnerKey: string | null
+
+  @column()
+  declare shopeeShopIdApi: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

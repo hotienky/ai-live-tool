@@ -31,18 +31,62 @@
       <!-- ═══ Tab: Connection ═══ -->
       <div v-if="activeTab === 'connection'" class="settings__panel">
         <h3 class="settings__panel-title">🔗 Kết nối nền tảng</h3>
-        <div class="settings__field">
-          <label>TikTok Username</label>
-          <input v-model="shopForm.tiktok_username" type="text" placeholder="@username" class="settings__input" />
+
+        <!-- TikTok -->
+        <div class="settings__platform-group">
+          <h4 class="settings__platform-label">🎵 TikTok Live</h4>
+          <div class="settings__field">
+            <label>Username</label>
+            <input v-model="shopForm.tiktokUsername" type="text" placeholder="@username" class="settings__input" />
+          </div>
         </div>
-        <div class="settings__field">
-          <label>Shopee Shop ID</label>
-          <input v-model="shopForm.shopee_shop_id" type="text" placeholder="Shop ID" class="settings__input" />
+
+        <!-- Facebook -->
+        <div class="settings__platform-group">
+          <h4 class="settings__platform-label">📘 Facebook Live</h4>
+          <div class="settings__field">
+            <label>Page ID</label>
+            <input v-model="shopForm.facebookPageId" type="text" placeholder="Page ID (VD: 123456789)" class="settings__input" />
+          </div>
+          <div class="settings__field">
+            <label>Access Token</label>
+            <input v-model="shopForm.facebookAccessToken" type="password" placeholder="Page Access Token" class="settings__input" />
+          </div>
+          <p class="settings__help-text">Lấy token tại: Facebook Developer → Graph API Explorer → Get Page Access Token</p>
         </div>
-        <div class="settings__field">
-          <label>Facebook Page ID</label>
-          <input v-model="shopForm.facebook_page_id" type="text" placeholder="Page ID" class="settings__input" />
+
+        <!-- YouTube -->
+        <div class="settings__platform-group">
+          <h4 class="settings__platform-label">🎬 YouTube Live</h4>
+          <div class="settings__field">
+            <label>Channel ID</label>
+            <input v-model="shopForm.youtubeChannel" type="text" placeholder="Channel ID (VD: UC...)" class="settings__input" />
+          </div>
+          <div class="settings__field">
+            <label>API Key</label>
+            <input v-model="shopForm.youtubeApiKey" type="password" placeholder="YouTube Data API Key" class="settings__input" />
+          </div>
+          <p class="settings__help-text">Lấy API Key tại: Google Cloud Console → APIs & Services → Credentials</p>
         </div>
+
+        <!-- Shopee -->
+        <div class="settings__platform-group">
+          <h4 class="settings__platform-label">🛒 Shopee Live</h4>
+          <div class="settings__field">
+            <label>Shop ID (API)</label>
+            <input v-model="shopForm.shopeeShopIdApi" type="text" placeholder="Shopee Shop ID" class="settings__input" />
+          </div>
+          <div class="settings__field">
+            <label>Partner ID</label>
+            <input v-model="shopForm.shopeePartnerId" type="text" placeholder="Partner ID" class="settings__input" />
+          </div>
+          <div class="settings__field">
+            <label>Partner Key</label>
+            <input v-model="shopForm.shopeePartnerKey" type="password" placeholder="Partner Key (Secret)" class="settings__input" />
+          </div>
+          <p class="settings__help-text">Cần đăng ký Shopee Open Platform để lấy credentials</p>
+        </div>
+
         <button class="settings__save-btn" @click="saveShopInfo">
           <Save :size="14" /> Lưu cấu hình
         </button>
@@ -220,7 +264,12 @@ const tabs = [
 ]
 
 // Connection form
-const shopForm = ref({ tiktok_username: '', shopee_shop_id: '', facebook_page_id: '' })
+const shopForm = ref({
+  tiktokUsername: '',
+  facebookPageId: '', facebookAccessToken: '',
+  youtubeChannel: '', youtubeApiKey: '',
+  shopeeShopIdApi: '', shopeePartnerId: '', shopeePartnerKey: '',
+})
 
 // Products
 const products = ref([])
@@ -253,9 +302,14 @@ watch(() => props.currentShop, (shop) => {
 async function loadAll(shop) {
   if (!shop) return
   shopForm.value = {
-    tiktok_username: shop.tiktok_username || '',
-    shopee_shop_id: shop.shopee_shop_id || '',
-    facebook_page_id: shop.facebook_page_id || '',
+    tiktokUsername: shop.tiktok_username || '',
+    facebookPageId: shop.facebook_page_id || '',
+    facebookAccessToken: shop.facebook_access_token || '',
+    youtubeChannel: shop.youtube_channel || '',
+    youtubeApiKey: shop.youtube_api_key || '',
+    shopeeShopIdApi: shop.shopee_shop_id_api || '',
+    shopeePartnerId: shop.shopee_partner_id || '',
+    shopeePartnerKey: shop.shopee_partner_key || '',
   }
   autoReplyEnabled.value = !!shop.auto_reply_enabled
   await Promise.all([loadProducts(shop.id), loadKeywords(shop.id), loadTemplates(shop.id)])
@@ -402,6 +456,12 @@ defineExpose({ handleAutoReplyEvent })
 
 <style scoped>
 .settings { padding: 20px; overflow-y: auto; height: 100%; }
+.settings__platform-group {
+  padding: 14px 16px; border-radius: 10px; background: var(--color-bg-primary);
+  border: 1px solid var(--color-border); margin-bottom: 12px;
+}
+.settings__platform-label { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.settings__help-text { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 .settings__header {
   display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
 }
