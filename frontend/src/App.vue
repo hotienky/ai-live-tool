@@ -5,7 +5,7 @@
   <div class="app" v-else>
     <!-- Connection Lost Banner -->
     <div class="connection-lost" v-if="connectionLost">
-      ⚠️ Mất kết nối server — đang thử kết nối lại...
+      <AlertTriangle :size="14" style="vertical-align:middle" /> Mất kết nối server — đang thử kết nối lại...
     </div>
     <!-- Top Header Bar -->
     <header class="app-header">
@@ -34,7 +34,7 @@
             <Moon v-else-if="resolvedTheme === 'dark' && theme !== 'system'" :size="14" />
             <Monitor v-else :size="14" />
           </button>
-          <NotificationBell />
+          <NotificationBell @navigate="navigateTo" />
           <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
             <UserIcon :size="14" />
             <span class="app-header__username">{{ currentUser.fullName || currentUser.name || currentUser.email }}</span>
@@ -48,6 +48,7 @@
       <!-- Row 2: Shop + Live Controls (contextual) -->
       <div class="app-header__row2">
         <ShopSelector
+          ref="shopSelectorRef"
           :shops="shops"
           :currentShop="currentShop"
           @select="onSelectShop"
@@ -110,7 +111,12 @@
     />
 
     <!-- ═══ View: Dashboard ═══ -->
-    <DashboardOverview v-if="activeView === 'dashboard'" />
+    <DashboardOverview
+      v-if="activeView === 'dashboard'"
+      @goLive="navigateTo('live')"
+      @goLead="navigateTo('crm')"
+      @goCustomer="(c) => openCustomerDetail({ nickname: c.nickname, uniqueId: c.nickname })"
+    />
 
     <!-- ═══ View: Live Monitor ═══ -->
     <main class="app-main" v-if="activeView === 'live'">
@@ -138,6 +144,8 @@
     <LeadPipeline
       v-if="activeView === 'crm'"
       :shopId="currentShop?.id"
+      @createOrder="onCreateOrderFromLead"
+      @openCustomer="openCustomerDetail"
     />
 
     <!-- ═══ View: Reports ═══ -->
@@ -150,6 +158,7 @@
     <ShopSettings
       v-if="activeView === 'settings'"
       :currentShop="currentShop"
+      @openShopSelector="shopSelectorRef?.open()"
     />
 
     <!-- ═══ View: Session Replay ═══ -->
@@ -167,6 +176,7 @@
     <SchedulePlanner
       v-if="activeView === 'schedule'"
       :shopId="currentShop?.id"
+      @startLive="onScheduleStartLive"
     />
 
     <!-- Customer Detail Modal -->
@@ -203,7 +213,7 @@
     <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-overlay" v-if="showShortcuts" @click.self="showShortcuts = false">
       <div class="shortcuts-modal">
-        <h3>⌨️ Phím tắt</h3>
+        <h3><Keyboard :size="16" style="vertical-align:middle" /> Phím tắt</h3>
         <div class="shortcuts-list">
           <div v-for="s in shortcuts" :key="s.keys" class="shortcut-item">
             <kbd>{{ s.keys }}</kbd>
@@ -277,7 +287,7 @@ import {
   LayoutDashboard, MonitorPlay, Users, BarChart2,
   User as UserIcon, LogOut, Settings, Gift, FileText,
   BellRing, BellOff, History as HistoryIcon,
-  Sun, Moon, Monitor
+  Sun, Moon, Monitor, AlertTriangle, Keyboard
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -342,6 +352,7 @@ const showQuickReply = ref(false)
 const quickReplyTarget = ref(null)
 const notifCenter = ref(null)
 const chatStreamRef = ref(null)
+const shopSelectorRef = ref(null)
 const showShortcuts = ref(false)
 const showLiveModal = ref(false)
 
@@ -496,6 +507,15 @@ function onResetStats() {
   }
 }
 
+function onScheduleStartLive(schedule) {
+  navigateTo('live')
+  showLiveModal.value = true
+}
+
+function onCreateOrderFromLead(lead) {
+  navigateTo('orders')
+}
+
 function onExport() {
   if (!currentShop.value) return
   window.open(`${API_BASE}/export/leads?shopId=${currentShop.value.id}&format=csv`, '_blank')
@@ -583,7 +603,7 @@ const statusText = computed(() => {
 .app-nav {
   display: flex;
   gap: 2px;
-  background: rgba(255,255,255,0.02);
+  background: var(--color-bg-card);
   border-radius: 10px;
   padding: 3px;
   flex: 1;
@@ -596,7 +616,7 @@ const statusText = computed(() => {
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #52525b;
+  color: var(--color-text-muted);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -604,11 +624,11 @@ const statusText = computed(() => {
   white-space: nowrap;
 }
 .app-nav__tab:hover {
-  color: #a1a1aa;
-  background: rgba(255,255,255,0.03);
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card-hover);
 }
 .app-nav__tab--active {
-  color: #f4f4f5;
+  color: var(--color-accent-primary);
   background: rgba(124,58,237,0.12);
   font-weight: 700;
   box-shadow: 0 0 12px rgba(124,58,237,0.15);

@@ -40,6 +40,7 @@ export default class ShopsController {
       'isActive', 'autoReplyEnabled',
       'facebookAccessToken', 'youtubeApiKey',
       'shopeePartnerId', 'shopeePartnerKey', 'shopeeShopIdApi',
+      'moderationBlacklist', 'moderationHideSpam', 'moderationRateLimit', 'moderationMaxPerMinute',
     ])
     shop.merge(data)
     await shop.save()

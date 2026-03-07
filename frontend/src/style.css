@@ -339,12 +339,12 @@ body {
 .empty-state__title {
   font-size: 16px;
   font-weight: 700;
-  color: #71717a;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 .empty-state__desc {
   font-size: 13px;
-  color: #52525b;
+  color: var(--color-text-muted);
   line-height: 1.6;
   margin: 0;
 }

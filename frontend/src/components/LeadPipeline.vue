@@ -40,14 +40,14 @@
             <div class="pipeline__card-label">
               <Flame v-if="lead.ChatLog?.ai_label === 'HOT'" :size="12" style="color: #ff3b5c" />
               <CircleDot v-else :size="12" style="color: #ff8c42" />
-              <span class="pipeline__card-name">{{ lead.ChatLog?.nickname || 'Unknown' }}</span>
+              <span class="pipeline__card-name" @click.stop="emit('openCustomer', { nickname: lead.ChatLog?.nickname, uniqueId: lead.ChatLog?.unique_id })" style="cursor:pointer" title="Xem khách hàng">{{ lead.ChatLog?.nickname || 'Unknown' }}</span>
               <span class="pipeline__card-id">@{{ lead.ChatLog?.unique_id || '?' }}</span>
             </div>
             <p class="pipeline__card-comment">{{ lead.ChatLog?.comment_text || '' }}</p>
             <div class="pipeline__card-meta">
               <span class="pipeline__card-time">{{ formatTime(lead.created_at) }}</span>
               <span v-if="lead.product_intent" class="pipeline__card-product">
-                🛍️ {{ lead.product_intent }}
+                <ShoppingBag :size="12" style="vertical-align:middle" /> {{ lead.product_intent }}
               </span>
             </div>
             <!-- Quick Actions -->
@@ -99,11 +99,11 @@
             </div>
           </div>
           <div class="pipeline__modal-comment">
-            <label>💬 Bình luận:</label>
+            <label><MessageCircle :size="14" style="vertical-align:middle" /> Bình luận:</label>
             <p>"{{ selectedLead.ChatLog?.comment_text }}"</p>
           </div>
           <div class="pipeline__modal-field">
-            <label>📊 Trạng thái:</label>
+            <label><BarChart3 :size="14" style="vertical-align:middle" /> Trạng thái:</label>
             <select v-model="editStatus" class="pipeline__modal-select">
               <option value="New">New</option>
               <option value="Contacting">Contacting</option>
@@ -112,7 +112,7 @@
             </select>
           </div>
           <div class="pipeline__modal-field">
-            <label>🛍️ Sản phẩm quan tâm:</label>
+            <label><ShoppingBag :size="14" style="vertical-align:middle" /> Sản phẩm quan tâm:</label>
             <input
               v-model="editProductIntent"
               type="text"
@@ -121,7 +121,7 @@
             />
           </div>
           <div class="pipeline__modal-field">
-            <label>📝 Ghi chú nhân viên:</label>
+            <label><FileText :size="14" style="vertical-align:middle" /> Ghi chú nhân viên:</label>
             <textarea
               v-model="editNotes"
               rows="3"
@@ -129,10 +129,15 @@
               class="pipeline__modal-textarea"
             />
           </div>
-          <button class="pipeline__modal-save" @click="saveLeadDetails">
-            <Save :size="14" />
-            Lưu thay đổi
-          </button>
+          <div class="pipeline__modal-actions-row" style="display:flex;gap:8px;margin-top:8px">
+            <button class="pipeline__modal-save" @click="saveLeadDetails" style="flex:1">
+              <Save :size="14" />
+              Lưu thay đổi
+            </button>
+            <button class="pipeline__modal-save" @click="emit('createOrder', selectedLead); selectedLead = null" style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)">
+              <ShoppingCart :size="14" /> Tạo đơn
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -143,9 +148,12 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useLeads } from '../composables/useLeads.js'
 import { logger } from '../utils/logger.js'
+
+const emit = defineEmits(['createOrder', 'openCustomer'])
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
-  Save, PhoneCall, CheckCircle, XCircle, ArrowRight
+  Save, PhoneCall, CheckCircle, XCircle, ArrowRight,
+  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -259,9 +267,9 @@ onMounted(loadData)
 .pipeline__badge--ignored { background: rgba(107,114,128,0.1); color: #9ca3af; }
 .pipeline__refresh {
   background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px;
-  padding: 8px; cursor: pointer; color: #a1a1aa; transition: all 0.2s;
+  padding: 8px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s;
 }
-.pipeline__refresh:hover { border-color: var(--color-border-hover); color: #f4f4f5; }
+.pipeline__refresh:hover { border-color: var(--color-border-hover); color: var(--color-text-primary); }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -278,22 +286,22 @@ onMounted(loadData)
 .pipeline__col-header {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 14px; font-size: 13px; font-weight: 700;
-  border-bottom: 2px solid; background: rgba(255,255,255,0.01);
+  border-bottom: 2px solid; background: var(--color-bg-elevated);
 }
 .pipeline__col-count {
   margin-left: auto; font-size: 11px; font-weight: 700;
-  background: rgba(255,255,255,0.06); padding: 2px 10px; border-radius: 12px;
+  background: var(--color-border); padding: 2px 10px; border-radius: 12px;
 }
 .pipeline__col-body {
   flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
 }
 .pipeline__card {
-  background: rgba(255,255,255,0.02); border-radius: 10px;
-  padding: 12px; cursor: pointer; border: 1px solid rgba(255,255,255,0.04);
+  background: var(--color-bg-card); border-radius: 10px;
+  padding: 12px; cursor: pointer; border: 1px solid var(--color-border);
   transition: all 0.25s;
 }
 .pipeline__card:hover {
-  border-color: rgba(255,255,255,0.1);
+  border-color: var(--color-border-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 }
@@ -304,15 +312,15 @@ onMounted(loadData)
 .pipeline__card-label {
   display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
 }
-.pipeline__card-name { font-size: 13px; font-weight: 700; color: #e4e4e7; }
-.pipeline__card-id { font-size: 11px; color: #52525b; }
+.pipeline__card-name { font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.pipeline__card-id { font-size: 11px; color: var(--color-text-muted); }
 .pipeline__card-comment {
-  font-size: 12px; color: #a1a1aa; margin: 6px 0;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  font-size: 12px; color: var(--color-text-secondary); margin: 6px 0;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 1.5;
 }
 .pipeline__card-meta {
-  display: flex; align-items: center; gap: 8px; font-size: 11px; color: #52525b;
+  display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--color-text-muted);
 }
 .pipeline__card-product {
   background: rgba(245,158,11,0.1); color: #fbbf24;
@@ -322,15 +330,15 @@ onMounted(loadData)
   display: flex; gap: 4px; margin-top: 8px;
 }
 .pipeline__action-btn {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
   border-radius: 6px; padding: 5px 8px; cursor: pointer;
   display: flex; align-items: center; font-size: 11px; transition: all 0.2s;
 }
-.pipeline__action-btn:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); }
+.pipeline__action-btn:hover { background: var(--color-bg-card-hover); border-color: var(--color-border-hover); }
 .pipeline__empty {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 40px 20px;
-  color: #3f3f46; font-size: 13px; font-style: italic;
+  color: var(--color-text-muted); font-size: 13px; font-style: italic;
 }
 
 /* Modal */
@@ -340,7 +348,7 @@ onMounted(loadData)
   backdrop-filter: blur(4px);
 }
 .pipeline__modal {
-  background: #18181b; border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
   border-radius: 16px; width: 480px;
   max-height: 80vh; overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -352,14 +360,14 @@ onMounted(loadData)
 }
 .pipeline__modal-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 22px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 18px 22px; border-bottom: 1px solid var(--color-border);
 }
 .pipeline__modal-header h3 { font-size: 16px; font-weight: 800; }
 .pipeline__modal-close {
-  background: none; border: none; color: #52525b;
+  background: none; border: none; color: var(--color-text-muted);
   cursor: pointer; padding: 4px; transition: color 0.2s;
 }
-.pipeline__modal-close:hover { color: #f4f4f5; }
+.pipeline__modal-close:hover { color: var(--color-text-primary); }
 .pipeline__modal-body { padding: 22px; }
 .pipeline__modal-info {
   display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
@@ -369,7 +377,7 @@ onMounted(loadData)
   background: rgba(124,58,237,0.1); display: flex; align-items: center; justify-content: center;
   color: #a78bfa;
 }
-.pipeline__modal-uid { font-size: 13px; color: #52525b; }
+.pipeline__modal-uid { font-size: 13px; color: var(--color-text-muted); }
 .pipeline__modal-link {
   font-size: 12px; color: #a78bfa;
   display: flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px;
@@ -377,18 +385,18 @@ onMounted(loadData)
 }
 .pipeline__modal-link:hover { color: #c4b5fd; }
 .pipeline__modal-comment {
-  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04);
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
   padding: 14px; border-radius: 10px;
   margin-bottom: 18px;
 }
 .pipeline__modal-comment label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; }
-.pipeline__modal-comment p { font-size: 14px; color: #a1a1aa; font-style: italic; }
+.pipeline__modal-comment p { font-size: 14px; color: var(--color-text-secondary); font-style: italic; }
 .pipeline__modal-field { margin-bottom: 14px; }
-.pipeline__modal-field label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; color: #a1a1aa; }
+.pipeline__modal-field label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 6px; color: var(--color-text-secondary); }
 .pipeline__modal-select, .pipeline__modal-input, .pipeline__modal-textarea {
   width: 100%; padding: 10px 14px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03);
-  color: #f4f4f5; font-size: 13px; outline: none;
+  border: 1px solid var(--color-border); background: var(--color-bg-card);
+  color: var(--color-text-primary); font-size: 13px; outline: none;
   font-family: inherit; transition: border-color 0.2s;
 }
 .pipeline__modal-select:focus, .pipeline__modal-input:focus, .pipeline__modal-textarea:focus {

@@ -49,16 +49,16 @@
         <div v-if="activeLives.length === 0" class="dashboard__empty">
           Không có phiên live nào đang hoạt động
         </div>
-        <div v-for="live in activeLives" :key="live.shopId" class="dashboard__live-item">
+        <div v-for="live in activeLives" :key="live.shopId" class="dashboard__live-item" @click="$emit('goLive', live)" style="cursor:pointer">
           <div class="dashboard__live-dot"></div>
           <div class="dashboard__live-info">
             <span class="dashboard__live-name">{{ live.shopName }}</span>
             <span class="dashboard__live-platform">{{ live.platform }}</span>
           </div>
           <div class="dashboard__live-stats">
-            <span>🔥 {{ live.stats.hot }}</span>
-            <span>🟠 {{ live.stats.warm }}</span>
-            <span>⚪ {{ live.stats.cold }}</span>
+            <span><Flame :size="13" style="color:#ff3b5c;vertical-align:middle" /> {{ live.stats.hot }}</span>
+            <span><CircleDot :size="13" style="color:#ff8c42;vertical-align:middle" /> {{ live.stats.warm }}</span>
+            <span><Circle :size="13" style="color:#a1a1aa;vertical-align:middle" /> {{ live.stats.cold }}</span>
             <span class="dashboard__live-total">{{ live.stats.total }} total</span>
           </div>
           <span class="dashboard__live-viewers" v-if="live.peakViewers > 0">
@@ -75,7 +75,7 @@
         <div v-if="recentLeads.length === 0" class="dashboard__empty">
           Chưa có leads nào
         </div>
-        <div v-for="lead in recentLeads.slice(0, 10)" :key="lead.id || lead.timestamp" class="dashboard__lead-item">
+        <div v-for="lead in recentLeads.slice(0, 10)" :key="lead.id || lead.timestamp" class="dashboard__lead-item" @click="$emit('goLead', lead)" style="cursor:pointer">
           <Flame v-if="(lead.ChatLog?.ai_label || lead.label) === 'HOT' || (lead.ChatLog?.ai_label || lead.label) === '[HOT]'" :size="14" style="color: #ff3b5c" />
           <CircleDot v-else :size="14" style="color: #ff8c42" />
           <span class="dashboard__lead-name">{{ lead.ChatLog?.nickname || lead.nickname || 'Unknown' }}</span>
@@ -91,7 +91,7 @@
         <Crown :size="16" /> Top Khách Hàng
       </h3>
       <div class="dashboard__customers">
-        <div v-for="(c, i) in topCustomers" :key="c.nickname" class="dashboard__customer">
+        <div v-for="(c, i) in topCustomers" :key="c.nickname" class="dashboard__customer" @click="$emit('goCustomer', c)" style="cursor:pointer">
           <span class="dashboard__customer-rank">{{ i + 1 }}</span>
           <div class="dashboard__customer-avatar" :style="{ background: avatarGradient(i) }">
             {{ (c.nickname || '?').charAt(0).toUpperCase() }}
@@ -99,7 +99,7 @@
           <div class="dashboard__customer-info">
             <span class="dashboard__customer-name">{{ c.nickname }}</span>
             <span class="dashboard__customer-stats">
-              {{ c.totalComments }} comments · 🔥 {{ c.hotCount }} HOT
+              {{ c.totalComments }} comments · <Flame :size="12" style="color:#ff3b5c;vertical-align:middle" /> {{ c.hotCount }} HOT
             </span>
           </div>
           <div class="dashboard__customer-rate">
@@ -118,10 +118,10 @@
         <Cpu :size="16" /> AI Queue
       </h3>
       <div class="dashboard__ai-stats">
-        <span>✅ Xử lý: {{ overview.aiStats.processed || 0 }}</span>
-        <span>⏳ Queue: {{ overview.aiStats.queueLength || 0 }}</span>
-        <span>🔄 Retry: {{ overview.aiStats.retried || 0 }}</span>
-        <span>❌ Lỗi: {{ overview.aiStats.failed || 0 }}</span>
+        <span><CheckCircle :size="13" style="color:#10b981;vertical-align:middle" /> Xử lý: {{ overview.aiStats.processed || 0 }}</span>
+        <span><Hourglass :size="13" style="color:#f59e0b;vertical-align:middle" /> Queue: {{ overview.aiStats.queueLength || 0 }}</span>
+        <span><RefreshCw :size="13" style="color:#3b82f6;vertical-align:middle" /> Retry: {{ overview.aiStats.retried || 0 }}</span>
+        <span><XCircle :size="13" style="color:#ef4444;vertical-align:middle" /> Lỗi: {{ overview.aiStats.failed || 0 }}</span>
       </div>
     </div>
   </div>
@@ -131,8 +131,11 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useDashboard } from '../composables/useDashboard.js'
 import {
-  Radio, Flame, MessageSquare, TrendingUp, Eye, CircleDot, Cpu, Crown
+  Radio, Flame, MessageSquare, TrendingUp, Eye, CircleDot, Cpu, Crown,
+  CheckCircle, Hourglass, RefreshCw, XCircle, Circle
 } from 'lucide-vue-next'
+
+const emit = defineEmits(['goLive', 'goLead', 'goCustomer'])
 
 const { overview, recentLeads, analytics, topCustomers, loading, fetchOverview, fetchRecentLeads, fetchAnalytics, fetchTopCustomers } = useDashboard()
 
@@ -202,8 +205,8 @@ onUnmounted(() => {
 .dashboard__card--rate::before { background: linear-gradient(180deg, #a855f7, #7c3aed); }
 .dashboard__card--rate .dashboard__card-icon { background: rgba(168,85,247,0.12); color: #c084fc; }
 
-.dashboard__card-value { font-size: 28px; font-weight: 800; line-height: 1; color: #f4f4f5; }
-.dashboard__card-label { font-size: 12px; color: #71717a; margin-top: 4px; font-weight: 500; }
+.dashboard__card-value { font-size: 28px; font-weight: 800; line-height: 1; color: var(--color-text-primary); }
+.dashboard__card-label { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
 
 /* ── Grid Layout ── */
 .dashboard__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -217,12 +220,12 @@ onUnmounted(() => {
 .dashboard__section-title {
   font-size: 14px; font-weight: 800; margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px;
-  color: #d4d4d8;
+  color: var(--color-text-primary);
 }
 .dashboard__empty {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 40px 20px;
-  color: #52525b; font-size: 13px; font-style: italic;
+  color: var(--color-text-muted); font-size: 13px; font-style: italic;
 }
 
 /* Live Items */
@@ -231,7 +234,7 @@ onUnmounted(() => {
   padding: 10px 8px; border-radius: 10px;
   transition: background 0.2s;
 }
-.dashboard__live-item:hover { background: rgba(255,255,255,0.03); }
+.dashboard__live-item:hover { background: var(--color-bg-card); }
 .dashboard__live-dot {
   width: 10px; height: 10px; border-radius: 50%;
   background: #10b981; flex-shrink: 0;
@@ -244,11 +247,11 @@ onUnmounted(() => {
 }
 .dashboard__live-info { display: flex; flex-direction: column; flex: 1; }
 .dashboard__live-name { font-size: 13px; font-weight: 700; }
-.dashboard__live-platform { font-size: 11px; color: #71717a; text-transform: capitalize; }
+.dashboard__live-platform { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
 .dashboard__live-stats { display: flex; gap: 8px; font-size: 12px; }
-.dashboard__live-total { color: #52525b; }
+.dashboard__live-total { color: var(--color-text-muted); }
 .dashboard__live-viewers {
-  font-size: 12px; color: #71717a;
+  font-size: 12px; color: var(--color-text-muted);
   display: flex; align-items: center; gap: 3px;
 }
 
@@ -260,14 +263,14 @@ onUnmounted(() => {
 }
 .dashboard__lead-item:hover { background: rgba(124,58,237,0.04); }
 .dashboard__lead-name {
-  font-weight: 700; white-space: nowrap; min-width: 90px; color: #d4d4d8;
+  font-weight: 700; white-space: nowrap; min-width: 90px; color: var(--color-text-primary);
 }
 .dashboard__lead-text {
-  flex: 1; color: #a1a1aa;
+  flex: 1; color: var(--color-text-secondary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dashboard__lead-time {
-  font-size: 11px; color: #52525b; white-space: nowrap;
+  font-size: 11px; color: var(--color-text-muted); white-space: nowrap;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 
@@ -278,7 +281,7 @@ onUnmounted(() => {
   border-radius: 16px; padding: 20px;
 }
 .dashboard__ai-stats {
-  display: flex; gap: 20px; font-size: 13px; color: #a1a1aa;
+  display: flex; gap: 20px; font-size: 13px; color: var(--color-text-secondary);
 }
 
 /* Top Customers */
@@ -289,9 +292,9 @@ onUnmounted(() => {
   padding: 10px 12px; border-radius: 10px;
   transition: all 0.2s;
 }
-.dashboard__customer:hover { background: rgba(255,255,255,0.03); }
+.dashboard__customer:hover { background: var(--color-bg-card); }
 .dashboard__customer-rank {
-  font-size: 13px; font-weight: 800; color: #52525b;
+  font-size: 13px; font-weight: 800; color: var(--color-text-muted);
   min-width: 20px; text-align: center;
 }
 .dashboard__customer:nth-child(1) .dashboard__customer-rank { color: #fbbf24; font-size: 15px; }
@@ -305,12 +308,12 @@ onUnmounted(() => {
 }
 .dashboard__customer-info { flex: 1; display: flex; flex-direction: column; }
 .dashboard__customer-name { font-size: 13px; font-weight: 700; }
-.dashboard__customer-stats { font-size: 11px; color: #71717a; }
+.dashboard__customer-stats { font-size: 11px; color: var(--color-text-muted); }
 .dashboard__customer-rate {
   display: flex; align-items: center; gap: 8px; min-width: 90px;
 }
 .dashboard__rate-bar {
-  flex: 1; height: 5px; background: rgba(255,255,255,0.06);
+  flex: 1; height: 5px; background: var(--color-border);
   border-radius: 3px; overflow: hidden;
 }
 .dashboard__rate-fill {

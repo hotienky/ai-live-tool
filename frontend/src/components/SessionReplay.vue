@@ -191,7 +191,9 @@ function exportSession() {
 }
 
 function printReport() {
-  window.open(`${import.meta.env.VITE_API_URL || 'http://localhost:3333/api'}/export/report?sessionId=${selectedSessionId.value}`, '_blank')
+  const token = localStorage.getItem('token')
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:3333/api'
+  window.open(`${base}/export/report?sessionId=${selectedSessionId.value}&token=${token}`, '_blank')
 }
 
 loadSessions()
@@ -227,7 +229,7 @@ loadSessions()
   color: var(--color-text-muted);
 }
 .session-replay__empty p {
-  font-size: 15px; color: #71717a; margin: 0;
+  font-size: 15px; color: var(--color-text-muted); margin: 0;
 }
 
 /* Stats Grid */
@@ -270,7 +272,7 @@ loadSessions()
   color: var(--color-text-primary); line-height: 1;
 }
 .session-replay__stat-lbl {
-  font-size: 12px; color: #71717a; margin-top: 4px;
+  font-size: 12px; color: var(--color-text-muted); margin-top: 4px;
   font-weight: 500;
 }
 
@@ -300,7 +302,7 @@ loadSessions()
   padding: 8px;
 }
 .session-replay__logs::-webkit-scrollbar { width: 4px; }
-.session-replay__logs::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+.session-replay__logs::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }
 
 .session-replay__log {
   display: flex; gap: 8px; padding: 8px 10px; border-radius: 8px;
@@ -325,7 +327,7 @@ loadSessions()
 .session-replay__log-user {
   font-weight: 700; flex-shrink: 0; color: var(--color-text-secondary);
 }
-.session-replay__log-text { color: #d4d4d8; }
+.session-replay__log-text { color: var(--color-text-primary); }
 .session-replay__no-logs {
   text-align: center; padding: 30px; color: var(--color-text-muted); font-size: 14px;
 }

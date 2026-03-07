@@ -16,7 +16,7 @@
           <RefreshCcw :size="14" :class="{ 'spin': loading }" />
         </button>
         <button class="report__export" @click="exportCSV" :disabled="!dailyData.length">
-          📥 Xuất CSV
+          <Download :size="14" style="vertical-align:middle" /> Xuất CSV
         </button>
       </div>
     </div>
@@ -56,7 +56,7 @@
     <div class="report__grid">
       <!-- Daily Chart -->
       <div class="report__section">
-        <h3 class="report__section-title">📊 Comments theo ngày</h3>
+        <h3 class="report__section-title"><BarChart3 :size="16" style="vertical-align:middle" /> Comments theo ngày</h3>
         <div class="report__chart">
           <div
             v-for="(day, i) in dailyData"
@@ -91,7 +91,7 @@
 
       <!-- Conversion Funnel -->
       <div class="report__section">
-        <h3 class="report__section-title">🎯 Conversion Funnel</h3>
+        <h3 class="report__section-title"><Target :size="16" style="vertical-align:middle" /> Conversion Funnel</h3>
         <div class="report__funnel" v-if="conversion">
           <div
             v-for="(step, i) in conversion.funnel"
@@ -118,7 +118,7 @@
 
       <!-- Peak Hours -->
       <div class="report__section">
-        <h3 class="report__section-title">🕐 Peak Hours (hôm nay)</h3>
+        <h3 class="report__section-title"><Clock :size="16" style="vertical-align:middle" /> Peak Hours (hôm nay)</h3>
         <div class="report__heatmap">
           <div
             v-for="h in hourlyData"
@@ -135,7 +135,7 @@
 
       <!-- Top Keywords -->
       <div class="report__section">
-        <h3 class="report__section-title">🔤 Top Keywords</h3>
+        <h3 class="report__section-title"><Hash :size="16" style="vertical-align:middle" /> Top Keywords</h3>
         <div class="report__keywords">
           <span
             v-for="kw in topKeywords"
@@ -158,7 +158,7 @@ import { logger } from '../utils/logger.js'
 import { ref, computed, onMounted } from 'vue'
 import {
   BarChart3, RefreshCcw, MessageSquare, Flame, TrendingUp,
-  Calculator, Target
+  Calculator, Target, Download, Clock, Hash
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
@@ -271,16 +271,16 @@ onMounted(loadAll)
 .report__controls { display: flex; gap: 8px; align-items: center; }
 .report__select {
   padding: 8px 14px; border-radius: 10px; border: 1px solid var(--glass-border);
-  background: var(--glass-bg); color: #f4f4f5;
+  background: var(--glass-bg); color: var(--color-text-primary);
   font-size: 13px; outline: none; cursor: pointer;
   transition: border-color 0.2s;
 }
 .report__select:focus { border-color: #7c3aed; }
 .report__refresh {
   background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px;
-  padding: 8px; cursor: pointer; color: #a1a1aa; transition: all 0.2s;
+  padding: 8px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s;
 }
-.report__refresh:hover { border-color: var(--color-border-hover); color: #f4f4f5; }
+.report__refresh:hover { border-color: var(--color-border-hover); color: var(--color-text-primary); }
 .report__export {
   padding: 8px 16px; border-radius: 10px; border: none;
   background: linear-gradient(135deg, #10b981, #059669);
@@ -333,8 +333,8 @@ onMounted(loadAll)
   flex-shrink: 0;
 }
 .report__card-data { display: flex; flex-direction: column; }
-.report__card-value { font-size: 28px; font-weight: 800; line-height: 1; color: #f4f4f5; }
-.report__card-label { font-size: 12px; color: #71717a; margin-top: 4px; font-weight: 500; }
+.report__card-value { font-size: 28px; font-weight: 800; line-height: 1; color: var(--color-text-primary); }
+.report__card-label { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
 
 /* Grid */
 .report__grid {
@@ -347,7 +347,7 @@ onMounted(loadAll)
 }
 .report__section:hover { border-color: var(--color-border-hover); }
 .report__section-title {
-  font-size: 14px; font-weight: 800; margin-bottom: 16px; color: #d4d4d8;
+  font-size: 14px; font-weight: 800; margin-bottom: 16px; color: var(--color-text-primary);
 }
 
 /* Bar Chart */
@@ -369,17 +369,17 @@ onMounted(loadAll)
 }
 .report__bar--hot { background: linear-gradient(180deg, #ef4444, #dc2626); }
 .report__bar--warm { background: linear-gradient(180deg, #f59e0b, #d97706); }
-.report__bar--cold { background: #52525b; }
+.report__bar--cold { background: var(--color-text-muted); }
 .report__bar-label {
-  font-size: 10px; color: #52525b; margin-top: 4px;
+  font-size: 10px; color: var(--color-text-muted); margin-top: 4px;
   position: absolute; bottom: -18px;
 }
 .report__bar-val {
-  font-size: 10px; color: #a1a1aa; font-weight: 700;
+  font-size: 10px; color: var(--color-text-secondary); font-weight: 700;
   position: absolute; top: -14px;
 }
 .report__legend {
-  display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: #71717a;
+  display: flex; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--color-text-muted);
 }
 .report__dot {
   display: inline-block; width: 8px; height: 8px; border-radius: 50%;
@@ -396,9 +396,9 @@ onMounted(loadAll)
 }
 .report__funnel-rate {
   display: flex; align-items: center; gap: 6px;
-  font-size: 14px; color: #a1a1aa; margin-top: 10px;
-  padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.04);
+  font-size: 14px; color: var(--color-text-secondary); margin-top: 10px;
+  padding: 12px; border-radius: 10px; background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
 }
 
 /* Heatmap */
@@ -411,8 +411,8 @@ onMounted(loadAll)
   transition: all 0.2s;
 }
 .report__heat-cell:hover { transform: scale(1.1); }
-.report__heat-hour { font-size: 10px; color: #52525b; font-weight: 700; }
-.report__heat-val { font-size: 11px; font-weight: 800; color: #f4f4f5; }
+.report__heat-hour { font-size: 10px; color: var(--color-text-muted); font-weight: 700; }
+.report__heat-val { font-size: 11px; font-weight: 800; color: var(--color-text-primary); }
 
 /* Keywords Word Cloud */
 .report__keywords {
@@ -420,15 +420,15 @@ onMounted(loadAll)
   padding: 10px 0;
 }
 .report__keyword {
-  color: #a1a1aa; cursor: default;
+  color: var(--color-text-secondary); cursor: default;
   transition: color 0.2s; padding: 2px 6px;
 }
 .report__keyword:hover { color: #a78bfa; }
 .report__keyword sup {
-  font-size: 9px; color: #52525b; margin-left: 1px;
+  font-size: 9px; color: var(--color-text-muted); margin-left: 1px;
 }
 .report__empty {
-  text-align: center; color: #3f3f46; font-style: italic;
+  text-align: center; color: var(--color-text-muted); font-style: italic;
   padding: 40px; font-size: 13px;
 }
 </style>

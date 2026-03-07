@@ -7,7 +7,7 @@
       <div v-if="showDropdown" class="notif-overlay" @click="showDropdown = false" />
       <div v-if="showDropdown" class="notif-dropdown">
         <div class="notif-dropdown__header">
-          <span>🔔 Thông báo</span>
+          <span><Bell :size="14" style="vertical-align:middle" /> Thông báo</span>
           <button v-if="unreadCount > 0" class="notif-dropdown__mark-all" @click.stop="markAllRead">Đọc tất cả</button>
         </div>
         <div class="notif-dropdown__list">
@@ -17,7 +17,7 @@
             class="notif-item" :class="{ 'notif-item--unread': !n.is_read }"
             @click="handleClick(n)"
           >
-            <div class="notif-item__icon">{{ typeIcon(n.type) }}</div>
+            <div class="notif-item__icon"><component :is="typeIconMap[n.type] || Bell" :size="18" :style="{ color: typeIconColor[n.type] || 'var(--color-text-muted)' }" /></div>
             <div class="notif-item__content">
               <div class="notif-item__title">{{ n.title }}</div>
               <div v-if="n.message" class="notif-item__message">{{ n.message }}</div>
@@ -32,10 +32,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Bell } from 'lucide-vue-next'
+import { Bell, Flame, AlertTriangle, CheckCircle, Zap, Info } from 'lucide-vue-next'
+import { apiFetch } from '../composables/useApi.js'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-const getHeaders = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` })
+const emit = defineEmits(['navigate'])
+
+const typeIconMap = { hot_lead: Flame, disconnect: AlertTriangle, connect: CheckCircle, warning: Zap, info: Info }
+const typeIconColor = { hot_lead: '#ff3b5c', disconnect: '#f59e0b', connect: '#10b981', warning: '#6366f1', info: '#3b82f6' }
 
 const showDropdown = ref(false)
 const notifications = ref([])
@@ -49,7 +52,7 @@ function toggleDropdown() {
 
 async function fetchUnreadCount() {
   try {
-    const res = await fetch(`${API}/notifications/unread-count`, { headers: getHeaders() })
+    const res = await apiFetch('/notifications/unread-count')
     const data = await res.json()
     unreadCount.value = data.count || 0
   } catch { /* silent */ }
@@ -57,7 +60,7 @@ async function fetchUnreadCount() {
 
 async function fetchNotifications() {
   try {
-    const res = await fetch(`${API}/notifications?limit=20`, { headers: getHeaders() })
+    const res = await apiFetch('/notifications?limit=20')
     const data = await res.json()
     notifications.value = data.data || []
   } catch { /* silent */ }
@@ -65,7 +68,7 @@ async function fetchNotifications() {
 
 async function markAllRead() {
   try {
-    await fetch(`${API}/notifications/read-all`, { method: 'PUT', headers: getHeaders() })
+    await apiFetch('/notifications/read-all', { method: 'PUT' })
     notifications.value.forEach(n => n.is_read = true)
     unreadCount.value = 0
   } catch { /* silent */ }
@@ -74,18 +77,19 @@ async function markAllRead() {
 async function handleClick(n) {
   if (!n.is_read) {
     try {
-      await fetch(`${API}/notifications/${n.id}/read`, { method: 'PUT', headers: getHeaders() })
+      await apiFetch(`/notifications/${n.id}/read`, { method: 'PUT' })
       n.is_read = true
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     } catch { /* silent */ }
   }
   showDropdown.value = false
+  // Navigate based on notification type
+  const routes = { hot_lead: 'crm', order: 'orders', connect: 'live', disconnect: 'live', session: 'replay' }
+  const route = routes[n.type]
+  if (route) emit('navigate', route)
 }
 
-function typeIcon(type) {
-  const icons = { hot_lead: '🔥', disconnect: '⚠️', connect: '✅', warning: '⚡', info: 'ℹ️' }
-  return icons[type] || '🔔'
-}
+// typeIcon replaced with <component :is> + typeIconMap in template
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000

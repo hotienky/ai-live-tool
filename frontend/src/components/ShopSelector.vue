@@ -95,6 +95,10 @@ function onClickOutside(e) {
     isOpen.value = false
   }
 }
+
+function open() { isOpen.value = true }
+defineExpose({ open })
+
 onMounted(() => document.addEventListener('click', onClickOutside))
 onUnmounted(() => document.removeEventListener('click', onClickOutside))
 </script>

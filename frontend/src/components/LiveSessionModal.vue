@@ -4,8 +4,8 @@
       <div class="lsm">
         <!-- Header -->
         <div class="lsm__header">
-          <h3>🔴 Bắt đầu phiên Live</h3>
-          <button class="lsm__close" @click="$emit('close')">✕</button>
+          <h3><Radio :size="16" style="color:#ff3b5c;vertical-align:middle" /> Bắt đầu phiên Live</h3>
+          <button class="lsm__close" @click="$emit('close')"><X :size="16" /></button>
         </div>
 
         <!-- Platform Tabs -->
@@ -15,7 +15,7 @@
             class="lsm__tab" :class="{ 'lsm__tab--active': platform === p.key }"
             @click="platform = p.key"
           >
-            <span class="lsm__tab-icon">{{ p.icon }}</span>
+            <span class="lsm__tab-icon"><component :is="platformIcons[p.key]" :size="16" /></span>
             <span>{{ p.label }}</span>
           </button>
         </div>
@@ -42,11 +42,11 @@
           <div class="lsm__actions">
             <button class="lsm__btn lsm__btn--live" @click="onStart(false)" :disabled="!identifier.trim() || loading">
               <span v-if="loading" class="lsm__spinner"></span>
-              <span v-else>🔴</span>
+              <Radio v-else :size="14" />
               Bắt đầu Live
             </button>
             <button class="lsm__btn lsm__btn--mock" @click="onStart(true)" :disabled="loading">
-              🎭 Mock
+              <Drama :size="14" /> Mock
             </button>
           </div>
         </div>
@@ -59,7 +59,7 @@
             class="lsm__recent-item"
             @click="fillFromSession(s)"
           >
-            <span class="lsm__recent-icon">{{ platformIcon(s.platform) }}</span>
+            <span class="lsm__recent-icon"><component :is="platformIcons[s.platform] || Signal" :size="14" /></span>
             <span class="lsm__recent-name">{{ s.shop_name }}</span>
             <span class="lsm__recent-id">{{ sessionIdentifier(s) }}</span>
           </div>
@@ -71,20 +71,18 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import { apiFetch } from '../composables/useApi.js'
+import { Radio, X, Music, BookOpen, Video, ShoppingCart, Drama, Signal } from 'lucide-vue-next'
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  Authorization: `Bearer ${localStorage.getItem('token')}`,
-})
+const platformIcons = { tiktok: Music, facebook: BookOpen, youtube: Video, shopee: ShoppingCart }
 
 const emit = defineEmits(['close', 'started'])
 
 const platforms = [
-  { key: 'tiktok', label: 'TikTok', icon: '🎵' },
-  { key: 'facebook', label: 'Facebook', icon: '📘' },
-  { key: 'youtube', label: 'YouTube', icon: '🎬' },
-  { key: 'shopee', label: 'Shopee', icon: '🛒' },
+  { key: 'tiktok', label: 'TikTok' },
+  { key: 'facebook', label: 'Facebook' },
+  { key: 'youtube', label: 'YouTube' },
+  { key: 'shopee', label: 'Shopee' },
 ]
 
 const platform = ref('tiktok')
@@ -121,10 +119,7 @@ const defaultSessionName = computed(() => {
   return `Phiên live ${d} ${t}`
 })
 
-function platformIcon(p) {
-  const icons = { tiktok: '🎵', facebook: '📘', youtube: '🎬', shopee: '🛒' }
-  return icons[p] || '📡'
-}
+// platformIcon removed — using <component :is> with platformIcons map in template
 
 function sessionIdentifier(s) {
   return s.tiktok_username ? `@${s.tiktok_username}`
@@ -139,7 +134,7 @@ function fillFromSession(s) {
 
 async function fetchRecent() {
   try {
-    const res = await fetch(`${API}/shops`, { headers: getHeaders() })
+    const res = await apiFetch('/shops')
     const shops = await res.json()
     recentSessions.value = shops.slice(0, 5)
   } catch { /* silent */ }
@@ -161,9 +156,8 @@ async function onStart(mock) {
     else if (platform.value === 'youtube') body.youtubeChannel = id
     else if (platform.value === 'shopee') body.shopeeShopId = id
 
-    const shopRes = await fetch(`${API}/shops/find-or-create`, {
+    const shopRes = await apiFetch('/shops/find-or-create', {
       method: 'POST',
-      headers: getHeaders(),
       body: JSON.stringify(body),
     })
     const shop = await shopRes.json()
@@ -171,10 +165,9 @@ async function onStart(mock) {
 
     // 2. Connect or mock
     const endpoint = mock ? `/shops/${shop.id}/mock` : `/shops/${shop.id}/connect`
-    await fetch(`${API}${endpoint}`, {
+    await apiFetch(endpoint, {
       method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(mock ? {} : {}),
+      body: JSON.stringify({}),
     })
 
     emit('started', shop, mock)

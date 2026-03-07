@@ -32,7 +32,7 @@
           />
         </svg>
         <div class="sentiment-gauge__value">
-          {{ moodEmoji }}
+          <component :is="moodIcon" :size="28" :style="{ color: gaugeColor }" />
         </div>
       </div>
 
@@ -57,7 +57,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
-import { Target, RefreshCw, Loader2 } from 'lucide-vue-next'
+import { Target, RefreshCw, Loader2, Smile, Meh, Frown } from 'lucide-vue-next'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },
@@ -94,11 +94,11 @@ const gaugeColor = computed(() => {
   return '#ff3b5c'
 })
 
-const moodEmoji = computed(() => {
+const moodIcon = computed(() => {
   const m = sentiment.value.mood
-  if (m === 'positive') return '😊'
-  if (m === 'negative') return '😟'
-  return '😐'
+  if (m === 'positive') return Smile
+  if (m === 'negative') return Frown
+  return Meh
 })
 
 const moodLabel = computed(() => {

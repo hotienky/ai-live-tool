@@ -132,8 +132,8 @@ function showToast(msg) {
 
 <style scoped>
 .quick-reply-panel {
-  background: #1a1a2e;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
   margin-top: 12px;
@@ -147,12 +147,12 @@ function showToast(msg) {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 12px;
 }
-.panel-header h3 { margin: 0; font-size: 14px; color: #fff; }
+.panel-header h3 { margin: 0; font-size: 14px; color: var(--color-text-primary); }
 .close-btn {
-  background: none; border: none; color: #999; cursor: pointer; font-size: 16px;
+  background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px;
 }
 .reply-target {
-  background: rgba(255,255,255,0.05);
+  background: var(--color-bg-card);
   border-radius: 8px; padding: 10px; margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
@@ -163,11 +163,11 @@ function showToast(msg) {
 .target-label.warm { background: #f59e0b; color: #000; }
 .target-label.cold { background: #6b7280; color: #fff; }
 .target-user { color: #818cf8; font-size: 12px; font-weight: 600; }
-.target-text { color: #ccc; font-size: 12px; margin: 4px 0 0 0; width: 100%; font-style: italic; }
+.target-text { color: var(--color-text-secondary); font-size: 12px; margin: 4px 0 0 0; width: 100%; font-style: italic; }
 
 textarea {
-  width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 8px; padding: 10px; color: #fff; font-size: 13px;
+  width: 100%; background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 8px; padding: 10px; color: var(--color-text-primary); font-size: 13px;
   resize: vertical; font-family: inherit; box-sizing: border-box;
 }
 textarea:focus { outline: none; border-color: #818cf8; }
@@ -181,13 +181,13 @@ textarea:focus { outline: none; border-color: #818cf8; }
 }
 .btn-ai { background: #312e81; color: #a5b4fc; }
 .btn-ai:hover { background: #3730a3; }
-.btn-copy { background: rgba(255,255,255,0.1); color: #ccc; }
-.btn-copy:hover { background: rgba(255,255,255,0.15); }
+.btn-copy { background: var(--color-bg-card-hover); color: var(--color-text-secondary); }
+.btn-copy:hover { background: var(--color-bg-elevated); }
 .btn-send { background: #059669; color: #fff; }
 .btn-send:hover { background: #047857; }
 
 .loading-reply {
-  display: flex; align-items: center; gap: 10px; padding: 20px 0; color: #999;
+  display: flex; align-items: center; gap: 10px; padding: 20px 0; color: var(--color-text-muted);
 }
 .spinner {
   width: 20px; height: 20px; border: 2px solid #333;
@@ -197,18 +197,18 @@ textarea:focus { outline: none; border-color: #818cf8; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .templates { margin-top: 12px; }
-.templates h4 { margin: 0 0 8px 0; font-size: 12px; color: #999; }
+.templates h4 { margin: 0 0 8px 0; font-size: 12px; color: var(--color-text-muted); }
 .template-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .template-btn {
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 6px; padding: 6px 10px; color: #ccc; font-size: 11px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 6px; padding: 6px 10px; color: var(--color-text-secondary); font-size: 11px;
   cursor: pointer; transition: all 0.2s;
 }
-.template-btn:hover { background: rgba(255,255,255,0.12); border-color: #818cf8; }
+.template-btn:hover { background: var(--color-bg-card-hover); border-color: #818cf8; }
 
 .toast {
   position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: #1e293b; color: #fff; padding: 10px 24px; border-radius: 8px;
+  background: var(--color-bg-card-solid); color: var(--color-text-primary); padding: 10px 24px; border-radius: 8px;
   font-size: 13px; z-index: 9999; animation: fadeIn 0.3s ease;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }

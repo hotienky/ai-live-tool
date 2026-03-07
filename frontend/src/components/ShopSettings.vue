@@ -17,14 +17,24 @@
           :class="{ 'settings__tab--active': activeTab === tab.key }"
           @click="activeTab = tab.key"
           :disabled="tab.key !== 'appearance' && !currentShop"
+          :title="tab.key !== 'appearance' && !currentShop ? 'Chọn shop trước để mở tab này' : tab.label"
         >
           <component :is="tab.icon" :size="14" />
           {{ tab.label }}
+          <Lock v-if="tab.key !== 'appearance' && !currentShop" :size="10" class="settings__tab-lock" />
         </button>
       </div>
       <div class="settings__empty">
-        <Store :size="32" />
-        <p>Chọn shop ở header để cấu hình</p>
+        <div class="settings__empty-icon">
+          <Store :size="40" />
+        </div>
+        <h3 class="settings__empty-title">Chưa chọn Shop</h3>
+        <p class="settings__empty-desc">Chọn một shop từ header để bắt đầu cấu hình kết nối, sản phẩm, keywords, và auto-reply.</p>
+        <button class="settings__empty-cta" @click="$emit('openShopSelector')">
+          <Store :size="14" />
+          Chọn Shop ngay
+        </button>
+        <p class="settings__empty-hint">Hoặc chuyển sang tab <strong>Giao diện</strong> để tùy chỉnh theme</p>
       </div>
     </div>
 
@@ -44,7 +54,7 @@
       </div>
 
       <div class="settings__panel">
-        <h3 class="settings__panel-title">🎨 Giao diện</h3>
+        <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện</h3>
 
         <!-- Theme Mode -->
         <div class="settings__section">
@@ -119,7 +129,12 @@
 
         <!-- TikTok -->
         <div class="settings__platform-group">
-          <h4 class="settings__platform-label">🎵 TikTok Live</h4>
+          <h4 class="settings__platform-label">
+            <Music :size="14" style="vertical-align:middle" /> TikTok Live
+            <span class="settings__conn-badge" :class="shopForm.tiktokUsername ? 'settings__conn-badge--ok' : ''">
+              {{ shopForm.tiktokUsername ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+            </span>
+          </h4>
           <div class="settings__field">
             <label>Username</label>
             <input v-model="shopForm.tiktokUsername" type="text" placeholder="@username" class="settings__input" />
@@ -128,7 +143,12 @@
 
         <!-- Facebook -->
         <div class="settings__platform-group">
-          <h4 class="settings__platform-label">📘 Facebook Live</h4>
+          <h4 class="settings__platform-label">
+            <BookOpen :size="14" style="vertical-align:middle" /> Facebook Live
+            <span class="settings__conn-badge" :class="shopForm.facebookPageId && shopForm.facebookAccessToken ? 'settings__conn-badge--ok' : ''">
+              {{ shopForm.facebookPageId && shopForm.facebookAccessToken ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+            </span>
+          </h4>
           <div class="settings__field">
             <label>Page ID</label>
             <input v-model="shopForm.facebookPageId" type="text" placeholder="Page ID (VD: 123456789)" class="settings__input" />
@@ -142,7 +162,12 @@
 
         <!-- YouTube -->
         <div class="settings__platform-group">
-          <h4 class="settings__platform-label">🎬 YouTube Live</h4>
+          <h4 class="settings__platform-label">
+            <Video :size="14" style="vertical-align:middle" /> YouTube Live
+            <span class="settings__conn-badge" :class="shopForm.youtubeChannel && shopForm.youtubeApiKey ? 'settings__conn-badge--ok' : ''">
+              {{ shopForm.youtubeChannel && shopForm.youtubeApiKey ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+            </span>
+          </h4>
           <div class="settings__field">
             <label>Channel ID</label>
             <input v-model="shopForm.youtubeChannel" type="text" placeholder="Channel ID (VD: UC...)" class="settings__input" />
@@ -156,7 +181,12 @@
 
         <!-- Shopee -->
         <div class="settings__platform-group">
-          <h4 class="settings__platform-label">🛒 Shopee Live</h4>
+          <h4 class="settings__platform-label">
+            <ShoppingCart :size="14" style="vertical-align:middle" /> Shopee Live
+            <span class="settings__conn-badge" :class="shopForm.shopeeShopIdApi && shopForm.shopeePartnerId ? 'settings__conn-badge--ok' : ''">
+              {{ shopForm.shopeeShopIdApi && shopForm.shopeePartnerId ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+            </span>
+          </h4>
           <div class="settings__field">
             <label>Shop ID (API)</label>
             <input v-model="shopForm.shopeeShopIdApi" type="text" placeholder="Shopee Shop ID" class="settings__input" />
@@ -179,7 +209,7 @@
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <h3 class="settings__panel-title">🛍️ Sản phẩm ({{ products.length }})</h3>
+        <h3 class="settings__panel-title"><ShoppingBag :size="16" style="vertical-align:middle" /> Sản phẩm ({{ products.length }})</h3>
         <div class="settings__add-row">
           <input v-model="newProduct.name" placeholder="Tên sản phẩm" class="settings__input settings__input--flex" />
           <input v-model="newProduct.price" type="number" placeholder="Giá" class="settings__input settings__input--sm" />
@@ -240,7 +270,7 @@
 
       <!-- ═══ Tab: Auto Reply ═══ -->
       <div v-if="activeTab === 'replies'" class="settings__panel">
-        <h3 class="settings__panel-title">💬 Mẫu trả lời tự động</h3>
+        <h3 class="settings__panel-title"><MessageCircle :size="16" style="vertical-align:middle" /> Mẫu trả lời tự động</h3>
 
         <!-- Master Toggle -->
         <div class="settings__toggle-row">
@@ -249,7 +279,7 @@
             <span class="settings__switch-slider"></span>
           </label>
           <span class="settings__toggle-label">
-            Auto-Reply {{ autoReplyEnabled ? '🟢 Đang bật' : '🔴 Đang tắt' }}
+            Auto-Reply {{ autoReplyEnabled ? 'Đang bật' : 'Đang tắt' }}
           </span>
           <span class="settings__toggle-hint">Tự động reply cho comment HOT/WARM</span>
         </div>
@@ -285,7 +315,7 @@
 
         <!-- Auto-reply Log -->
         <div v-if="autoReplyLog.length > 0" class="settings__log">
-          <h4 class="settings__log-title">📋 Lịch sử auto-reply gần nhất</h4>
+          <h4 class="settings__log-title"><ClipboardList :size="14" style="vertical-align:middle" /> Lịch sử auto-reply gần nhất</h4>
           <div v-for="(log, i) in autoReplyLog" :key="i" class="settings__log-item">
             <span class="settings__log-user">@{{ log.nickname }}</span>
             <span class="settings__log-label" :class="'label--' + (log.triggerLabel || '').toLowerCase()">{{ log.triggerLabel }}</span>
@@ -297,7 +327,7 @@
 
       <!-- ═══ Tab: Moderation ═══ -->
       <div v-if="activeTab === 'moderation'" class="settings__panel">
-        <h3 class="settings__panel-title">🛡️ Quản lý bình luận</h3>
+        <h3 class="settings__panel-title"><Shield :size="16" style="vertical-align:middle" /> Quản lý bình luận</h3>
         <div class="settings__field">
           <label>Danh sách từ cấm (mỗi dòng 1 từ)</label>
           <textarea v-model="moderationConfig.blacklist" rows="5" class="settings__textarea"
@@ -329,7 +359,8 @@ import { ref, watch, onMounted } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2,
   Link, ShoppingBag, Key, MessageCircle, Shield,
-  Palette, Sun, Moon, Monitor as MonitorIcon
+  Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
+  Music, BookOpen, Video, ShoppingCart, ClipboardList
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useTheme } from '../composables/useTheme.js'
@@ -340,6 +371,8 @@ const { showToast } = useToast()
 const props = defineProps({
   currentShop: { type: Object, default: null },
 })
+
+const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
@@ -508,15 +541,33 @@ async function deleteTemplate(id) {
   } catch (e) { console.error(e) }
 }
 
-function saveModerationConfig() {
-  localStorage.setItem(`mod_config_${props.currentShop?.id}`, JSON.stringify(moderationConfig.value))
-  showToast('Đã lưu cấu hình moderation', 'success')
+async function saveModerationConfig() {
+  if (!props.currentShop) return
+  try {
+    await apiFetch(`/shops/${props.currentShop.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        moderationBlacklist: moderationConfig.value.blacklist,
+        moderationHideSpam: moderationConfig.value.hideSpam,
+        moderationRateLimit: moderationConfig.value.rateLimitEnabled,
+        moderationMaxPerMinute: moderationConfig.value.maxPerMinute,
+      }),
+    })
+    showToast('Đã lưu cấu hình moderation', 'success')
+  } catch (e) {
+    showToast('Lỗi: ' + e.message, 'error')
+  }
 }
 
 onMounted(() => {
   if (props.currentShop) {
-    const saved = localStorage.getItem(`mod_config_${props.currentShop.id}`)
-    if (saved) moderationConfig.value = JSON.parse(saved)
+    // Load moderation config from shop data
+    moderationConfig.value = {
+      blacklist: props.currentShop.moderation_blacklist || '',
+      hideSpam: props.currentShop.moderation_hide_spam ?? true,
+      rateLimitEnabled: props.currentShop.moderation_rate_limit ?? false,
+      maxPerMinute: props.currentShop.moderation_max_per_minute ?? 5,
+    }
   }
 })
 
@@ -562,7 +613,16 @@ defineExpose({ handleAutoReplyEvent })
   padding: 14px 16px; border-radius: 10px; background: var(--color-bg-primary);
   border: 1px solid var(--color-border); margin-bottom: 12px;
 }
-.settings__platform-label { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.settings__platform-label { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+.settings__conn-badge {
+  font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+  background: var(--color-bg-card-hover); color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.settings__conn-badge--ok {
+  background: rgba(16, 185, 129, 0.12); color: #10b981;
+  border-color: rgba(16, 185, 129, 0.25);
+}
 .settings__help-text { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 .settings__header {
   display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
@@ -571,8 +631,39 @@ defineExpose({ handleAutoReplyEvent })
 .settings__shop-name { font-size: 14px; color: var(--color-text-muted); padding: 4px 12px; background: var(--color-bg-secondary); border-radius: 6px; }
 .settings__empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 300px; color: var(--color-text-muted); gap: 12px; font-size: 14px;
+  min-height: 400px; color: var(--color-text-muted); gap: 8px; font-size: 14px;
+  text-align: center; padding: 40px 20px;
 }
+.settings__empty-icon {
+  width: 80px; height: 80px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--color-accent, #7c3aed) 0%, #a78bfa 100%);
+  display: flex; align-items: center; justify-content: center;
+  color: white; margin-bottom: 8px;
+  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+}
+.settings__empty-title {
+  font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin: 0;
+}
+.settings__empty-desc {
+  font-size: 13px; color: var(--color-text-secondary); max-width: 360px;
+  line-height: 1.6; margin: 0;
+}
+.settings__empty-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 24px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--color-accent, #7c3aed), #a78bfa);
+  color: white; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+  transition: all 0.2s; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+.settings__empty-cta:hover {
+  transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+.settings__empty-hint {
+  font-size: 12px; color: var(--color-text-muted); margin-top: 4px;
+}
+.settings__empty-hint strong { color: var(--color-accent, #7c3aed); }
+.settings__tab-lock { opacity: 0.5; margin-left: -2px; }
 .settings__tabs {
   display: flex; gap: 2px; background: var(--color-bg-primary); border-radius: 8px; padding: 2px; margin-bottom: 20px;
 }
@@ -583,7 +674,8 @@ defineExpose({ handleAutoReplyEvent })
   position: relative;
 }
 .settings__tab:hover { color: var(--color-text-primary); }
-.settings__tab:disabled { opacity: 0.35; cursor: not-allowed; }
+.settings__tab:disabled { opacity: 0.4; cursor: not-allowed; }
+.settings__tab:disabled:hover { color: var(--color-text-muted); }
 .settings__tab--active {
   background: var(--color-bg-secondary); color: var(--color-text-primary); font-weight: 600;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);

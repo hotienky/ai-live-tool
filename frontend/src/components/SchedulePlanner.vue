@@ -23,7 +23,7 @@
       >
         <div class="sp-card__header">
           <div class="sp-card__platform">
-            <span class="sp-card__platform-icon">{{ platformIcons[s.platform] || '📡' }}</span>
+            <span class="sp-card__platform-icon"><component :is="platformIconMap[s.platform] || Signal" :size="14" /></span>
             <span class="sp-card__platform-name">{{ platformNames[s.platform] || 'Khác' }}</span>
           </div>
           <span class="sp-card__badge" :class="`sp-card__badge--${s.status}`">
@@ -39,7 +39,7 @@
             <span>{{ formatDateTime(s.scheduledAt || s.scheduled_at) }}</span>
           </div>
           <div class="sp-card__info-row" v-if="s.durationMinutes || s.duration_minutes">
-            <span class="sp-card__info-icon">⏱️</span>
+            <span class="sp-card__info-icon"><Timer :size="13" /></span>
             <span>{{ s.durationMinutes || s.duration_minutes }} phút</span>
           </div>
         </div>
@@ -47,21 +47,21 @@
         <p class="sp-card__desc" v-if="s.description">{{ s.description }}</p>
 
         <div class="sp-card__script-preview" v-if="s.script">
-          <span class="sp-card__script-label">📝 Kịch bản</span>
+          <span class="sp-card__script-label"><FileText :size="13" /> Kịch bản</span>
           <p class="sp-card__script-text">{{ (s.script || '').substring(0, 80) }}{{ (s.script || '').length > 80 ? '...' : '' }}</p>
         </div>
 
         <div class="sp-card__actions" v-if="s.status === 'scheduled'">
           <button class="sp-card__btn sp-card__btn--cancel" @click="cancelSchedule(s)">
-            ✕ Hủy
+            <X :size="13" /> Hủy
           </button>
           <button class="sp-card__btn sp-card__btn--live" @click="goLive(s)">
-            🔴 Go Live
+            <Radio :size="13" /> Go Live
           </button>
         </div>
         <div class="sp-card__actions" v-else-if="s.status === 'completed'">
           <button class="sp-card__btn sp-card__btn--delete" @click="deleteSchedule(s)">
-            🗑️ Xóa
+            <Trash2 :size="13" /> Xóa
           </button>
         </div>
       </div>
@@ -82,8 +82,8 @@
       <div class="sp-overlay" v-if="showModal" @click.self="showModal = false">
         <div class="sp-modal">
           <div class="sp-modal__header">
-            <h3>📝 Lên lịch Livestream</h3>
-            <button class="sp-modal__close" @click="showModal = false">✕</button>
+            <h3><CalendarDays :size="16" style="vertical-align:middle" /> Lên lịch Livestream</h3>
+            <button class="sp-modal__close" @click="showModal = false"><X :size="16" /></button>
           </div>
 
           <div class="sp-modal__body">
@@ -140,7 +140,7 @@
           <div class="sp-modal__footer">
             <button class="sp-btn sp-btn--ghost" @click="showModal = false">Hủy</button>
             <button class="sp-btn sp-btn--primary" @click="createSchedule" :disabled="!form.title || !form.scheduledAt">
-              ✨ Tạo lịch
+              <Sparkles :size="14" /> Tạo lịch
             </button>
           </div>
         </div>
@@ -151,10 +151,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { CalendarDays } from 'lucide-vue-next'
+import { CalendarDays, X, Radio, Trash2, FileText, Timer, Sparkles, Signal, Music, BookOpen, Video, ShoppingCart, CalendarCheck, CircleDot, CheckCircle, XCircle } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 const { showToast } = useToast()
+
+const emit = defineEmits(['startLive'])
 
 const props = defineProps({
   shopId: [Number, String],
@@ -167,9 +169,10 @@ const form = ref({
   platform: 'tiktok', script: '', description: ''
 })
 
-const platformIcons = { tiktok: '🎵', shopee: '🛒', facebook: '📘', youtube: '🎬' }
+const platformIconMap = { tiktok: Music, shopee: ShoppingCart, facebook: BookOpen, youtube: Video }
 const platformNames = { tiktok: 'TikTok', shopee: 'Shopee', facebook: 'Facebook', youtube: 'YouTube' }
-const statusLabels = { scheduled: '📅 Đã lên lịch', live: '🔴 Đang live', completed: '✅ Hoàn thành', cancelled: '❌ Đã hủy' }
+// Status labels kept for select options
+const statusLabels = { scheduled: 'Đã lên lịch', live: 'Đang live', completed: 'Hoàn thành', cancelled: 'Đã hủy' }
 
 onMounted(fetchSchedules)
 
@@ -194,7 +197,7 @@ async function createSchedule() {
     })
     showModal.value = false
     form.value = { title: '', scheduledAt: '', durationMinutes: 60, platform: 'tiktok', script: '', description: '' }
-    showToast('Đã tạo lịch livestream! 🎉', 'success')
+    showToast('Đã tạo lịch livestream!', 'success')
     fetchSchedules()
   } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
 }
@@ -220,7 +223,8 @@ async function deleteSchedule(s) {
 }
 
 function goLive(s) {
-  showToast(`Sẵn sàng live: ${s.title} — ${platformNames[s.platform] || s.platform}`, 'info')
+  emit('startLive', s)
+  showToast(`Đang chuyển sang Live: ${s.title}`, 'info')
 }
 
 function formatDateTime(d) {
@@ -236,7 +240,7 @@ function formatDateTime(d) {
 </script>
 
 <style scoped>
-.schedule-planner { padding: 0; }
+.schedule-planner { padding: 20px 24px; }
 
 /* Header */
 .sp-header {
@@ -274,8 +278,8 @@ function formatDateTime(d) {
 
 /* Card */
 .sp-card {
-  background: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--glass-bg);
+  border: 1px solid var(--color-border);
   border-radius: 16px; padding: 20px;
   transition: all 0.3s ease;
   position: relative; overflow: hidden;
@@ -305,7 +309,7 @@ function formatDateTime(d) {
   display: flex; align-items: center; gap: 6px;
 }
 .sp-card__platform-icon { font-size: 18px; }
-.sp-card__platform-name { font-size: 12px; color: #a1a1aa; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sp-card__platform-name { font-size: 12px; color: var(--color-text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
 .sp-card__badge {
   font-size: 11px; padding: 4px 10px; border-radius: 20px;
@@ -324,18 +328,18 @@ function formatDateTime(d) {
 /* Card Content */
 .sp-card__title {
   margin: 0 0 10px 0; font-size: 16px; font-weight: 700;
-  color: #f4f4f5;
+  color: var(--color-text-primary);
 }
 
 .sp-card__info { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .sp-card__info-row {
   display: flex; align-items: center; gap: 6px;
-  font-size: 13px; color: #a1a1aa;
+  font-size: 13px; color: var(--color-text-secondary);
 }
 .sp-card__info-icon { font-size: 13px; }
 
 .sp-card__desc {
-  font-size: 13px; color: #71717a; margin: 0 0 10px;
+  font-size: 13px; color: var(--color-text-muted); margin: 0 0 10px;
   line-height: 1.4;
 }
 
@@ -344,7 +348,7 @@ function formatDateTime(d) {
   border-radius: 8px; padding: 8px 10px; margin-bottom: 12px;
 }
 .sp-card__script-label { font-size: 11px; color: #a78bfa; font-weight: 700; display: block; margin-bottom: 4px; }
-.sp-card__script-text { font-size: 12px; color: #a1a1aa; margin: 0; line-height: 1.4; }
+.sp-card__script-text { font-size: 12px; color: var(--color-text-secondary); margin: 0; line-height: 1.4; }
 
 /* Card Actions */
 .sp-card__actions { display: flex; gap: 8px; margin-top: 12px; }
@@ -353,10 +357,10 @@ function formatDateTime(d) {
   font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
 }
 .sp-card__btn--cancel {
-  background: rgba(255,255,255,0.06); color: #a1a1aa;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-card-hover); color: var(--color-text-secondary);
+  border: 1px solid var(--color-border-hover);
 }
-.sp-card__btn--cancel:hover { background: rgba(255,255,255,0.1); color: #d4d4d8; }
+.sp-card__btn--cancel:hover { background: var(--color-border); color: var(--color-text-primary); }
 .sp-card__btn--live {
   background: linear-gradient(135deg, #dc2626, #ef4444);
   color: #fff; flex: 1;
@@ -376,8 +380,8 @@ function formatDateTime(d) {
   text-align: center;
 }
 .sp-empty__icon { font-size: 56px; margin-bottom: 16px; opacity: 0.6; }
-.sp-empty__title { font-size: 20px; font-weight: 700; margin: 0 0 8px; color: #d4d4d8; }
-.sp-empty__desc { font-size: 14px; color: #71717a; line-height: 1.6; margin: 0; }
+.sp-empty__title { font-size: 20px; font-weight: 700; margin: 0 0 8px; color: var(--color-text-primary); }
+.sp-empty__desc { font-size: 14px; color: var(--color-text-muted); line-height: 1.6; margin: 0; }
 
 /* Modal */
 .sp-overlay {
@@ -389,8 +393,8 @@ function formatDateTime(d) {
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 
 .sp-modal {
-  background: linear-gradient(165deg, #1e1e32, #161625);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 20px; width: 520px; max-width: 92vw;
   max-height: 85vh; overflow-y: auto;
   box-shadow: 0 25px 80px rgba(0,0,0,0.5);
@@ -400,21 +404,21 @@ function formatDateTime(d) {
 
 .sp-modal__header {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 20px 24px; border-bottom: 1px solid var(--color-border);
 }
 .sp-modal__header h3 { margin: 0; font-size: 18px; font-weight: 800; }
 .sp-modal__close {
-  background: rgba(255,255,255,0.06); border: none; color: #a1a1aa;
+  background: var(--color-bg-card-hover); border: none; color: var(--color-text-secondary);
   width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
   font-size: 16px; transition: all 0.2s;
 }
-.sp-modal__close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.sp-modal__close:hover { background: var(--color-border); color: var(--color-text-primary); }
 
 .sp-modal__body { padding: 20px 24px; }
 
 .sp-form-group { margin-bottom: 16px; }
 .sp-form-group label {
-  display: block; font-size: 13px; color: #a1a1aa;
+  display: block; font-size: 13px; color: var(--color-text-secondary);
   margin-bottom: 6px; font-weight: 600;
 }
 .sp-required { color: #ef4444; }
@@ -422,32 +426,32 @@ function formatDateTime(d) {
 .sp-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .sp-input {
-  width: 100%; background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #f4f4f5; padding: 10px 14px; border-radius: 10px;
+  width: 100%; background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px;
   font-size: 14px; font-family: inherit; box-sizing: border-box;
   transition: all 0.2s; outline: none;
 }
 .sp-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
-.sp-input::placeholder { color: #52525b; }
+.sp-input::placeholder { color: var(--color-text-muted); }
 .sp-textarea { resize: vertical; min-height: 80px; }
 
 .sp-input-suffix { position: relative; }
 .sp-input-suffix .sp-input { padding-right: 50px; }
 .sp-suffix {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  font-size: 12px; color: #71717a; pointer-events: none;
+  font-size: 12px; color: var(--color-text-muted); pointer-events: none;
 }
 
 /* Platform Select */
 .sp-platform-select { display: flex; gap: 8px; flex-wrap: wrap; }
 .sp-platform-btn {
   padding: 8px 14px; border-radius: 10px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  color: #a1a1aa; font-size: 13px; cursor: pointer;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  color: var(--color-text-secondary); font-size: 13px; cursor: pointer;
   transition: all 0.2s; font-weight: 600;
 }
-.sp-platform-btn:hover { border-color: rgba(124,58,237,0.3); color: #d4d4d8; }
+.sp-platform-btn:hover { border-color: rgba(124,58,237,0.3); color: var(--color-text-primary); }
 .sp-platform-btn--active {
   background: rgba(124,58,237,0.15); border-color: #7c3aed;
   color: #a78bfa;
@@ -456,7 +460,7 @@ function formatDateTime(d) {
 /* Footer */
 .sp-modal__footer {
   display: flex; gap: 10px; justify-content: flex-end;
-  padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06);
+  padding: 16px 24px; border-top: 1px solid var(--color-border);
 }
 .sp-btn {
   padding: 10px 20px; border-radius: 10px; font-size: 14px;
@@ -464,9 +468,9 @@ function formatDateTime(d) {
   transition: all 0.2s;
 }
 .sp-btn--ghost {
-  background: rgba(255,255,255,0.06); color: #a1a1aa;
+  background: var(--color-bg-card-hover); color: var(--color-text-secondary);
 }
-.sp-btn--ghost:hover { background: rgba(255,255,255,0.1); color: #d4d4d8; }
+.sp-btn--ghost:hover { background: var(--color-border); color: var(--color-text-primary); }
 .sp-btn--primary {
   background: linear-gradient(135deg, #7c3aed, #6d28d9);
   color: #fff; box-shadow: 0 4px 15px rgba(124,58,237,0.3);

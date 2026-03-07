@@ -1,15 +1,15 @@
 <template>
   <div class="order-management">
     <div class="om-header">
-      <h2>📦 Quản Lý Đơn Hàng</h2>
+      <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Đơn Hàng</h2>
       <div class="header-actions">
         <select v-model="filterStatus" class="filter-select">
           <option value="">Tất cả</option>
-          <option value="pending">⏳ Chờ xác nhận</option>
-          <option value="confirmed">✅ Đã xác nhận</option>
-          <option value="shipping">🚚 Đang giao</option>
-          <option value="delivered">📦 Đã giao</option>
-          <option value="cancelled">❌ Đã hủy</option>
+          <option value="pending">Chờ xác nhận</option>
+          <option value="confirmed">Đã xác nhận</option>
+          <option value="shipping">Đang giao</option>
+          <option value="delivered">Đã giao</option>
+          <option value="cancelled">Đã hủy</option>
         </select>
         <button class="btn-add" @click="showCreateModal = true">+ Tạo đơn</button>
       </div>
@@ -69,10 +69,10 @@
             <td>{{ formatDate(order.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" title="Xác nhận">✅</button>
-                <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" title="Giao hàng">🚚</button>
-                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" title="Đã giao">📦</button>
-                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" title="Hủy">❌</button>
+                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" title="Xác nhận"><CheckCircle :size="15" /></button>
+                <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" title="Giao hàng"><Truck :size="15" /></button>
+                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" title="Đã giao"><Package :size="15" /></button>
+                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" title="Hủy"><XCircle :size="15" /></button>
               </div>
             </td>
           </tr>
@@ -86,7 +86,7 @@
     <!-- Create Order Modal -->
     <div class="modal-overlay" v-if="showCreateModal" @click.self="showCreateModal = false">
       <div class="modal">
-        <h3>📝 Tạo đơn hàng mới</h3>
+        <h3><FileEdit :size="16" style="vertical-align:middle" /> Tạo đơn hàng mới</h3>
         <div class="form-group">
           <label>Tên khách</label>
           <input v-model="newOrder.customerName" placeholder="Nguyễn Văn A" />
@@ -120,6 +120,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit } from 'lucide-vue-next'
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -133,7 +134,7 @@ const showCreateModal = ref(false)
 const selectedOrder = ref(null)
 const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' })
 
-const statusLabels = { pending: '⏳ Chờ xác nhận', confirmed: '✅ Đã xác nhận', shipping: '🚚 Đang giao', delivered: '📦 Đã giao', cancelled: '❌ Đã hủy' }
+const statusLabels = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipping: 'Đang giao', delivered: 'Đã giao', cancelled: 'Đã hủy' }
 const paymentLabels = { unpaid: 'Chưa TT', paid: 'Đã TT', refunded: 'Hoàn tiền' }
 
 onMounted(() => { fetchOrders(); fetchStats() })
@@ -201,7 +202,7 @@ function formatDate(d) {
 .header-actions { display: flex; gap: 8px; }
 .filter-select {
   background: var(--glass-bg); border: 1px solid var(--glass-border);
-  color: #f4f4f5; padding: 10px 14px; border-radius: 10px; font-size: 13px;
+  color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px;
   transition: border-color 0.2s; outline: none;
 }
 .filter-select:focus { border-color: #7c3aed; }
@@ -231,8 +232,8 @@ function formatDate(d) {
   border-color: var(--color-border-hover);
   box-shadow: var(--shadow-card);
 }
-.stat-value { font-size: 26px; font-weight: 800; color: #f4f4f5; }
-.stat-label { font-size: 11px; color: #71717a; margin-top: 6px; font-weight: 600; letter-spacing: 0.3px; }
+.stat-value { font-size: 26px; font-weight: 800; color: var(--color-text-primary); }
+.stat-label { font-size: 11px; color: var(--color-text-muted); margin-top: 6px; font-weight: 600; letter-spacing: 0.3px; }
 .stat-card.revenue .stat-value { color: #34d399; }
 .stat-card.revenue::before { background: linear-gradient(90deg, transparent, #34d399, transparent); }
 .stat-card.paid .stat-value { color: #60a5fa; }
@@ -244,21 +245,21 @@ table {
   font-size: 13px;
 }
 thead {
-  background: rgba(255,255,255,0.02);
+  background: var(--color-bg-elevated);
 }
 th {
-  padding: 12px 14px; text-align: left; color: #52525b;
+  padding: 12px 14px; text-align: left; color: var(--color-text-muted);
   font-weight: 700; font-size: 11px; text-transform: uppercase;
-  letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  letter-spacing: 0.5px; border-bottom: 1px solid var(--color-border);
 }
 td {
-  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
-  color: #d4d4d8;
+  padding: 12px 14px; border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
 }
 tr:hover { background: rgba(124,58,237,0.03); }
 .amount { font-weight: 800; color: #34d399; }
 .empty {
-  text-align: center; color: #3f3f46; padding: 60px;
+  text-align: center; color: var(--color-text-muted); padding: 60px;
   font-size: 14px;
 }
 
@@ -288,7 +289,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
   justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
 }
 .modal {
-  background: #18181b; border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
   border-radius: 16px; padding: 28px;
   width: 440px; max-width: 90vw;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
@@ -300,21 +301,21 @@ tr:hover { background: rgba(124,58,237,0.03); }
 }
 .modal h3 { margin: 0 0 20px 0; font-weight: 800; }
 .form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; color: #a1a1aa; margin-bottom: 6px; font-weight: 700; }
+.form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
 .form-group input, .form-group textarea {
-  width: 100%; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-  color: #f4f4f5; padding: 10px 14px; border-radius: 10px; font-size: 13px;
+  width: 100%; background: var(--color-bg-card); border: 1px solid var(--color-border);
+  color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px;
   font-family: inherit; box-sizing: border-box; outline: none;
   transition: border-color 0.2s;
 }
 .form-group input:focus, .form-group textarea:focus { border-color: #7c3aed; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 .btn-cancel {
-  background: rgba(255,255,255,0.03); color: #a1a1aa; border: 1px solid rgba(255,255,255,0.06);
+  background: var(--color-bg-card); color: var(--color-text-secondary); border: 1px solid var(--color-border);
   padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;
   transition: all 0.2s;
 }
-.btn-cancel:hover { border-color: var(--color-border-hover); color: #f4f4f5; }
+.btn-cancel:hover { border-color: var(--color-border-hover); color: var(--color-text-primary); }
 .btn-create {
   background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border: none;
   padding: 10px 24px; border-radius: 10px; font-weight: 700; cursor: pointer;

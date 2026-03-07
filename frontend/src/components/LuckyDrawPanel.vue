@@ -14,15 +14,15 @@
       <!-- Setup -->
       <div class="lucky-draw__setup" v-if="!isRunning && !winner">
         <div class="lucky-draw__field">
-          <label>🎯 Keyword tham gia</label>
+          <label><Target :size="13" style="vertical-align:middle" /> Keyword tham gia</label>
           <input v-model="config.keyword" placeholder="Ví dụ: muatui, freeship..." class="lucky-draw__input" />
         </div>
         <div class="lucky-draw__field">
-          <label>🏆 Số người trúng</label>
+          <label><Trophy :size="13" style="vertical-align:middle" /> Số người trúng</label>
           <input v-model.number="config.winnerCount" type="number" min="1" max="10" class="lucky-draw__input lucky-draw__input--sm" />
         </div>
         <div class="lucky-draw__field">
-          <label>⏰ Thời gian nhận (giây)</label>
+          <label><Timer :size="13" style="vertical-align:middle" /> Thời gian nhận (giây)</label>
           <input v-model.number="config.duration" type="number" min="10" max="300" class="lucky-draw__input lucky-draw__input--sm" />
         </div>
         <button class="lucky-draw__start" @click="startDraw">
@@ -54,7 +54,7 @@
 
       <!-- Winners -->
       <div class="lucky-draw__result" v-if="winner">
-        <div class="lucky-draw__confetti">🎉</div>
+        <div class="lucky-draw__confetti"><PartyPopper :size="48" style="color:#f59e0b" /></div>
         <h3 class="lucky-draw__winners-title">Chúc mừng!</h3>
         <div class="lucky-draw__winner-list">
           <div v-for="w in winners" :key="w.uniqueId" class="lucky-draw__winner-card">
@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, onUnmounted } from 'vue'
-import { Gift, X, Sparkles, Users, Zap, Trophy, RotateCcw } from 'lucide-vue-next'
+import { Gift, X, Sparkles, Users, Zap, Trophy, RotateCcw, Target, Timer, PartyPopper } from 'lucide-vue-next'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },

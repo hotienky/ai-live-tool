@@ -80,6 +80,18 @@ export class ShopSchema extends BaseModel {
   @column()
   declare shopeeShopIdApi: string | null
 
+  @column()
+  declare moderationBlacklist: string | null
+
+  @column()
+  declare moderationHideSpam: boolean
+
+  @column()
+  declare moderationRateLimit: boolean
+
+  @column()
+  declare moderationMaxPerMinute: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

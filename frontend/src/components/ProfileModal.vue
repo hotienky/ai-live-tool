@@ -153,7 +153,7 @@ async function changePassword() {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .profile-modal {
-  background: #1a1a2e; border: 1px solid rgba(255,255,255,0.1);
+  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
   border-radius: 16px; width: 420px; max-width: 90vw;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   animation: scaleIn 0.25s ease;
@@ -166,19 +166,19 @@ async function changePassword() {
 }
 .profile-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
 .close-btn {
-  background: none; border: none; color: #999; font-size: 22px;
+  background: none; border: none; color: var(--color-text-muted); font-size: 22px;
   cursor: pointer; padding: 4px 8px;
 }
-.close-btn:hover { color: #fff; }
+.close-btn:hover { color: var(--color-text-primary); }
 
 .profile-body { padding: 12px 24px 24px; }
 
 .profile-section {
   margin-bottom: 20px; padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--color-border);
 }
 .profile-section:last-child { border-bottom: none; margin-bottom: 0; }
-.profile-section h4 { margin: 0 0 10px 0; font-size: 13px; color: #999; font-weight: 600; }
+.profile-section h4 { margin: 0 0 10px 0; font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
 
 .profile-avatar {
   width: 56px; height: 56px; border-radius: 50%;
@@ -191,7 +191,7 @@ async function changePassword() {
 }
 .profile-info { display: flex; flex-direction: column; gap: 2px; }
 .profile-name { font-size: 16px; font-weight: 700; }
-.profile-email { font-size: 12px; color: #999; }
+.profile-email { font-size: 12px; color: var(--color-text-muted); }
 .profile-role {
   font-size: 11px; color: #818cf8; text-transform: uppercase;
   font-weight: 700; letter-spacing: 0.5px;
@@ -201,13 +201,13 @@ async function changePassword() {
 
 .profile-input {
   width: 100%; padding: 10px 14px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.06); color: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-card); color: var(--color-text-primary);
   font-size: 13px; outline: none; box-sizing: border-box;
   margin-bottom: 8px;
 }
 .profile-input:focus { border-color: #ff3b5c; }
-.profile-input::placeholder { color: #666; }
+.profile-input::placeholder { color: var(--color-text-muted); }
 
 .btn-save {
   padding: 8px 20px; border-radius: 8px; border: none;

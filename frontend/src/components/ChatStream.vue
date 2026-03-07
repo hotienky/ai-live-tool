@@ -18,7 +18,8 @@
           @click="toggleAutoScroll"
           :title="autoScroll ? 'Tạm dừng auto-scroll' : 'Bật auto-scroll'"
         >
-          {{ autoScroll ? '⬇️' : '⏸️' }}
+          <ArrowDown v-if="autoScroll" :size="14" />
+          <Pause v-else :size="14" />
         </button>
       </div>
     </div>
@@ -34,7 +35,7 @@
           class="search-input"
           @keydown.escape="showSearch = false"
         />
-        <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''">✕</button>
+        <button v-if="searchQuery" class="search-clear" @click="searchQuery = ''"><X :size="12" /></button>
       </div>
       <div class="filter-buttons">
         <button
@@ -97,7 +98,7 @@
         </span>
         <!-- Product match indicator -->
         <span v-if="msg.matchedProduct" class="chat-msg__product-badge">
-          🛍️ {{ msg.matchedProduct.product?.name }}
+          <ShoppingBag :size="12" style="vertical-align:middle" /> {{ msg.matchedProduct.product?.name }}
         </span>
         <!-- Reply button -->
         <button
@@ -105,7 +106,7 @@
           @click.stop="$emit('reply', msg)"
           title="Trả lời nhanh"
         >
-          💬
+          <MessageCircle :size="13" />
         </button>
       </div>
     </div>
@@ -123,7 +124,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { MessagesSquare, Clock, Flame, CircleDot, Search } from 'lucide-vue-next'
+import { MessagesSquare, Clock, Flame, CircleDot, Search, ArrowDown, Pause, X, ShoppingBag, MessageCircle, Circle } from 'lucide-vue-next'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },
@@ -142,9 +143,9 @@ const searchQuery = ref('')
 const activeFilter = ref('all')
 
 const filterOptions = [
-  { key: '[HOT]', label: '🔥 HOT', cls: 'filter-hot' },
-  { key: '[WARM]', label: '🟠 WARM', cls: 'filter-warm' },
-  { key: '[COLD]', label: '⚪ COLD', cls: 'filter-cold' },
+  { key: '[HOT]', label: 'HOT', cls: 'filter-hot' },
+  { key: '[WARM]', label: 'WARM', cls: 'filter-warm' },
+  { key: '[COLD]', label: 'COLD', cls: 'filter-cold' },
 ]
 
 // Label counts
@@ -287,7 +288,7 @@ defineExpose({ showSearch, searchInputRef })
 /* Search & Filter Bar */
 .chat-stream__search {
   padding: 8px 12px; border-bottom: 1px solid var(--color-border);
-  background: rgba(255,255,255,0.02); flex-shrink: 0;
+  background: var(--color-bg-elevated); flex-shrink: 0;
   animation: slideDown 0.2s ease;
 }
 @keyframes slideDown {
@@ -301,8 +302,8 @@ defineExpose({ showSearch, searchInputRef })
   position: absolute; left: 10px; color: var(--color-text-muted); pointer-events: none;
 }
 .search-input {
-  width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--color-border);
-  border-radius: 8px; padding: 7px 30px 7px 32px; color: #fff; font-size: 13px;
+  width: 100%; background: var(--color-bg-card-hover); border: 1px solid var(--color-border);
+  border-radius: 8px; padding: 7px 30px 7px 32px; color: var(--color-text-primary); font-size: 13px;
   outline: none; transition: border-color 0.2s;
 }
 .search-input:focus { border-color: #818cf8; }
@@ -316,16 +317,16 @@ defineExpose({ showSearch, searchInputRef })
 }
 .filter-btn {
   display: flex; align-items: center; gap: 4px;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--color-border);
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
   border-radius: 6px; padding: 4px 10px; color: var(--color-text-muted);
   font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
 }
-.filter-btn:hover { background: rgba(255,255,255,0.08); }
+.filter-btn:hover { background: var(--color-bg-card-hover); }
 .filter-btn.active.filter-hot { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.1); }
 .filter-btn.active.filter-warm { border-color: #f59e0b; color: #f59e0b; background: rgba(245,158,11,0.1); }
 .filter-btn.active.filter-cold { border-color: #6b7280; color: #6b7280; background: rgba(107,114,128,0.15); }
 .filter-count {
-  background: rgba(255,255,255,0.1); border-radius: 4px; padding: 0 4px;
+  background: var(--color-bg-card-hover); border-radius: 4px; padding: 0 4px;
   font-size: 10px; min-width: 16px; text-align: center;
 }
 
@@ -351,7 +352,7 @@ defineExpose({ showSearch, searchInputRef })
   display: flex; align-items: flex-start; gap: 4px; flex-wrap: wrap;
   cursor: pointer; transition: background 0.15s; position: relative;
 }
-.chat-msg:hover { background: rgba(255,255,255,0.04); }
+.chat-msg:hover { background: var(--color-bg-card); }
 .chat-msg--hot { background: rgba(255, 59, 92, 0.08); }
 .chat-msg--hot:hover { background: rgba(255, 59, 92, 0.14); }
 .chat-msg--warm { background: rgba(255, 140, 66, 0.06); }
@@ -392,7 +393,7 @@ defineExpose({ showSearch, searchInputRef })
 /* Jump to bottom */
 .chat-stream__jump-bottom {
   position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
-  background: #1e293b; color: #818cf8; border: 1px solid #818cf8;
+  background: var(--color-bg-secondary); color: #818cf8; border: 1px solid #818cf8;
   border-radius: 20px; padding: 6px 16px; font-size: 12px; font-weight: 600;
   cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   animation: fadeIn 0.2s ease;
