@@ -21,21 +21,33 @@
     <div v-else class="session-replay__content">
       <!-- Session Stats -->
       <div class="session-replay__stats">
-        <div class="session-replay__stat">
-          <span class="session-replay__stat-val">{{ selectedSession.comment_count || selectedSession.commentCount || chatLogs.length }}</span>
-          <span class="session-replay__stat-lbl">Comments</span>
+        <div class="session-replay__stat session-replay__stat--comments">
+          <div class="session-replay__stat-icon"><MessageSquare :size="20" /></div>
+          <div class="session-replay__stat-data">
+            <span class="session-replay__stat-val">{{ selectedSession.comment_count || selectedSession.commentCount || chatLogs.length }}</span>
+            <span class="session-replay__stat-lbl">Comments</span>
+          </div>
         </div>
-        <div class="session-replay__stat">
-          <span class="session-replay__stat-val session-replay__stat-val--hot">{{ hotCount }}</span>
-          <span class="session-replay__stat-lbl">HOT</span>
+        <div class="session-replay__stat session-replay__stat--hot">
+          <div class="session-replay__stat-icon"><Flame :size="20" /></div>
+          <div class="session-replay__stat-data">
+            <span class="session-replay__stat-val">{{ hotCount }}</span>
+            <span class="session-replay__stat-lbl">HOT</span>
+          </div>
         </div>
-        <div class="session-replay__stat">
-          <span class="session-replay__stat-val">{{ warmCount }}</span>
-          <span class="session-replay__stat-lbl">WARM</span>
+        <div class="session-replay__stat session-replay__stat--warm">
+          <div class="session-replay__stat-icon"><CircleDot :size="20" /></div>
+          <div class="session-replay__stat-data">
+            <span class="session-replay__stat-val">{{ warmCount }}</span>
+            <span class="session-replay__stat-lbl">WARM</span>
+          </div>
         </div>
-        <div class="session-replay__stat">
-          <span class="session-replay__stat-val">{{ duration }}</span>
-          <span class="session-replay__stat-lbl">Thời lượng</span>
+        <div class="session-replay__stat session-replay__stat--duration">
+          <div class="session-replay__stat-icon"><Clock :size="20" /></div>
+          <div class="session-replay__stat-data">
+            <span class="session-replay__stat-val">{{ duration }}</span>
+            <span class="session-replay__stat-lbl">Thời lượng</span>
+          </div>
         </div>
       </div>
 
@@ -79,7 +91,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { PlayCircle, Film, Download, Printer } from 'lucide-vue-next'
+import { PlayCircle, Film, Download, Printer, MessageSquare, Flame, CircleDot, Clock } from 'lucide-vue-next'
 
 import { apiFetch } from '../composables/useApi.js'
 
@@ -186,7 +198,7 @@ loadSessions()
 </script>
 
 <style scoped>
-.session-replay { padding: 20px; height: 100%; overflow-y: auto; }
+.session-replay { padding: 24px; height: 100%; overflow-y: auto; }
 
 .session-replay__header {
   display: flex; align-items: center; gap: 16px;
@@ -195,13 +207,13 @@ loadSessions()
 .session-replay__title {
   font-size: 20px; font-weight: 800;
   display: flex; align-items: center; gap: 8px;
-  color: #f4f4f5;
+  color: var(--color-text-primary);
 }
 .session-replay__select {
   flex: 1; min-width: 220px; padding: 10px 14px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  color: #f4f4f5; font-size: 13px; cursor: pointer;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--color-text-primary); font-size: 13px; cursor: pointer;
   transition: all 0.2s; outline: none;
 }
 .session-replay__select:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
@@ -210,9 +222,9 @@ loadSessions()
 .session-replay__empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   height: 400px; gap: 16px;
-  background: linear-gradient(145deg, rgba(30,30,50,0.4), rgba(20,20,35,0.3));
-  border: 1px dashed rgba(255,255,255,0.08); border-radius: 16px;
-  color: #52525b;
+  background: var(--glass-bg);
+  border: 1px dashed var(--glass-border); border-radius: var(--radius-lg);
+  color: var(--color-text-muted);
 }
 .session-replay__empty p {
   font-size: 15px; color: #71717a; margin: 0;
@@ -220,34 +232,54 @@ loadSessions()
 
 /* Stats Grid */
 .session-replay__stats {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px;
 }
 .session-replay__stat {
-  background: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 14px; padding: 16px; text-align: center;
-  transition: all 0.2s;
+  display: flex; align-items: center; gap: 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px; padding: 20px 22px;
+  transition: all 0.3s ease;
+  position: relative; overflow: hidden;
+}
+.session-replay__stat::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 16px 0 0 16px;
 }
 .session-replay__stat:hover {
-  border-color: rgba(124,58,237,0.2);
-  transform: translateY(-2px);
+  border-color: var(--color-border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
 }
+.session-replay__stat--comments::before { background: linear-gradient(180deg, #3b82f6, #2563eb); }
+.session-replay__stat--comments .session-replay__stat-icon { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.session-replay__stat--hot::before { background: linear-gradient(180deg, #ef4444, #dc2626); }
+.session-replay__stat--hot .session-replay__stat-icon { background: rgba(239,68,68,0.12); color: #f87171; }
+.session-replay__stat--warm::before { background: linear-gradient(180deg, #f59e0b, #d97706); }
+.session-replay__stat--warm .session-replay__stat-icon { background: rgba(245,158,11,0.12); color: #fbbf24; }
+.session-replay__stat--duration::before { background: linear-gradient(180deg, #a855f7, #7c3aed); }
+.session-replay__stat--duration .session-replay__stat-icon { background: rgba(168,85,247,0.12); color: #c084fc; }
+.session-replay__stat-icon {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.session-replay__stat-data { display: flex; flex-direction: column; }
 .session-replay__stat-val {
-  display: block; font-size: 26px; font-weight: 800;
-  color: #f4f4f5; margin-bottom: 4px;
+  font-size: 28px; font-weight: 800;
+  color: var(--color-text-primary); line-height: 1;
 }
-.session-replay__stat-val--hot { color: #ef4444; }
 .session-replay__stat-lbl {
-  font-size: 11px; color: #71717a; text-transform: uppercase;
-  letter-spacing: 0.5px; font-weight: 600;
+  font-size: 12px; color: #71717a; margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Timeline */
 .session-replay__progress { margin-bottom: 20px; }
 .session-replay__track {
   position: relative; height: 24px;
-  background: linear-gradient(90deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  border-radius: 12px; border: 1px solid rgba(255,255,255,0.06);
+  background: var(--glass-bg);
+  border-radius: var(--radius-md); border: 1px solid var(--glass-border);
   overflow: hidden;
 }
 .session-replay__dot {
@@ -263,8 +295,8 @@ loadSessions()
 /* Chat Logs */
 .session-replay__logs {
   max-height: 420px; overflow-y: auto;
-  background: linear-gradient(145deg, rgba(30,30,50,0.6), rgba(20,20,35,0.5));
-  border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);
+  background: var(--glass-bg);
+  border-radius: 14px; border: 1px solid var(--glass-border);
   padding: 8px;
 }
 .session-replay__logs::-webkit-scrollbar { width: 4px; }
@@ -277,7 +309,7 @@ loadSessions()
 }
 .session-replay__log:hover { background: rgba(124,58,237,0.06); }
 .session-replay__log-time {
-  flex-shrink: 0; font-size: 11px; color: #52525b;
+  flex-shrink: 0; font-size: 11px; color: var(--color-text-muted);
   font-family: 'SF Mono', 'Fira Code', monospace; min-width: 60px;
 }
 .session-replay__log-label {
@@ -291,11 +323,11 @@ loadSessions()
 .session-replay__log-label--warm { background: rgba(245,158,11,0.15); color: #f59e0b; }
 .session-replay__log-label--cold { background: rgba(107,114,128,0.1); color: #6b7280; }
 .session-replay__log-user {
-  font-weight: 700; flex-shrink: 0; color: #a1a1aa;
+  font-weight: 700; flex-shrink: 0; color: var(--color-text-secondary);
 }
 .session-replay__log-text { color: #d4d4d8; }
 .session-replay__no-logs {
-  text-align: center; padding: 30px; color: #52525b; font-size: 14px;
+  text-align: center; padding: 30px; color: var(--color-text-muted); font-size: 14px;
 }
 
 /* Footer */
@@ -304,15 +336,20 @@ loadSessions()
 }
 .session-replay__export {
   display: flex; align-items: center; gap: 6px;
-  padding: 10px 16px; border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: linear-gradient(145deg, rgba(30,30,50,0.9), rgba(20,20,35,0.95));
-  color: #a1a1aa; font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 10px 16px; border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--color-text-secondary); font-size: 13px; font-weight: 600; cursor: pointer;
   transition: all 0.2s;
 }
 .session-replay__export:hover {
   border-color: rgba(124,58,237,0.4); color: #a78bfa;
   transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+@media (max-width: 768px) {
+  .session-replay__stats { grid-template-columns: repeat(2, 1fr); }
+  .session-replay__header { flex-direction: column; align-items: flex-start; }
 }
 </style>
 

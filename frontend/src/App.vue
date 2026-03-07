@@ -29,6 +29,11 @@
           </button>
         </nav>
         <div class="app-header__actions">
+          <button class="app-header__icon-btn app-header__theme-btn" @click="toggleTheme" :title="'Theme: ' + theme">
+            <Sun v-if="resolvedTheme === 'light'" :size="14" />
+            <Moon v-else-if="resolvedTheme === 'dark' && theme !== 'system'" :size="14" />
+            <Monitor v-else :size="14" />
+          </button>
           <NotificationBell />
           <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
             <UserIcon :size="14" />
@@ -264,18 +269,21 @@ import ProfileModal from './components/ProfileModal.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
+import { useTheme } from './composables/useTheme.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
   Radio, Drama, Square, RotateCcw, History,
   LayoutDashboard, MonitorPlay, Users, BarChart2,
   User as UserIcon, LogOut, Settings, Gift, FileText,
-  BellRing, BellOff, History as HistoryIcon
+  BellRing, BellOff, History as HistoryIcon,
+  Sun, Moon, Monitor
 } from 'lucide-vue-next'
 
 // ── Auth ──
 const { isLoggedIn, currentUser, logout } = useAuth()
 const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
+const { theme, resolvedTheme, toggleTheme } = useTheme()
 
 function onLoginSuccess() {}
 function onLogout() { logout() }
@@ -504,9 +512,12 @@ const statusText = computed(() => {
 .app-header {
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-secondary);
+  background: var(--color-header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
+  transition: background 0.3s ease;
 }
 
 .connection-lost {
@@ -530,7 +541,7 @@ const statusText = computed(() => {
   align-items: center;
   gap: 12px;
   padding: 8px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .app-header__logo {
@@ -551,36 +562,36 @@ const statusText = computed(() => {
 /* ── Tab Navigation ── */
 .app-nav {
   display: flex;
-  gap: 1px;
-  background: var(--color-bg-primary);
-  border-radius: 8px;
-  padding: 2px;
+  gap: 2px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 10px;
+  padding: 3px;
   flex: 1;
 }
 .app-nav__tab {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  border-radius: 6px;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 8px;
   border: none;
   background: transparent;
-  color: var(--color-text-muted);
+  color: #52525b;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.25s;
   white-space: nowrap;
 }
 .app-nav__tab:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-card);
+  color: #a1a1aa;
+  background: rgba(255,255,255,0.03);
 }
 .app-nav__tab--active {
-  color: var(--color-text-primary);
-  background: var(--color-bg-secondary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  color: #f4f4f5;
+  background: rgba(124,58,237,0.12);
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(124,58,237,0.15);
 }
 
 /* User actions area */

@@ -2,7 +2,10 @@
   <div class="schedule-planner">
     <div class="sp-header">
       <div class="sp-header__left">
-        <h2 class="sp-header__title">📅 Lịch Livestream</h2>
+        <h2 class="sp-header__title">
+          <CalendarDays :size="20" />
+          Lịch Livestream
+        </h2>
         <span class="sp-header__count" v-if="schedules.length">{{ schedules.length }} lịch</span>
       </div>
       <button class="sp-btn-add" @click="showModal = true">
@@ -148,6 +151,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { CalendarDays } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 const { showToast } = useToast()
@@ -240,7 +244,10 @@ function formatDateTime(d) {
   margin-bottom: 24px;
 }
 .sp-header__left { display: flex; align-items: center; gap: 12px; }
-.sp-header__title { margin: 0; font-size: 22px; font-weight: 800; }
+.sp-header__title {
+  margin: 0; font-size: 22px; font-weight: 800;
+  display: flex; align-items: center; gap: 8px;
+}
 .sp-header__count {
   background: rgba(124,58,237,0.15); color: #a78bfa;
   font-size: 12px; font-weight: 700; padding: 3px 10px;

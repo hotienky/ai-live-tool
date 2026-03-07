@@ -8,16 +8,11 @@
       <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name }}</span>
     </div>
 
-    <div v-if="!currentShop" class="settings__empty">
-      <Store :size="32" />
-      <p>Chọn shop ở header để cấu hình</p>
-    </div>
-
-    <div v-else class="settings__body">
+    <div v-if=\"!currentShop && activeTab !== 'appearance'\" class=\"settings__empty\">\n      <Store :size=\"32\" />\n      <p>Ch\u1ecdn shop \u1edf header \u0111\u1ec3 c\u1ea5u h\u00ecnh</p>\n    </div>\n\n    <!-- Appearance \u2014 always visible -->\n    <div class=\"settings__body\" v-if=\"activeTab === 'appearance'\">\n      <div class=\"settings__tabs\">\n        <button\n          v-for=\"tab in allTabs\"\n          :key=\"tab.key\"\n          class=\"settings__tab\"\n          :class=\"{ 'settings__tab--active': activeTab === tab.key }\"\n          @click=\"activeTab = tab.key\"\n        >\n          <component :is=\"tab.icon\" :size=\"14\" />\n          {{ tab.label }}\n        </button>\n      </div>\n\n      <div class=\"settings__panel\">\n        <h3 class=\"settings__panel-title\">\ud83c\udfa8 Giao di\u1ec7n</h3>\n\n        <!-- Theme Mode -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">Ch\u1ebf \u0111\u1ed9</label>\n          <div class=\"theme-mode-selector\">\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'light' }\" @click=\"setTheme('light')\">\n              <Sun :size=\"16\" /> S\u00e1ng\n            </button>\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'dark' }\" @click=\"setTheme('dark')\">\n              <Moon :size=\"16\" /> T\u1ed1i\n            </button>\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'system' }\" @click=\"setTheme('system')\">\n              <MonitorIcon :size=\"16\" /> H\u1ec7 th\u1ed1ng\n            </button>\n          </div>\n        </div>\n\n        <!-- Accent Color -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">M\u00e0u nh\u1ea5n</label>\n          <div class=\"accent-picker\">\n            <button\n              v-for=\"(preset, name) in accentPresets\"\n              :key=\"name\"\n              class=\"accent-swatch\"\n              :class=\"{ active: accentColor === name }\"\n              :style=\"{ '--swatch': preset.primary }\"\n              @click=\"setAccent(name)\"\n              :title=\"name\"\n            >\n              <span class=\"accent-swatch__dot\"></span>\n            </button>\n          </div>\n        </div>\n\n        <!-- Font Size -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">C\u1ee1 ch\u1eef</label>\n          <div class=\"font-size-selector\">\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'compact' }\" @click=\"setFontSize('compact')\">\n              <span style=\"font-size:12px\">A</span> Nh\u1ecf g\u1ecdn\n            </button>\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'normal' }\" @click=\"setFontSize('normal')\">\n              <span style=\"font-size:14px\">A</span> B\u00ecnh th\u01b0\u1eddng\n            </button>\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'comfortable' }\" @click=\"setFontSize('comfortable')\">\n              <span style=\"font-size:16px\">A</span> Tho\u1ea3i m\u00e1i\n            </button>\n          </div>\n        </div>\n      </div>\n    </div>\n\n    <div v-if=\"currentShop && activeTab !== 'appearance'\" class=\"settings__body\">
       <!-- Tab Switcher -->
       <div class="settings__tabs">
         <button
-          v-for="tab in tabs"
+          v-for="tab in allTabs"
           :key="tab.key"
           class="settings__tab"
           :class="{ 'settings__tab--active': activeTab === tab.key }"
@@ -243,9 +238,11 @@
 import { ref, watch, onMounted } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2,
-  Link, ShoppingBag, Key, MessageCircle, Shield
+  Link, ShoppingBag, Key, MessageCircle, Shield,
+  Palette, Sun, Moon, Monitor as MonitorIcon
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useTheme } from '../composables/useTheme.js'
 import { useToast } from '../composables/useToast.js'
 import { logger } from '../utils/logger.js'
 const { showToast } = useToast()
@@ -254,6 +251,8 @@ const props = defineProps({
   currentShop: { type: Object, default: null },
 })
 
+const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
+
 const activeTab = ref('connection')
 const tabs = [
   { key: 'connection', label: 'Kết nối', icon: Link },
@@ -261,6 +260,10 @@ const tabs = [
   { key: 'keywords', label: 'Keywords', icon: Key },
   { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
   { key: 'moderation', label: 'Moderation', icon: Shield },
+]
+const allTabs = [
+  ...tabs,
+  { key: 'appearance', label: 'Giao diện', icon: Palette },
 ]
 
 // Connection form
@@ -478,9 +481,18 @@ defineExpose({ handleAutoReplyEvent })
   display: flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 6px;
   border: none; background: transparent; color: var(--color-text-muted);
   font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  position: relative;
 }
 .settings__tab:hover { color: var(--color-text-primary); }
-.settings__tab--active { background: var(--color-bg-secondary); color: var(--color-text-primary); font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.settings__tab--active {
+  background: var(--color-bg-secondary); color: var(--color-text-primary); font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.settings__tab--active::after {
+  content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 2px; border-radius: 1px;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+}
 
 .settings__panel {
   background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); padding: 20px;
@@ -493,7 +505,7 @@ defineExpose({ handleAutoReplyEvent })
   background: var(--color-bg-primary); color: var(--color-text-primary);
   font-size: 13px; outline: none; box-sizing: border-box; width: 100%;
 }
-.settings__input:focus { border-color: #ff3b5c; }
+.settings__input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
 .settings__input--flex { flex: 1; }
 .settings__input--sm { width: 120px; flex: none; }
 .settings__textarea {
@@ -501,19 +513,23 @@ defineExpose({ handleAutoReplyEvent })
   background: var(--color-bg-primary); color: var(--color-text-primary); font-size: 13px;
   font-family: inherit; outline: none; resize: vertical; box-sizing: border-box;
 }
-.settings__textarea:focus { border-color: #ff3b5c; }
+.settings__textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
 .settings__color-picker { width: 36px; height: 36px; border: none; border-radius: 6px; cursor: pointer; }
 .settings__add-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
 .settings__add-btn {
   display: flex; align-items: center; gap: 4px; padding: 8px 14px; border-radius: 8px;
-  border: none; background: linear-gradient(135deg, #ff3b5c, #ff8c42); color: white;
+  border: none; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
   font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  transition: all 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.25);
 }
+.settings__add-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124,58,237,0.35); }
 .settings__save-btn {
   display: flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px;
-  border: none; background: linear-gradient(135deg, #ff3b5c, #ff8c42); color: white;
+  border: none; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
   font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px;
+  transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,58,237,0.25);
 }
+.settings__save-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.35); }
 .settings__list { display: flex; flex-direction: column; gap: 6px; }
 .settings__list-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -591,4 +607,83 @@ defineExpose({ handleAutoReplyEvent })
 .label--warm { background: rgba(245,158,11,0.15); color: #f59e0b; }
 .settings__log-text { flex: 1; color: var(--color-text-secondary); }
 .settings__log-time { font-size: 10px; color: var(--color-text-muted); }
+
+/* ── Appearance Tab ── */
+.settings__section { margin-bottom: 24px; }
+.settings__field-label {
+  display: block; font-size: 13px; font-weight: 700;
+  color: var(--color-text-secondary); margin-bottom: 10px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Theme Mode Selector */
+.theme-mode-selector { display: flex; gap: 8px; }
+.theme-mode-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.25s;
+}
+.theme-mode-btn:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+.theme-mode-btn.active {
+  background: var(--color-accent-primary);
+  color: #fff;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 4px 12px var(--color-accent-glow);
+}
+
+/* Accent Color Picker */
+.accent-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+.accent-swatch {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: transparent;
+  cursor: pointer; transition: all 0.25s;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+.accent-swatch__dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--swatch);
+  transition: transform 0.2s;
+}
+.accent-swatch:hover {
+  border-color: var(--swatch);
+  transform: scale(1.1);
+}
+.accent-swatch.active {
+  border-color: var(--swatch);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.15), 0 4px 12px rgba(0,0,0,0.15);
+}
+.accent-swatch.active .accent-swatch__dot {
+  transform: scale(1.15);
+}
+
+/* Font Size Selector */
+.font-size-selector { display: flex; gap: 8px; }
+.font-size-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 16px; border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.25s;
+}
+.font-size-btn:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+.font-size-btn.active {
+  background: var(--color-accent-primary);
+  color: #fff;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 4px 12px var(--color-accent-glow);
+}
 </style>
