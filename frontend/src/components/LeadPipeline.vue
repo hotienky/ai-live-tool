@@ -23,6 +23,11 @@
         v-for="col in columns"
         :key="col.key"
         class="pipeline__column"
+        :class="{ 'pipeline__column--drag-over': dragOverCol === col.key && dragSourceCol !== col.key }"
+        @dragover.prevent="onDragOver($event, col.key)"
+        @dragenter.prevent="onDragEnter(col.key)"
+        @dragleave="onDragLeave($event, col.key)"
+        @drop.prevent="onDrop(col.key)"
       >
         <div class="pipeline__col-header" :style="{ borderColor: col.color }">
           <component :is="col.icon" :size="14" :style="{ color: col.color }" />
@@ -34,7 +39,13 @@
             v-for="lead in getColumnLeads(col.key)"
             :key="lead.id"
             class="pipeline__card"
-            :class="{ 'pipeline__card--hot': lead.ChatLog?.ai_label === 'HOT' }"
+            :class="{
+              'pipeline__card--hot': lead.ChatLog?.ai_label === 'HOT',
+              'pipeline__card--dragging': draggingLeadId === lead.id,
+            }"
+            draggable="true"
+            @dragstart="onDragStart($event, lead, col.key)"
+            @dragend="onDragEnd"
             @click="selectedLead = lead"
           >
             <div class="pipeline__card-label">
@@ -64,8 +75,12 @@
               </button>
             </div>
           </div>
-          <div v-if="getColumnLeads(col.key).length === 0" class="pipeline__empty">
-            Trống
+          <!-- Drop placeholder when column is empty or being dragged over -->
+          <div v-if="getColumnLeads(col.key).length === 0" class="pipeline__empty"
+            :class="{ 'pipeline__empty--active': dragOverCol === col.key && dragSourceCol !== col.key }">
+            <GripVertical v-if="dragOverCol === col.key && dragSourceCol !== col.key" :size="20" style="opacity:0.5" />
+            <span v-if="dragOverCol === col.key && dragSourceCol !== col.key">Thả vào đây</span>
+            <span v-else>Trống</span>
           </div>
         </div>
       </div>
@@ -148,12 +163,14 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useLeads } from '../composables/useLeads.js'
 import { logger } from '../utils/logger.js'
+import { useToast } from '../composables/useToast.js'
 
+const { showToast } = useToast()
 const emit = defineEmits(['createOrder', 'openCustomer'])
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
   Save, PhoneCall, CheckCircle, XCircle, ArrowRight,
-  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart
+  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -197,12 +214,79 @@ function getActions(currentStatus) {
   return actions[currentStatus] || []
 }
 
+// ── Drag & Drop ──
+const draggingLeadId = ref(null)
+const dragSourceCol = ref(null)
+const dragOverCol = ref(null)
+let dragLeadData = null
+
+function onDragStart(e, lead, fromCol) {
+  draggingLeadId.value = lead.id
+  dragSourceCol.value = fromCol
+  dragLeadData = lead
+  // Set drag data (required for Firefox)
+  e.dataTransfer.effectAllowed = 'move'
+  e.dataTransfer.setData('text/plain', lead.id)
+  // Set a slight delay so the card visually fades
+  requestAnimationFrame(() => {
+    // This runs after the browser captures the drag ghost image
+  })
+}
+
+function onDragEnd() {
+  draggingLeadId.value = null
+  dragSourceCol.value = null
+  dragOverCol.value = null
+  dragLeadData = null
+}
+
+function onDragOver(e, colKey) {
+  e.dataTransfer.dropEffect = 'move'
+}
+
+function onDragEnter(colKey) {
+  dragOverCol.value = colKey
+}
+
+function onDragLeave(e, colKey) {
+  // Only clear if we're leaving the column entirely (not entering a child)
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = e.clientX
+  const y = e.clientY
+  if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+    if (dragOverCol.value === colKey) {
+      dragOverCol.value = null
+    }
+  }
+}
+
+async function onDrop(colKey) {
+  dragOverCol.value = null
+  if (!dragLeadData || dragSourceCol.value === colKey) return
+
+  const leadId = dragLeadData.id
+  const fromLabel = columns.find(c => c.key === dragSourceCol.value)?.label || dragSourceCol.value
+  const toLabel = columns.find(c => c.key === colKey)?.label || colKey
+
+  try {
+    await updateLead(leadId, { status: colKey })
+    await fetchLeadStats(props.shopId)
+    showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
+  } catch (e) {
+    console.error('drop moveLead error:', e)
+    showToast('Lỗi khi chuyển lead', 'error')
+  }
+}
+
 async function moveLead(leadId, newStatus) {
+  const toLabel = columns.find(c => c.key === newStatus)?.label || newStatus
   try {
     await updateLead(leadId, { status: newStatus })
     await fetchLeadStats(props.shopId)
+    showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
   } catch (e) {
     console.error('moveLead error:', e)
+    showToast('Lỗi khi chuyển lead', 'error')
   }
 }
 
@@ -280,8 +364,14 @@ onMounted(loadData)
 .pipeline__column {
   display: flex; flex-direction: column;
   background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
+  border: 2px solid var(--glass-border);
   border-radius: 14px; overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+.pipeline__column--drag-over {
+  border-color: var(--color-primary, #7c3aed);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.2), inset 0 0 30px rgba(124, 58, 237, 0.04);
+  background: rgba(124, 58, 237, 0.03);
 }
 .pipeline__col-header {
   display: flex; align-items: center; gap: 8px;
@@ -297,13 +387,20 @@ onMounted(loadData)
 }
 .pipeline__card {
   background: var(--color-bg-card); border-radius: 10px;
-  padding: 12px; cursor: pointer; border: 1px solid var(--color-border);
+  padding: 12px; cursor: grab; border: 1px solid var(--color-border);
   transition: all 0.25s;
 }
+.pipeline__card:active { cursor: grabbing; }
 .pipeline__card:hover {
   border-color: var(--color-border-hover);
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.pipeline__card--dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+  box-shadow: none;
+  border-style: dashed;
 }
 .pipeline__card--hot {
   border-left: 3px solid #ef4444;
@@ -339,6 +436,14 @@ onMounted(loadData)
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 40px 20px;
   color: var(--color-text-muted); font-size: 13px; font-style: italic;
+  border: 2px dashed transparent; border-radius: 10px;
+  transition: all 0.25s; gap: 6px;
+}
+.pipeline__empty--active {
+  border-color: var(--color-primary, #7c3aed);
+  background: rgba(124, 58, 237, 0.06);
+  color: var(--color-primary, #7c3aed);
+  font-style: normal; font-weight: 600;
 }
 
 /* Modal */

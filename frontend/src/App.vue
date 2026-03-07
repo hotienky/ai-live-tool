@@ -323,6 +323,7 @@ const activeView = ref(viewFromPath())
 function navigateTo(view) {
   if (!validViews.includes(view)) view = 'live'
   activeView.value = view
+  // Clear query params when switching pages — each page has its own filter state
   history.pushState({ view }, '', '/' + view)
 }
 

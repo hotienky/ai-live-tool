@@ -120,6 +120,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit } from 'lucide-vue-next'
 const { showToast } = useToast()
 
@@ -129,7 +130,7 @@ const props = defineProps({
 
 const orders = ref([])
 const stats = ref({ totalOrders: 0, totalRevenue: 0, paidRevenue: 0, conversionRate: 0 })
-const filterStatus = ref('')
+const filterStatus = useUrlParam('status', '')
 const showCreateModal = ref(false)
 const selectedOrder = ref(null)
 const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' })

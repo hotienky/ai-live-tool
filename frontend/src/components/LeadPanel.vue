@@ -95,6 +95,7 @@
 import { ref, computed, watch } from 'vue'
 import LeadCard from './LeadCard.vue'
 import { Search, X, Tag, RadioTower, DollarSign, List, Flame, CircleDot } from 'lucide-vue-next'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 
 const props = defineProps({
   leads: {
@@ -103,9 +104,9 @@ const props = defineProps({
   },
 })
 
-const activeTab = ref('all')
+const activeTab = useUrlParam('lead_tab', 'all')
 const searchQuery = ref('')
-const activeKeyword = ref('')
+const activeKeyword = useUrlParam('kw', '')
 const listRef = ref(null)
 
 const tabs = [

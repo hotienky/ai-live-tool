@@ -364,6 +364,7 @@ import {
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useTheme } from '../composables/useTheme.js'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
 import { logger } from '../utils/logger.js'
 const { showToast } = useToast()
@@ -377,14 +378,9 @@ const emit = defineEmits(['openShopSelector'])
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
 const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'appearance']
-const initTab = new URLSearchParams(window.location.search).get('tab')
-const activeTab = ref(validTabKeys.includes(initTab) ? initTab : 'connection')
-
-watch(activeTab, (tab) => {
-  const url = new URL(window.location)
-  url.searchParams.set('tab', tab)
-  history.replaceState({}, '', url)
-})
+const activeTab = useUrlParam('tab', 'connection')
+// Validate tab value from URL
+if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
 const tabs = [
   { key: 'connection', label: 'Kết nối', icon: Link },
   { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },

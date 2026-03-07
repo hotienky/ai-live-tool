@@ -125,6 +125,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { MessagesSquare, Clock, Flame, CircleDot, Search, ArrowDown, Pause, X, ShoppingBag, MessageCircle, Circle } from 'lucide-vue-next'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },
@@ -140,7 +141,7 @@ const newMessageCount = ref(0)
 const lastScrollTop = ref(0)
 const showSearch = ref(false)
 const searchQuery = ref('')
-const activeFilter = ref('all')
+const activeFilter = useUrlParam('filter', 'all')
 
 const filterOptions = [
   { key: '[HOT]', label: 'HOT', cls: 'filter-hot' },

@@ -161,10 +161,15 @@ import {
   Calculator, Target, Download, Clock, Hash
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 
 const props = defineProps({ shopId: { type: String, default: null } })
 
-const selectedDays = ref(7)
+const selectedDaysStr = useUrlParam('days', '7')
+const selectedDays = computed({
+  get: () => Number(selectedDaysStr.value) || 7,
+  set: (v) => { selectedDaysStr.value = String(v) },
+})
 const loading = ref(false)
 const summary = ref(null)
 const dailyData = ref([])

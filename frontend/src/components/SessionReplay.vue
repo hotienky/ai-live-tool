@@ -94,8 +94,9 @@ import { ref, computed } from 'vue'
 import { PlayCircle, Film, Download, Printer, MessageSquare, Flame, CircleDot, Clock } from 'lucide-vue-next'
 
 import { apiFetch } from '../composables/useApi.js'
+import { useUrlParam } from '../composables/useUrlFilter.js'
 
-const selectedSessionId = ref('')
+const selectedSessionId = useUrlParam('session', '')
 const selectedSession = ref(null)
 const sessions = ref([])
 const chatLogs = ref([])

@@ -106,6 +106,7 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside))
 <style scoped>
 .shop-selector {
   position: relative;
+  z-index: 50;
 }
 
 .shop-selector__current {
