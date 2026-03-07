@@ -35,7 +35,7 @@
 
         <div class="sp-card__info">
           <div class="sp-card__info-row" v-if="s.scheduledAt || s.scheduled_at">
-            <span class="sp-card__info-icon">🕐</span>
+            <span class="sp-card__info-icon"><Clock :size="13" /></span>
             <span>{{ formatDateTime(s.scheduledAt || s.scheduled_at) }}</span>
           </div>
           <div class="sp-card__info-row" v-if="s.durationMinutes || s.duration_minutes">
@@ -69,7 +69,7 @@
 
     <!-- Empty State -->
     <div class="sp-empty" v-else>
-      <div class="sp-empty__icon">📅</div>
+      <div class="sp-empty__icon"><CalendarOff :size="48" /></div>
       <h3 class="sp-empty__title">Chưa có lịch livestream nào</h3>
       <p class="sp-empty__desc">Lên lịch để chuẩn bị tốt hơn cho buổi live.<br/>Thêm script, chọn nền tảng và set thời gian!</p>
       <button class="sp-btn-add sp-btn-add--lg" @click="showModal = true">
@@ -151,7 +151,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { CalendarDays, X, Radio, Trash2, FileText, Timer, Sparkles, Signal, Music, BookOpen, Video, ShoppingCart, CalendarCheck, CircleDot, CheckCircle, XCircle } from 'lucide-vue-next'
+import { CalendarDays, X, Radio, Trash2, FileText, Timer, Sparkles, Signal, Music, BookOpen, Video, ShoppingCart, CalendarCheck, CircleDot, CheckCircle, XCircle, CalendarOff, Clock } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 const { showToast } = useToast()
@@ -379,7 +379,12 @@ function formatDateTime(d) {
   justify-content: center; padding: 80px 20px;
   text-align: center;
 }
-.sp-empty__icon { font-size: 56px; margin-bottom: 16px; opacity: 0.6; }
+.sp-empty__icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(124,58,237,0.08); display: flex;
+  align-items: center; justify-content: center; color: #a78bfa;
+  margin-bottom: 16px;
+}
 .sp-empty__title { font-size: 20px; font-weight: 700; margin: 0 0 8px; color: var(--color-text-primary); }
 .sp-empty__desc { font-size: 14px; color: var(--color-text-muted); line-height: 1.6; margin: 0; }
 

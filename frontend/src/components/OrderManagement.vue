@@ -18,18 +18,22 @@
     <!-- Revenue Stats -->
     <div class="revenue-stats">
       <div class="stat-card">
+        <div class="stat-icon stat-icon--orders"><ShoppingBag :size="22" /></div>
         <div class="stat-value">{{ stats.totalOrders }}</div>
         <div class="stat-label">Tổng đơn</div>
       </div>
       <div class="stat-card revenue">
+        <div class="stat-icon stat-icon--revenue"><DollarSign :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</div>
         <div class="stat-label">Doanh thu</div>
       </div>
       <div class="stat-card paid">
+        <div class="stat-icon stat-icon--paid"><CreditCard :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(stats.paidRevenue) }}</div>
         <div class="stat-label">Đã thanh toán</div>
       </div>
       <div class="stat-card">
+        <div class="stat-icon stat-icon--rate"><TrendingUp :size="22" /></div>
         <div class="stat-value">{{ stats.conversionRate }}%</div>
         <div class="stat-label">Tỷ lệ giao</div>
       </div>
@@ -77,7 +81,13 @@
             </td>
           </tr>
           <tr v-if="orders.length === 0">
-            <td colspan="8" class="empty">Chưa có đơn hàng</td>
+            <td colspan="8" class="empty">
+              <div class="empty-state">
+                <Package :size="40" class="empty-state__icon" />
+                <p class="empty-state__title">Chưa có đơn hàng</p>
+                <p class="empty-state__sub">Đơn hàng sẽ hiển thị ở đây khi được tạo</p>
+              </div>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -121,7 +131,7 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
-import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit } from 'lucide-vue-next'
+import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp } from 'lucide-vue-next'
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -260,9 +270,21 @@ td {
 tr:hover { background: rgba(124,58,237,0.03); }
 .amount { font-weight: 800; color: #34d399; }
 .empty {
-  text-align: center; color: var(--color-text-muted); padding: 60px;
-  font-size: 14px;
+  text-align: center; color: var(--color-text-muted); padding: 40px;
 }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.empty-state__icon { color: var(--color-text-muted); opacity: 0.4; }
+.empty-state__title { font-size: 15px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
+.empty-state__sub { font-size: 13px; color: var(--color-text-muted); margin: 0; }
+
+.stat-icon {
+  width: 44px; height: 44px; border-radius: 12px; display: flex;
+  align-items: center; justify-content: center; margin: 0 auto 10px;
+}
+.stat-icon--orders { background: rgba(124,58,237,0.12); color: #a78bfa; }
+.stat-icon--revenue { background: rgba(52,211,153,0.12); color: #34d399; }
+.stat-icon--paid { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.stat-icon--rate { background: rgba(251,191,36,0.12); color: #fbbf24; }
 
 .status-badge, .payment-badge {
   padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;

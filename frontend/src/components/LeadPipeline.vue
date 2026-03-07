@@ -80,7 +80,10 @@
             :class="{ 'pipeline__empty--active': dragOverCol === col.key && dragSourceCol !== col.key }">
             <GripVertical v-if="dragOverCol === col.key && dragSourceCol !== col.key" :size="20" style="opacity:0.5" />
             <span v-if="dragOverCol === col.key && dragSourceCol !== col.key">Thả vào đây</span>
-            <span v-else>Trống</span>
+            <template v-else>
+              <Users :size="24" class="pipeline__empty-icon" />
+              <span>Chưa có lead</span>
+            </template>
           </div>
         </div>
       </div>
@@ -170,7 +173,7 @@ const emit = defineEmits(['createOrder', 'openCustomer'])
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
   Save, PhoneCall, CheckCircle, XCircle, ArrowRight,
-  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical
+  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical, Users
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -435,10 +438,11 @@ onMounted(loadData)
 .pipeline__empty {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 40px 20px;
-  color: var(--color-text-muted); font-size: 13px; font-style: italic;
-  border: 2px dashed transparent; border-radius: 10px;
-  transition: all 0.25s; gap: 6px;
+  color: var(--color-text-muted); font-size: 13px;
+  border: 2px dashed var(--color-border); border-radius: 10px;
+  transition: all 0.25s; gap: 8px; opacity: 0.6;
 }
+.pipeline__empty-icon { opacity: 0.5; }
 .pipeline__empty--active {
   border-color: var(--color-primary, #7c3aed);
   background: rgba(124, 58, 237, 0.06);

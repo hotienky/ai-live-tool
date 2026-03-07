@@ -14,8 +14,11 @@
     </div>
 
     <div v-if="!selectedSession" class="session-replay__empty">
-      <Film :size="40" />
-      <p>Chọn một phiên live để xem lại</p>
+      <div class="session-replay__empty-icon-wrap">
+        <Film :size="40" />
+      </div>
+      <p class="session-replay__empty-title">Chọn một phiên live để xem lại</p>
+      <p class="session-replay__empty-sub">Bạn có thể xem lại toàn bộ bình luận và phân tích AI của các phiên trước</p>
     </div>
 
     <div v-else class="session-replay__content">
@@ -224,13 +227,27 @@ loadSessions()
 /* Empty State */
 .session-replay__empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 400px; gap: 16px;
+  height: 400px; gap: 12px;
   background: var(--glass-bg);
   border: 1px dashed var(--glass-border); border-radius: var(--radius-lg);
   color: var(--color-text-muted);
 }
-.session-replay__empty p {
-  font-size: 15px; color: var(--color-text-muted); margin: 0;
+.session-replay__empty-icon-wrap {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: rgba(124,58,237,0.08); display: flex;
+  align-items: center; justify-content: center; color: #a78bfa;
+  animation: floatIcon 3s ease-in-out infinite;
+  margin-bottom: 4px;
+}
+@keyframes floatIcon {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.session-replay__empty-title {
+  font-size: 16px; font-weight: 600; color: var(--color-text-secondary); margin: 0;
+}
+.session-replay__empty-sub {
+  font-size: 13px; color: var(--color-text-muted); margin: 0; max-width: 400px; text-align: center;
 }
 
 /* Stats Grid */

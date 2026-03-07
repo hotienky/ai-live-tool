@@ -16,7 +16,7 @@
           <RefreshCcw :size="14" :class="{ 'spin': loading }" />
         </button>
         <button class="report__export" @click="exportCSV" :disabled="!dailyData.length">
-          <Download :size="14" style="vertical-align:middle" /> Xuất CSV
+          <FileSpreadsheet :size="14" style="vertical-align:middle" /> Xuất CSV
         </button>
       </div>
     </div>
@@ -158,7 +158,7 @@ import { logger } from '../utils/logger.js'
 import { ref, computed, onMounted } from 'vue'
 import {
   BarChart3, RefreshCcw, MessageSquare, Flame, TrendingUp,
-  Calculator, Target, Download, Clock, Hash
+  Calculator, Target, FileSpreadsheet, Clock, Hash
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
@@ -395,9 +395,14 @@ onMounted(loadAll)
 .report__funnel { display: flex; flex-direction: column; gap: 8px; }
 .report__funnel-step { width: 100%; }
 .report__funnel-bar {
-  padding: 10px 14px; border-radius: 10px; color: white; font-weight: 700;
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 13px; transition: width 0.5s ease; min-width: 80px;
+  padding: 10px 16px; border-radius: 10px; color: white; font-weight: 700;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font-size: 13px; transition: all 0.4s ease; min-width: 120px;
+  white-space: nowrap; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); cursor: default;
+}
+.report__funnel-bar:hover {
+  transform: translateX(4px); box-shadow: 0 4px 12px rgba(0,0,0,0.25);
 }
 .report__funnel-rate {
   display: flex; align-items: center; gap: 6px;
