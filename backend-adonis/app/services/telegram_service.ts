@@ -1,21 +1,37 @@
 /**
  * Telegram Service — Alert khi có HOT lead
+ * P2 Fix: Per-shop config (fallback to global env vars)
  */
 import env from '#start/env'
 
-const BOT_TOKEN = env.get('TELEGRAM_BOT_TOKEN', '')
-const CHAT_ID = env.get('TELEGRAM_CHAT_ID', '')
+const GLOBAL_BOT_TOKEN = env.get('TELEGRAM_BOT_TOKEN', '')
+const GLOBAL_CHAT_ID = env.get('TELEGRAM_CHAT_ID', '')
 
-export function isConfigured(): boolean {
-  return !!(BOT_TOKEN && CHAT_ID)
+// P2: Shop-specific config, with fallback to global
+interface TelegramConfig {
+  telegramBotToken?: string
+  telegramChatId?: string
+}
+
+function getConfig(shopConfig?: TelegramConfig) {
+  return {
+    botToken: shopConfig?.telegramBotToken || GLOBAL_BOT_TOKEN,
+    chatId: shopConfig?.telegramChatId || GLOBAL_CHAT_ID,
+  }
+}
+
+export function isConfigured(shopConfig?: TelegramConfig): boolean {
+  const { botToken, chatId } = getConfig(shopConfig)
+  return !!(botToken && chatId)
 }
 
 function escapeMarkdown(text: string): string {
   return text.replace(/[_*[\]()~`>#+=|{}.!-]/g, '\\$&')
 }
 
-export async function sendHotLeadAlert(lead: any, shopName: string) {
-  if (!BOT_TOKEN || !CHAT_ID) return
+export async function sendHotLeadAlert(lead: any, shopName: string, shopConfig?: TelegramConfig) {
+  const { botToken, chatId } = getConfig(shopConfig)
+  if (!botToken || !chatId) return
 
   const message = `
 🔥 *LEAD HOT — ${shopName}*
@@ -28,11 +44,11 @@ export async function sendHotLeadAlert(lead: any, shopName: string) {
   `.trim()
 
   try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: CHAT_ID,
+        chat_id: chatId,
         text: message,
         parse_mode: 'Markdown',
         disable_web_page_preview: true,
@@ -43,8 +59,9 @@ export async function sendHotLeadAlert(lead: any, shopName: string) {
   }
 }
 
-export async function sendSessionSummary(shopName: string, stats: any, duration: string) {
-  if (!BOT_TOKEN || !CHAT_ID) return
+export async function sendSessionSummary(shopName: string, stats: any, duration: string, shopConfig?: TelegramConfig) {
+  const { botToken, chatId } = getConfig(shopConfig)
+  if (!botToken || !chatId) return
 
   const message = `
 📊 *TỔNG KẾT LIVE — ${shopName}*
@@ -58,12 +75,13 @@ export async function sendSessionSummary(shopName: string, stats: any, duration:
   `.trim()
 
   try {
-    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' }),
+      body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' }),
     })
   } catch (err: any) {
     console.error('❌ Telegram summary error:', err.message)
   }
 }
+

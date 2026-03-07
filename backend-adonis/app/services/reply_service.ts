@@ -1,11 +1,45 @@
 /**
  * Reply Service — AI auto-reply generation + sentiment analysis
+ * P1 Fix: Singleton Gemini instance (lazy-initialized, reused across calls)
  */
 import env from '#start/env'
 
 const GEMINI_KEY = env.get('GEMINI_API_KEY', '')
 const replyCache = new Map<string, { reply: string; time: number }>()
 const CACHE_TTL = 5 * 60 * 1000
+
+// P1 Fix: Lazy singleton — created once, reused forever
+let _genAI: any = null
+let _replyModel: any = null
+let _sentimentModel: any = null
+
+async function getReplyModel() {
+  if (_replyModel) return _replyModel
+  const { GoogleGenerativeAI } = await import('@google/generative-ai')
+  if (!_genAI) _genAI = new GoogleGenerativeAI(GEMINI_KEY)
+  _replyModel = _genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    systemInstruction: `Bạn là nhân viên tư vấn bán hàng thân thiện, chuyên nghiệp cho một cửa hàng Livestream. 
+Nhiệm vụ: Soạn câu trả lời ngắn gọn (dưới 100 từ) cho bình luận của khách hàng.
+Yêu cầu:
+- Giọng điệu: thân thiện, nhiệt tình, gần gũi
+- Luôn cảm ơn khách đã quan tâm
+- Nếu khách hỏi giá → mời inbox hoặc check link sản phẩm
+- Nếu khách chốt đơn → xác nhận thông tin + hẹn ship sớm
+- Nếu khách hỏi tư vấn → tư vấn ngắn gọn, chuyên nghiệp
+- Dùng emoji phù hợp (1-2 emoji, không quá nhiều)
+- Sử dụng tiếng Việt tự nhiên`,
+  })
+  return _replyModel
+}
+
+async function getSentimentModel() {
+  if (_sentimentModel) return _sentimentModel
+  const { GoogleGenerativeAI } = await import('@google/generative-ai')
+  if (!_genAI) _genAI = new GoogleGenerativeAI(GEMINI_KEY)
+  _sentimentModel = _genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+  return _sentimentModel
+}
 
 export async function generateReply(comment: string, label: string = '[WARM]', nickname: string = 'bạn'): Promise<string> {
   const cacheKey = comment.substring(0, 50).toLowerCase()
@@ -19,22 +53,7 @@ export async function generateReply(comment: string, label: string = '[WARM]', n
   }
 
   try {
-    const { GoogleGenerativeAI } = await import('@google/generative-ai')
-    const genAI = new GoogleGenerativeAI(GEMINI_KEY)
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
-      systemInstruction: `Bạn là nhân viên tư vấn bán hàng thân thiện, chuyên nghiệp cho một cửa hàng Livestream. 
-Nhiệm vụ: Soạn câu trả lời ngắn gọn (dưới 100 từ) cho bình luận của khách hàng.
-Yêu cầu:
-- Giọng điệu: thân thiện, nhiệt tình, gần gũi
-- Luôn cảm ơn khách đã quan tâm
-- Nếu khách hỏi giá → mời inbox hoặc check link sản phẩm
-- Nếu khách chốt đơn → xác nhận thông tin + hẹn ship sớm
-- Nếu khách hỏi tư vấn → tư vấn ngắn gọn, chuyên nghiệp
-- Dùng emoji phù hợp (1-2 emoji, không quá nhiều)
-- Sử dụng tiếng Việt tự nhiên`,
-    })
-
+    const model = await getReplyModel()
     const prompt = `Khách "${nickname}" bình luận (${label}): "${comment}"\nSoạn câu trả lời:`
     const result = await model.generateContent(prompt)
     const reply = result.response.text().trim()
@@ -61,10 +80,7 @@ export async function analyzeSentiment(comments: any[]): Promise<{ score: number
   if (!GEMINI_KEY) return { score: 0, mood: 'neutral', summary: 'AI unavailable' }
 
   try {
-    const { GoogleGenerativeAI } = await import('@google/generative-ai')
-    const genAI = new GoogleGenerativeAI(GEMINI_KEY)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
+    const model = await getSentimentModel()
     const batch = comments.slice(-20).map((c) => c.comment || c).join('\n')
     const prompt = `Phân tích cảm xúc tổng thể của các bình luận Livestream sau.
 Trả về JSON format: {"score": <số từ -1 đến 1>, "mood": "<positive|neutral|negative>", "summary": "<tóm tắt 1 câu>"}

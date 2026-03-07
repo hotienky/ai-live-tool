@@ -19,7 +19,12 @@ export const SUPPORTED_PLATFORMS = [
 
 export class BaseConnector extends EventEmitter {
   platform: string
-  protected polling: ReturnType<typeof setInterval> | null = null
+  protected polling: ReturnType<typeof setTimeout> | null = null
+  // P3: Adaptive polling state
+  protected pollInterval: number = 3000
+  protected readonly MIN_POLL_MS = 1500
+  protected readonly MAX_POLL_MS = 10000
+  protected _destroyed = false
 
   constructor(platform: string) {
     super()
@@ -30,9 +35,26 @@ export class BaseConnector extends EventEmitter {
     throw new Error('connect() not implemented')
   }
 
+  // P3: Schedule next poll with adaptive interval
+  protected schedulePoll(fn: () => Promise<void>) {
+    if (this._destroyed) return
+    this.polling = setTimeout(async () => {
+      await fn()
+      this.schedulePoll(fn)
+    }, this.pollInterval)
+  }
+
+  // P3: Adjust interval based on comment count
+  protected adaptInterval(commentCount: number) {
+    if (commentCount > 5) this.pollInterval = this.MIN_POLL_MS
+    else if (commentCount > 0) this.pollInterval = 2000
+    else this.pollInterval = Math.min(this.pollInterval + 500, this.MAX_POLL_MS)
+  }
+
   disconnect() {
+    this._destroyed = true
     if (this.polling) {
-      clearInterval(this.polling)
+      clearTimeout(this.polling)
       this.polling = null
     }
   }
@@ -113,9 +135,10 @@ export class FacebookConnector extends BaseConnector {
     const viewerCount = videos[0].live_views || 0
     console.log(`📘 Facebook Live found: ${this.liveVideoId} (${viewerCount} viewers)`)
 
-    // Start polling comments every 3 seconds
-    this.polling = setInterval(() => this.pollComments(), 3000)
+    // P3: Start adaptive polling (initial 3s, adjusts based on activity)
+    this.pollInterval = 3000
     this.pollComments() // initial fetch
+    this.schedulePoll(() => this.pollComments())
 
     return { roomId: this.liveVideoId!, viewerCount }
   }
@@ -136,6 +159,7 @@ export class FacebookConnector extends BaseConnector {
       }
 
       const comments = (data.data || []).reverse() // oldest first
+      this.adaptInterval(comments.length) // P3: adaptive
       for (const c of comments) {
         this.lastCommentTime = c.created_time
         this.emit('chat', {
@@ -211,9 +235,10 @@ export class YouTubeConnector extends BaseConnector {
     const viewerCount = parseInt(video.liveStreamingDetails?.concurrentViewers || '0', 10)
     console.log(`🎬 YouTube Live found: ${videoId}, chatId: ${this.liveChatId} (${viewerCount} viewers)`)
 
-    // Step 3: Start polling chat messages
-    this.polling = setInterval(() => this.pollChat(), 5000)
+    // P3: Start adaptive polling (initial 5s, adjusts based on activity)
+    this.pollInterval = 5000
     this.pollChat() // initial fetch
+    this.schedulePoll(() => this.pollChat())
 
     return { roomId: videoId, viewerCount }
   }
@@ -250,6 +275,7 @@ export class YouTubeConnector extends BaseConnector {
           })
         }
       }
+      this.adaptInterval((data.items || []).length) // P3: adaptive
     } catch (err: any) {
       console.error('🎬 YT poll error:', err.message)
     }
@@ -296,8 +322,9 @@ export class ShopeeConnector extends BaseConnector {
     const viewerCount = sessions[0].viewer_count || 0
     console.log(`🛒 Shopee Live found: session ${this.sessionId} (${viewerCount} viewers)`)
 
-    // Start polling comments every 3 seconds
-    this.polling = setInterval(() => this.pollComments(), 3000)
+    // P3: Start adaptive polling (initial 3s, adjusts based on activity)
+    this.pollInterval = 3000
+    this.schedulePoll(() => this.pollComments())
 
     return { roomId: String(this.sessionId), viewerCount }
   }
@@ -317,6 +344,7 @@ export class ShopeeConnector extends BaseConnector {
           profilePictureUrl: '',
         })
       }
+      this.adaptInterval((data?.comment_list || []).length) // P3: adaptive
 
       // Poll metrics
       const metrics = await this.shopeeApi('/api/v2/livestream/get_session_metric', {

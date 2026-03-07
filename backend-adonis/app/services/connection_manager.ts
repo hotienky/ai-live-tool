@@ -6,6 +6,7 @@ import { analyzeComment } from '#services/ai_service'
 import { sendHotLeadAlert } from '#services/telegram_service'
 import { matchProduct } from '#services/product_match_service'
 import autoReplyService from '#services/auto_reply_service'
+import spamFilter from '#services/spam_filter'
 import notificationService from '#services/notification_service'
 import { createConnector, type BaseConnector } from '#services/connectors'
 import { MOCK_COMMENTS, AVATARS } from '#services/mock_service'
@@ -121,6 +122,15 @@ class ConnectionManager {
       // Chat listener
       connector.on('chat', async (data: any) => {
         try {
+          // P0 Fix: Spam check BEFORE AI analysis (saves AI cost)
+          const spamCheck = spamFilter.checkComment(String(shopId), data.uniqueId, data.comment)
+          if (!spamCheck.allowed) {
+            io.to(`shop_${shopId}`).emit('comment_blocked', {
+              nickname: data.nickname, comment: data.comment, reason: spamCheck.reason,
+            })
+            return // Skip AI analysis for spam
+          }
+
           const label = await analyzeComment(data.comment)
           const commentData: any = {
             id: `${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -429,7 +439,7 @@ class ConnectionManager {
           await session.save()
         }
 
-        // Generate Post-Live Report
+        // Generate Post-Live Report + persist to DB
         try {
           const { generatePostLiveReport } = await import('#services/post_live_report_service')
           const report = await generatePostLiveReport(
@@ -437,13 +447,20 @@ class ConnectionManager {
             conn.platform, conn.stats.startTime,
             conn.stats, conn.peakViewers
           )
-          // Emit report to shop room
+
+          // P1 Fix: Persist report to session record (survives user offline)
+          if (session) {
+            session.reportData = JSON.stringify(report)
+            await session.save()
+          }
+
+          // Emit report to shop room (real-time if user online)
           const { getIO } = await import('#start/socket')
           const io = getIO()
           if (io) {
             io.to(`shop_${shopId}`).emit('post_live_report', report)
           }
-          console.log(`📊 Post-live report generated for session ${conn.sessionId}`)
+          console.log(`📊 Post-live report generated + saved for session ${conn.sessionId}`)
         } catch (e: any) { console.error(`⚠️ Post-live report error:`, e.message) }
 
         // Log activity
