@@ -92,7 +92,7 @@ async function loadWebhooks() {
 async function addWebhook() {
   if (!newUrl.value || !props.shopId) return
   try {
-    const wh = await apiFetch('/api/webhooks', {
+    const wh = await apiFetch('/webhooks', {
       method: 'POST',
       body: JSON.stringify({ shopId: props.shopId, url: newUrl.value, events: [newEvent.value] })
     })

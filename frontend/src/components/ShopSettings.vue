@@ -682,7 +682,7 @@ const savingShipping = ref(false)
 async function loadShippingConfig() {
   if (!props.currentShop?.id) return
   try {
-    const data = await apiFetch(`/api/shipping/config?shopId=${props.currentShop.id}`)
+    const data = await apiFetch(`/shipping/config?shopId=${props.currentShop.id}`)
     if (data.shippingConfig) {
       // Merge saved config with defaults to ensure all keys exist
       const saved = data.shippingConfig
@@ -707,7 +707,7 @@ async function testCarrier(carrierKey) {
   carrierTesting.value = carrierKey
   carrierTestResults.value[carrierKey] = null
   try {
-    const result = await apiFetch('/api/shipping/test-connection', {
+    const result = await apiFetch('/shipping/test-connection', {
       method: 'POST',
       body: JSON.stringify({
         shopId: props.currentShop?.id,
@@ -727,7 +727,7 @@ async function saveShippingConfig() {
   if (!props.currentShop?.id) return
   savingShipping.value = true
   try {
-    await apiFetch('/api/shipping/config', {
+    await apiFetch('/shipping/config', {
       method: 'PUT',
       body: JSON.stringify({
         shopId: props.currentShop.id,
