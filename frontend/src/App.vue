@@ -21,7 +21,7 @@
             :key="tab.key"
             class="app-nav__tab"
             :class="{ 'app-nav__tab--active': activeView === tab.key }"
-            @click="activeView = tab.key"
+            @click="navigateTo(tab.key)"
             :title="tab.label"
           >
             <component :is="tab.icon" :size="14" />
@@ -293,7 +293,6 @@ function onProfileUpdated(user) {
 }
 
 // ── Navigation ──
-const activeView = ref('live')
 const tabs = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
@@ -304,6 +303,27 @@ const tabs = [
   { key: 'schedule', label: 'Schedule', icon: Radio },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
+const validViews = tabs.map(t => t.key)
+function viewFromPath() {
+  const path = window.location.pathname.replace(/^\//, '').split('/')[0] || ''
+  return validViews.includes(path) ? path : 'live'
+}
+const activeView = ref(viewFromPath())
+
+function navigateTo(view) {
+  if (!validViews.includes(view)) view = 'live'
+  activeView.value = view
+  history.pushState({ view }, '', '/' + view)
+}
+
+window.addEventListener('popstate', () => {
+  activeView.value = viewFromPath()
+})
+
+// Set initial URL if on root
+if (!window.location.pathname || window.location.pathname === '/') {
+  history.replaceState({ view: activeView.value }, '', '/' + activeView.value)
+}
 
 // Customer detail modal
 const showCustomerDetail = ref(false)
@@ -327,9 +347,9 @@ const showLiveModal = ref(false)
 
 // Keyboard shortcuts
 const { shortcuts } = useKeyboardShortcuts({
-  onSwitchTab: (tab) => { activeView.value = tab },
+  onSwitchTab: (tab) => { navigateTo(tab) },
   onToggleSearch: () => {
-    if (activeView.value !== 'live') activeView.value = 'live'
+    if (activeView.value !== 'live') navigateTo('live')
     if (chatStreamRef.value) {
       chatStreamRef.value.showSearch = !chatStreamRef.value.showSearch
     }
@@ -460,7 +480,7 @@ async function onLiveSessionStarted(shop, mock) {
   await fetchShops()
   const found = shops.value.find(s => s.id === shop.id)
   if (found) selectShop(found)
-  activeView.value = 'live'
+  navigateTo('live')
 }
 
 async function onDisconnect() {

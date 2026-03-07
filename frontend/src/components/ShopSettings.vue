@@ -8,7 +8,97 @@
       <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name }}</span>
     </div>
 
-    <div v-if=\"!currentShop && activeTab !== 'appearance'\" class=\"settings__empty\">\n      <Store :size=\"32\" />\n      <p>Ch\u1ecdn shop \u1edf header \u0111\u1ec3 c\u1ea5u h\u00ecnh</p>\n    </div>\n\n    <!-- Appearance \u2014 always visible -->\n    <div class=\"settings__body\" v-if=\"activeTab === 'appearance'\">\n      <div class=\"settings__tabs\">\n        <button\n          v-for=\"tab in allTabs\"\n          :key=\"tab.key\"\n          class=\"settings__tab\"\n          :class=\"{ 'settings__tab--active': activeTab === tab.key }\"\n          @click=\"activeTab = tab.key\"\n        >\n          <component :is=\"tab.icon\" :size=\"14\" />\n          {{ tab.label }}\n        </button>\n      </div>\n\n      <div class=\"settings__panel\">\n        <h3 class=\"settings__panel-title\">\ud83c\udfa8 Giao di\u1ec7n</h3>\n\n        <!-- Theme Mode -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">Ch\u1ebf \u0111\u1ed9</label>\n          <div class=\"theme-mode-selector\">\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'light' }\" @click=\"setTheme('light')\">\n              <Sun :size=\"16\" /> S\u00e1ng\n            </button>\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'dark' }\" @click=\"setTheme('dark')\">\n              <Moon :size=\"16\" /> T\u1ed1i\n            </button>\n            <button class=\"theme-mode-btn\" :class=\"{ active: theme === 'system' }\" @click=\"setTheme('system')\">\n              <MonitorIcon :size=\"16\" /> H\u1ec7 th\u1ed1ng\n            </button>\n          </div>\n        </div>\n\n        <!-- Accent Color -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">M\u00e0u nh\u1ea5n</label>\n          <div class=\"accent-picker\">\n            <button\n              v-for=\"(preset, name) in accentPresets\"\n              :key=\"name\"\n              class=\"accent-swatch\"\n              :class=\"{ active: accentColor === name }\"\n              :style=\"{ '--swatch': preset.primary }\"\n              @click=\"setAccent(name)\"\n              :title=\"name\"\n            >\n              <span class=\"accent-swatch__dot\"></span>\n            </button>\n          </div>\n        </div>\n\n        <!-- Font Size -->\n        <div class=\"settings__section\">\n          <label class=\"settings__field-label\">C\u1ee1 ch\u1eef</label>\n          <div class=\"font-size-selector\">\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'compact' }\" @click=\"setFontSize('compact')\">\n              <span style=\"font-size:12px\">A</span> Nh\u1ecf g\u1ecdn\n            </button>\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'normal' }\" @click=\"setFontSize('normal')\">\n              <span style=\"font-size:14px\">A</span> B\u00ecnh th\u01b0\u1eddng\n            </button>\n            <button class=\"font-size-btn\" :class=\"{ active: fontSizePref === 'comfortable' }\" @click=\"setFontSize('comfortable')\">\n              <span style=\"font-size:16px\">A</span> Tho\u1ea3i m\u00e1i\n            </button>\n          </div>\n        </div>\n      </div>\n    </div>\n\n    <div v-if=\"currentShop && activeTab !== 'appearance'\" class=\"settings__body\">
+    <div v-if="!currentShop && activeTab !== 'appearance'" class="settings__body">
+      <div class="settings__tabs">
+        <button
+          v-for="tab in allTabs"
+          :key="tab.key"
+          class="settings__tab"
+          :class="{ 'settings__tab--active': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+          :disabled="tab.key !== 'appearance' && !currentShop"
+        >
+          <component :is="tab.icon" :size="14" />
+          {{ tab.label }}
+        </button>
+      </div>
+      <div class="settings__empty">
+        <Store :size="32" />
+        <p>Chọn shop ở header để cấu hình</p>
+      </div>
+    </div>
+
+    <!-- Appearance — always visible -->
+    <div class="settings__body" v-if="activeTab === 'appearance'">
+      <div class="settings__tabs">
+        <button
+          v-for="tab in allTabs"
+          :key="tab.key"
+          class="settings__tab"
+          :class="{ 'settings__tab--active': activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >
+          <component :is="tab.icon" :size="14" />
+          {{ tab.label }}
+        </button>
+      </div>
+
+      <div class="settings__panel">
+        <h3 class="settings__panel-title">🎨 Giao diện</h3>
+
+        <!-- Theme Mode -->
+        <div class="settings__section">
+          <label class="settings__field-label">Chế độ</label>
+          <div class="theme-mode-selector">
+            <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
+              <Sun :size="16" /> Sáng
+            </button>
+            <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
+              <Moon :size="16" /> Tối
+            </button>
+            <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
+              <MonitorIcon :size="16" /> Hệ thống
+            </button>
+          </div>
+        </div>
+
+        <!-- Accent Color -->
+        <div class="settings__section">
+          <label class="settings__field-label">Màu nhấn</label>
+          <div class="accent-picker">
+            <button
+              v-for="(preset, name) in accentPresets"
+              :key="name"
+              class="accent-swatch"
+              :class="{ active: accentColor === name }"
+              :style="{ '--swatch': preset.primary }"
+              @click="setAccent(name)"
+              :title="name"
+            >
+              <span class="accent-swatch__dot"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Font Size -->
+        <div class="settings__section">
+          <label class="settings__field-label">Cỡ chữ</label>
+          <div class="font-size-selector">
+            <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
+              <span style="font-size:12px">A</span> Nhỏ gọn
+            </button>
+            <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
+              <span style="font-size:14px">A</span> Bình thường
+            </button>
+            <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
+              <span style="font-size:16px">A</span> Thoải mái
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="currentShop && activeTab !== 'appearance'" class="settings__body">
       <!-- Tab Switcher -->
       <div class="settings__tabs">
         <button
@@ -61,7 +151,7 @@
             <label>API Key</label>
             <input v-model="shopForm.youtubeApiKey" type="password" placeholder="YouTube Data API Key" class="settings__input" />
           </div>
-          <p class="settings__help-text">Lấy API Key tại: Google Cloud Console → APIs & Services → Credentials</p>
+          <p class="settings__help-text">Lấy API Key tại: Google Cloud Console → APIs &amp; Services → Credentials</p>
         </div>
 
         <!-- Shopee -->
@@ -253,7 +343,15 @@ const props = defineProps({
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const activeTab = ref('connection')
+const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'appearance']
+const initTab = new URLSearchParams(window.location.search).get('tab')
+const activeTab = ref(validTabKeys.includes(initTab) ? initTab : 'connection')
+
+watch(activeTab, (tab) => {
+  const url = new URL(window.location)
+  url.searchParams.set('tab', tab)
+  history.replaceState({}, '', url)
+})
 const tabs = [
   { key: 'connection', label: 'Kết nối', icon: Link },
   { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
@@ -459,6 +557,7 @@ defineExpose({ handleAutoReplyEvent })
 
 <style scoped>
 .settings { padding: 20px; overflow-y: auto; height: 100%; }
+.settings__body { padding: 0 4px; }
 .settings__platform-group {
   padding: 14px 16px; border-radius: 10px; background: var(--color-bg-primary);
   border: 1px solid var(--color-border); margin-bottom: 12px;
@@ -484,6 +583,7 @@ defineExpose({ handleAutoReplyEvent })
   position: relative;
 }
 .settings__tab:hover { color: var(--color-text-primary); }
+.settings__tab:disabled { opacity: 0.35; cursor: not-allowed; }
 .settings__tab--active {
   background: var(--color-bg-secondary); color: var(--color-text-primary); font-weight: 600;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
