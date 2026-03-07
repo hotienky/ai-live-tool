@@ -11,6 +11,7 @@ import { middleware } from '#start/kernel'
 const AuthController = () => import('#controllers/auth_controller')
 const ShopsController = () => import('#controllers/shops_controller')
 const ProductsController = () => import('#controllers/products_controller')
+const ShipmentsController = () => import('#controllers/shipments_controller')
 const KeywordsController = () => import('#controllers/keywords_controller')
 const TemplatesController = () => import('#controllers/templates_controller')
 const LeadsController = () => import('#controllers/leads_controller')
@@ -23,6 +24,8 @@ const RepliesController = () => import('#controllers/replies_controller')
 const OrdersController = () => import('#controllers/orders_controller')
 const SchedulesController = () => import('#controllers/schedules_controller')
 const NotificationsController = () => import('#controllers/notifications_controller')
+const WebhooksController = () => import('#controllers/webhooks_controller')
+const ActivityLogsController = () => import('#controllers/activity_logs_controller')
 
 // ──── Health Check ────
 router.get('/api/health', async () => {
@@ -128,6 +131,89 @@ router.group(() => {
   router.get('/schedules/:id', [SchedulesController, 'show'])
   router.put('/schedules/:id', [SchedulesController, 'update'])
   router.delete('/schedules/:id', [SchedulesController, 'destroy'])
+
+  // Webhooks
+  router.get('/webhooks', [WebhooksController, 'index'])
+  router.post('/webhooks', [WebhooksController, 'store'])
+  router.put('/webhooks/:id', [WebhooksController, 'update'])
+  router.delete('/webhooks/:id', [WebhooksController, 'destroy'])
+
+  // Activity Logs
+  router.get('/activity-logs', [ActivityLogsController, 'index'])
+
+  // Post-Live Report
+  router.get('/sessions/:id/report', async ({ auth, params, response }) => {
+    const { generatePostLiveReport } = await import('#services/post_live_report_service')
+    const Session = (await import('#models/livestream_session')).default
+    const Shop = (await import('#models/shop')).default
+    const session = await Session.find(params.id)
+    if (!session) return response.notFound({ error: 'Session not found' })
+    const shop = await Shop.query().where('id', session.shopId).where('userId', auth.user!.id).first()
+    if (!shop) return response.forbidden({ error: 'Access denied' })
+    const report = await generatePostLiveReport(
+      session.id, session.shopId, shop.shopName || 'Shop',
+      session.platform || 'tiktok', session.startedAt?.toISO() || new Date().toISOString(),
+      { hot: 0, warm: 0, cold: 0, total: 0 }, session.peakViewers || 0
+    )
+    return response.json(report)
+  })
+
+  // Inventory
+  router.get('/inventory/low-stock', async ({ auth, request, response }) => {
+    const { checkLowStock } = await import('#services/inventory_service')
+    const { shopId } = request.qs()
+    const Shop = (await import('#models/shop')).default
+    const shops = await Shop.query().where('userId', auth.user!.id).select('id')
+    const userShopIds = shops.map(s => s.id)
+    const targetShopId = Number(shopId) || userShopIds[0]
+    if (!userShopIds.includes(targetShopId)) return response.forbidden({ error: 'Access denied' })
+    const products = await checkLowStock(targetShopId)
+    return response.json(products)
+  })
+
+  router.put('/products/:id/stock', async ({ auth, params, request, response }) => {
+    const { action, quantity = 1 } = request.only(['action', 'quantity'])
+    const Product = (await import('#models/product')).default
+    const Shop = (await import('#models/shop')).default
+    const product = await Product.find(params.id)
+    if (!product) return response.notFound({ error: 'Product not found' })
+    const shop = await Shop.query().where('id', product.shopId).where('userId', auth.user!.id).first()
+    if (!shop) return response.forbidden({ error: 'Access denied' })
+    const { deductStock, addStock } = await import('#services/inventory_service')
+    const { logActivity, Actions } = await import('#services/activity_log_service')
+    if (action === 'deduct') {
+      const updated = await deductStock(product.id, Number(quantity))
+      await logActivity({ shopId: product.shopId, userId: auth.user!.id, action: Actions.STOCK_DEDUCTED, entityType: 'Product', entityId: product.id, details: { quantity, remaining: updated.stock } })
+      return response.json(updated)
+    } else if (action === 'add') {
+      const updated = await addStock(product.id, Number(quantity))
+      return response.json(updated)
+    }
+    return response.badRequest({ error: 'action must be "deduct" or "add"' })
+  })
+
+  // Inventory — extended routes
+  router.get('/inventory/stats', [ProductsController, 'stats'])
+  router.post('/products/:id/adjust-stock', [ProductsController, 'adjustStock'])
+  router.get('/products/:id/stock-history', [ProductsController, 'stockHistory'])
+  router.post('/products/import', [ProductsController, 'importCsv'])
+  router.get('/products/export', [ProductsController, 'exportCsv'])
+
+  // Shipping
+  router.get('/shipments', [ShipmentsController, 'index'])
+  router.post('/shipments', [ShipmentsController, 'store'])
+  router.get('/shipments/stats', [ShipmentsController, 'stats'])
+  router.get('/shipments/:id', [ShipmentsController, 'show'])
+  router.put('/shipments/:id/status', [ShipmentsController, 'updateStatus'])
+  router.get('/shipments/:id/tracking', [ShipmentsController, 'tracking'])
+  router.delete('/shipments/:id', [ShipmentsController, 'destroy'])
+
+  // Carrier config (self-service)
+  router.get('/shipping/config', [ShipmentsController, 'getConfig'])
+  router.put('/shipping/config', [ShipmentsController, 'saveConfig'])
+  router.post('/shipping/test-connection', [ShipmentsController, 'testConnection'])
+  router.post('/shipping/calculate-fee', [ShipmentsController, 'calculateFee'])
+  router.get('/shipping/carriers', [ShipmentsController, 'getCarriers'])
 
   // Profile & Password
   router.put('/auth/profile', async ({ auth, request, response }: any) => {

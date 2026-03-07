@@ -4,6 +4,7 @@
 import { Server as SocketIOServer } from 'socket.io'
 import connectionManager from '#services/connection_manager'
 import { SUPPORTED_PLATFORMS } from '#services/connectors'
+import User from '#models/user'
 
 let io: SocketIOServer | null = null
 
@@ -19,8 +20,29 @@ export function setupSocketIO(httpServer: any) {
     },
   })
 
+  // ── Socket.IO Authentication Middleware ──
+  io.use(async (socket, next) => {
+    try {
+      const token = socket.handshake.auth?.token
+        || socket.handshake.headers?.authorization?.replace('Bearer ', '')
+      if (!token) return next(new Error('Authentication required'))
+
+      // Verify token via AdonisJS access tokens
+      const accessToken = await User.accessTokens.verify(new User(), token)
+      if (!accessToken) return next(new Error('Invalid token'))
+
+      // Attach user info to socket for authorization
+      ;(socket as any).userId = accessToken.tokenableId
+      next()
+    } catch (err: any) {
+      console.warn(`🔒 Socket auth failed: ${err.message}`)
+      next(new Error('Authentication failed'))
+    }
+  })
+
   io.on('connection', (socket) => {
-    console.log(`✅ Client kết nối: ${socket.id}`)
+    const userId = (socket as any).userId
+    console.log(`✅ Client kết nối: ${socket.id} (user: ${userId})`)
 
     // Client join shop room
     socket.on('join_shop', (data: any) => {
@@ -88,6 +110,7 @@ export function setupSocketIO(httpServer: any) {
     })
   })
 
-  console.log('🔌 Socket.IO ready')
+  console.log('🔌 Socket.IO ready (with auth)')
   return io
 }
+

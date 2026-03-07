@@ -170,6 +170,20 @@
     <OrderManagement
       v-if="activeView === 'orders'"
       :shopId="currentShop?.id"
+      @create-shipment="onCreateShipment"
+    />
+
+    <!-- ═══ View: Inventory ═══ -->
+    <InventoryManagement
+      v-if="activeView === 'inventory'"
+      :shopId="currentShop?.id"
+    />
+
+    <!-- ═══ View: Shipping ═══ -->
+    <ShippingManagement
+      v-if="activeView === 'shipping'"
+      :shopId="currentShop?.id"
+      ref="shippingRef"
     />
 
     <!-- ═══ View: Schedule ═══ -->
@@ -195,6 +209,13 @@
         <ScriptPrompter @close="showPrompter = false" />
       </div>
     </div>
+
+    <!-- Post-Live Report Modal -->
+    <PostLiveReport
+      :visible="showPostLiveReport"
+      :report="postLiveReport"
+      @close="showPostLiveReport = false"
+    />
 
     <!-- Floating Action Buttons (Live Monitor) -->
     <div class="app-fab" v-if="activeView === 'live'">
@@ -272,10 +293,13 @@ import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
 import QuickReply from './components/QuickReply.vue'
 import OrderManagement from './components/OrderManagement.vue'
+import InventoryManagement from './components/InventoryManagement.vue'
+import ShippingManagement from './components/ShippingManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'
 import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
+import PostLiveReport from './components/PostLiveReport.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
@@ -287,7 +311,8 @@ import {
   LayoutDashboard, MonitorPlay, Users, BarChart2,
   User as UserIcon, LogOut, Settings, Gift, FileText,
   BellRing, BellOff, History as HistoryIcon,
-  Sun, Moon, Monitor, AlertTriangle, Keyboard
+  Sun, Moon, Monitor, AlertTriangle, Keyboard,
+  Warehouse, Truck
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -308,6 +333,8 @@ const tabs = [
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
   { key: 'crm', label: 'CRM', icon: Users },
   { key: 'orders', label: 'Orders', icon: BarChart3 },
+  { key: 'inventory', label: 'Kho', icon: Warehouse },
+  { key: 'shipping', label: 'Ship', icon: Truck },
   { key: 'reports', label: 'Reports', icon: BarChart2 },
   { key: 'replay', label: 'Replay', icon: HistoryIcon },
   { key: 'schedule', label: 'Schedule', icon: Radio },
@@ -325,6 +352,18 @@ function navigateTo(view) {
   activeView.value = view
   // Clear query params when switching pages — each page has its own filter state
   history.pushState({ view }, '', '/' + view)
+}
+
+const shippingRef = ref(null)
+function onCreateShipment(orderId) {
+  activeView.value = 'shipping'
+  history.pushState({ view: 'shipping' }, '', '/shipping')
+  // Wait for ShippingManagement to mount, then open create modal with orderId
+  setTimeout(() => {
+    if (shippingRef.value?.openCreateModal) {
+      shippingRef.value.openCreateModal(orderId)
+    }
+  }, 200)
 }
 
 window.addEventListener('popstate', () => {
@@ -347,6 +386,7 @@ function openCustomerDetail(customer) {
 // Floating panels
 const showLuckyDraw = ref(false)
 const showPrompter = ref(false)
+const showPostLiveReport = ref(false)
 
 // Quick Reply
 const showQuickReply = ref(false)
@@ -398,10 +438,16 @@ const {
   stats,
   crawlerStatus,
   viewerCount,
+  postLiveReport,
   joinShop,
   startMock,
   resetStats,
 } = useSocket()
+
+// Auto-show post-live report when received
+watch(postLiveReport, (report) => {
+  if (report) showPostLiveReport.value = true
+})
 
 // Shops composable
 const {

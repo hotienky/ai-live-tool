@@ -655,6 +655,270 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/schedules_controller').default['destroy']>>>
     }
   }
+  'webhooks.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/webhooks'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['index']>>>
+    }
+  }
+  'webhooks.store': {
+    methods: ["POST"]
+    pattern: '/api/webhooks'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['store']>>>
+    }
+  }
+  'webhooks.update': {
+    methods: ["PUT"]
+    pattern: '/api/webhooks/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['update']>>>
+    }
+  }
+  'webhooks.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/webhooks/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['destroy']>>>
+    }
+  }
+  'activity_logs.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/activity-logs'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['index']>>>
+    }
+  }
+  'products.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/inventory/stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stats']>>>
+    }
+  }
+  'products.adjust_stock': {
+    methods: ["POST"]
+    pattern: '/api/products/:id/adjust-stock'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['adjustStock']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['adjustStock']>>>
+    }
+  }
+  'products.stock_history': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/:id/stock-history'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stockHistory']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['stockHistory']>>>
+    }
+  }
+  'products.import_csv': {
+    methods: ["POST"]
+    pattern: '/api/products/import'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['importCsv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['importCsv']>>>
+    }
+  }
+  'products.export_csv': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/export'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['exportCsv']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['exportCsv']>>>
+    }
+  }
+  'shipments.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['index']>>>
+    }
+  }
+  'shipments.store': {
+    methods: ["POST"]
+    pattern: '/api/shipments'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['store']>>>
+    }
+  }
+  'shipments.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipments/stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['stats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['stats']>>>
+    }
+  }
+  'shipments.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipments/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['show']>>>
+    }
+  }
+  'shipments.update_status': {
+    methods: ["PUT"]
+    pattern: '/api/shipments/:id/status'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['updateStatus']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['updateStatus']>>>
+    }
+  }
+  'shipments.tracking': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipments/:id/tracking'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['tracking']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['tracking']>>>
+    }
+  }
+  'shipments.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/shipments/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['destroy']>>>
+    }
+  }
+  'shipments.get_config': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipping/config'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['getConfig']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['getConfig']>>>
+    }
+  }
+  'shipments.save_config': {
+    methods: ["PUT"]
+    pattern: '/api/shipping/config'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['saveConfig']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['saveConfig']>>>
+    }
+  }
+  'shipments.test_connection': {
+    methods: ["POST"]
+    pattern: '/api/shipping/test-connection'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['testConnection']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['testConnection']>>>
+    }
+  }
+  'shipments.calculate_fee': {
+    methods: ["POST"]
+    pattern: '/api/shipping/calculate-fee'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['calculateFee']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['calculateFee']>>>
+    }
+  }
+  'shipments.get_carriers': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shipping/carriers'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['getCarriers']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shipments_controller').default['getCarriers']>>>
+    }
+  }
   'exports.leads': {
     methods: ["GET","HEAD"]
     pattern: '/api/export/leads'

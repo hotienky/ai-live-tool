@@ -5,6 +5,7 @@
 
 export const controllers = {
   AccessToken: () => import('#controllers/access_token_controller'),
+  ActivityLogs: () => import('#controllers/activity_logs_controller'),
   Analytics: () => import('#controllers/analytics_controller'),
   Auth: () => import('#controllers/auth_controller'),
   Customers: () => import('#controllers/customers_controller'),
@@ -20,6 +21,8 @@ export const controllers = {
   Replies: () => import('#controllers/replies_controller'),
   Schedules: () => import('#controllers/schedules_controller'),
   Sessions: () => import('#controllers/sessions_controller'),
+  Shipments: () => import('#controllers/shipments_controller'),
   Shops: () => import('#controllers/shops_controller'),
   Templates: () => import('#controllers/templates_controller'),
+  Webhooks: () => import('#controllers/webhooks_controller'),
 }

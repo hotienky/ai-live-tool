@@ -92,6 +92,21 @@ export class ShopSchema extends BaseModel {
   @column()
   declare moderationMaxPerMinute: number
 
+  @column()
+  declare shippingConfig: Record<string, any> | null
+
+  @column()
+  declare defaultCarrier: string
+
+  @column()
+  declare senderName: string | null
+
+  @column()
+  declare senderPhone: string | null
+
+  @column()
+  declare senderAddress: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -333,6 +348,30 @@ export class ProductSchema extends BaseModel {
   @column()
   declare isActive: boolean
 
+  @column()
+  declare stock: number
+
+  @column()
+  declare sku: string | null
+
+  @column()
+  declare lowStockThreshold: number
+
+  @column()
+  declare variants: any | null
+
+  @column()
+  declare costPrice: number | null
+
+  @column()
+  declare category: string | null
+
+  @column()
+  declare unit: string
+
+  @column()
+  declare barcode: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -341,6 +380,12 @@ export class ProductSchema extends BaseModel {
 
   @belongsTo(() => ShopSchema, { foreignKey: 'shopId' })
   declare shop: BelongsTo<typeof ShopSchema>
+
+  @hasMany(() => StockHistorySchema, { foreignKey: 'productId' })
+  declare stockHistory: HasMany<typeof StockHistorySchema>
+
+  @hasMany(() => ProductVariantSchema, { foreignKey: 'productId' })
+  declare productVariants: HasMany<typeof ProductVariantSchema>
 }
 
 // ──── 8. ShopKeyword ───────────────────────────────────
@@ -434,4 +479,272 @@ export class NotificationSchema extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+}
+
+// ──── Webhook ──────────────────────────────────────────
+export class WebhookSchema extends BaseModel {
+  static table = 'webhooks'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare shopId: number
+
+  @column()
+  declare url: string
+
+  @column()
+  declare events: string
+
+  @column()
+  declare isActive: boolean
+
+  @column()
+  declare secret: string | null
+
+  @column()
+  declare lastStatus: number | null
+
+  @column.dateTime()
+  declare lastTriggeredAt: DateTime | null
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+
+  @belongsTo(() => ShopSchema, { foreignKey: 'shopId' })
+  declare shop: BelongsTo<typeof ShopSchema>
+}
+
+// ──── ActivityLog ──────────────────────────────────────
+export class ActivityLogSchema extends BaseModel {
+  static table = 'activity_logs'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare shopId: number
+
+  @column()
+  declare userId: number | null
+
+  @column()
+  declare action: string
+
+  @column()
+  declare entityType: string | null
+
+  @column()
+  declare entityId: number | null
+
+  @column()
+  declare details: any | null
+
+  @column()
+  declare ip: string | null
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+}
+
+// ──── StockHistory ─────────────────────────────────────
+export class StockHistorySchema extends BaseModel {
+  static table = 'stock_history'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare productId: number
+
+  @column()
+  declare shopId: number
+
+  @column()
+  declare userId: number | null
+
+  @column()
+  declare action: 'add' | 'deduct' | 'adjust' | 'order_confirmed' | 'order_cancelled'
+
+  @column()
+  declare quantityChange: number
+
+  @column()
+  declare stockBefore: number
+
+  @column()
+  declare stockAfter: number
+
+  @column()
+  declare reason: string | null
+
+  @column()
+  declare referenceType: 'order' | 'manual' | 'import' | null
+
+  @column()
+  declare referenceId: number | null
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @belongsTo(() => ProductSchema, { foreignKey: 'productId' })
+  declare product: BelongsTo<typeof ProductSchema>
+}
+
+// ──── ProductVariant ───────────────────────────────────
+export class ProductVariantSchema extends BaseModel {
+  static table = 'product_variants'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare productId: number
+
+  @column()
+  declare name: string
+
+  @column()
+  declare sku: string | null
+
+  @column()
+  declare price: number | null
+
+  @column()
+  declare costPrice: number | null
+
+  @column()
+  declare stock: number
+
+  @column()
+  declare attributes: any | null
+
+  @column()
+  declare isActive: boolean
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+
+  @belongsTo(() => ProductSchema, { foreignKey: 'productId' })
+  declare product: BelongsTo<typeof ProductSchema>
+}
+
+// ──── Shipment ─────────────────────────────────────────
+export class ShipmentSchema extends BaseModel {
+  static table = 'shipments'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare orderId: number
+
+  @column()
+  declare shopId: number
+
+  @column()
+  declare carrier: string
+
+  @column()
+  declare trackingCode: string | null
+
+  @column()
+  declare status: string
+
+  @column()
+  declare senderName: string | null
+  @column()
+  declare senderPhone: string | null
+  @column()
+  declare senderAddress: string | null
+  @column()
+  declare senderWard: string | null
+  @column()
+  declare senderDistrict: string | null
+  @column()
+  declare senderProvince: string | null
+
+  @column()
+  declare receiverName: string | null
+  @column()
+  declare receiverPhone: string | null
+  @column()
+  declare receiverAddress: string | null
+  @column()
+  declare receiverWard: string | null
+  @column()
+  declare receiverDistrict: string | null
+  @column()
+  declare receiverProvince: string | null
+
+  @column()
+  declare shippingFee: number
+  @column()
+  declare codAmount: number
+  @column()
+  declare insuranceFee: number
+  @column()
+  declare weight: number
+  @column()
+  declare dimensions: string | null
+
+  @column()
+  declare carrierOrderCode: string | null
+  @column()
+  declare carrierStatus: string | null
+  @column()
+  declare carrierResponse: string | null
+
+  @column.dateTime()
+  declare estimatedDeliveryAt: DateTime | null
+  @column.dateTime()
+  declare deliveredAt: DateTime | null
+
+  @column()
+  declare notes: string | null
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+
+  @hasMany(() => ShipmentHistorySchema, { foreignKey: 'shipmentId' })
+  declare history: HasMany<typeof ShipmentHistorySchema>
+}
+
+// ──── ShipmentHistory ──────────────────────────────────
+export class ShipmentHistorySchema extends BaseModel {
+  static table = 'shipment_history'
+
+  @column({ isPrimary: true })
+  declare id: number
+
+  @column()
+  declare shipmentId: number
+
+  @column()
+  declare status: string
+
+  @column()
+  declare location: string | null
+
+  @column()
+  declare description: string | null
+
+  @column()
+  declare source: string
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @belongsTo(() => ShipmentSchema, { foreignKey: 'shipmentId' })
+  declare shipment: BelongsTo<typeof ShipmentSchema>
 }

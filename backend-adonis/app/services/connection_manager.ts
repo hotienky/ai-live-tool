@@ -338,6 +338,40 @@ class ConnectionManager {
           session.endedAt = new Date() as any
           await session.save()
         }
+
+        // Generate Post-Live Report
+        try {
+          const { generatePostLiveReport } = await import('#services/post_live_report_service')
+          const report = await generatePostLiveReport(
+            conn.sessionId, shopId, conn.shopName,
+            conn.platform, conn.stats.startTime,
+            conn.stats, conn.peakViewers
+          )
+          // Emit report to shop room
+          const { getIO } = await import('#start/socket')
+          const io = getIO()
+          if (io) {
+            io.to(`shop_${shopId}`).emit('post_live_report', report)
+          }
+          console.log(`📊 Post-live report generated for session ${conn.sessionId}`)
+        } catch (e: any) { console.error(`⚠️ Post-live report error:`, e.message) }
+
+        // Log activity
+        try {
+          const { logActivity, Actions } = await import('#services/activity_log_service')
+          await logActivity({
+            shopId,
+            action: Actions.SESSION_ENDED,
+            entityType: 'Session',
+            entityId: conn.sessionId,
+            details: {
+              duration: conn.stats.startTime,
+              totalComments: conn.stats.total,
+              hotLeads: conn.stats.hot,
+              warmLeads: conn.stats.warm,
+            },
+          })
+        } catch (e: any) { console.error(`⚠️ Activity log error:`, e.message) }
       } catch (e: any) { console.error(`⚠️ Session end error:`, e.message) }
     }
 

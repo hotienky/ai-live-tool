@@ -74,8 +74,10 @@
             <td>
               <div class="action-btns">
                 <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" title="Xác nhận"><CheckCircle :size="15" /></button>
+                <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" title="Tạo vận đơn" class="btn-ship"><Send :size="15" /></button>
                 <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" title="Giao hàng"><Truck :size="15" /></button>
                 <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" title="Đã giao"><Package :size="15" /></button>
+                <button @click.stop="printInvoice(order)" title="In hóa đơn"><Printer :size="15" /></button>
                 <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" title="Hủy"><XCircle :size="15" /></button>
               </div>
             </td>
@@ -131,12 +133,13 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
-import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp } from 'lucide-vue-next'
+import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp, Send, Printer } from 'lucide-vue-next'
 const { showToast } = useToast()
 
 const props = defineProps({
   shopId: [Number, String],
 })
+const emit = defineEmits(['create-shipment'])
 
 const orders = ref([])
 const stats = ref({ totalOrders: 0, totalRevenue: 0, paidRevenue: 0, conversionRate: 0 })
@@ -200,6 +203,58 @@ function formatCurrency(v) {
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
+function printInvoice(order) {
+  const items = Array.isArray(order.items) ? order.items : []
+  const itemsHtml = items.map((it, i) => `
+    <tr><td>${i+1}</td><td>${it.name || '—'}</td><td style="text-align:center">${it.qty || 1}</td><td style="text-align:right">${Number(it.price || 0).toLocaleString('vi-VN')}đ</td></tr>
+  `).join('')
+
+  const win = window.open('', '_blank', 'width=400,height=600')
+  win.document.write(`<!DOCTYPE html><html><head><title>Hóa đơn #${order.id}</title>
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Segoe UI',sans-serif; width:80mm; margin:0 auto; padding:10px; font-size:12px; }
+      .header { text-align:center; border-bottom:2px dashed #000; padding-bottom:10px; margin-bottom:10px; }
+      .header h1 { font-size:16px; text-transform:uppercase; }
+      .header .date { font-size:10px; color:#666; margin-top:4px; }
+      .info { margin-bottom:10px; }
+      .info .row { display:flex; justify-content:space-between; margin-bottom:2px; }
+      .info .label { color:#666; }
+      table { width:100%; border-collapse:collapse; margin-bottom:10px; }
+      th { border-bottom:1px solid #000; padding:4px 2px; text-align:left; font-size:11px; }
+      td { padding:4px 2px; border-bottom:1px dotted #ccc; font-size:11px; }
+      .total-section { border-top:2px dashed #000; padding-top:8px; margin-top:8px; }
+      .total-row { display:flex; justify-content:space-between; margin-bottom:4px; }
+      .total-row.grand { font-size:16px; font-weight:800; margin-top:6px; }
+      .footer { text-align:center; border-top:1px dashed #ccc; padding-top:8px; margin-top:12px; font-size:10px; color:#999; }
+      @media print { body { width:80mm; padding:5px; } }
+    </style>
+  </head><body>
+    <div class="header">
+      <h1>HÓA ĐƠN BÁN HÀNG</h1>
+      <div class="date">${new Date(order.createdAt).toLocaleString('vi-VN')}</div>
+    </div>
+    <div class="info">
+      <div class="row"><span class="label">Mã đơn:</span><strong>#${order.id}</strong></div>
+      <div class="row"><span class="label">Khách:</span><span>${order.customerName || 'Khách lẻ'}</span></div>
+      ${order.customerPhone ? `<div class="row"><span class="label">SĐT:</span><span>${order.customerPhone}</span></div>` : ''}
+      ${order.customerAddress ? `<div class="row"><span class="label">Địa chỉ:</span><span>${order.customerAddress}</span></div>` : ''}
+      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? '✅ Đã TT' : '⏳ Chưa TT'}</span></div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>
+      <tbody>${itemsHtml || '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>'}</tbody>
+    </table>
+    <div class="total-section">
+      <div class="total-row grand"><span>TỔNG CỘNG:</span><span>${Number(order.totalAmount || 0).toLocaleString('vi-VN')}đ</span></div>
+    </div>
+    ${order.notes ? `<div style="margin-top:8px;font-size:11px"><strong>Ghi chú:</strong> ${order.notes}</div>` : ''}
+    <div class="footer">Cảm ơn quý khách!<br/>In lúc ${new Date().toLocaleString('vi-VN')}</div>
+  </body></html>`)
+  win.document.close()
+  setTimeout(() => win.print(), 300)
 }
 </script>
 
@@ -305,6 +360,8 @@ tr:hover { background: rgba(124,58,237,0.03); }
   padding: 4px; opacity: 0.5; transition: all 0.2s;
 }
 .action-btns button:hover { opacity: 1; transform: scale(1.15); }
+.action-btns .btn-ship { color: #60a5fa; opacity: 0.8; }
+.action-btns .btn-ship:hover { color: #3b82f6; opacity: 1; }
 
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;

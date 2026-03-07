@@ -52,15 +52,15 @@
         </div>
 
         <div class="sp-card__actions" v-if="s.status === 'scheduled'">
-          <button class="sp-card__btn sp-card__btn--cancel" @click="cancelSchedule(s)">
+          <button type="button" class="sp-card__btn sp-card__btn--cancel" @click.stop.prevent="deleteSchedule(s)">
             <X :size="13" /> Hủy
           </button>
-          <button class="sp-card__btn sp-card__btn--live" @click="goLive(s)">
+          <button type="button" class="sp-card__btn sp-card__btn--live" @click.stop.prevent="goLive(s)">
             <Radio :size="13" /> Go Live
           </button>
         </div>
         <div class="sp-card__actions" v-else-if="s.status === 'completed'">
-          <button class="sp-card__btn sp-card__btn--delete" @click="deleteSchedule(s)">
+          <button type="button" class="sp-card__btn sp-card__btn--delete" @click.stop.prevent="deleteSchedule(s)">
             <Trash2 :size="13" /> Xóa
           </button>
         </div>
@@ -205,22 +205,37 @@ async function createSchedule() {
 async function cancelSchedule(s) {
   if (!confirm('Hủy lịch livestream này?')) return
   try {
-    await apiFetch(`/schedules/${s.id}`, {
+    const res = await apiFetch(`/schedules/${s.id}`, {
       method: 'PUT',
       body: JSON.stringify({ status: 'cancelled' })
     })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      showToast('Lỗi hủy lịch: ' + (err.error || err.message || res.statusText), 'error')
+      return
+    }
     showToast('Đã hủy lịch', 'info')
     fetchSchedules()
-  } catch { /* silent */ }
+  } catch (e) {
+    showToast('Lỗi hủy lịch: ' + (e.message || 'Không xác định'), 'error')
+  }
 }
 
 async function deleteSchedule(s) {
-  if (!confirm('Xóa lịch này?')) return
   try {
-    await apiFetch(`/schedules/${s.id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/schedules/${s.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      showToast('Lỗi xóa lịch: ' + (err.error || err.message || res.statusText), 'error')
+      return
+    }
+    showToast('Đã xóa lịch', 'info')
     fetchSchedules()
-  } catch { /* silent */ }
+  } catch (e) {
+    showToast('Lỗi xóa lịch: ' + (e.message || 'Không xác định'), 'error')
+  }
 }
+
 
 function goLive(s) {
   emit('startLive', s)

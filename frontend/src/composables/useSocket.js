@@ -13,6 +13,7 @@ export function useSocket() {
   const viewerCount = ref(0)
   const currentShopId = ref(null)
   const autoReplies = ref([])
+  const postLiveReport = ref(null)
 
   // Sound notification
   function playNotificationSound() {
@@ -36,10 +37,12 @@ export function useSocket() {
   const connectionLost = ref(false)
 
   function connect() {
+    const token = localStorage.getItem('auth_token')
     socket.value = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       reconnectionAttempts: 10,
       reconnectionDelay: 2000,
+      auth: { token },
     })
 
     socket.value.on('connect', () => {
@@ -99,6 +102,24 @@ export function useSocket() {
         showToast(`🤖 Auto Reply → @${data.nickname}: ${data.replyText}`, 'info', 5000)
       } catch { /* silent */ }
     })
+
+    socket.value.on('post_live_report', (data) => {
+      postLiveReport.value = data
+    })
+
+    socket.value.on('low_stock_alert', (data) => {
+      try {
+        const { showToast } = useToast()
+        showToast(`⚠️ Sắp hết hàng: ${data.name} (còn ${data.stock})`, 'warning', 8000)
+      } catch { /* silent */ }
+    })
+
+    socket.value.on('shipment_updated', (data) => {
+      try {
+        const { showToast } = useToast()
+        showToast(`🚚 Vận đơn #${data.id}: ${data.status}`, 'info', 5000)
+      } catch { /* silent */ }
+    })
   }
 
   /**
@@ -153,6 +174,7 @@ export function useSocket() {
     viewerCount,
     currentShopId,
     autoReplies,
+    postLiveReport,
     joinShop,
     startMock,
     resetStats,

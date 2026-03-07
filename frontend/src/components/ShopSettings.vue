@@ -223,6 +223,20 @@
             <span class="settings__item-name">{{ p.name }}</span>
             <span class="settings__item-price">{{ Number(p.price || 0).toLocaleString() }}đ</span>
             <span class="settings__item-kw">{{ p.keywords }}</span>
+            <span class="settings__item-sku" v-if="p.sku">SKU: {{ p.sku }}</span>
+            <span class="settings__item-stock" :class="{ 'low-stock': (p.stock || 0) <= (p.lowStockThreshold || p.low_stock_threshold || 5) }">
+              <Package :size="12" />
+              {{ p.stock ?? 0 }}
+              <span v-if="(p.stock || 0) <= (p.lowStockThreshold || p.low_stock_threshold || 5)" class="low-badge">Sắp hết</span>
+            </span>
+            <div class="settings__stock-btns">
+              <button class="stock-btn stock-btn--minus" @click="adjustStock(p.id, 'deduct', 1)" title="Trừ 1">
+                <Minus :size="12" />
+              </button>
+              <button class="stock-btn stock-btn--plus" @click="adjustStock(p.id, 'add', 1)" title="Thêm 1">
+                <Plus :size="12" />
+              </button>
+            </div>
             <button class="settings__del-btn" @click="deleteProduct(p.id)">
               <Trash2 :size="12" />
             </button>
@@ -350,6 +364,77 @@
           <Save :size="14" /> Lưu cấu hình
         </button>
       </div>
+
+      <div v-if="activeTab === 'activity'" class="settings__panel">
+        <ActivityLog :shopId="currentShop?.id" />
+      </div>
+
+      <!-- ═══ Tab: Vận chuyển (Carrier Integration) ═══ -->
+      <div v-if="activeTab === 'shipping'" class="settings__panel">
+        <h3 class="settings__panel-title"><Truck :size="16" style="vertical-align:middle" /> Kết nối đơn vị vận chuyển</h3>
+        <p class="settings__panel-desc">Nhập API Token để kết nối trực tiếp với GHN, GHTK, Viettel Post. Hệ thống sẽ tự động tạo vận đơn, tính phí, và tracking đơn hàng.</p>
+
+        <!-- Carrier Cards -->
+        <div class="carrier-grid">
+          <div v-for="c in carrierList" :key="c.key" class="carrier-card" :class="{ 'carrier-card--connected': shippingConfig[c.key]?.token }">
+            <div class="carrier-card__header">
+              <span class="carrier-card__icon" :style="{ background: c.bg, color: c.fg }">{{ c.icon }}</span>
+              <div>
+                <h4 class="carrier-card__name">{{ c.name }}</h4>
+                <span class="carrier-card__status" :class="shippingConfig[c.key]?.token ? 'status--ok' : 'status--off'">
+                  {{ shippingConfig[c.key]?.token ? '✅ Đã kết nối' : '⬤ Chưa kết nối' }}
+                </span>
+              </div>
+            </div>
+            <div class="carrier-card__body">
+              <div class="form-group">
+                <label>API Token</label>
+                <input v-model="shippingConfig[c.key].token" type="password" :placeholder="'Nhập ' + c.name + ' API Token'" />
+              </div>
+              <div v-if="c.key === 'ghn'" class="form-group">
+                <label>Shop ID (GHN)</label>
+                <input v-model="shippingConfig[c.key].shopId" placeholder="Nhập GHN Shop ID" />
+              </div>
+              <div class="carrier-card__actions">
+                <button class="btn-test" @click="testCarrier(c.key)" :disabled="carrierTesting === c.key || !shippingConfig[c.key]?.token">
+                  {{ carrierTesting === c.key ? '⏳ Đang kiểm tra...' : '🔗 Kiểm tra kết nối' }}
+                </button>
+                <span v-if="carrierTestResults[c.key]" class="test-result" :class="carrierTestResults[c.key].ok ? 'test--ok' : 'test--fail'">
+                  {{ carrierTestResults[c.key].message }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Sender Info -->
+        <h3 class="settings__panel-title" style="margin-top:24px"><Package :size="16" style="vertical-align:middle" /> Thông tin người gửi mặc định</h3>
+        <div class="sender-grid">
+          <div class="form-group"><label>Tên người gửi</label><input v-model="senderInfo.name" placeholder="Tên shop / người gửi" /></div>
+          <div class="form-group"><label>Số điện thoại</label><input v-model="senderInfo.phone" placeholder="09xxxxxxxx" /></div>
+          <div class="form-group" style="grid-column:1/-1"><label>Địa chỉ</label><input v-model="senderInfo.address" placeholder="Số nhà, đường, phường, quận, TP" /></div>
+        </div>
+
+        <!-- Default Carrier -->
+        <div class="form-group" style="margin-top:16px">
+          <label class="settings__field-label">Đơn vị mặc định</label>
+          <select v-model="defaultCarrier" class="carrier-select">
+            <option value="manual">Thủ công</option>
+            <option v-for="c in carrierList" :key="c.key" :value="c.key" :disabled="!shippingConfig[c.key]?.token">
+              {{ c.name }} {{ shippingConfig[c.key]?.token ? '' : '(chưa kết nối)' }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Save -->
+        <button class="btn-save-shipping" @click="saveShippingConfig" :disabled="savingShipping">
+          <Save :size="14" /> {{ savingShipping ? 'Đang lưu...' : 'Lưu cấu hình vận chuyển' }}
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'webhooks'" class="settings__panel">
+        <WebhookManager :shopId="currentShop?.id" />
+      </div>
     </div>
   </div>
 </template>
@@ -357,16 +442,18 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import {
-  Settings, Store, Save, Plus, Trash2,
-  Link, ShoppingBag, Key, MessageCircle, Shield,
+  Settings, Store, Save, Plus, Trash2, Minus, Truck,
+  Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
-  Music, BookOpen, Video, ShoppingCart, ClipboardList
+  Music, BookOpen, Video, ShoppingCart, ClipboardList, Activity, Webhook
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
 import { logger } from '../utils/logger.js'
+import ActivityLog from './ActivityLog.vue'
+import WebhookManager from './WebhookManager.vue'
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -377,7 +464,7 @@ const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'appearance']
+const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'shipping', 'appearance', 'activity', 'webhooks']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -387,6 +474,9 @@ const tabs = [
   { key: 'keywords', label: 'Keywords', icon: Key },
   { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
   { key: 'moderation', label: 'Moderation', icon: Shield },
+  { key: 'shipping', label: 'Vận chuyển', icon: Truck },
+  { key: 'activity', label: 'Hoạt động', icon: Activity },
+  { key: 'webhooks', label: 'Webhooks', icon: Webhook },
 ]
 const allTabs = [
   ...tabs,
@@ -497,6 +587,24 @@ async function deleteProduct(id) {
   } catch (e) { console.error(e) }
 }
 
+async function adjustStock(productId, action, quantity) {
+  try {
+    const updated = await apiFetch(`/products/${productId}/stock`, {
+      method: 'PUT',
+      body: JSON.stringify({ action, quantity })
+    })
+    if (updated) {
+      const idx = products.value.findIndex(p => p.id === productId)
+      if (idx !== -1) {
+        products.value[idx].stock = updated.stock
+      }
+      showToast(action === 'add' ? `+${quantity} tồn kho` : `-${quantity} tồn kho`, 'success')
+    }
+  } catch (e) {
+    showToast(e.message || 'Lỗi cập nhật tồn kho', 'error')
+  }
+}
+
 async function addKeyword() {
   if (!newKeyword.value.keyword || !props.currentShop) return
   try {
@@ -554,6 +662,89 @@ async function saveModerationConfig() {
     showToast('Lỗi: ' + e.message, 'error')
   }
 }
+// ─── Carrier Integration ───
+const carrierList = [
+  { key: 'ghn', name: 'Giao Hàng Nhanh', icon: '🚚', bg: '#FF6600', fg: '#fff' },
+  { key: 'ghtk', name: 'Giao Hàng Tiết Kiệm', icon: '📦', bg: '#00AA55', fg: '#fff' },
+  { key: 'viettel_post', name: 'Viettel Post', icon: '✈️', bg: '#E30613', fg: '#fff' },
+]
+const shippingConfig = ref({
+  ghn: { token: '', shopId: '' },
+  ghtk: { token: '' },
+  viettel_post: { token: '' },
+})
+const senderInfo = ref({ name: '', phone: '', address: '' })
+const defaultCarrier = ref('manual')
+const carrierTesting = ref('')
+const carrierTestResults = ref({})
+const savingShipping = ref(false)
+
+async function loadShippingConfig() {
+  if (!props.currentShop?.id) return
+  try {
+    const data = await apiFetch(`/api/shipping/config?shopId=${props.currentShop.id}`)
+    if (data.shippingConfig) {
+      // Merge saved config with defaults to ensure all keys exist
+      const saved = data.shippingConfig
+      shippingConfig.value = {
+        ghn: { token: saved.ghn?.token || '', shopId: saved.ghn?.shopId || '' },
+        ghtk: { token: saved.ghtk?.token || '' },
+        viettel_post: { token: saved.viettel_post?.token || '' },
+      }
+    }
+    senderInfo.value = {
+      name: data.senderName || '',
+      phone: data.senderPhone || '',
+      address: data.senderAddress || '',
+    }
+    defaultCarrier.value = data.defaultCarrier || 'manual'
+  } catch (e) {
+    logger.warn('Could not load shipping config:', e)
+  }
+}
+
+async function testCarrier(carrierKey) {
+  carrierTesting.value = carrierKey
+  carrierTestResults.value[carrierKey] = null
+  try {
+    const result = await apiFetch('/api/shipping/test-connection', {
+      method: 'POST',
+      body: JSON.stringify({
+        shopId: props.currentShop?.id,
+        carrier: carrierKey,
+        config: shippingConfig.value[carrierKey],
+      }),
+    })
+    carrierTestResults.value[carrierKey] = result
+  } catch (e) {
+    carrierTestResults.value[carrierKey] = { ok: false, message: e.message || 'Lỗi kết nối' }
+  } finally {
+    carrierTesting.value = ''
+  }
+}
+
+async function saveShippingConfig() {
+  if (!props.currentShop?.id) return
+  savingShipping.value = true
+  try {
+    await apiFetch('/api/shipping/config', {
+      method: 'PUT',
+      body: JSON.stringify({
+        shopId: props.currentShop.id,
+        shippingConfig: shippingConfig.value,
+        defaultCarrier: defaultCarrier.value,
+        senderName: senderInfo.value.name,
+        senderPhone: senderInfo.value.phone,
+        senderAddress: senderInfo.value.address,
+      }),
+    })
+    showToast('Đã lưu cấu hình vận chuyển', 'success')
+  } catch (e) {
+    showToast('Lỗi: ' + e.message, 'error')
+  } finally {
+    savingShipping.value = false
+  }
+}
 
 onMounted(() => {
   if (props.currentShop) {
@@ -564,8 +755,11 @@ onMounted(() => {
       rateLimitEnabled: props.currentShop.moderation_rate_limit ?? false,
       maxPerMinute: props.currentShop.moderation_max_per_minute ?? 5,
     }
+    // Load shipping config
+    loadShippingConfig()
   }
 })
+
 
 async function toggleAutoReply() {
   if (!props.currentShop) return
@@ -728,6 +922,31 @@ defineExpose({ handleAutoReplyEvent })
 .settings__item-kw { color: var(--color-text-muted); font-size: 12px; flex: 1; }
 .settings__item-type { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
 .settings__item-reply { flex: 1; font-size: 12px; color: var(--color-text-secondary); }
+.settings__item-sku {
+  font-size: 11px; color: var(--color-text-muted);
+  background: var(--color-bg-secondary); padding: 1px 6px; border-radius: 4px;
+}
+.settings__item-stock {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 600; color: var(--color-text-primary);
+}
+.settings__item-stock.low-stock { color: #e74c3c; }
+.low-badge {
+  font-size: 9px; font-weight: 700;
+  background: rgba(231, 76, 60, 0.15); color: #e74c3c;
+  padding: 1px 5px; border-radius: 4px;
+}
+.settings__stock-btns { display: flex; gap: 2px; }
+.stock-btn {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; border: 1px solid var(--color-border);
+  background: none; cursor: pointer; color: var(--color-text-muted);
+  transition: all 0.15s;
+}
+.stock-btn:hover { background: var(--color-bg-secondary); color: var(--color-text-primary); }
+.stock-btn--plus:hover { color: #2ecc71; border-color: #2ecc71; }
+.stock-btn--minus:hover { color: #e74c3c; border-color: #e74c3c; }
 .settings__kw-badge {
   font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid; font-weight: 600;
 }
@@ -874,4 +1093,133 @@ defineExpose({ handleAutoReplyEvent })
   border-color: var(--color-accent-primary);
   box-shadow: 0 4px 12px var(--color-accent-glow);
 }
+
+/* ─── Carrier Integration Tab ─── */
+.settings__panel-desc {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+.carrier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.carrier-card {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 16px;
+  transition: all 0.25s ease;
+}
+.carrier-card--connected {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 4px 16px rgba(34, 197, 94, 0.08);
+}
+.carrier-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.carrier-card__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.carrier-card__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.carrier-card__status { font-size: 0.75rem; }
+.status--ok { color: #22c55e; }
+.status--off { color: var(--color-text-secondary); opacity: 0.6; }
+.carrier-card__body .form-group { margin-bottom: 10px; }
+.carrier-card__body .form-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+.carrier-card__body .form-group input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+}
+.carrier-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.btn-test {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-accent-primary);
+  background: transparent;
+  color: var(--color-accent-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-test:hover:not(:disabled) {
+  background: var(--color-accent-primary);
+  color: #fff;
+}
+.btn-test:disabled { opacity: 0.4; cursor: not-allowed; }
+.test-result { font-size: 0.78rem; font-weight: 500; }
+.test--ok { color: #22c55e; }
+.test--fail { color: #ef4444; }
+
+.sender-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.carrier-select {
+  width: 100%;
+  max-width: 320px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+}
+.btn-save-shipping {
+  margin-top: 20px;
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary, var(--color-accent-primary)));
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px var(--color-accent-glow);
+}
+.btn-save-shipping:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--color-accent-glow);
+}
+.btn-save-shipping:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
+
