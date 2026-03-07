@@ -120,6 +120,22 @@ export function useSocket() {
         showToast(`🚚 Vận đơn #${data.id}: ${data.status}`, 'info', 5000)
       } catch { /* silent */ }
     })
+
+    socket.value.on('draft_order_created', (data) => {
+      try {
+        playNotificationSound()
+        const { showToast } = useToast()
+        showToast(`🛒 Auto-order: ${data.customerName} — ${data.product} x${data.qty} (${Number(data.totalAmount).toLocaleString('vi-VN')}đ)`, 'success', 10000)
+      } catch { /* silent */ }
+    })
+
+    socket.value.on('schedule_reminder', (data) => {
+      try {
+        playNotificationSound()
+        const { showToast } = useToast()
+        showToast(`⏰ Sắp live: "${data.title}" (${data.shopName}) - còn 5 phút!`, 'warning', 15000)
+      } catch { /* silent */ }
+    })
   }
 
   /**

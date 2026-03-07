@@ -191,6 +191,9 @@
               <textarea v-model="shipForm.notes" rows="2" placeholder="Ghi chú vận đơn..."></textarea>
             </div>
           </div>
+          <button v-if="shipForm.carrier !== 'manual'" class="btn-calc-fee" @click="calcFee" :disabled="calcingFee" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-weight:700;cursor:pointer;opacity:1" :style="{ opacity: calcingFee ? 0.6 : 1 }">
+            {{ calcingFee ? 'Đang tính...' : '💰 Tính phí tự động' }}
+          </button>
         </div>
 
         <!-- Step 3: Confirm -->
@@ -284,10 +287,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
+import { useSocket } from '../composables/useSocket.js'
 import {
   Truck, Plus, Package, DollarSign, CheckCircle, RefreshCw,
   MapPin, Trash2, XCircle, Printer, TrendingUp
@@ -363,8 +367,49 @@ const displayedShipments = computed(() => {
   )
 })
 
-onMounted(() => { fetchShipments(); fetchStats() })
+onMounted(() => { fetchShipments(); fetchStats(); setupSocketListeners() })
 watch([filterStatus, filterCarrier], () => fetchShipments())
+
+const calcingFee = ref(false)
+
+async function calcFee() {
+  calcingFee.value = true
+  try {
+    const res = await apiFetch('/shipping/calculate-fee', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        carrier: shipForm.value.carrier,
+        weight: shipForm.value.weight || 500,
+        receiverProvince: shipForm.value.receiverProvince || '',
+        codAmount: shipForm.value.codAmount || 0,
+        shopId: props.shopId,
+      }),
+    })
+    const data = await res.json()
+    if (data.fee !== undefined) {
+      shipForm.value.shippingFee = data.fee
+      showToast('Đã tính phí: ' + data.fee.toLocaleString('vi-VN') + 'đ', 'success')
+    } else {
+      showToast(data.error || 'Không tính được phí', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi tính phí: ' + e.message, 'error')
+  } finally {
+    calcingFee.value = false
+  }
+}
+
+// Socket auto-refresh for shipment events
+function setupSocketListeners() {
+  try {
+    const { socket } = useSocket()
+    if (socket?.value) {
+      socket.value.on('shipment_updated', () => { fetchShipments(); fetchStats() })
+      socket.value.on('shipment_created', () => { fetchShipments(); fetchStats() })
+    }
+  } catch { /* socket not available */ }
+}
 
 async function fetchShipments() {
   try {

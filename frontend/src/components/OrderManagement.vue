@@ -5,6 +5,7 @@
       <div class="header-actions">
         <select v-model="filterStatus" class="filter-select">
           <option value="">Tất cả</option>
+          <option value="draft">Nháp (Auto)</option>
           <option value="pending">Chờ xác nhận</option>
           <option value="confirmed">Đã xác nhận</option>
           <option value="shipping">Đang giao</option>
@@ -77,6 +78,8 @@
                 <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" title="Tạo vận đơn" class="btn-ship"><Send :size="15" /></button>
                 <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" title="Giao hàng"><Truck :size="15" /></button>
                 <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" title="Đã giao"><Package :size="15" /></button>
+                <button v-if="order.paymentStatus === 'unpaid'" @click.stop="updatePayment(order, 'paid')" title="Đã thanh toán" class="btn-pay"><DollarSign :size="15" /></button>
+                <button v-if="order.paymentStatus === 'paid'" @click.stop="updatePayment(order, 'refunded')" title="Hoàn tiền" class="btn-refund"><RotateCcw :size="15" /></button>
                 <button @click.stop="printInvoice(order)" title="In hóa đơn"><Printer :size="15" /></button>
                 <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" title="Hủy"><XCircle :size="15" /></button>
               </div>
@@ -133,11 +136,12 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
-import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp, Send, Printer } from 'lucide-vue-next'
+import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp, Send, Printer, RotateCcw } from 'lucide-vue-next'
 const { showToast } = useToast()
 
 const props = defineProps({
   shopId: [Number, String],
+  prefillOrder: { type: Object, default: null },
 })
 const emit = defineEmits(['create-shipment'])
 
@@ -148,11 +152,25 @@ const showCreateModal = ref(false)
 const selectedOrder = ref(null)
 const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' })
 
-const statusLabels = { pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipping: 'Đang giao', delivered: 'Đã giao', cancelled: 'Đã hủy' }
+const statusLabels = { draft: 'Nháp (Auto)', pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipping: 'Đang giao', delivered: 'Đã giao', cancelled: 'Đã hủy' }
 const paymentLabels = { unpaid: 'Chưa TT', paid: 'Đã TT', refunded: 'Hoàn tiền' }
 
 onMounted(() => { fetchOrders(); fetchStats() })
 watch(filterStatus, () => fetchOrders())
+
+// Auto-open form when prefill data comes from Lead
+watch(() => props.prefillOrder, (data) => {
+  if (data) {
+    newOrder.value = {
+      customerName: data.customerName || '',
+      customerPhone: data.customerPhone || '',
+      customerAddress: data.customerAddress || '',
+      totalAmount: data.totalAmount || 0,
+      notes: data.notes || '',
+    }
+    showCreateModal.value = true
+  }
+}, { immediate: true })
 
 async function fetchOrders() {
   try {
@@ -195,6 +213,18 @@ async function updateStatus(order, newStatus) {
     })
     fetchOrders(); fetchStats()
   } catch { /* silent */ }
+}
+
+async function updatePayment(order, paymentStatus) {
+  if (paymentStatus === 'refunded' && !confirm('Hoàn tiền đơn hàng này?')) return
+  try {
+    await apiFetch(`/orders/${order.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ paymentStatus })
+    })
+    showToast(paymentStatus === 'paid' ? '✅ Đã xác nhận thanh toán' : '🔄 Đã hoàn tiền', 'success')
+    fetchOrders(); fetchStats()
+  } catch { showToast('Lỗi cập nhật thanh toán', 'error') }
 }
 
 function formatCurrency(v) {
@@ -362,6 +392,10 @@ tr:hover { background: rgba(124,58,237,0.03); }
 .action-btns button:hover { opacity: 1; transform: scale(1.15); }
 .action-btns .btn-ship { color: #60a5fa; opacity: 0.8; }
 .action-btns .btn-ship:hover { color: #3b82f6; opacity: 1; }
+.action-btns .btn-pay { color: #34d399; opacity: 0.8; }
+.action-btns .btn-pay:hover { color: #10b981; opacity: 1; }
+.action-btns .btn-refund { color: #c4b5fd; opacity: 0.8; }
+.action-btns .btn-refund:hover { color: #a78bfa; opacity: 1; }
 
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;

@@ -54,30 +54,52 @@ export async function triggerWebhook(shopId: number, event: string, payload: any
       ? crypto.createHmac('sha256', hook.secret).update(body).digest('hex')
       : ''
 
-    try {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 5000)
+    // Retry with exponential backoff (max 3 retries: 5s, 30s, 5min)
+    const retryDelays = [0, 5000, 30000, 300000]
+    let lastErr: any = null
+    let succeeded = false
 
-      const res = await fetch(hook.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(signature ? { 'X-Webhook-Signature': `sha256=${signature}` } : {}),
-        },
-        body,
-        signal: controller.signal,
-      })
+    for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, retryDelays[attempt]))
+        console.log(`🪝 Retry #${attempt} for webhook ${hook.url} (${event})`)
+      }
 
-      clearTimeout(timeout)
-      hook.lastStatus = res.status
-      hook.lastTriggeredAt = new Date() as any
-      await hook.save()
-      console.log(`🪝 Webhook sent: ${event} → ${hook.url} (${res.status})`)
-    } catch (err: any) {
+      try {
+        const controller = new AbortController()
+        const timeout = setTimeout(() => controller.abort(), 5000)
+
+        const res = await fetch(hook.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(signature ? { 'X-Webhook-Signature': `sha256=${signature}` } : {}),
+          },
+          body,
+          signal: controller.signal,
+        })
+
+        clearTimeout(timeout)
+
+        if (res.ok || res.status < 500) {
+          hook.lastStatus = res.status
+          hook.lastTriggeredAt = new Date() as any
+          await hook.save()
+          console.log(`🪝 Webhook sent: ${event} → ${hook.url} (${res.status})`)
+          succeeded = true
+          break
+        }
+        lastErr = new Error(`HTTP ${res.status}`)
+      } catch (err: any) {
+        lastErr = err
+      }
+    }
+
+    if (!succeeded) {
       hook.lastStatus = 0
       hook.lastTriggeredAt = new Date() as any
       await hook.save()
-      console.error(`🪝 Webhook failed: ${hook.url}`, err.message)
+      console.error(`🪝 Webhook failed after retries: ${hook.url}`, lastErr?.message)
     }
   }
 }

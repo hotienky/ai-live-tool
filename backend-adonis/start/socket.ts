@@ -5,6 +5,7 @@ import { Server as SocketIOServer } from 'socket.io'
 import connectionManager from '#services/connection_manager'
 import { SUPPORTED_PLATFORMS } from '#services/connectors'
 import User from '#models/user'
+import { startScheduleReminder } from '#services/schedule_reminder_service'
 
 let io: SocketIOServer | null = null
 
@@ -111,6 +112,10 @@ export function setupSocketIO(httpServer: any) {
   })
 
   console.log('🔌 Socket.IO ready (with auth)')
+
+  // Start schedule reminder service
+  startScheduleReminder(io)
+
   return io
 }
 

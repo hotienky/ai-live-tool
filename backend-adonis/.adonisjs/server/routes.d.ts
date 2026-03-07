@@ -68,6 +68,10 @@ export type ScannedRoutes = {
     'products.stock_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.import_csv': { paramsTuple?: []; params?: {} }
     'products.export_csv': { paramsTuple?: []; params?: {} }
+    'products.get_variants': { paramsTuple: [ParamValue]; params: {'productId': ParamValue} }
+    'products.create_variant': { paramsTuple: [ParamValue]; params: {'productId': ParamValue} }
+    'products.update_variant': { paramsTuple: [ParamValue,ParamValue]; params: {'productId': ParamValue,'variantId': ParamValue} }
+    'products.delete_variant': { paramsTuple: [ParamValue,ParamValue]; params: {'productId': ParamValue,'variantId': ParamValue} }
     'shipments.index': { paramsTuple?: []; params?: {} }
     'shipments.store': { paramsTuple?: []; params?: {} }
     'shipments.stats': { paramsTuple?: []; params?: {} }
@@ -122,6 +126,7 @@ export type ScannedRoutes = {
     'products.stats': { paramsTuple?: []; params?: {} }
     'products.stock_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.export_csv': { paramsTuple?: []; params?: {} }
+    'products.get_variants': { paramsTuple: [ParamValue]; params: {'productId': ParamValue} }
     'shipments.index': { paramsTuple?: []; params?: {} }
     'shipments.stats': { paramsTuple?: []; params?: {} }
     'shipments.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -168,6 +173,7 @@ export type ScannedRoutes = {
     'products.stats': { paramsTuple?: []; params?: {} }
     'products.stock_history': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.export_csv': { paramsTuple?: []; params?: {} }
+    'products.get_variants': { paramsTuple: [ParamValue]; params: {'productId': ParamValue} }
     'shipments.index': { paramsTuple?: []; params?: {} }
     'shipments.stats': { paramsTuple?: []; params?: {} }
     'shipments.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -192,6 +198,7 @@ export type ScannedRoutes = {
     'webhooks.store': { paramsTuple?: []; params?: {} }
     'products.adjust_stock': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'products.import_csv': { paramsTuple?: []; params?: {} }
+    'products.create_variant': { paramsTuple: [ParamValue]; params: {'productId': ParamValue} }
     'shipments.store': { paramsTuple?: []; params?: {} }
     'shipments.test_connection': { paramsTuple?: []; params?: {} }
     'shipments.calculate_fee': { paramsTuple?: []; params?: {} }
@@ -208,6 +215,7 @@ export type ScannedRoutes = {
     'orders.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'schedules.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'webhooks.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'products.update_variant': { paramsTuple: [ParamValue,ParamValue]; params: {'productId': ParamValue,'variantId': ParamValue} }
     'shipments.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shipments.save_config': { paramsTuple?: []; params?: {} }
   }
@@ -221,6 +229,7 @@ export type ScannedRoutes = {
     'orders.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'schedules.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'webhooks.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'products.delete_variant': { paramsTuple: [ParamValue,ParamValue]; params: {'productId': ParamValue,'variantId': ParamValue} }
     'shipments.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }

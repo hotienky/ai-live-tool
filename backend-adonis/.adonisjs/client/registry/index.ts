@@ -390,6 +390,30 @@ const routes = {
     tokens: [{"old":"/api/products/export","type":0,"val":"api","end":""},{"old":"/api/products/export","type":0,"val":"products","end":""},{"old":"/api/products/export","type":0,"val":"export","end":""}],
     types: placeholder as Registry['products.export_csv']['types'],
   },
+  'products.get_variants': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/products/:productId/variants',
+    tokens: [{"old":"/api/products/:productId/variants","type":0,"val":"api","end":""},{"old":"/api/products/:productId/variants","type":0,"val":"products","end":""},{"old":"/api/products/:productId/variants","type":1,"val":"productId","end":""},{"old":"/api/products/:productId/variants","type":0,"val":"variants","end":""}],
+    types: placeholder as Registry['products.get_variants']['types'],
+  },
+  'products.create_variant': {
+    methods: ["POST"],
+    pattern: '/api/products/:productId/variants',
+    tokens: [{"old":"/api/products/:productId/variants","type":0,"val":"api","end":""},{"old":"/api/products/:productId/variants","type":0,"val":"products","end":""},{"old":"/api/products/:productId/variants","type":1,"val":"productId","end":""},{"old":"/api/products/:productId/variants","type":0,"val":"variants","end":""}],
+    types: placeholder as Registry['products.create_variant']['types'],
+  },
+  'products.update_variant': {
+    methods: ["PUT"],
+    pattern: '/api/products/:productId/variants/:variantId',
+    tokens: [{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"api","end":""},{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"products","end":""},{"old":"/api/products/:productId/variants/:variantId","type":1,"val":"productId","end":""},{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"variants","end":""},{"old":"/api/products/:productId/variants/:variantId","type":1,"val":"variantId","end":""}],
+    types: placeholder as Registry['products.update_variant']['types'],
+  },
+  'products.delete_variant': {
+    methods: ["DELETE"],
+    pattern: '/api/products/:productId/variants/:variantId',
+    tokens: [{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"api","end":""},{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"products","end":""},{"old":"/api/products/:productId/variants/:variantId","type":1,"val":"productId","end":""},{"old":"/api/products/:productId/variants/:variantId","type":0,"val":"variants","end":""},{"old":"/api/products/:productId/variants/:variantId","type":1,"val":"variantId","end":""}],
+    types: placeholder as Registry['products.delete_variant']['types'],
+  },
   'shipments.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/shipments',

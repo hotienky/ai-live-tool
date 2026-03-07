@@ -35,6 +35,10 @@ export interface ApiDefinition {
     stockHistory: typeof routes['products.stock_history']
     importCsv: typeof routes['products.import_csv']
     exportCsv: typeof routes['products.export_csv']
+    getVariants: typeof routes['products.get_variants']
+    createVariant: typeof routes['products.create_variant']
+    updateVariant: typeof routes['products.update_variant']
+    deleteVariant: typeof routes['products.delete_variant']
   }
   leads: {
     index: typeof routes['leads.index']

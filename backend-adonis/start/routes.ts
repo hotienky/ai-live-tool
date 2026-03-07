@@ -199,6 +199,12 @@ router.group(() => {
   router.post('/products/import', [ProductsController, 'importCsv'])
   router.get('/products/export', [ProductsController, 'exportCsv'])
 
+  // Product Variants
+  router.get('/products/:productId/variants', [ProductsController, 'getVariants'])
+  router.post('/products/:productId/variants', [ProductsController, 'createVariant'])
+  router.put('/products/:productId/variants/:variantId', [ProductsController, 'updateVariant'])
+  router.delete('/products/:productId/variants/:variantId', [ProductsController, 'deleteVariant'])
+
   // Shipping
   router.get('/shipments', [ShipmentsController, 'index'])
   router.post('/shipments', [ShipmentsController, 'store'])

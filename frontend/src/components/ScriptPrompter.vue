@@ -1,16 +1,20 @@
 <template>
-  <div class="prompter" :class="{ 'prompter--mini': isMini }">
+  <div class="prompter" :class="{ 'prompter--mini': isMini, 'prompter--expanded': isExpanded }">
     <div class="prompter__header">
       <h3 class="prompter__title">
         <FileText :size="16" />
         Kịch bản Live
       </h3>
       <div class="prompter__controls">
-        <button class="prompter__btn" @click="isMini = !isMini" :title="isMini ? 'Mở rộng' : 'Thu nhỏ'">
-          <Minimize2 v-if="!isMini" :size="14" />
-          <Maximize2 v-else :size="14" />
+        <button type="button" class="prompter__btn" @click="toggleExpand" :title="isExpanded ? 'Thu nhỏ' : 'Mở rộng'">
+          <Shrink v-if="isExpanded" :size="14" />
+          <Expand v-else :size="14" />
         </button>
-        <button class="prompter__btn" @click="$emit('close')"><X :size="14" /></button>
+        <button type="button" class="prompter__btn" @click="isMini = !isMini" :title="isMini ? 'Hiện nội dung' : 'Ẩn nội dung'">
+          <ChevronDown v-if="isMini" :size="14" />
+          <ChevronUp v-else :size="14" />
+        </button>
+        <button type="button" class="prompter__btn" @click="$emit('close')"><X :size="14" /></button>
       </div>
     </div>
 
@@ -21,7 +25,7 @@
           v-model="scriptText"
           ref="textareaRef"
           class="prompter__textarea"
-          rows="12"
+          :rows="isExpanded ? 20 : 12"
           placeholder="Nhập kịch bản live ở đây...
 
 📋 Mẫu:
@@ -36,7 +40,7 @@
             <option :value="2">Vừa</option>
             <option :value="3">Nhanh</option>
           </select>
-          <button class="prompter__play-btn" @click="startPrompter" :disabled="!scriptText.trim()">
+          <button type="button" class="prompter__play-btn" @click="startPrompter" :disabled="!scriptText.trim()">
             <Play :size="14" /> Bắt đầu
           </button>
         </div>
@@ -59,13 +63,13 @@
         </div>
         <div class="prompter__focus-bar"></div>
         <div class="prompter__play-controls">
-          <button class="prompter__ctrl-btn" @click="prevLine"><ChevronUp :size="16" /></button>
-          <button class="prompter__ctrl-btn" @click="togglePause">
+          <button type="button" class="prompter__ctrl-btn" @click="prevLine"><ChevronUp :size="16" /></button>
+          <button type="button" class="prompter__ctrl-btn" @click="togglePause">
             <Pause v-if="!isPaused" :size="16" />
             <Play v-else :size="16" />
           </button>
-          <button class="prompter__ctrl-btn" @click="nextLine"><ChevronDown :size="16" /></button>
-          <button class="prompter__ctrl-btn prompter__ctrl-btn--stop" @click="stopPrompter">
+          <button type="button" class="prompter__ctrl-btn" @click="nextLine"><ChevronDown :size="16" /></button>
+          <button type="button" class="prompter__ctrl-btn prompter__ctrl-btn--stop" @click="stopPrompter">
             <Square :size="14" />
           </button>
         </div>
@@ -77,13 +81,14 @@
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
 import {
-  FileText, X, Minimize2, Maximize2, Play, Pause,
+  FileText, X, Expand, Shrink, Play, Pause,
   Square, ChevronUp, ChevronDown
 } from 'lucide-vue-next'
 
 defineEmits(['close'])
 
 const isMini = ref(false)
+const isExpanded = ref(false)
 const scriptText = ref('')
 const scrollSpeed = ref(2) // 1=slow 2=med 3=fast
 const isPlaying = ref(false)
@@ -141,6 +146,11 @@ function prevLine() {
 function stopPrompter() {
   isPlaying.value = false
   if (scrollInterval) clearInterval(scrollInterval)
+}
+
+function toggleExpand() {
+  isExpanded.value = !isExpanded.value
+  if (isExpanded.value) isMini.value = false
 }
 
 onUnmounted(() => { if (scrollInterval) clearInterval(scrollInterval) })
@@ -221,4 +231,21 @@ onUnmounted(() => { if (scrollInterval) clearInterval(scrollInterval) })
 .prompter__ctrl-btn:hover { background: rgba(255,255,255,0.2); }
 .prompter__ctrl-btn--stop { background: rgba(239, 68, 68, 0.3); }
 .prompter__ctrl-btn--stop:hover { background: rgba(239, 68, 68, 0.5); }
+
+/* Expanded / Fullscreen mode */
+.prompter--expanded {
+  position: fixed !important;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 700px;
+  max-width: 90vw;
+  max-height: calc(100vh - 80px);
+  z-index: 200;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.prompter--expanded .prompter__body { max-height: calc(100vh - 160px); overflow-y: auto; }
+.prompter--expanded .prompter__teleprompter { height: 500px; }
+.prompter--expanded .prompter__line { font-size: 20px; line-height: 44px; }
+.prompter--expanded .prompter__line--active { font-size: 24px; }
 </style>

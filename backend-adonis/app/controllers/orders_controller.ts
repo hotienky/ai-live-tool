@@ -4,6 +4,8 @@ import { getUserShopIds } from '#services/scope_helper'
 import CreateOrderAction from '#actions/orders/create_order_action'
 import UpdateOrderAction from '#actions/orders/update_order_action'
 import GetOrderStatsAction from '#actions/orders/get_order_stats_action'
+import { triggerWebhook } from '#services/webhook_service'
+import { logActivity, Actions } from '#services/activity_log_service'
 
 export default class OrdersController {
   async index({ auth, request, response }: HttpContext) {
@@ -30,6 +32,13 @@ export default class OrdersController {
 
     const { error, order } = await CreateOrderAction.handle({ userShopIds, data })
     if (error) return response.forbidden({ error })
+
+    // Webhook + Activity log
+    try {
+      await triggerWebhook(Number(data.shopId), 'order.created', { order })
+      await logActivity({ shopId: Number(data.shopId), userId: auth.user!.id, action: Actions.ORDER_CREATED, entityType: 'Order', entityId: order.id, details: { totalAmount: order.totalAmount } })
+    } catch { /* best-effort */ }
+
     return response.status(201).json(order)
   }
 
@@ -52,9 +61,24 @@ export default class OrdersController {
       'customerName', 'customerPhone', 'customerAddress',
     ])
 
-    const order = await UpdateOrderAction.handle({ userShopIds, orderId: params.id, data })
-    if (!order) return response.notFound({ error: 'Order not found' })
-    return response.json(order)
+    try {
+      const order = await UpdateOrderAction.handle({
+        userShopIds,
+        orderId: params.id,
+        userId: auth.user!.id,
+        data,
+      })
+      if (!order) return response.notFound({ error: 'Order not found' })
+
+      // Activity log for status changes
+      try {
+        await logActivity({ shopId: order.shopId, userId: auth.user!.id, action: Actions.ORDER_UPDATED, entityType: 'Order', entityId: order.id, details: { status: data.status } })
+      } catch { /* best-effort */ }
+
+      return response.json(order)
+    } catch (err: any) {
+      return response.unprocessableEntity({ error: err.message })
+    }
   }
 
   async destroy({ auth, params, response }: HttpContext) {

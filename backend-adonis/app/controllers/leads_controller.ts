@@ -3,6 +3,7 @@ import Lead from '#models/lead'
 import ChatLog from '#models/chat_log'
 import { getUserShopIds } from '#services/scope_helper'
 import GetPipelineStatsAction from '#actions/leads/get_pipeline_stats_action'
+import { logActivity, Actions } from '#services/activity_log_service'
 
 export default class LeadsController {
   async index({ auth, request, response }: HttpContext) {
@@ -45,8 +46,14 @@ export default class LeadsController {
     if (!lead) return response.notFound({ error: 'Lead not found' })
 
     const data = request.only(['status', 'notes', 'productIntent'])
+    const oldStatus = lead.status
     lead.merge(data)
     await lead.save()
+
+    if (data.status && data.status !== oldStatus) {
+      try { await logActivity({ shopId: lead.chatLog?.shopId || 0, userId: auth.user!.id, action: Actions.LEAD_STATUS_CHANGED, entityType: 'Lead', entityId: lead.id, details: { from: oldStatus, to: data.status } }) } catch { /* best-effort */ }
+    }
+
     return response.json(lead)
   }
 

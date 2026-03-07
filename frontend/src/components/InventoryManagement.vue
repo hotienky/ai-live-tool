@@ -162,6 +162,29 @@
             <input v-model="productForm.keywords" placeholder="mua, áo, thun" />
           </div>
         </div>
+
+        <!-- Variants Section (only when editing) -->
+        <div v-if="editingProduct" class="variants-section">
+          <div class="variants-header" @click="showVariants = !showVariants" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--glass-border);margin-top:12px">
+            <Layers :size="16" />
+            <strong>Biến thể ({{ variants.length }})</strong>
+            <ChevronRight :size="14" :style="{ transform: showVariants ? 'rotate(90deg)' : '', transition: 'transform 0.2s' }" />
+          </div>
+          <div v-if="showVariants" style="margin-bottom:12px">
+            <div v-for="(v, i) in variants" :key="v.id || i" class="variant-row" style="display:grid;grid-template-columns:1fr 100px 100px 80px 40px;gap:8px;align-items:center;margin-bottom:6px">
+              <input v-model="v.name" placeholder="Tên (VD: Đỏ - XL)" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <input v-model="v.sku" placeholder="SKU" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <input v-model.number="v.price" type="number" placeholder="Giá" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <input v-model.number="v.stock" type="number" placeholder="Kho" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <button @click="deleteVariant(v, i)" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:6px;cursor:pointer" title="Xóa"><Trash2 :size="14" /></button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button @click="addVariantRow" style="flex:1;padding:8px;border:1px dashed var(--glass-border);background:transparent;color:var(--color-text-muted);border-radius:8px;cursor:pointer;font-size:13px">+ Thêm biến thể</button>
+              <button @click="saveVariants" style="padding:8px 16px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">💾 Lưu</button>
+            </div>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button class="btn-cancel" @click="showProductModal = false">Hủy</button>
           <button class="btn-create" @click="saveProduct">{{ editingProduct ? 'Lưu' : 'Thêm' }}</button>
@@ -285,7 +308,7 @@ import { useUrlParam } from '../composables/useUrlFilter.js'
 import {
   Package, Plus, Minus, Edit, Trash2, BarChart3, History,
   AlertTriangle, XCircle, DollarSign, Download, Upload,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Layers
 } from 'lucide-vue-next'
 const { showToast } = useToast()
 
@@ -308,6 +331,10 @@ const editingProduct = ref(null)
 const adjustProduct = ref(null)
 const adjustMode = ref('add') // 'add' | 'deduct' | 'set'
 const adjustQty = ref(0)
+
+// Variants
+const showVariants = ref(false)
+const variants = ref([])
 const adjustReason = ref('')
 const historyProduct = ref(null)
 const stockHistoryData = ref([])
@@ -429,6 +456,53 @@ function openEditModal(product) {
     keywords: product.keywords || '', imageUrl: product.imageUrl || '',
   }
   showProductModal.value = true
+  showVariants.value = false
+  fetchVariants(product.id)
+}
+
+async function fetchVariants(productId) {
+  try {
+    const res = await apiFetch(`/products/${productId}/variants`)
+    variants.value = await res.json()
+  } catch { variants.value = [] }
+}
+
+function addVariantRow() {
+  variants.value.push({ name: '', sku: '', price: null, stock: 0, _new: true })
+}
+
+async function saveVariants() {
+  if (!editingProduct.value) return
+  const pid = editingProduct.value.id
+  try {
+    for (const v of variants.value) {
+      if (v._new) {
+        if (!v.name) continue
+        const res = await apiFetch(`/products/${pid}/variants`, {
+          method: 'POST',
+          body: JSON.stringify({ name: v.name, sku: v.sku, price: v.price, stock: v.stock }),
+        })
+        const saved = await res.json()
+        v.id = saved.id
+        delete v._new
+      } else if (v.id) {
+        await apiFetch(`/products/${pid}/variants/${v.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({ name: v.name, sku: v.sku, price: v.price, stock: v.stock }),
+        })
+      }
+    }
+    showToast('Đã lưu biến thể', 'success')
+  } catch (e) { showToast('Lỗi lưu biến thể: ' + e.message, 'error') }
+}
+
+async function deleteVariant(v, idx) {
+  if (v.id && editingProduct.value) {
+    try {
+      await apiFetch(`/products/${editingProduct.value.id}/variants/${v.id}`, { method: 'DELETE' })
+    } catch { /* silent */ }
+  }
+  variants.value.splice(idx, 1)
 }
 
 async function saveProduct() {

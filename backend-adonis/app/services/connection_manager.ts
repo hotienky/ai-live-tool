@@ -88,6 +88,12 @@ class ConnectionManager {
           viewerCount: state.viewerCount, commentCount: 0, hotLeadCount: 0, startedAt: new Date() as any,
         })
         connInfo.sessionId = session.id
+
+        // Webhook: session.started
+        try {
+          const { triggerWebhook } = await import('#services/webhook_service')
+          await triggerWebhook(shopId, 'session.started', { sessionId: session.id, platform, shopName })
+        } catch { /* best-effort */ }
       } catch (e: any) { console.error(`⚠️ Session save error:`, e.message) }
 
       // Load products
@@ -147,6 +153,55 @@ class ConnectionManager {
             } catch { /* silent */ }
           }
 
+          // F4: Auto-Order Pipeline — HOT comment + matched product → draft order
+          if ((lbl === '[HOT]' || lbl === 'HOT') && commentData.matchedProduct?.product?.id) {
+            try {
+              const Order = (await import('#models/order')).default
+              // Detect quantity from comment: "+2", "lấy 3 cái", "2 cái", etc
+              const qtyMatch = data.comment.match(/[+]?\s*(\d+)\s*(cái|chiếc|bộ|hộp|chai|kg|gói)?/i)
+              const qty = qtyMatch ? Math.min(parseInt(qtyMatch[1]) || 1, 99) : 1
+              const product = commentData.matchedProduct.product
+
+              // Check if this user already has a pending draft for same product in this session
+              const existingDraft = await Order.query()
+                .where('shop_id', shopId)
+                .where('customer_name', data.nickname)
+                .where('status', 'draft')
+                .where('notes', 'like', `%Auto-order%`)
+                .orderBy('created_at', 'desc')
+                .first()
+
+              if (!existingDraft) {
+                const draftOrder = await Order.create({
+                  shopId,
+                  sessionId: connInfo.sessionId,
+                  customerName: data.nickname,
+                  status: 'draft',
+                  paymentStatus: 'unpaid',
+                  totalAmount: (product.price || 0) * qty,
+                  items: JSON.stringify([{
+                    productId: product.id,
+                    name: product.name,
+                    price: product.price || 0,
+                    qty,
+                    imageUrl: product.image_url || '',
+                  }]),
+                  notes: `Auto-order từ comment: "${data.comment.substring(0, 100)}"`,
+                })
+
+                commentData.draftOrderId = draftOrder.id
+                io.to(`shop_${shopId}`).emit('draft_order_created', {
+                  orderId: draftOrder.id,
+                  customerName: data.nickname,
+                  product: product.name,
+                  qty,
+                  totalAmount: draftOrder.totalAmount,
+                  comment: data.comment,
+                })
+              }
+            } catch { /* auto-order is best-effort */ }
+          }
+
           // Keyword matching
           if (connInfo.keywords.length > 0) {
             const lower = data.comment.toLowerCase()
@@ -155,8 +210,10 @@ class ConnectionManager {
               commentData.matchedKeywords = matched.map((kw: any) => ({ keyword: kw.keyword, color: kw.color, alertType: kw.alertType }))
 
               // Auto-reply: emit event for keywords with auto_reply type
+              // PRIORITY: keyword auto-reply takes precedence over template auto-reply
               const autoReplyKws = matched.filter((kw: any) => kw.alertType === 'auto_reply' && kw.autoReplyText)
               if (autoReplyKws.length > 0) {
+                commentData._keywordReplied = true // Flag to skip template reply
                 io.to(`shop_${shopId}`).emit('auto_reply', {
                   commentId: commentData.id,
                   nickname: data.nickname,
@@ -169,24 +226,27 @@ class ConnectionManager {
           }
 
           // Auto-reply by label (HOT/WARM → template)
+          // SKIP if keyword auto-reply already fired (priority: keyword > template)
           try {
-            const shopModel = await (await import('#models/shop')).default.find(shopId)
-            if (shopModel?.autoReplyEnabled) {
-              const reply = await autoReplyService.shouldAutoReply(shopId, data.uniqueId, commentData.label)
-              if (reply.shouldReply && reply.templateText) {
-                const replyText = autoReplyService.personalizeText(reply.templateText, {
-                  nickname: data.nickname,
-                  product: commentData.matchedProduct?.product?.name || '',
-                  shop: shopName,
-                })
-                commentData.autoReply = replyText
-                io.to(`shop_${shopId}`).emit('auto_reply', {
-                  commentId: commentData.id,
-                  nickname: data.nickname,
-                  comment: data.comment,
-                  replyText,
-                  triggerLabel: reply.triggerLabel,
-                })
+            if (!commentData._keywordReplied) {
+              const shopModel = await (await import('#models/shop')).default.find(shopId)
+              if (shopModel?.autoReplyEnabled) {
+                const reply = await autoReplyService.shouldAutoReply(shopId, data.uniqueId, commentData.label)
+                if (reply.shouldReply && reply.templateText) {
+                  const replyText = autoReplyService.personalizeText(reply.templateText, {
+                    nickname: data.nickname,
+                    product: commentData.matchedProduct?.product?.name || '',
+                    shop: shopName,
+                  })
+                  commentData.autoReply = replyText
+                  io.to(`shop_${shopId}`).emit('auto_reply', {
+                    commentId: commentData.id,
+                    nickname: data.nickname,
+                    comment: data.comment,
+                    replyText,
+                    triggerLabel: reply.triggerLabel,
+                  })
+                }
               }
             }
           } catch { /* auto-reply is best-effort */ }
@@ -238,6 +298,18 @@ class ConnectionManager {
       sessionId: null, products: [], keywords: [],
     }
 
+    // B2 Fix: Load products + keywords for mock mode too
+    try {
+      const Product = (await import('#models/product')).default
+      const prods = await Product.query().where('shop_id', shopId)
+      connInfo.products = prods.map((p: any) => p.serialize())
+    } catch { /* silent */ }
+    try {
+      const ShopKeyword = (await import('#models/shop_keyword')).default
+      const kws = await ShopKeyword.query().where('shop_id', shopId).where('is_active', true)
+      connInfo.keywords = kws.map((k: any) => k.serialize())
+    } catch { /* silent */ }
+
     const linkBuilders: Record<string, (uid: string) => string> = {
       tiktok: (uid) => `https://www.tiktok.com/@${uid}`,
       shopee: (uid) => `https://shopee.vn/shop/${uid}`,
@@ -263,25 +335,43 @@ class ConnectionManager {
       else stats.cold++
       stats.total++
 
-      // Auto-reply for mock mode too
-      try {
-        const shopModel = await (await import('#models/shop')).default.find(shopId)
-        if (shopModel?.autoReplyEnabled) {
-          const reply = await autoReplyService.shouldAutoReply(shopId, mockData.uniqueId, commentData.label)
-          if (reply.shouldReply && reply.templateText) {
-            const replyText = autoReplyService.personalizeText(reply.templateText, {
-              nickname: mockData.nickname,
-              product: '',
-              shop: shopName,
-            })
-            commentData.autoReply = replyText
+      // B2 Fix: Keyword matching in mock mode (same logic as live mode)
+      if (connInfo.keywords.length > 0) {
+        const lower = mockData.comment.toLowerCase()
+        const matched = connInfo.keywords.filter((kw: any) => lower.includes(kw.keyword.toLowerCase()))
+        if (matched.length > 0) {
+          commentData.matchedKeywords = matched.map((kw: any) => ({ keyword: kw.keyword, color: kw.color, alertType: kw.alertType }))
+          const autoReplyKws = matched.filter((kw: any) => kw.alertType === 'auto_reply' && kw.autoReplyText)
+          if (autoReplyKws.length > 0) {
+            commentData._keywordReplied = true
             io.to(`shop_${shopId}`).emit('auto_reply', {
-              commentId: commentData.id,
-              nickname: mockData.nickname,
-              comment: mockData.comment,
-              replyText,
-              triggerLabel: reply.triggerLabel,
+              commentId: commentData.id, nickname: mockData.nickname,
+              comment: mockData.comment, replyText: autoReplyKws[0].autoReplyText,
+              keyword: autoReplyKws[0].keyword,
             })
+          }
+        }
+      }
+
+      // Auto-reply for mock mode — skip if keyword already replied (priority: keyword > template)
+      try {
+        if (!commentData._keywordReplied) {
+          const shopModel = await (await import('#models/shop')).default.find(shopId)
+          if (shopModel?.autoReplyEnabled) {
+            const reply = await autoReplyService.shouldAutoReply(shopId, mockData.uniqueId, commentData.label)
+            if (reply.shouldReply && reply.templateText) {
+              const replyText = autoReplyService.personalizeText(reply.templateText, {
+                nickname: mockData.nickname,
+                product: '',
+                shop: shopName,
+              })
+              commentData.autoReply = replyText
+              io.to(`shop_${shopId}`).emit('auto_reply', {
+                commentId: commentData.id, nickname: mockData.nickname,
+                comment: mockData.comment, replyText,
+                triggerLabel: reply.triggerLabel,
+              })
+            }
           }
         }
       } catch { /* auto-reply is best-effort */ }
@@ -372,6 +462,14 @@ class ConnectionManager {
             },
           })
         } catch (e: any) { console.error(`⚠️ Activity log error:`, e.message) }
+
+        // Webhook: session.ended
+        try {
+          const { triggerWebhook } = await import('#services/webhook_service')
+          await triggerWebhook(shopId, 'session.ended', {
+            sessionId: conn.sessionId, stats: conn.stats, peakViewers: conn.peakViewers,
+          })
+        } catch { /* best-effort */ }
       } catch (e: any) { console.error(`⚠️ Session end error:`, e.message) }
     }
 
@@ -396,7 +494,10 @@ class ConnectionManager {
   private async _saveComment(commentData: any, sessionId: number | null) {
     try {
       // Find or create customer
-      let customer = await Customer.query().where('platform_user_id', commentData.uniqueId).first()
+      let customer = await Customer.query()
+        .where('platform_user_id', commentData.uniqueId)
+        .where('platform', commentData.platform)
+        .first()
       if (!customer) {
         customer = await Customer.create({
           uniqueId: commentData.uniqueId,
@@ -435,7 +536,7 @@ class ConnectionManager {
       // Create lead for HOT/WARM
       const lbl = commentData.label || ''
       if (lbl.includes('HOT') || lbl.includes('WARM')) {
-        await Lead.create({
+        const lead = await Lead.create({
           chatLogId: chatLog.id,
           customerId: customer.id,
           uniqueId: commentData.uniqueId,
@@ -445,6 +546,16 @@ class ConnectionManager {
           status: 'New',
           productIntent: commentData.matchedProduct?.product?.name || null,
         })
+
+        // Webhook: hot_lead (only for HOT)
+        if (lbl.includes('HOT')) {
+          try {
+            const { triggerWebhook } = await import('#services/webhook_service')
+            await triggerWebhook(commentData.shopId, 'hot_lead', {
+              lead: lead.serialize(), customer: customer.serialize(), comment: commentData.comment,
+            })
+          } catch { /* best-effort */ }
+        }
       }
     } catch (err: any) {
       // Silent — DB save is best-effort

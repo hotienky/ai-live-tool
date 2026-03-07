@@ -775,6 +775,54 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['exportCsv']>>>
     }
   }
+  'products.get_variants': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/products/:productId/variants'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { productId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['getVariants']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['getVariants']>>>
+    }
+  }
+  'products.create_variant': {
+    methods: ["POST"]
+    pattern: '/api/products/:productId/variants'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { productId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['createVariant']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['createVariant']>>>
+    }
+  }
+  'products.update_variant': {
+    methods: ["PUT"]
+    pattern: '/api/products/:productId/variants/:variantId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { productId: ParamValue; variantId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['updateVariant']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['updateVariant']>>>
+    }
+  }
+  'products.delete_variant': {
+    methods: ["DELETE"]
+    pattern: '/api/products/:productId/variants/:variantId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { productId: ParamValue; variantId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/products_controller').default['deleteVariant']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/products_controller').default['deleteVariant']>>>
+    }
+  }
   'shipments.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/shipments'

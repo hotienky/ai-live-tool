@@ -170,6 +170,7 @@
     <OrderManagement
       v-if="activeView === 'orders'"
       :shopId="currentShop?.id"
+      :prefillOrder="prefillOrder"
       @create-shipment="onCreateShipment"
     />
 
@@ -468,6 +469,7 @@ const showChart = ref(false)
 const showHistory = ref(false)
 const showProfile = ref(false)
 const timelineData = ref([])
+const prefillOrder = ref(null)
 let timelineInterval = null
 
 function startTimelineCollection() {
@@ -560,6 +562,15 @@ function onScheduleStartLive(schedule) {
 }
 
 function onCreateOrderFromLead(lead) {
+  prefillOrder.value = {
+    customerName: lead.nickname || lead.ChatLog?.nickname || '',
+    customerPhone: lead.ChatLog?.customer_phone || '',
+    customerAddress: '',
+    totalAmount: 0,
+    notes: `Lead: ${lead.comment || lead.ChatLog?.comment_text || ''}\nSản phẩm: ${lead.productIntent || lead.product_intent || ''}`,
+    leadId: lead.id,
+    customerId: lead.customer_id || lead.customerId,
+  }
   navigateTo('orders')
 }
 
