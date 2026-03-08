@@ -9,7 +9,7 @@ export default class SessionsController {
 
     const query = LivestreamSession.query()
       .whereIn('shop_id', userShopIds)
-      .orderBy('created_at', 'desc')
+      .orderBy('started_at', 'desc')
     if (shopId) query.where('shop_id', shopId)
     const sessions = await query.paginate(Number(page), Number(limit))
     return response.json(sessions)

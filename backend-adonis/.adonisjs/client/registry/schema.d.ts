@@ -247,6 +247,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/leads_controller').default['index']>>>
     }
   }
+  'leads.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/leads/stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/leads_controller').default['pipelineStats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/leads_controller').default['pipelineStats']>>>
+    }
+  }
   'leads.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/leads/:id'

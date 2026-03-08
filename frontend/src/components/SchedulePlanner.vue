@@ -298,6 +298,7 @@ function formatDateTime(d) {
   border-radius: 16px; padding: 20px;
   transition: all 0.3s ease;
   position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
 }
 .sp-card::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0;
@@ -366,7 +367,7 @@ function formatDateTime(d) {
 .sp-card__script-text { font-size: 12px; color: var(--color-text-secondary); margin: 0; line-height: 1.4; }
 
 /* Card Actions */
-.sp-card__actions { display: flex; gap: 8px; margin-top: 12px; }
+.sp-card__actions { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
 .sp-card__btn {
   padding: 7px 16px; border-radius: 8px; font-size: 12px;
   font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;

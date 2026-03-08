@@ -126,6 +126,12 @@ const routes = {
     tokens: [{"old":"/api/leads","type":0,"val":"api","end":""},{"old":"/api/leads","type":0,"val":"leads","end":""}],
     types: placeholder as Registry['leads.index']['types'],
   },
+  'leads.stats': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/leads/stats',
+    tokens: [{"old":"/api/leads/stats","type":0,"val":"api","end":""},{"old":"/api/leads/stats","type":0,"val":"leads","end":""},{"old":"/api/leads/stats","type":0,"val":"stats","end":""}],
+    types: placeholder as Registry['leads.stats']['types'],
+  },
   'leads.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/leads/:id',

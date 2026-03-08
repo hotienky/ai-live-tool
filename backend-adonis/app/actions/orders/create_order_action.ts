@@ -24,6 +24,9 @@ export default class CreateOrderAction {
     if (data.shopId && !userShopIds.includes(String(data.shopId))) {
       return { error: 'Shop not found', order: null }
     }
+    if (data.items && typeof data.items !== 'string') {
+      data.items = JSON.stringify(data.items)
+    }
     const order = await Order.create(data as any)
     return { error: null, order }
   }

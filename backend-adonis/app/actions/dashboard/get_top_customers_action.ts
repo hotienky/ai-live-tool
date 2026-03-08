@@ -11,7 +11,7 @@ export default class GetTopCustomersAction {
       .from('chat_logs')
       .select('nickname')
       .count('* as total_comments')
-      .sum(db.raw("CASE WHEN ai_label = '[HOT]' THEN 1 ELSE 0 END") as any)
+      .select(db.raw("SUM(CASE WHEN ai_label = '[HOT]' THEN 1 ELSE 0 END) as hot_count"))
       .whereIn('shop_id', userShopIds)
       .groupBy('nickname')
       .orderBy('total_comments', 'desc')
@@ -20,9 +20,9 @@ export default class GetTopCustomersAction {
     return customers.map((c: any) => ({
       nickname: c.nickname,
       totalComments: Number(c.total_comments),
-      hotCount: Number(c.sum || 0),
+      hotCount: Number(c.hot_count || 0),
       hotRate: Number(c.total_comments) > 0
-        ? Math.round((Number(c.sum || 0) / Number(c.total_comments)) * 100)
+        ? Math.round((Number(c.hot_count || 0) / Number(c.total_comments)) * 100)
         : 0,
     }))
   }

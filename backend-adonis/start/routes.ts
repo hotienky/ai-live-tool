@@ -83,6 +83,7 @@ router.group(() => {
 
   // Leads
   router.get('/leads', [LeadsController, 'index'])
+  router.get('/leads/stats', [LeadsController, 'pipelineStats']).as('leads.stats')
   router.get('/leads/:id', [LeadsController, 'show'])
   router.put('/leads/:id', [LeadsController, 'update'])
   router.delete('/leads/:id', [LeadsController, 'destroy'])

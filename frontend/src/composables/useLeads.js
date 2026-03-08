@@ -7,6 +7,13 @@ export function useLeads() {
   const loading = ref(false)
   const error = ref(null)
 
+  const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+  function mapKeys(obj) {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(mapKeys)
+    return Object.fromEntries(Object.entries(obj).map(([k, v]) => [toCamel(k), v]))
+  }
+
   async function fetchLeads(shopId = null, status = null) {
     loading.value = true
     try {
@@ -17,7 +24,8 @@ export function useLeads() {
 
       const res = await apiFetch(`/leads?${params}`)
       const data = await res.json()
-      leads.value = data.leads || []
+      const raw = data.data || data.leads || data || []
+      leads.value = Array.isArray(raw) ? raw.map(mapKeys) : []
     } catch (err) {
       error.value = err.message
     } finally {

@@ -42,6 +42,7 @@ export interface ApiDefinition {
   }
   leads: {
     index: typeof routes['leads.index']
+    stats: typeof routes['leads.stats']
     show: typeof routes['leads.show']
     update: typeof routes['leads.update']
     destroy: typeof routes['leads.destroy']

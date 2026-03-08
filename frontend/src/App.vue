@@ -566,7 +566,7 @@ function onCreateOrderFromLead(lead) {
     customerName: lead.nickname || lead.ChatLog?.nickname || '',
     customerPhone: lead.ChatLog?.customer_phone || '',
     customerAddress: '',
-    totalAmount: 0,
+    productIntent: lead.productIntent || lead.product_intent || '',
     notes: `Lead: ${lead.comment || lead.ChatLog?.comment_text || ''}\nSản phẩm: ${lead.productIntent || lead.product_intent || ''}`,
     leadId: lead.id,
     customerId: lead.customer_id || lead.customerId,

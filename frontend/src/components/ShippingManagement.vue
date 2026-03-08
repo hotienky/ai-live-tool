@@ -122,7 +122,7 @@
           <div class="form-group" style="margin-bottom:14px">
             <label>Tạo từ đơn hàng (tùy chọn)</label>
             <div class="order-lookup">
-              <input type="number" v-model.number="orderLookupId" placeholder="Nhập ID đơn hàng..." />
+              <input type="text" v-model="orderLookupId" placeholder="Nhập ID đơn hàng..." />
               <button @click="lookupOrder" class="btn-lookup" :disabled="!orderLookupId">Tìm</button>
             </div>
             <div v-if="orderLookupResult" class="order-found">
@@ -411,6 +411,13 @@ function setupSocketListeners() {
   } catch { /* socket not available */ }
 }
 
+const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+function mapKeys(obj) {
+  if (!obj || typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(mapKeys)
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [toCamel(k), v]))
+}
+
 async function fetchShipments() {
   try {
     let url = `/shipments?`
@@ -418,7 +425,8 @@ async function fetchShipments() {
     if (filterStatus.value) url += `status=${filterStatus.value}&`
     if (filterCarrier.value) url += `carrier=${filterCarrier.value}&`
     const res = await apiFetch(url)
-    shipments.value = await res.json()
+    const raw = await res.json()
+    shipments.value = Array.isArray(raw) ? raw.map(mapKeys) : []
   } catch { shipments.value = [] }
 }
 
@@ -453,7 +461,7 @@ async function lookupOrder() {
   if (!orderLookupId.value) return
   try {
     const res = await apiFetch(`/orders/${orderLookupId.value}`)
-    orderLookupResult.value = await res.json()
+    orderLookupResult.value = mapKeys(await res.json())
   } catch {
     orderLookupResult.value = null
     showToast('Không tìm thấy đơn hàng', 'error')

@@ -40,7 +40,7 @@
             :key="lead.id"
             class="pipeline__card"
             :class="{
-              'pipeline__card--hot': lead.ChatLog?.ai_label === 'HOT',
+              'pipeline__card--hot': (lead.label || lead.aiLabel) === 'HOT',
               'pipeline__card--dragging': draggingLeadId === lead.id,
             }"
             draggable="true"
@@ -49,16 +49,16 @@
             @click="selectedLead = lead"
           >
             <div class="pipeline__card-label">
-              <Flame v-if="lead.ChatLog?.ai_label === 'HOT'" :size="12" style="color: #ff3b5c" />
+              <Flame v-if="(lead.label || lead.aiLabel) === 'HOT'" :size="12" style="color: #ff3b5c" />
               <CircleDot v-else :size="12" style="color: #ff8c42" />
-              <span class="pipeline__card-name" @click.stop="emit('openCustomer', { nickname: lead.ChatLog?.nickname, uniqueId: lead.ChatLog?.unique_id })" style="cursor:pointer" title="Xem khách hàng">{{ lead.ChatLog?.nickname || 'Unknown' }}</span>
-              <span class="pipeline__card-id">@{{ lead.ChatLog?.unique_id || '?' }}</span>
+              <span class="pipeline__card-name" @click.stop="emit('openCustomer', { nickname: lead.nickname, uniqueId: lead.uniqueId || lead.unique_id })" style="cursor:pointer" title="Xem khách hàng">{{ lead.nickname || 'Unknown' }}</span>
+              <span class="pipeline__card-id">@{{ lead.uniqueId || lead.unique_id || '?' }}</span>
             </div>
-            <p class="pipeline__card-comment">{{ lead.ChatLog?.comment_text || '' }}</p>
+            <p class="pipeline__card-comment">{{ lead.comment || lead.commentText || '' }}</p>
             <div class="pipeline__card-meta">
-              <span class="pipeline__card-time">{{ formatTime(lead.created_at) }}</span>
-              <span v-if="lead.product_intent" class="pipeline__card-product">
-                <ShoppingBag :size="12" style="vertical-align:middle" /> {{ lead.product_intent }}
+              <span class="pipeline__card-time">{{ formatTime(lead.createdAt || lead.created_at) }}</span>
+              <span v-if="lead.productIntent || lead.product_intent" class="pipeline__card-product">
+                <ShoppingBag :size="12" style="vertical-align:middle" /> {{ lead.productIntent || lead.product_intent }}
               </span>
             </div>
             <!-- Quick Actions -->
@@ -104,11 +104,11 @@
               <User :size="32" />
             </div>
             <div>
-              <h4>{{ selectedLead.ChatLog?.nickname || 'Unknown' }}</h4>
-              <p class="pipeline__modal-uid">@{{ selectedLead.ChatLog?.unique_id }}</p>
+              <h4>{{ selectedLead?.nickname || 'Unknown' }}</h4>
+              <p class="pipeline__modal-uid">@{{ selectedLead.uniqueId || selectedLead.unique_id }}</p>
               <a
-                v-if="selectedLead.ChatLog?.profile_link"
-                :href="selectedLead.ChatLog.profile_link"
+                v-if="selectedLead.profileLink || selectedLead.profile_link"
+                :href="selectedLead.profileLink || selectedLead.profile_link"
                 target="_blank"
                 class="pipeline__modal-link"
               >
@@ -118,7 +118,7 @@
           </div>
           <div class="pipeline__modal-comment">
             <label><MessageCircle :size="14" style="vertical-align:middle" /> Bình luận:</label>
-            <p>"{{ selectedLead.ChatLog?.comment_text }}"</p>
+            <p>"{{ selectedLead.comment || selectedLead.commentText || '' }}"</p>
           </div>
           <div class="pipeline__modal-field">
             <label><BarChart3 :size="14" style="vertical-align:middle" /> Trạng thái:</label>
@@ -142,18 +142,55 @@
             <label><FileText :size="14" style="vertical-align:middle" /> Ghi chú nhân viên:</label>
             <textarea
               v-model="editNotes"
-              rows="3"
+              rows="2"
               placeholder="Ghi chú về khách hàng này..."
               class="pipeline__modal-textarea"
             />
           </div>
+
+          <!-- Product Picker for Order -->
+          <div class="pipeline__modal-products">
+            <label><ShoppingCart :size="14" style="vertical-align:middle" /> Thêm sản phẩm để tạo đơn:</label>
+            <div class="pipeline__line-items">
+              <div class="pipeline__line-item" v-for="(item, idx) in orderItems" :key="idx">
+                <select v-model="item.productId" @change="onProdSelect(idx)" class="pipeline__prod-select">
+                  <option value="">-- Chọn SP --</option>
+                  <option v-for="p in products" :key="p.id" :value="p.id">
+                    {{ p.name }} — {{ fmtCurrency(p.price) }}
+                  </option>
+                </select>
+                <div class="pipeline__qty-group">
+                  <button @click="item.qty = Math.max(1, item.qty - 1)" class="pipeline__qty-btn">−</button>
+                  <input type="number" v-model.number="item.qty" min="1" class="pipeline__qty-input" />
+                  <button @click="item.qty++" class="pipeline__qty-btn">+</button>
+                </div>
+                <span class="pipeline__subtotal">{{ fmtCurrency(item.price * item.qty) }}</span>
+                <button @click="orderItems.splice(idx, 1)" class="pipeline__line-remove" v-if="orderItems.length > 1">
+                  <XCircle :size="14" />
+                </button>
+              </div>
+              <button @click="orderItems.push({ productId: '', name: '', price: 0, qty: 1 })" class="pipeline__add-prod">
+                <Plus :size="12" /> Thêm SP
+              </button>
+            </div>
+            <div v-if="orderTotal > 0" class="pipeline__order-total">
+              <span>Tổng:</span>
+              <span class="pipeline__order-total-val">{{ fmtCurrency(orderTotal) }}</span>
+            </div>
+          </div>
+
           <div class="pipeline__modal-actions-row" style="display:flex;gap:8px;margin-top:8px">
             <button class="pipeline__modal-save" @click="saveLeadDetails" style="flex:1">
               <Save :size="14" />
               Lưu thay đổi
             </button>
-            <button class="pipeline__modal-save" @click="emit('createOrder', selectedLead); selectedLead = null" style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)">
-              <ShoppingCart :size="14" /> Tạo đơn
+            <button
+              class="pipeline__modal-save"
+              @click="createOrderFromLead"
+              style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)"
+              :disabled="orderTotal === 0"
+            >
+              <ShoppingCart :size="14" /> Tạo đơn — {{ fmtCurrency(orderTotal) }}
             </button>
           </div>
         </div>
@@ -173,8 +210,9 @@ const emit = defineEmits(['createOrder', 'openCustomer'])
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
   Save, PhoneCall, CheckCircle, XCircle, ArrowRight,
-  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical, Users
+  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical, Users, Plus
 } from 'lucide-vue-next'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
   shopId: { type: String, default: null },
@@ -185,7 +223,9 @@ const selectedLead = ref(null)
 const editStatus = ref('')
 const editProductIntent = ref('')
 const editNotes = ref('')
-
+const products = ref([])
+const orderItems = ref([{ productId: '', name: '', price: 0, qty: 1 }])
+const orderTotal = computed(() => orderItems.value.reduce((s, i) => s + (Number(i.price) || 0) * (i.qty || 1), 0))
 const pipeStats = computed(() => leadStats.value)
 
 const columns = [
@@ -311,8 +351,14 @@ async function saveLeadDetails() {
 watch(selectedLead, (lead) => {
   if (lead) {
     editStatus.value = lead.status
-    editNotes.value = lead.staff_notes || ''
-    editProductIntent.value = lead.product_intent || ''
+    editNotes.value = lead.staffNotes || lead.staff_notes || ''
+    editProductIntent.value = lead.productIntent || lead.product_intent || ''
+    // Reset order items and try to match a product from intent
+    const intent = (lead.productIntent || lead.product_intent || '').toLowerCase()
+    const matched = intent ? products.value.find(p => p.name.toLowerCase().includes(intent) || (p.keywords || []).some(k => intent.includes(k.toLowerCase()))) : null
+    orderItems.value = matched
+      ? [{ productId: matched.id, name: matched.name, price: Number(matched.price), qty: 1 }]
+      : [{ productId: '', name: '', price: 0, qty: 1 }]
   }
 })
 
@@ -322,10 +368,64 @@ function formatTime(ts) {
   return d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
 }
 
+function fmtCurrency(v) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
+}
+
+function onProdSelect(idx) {
+  const item = orderItems.value[idx]
+  const p = products.value.find(x => x.id === item.productId)
+  if (p) { item.name = p.name; item.price = Number(p.price) || 0 }
+}
+
+async function createOrderFromLead() {
+  const items = orderItems.value.filter(i => i.productId && i.price > 0)
+  if (!items.length) { showToast('Chọn ít nhất 1 sản phẩm', 'error'); return }
+  try {
+    const res = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        shopId: props.shopId,
+        leadId: selectedLead.value.id,
+        customerName: selectedLead.value.nickname || '',
+        customerPhone: '',
+        customerAddress: '',
+        items: items.map(i => ({ productId: i.productId, name: i.name, price: i.price, qty: i.qty })),
+        totalAmount: orderTotal.value,
+        notes: `Lead: ${selectedLead.value.comment || ''}\nSản phẩm: ${editProductIntent.value}`,
+        status: 'pending',
+        paymentStatus: 'unpaid',
+      })
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || `HTTP ${res.status}`)
+    }
+    showToast(`✅ Đã tạo đơn ${fmtCurrency(orderTotal.value)} cho ${selectedLead.value.nickname}`, 'success')
+    // Auto-move lead to Closed
+    await updateLead(selectedLead.value.id, { status: 'Closed' })
+    await fetchLeadStats(props.shopId)
+    selectedLead.value = null
+  } catch (e) {
+    showToast('Lỗi tạo đơn: ' + e.message, 'error')
+  }
+}
+
+async function fetchProducts() {
+  try {
+    let url = '/products'
+    if (props.shopId) url += `?shopId=${props.shopId}`
+    const res = await apiFetch(url)
+    const data = await res.json()
+    products.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { products.value = [] }
+}
+
 async function loadData() {
   await Promise.all([
     fetchLeads(props.shopId),
     fetchLeadStats(props.shopId),
+    fetchProducts(),
   ])
 }
 
@@ -520,6 +620,65 @@ onMounted(loadData)
   box-shadow: 0 4px 15px rgba(124,58,237,0.2);
 }
 .pipeline__modal-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.3); }
+.pipeline__modal-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* CRM Product Picker */
+.pipeline__modal-products { margin-top: 10px; }
+.pipeline__modal-products > label { display: block; font-size: 12px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 8px; }
+.pipeline__line-items { display: flex; flex-direction: column; gap: 6px; }
+.pipeline__line-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 8px; padding: 6px 10px;
+}
+.pipeline__line-item:hover { border-color: var(--color-border-hover); }
+.pipeline__prod-select {
+  flex: 1; background: transparent; border: none;
+  color: var(--color-text-primary); font-size: 12px;
+  outline: none; font-family: inherit;
+}
+.pipeline__prod-select option { background: var(--color-bg-secondary); }
+.pipeline__qty-group {
+  display: flex; align-items: center; gap: 1px;
+  background: var(--glass-bg); border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+.pipeline__qty-btn {
+  background: none; border: none; color: var(--color-text-secondary);
+  width: 24px; height: 24px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700;
+}
+.pipeline__qty-btn:hover { color: var(--color-text-primary); }
+.pipeline__qty-input {
+  width: 30px; text-align: center; background: transparent;
+  border: none; color: var(--color-text-primary);
+  font-size: 12px; font-weight: 700; outline: none;
+  -moz-appearance: textfield;
+}
+.pipeline__qty-input::-webkit-outer-spin-button,
+.pipeline__qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pipeline__subtotal { font-size: 12px; font-weight: 800; color: #34d399; min-width: 80px; text-align: right; }
+.pipeline__line-remove {
+  background: none; border: none; color: var(--color-text-muted);
+  cursor: pointer; padding: 2px;
+}
+.pipeline__line-remove:hover { color: #ef4444; }
+.pipeline__add-prod {
+  background: var(--glass-bg); border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary); padding: 6px 10px;
+  border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+}
+.pipeline__add-prod:hover { border-color: #7c3aed; color: #a78bfa; }
+.pipeline__order-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-radius: 8px; margin-top: 8px;
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));
+  border: 1px solid rgba(52,211,153,0.2);
+}
+.pipeline__order-total span:first-child { font-size: 12px; font-weight: 700; color: var(--color-text-secondary); }
+.pipeline__order-total-val { font-size: 18px; font-weight: 900; color: #34d399; }
 
 /* Responsive */
 @media (max-width: 1024px) {

@@ -100,31 +100,65 @@
 
     <!-- Create Order Modal -->
     <div class="modal-overlay" v-if="showCreateModal" @click.self="showCreateModal = false">
-      <div class="modal">
+      <div class="modal modal--wide">
         <h3><FileEdit :size="16" style="vertical-align:middle" /> Tạo đơn hàng mới</h3>
-        <div class="form-group">
-          <label>Tên khách</label>
-          <input v-model="newOrder.customerName" placeholder="Nguyễn Văn A" />
-        </div>
-        <div class="form-group">
-          <label>SĐT</label>
-          <input v-model="newOrder.customerPhone" placeholder="0901234567" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tên khách</label>
+            <input v-model="newOrder.customerName" placeholder="Nguyễn Văn A" />
+          </div>
+          <div class="form-group">
+            <label>SĐT</label>
+            <input v-model="newOrder.customerPhone" placeholder="0901234567" />
+          </div>
         </div>
         <div class="form-group">
           <label>Địa chỉ</label>
           <input v-model="newOrder.customerAddress" placeholder="123 Đường ABC, Q1, HCM" />
         </div>
+
+        <!-- Product Line Items -->
         <div class="form-group">
-          <label>Tổng tiền (VNĐ)</label>
-          <input type="number" v-model.number="newOrder.totalAmount" placeholder="0" />
+          <label><ShoppingBag :size="14" style="vertical-align:middle" /> Sản phẩm</label>
+          <div class="line-items">
+            <div class="line-item" v-for="(item, idx) in newOrder.items" :key="idx">
+              <select v-model="item.productId" @change="onProductSelect(idx)" class="line-item__select">
+                <option value="">-- Chọn sản phẩm --</option>
+                <option v-for="p in products" :key="p.id" :value="p.id">
+                  {{ p.name }} — {{ formatCurrency(p.price) }}/{{ p.unit }}
+                </option>
+              </select>
+              <div class="line-item__qty">
+                <button @click="item.qty = Math.max(1, item.qty - 1)" class="qty-btn">−</button>
+                <input type="number" v-model.number="item.qty" min="1" class="qty-input" />
+                <button @click="item.qty++" class="qty-btn">+</button>
+              </div>
+              <span class="line-item__subtotal">{{ formatCurrency(item.price * item.qty) }}</span>
+              <button @click="removeItem(idx)" class="line-item__remove" v-if="newOrder.items.length > 1">
+                <XCircle :size="16" />
+              </button>
+            </div>
+            <button @click="addItem" class="btn-add-item">
+              <Plus :size="14" /> Thêm sản phẩm
+            </button>
+          </div>
         </div>
+
+        <!-- Total -->
+        <div class="order-total">
+          <span>Tổng cộng:</span>
+          <span class="order-total__amount">{{ formatCurrency(computedTotal) }}</span>
+        </div>
+
         <div class="form-group">
           <label>Ghi chú</label>
           <textarea v-model="newOrder.notes" rows="2" placeholder="Ghi chú đơn hàng..."></textarea>
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showCreateModal = false">Hủy</button>
-          <button class="btn-create" @click="createOrder">Tạo đơn</button>
+          <button class="btn-create" @click="createOrder" :disabled="computedTotal === 0">
+            <ShoppingCart :size="14" /> Tạo đơn — {{ formatCurrency(computedTotal) }}
+          </button>
         </div>
       </div>
     </div>
@@ -136,7 +170,7 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
-import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp, Send, Printer, RotateCcw } from 'lucide-vue-next'
+import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag, DollarSign, CreditCard, TrendingUp, Send, Printer, RotateCcw, Plus, ShoppingCart } from 'lucide-vue-next'
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -146,31 +180,55 @@ const props = defineProps({
 const emit = defineEmits(['create-shipment'])
 
 const orders = ref([])
+const products = ref([])
 const stats = ref({ totalOrders: 0, totalRevenue: 0, paidRevenue: 0, conversionRate: 0 })
 const filterStatus = useUrlParam('status', '')
 const showCreateModal = ref(false)
 const selectedOrder = ref(null)
-const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' })
+const emptyItem = () => ({ productId: '', name: '', price: 0, qty: 1 })
+const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' })
+
+import { computed } from 'vue'
+const computedTotal = computed(() => {
+  return newOrder.value.items.reduce((sum, i) => sum + (Number(i.price) || 0) * (i.qty || 1), 0)
+})
 
 const statusLabels = { draft: 'Nháp (Auto)', pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', shipping: 'Đang giao', delivered: 'Đã giao', cancelled: 'Đã hủy' }
 const paymentLabels = { unpaid: 'Chưa TT', paid: 'Đã TT', refunded: 'Hoàn tiền' }
 
-onMounted(() => { fetchOrders(); fetchStats() })
+onMounted(() => { fetchOrders(); fetchStats(); fetchProducts() })
 watch(filterStatus, () => fetchOrders())
+watch(() => props.shopId, () => fetchProducts())
 
 // Auto-open form when prefill data comes from Lead
 watch(() => props.prefillOrder, (data) => {
   if (data) {
+    // Try to find matching product from productIntent
+    const matchedItems = []
+    if (data.productIntent && products.value.length) {
+      const intent = data.productIntent.toLowerCase()
+      const found = products.value.find(p => p.name.toLowerCase().includes(intent) || (p.keywords || []).some(k => intent.includes(k.toLowerCase())))
+      if (found) {
+        matchedItems.push({ productId: found.id, name: found.name, price: Number(found.price), qty: 1 })
+      }
+    }
     newOrder.value = {
       customerName: data.customerName || '',
       customerPhone: data.customerPhone || '',
       customerAddress: data.customerAddress || '',
-      totalAmount: data.totalAmount || 0,
+      items: matchedItems.length ? matchedItems : [emptyItem()],
       notes: data.notes || '',
     }
     showCreateModal.value = true
   }
 }, { immediate: true })
+
+const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
+function mapKeys(obj) {
+  if (!obj || typeof obj !== 'object') return obj
+  if (Array.isArray(obj)) return obj.map(mapKeys)
+  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [toCamel(k), v]))
+}
 
 async function fetchOrders() {
   try {
@@ -179,8 +237,36 @@ async function fetchOrders() {
     if (filterStatus.value) url += `&status=${filterStatus.value}`
     const res = await apiFetch(url)
     const data = await res.json()
-    orders.value = data.data || data || []
+    const raw = data.data || data || []
+    orders.value = raw.map(mapKeys)
   } catch { orders.value = [] }
+}
+
+async function fetchProducts() {
+  try {
+    let url = `/products`
+    if (props.shopId) url += `?shopId=${props.shopId}`
+    const res = await apiFetch(url)
+    const data = await res.json()
+    products.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { products.value = [] }
+}
+
+function onProductSelect(idx) {
+  const item = newOrder.value.items[idx]
+  const product = products.value.find(p => p.id === item.productId)
+  if (product) {
+    item.name = product.name
+    item.price = Number(product.price) || 0
+  }
+}
+
+function addItem() {
+  newOrder.value.items.push(emptyItem())
+}
+
+function removeItem(idx) {
+  newOrder.value.items.splice(idx, 1)
 }
 
 async function fetchStats() {
@@ -193,14 +279,31 @@ async function fetchStats() {
 }
 
 async function createOrder() {
+  const items = newOrder.value.items.filter(i => i.productId && i.price > 0)
+  if (items.length === 0) {
+    showToast('Vui lòng chọn ít nhất 1 sản phẩm', 'error')
+    return
+  }
   try {
-    await apiFetch('/orders', {
+    const res = await apiFetch('/orders', {
       method: 'POST',
-      body: JSON.stringify({ ...newOrder.value, shopId: props.shopId, status: 'pending', paymentStatus: 'unpaid' })
+      body: JSON.stringify({
+        ...newOrder.value,
+        items: items.map(i => ({ productId: i.productId, name: i.name, price: i.price, qty: i.qty })),
+        totalAmount: computedTotal.value,
+        shopId: props.shopId,
+        status: 'pending',
+        paymentStatus: 'unpaid',
+      })
     })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || err.message || `HTTP ${res.status}`)
+    }
     showCreateModal.value = false
-    newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', totalAmount: 0, notes: '' }
+    newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' }
     fetchOrders(); fetchStats()
+    showToast('✅ Tạo đơn thành công!', 'success')
   } catch (err) { showToast('Lỗi tạo đơn: ' + err.message, 'error') }
 }
 
@@ -409,6 +512,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   animation: slideUp 0.3s ease-out;
 }
+.modal--wide { width: 600px; }
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -436,5 +540,72 @@ tr:hover { background: rgba(124,58,237,0.03); }
   transition: all 0.25s; box-shadow: 0 4px 15px rgba(124,58,237,0.2);
 }
 .btn-create:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.3); }
+.btn-create:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Product Picker */
+.form-row { display: flex; gap: 12px; }
+.form-row .form-group { flex: 1; }
+.line-items { display: flex; flex-direction: column; gap: 8px; }
+.line-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--color-bg-card); border: 1px solid var(--color-border);
+  border-radius: 10px; padding: 8px 12px;
+  transition: border-color 0.2s;
+}
+.line-item:hover { border-color: var(--color-border-hover); }
+.line-item__select {
+  flex: 1; background: transparent; border: none;
+  color: var(--color-text-primary); font-size: 13px;
+  outline: none; font-family: inherit;
+}
+.line-item__select option { background: var(--color-bg-secondary); }
+.line-item__qty {
+  display: flex; align-items: center; gap: 2px;
+  background: var(--glass-bg); border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+.qty-btn {
+  background: none; border: none; color: var(--color-text-secondary);
+  width: 28px; height: 28px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; transition: color 0.2s;
+}
+.qty-btn:hover { color: var(--color-text-primary); }
+.qty-input {
+  width: 36px; text-align: center; background: transparent;
+  border: none; color: var(--color-text-primary);
+  font-size: 13px; font-weight: 700; outline: none;
+  -moz-appearance: textfield;
+}
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.line-item__subtotal {
+  font-size: 13px; font-weight: 800; color: #34d399;
+  min-width: 90px; text-align: right;
+}
+.line-item__remove {
+  background: none; border: none; color: var(--color-text-muted);
+  cursor: pointer; padding: 2px; transition: color 0.2s;
+}
+.line-item__remove:hover { color: #ef4444; }
+.btn-add-item {
+  background: var(--glass-bg); border: 1px dashed var(--color-border);
+  color: var(--color-text-secondary); padding: 8px 14px;
+  border-radius: 10px; cursor: pointer; font-size: 12px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.2s;
+}
+.btn-add-item:hover {
+  border-color: #7c3aed; color: #a78bfa;
+  background: rgba(124,58,237,0.05);
+}
+.order-total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px; border-radius: 10px; margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.02));
+  border: 1px solid rgba(52,211,153,0.2);
+}
+.order-total span:first-child { font-size: 14px; font-weight: 700; color: var(--color-text-secondary); }
+.order-total__amount { font-size: 22px; font-weight: 900; color: #34d399; }
 </style>
 
