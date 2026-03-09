@@ -83,8 +83,8 @@ async function handleClick(n) {
     } catch { /* silent */ }
   }
   showDropdown.value = false
-  // Navigate based on notification type
-  const routes = { hot_lead: 'crm', order: 'orders', connect: 'live', disconnect: 'live', session: 'replay' }
+  // Navigate based on notification type — only to existing tabs
+  const routes = { hot_lead: 'crm', connect: 'live', disconnect: 'live' }
   const route = routes[n.type]
   if (route) emit('navigate', route)
 }

@@ -1,9 +1,10 @@
 <template>
   <div class="quick-reply-panel" v-if="visible">
     <div class="panel-header">
-      <h3>⚡ Quick Reply</h3>
+      <h3>⚡ Soạn tin nhắn</h3>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
+    <p class="panel-hint">💡 Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách</p>
 
     <!-- Comment being replied to -->
     <div class="reply-target" v-if="targetComment">
@@ -30,11 +31,11 @@
           <button class="btn-ai" @click="generateAIReply" :disabled="loading">
             🤖 AI Gợi ý
           </button>
-          <button class="btn-copy" @click="copyReply">
-            📋 Copy
+          <button class="btn-copy btn-copy--primary" @click="copyReply">
+            📋 Copy tin nhắn
           </button>
-          <button class="btn-send" @click="sendReply">
-            📤 Gửi
+          <button class="btn-copy" @click="copyPhone" v-if="detectedPhone">
+            📞 Copy SĐT: {{ detectedPhone }}
           </button>
         </div>
       </div>
@@ -48,7 +49,7 @@
           v-for="(tpl, i) in templates"
           :key="i"
           class="template-btn"
-          @click="replyText = tpl.text"
+          @click="applyTemplate(tpl)"
         >
           {{ tpl.icon }} {{ tpl.name }}
         </button>
@@ -75,18 +76,32 @@ const replyText = ref('')
 const loading = ref(false)
 const toast = ref('')
 
+const detectedPhone = ref('')
+
 const templates = [
-  { icon: '👋', name: 'Chào hỏi', text: 'Dạ cảm ơn bạn đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️' },
-  { icon: '💰', name: 'Báo giá', text: 'Dạ bạn inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁' },
-  { icon: '📦', name: 'Chốt đơn', text: 'Dạ em ghi nhận đơn cho mình ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦' },
-  { icon: '🔄', name: 'Tư vấn', text: 'Dạ để em tư vấn chi tiết cho mình nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶' },
-  { icon: '⏰', name: 'Hẹn lại', text: 'Dạ mình ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️' },
-  { icon: '🎉', name: 'Khuyến mãi', text: 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉' },
+  { icon: '👋', name: 'Chào hỏi', text: 'Dạ cảm ơn {{name}} đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️' },
+  { icon: '💰', name: 'Báo giá', text: 'Dạ {{name}} inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁' },
+  { icon: '📦', name: 'Chốt đơn', text: 'Dạ em ghi nhận đơn cho {{name}} ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦' },
+  { icon: '🔄', name: 'Tư vấn', text: 'Dạ để em tư vấn chi tiết cho {{name}} nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶' },
+  { icon: '⏰', name: 'Hẹn lại', text: 'Dạ {{name}} ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️' },
+  { icon: '🎉', name: 'Khuyến mãi', text: 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉 {{name}} inbox mình nhé!' },
 ]
+
+function applyTemplate(tpl) {
+  const name = props.targetComment?.nickname || props.targetComment?.uniqueId || 'bạn'
+  replyText.value = tpl.text.replace(/\{\{name\}\}/g, name)
+}
+
+function detectPhone(text) {
+  if (!text) return ''
+  const match = text.match(/(0[3-9]\d{8})/)
+  return match ? match[1] : ''
+}
 
 watch(() => props.targetComment, async (comment) => {
   if (comment) {
     replyText.value = ''
+    detectedPhone.value = detectPhone(comment.comment)
     await generateAIReply()
   }
 })
@@ -115,13 +130,14 @@ async function generateAIReply() {
 
 function copyReply() {
   navigator.clipboard.writeText(replyText.value)
-  showToast('✅ Đã copy!')
+  showToast('✅ Đã copy tin nhắn!')
 }
 
-function sendReply() {
-  emit('sent', { comment: props.targetComment, reply: replyText.value })
-  showToast('📤 Đã gửi!')
-  replyText.value = ''
+function copyPhone() {
+  if (detectedPhone.value) {
+    navigator.clipboard.writeText(detectedPhone.value)
+    showToast('📞 Đã copy SĐT: ' + detectedPhone.value)
+  }
 }
 
 function showToast(msg) {
@@ -148,6 +164,12 @@ function showToast(msg) {
   margin-bottom: 12px;
 }
 .panel-header h3 { margin: 0; font-size: 14px; color: var(--color-text-primary); }
+.panel-hint {
+  font-size: 11px; color: var(--color-text-muted);
+  margin: 0 0 12px 0; padding: 6px 10px;
+  background: rgba(129, 140, 248, 0.08);
+  border-radius: 6px; border: 1px solid rgba(129, 140, 248, 0.15);
+}
 .close-btn {
   background: none; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 16px;
 }
@@ -183,8 +205,8 @@ textarea:focus { outline: none; border-color: #818cf8; }
 .btn-ai:hover { background: #3730a3; }
 .btn-copy { background: var(--color-bg-card-hover); color: var(--color-text-secondary); }
 .btn-copy:hover { background: var(--color-bg-elevated); }
-.btn-send { background: #059669; color: #fff; }
-.btn-send:hover { background: #047857; }
+.btn-copy--primary { background: #059669; color: #fff; }
+.btn-copy--primary:hover { background: #047857; }
 
 .loading-reply {
   display: flex; align-items: center; gap: 10px; padding: 20px 0; color: var(--color-text-muted);

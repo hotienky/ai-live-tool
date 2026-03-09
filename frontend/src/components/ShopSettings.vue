@@ -365,76 +365,7 @@
         </button>
       </div>
 
-      <div v-if="activeTab === 'activity'" class="settings__panel">
-        <ActivityLog :shopId="currentShop?.id" />
-      </div>
 
-      <!-- ═══ Tab: Vận chuyển (Carrier Integration) ═══ -->
-      <div v-if="activeTab === 'shipping'" class="settings__panel">
-        <h3 class="settings__panel-title"><Truck :size="16" style="vertical-align:middle" /> Kết nối đơn vị vận chuyển</h3>
-        <p class="settings__panel-desc">Nhập API Token để kết nối trực tiếp với GHN, GHTK, Viettel Post. Hệ thống sẽ tự động tạo vận đơn, tính phí, và tracking đơn hàng.</p>
-
-        <!-- Carrier Cards -->
-        <div class="carrier-grid">
-          <div v-for="c in carrierList" :key="c.key" class="carrier-card" :class="{ 'carrier-card--connected': shippingConfig[c.key]?.token }">
-            <div class="carrier-card__header">
-              <span class="carrier-card__icon" :style="{ background: c.bg, color: c.fg }">{{ c.icon }}</span>
-              <div>
-                <h4 class="carrier-card__name">{{ c.name }}</h4>
-                <span class="carrier-card__status" :class="shippingConfig[c.key]?.token ? 'status--ok' : 'status--off'">
-                  {{ shippingConfig[c.key]?.token ? '✅ Đã kết nối' : '⬤ Chưa kết nối' }}
-                </span>
-              </div>
-            </div>
-            <div class="carrier-card__body">
-              <div class="form-group">
-                <label>API Token</label>
-                <input v-model="shippingConfig[c.key].token" type="password" :placeholder="'Nhập ' + c.name + ' API Token'" />
-              </div>
-              <div v-if="c.key === 'ghn'" class="form-group">
-                <label>Shop ID (GHN)</label>
-                <input v-model="shippingConfig[c.key].shopId" placeholder="Nhập GHN Shop ID" />
-              </div>
-              <div class="carrier-card__actions">
-                <button class="btn-test" @click="testCarrier(c.key)" :disabled="carrierTesting === c.key || !shippingConfig[c.key]?.token">
-                  {{ carrierTesting === c.key ? '⏳ Đang kiểm tra...' : '🔗 Kiểm tra kết nối' }}
-                </button>
-                <span v-if="carrierTestResults[c.key]" class="test-result" :class="carrierTestResults[c.key].ok ? 'test--ok' : 'test--fail'">
-                  {{ carrierTestResults[c.key].message }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Default Sender Info -->
-        <h3 class="settings__panel-title" style="margin-top:24px"><Package :size="16" style="vertical-align:middle" /> Thông tin người gửi mặc định</h3>
-        <div class="sender-grid">
-          <div class="form-group"><label>Tên người gửi</label><input v-model="senderInfo.name" placeholder="Tên shop / người gửi" /></div>
-          <div class="form-group"><label>Số điện thoại</label><input v-model="senderInfo.phone" placeholder="09xxxxxxxx" /></div>
-          <div class="form-group" style="grid-column:1/-1"><label>Địa chỉ</label><input v-model="senderInfo.address" placeholder="Số nhà, đường, phường, quận, TP" /></div>
-        </div>
-
-        <!-- Default Carrier -->
-        <div class="form-group" style="margin-top:16px">
-          <label class="settings__field-label">Đơn vị mặc định</label>
-          <select v-model="defaultCarrier" class="carrier-select">
-            <option value="manual">Thủ công</option>
-            <option v-for="c in carrierList" :key="c.key" :value="c.key" :disabled="!shippingConfig[c.key]?.token">
-              {{ c.name }} {{ shippingConfig[c.key]?.token ? '' : '(chưa kết nối)' }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Save -->
-        <button class="btn-save-shipping" @click="saveShippingConfig" :disabled="savingShipping">
-          <Save :size="14" /> {{ savingShipping ? 'Đang lưu...' : 'Lưu cấu hình vận chuyển' }}
-        </button>
-      </div>
-
-      <div v-if="activeTab === 'webhooks'" class="settings__panel">
-        <WebhookManager :shopId="currentShop?.id" />
-      </div>
     </div>
   </div>
 </template>
@@ -442,18 +373,16 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import {
-  Settings, Store, Save, Plus, Trash2, Minus, Truck,
+  Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
-  Music, BookOpen, Video, ShoppingCart, ClipboardList, Activity, Webhook
+  Music, BookOpen, Video, ShoppingCart, ClipboardList
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
 import { logger } from '../utils/logger.js'
-import ActivityLog from './ActivityLog.vue'
-import WebhookManager from './WebhookManager.vue'
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -464,7 +393,7 @@ const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'shipping', 'appearance', 'activity', 'webhooks']
+const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'appearance']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -474,9 +403,6 @@ const tabs = [
   { key: 'keywords', label: 'Keywords', icon: Key },
   { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
   { key: 'moderation', label: 'Moderation', icon: Shield },
-  { key: 'shipping', label: 'Vận chuyển', icon: Truck },
-  { key: 'activity', label: 'Hoạt động', icon: Activity },
-  { key: 'webhooks', label: 'Webhooks', icon: Webhook },
 ]
 const allTabs = [
   ...tabs,
@@ -662,90 +588,6 @@ async function saveModerationConfig() {
     showToast('Lỗi: ' + e.message, 'error')
   }
 }
-// ─── Carrier Integration ───
-const carrierList = [
-  { key: 'ghn', name: 'Giao Hàng Nhanh', icon: '🚚', bg: '#FF6600', fg: '#fff' },
-  { key: 'ghtk', name: 'Giao Hàng Tiết Kiệm', icon: '📦', bg: '#00AA55', fg: '#fff' },
-  { key: 'viettel_post', name: 'Viettel Post', icon: '✈️', bg: '#E30613', fg: '#fff' },
-]
-const shippingConfig = ref({
-  ghn: { token: '', shopId: '' },
-  ghtk: { token: '' },
-  viettel_post: { token: '' },
-})
-const senderInfo = ref({ name: '', phone: '', address: '' })
-const defaultCarrier = ref('manual')
-const carrierTesting = ref('')
-const carrierTestResults = ref({})
-const savingShipping = ref(false)
-
-async function loadShippingConfig() {
-  if (!props.currentShop?.id) return
-  try {
-    const data = await apiFetch(`/shipping/config?shopId=${props.currentShop.id}`)
-    if (data.shippingConfig) {
-      // Merge saved config with defaults to ensure all keys exist
-      const saved = data.shippingConfig
-      shippingConfig.value = {
-        ghn: { token: saved.ghn?.token || '', shopId: saved.ghn?.shopId || '' },
-        ghtk: { token: saved.ghtk?.token || '' },
-        viettel_post: { token: saved.viettel_post?.token || '' },
-      }
-    }
-    senderInfo.value = {
-      name: data.senderName || '',
-      phone: data.senderPhone || '',
-      address: data.senderAddress || '',
-    }
-    defaultCarrier.value = data.defaultCarrier || 'manual'
-  } catch (e) {
-    logger.warn('Could not load shipping config:', e)
-  }
-}
-
-async function testCarrier(carrierKey) {
-  carrierTesting.value = carrierKey
-  carrierTestResults.value[carrierKey] = null
-  try {
-    const result = await apiFetch('/shipping/test-connection', {
-      method: 'POST',
-      body: JSON.stringify({
-        shopId: props.currentShop?.id,
-        carrier: carrierKey,
-        config: shippingConfig.value[carrierKey],
-      }),
-    })
-    carrierTestResults.value[carrierKey] = result
-  } catch (e) {
-    carrierTestResults.value[carrierKey] = { ok: false, message: e.message || 'Lỗi kết nối' }
-  } finally {
-    carrierTesting.value = ''
-  }
-}
-
-async function saveShippingConfig() {
-  if (!props.currentShop?.id) return
-  savingShipping.value = true
-  try {
-    await apiFetch('/shipping/config', {
-      method: 'PUT',
-      body: JSON.stringify({
-        shopId: props.currentShop.id,
-        shippingConfig: shippingConfig.value,
-        defaultCarrier: defaultCarrier.value,
-        senderName: senderInfo.value.name,
-        senderPhone: senderInfo.value.phone,
-        senderAddress: senderInfo.value.address,
-      }),
-    })
-    showToast('Đã lưu cấu hình vận chuyển', 'success')
-  } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
-  } finally {
-    savingShipping.value = false
-  }
-}
-
 onMounted(() => {
   if (props.currentShop) {
     // Load moderation config from shop data
@@ -755,8 +597,6 @@ onMounted(() => {
       rateLimitEnabled: props.currentShop.moderation_rate_limit ?? false,
       maxPerMinute: props.currentShop.moderation_max_per_minute ?? 5,
     }
-    // Load shipping config
-    loadShippingConfig()
   }
 })
 

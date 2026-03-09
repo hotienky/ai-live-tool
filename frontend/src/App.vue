@@ -135,8 +135,6 @@
           @sent="onReplySent"
         />
         <StatsBar :stats="stats" :viewerCount="viewerCount" />
-        <SentimentGauge :comments="allComments" />
-        <PricingSuggestion :comments="allComments" />
       </section>
     </main>
 
@@ -144,7 +142,6 @@
     <LeadPipeline
       v-if="activeView === 'crm'"
       :shopId="currentShop?.id"
-      @createOrder="onCreateOrderFromLead"
       @openCustomer="openCustomerDetail"
     />
 
@@ -161,32 +158,6 @@
       @openShopSelector="shopSelectorRef?.open()"
     />
 
-    <!-- ═══ View: Session Replay ═══ -->
-    <SessionReplay
-      v-if="activeView === 'replay'"
-    />
-
-    <!-- ═══ View: Orders ═══ -->
-    <OrderManagement
-      v-if="activeView === 'orders'"
-      :shopId="currentShop?.id"
-      :prefillOrder="prefillOrder"
-      @create-shipment="onCreateShipment"
-    />
-
-    <!-- ═══ View: Inventory ═══ -->
-    <InventoryManagement
-      v-if="activeView === 'inventory'"
-      :shopId="currentShop?.id"
-    />
-
-    <!-- ═══ View: Shipping ═══ -->
-    <ShippingManagement
-      v-if="activeView === 'shipping'"
-      :shopId="currentShop?.id"
-      ref="shippingRef"
-    />
-
     <!-- ═══ View: Schedule ═══ -->
     <SchedulePlanner
       v-if="activeView === 'schedule'"
@@ -201,15 +172,7 @@
       @close="showCustomerDetail = false"
     />
 
-    <!-- Floating Panels (available in Live Monitor) -->
-    <div class="app-floating" v-if="activeView === 'live'">
-      <div class="app-floating__panel" v-if="showLuckyDraw">
-        <LuckyDrawPanel :comments="allComments" @close="showLuckyDraw = false" />
-      </div>
-      <div class="app-floating__panel" v-if="showPrompter">
-        <ScriptPrompter @close="showPrompter = false" />
-      </div>
-    </div>
+
 
     <!-- Post-Live Report Modal -->
     <PostLiveReport
@@ -220,12 +183,6 @@
 
     <!-- Floating Action Buttons (Live Monitor) -->
     <div class="app-fab" v-if="activeView === 'live'">
-      <button class="app-fab__btn app-fab__btn--draw" @click="showLuckyDraw = !showLuckyDraw" title="Lucky Draw">
-        <Gift :size="18" />
-      </button>
-      <button class="app-fab__btn app-fab__btn--script" @click="showPrompter = !showPrompter" title="Kịch bản Live">
-        <FileText :size="18" />
-      </button>
       <button class="app-fab__btn app-fab__btn--notif" @click="toggleBrowserNotif" :title="notifEnabled ? 'Tắt thông báo' : 'Bật thông báo'">
         <BellRing v-if="notifEnabled" :size="18" />
         <BellOff v-else :size="18" />
@@ -278,24 +235,16 @@ import LeadPanel from './components/LeadPanel.vue'
 import ChatStream from './components/ChatStream.vue'
 import StatsBar from './components/StatsBar.vue'
 import StatsChart from './components/StatsChart.vue'
-import SentimentGauge from './components/SentimentGauge.vue'
-import PricingSuggestion from './components/PricingSuggestion.vue'
 import SessionHistory from './components/SessionHistory.vue'
 import DashboardOverview from './components/DashboardOverview.vue'
 import LeadPipeline from './components/LeadPipeline.vue'
 import ReportPage from './components/ReportPage.vue'
 import LoginPage from './components/LoginPage.vue'
 import ShopSettings from './components/ShopSettings.vue'
-import LuckyDrawPanel from './components/LuckyDrawPanel.vue'
-import ScriptPrompter from './components/ScriptPrompter.vue'
-import SessionReplay from './components/SessionReplay.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
 import QuickReply from './components/QuickReply.vue'
-import OrderManagement from './components/OrderManagement.vue'
-import InventoryManagement from './components/InventoryManagement.vue'
-import ShippingManagement from './components/ShippingManagement.vue'
 import SchedulePlanner from './components/SchedulePlanner.vue'
 import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
@@ -310,10 +259,9 @@ import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
   Radio, Drama, Square, RotateCcw, History,
   LayoutDashboard, MonitorPlay, Users, BarChart2,
-  User as UserIcon, LogOut, Settings, Gift, FileText,
-  BellRing, BellOff, History as HistoryIcon,
+  User as UserIcon, LogOut, Settings,
+  BellRing, BellOff,
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
-  Warehouse, Truck
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -333,11 +281,7 @@ const tabs = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
   { key: 'crm', label: 'CRM', icon: Users },
-  { key: 'orders', label: 'Orders', icon: BarChart3 },
-  { key: 'inventory', label: 'Kho', icon: Warehouse },
-  { key: 'shipping', label: 'Ship', icon: Truck },
   { key: 'reports', label: 'Reports', icon: BarChart2 },
-  { key: 'replay', label: 'Replay', icon: HistoryIcon },
   { key: 'schedule', label: 'Schedule', icon: Radio },
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
@@ -355,17 +299,7 @@ function navigateTo(view) {
   history.pushState({ view }, '', '/' + view)
 }
 
-const shippingRef = ref(null)
-function onCreateShipment(orderId) {
-  activeView.value = 'shipping'
-  history.pushState({ view: 'shipping' }, '', '/shipping')
-  // Wait for ShippingManagement to mount, then open create modal with orderId
-  setTimeout(() => {
-    if (shippingRef.value?.openCreateModal) {
-      shippingRef.value.openCreateModal(orderId)
-    }
-  }, 200)
-}
+
 
 window.addEventListener('popstate', () => {
   activeView.value = viewFromPath()
@@ -385,8 +319,6 @@ function openCustomerDetail(customer) {
 }
 
 // Floating panels
-const showLuckyDraw = ref(false)
-const showPrompter = ref(false)
 const showPostLiveReport = ref(false)
 
 // Quick Reply
@@ -411,8 +343,6 @@ const { shortcuts } = useKeyboardShortcuts({
   onCloseModal: () => {
     showCustomerDetail.value = false
     showQuickReply.value = false
-    showLuckyDraw.value = false
-    showPrompter.value = false
     showShortcuts.value = false
   },
   onToggleHelp: () => { showShortcuts.value = !showShortcuts.value },
@@ -469,7 +399,7 @@ const showChart = ref(false)
 const showHistory = ref(false)
 const showProfile = ref(false)
 const timelineData = ref([])
-const prefillOrder = ref(null)
+
 let timelineInterval = null
 
 function startTimelineCollection() {
@@ -561,18 +491,7 @@ function onScheduleStartLive(schedule) {
   showLiveModal.value = true
 }
 
-function onCreateOrderFromLead(lead) {
-  prefillOrder.value = {
-    customerName: lead.nickname || lead.ChatLog?.nickname || '',
-    customerPhone: lead.ChatLog?.customer_phone || '',
-    customerAddress: '',
-    productIntent: lead.productIntent || lead.product_intent || '',
-    notes: `Lead: ${lead.comment || lead.ChatLog?.comment_text || ''}\nSản phẩm: ${lead.productIntent || lead.product_intent || ''}`,
-    leadId: lead.id,
-    customerId: lead.customer_id || lead.customerId,
-  }
-  navigateTo('orders')
-}
+
 
 function onExport() {
   if (!currentShop.value) return

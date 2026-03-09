@@ -46,11 +46,6 @@
 
         <p class="sp-card__desc" v-if="s.description">{{ s.description }}</p>
 
-        <div class="sp-card__script-preview" v-if="s.script">
-          <span class="sp-card__script-label"><FileText :size="13" /> Kịch bản</span>
-          <p class="sp-card__script-text">{{ (s.script || '').substring(0, 80) }}{{ (s.script || '').length > 80 ? '...' : '' }}</p>
-        </div>
-
         <div class="sp-card__actions" v-if="s.status === 'scheduled'">
           <button type="button" class="sp-card__btn sp-card__btn--cancel" @click.stop.prevent="deleteSchedule(s)">
             <X :size="13" /> Hủy
@@ -71,7 +66,7 @@
     <div class="sp-empty" v-else>
       <div class="sp-empty__icon"><CalendarOff :size="48" /></div>
       <h3 class="sp-empty__title">Chưa có lịch livestream nào</h3>
-      <p class="sp-empty__desc">Lên lịch để chuẩn bị tốt hơn cho buổi live.<br/>Thêm script, chọn nền tảng và set thời gian!</p>
+      <p class="sp-empty__desc">Lên lịch để chuẩn bị tốt hơn cho buổi live.<br/>Chọn nền tảng và set thời gian!</p>
       <button class="sp-btn-add sp-btn-add--lg" @click="showModal = true">
         <span class="sp-btn-add__icon">+</span> Tạo lịch đầu tiên
       </button>
@@ -119,16 +114,6 @@
                   {{ icon }} {{ platformNames[key] }}
                 </button>
               </div>
-            </div>
-
-            <div class="sp-form-group">
-              <label>Script / Kịch bản</label>
-              <textarea
-                v-model="form.script"
-                rows="4"
-                class="sp-input sp-textarea"
-                placeholder="1. Chào khán giả&#10;2. Giới thiệu sản phẩm mới&#10;3. Flash sale..."
-              ></textarea>
             </div>
 
             <div class="sp-form-group">

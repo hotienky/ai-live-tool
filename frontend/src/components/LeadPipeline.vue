@@ -7,10 +7,9 @@
         Lead Pipeline
       </h2>
       <div class="pipeline__summary">
-        <span class="pipeline__badge pipeline__badge--new">{{ pipeStats.New }} New</span>
-        <span class="pipeline__badge pipeline__badge--contact">{{ pipeStats.Contacting }} Contacting</span>
-        <span class="pipeline__badge pipeline__badge--closed">{{ pipeStats.Closed }} Closed</span>
-        <span class="pipeline__badge pipeline__badge--ignored">{{ pipeStats.Ignored }} Ignored</span>
+        <span class="pipeline__badge pipeline__badge--new">{{ pipeStats.New }} Mới</span>
+        <span class="pipeline__badge pipeline__badge--contact">{{ pipeStats.Contacting }} Đã liên hệ</span>
+        <span class="pipeline__badge pipeline__badge--closed">{{ (pipeStats.Closed || 0) + (pipeStats.Ignored || 0) + (pipeStats.Done || 0) }} Xong</span>
       </div>
       <button class="pipeline__refresh" @click="loadData" :disabled="loading">
         <RefreshCcw :size="14" :class="{ 'spin': loading }" />
@@ -60,6 +59,16 @@
               <span v-if="lead.productIntent || lead.product_intent" class="pipeline__card-product">
                 <ShoppingBag :size="12" style="vertical-align:middle" /> {{ lead.productIntent || lead.product_intent }}
               </span>
+              <a
+                v-if="detectPhone(lead.comment || lead.commentText)"
+                :href="'https://zalo.me/' + detectPhone(lead.comment || lead.commentText)"
+                target="_blank"
+                class="pipeline__card-zalo"
+                @click.stop
+                title="Mở Zalo"
+              >
+                <Phone :size="11" /> Zalo: {{ detectPhone(lead.comment || lead.commentText) }}
+              </a>
             </div>
             <!-- Quick Actions -->
             <div class="pipeline__card-actions">
@@ -123,10 +132,9 @@
           <div class="pipeline__modal-field">
             <label><BarChart3 :size="14" style="vertical-align:middle" /> Trạng thái:</label>
             <select v-model="editStatus" class="pipeline__modal-select">
-              <option value="New">New</option>
-              <option value="Contacting">Contacting</option>
-              <option value="Closed">Closed</option>
-              <option value="Ignored">Ignored</option>
+              <option value="New">Mới</option>
+              <option value="Contacting">Đã liên hệ</option>
+              <option value="Done">Xong</option>
             </select>
           </div>
           <div class="pipeline__modal-field">
@@ -148,37 +156,6 @@
             />
           </div>
 
-          <!-- Product Picker for Order -->
-          <div class="pipeline__modal-products">
-            <label><ShoppingCart :size="14" style="vertical-align:middle" /> Thêm sản phẩm để tạo đơn:</label>
-            <div class="pipeline__line-items">
-              <div class="pipeline__line-item" v-for="(item, idx) in orderItems" :key="idx">
-                <select v-model="item.productId" @change="onProdSelect(idx)" class="pipeline__prod-select">
-                  <option value="">-- Chọn SP --</option>
-                  <option v-for="p in products" :key="p.id" :value="p.id">
-                    {{ p.name }} — {{ fmtCurrency(p.price) }}
-                  </option>
-                </select>
-                <div class="pipeline__qty-group">
-                  <button @click="item.qty = Math.max(1, item.qty - 1)" class="pipeline__qty-btn">−</button>
-                  <input type="number" v-model.number="item.qty" min="1" class="pipeline__qty-input" />
-                  <button @click="item.qty++" class="pipeline__qty-btn">+</button>
-                </div>
-                <span class="pipeline__subtotal">{{ fmtCurrency(item.price * item.qty) }}</span>
-                <button @click="orderItems.splice(idx, 1)" class="pipeline__line-remove" v-if="orderItems.length > 1">
-                  <XCircle :size="14" />
-                </button>
-              </div>
-              <button @click="orderItems.push({ productId: '', name: '', price: 0, qty: 1 })" class="pipeline__add-prod">
-                <Plus :size="12" /> Thêm SP
-              </button>
-            </div>
-            <div v-if="orderTotal > 0" class="pipeline__order-total">
-              <span>Tổng:</span>
-              <span class="pipeline__order-total-val">{{ fmtCurrency(orderTotal) }}</span>
-            </div>
-          </div>
-
           <div class="pipeline__modal-actions-row" style="display:flex;gap:8px;margin-top:8px">
             <button class="pipeline__modal-save" @click="saveLeadDetails" style="flex:1">
               <Save :size="14" />
@@ -186,11 +163,10 @@
             </button>
             <button
               class="pipeline__modal-save"
-              @click="createOrderFromLead"
+              @click="copyLeadInfo"
               style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)"
-              :disabled="orderTotal === 0"
             >
-              <ShoppingCart :size="14" /> Tạo đơn — {{ fmtCurrency(orderTotal) }}
+              <Clipboard :size="14" /> 📋 Copy thông tin
             </button>
           </div>
         </div>
@@ -206,11 +182,11 @@ import { logger } from '../utils/logger.js'
 import { useToast } from '../composables/useToast.js'
 
 const { showToast } = useToast()
-const emit = defineEmits(['createOrder', 'openCustomer'])
+const emit = defineEmits(['openCustomer'])
 import {
   Kanban, RefreshCcw, Flame, CircleDot, X, User, ExternalLink,
-  Save, PhoneCall, CheckCircle, XCircle, ArrowRight,
-  ShoppingBag, MessageCircle, BarChart3, FileText, ShoppingCart, GripVertical, Users, Plus
+  Save, PhoneCall, CheckCircle, ArrowRight, Clipboard, Phone,
+  ShoppingBag, MessageCircle, BarChart3, FileText, GripVertical, Users, Plus
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
@@ -230,27 +206,33 @@ const pipeStats = computed(() => leadStats.value)
 
 const columns = [
   { key: 'New', label: 'Mới', color: '#3b82f6', icon: CircleDot },
-  { key: 'Contacting', label: 'Đang liên hệ', color: '#f59e0b', icon: PhoneCall },
-  { key: 'Closed', label: 'Đã chốt', color: '#10b981', icon: CheckCircle },
-  { key: 'Ignored', label: 'Bỏ qua', color: '#6b7280', icon: XCircle },
+  { key: 'Contacting', label: 'Đã liên hệ', color: '#f59e0b', icon: PhoneCall },
+  { key: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
 ]
 
 function getColumnLeads(status) {
+  if (status === 'Done') {
+    return leads.value.filter((l) => l.status === 'Closed' || l.status === 'Ignored' || l.status === 'Done')
+  }
   return leads.value.filter((l) => l.status === status)
+}
+
+function detectPhone(text) {
+  if (!text) return ''
+  const match = text.match(/(0[3-9]\d{8})/)
+  return match ? match[1] : ''
 }
 
 function getActions(currentStatus) {
   const actions = {
     New: [
       { target: 'Contacting', label: 'Liên hệ', color: '#f59e0b', icon: PhoneCall },
-      { target: 'Ignored', label: 'Bỏ qua', color: '#6b7280', icon: XCircle },
+      { target: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
     ],
     Contacting: [
-      { target: 'Closed', label: 'Đã chốt', color: '#10b981', icon: CheckCircle },
-      { target: 'Ignored', label: 'Bỏ qua', color: '#6b7280', icon: XCircle },
+      { target: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
     ],
-    Closed: [],
-    Ignored: [
+    Done: [
       { target: 'New', label: 'Mở lại', color: '#3b82f6', icon: ArrowRight },
     ],
   }
@@ -378,37 +360,17 @@ function onProdSelect(idx) {
   if (p) { item.name = p.name; item.price = Number(p.price) || 0 }
 }
 
-async function createOrderFromLead() {
-  const items = orderItems.value.filter(i => i.productId && i.price > 0)
-  if (!items.length) { showToast('Chọn ít nhất 1 sản phẩm', 'error'); return }
-  try {
-    const res = await apiFetch('/orders', {
-      method: 'POST',
-      body: JSON.stringify({
-        shopId: props.shopId,
-        leadId: selectedLead.value.id,
-        customerName: selectedLead.value.nickname || '',
-        customerPhone: '',
-        customerAddress: '',
-        items: items.map(i => ({ productId: i.productId, name: i.name, price: i.price, qty: i.qty })),
-        totalAmount: orderTotal.value,
-        notes: `Lead: ${selectedLead.value.comment || ''}\nSản phẩm: ${editProductIntent.value}`,
-        status: 'pending',
-        paymentStatus: 'unpaid',
-      })
-    })
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || `HTTP ${res.status}`)
-    }
-    showToast(`✅ Đã tạo đơn ${fmtCurrency(orderTotal.value)} cho ${selectedLead.value.nickname}`, 'success')
-    // Auto-move lead to Closed
-    await updateLead(selectedLead.value.id, { status: 'Closed' })
-    await fetchLeadStats(props.shopId)
-    selectedLead.value = null
-  } catch (e) {
-    showToast('Lỗi tạo đơn: ' + e.message, 'error')
-  }
+function copyLeadInfo() {
+  if (!selectedLead.value) return
+  const lead = selectedLead.value
+  const info = [
+    `Khách: ${lead.nickname || 'Unknown'} (@${lead.uniqueId || lead.unique_id || '?'})`,
+    `Bình luận: "${lead.comment || lead.commentText || ''}"`,
+    editProductIntent.value ? `Sản phẩm: ${editProductIntent.value}` : '',
+    editNotes.value ? `Ghi chú: ${editNotes.value}` : '',
+  ].filter(Boolean).join('\n')
+  navigator.clipboard.writeText(info)
+  showToast('📋 Đã copy thông tin khách hàng!', 'success')
 }
 
 async function fetchProducts() {
@@ -461,7 +423,7 @@ onMounted(loadData)
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .pipeline__board {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
   padding: 0 24px 24px; flex: 1; overflow-y: auto;
 }
 .pipeline__column {
@@ -526,6 +488,13 @@ onMounted(loadData)
   background: rgba(245,158,11,0.1); color: #fbbf24;
   padding: 2px 8px; border-radius: 6px; font-weight: 600;
 }
+.pipeline__card-zalo {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(0,136,204,0.12); color: #0088cc;
+  padding: 2px 8px; border-radius: 6px; font-weight: 600;
+  text-decoration: none; font-size: 11px; transition: all 0.2s;
+}
+.pipeline__card-zalo:hover { background: rgba(0,136,204,0.25); }
 .pipeline__card-actions {
   display: flex; gap: 4px; margin-top: 8px;
 }

@@ -118,13 +118,13 @@ router.group(() => {
   router.get('/sessions', [SessionsController, 'index'])
   router.get('/sessions/:id', [SessionsController, 'show'])
 
-  // Orders — NEW
-  router.get('/orders', [OrdersController, 'index'])
-  router.get('/orders/stats', [OrdersController, 'stats'])
-  router.post('/orders', [OrdersController, 'store'])
-  router.get('/orders/:id', [OrdersController, 'show'])
-  router.put('/orders/:id', [OrdersController, 'update'])
-  router.delete('/orders/:id', [OrdersController, 'destroy'])
+  // ── DISABLED: Orders (frontend removed) ──
+  // router.get('/orders', [OrdersController, 'index'])
+  // router.get('/orders/stats', [OrdersController, 'stats'])
+  // router.post('/orders', [OrdersController, 'store'])
+  // router.get('/orders/:id', [OrdersController, 'show'])
+  // router.put('/orders/:id', [OrdersController, 'update'])
+  // router.delete('/orders/:id', [OrdersController, 'destroy'])
 
   // Scheduled Livestreams — NEW
   router.get('/schedules', [SchedulesController, 'index'])
@@ -133,14 +133,14 @@ router.group(() => {
   router.put('/schedules/:id', [SchedulesController, 'update'])
   router.delete('/schedules/:id', [SchedulesController, 'destroy'])
 
-  // Webhooks
-  router.get('/webhooks', [WebhooksController, 'index'])
-  router.post('/webhooks', [WebhooksController, 'store'])
-  router.put('/webhooks/:id', [WebhooksController, 'update'])
-  router.delete('/webhooks/:id', [WebhooksController, 'destroy'])
+  // ── DISABLED: Webhooks (frontend removed) ──
+  // router.get('/webhooks', [WebhooksController, 'index'])
+  // router.post('/webhooks', [WebhooksController, 'store'])
+  // router.put('/webhooks/:id', [WebhooksController, 'update'])
+  // router.delete('/webhooks/:id', [WebhooksController, 'destroy'])
 
-  // Activity Logs
-  router.get('/activity-logs', [ActivityLogsController, 'index'])
+  // ── DISABLED: Activity Logs (frontend removed) ──
+  // router.get('/activity-logs', [ActivityLogsController, 'index'])
 
   // Post-Live Report
   router.get('/sessions/:id/report', async ({ auth, params, response }) => {
@@ -159,68 +159,34 @@ router.group(() => {
     return response.json(report)
   })
 
-  // Inventory
-  router.get('/inventory/low-stock', async ({ auth, request, response }) => {
-    const { checkLowStock } = await import('#services/inventory_service')
-    const { shopId } = request.qs()
-    const Shop = (await import('#models/shop')).default
-    const shops = await Shop.query().where('userId', auth.user!.id).select('id')
-    const userShopIds = shops.map(s => s.id)
-    const targetShopId = Number(shopId) || userShopIds[0]
-    if (!userShopIds.includes(targetShopId)) return response.forbidden({ error: 'Access denied' })
-    const products = await checkLowStock(targetShopId)
-    return response.json(products)
-  })
+  // ── DISABLED: Inventory (frontend removed) ──
+  // router.get('/inventory/low-stock', async ({ auth, request, response }) => { ... })
+  // router.put('/products/:id/stock', async ({ auth, params, request, response }) => { ... })
+  // router.get('/inventory/stats', [ProductsController, 'stats'])
+  // router.post('/products/:id/adjust-stock', [ProductsController, 'adjustStock'])
+  // router.get('/products/:id/stock-history', [ProductsController, 'stockHistory'])
+  // router.post('/products/import', [ProductsController, 'importCsv'])
+  // router.get('/products/export', [ProductsController, 'exportCsv'])
 
-  router.put('/products/:id/stock', async ({ auth, params, request, response }) => {
-    const { action, quantity = 1 } = request.only(['action', 'quantity'])
-    const Product = (await import('#models/product')).default
-    const Shop = (await import('#models/shop')).default
-    const product = await Product.find(params.id)
-    if (!product) return response.notFound({ error: 'Product not found' })
-    const shop = await Shop.query().where('id', product.shopId).where('userId', auth.user!.id).first()
-    if (!shop) return response.forbidden({ error: 'Access denied' })
-    const { deductStock, addStock } = await import('#services/inventory_service')
-    const { logActivity, Actions } = await import('#services/activity_log_service')
-    if (action === 'deduct') {
-      const updated = await deductStock(product.id, Number(quantity))
-      await logActivity({ shopId: product.shopId, userId: auth.user!.id, action: Actions.STOCK_DEDUCTED, entityType: 'Product', entityId: product.id, details: { quantity, remaining: updated.stock } })
-      return response.json(updated)
-    } else if (action === 'add') {
-      const updated = await addStock(product.id, Number(quantity))
-      return response.json(updated)
-    }
-    return response.badRequest({ error: 'action must be "deduct" or "add"' })
-  })
+  // ── DISABLED: Product Variants (frontend removed) ──
+  // router.get('/products/:productId/variants', [ProductsController, 'getVariants'])
+  // router.post('/products/:productId/variants', [ProductsController, 'createVariant'])
+  // router.put('/products/:productId/variants/:variantId', [ProductsController, 'updateVariant'])
+  // router.delete('/products/:productId/variants/:variantId', [ProductsController, 'deleteVariant'])
 
-  // Inventory — extended routes
-  router.get('/inventory/stats', [ProductsController, 'stats'])
-  router.post('/products/:id/adjust-stock', [ProductsController, 'adjustStock'])
-  router.get('/products/:id/stock-history', [ProductsController, 'stockHistory'])
-  router.post('/products/import', [ProductsController, 'importCsv'])
-  router.get('/products/export', [ProductsController, 'exportCsv'])
-
-  // Product Variants
-  router.get('/products/:productId/variants', [ProductsController, 'getVariants'])
-  router.post('/products/:productId/variants', [ProductsController, 'createVariant'])
-  router.put('/products/:productId/variants/:variantId', [ProductsController, 'updateVariant'])
-  router.delete('/products/:productId/variants/:variantId', [ProductsController, 'deleteVariant'])
-
-  // Shipping
-  router.get('/shipments', [ShipmentsController, 'index'])
-  router.post('/shipments', [ShipmentsController, 'store'])
-  router.get('/shipments/stats', [ShipmentsController, 'stats'])
-  router.get('/shipments/:id', [ShipmentsController, 'show'])
-  router.put('/shipments/:id/status', [ShipmentsController, 'updateStatus'])
-  router.get('/shipments/:id/tracking', [ShipmentsController, 'tracking'])
-  router.delete('/shipments/:id', [ShipmentsController, 'destroy'])
-
-  // Carrier config (self-service)
-  router.get('/shipping/config', [ShipmentsController, 'getConfig'])
-  router.put('/shipping/config', [ShipmentsController, 'saveConfig'])
-  router.post('/shipping/test-connection', [ShipmentsController, 'testConnection'])
-  router.post('/shipping/calculate-fee', [ShipmentsController, 'calculateFee'])
-  router.get('/shipping/carriers', [ShipmentsController, 'getCarriers'])
+  // ── DISABLED: Shipping (frontend removed) ──
+  // router.get('/shipments', [ShipmentsController, 'index'])
+  // router.post('/shipments', [ShipmentsController, 'store'])
+  // router.get('/shipments/stats', [ShipmentsController, 'stats'])
+  // router.get('/shipments/:id', [ShipmentsController, 'show'])
+  // router.put('/shipments/:id/status', [ShipmentsController, 'updateStatus'])
+  // router.get('/shipments/:id/tracking', [ShipmentsController, 'tracking'])
+  // router.delete('/shipments/:id', [ShipmentsController, 'destroy'])
+  // router.get('/shipping/config', [ShipmentsController, 'getConfig'])
+  // router.put('/shipping/config', [ShipmentsController, 'saveConfig'])
+  // router.post('/shipping/test-connection', [ShipmentsController, 'testConnection'])
+  // router.post('/shipping/calculate-fee', [ShipmentsController, 'calculateFee'])
+  // router.get('/shipping/carriers', [ShipmentsController, 'getCarriers'])
 
   // Profile & Password
   router.put('/auth/profile', async ({ auth, request, response }: any) => {
