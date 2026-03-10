@@ -33,6 +33,7 @@ export default class RegisterUserAction {
     const user = await User.create({
       email,
       password,
+      name: displayName,
       fullName: displayName,
       role: 'user',
     })

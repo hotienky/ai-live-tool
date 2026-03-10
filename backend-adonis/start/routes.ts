@@ -11,6 +11,8 @@ import { middleware } from '#start/kernel'
 const AuthController = () => import('#controllers/auth_controller')
 const ShopsController = () => import('#controllers/shops_controller')
 const ProductsController = () => import('#controllers/products_controller')
+const CategoriesController = () => import('#controllers/categories_controller')
+const BrandsController = () => import('#controllers/brands_controller')
 const ShipmentsController = () => import('#controllers/shipments_controller')
 const KeywordsController = () => import('#controllers/keywords_controller')
 const TemplatesController = () => import('#controllers/templates_controller')
@@ -22,9 +24,15 @@ const SessionsController = () => import('#controllers/sessions_controller')
 const ExportsController = () => import('#controllers/exports_controller')
 const RepliesController = () => import('#controllers/replies_controller')
 const OrdersController = () => import('#controllers/orders_controller')
+const CartsController = () => import('#controllers/carts_controller')
 const SchedulesController = () => import('#controllers/schedules_controller')
 const NotificationsController = () => import('#controllers/notifications_controller')
 const WebhooksController = () => import('#controllers/webhooks_controller')
+const ShopCustomersController = () => import('#controllers/shop_customers_controller')
+const PromotionsController = () => import('#controllers/promotions_controller')
+const CmsPagesController = () => import('#controllers/cms_pages_controller')
+const BannersNewController = () => import('#controllers/banners_controller')
+const NavLinksController = () => import('#controllers/nav_links_controller')
 const ActivityLogsController = () => import('#controllers/activity_logs_controller')
 
 // ──── Health Check ────
@@ -81,6 +89,18 @@ router.group(() => {
   router.put('/products/:id', [ProductsController, 'update'])
   router.delete('/products/:id', [ProductsController, 'destroy'])
 
+  // Categories
+  router.get('/categories', [CategoriesController, 'index'])
+  router.post('/categories', [CategoriesController, 'store'])
+  router.put('/categories/:id', [CategoriesController, 'update'])
+  router.delete('/categories/:id', [CategoriesController, 'destroy'])
+
+  // Brands
+  router.get('/brands', [BrandsController, 'index'])
+  router.post('/brands', [BrandsController, 'store'])
+  router.put('/brands/:id', [BrandsController, 'update'])
+  router.delete('/brands/:id', [BrandsController, 'destroy'])
+
   // Leads
   router.get('/leads', [LeadsController, 'index'])
   router.get('/leads/stats', [LeadsController, 'pipelineStats']).as('leads.stats')
@@ -118,13 +138,26 @@ router.group(() => {
   router.get('/sessions', [SessionsController, 'index'])
   router.get('/sessions/:id', [SessionsController, 'show'])
 
-  // ── DISABLED: Orders (frontend removed) ──
-  // router.get('/orders', [OrdersController, 'index'])
-  // router.get('/orders/stats', [OrdersController, 'stats'])
-  // router.post('/orders', [OrdersController, 'store'])
-  // router.get('/orders/:id', [OrdersController, 'show'])
-  // router.put('/orders/:id', [OrdersController, 'update'])
-  // router.delete('/orders/:id', [OrdersController, 'destroy'])
+  // ── Orders (S-Cart aligned) ──
+  router.get('/orders', [OrdersController, 'index'])
+  router.get('/orders/stats', [OrdersController, 'stats'])
+  router.post('/orders', [OrdersController, 'store'])
+  router.get('/orders/:id', [OrdersController, 'show'])
+  router.put('/orders/:id', [OrdersController, 'update'])
+  router.delete('/orders/:id', [OrdersController, 'destroy'])
+  router.get('/orders/:id/details', [OrdersController, 'getDetails'])
+  router.get('/orders/:id/totals', [OrdersController, 'getTotals'])
+  router.get('/orders/:id/history', [OrdersController, 'getHistory'])
+  router.put('/orders/:id/status', [OrdersController, 'updateStatus'])
+  router.get('/order-statuses', [OrdersController, 'getOrderStatuses'])
+  router.get('/payment-statuses', [OrdersController, 'getPaymentStatuses'])
+
+  // ── Cart (S-Cart aligned) ──
+  router.get('/cart', [CartsController, 'show'])
+  router.post('/cart/items', [CartsController, 'addItem'])
+  router.put('/cart/items/:productId', [CartsController, 'updateItem'])
+  router.delete('/cart/items/:productId', [CartsController, 'removeItem'])
+  router.post('/cart/checkout', [CartsController, 'checkout'])
 
   // Scheduled Livestreams — NEW
   router.get('/schedules', [SchedulesController, 'index'])
@@ -133,7 +166,47 @@ router.group(() => {
   router.put('/schedules/:id', [SchedulesController, 'update'])
   router.delete('/schedules/:id', [SchedulesController, 'destroy'])
 
-  // ── DISABLED: Webhooks (frontend removed) ──
+  // ── Shop Customers (S-Cart: ShopCustomer) ──
+  router.get('/shop-customers', [ShopCustomersController, 'index'])
+  router.post('/shop-customers', [ShopCustomersController, 'store'])
+  router.get('/shop-customers/:id', [ShopCustomersController, 'show'])
+  router.put('/shop-customers/:id', [ShopCustomersController, 'update'])
+  router.delete('/shop-customers/:id', [ShopCustomersController, 'destroy'])
+  router.get('/shop-customers/:customerId/addresses', [ShopCustomersController, 'listAddresses'])
+  router.post('/shop-customers/:customerId/addresses', [ShopCustomersController, 'addAddress'])
+  router.put('/shop-customers/:customerId/addresses/:id', [ShopCustomersController, 'updateAddress'])
+  router.delete('/shop-customers/:customerId/addresses/:id', [ShopCustomersController, 'deleteAddress'])
+
+  // ── Promotions + Coupons ──
+  router.get('/promotions', [PromotionsController, 'index'])
+  router.post('/promotions', [PromotionsController, 'store'])
+  router.delete('/promotions/:productId', [PromotionsController, 'destroyPromotion'])
+  router.get('/coupons', [PromotionsController, 'listCoupons'])
+  router.post('/coupons', [PromotionsController, 'storeCoupon'])
+  router.put('/coupons/:id', [PromotionsController, 'updateCoupon'])
+  router.delete('/coupons/:id', [PromotionsController, 'destroyCoupon'])
+  router.post('/coupons/validate', [PromotionsController, 'validateCoupon'])
+
+  // ── CMS Pages (S-Cart: FrontPage) ──
+  router.get('/cms-pages', [CmsPagesController, 'index'])
+  router.post('/cms-pages', [CmsPagesController, 'store'])
+  router.get('/cms-pages/:id', [CmsPagesController, 'show'])
+  router.put('/cms-pages/:id', [CmsPagesController, 'update'])
+  router.delete('/cms-pages/:id', [CmsPagesController, 'destroy'])
+
+  // ── Banners (S-Cart: FrontBanner) ──
+  router.get('/banners', [BannersNewController, 'index'])
+  router.post('/banners', [BannersNewController, 'store'])
+  router.put('/banners/:id', [BannersNewController, 'update'])
+  router.delete('/banners/:id', [BannersNewController, 'destroy'])
+
+  // ── Nav Links (S-Cart: FrontLink) ──
+  router.get('/nav-links', [NavLinksController, 'index'])
+  router.get('/nav-links/flat', [NavLinksController, 'flat'])
+  router.post('/nav-links', [NavLinksController, 'store'])
+  router.put('/nav-links/:id', [NavLinksController, 'update'])
+  router.delete('/nav-links/:id', [NavLinksController, 'destroy'])
+  router.post('/nav-links/reorder', [NavLinksController, 'reorder'])
   // router.get('/webhooks', [WebhooksController, 'index'])
   // router.post('/webhooks', [WebhooksController, 'store'])
   // router.put('/webhooks/:id', [WebhooksController, 'update'])

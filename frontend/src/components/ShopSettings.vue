@@ -219,6 +219,55 @@
         </div>
       </div>
 
+      <!-- ═══ Tab: Categories ═══ -->
+      <div v-if="activeTab === 'categories'" class="settings__panel">
+        <h3 class="settings__panel-title"><FolderTree :size="16" style="vertical-align:middle" /> Danh mục ({{ categoryList.length }})</h3>
+        <div class="settings__add-row">
+          <input v-model="newCategory.name" placeholder="Tên danh mục" class="settings__input settings__input--flex" />
+          <input v-model="newCategory.description" placeholder="Mô tả (tuỳ chọn)" class="settings__input settings__input--flex" />
+          <button class="settings__add-btn" @click="addCategory">
+            <Plus :size="14" /> Thêm
+          </button>
+        </div>
+        <div class="settings__list">
+          <div v-for="cat in categoryList" :key="cat.id" class="settings__list-item">
+            <span class="settings__item-name">{{ cat.name }}</span>
+            <span class="settings__item-slug">{{ cat.slug }}</span>
+            <span v-if="cat.description" class="settings__item-desc">{{ cat.description }}</span>
+            <span class="settings__item-badge" :class="cat.isActive || cat.is_active ? 'badge--active' : 'badge--inactive'">
+              {{ (cat.isActive || cat.is_active) ? 'Hiện' : 'Ẩn' }}
+            </span>
+            <button class="settings__del-btn" @click="removeCategory(cat.id)">
+              <Trash2 :size="12" />
+            </button>
+          </div>
+          <p v-if="categoryList.length === 0" class="settings__empty-list">Chưa có danh mục</p>
+        </div>
+      </div>
+
+      <!-- ═══ Tab: Brands ═══ -->
+      <div v-if="activeTab === 'brands'" class="settings__panel">
+        <h3 class="settings__panel-title"><Award :size="16" style="vertical-align:middle" /> Thương hiệu ({{ brandList.length }})</h3>
+        <div class="settings__add-row">
+          <input v-model="newBrand.name" placeholder="Tên thương hiệu" class="settings__input settings__input--flex" />
+          <input v-model="newBrand.description" placeholder="Mô tả (tuỳ chọn)" class="settings__input settings__input--flex" />
+          <button class="settings__add-btn" @click="addBrand">
+            <Plus :size="14" /> Thêm
+          </button>
+        </div>
+        <div class="settings__list">
+          <div v-for="br in brandList" :key="br.id" class="settings__list-item">
+            <span class="settings__item-name">{{ br.name }}</span>
+            <span class="settings__item-slug">{{ br.slug }}</span>
+            <span v-if="br.description" class="settings__item-desc">{{ br.description }}</span>
+            <button class="settings__del-btn" @click="removeBrand(br.id)">
+              <Trash2 :size="12" />
+            </button>
+          </div>
+          <p v-if="brandList.length === 0" class="settings__empty-list">Chưa có thương hiệu</p>
+        </div>
+      </div>
+
       <!-- ═══ Tab: Keywords ═══ -->
       <div v-if="activeTab === 'keywords'" class="settings__panel">
         <h3 class="settings__panel-title">🔑 Keywords Alert ({{ keywords.length }})</h3>
@@ -339,6 +388,31 @@
         </button>
       </div>
 
+      <!-- ═══ Tab: Shop Customers ═══ -->
+      <div v-if="activeTab === 'shop-customers'" class="settings__panel">
+        <CustomerManager :shopId="currentShop?.id" />
+      </div>
+
+      <!-- ═══ Tab: Promotions + Coupons ═══ -->
+      <div v-if="activeTab === 'promotions'" class="settings__panel">
+        <PromotionManager :shopId="currentShop?.id" />
+      </div>
+
+      <!-- ═══ Tab: CMS Pages ═══ -->
+      <div v-if="activeTab === 'cms'" class="settings__panel">
+        <CmsManager :shopId="currentShop?.id" />
+      </div>
+
+      <!-- ═══ Tab: Banners ═══ -->
+      <div v-if="activeTab === 'banners'" class="settings__panel">
+        <BannerManager :shopId="currentShop?.id" />
+      </div>
+
+      <!-- ═══ Tab: Nav Links ═══ -->
+      <div v-if="activeTab === 'nav-links'" class="settings__panel">
+        <NavLinkManager :shopId="currentShop?.id" />
+      </div>
+
 
     </div>
   </div>
@@ -350,9 +424,17 @@ import {
   Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
-  Music, BookOpen, Video, ShoppingCart, ClipboardList
+  Music, BookOpen, Video, ShoppingCart, ClipboardList,
+  FolderTree, Award, Users, Tag
 } from 'lucide-vue-next'
+import CustomerManager from './CustomerManager.vue'
+import PromotionManager from './PromotionManager.vue'
+import CmsManager from './CmsManager.vue'
+import BannerManager from './BannerManager.vue'
+import NavLinkManager from './NavLinkManager.vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useCategories } from '../composables/useCategories.js'
+import { useBrands } from '../composables/useBrands.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
@@ -367,16 +449,23 @@ const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'keywords', 'replies', 'moderation', 'appearance']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'cms', 'banners', 'nav-links']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
 const tabs = [
   { key: 'connection', label: 'Kết nối', icon: Link },
   { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
+  { key: 'categories', label: 'Danh mục', icon: FolderTree },
+  { key: 'brands', label: 'Thương hiệu', icon: Award },
   { key: 'keywords', label: 'Keywords', icon: Key },
   { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
   { key: 'moderation', label: 'Moderation', icon: Shield },
+  { key: 'shop-customers', label: 'Khách hàng', icon: Users },
+  { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
+  { key: 'cms', label: 'Trang CMS', icon: BookOpen },
+  { key: 'banners', label: 'Banner', icon: Video },
+  { key: 'nav-links', label: 'Menu', icon: ClipboardList },
 ]
 const allTabs = [
   ...tabs,
@@ -394,6 +483,14 @@ const shopForm = ref({
 // Products
 const products = ref([])
 const newProduct = ref({ name: '', price: '', keywords: '', category: '' })
+
+// Categories
+const { categories: categoryList, fetchCategories, createCategory, deleteCategory: deleteCategoryApi } = useCategories()
+const newCategory = ref({ name: '', description: '' })
+
+// Brands
+const { brands: brandList, fetchBrands, createBrand, deleteBrand: deleteBrandApi } = useBrands()
+const newBrand = ref({ name: '', description: '' })
 
 // Keywords
 const keywords = ref([])
@@ -493,6 +590,48 @@ async function deleteProduct(id) {
   }
 }
 
+// ── Category handlers ──
+async function addCategory() {
+  if (!newCategory.value.name || !props.currentShop) return
+  try {
+    await createCategory({ ...newCategory.value, shopId: props.currentShop.id })
+    newCategory.value = { name: '', description: '' }
+    showToast('Đã thêm danh mục', 'success')
+  } catch (e) {
+    showToast('Lỗi thêm danh mục: ' + (e.message || 'Unknown'), 'error')
+  }
+}
+async function removeCategory(id) {
+  if (!confirm('Xóa danh mục này?')) return
+  try {
+    await deleteCategoryApi(id)
+    showToast('Đã xóa danh mục', 'success')
+  } catch (e) {
+    showToast('Lỗi xóa danh mục: ' + (e.message || 'Unknown'), 'error')
+  }
+}
+
+// ── Brand handlers ──
+async function addBrand() {
+  if (!newBrand.value.name || !props.currentShop) return
+  try {
+    await createBrand({ ...newBrand.value, shopId: props.currentShop.id })
+    newBrand.value = { name: '', description: '' }
+    showToast('Đã thêm thương hiệu', 'success')
+  } catch (e) {
+    showToast('Lỗi thêm thương hiệu: ' + (e.message || 'Unknown'), 'error')
+  }
+}
+async function removeBrand(id) {
+  if (!confirm('Xóa thương hiệu này?')) return
+  try {
+    await deleteBrandApi(id)
+    showToast('Đã xóa thương hiệu', 'success')
+  } catch (e) {
+    showToast('Lỗi xóa thương hiệu: ' + (e.message || 'Unknown'), 'error')
+  }
+}
+
 async function adjustStock(productId, action, quantity) {
   try {
     const res = await apiFetch(`/products/${productId}/adjust-stock`, {
@@ -578,6 +717,9 @@ onMounted(() => {
       rateLimitEnabled: props.currentShop.moderation_rate_limit ?? false,
       maxPerMinute: props.currentShop.moderation_max_per_minute ?? 5,
     }
+    // Load categories & brands
+    fetchCategories(props.currentShop.id)
+    fetchBrands(props.currentShop.id)
   }
 })
 
@@ -745,6 +887,19 @@ defineExpose({ handleAutoReplyEvent })
   font-size: 11px; font-weight: 600; color: #818cf8;
   background: rgba(129, 140, 248, 0.1); padding: 2px 8px; border-radius: 4px;
 }
+.settings__item-slug {
+  font-size: 11px; color: var(--color-text-muted); font-family: 'SF Mono', monospace;
+  background: var(--color-bg-secondary); padding: 2px 6px; border-radius: 4px;
+}
+.settings__item-desc {
+  font-size: 12px; color: var(--color-text-secondary); flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+}
+.settings__item-badge {
+  font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+}
+.badge--active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.badge--inactive { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .settings__item-type { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
 .settings__item-reply { flex: 1; font-size: 12px; color: var(--color-text-secondary); }
 .settings__item-sku {

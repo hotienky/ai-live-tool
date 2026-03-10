@@ -27,15 +27,33 @@ import {
   StockHistorySchema,
   ShipmentSchema,
   ShipmentHistorySchema,
+  ScheduledLivestreamSchema,
 } from '../schema.js'
 import Order from '#models/order'
-import ScheduledLivestream from '#models/scheduled_livestream'
 import hash from '@adonisjs/core/services/hash'
 import { DateTime } from 'luxon'
-import { randomUUID } from 'node:crypto'
 
 export default class FullSeeder extends BaseSeeder {
   async run() {
+    // Set table names explicitly — schema.ts is auto-generated and doesn't include them
+    UserSchema.table = 'users'
+    ShopSchema.table = 'shops'
+    LivestreamSessionSchema.table = 'livestream_sessions'
+    CustomerSchema.table = 'customers'
+    ChatLogSchema.table = 'chat_logs'
+    LeadSchema.table = 'leads'
+    ProductSchema.table = 'products'
+    ProductVariantSchema.table = 'product_variants'
+    ShopKeywordSchema.table = 'shop_keywords'
+    AutoReplyTemplateSchema.table = 'auto_reply_templates'
+    NotificationSchema.table = 'notifications'
+    WebhookSchema.table = 'webhooks'
+    ActivityLogSchema.table = 'activity_logs'
+    StockHistorySchema.table = 'stock_history'
+    ShipmentSchema.table = 'shipments'
+    ShipmentHistorySchema.table = 'shipment_history'
+    ScheduledLivestreamSchema.table = 'scheduled_livestreams'
+
     const force = process.env.SEED_FORCE === '1'
 
     // ═══════════════════════════════════════════════════
@@ -52,8 +70,8 @@ export default class FullSeeder extends BaseSeeder {
 
     const hashedPw = await hash.make('123456')
     const [user] = await UserSchema.createMany([
-      { fullName: 'Demo User', email: 'demo@demo.com', password: hashedPw, role: 'admin' },
-      { fullName: 'Nhân viên A', email: 'staff@demo.com', password: hashedPw, role: 'staff' },
+      { name: 'demo', fullName: 'Demo User', email: 'demo@demo.com', password: hashedPw, role: 'admin' },
+      { name: 'staff', fullName: 'Nhân viên A', email: 'staff@demo.com', password: hashedPw, role: 'staff' },
     ])
     console.log('👤 Users seeded')
 
@@ -63,19 +81,12 @@ export default class FullSeeder extends BaseSeeder {
     const [shop1, shop2] = await ShopSchema.createMany([
       {
         shopName: 'Baby Shop Sữa Mẹ',
-        userId: user.id,
         platform: 'tiktok',
         tiktokUsername: 'babyshop_suame',
         facebookPageId: 'demo_fb_page',
-        facebookAccessToken: 'demo_fb_token',
-        youtubeChannel: 'UCdemo',
-        youtubeApiKey: 'demo_yt_key',
-        shopeeShopId: 'shopee_123',
-        shopeePartnerId: 'partner_123',
-        shopeePartnerKey: 'key_123',
-        shopeeShopIdApi: 'api_123',
+        youtubeChannelId: 'UCdemo',
+        shopeeId: 'shopee_123',
         isActive: true,
-        autoReplyEnabled: true,
         moderationBlacklist: 'spam\nquảng cáo\nfake',
         moderationHideSpam: true,
         moderationRateLimit: true,
@@ -92,13 +103,10 @@ export default class FullSeeder extends BaseSeeder {
       },
       {
         shopName: 'Thời Trang Trẻ Em',
-        userId: user.id,
         platform: 'facebook',
         tiktokUsername: '',
         facebookPageId: 'fb_fashion_page',
-        facebookAccessToken: 'demo_fb_token_2',
         isActive: true,
-        autoReplyEnabled: false,
         moderationHideSpam: true,
         moderationRateLimit: false,
         moderationMaxPerMinute: 10,
@@ -116,50 +124,50 @@ export default class FullSeeder extends BaseSeeder {
     const products = await ProductSchema.createMany([
       {
         shopId: shop1.id, name: 'Sữa Meiji 0-1 tuổi', price: 450000,
-        keywords: 'meiji,sữa meiji,meiji 0-1', description: 'Sữa Meiji Nhật Bản cho bé 0-1 tuổi, lon 800g',
-        isActive: true, stock: 150, sku: 'MEIJI-01-800', lowStockThreshold: 10,
+        keywords: JSON.stringify(['meiji', 'sữa meiji', 'meiji 0-1']), description: 'Sữa Meiji Nhật Bản cho bé 0-1 tuổi, lon 800g',
+        isActive: true, stock: 150, sku: 'MEIJI-01-800',
         costPrice: 380000, category: 'Sữa bột', unit: 'lon', barcode: '8901234567890',
       },
       {
         shopId: shop1.id, name: 'Sữa Nan Optipro 2', price: 520000,
-        keywords: 'nan,sữa nan,nan optipro', description: 'Sữa Nan Optipro số 2 cho bé 6-12 tháng',
-        isActive: true, stock: 85, sku: 'NAN-02-900', lowStockThreshold: 15,
+        keywords: JSON.stringify(['nan', 'sữa nan', 'nan optipro']), description: 'Sữa Nan Optipro số 2 cho bé 6-12 tháng',
+        isActive: true, stock: 85, sku: 'NAN-02-900',
         costPrice: 430000, category: 'Sữa bột', unit: 'lon', barcode: '8901234567891',
       },
       {
         shopId: shop1.id, name: 'Bỉm Merries size M', price: 320000,
-        keywords: 'bỉm,merries,bỉm merries', description: 'Bỉm Merries size M 64 miếng',
-        isActive: true, stock: 200, sku: 'MER-M-64', lowStockThreshold: 20,
+        keywords: JSON.stringify(['bỉm', 'merries', 'bỉm merries']), description: 'Bỉm Merries size M 64 miếng',
+        isActive: true, stock: 200, sku: 'MER-M-64',
         costPrice: 260000, category: 'Bỉm tã', unit: 'gói', barcode: '8901234567892',
       },
       {
         shopId: shop1.id, name: 'Bình sữa Pigeon 240ml', price: 185000,
-        keywords: 'bình sữa,pigeon,bình pigeon', description: 'Bình sữa Pigeon cổ rộng 240ml',
-        isActive: true, stock: 45, sku: 'PIG-240', lowStockThreshold: 10,
+        keywords: JSON.stringify(['bình sữa', 'pigeon', 'bình pigeon']), description: 'Bình sữa Pigeon cổ rộng 240ml',
+        isActive: true, stock: 45, sku: 'PIG-240',
         costPrice: 120000, category: 'Phụ kiện', unit: 'cái', barcode: '8901234567893',
       },
       {
         shopId: shop1.id, name: 'Combo Sữa Meiji + Bỉm', price: 720000,
-        keywords: 'combo,combo meiji', description: 'Combo tiết kiệm: 1 lon Meiji + 1 gói Merries M',
-        isActive: true, stock: 30, sku: 'COMBO-MB-01', lowStockThreshold: 5,
+        keywords: JSON.stringify(['combo', 'combo meiji']), description: 'Combo tiết kiệm: 1 lon Meiji + 1 gói Merries M',
+        isActive: true, stock: 30, sku: 'COMBO-MB-01',
         costPrice: 600000, category: 'Combo', unit: 'bộ',
       },
       {
         shopId: shop1.id, name: 'Sữa tắm Johnson Baby', price: 95000,
-        keywords: 'sữa tắm,johnson', description: 'Sữa tắm Johnson Baby 500ml Top-to-Toe',
-        isActive: true, stock: 8, sku: 'JB-500', lowStockThreshold: 10,
+        keywords: JSON.stringify(['sữa tắm', 'johnson']), description: 'Sữa tắm Johnson Baby 500ml Top-to-Toe',
+        isActive: true, stock: 8, sku: 'JB-500',
         costPrice: 65000, category: 'Chăm sóc', unit: 'chai',
       },
       {
         shopId: shop2.id, name: 'Áo thun cho bé trai', price: 120000,
-        keywords: 'áo thun,áo bé trai', description: 'Áo thun cotton 100% cho bé 1-5 tuổi',
-        isActive: true, stock: 300, sku: 'AT-BOY-01', lowStockThreshold: 30,
+        keywords: JSON.stringify(['áo thun', 'áo bé trai']), description: 'Áo thun cotton 100% cho bé 1-5 tuổi',
+        isActive: true, stock: 300, sku: 'AT-BOY-01',
         costPrice: 55000, category: 'Áo', unit: 'cái',
       },
       {
         shopId: shop2.id, name: 'Quần short bé gái', price: 95000,
-        keywords: 'quần short,quần bé gái', description: 'Quần short jean bé gái 2-6 tuổi',
-        isActive: true, stock: 0, sku: 'QS-GIRL-01', lowStockThreshold: 20,
+        keywords: JSON.stringify(['quần short', 'quần bé gái']), description: 'Quần short jean bé gái 2-6 tuổi',
+        isActive: true, stock: 0, sku: 'QS-GIRL-01',
         costPrice: 40000, category: 'Quần', unit: 'cái',
       },
     ])
@@ -188,9 +196,9 @@ export default class FullSeeder extends BaseSeeder {
     await ShopKeywordSchema.createMany([
       { shopId: shop1.id, keyword: 'mua', alertType: 'highlight', color: '#ff3b5c', isActive: true },
       { shopId: shop1.id, keyword: 'giá', alertType: 'highlight', color: '#f59e0b', isActive: true },
-      { shopId: shop1.id, keyword: 'đặt hàng', alertType: 'auto_reply', color: '#10b981', autoReplyText: 'Dạ chị ơi, mình inbox chị ngay nhé! 💚', isActive: true },
+      { shopId: shop1.id, keyword: 'đặt hàng', alertType: 'auto_reply', color: '#10b981', isActive: true },
       { shopId: shop1.id, keyword: 'ship', alertType: 'highlight', color: '#3b82f6', isActive: true },
-      { shopId: shop1.id, keyword: 'combo', alertType: 'auto_reply', color: '#8b5cf6', autoReplyText: 'Combo đang giảm 15% ạ! Mình inbox chi tiết ngay nhé 🎉', isActive: true },
+      { shopId: shop1.id, keyword: 'combo', alertType: 'auto_reply', color: '#8b5cf6', isActive: true },
       { shopId: shop1.id, keyword: 'sdt', alertType: 'highlight', color: '#ef4444', isActive: true },
       { shopId: shop2.id, keyword: 'size', alertType: 'highlight', color: '#06b6d4', isActive: true },
       { shopId: shop2.id, keyword: 'mẫu mới', alertType: 'highlight', color: '#ec4899', isActive: true },
@@ -201,11 +209,11 @@ export default class FullSeeder extends BaseSeeder {
     // 5. AUTO-REPLY TEMPLATES
     // ═══════════════════════════════════════════════════
     await AutoReplyTemplateSchema.createMany([
-      { shopId: shop1.id, triggerLabel: 'HOT', templateText: 'Cảm ơn {{nickname}} quan tâm ạ! Mình inbox bạn ngay nhé 💌', isActive: true },
-      { shopId: shop1.id, triggerLabel: 'HOT', templateText: 'Dạ {{nickname}} ơi, sản phẩm còn hàng ạ! Mình tư vấn chi tiết qua inbox nha 🛒', isActive: true },
-      { shopId: shop1.id, triggerLabel: 'WARM', templateText: 'Chào {{nickname}}! Bạn muốn mình tư vấn thêm không ạ? 😊', isActive: true },
-      { shopId: shop1.id, triggerLabel: 'keyword', templateText: 'Cảm ơn {{nickname}}! Shop đang có chương trình ưu đãi đặc biệt nhé 🎁', isActive: true },
-      { shopId: shop2.id, triggerLabel: 'HOT', templateText: 'Hi {{nickname}}! Inbox mình ngay để được tư vấn size nhé ❤️', isActive: true },
+      { shopId: shop1.id, name: 'HOT - Quan tâm', triggerLabel: 'HOT', template: 'Cảm ơn {{nickname}} quan tâm ạ! Mình inbox bạn ngay nhé 💌', isActive: true },
+      { shopId: shop1.id, name: 'HOT - Còn hàng', triggerLabel: 'HOT', template: 'Dạ {{nickname}} ơi, sản phẩm còn hàng ạ! Mình tư vấn chi tiết qua inbox nha 🛒', isActive: true },
+      { shopId: shop1.id, name: 'WARM - Tư vấn', triggerLabel: 'WARM', template: 'Chào {{nickname}}! Bạn muốn mình tư vấn thêm không ạ? 😊', isActive: true },
+      { shopId: shop1.id, name: 'Keyword - Ưu đãi', triggerLabel: 'keyword', template: 'Cảm ơn {{nickname}}! Shop đang có chương trình ưu đãi đặc biệt nhé 🎁', isActive: true },
+      { shopId: shop2.id, name: 'HOT - Tư vấn size', triggerLabel: 'HOT', template: 'Hi {{nickname}}! Inbox mình ngay để được tư vấn size nhé ❤️', isActive: true },
     ])
     console.log('💬 Auto-reply templates seeded')
 
@@ -248,22 +256,22 @@ export default class FullSeeder extends BaseSeeder {
     const now = DateTime.now()
     const sessions = await LivestreamSessionSchema.createMany([
       {
-        shopId: shop1.id, platform: 'tiktok', roomId: 'room_1001', title: 'Live bán sữa Meiji giá sốc!',
+        shopId: shop1.id, platform: 'tiktok', roomId: 'room_1001',
         status: 'ended', viewerCount: 1250, commentCount: 340, hotLeadCount: 28,
         startedAt: now.minus({ days: 1, hours: 3 }), endedAt: now.minus({ days: 1, hours: 1 }),
       },
       {
-        shopId: shop1.id, platform: 'tiktok', roomId: 'room_1002', title: 'Flash sale Bỉm Merries + Quà tặng',
+        shopId: shop1.id, platform: 'tiktok', roomId: 'room_1002',
         status: 'ended', viewerCount: 890, commentCount: 215, hotLeadCount: 15,
         startedAt: now.minus({ days: 3 }), endedAt: now.minus({ days: 3 }).plus({ hours: 2 }),
       },
       {
-        shopId: shop1.id, platform: 'facebook', roomId: 'fb_live_001', title: 'Review sữa mới nhất 2026',
+        shopId: shop1.id, platform: 'facebook', roomId: 'fb_live_001',
         status: 'ended', viewerCount: 560, commentCount: 142, hotLeadCount: 12,
         startedAt: now.minus({ days: 7 }), endedAt: now.minus({ days: 7 }).plus({ hours: 1, minutes: 30 }),
       },
       {
-        shopId: shop2.id, platform: 'tiktok', roomId: 'room_2001', title: 'Đồ hè bé trai - Giảm 30%',
+        shopId: shop2.id, platform: 'tiktok', roomId: 'room_2001',
         status: 'ended', viewerCount: 420, commentCount: 95, hotLeadCount: 8,
         startedAt: now.minus({ days: 2 }), endedAt: now.minus({ days: 2 }).plus({ hours: 1 }),
       },
@@ -501,22 +509,22 @@ export default class FullSeeder extends BaseSeeder {
     // ═══════════════════════════════════════════════════
     // 11. SCHEDULED LIVESTREAMS
     // ═══════════════════════════════════════════════════
-    await ScheduledLivestream.createMany([
+    await ScheduledLivestreamSchema.createMany([
       {
-        id: randomUUID(), shopId: String(shop1.id), title: 'Sale sữa cuối tuần - Giảm 20%',
+        shopId: shop1.id, title: 'Sale sữa cuối tuần - Giảm 20%',
         description: 'Giảm giá toàn bộ sữa bột nhập khẩu, free ship từ 500k',
         platform: 'tiktok', productIds: JSON.stringify([products[0].id, products[1].id, products[4].id]),
         script: '1. Mở đầu: Chào mọi người! Hôm nay sale sốc!\n2. Giới thiệu Meiji → NAN → Combo\n3. Đếm ngược flash sale\n4. Q&A từ chat\n5. Kết: Cảm ơn & reminder follow',
         status: 'scheduled', scheduledAt: now.plus({ days: 2, hours: 14 }), durationMinutes: 120,
       },
       {
-        id: randomUUID(), shopId: String(shop1.id), title: 'Review bỉm Merries vs Bobby',
+        shopId: shop1.id, title: 'Review bỉm Merries vs Bobby',
         description: 'So sánh chi tiết 2 loại bỉm phổ biến nhất',
         platform: 'facebook', productIds: JSON.stringify([products[2].id]),
         status: 'scheduled', scheduledAt: now.plus({ days: 5, hours: 20 }), durationMinutes: 90,
       },
       {
-        id: randomUUID(), shopId: String(shop2.id), title: 'Đồ hè mới về - Siêu cute',
+        shopId: shop2.id, title: 'Đồ hè mới về - Siêu cute',
         platform: 'tiktok', productIds: JSON.stringify([products[6].id, products[7].id]),
         status: 'scheduled', scheduledAt: now.plus({ days: 1, hours: 19 }), durationMinutes: 60,
       },
@@ -540,9 +548,9 @@ export default class FullSeeder extends BaseSeeder {
     // 13. WEBHOOKS
     // ═══════════════════════════════════════════════════
     await WebhookSchema.createMany([
-      { shopId: shop1.id, url: 'https://hooks.example.com/live-events', events: 'hot_lead,order_created', isActive: true, secret: 'whsec_demo123' },
-      { shopId: shop1.id, url: 'https://hooks.example.com/orders', events: 'order_created,order_shipped', isActive: true, secret: 'whsec_demo456' },
-      { shopId: shop1.id, url: 'https://old.example.com/webhook', events: 'hot_lead', isActive: false, secret: 'whsec_old', lastStatus: 500 },
+      { shopId: shop1.id, url: 'https://hooks.example.com/live-events', events: JSON.stringify(['hot_lead', 'order_created']), isActive: true, secret: 'whsec_demo123' },
+      { shopId: shop1.id, url: 'https://hooks.example.com/orders', events: JSON.stringify(['order_created', 'order_shipped']), isActive: true, secret: 'whsec_demo456' },
+      { shopId: shop1.id, url: 'https://old.example.com/webhook', events: JSON.stringify(['hot_lead']), isActive: false, secret: 'whsec_old', lastStatus: 500 },
     ])
     console.log('🪝 Webhooks seeded')
 

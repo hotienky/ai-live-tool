@@ -5,22 +5,11 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      if (!this.schema.hasColumn(this.tableName, 'shipping_config')) {
-        table.jsonb('shipping_config').nullable()
-        // Format: { ghn: { token, shopId }, ghtk: { token }, viettelPost: { token } }
-      }
-      if (!this.schema.hasColumn(this.tableName, 'default_carrier')) {
-        table.string('default_carrier').defaultTo('manual')
-      }
-      if (!this.schema.hasColumn(this.tableName, 'sender_name')) {
-        table.string('sender_name').nullable()
-      }
-      if (!this.schema.hasColumn(this.tableName, 'sender_phone')) {
-        table.string('sender_phone').nullable()
-      }
-      if (!this.schema.hasColumn(this.tableName, 'sender_address')) {
-        table.string('sender_address').nullable()
-      }
+      table.jsonb('shipping_config').nullable()
+      table.string('default_carrier').defaultTo('manual')
+      table.string('sender_name').nullable()
+      table.string('sender_phone').nullable()
+      table.string('sender_address').nullable()
     })
   }
 

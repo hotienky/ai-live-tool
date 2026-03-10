@@ -5,18 +5,10 @@ export default class extends BaseSchema {
 
   async up() {
     this.schema.alterTable(this.tableName, (table) => {
-      if (!this.schema.hasColumn(this.tableName, 'cost_price')) {
-        table.decimal('cost_price', 12, 2).nullable()
-      }
-      if (!this.schema.hasColumn(this.tableName, 'category')) {
-        table.string('category').nullable()
-      }
-      if (!this.schema.hasColumn(this.tableName, 'unit')) {
-        table.string('unit').defaultTo('cái')
-      }
-      if (!this.schema.hasColumn(this.tableName, 'barcode')) {
-        table.string('barcode').nullable().unique()
-      }
+      table.decimal('cost_price', 12, 2).nullable()
+      table.string('category').nullable()
+      table.string('unit').defaultTo('cái')
+      table.string('barcode').nullable().unique()
     })
   }
 
