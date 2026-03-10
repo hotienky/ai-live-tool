@@ -159,11 +159,8 @@ router.group(() => {
     return response.json(report)
   })
 
-  // ── DISABLED: Inventory (frontend removed) ──
-  // router.get('/inventory/low-stock', async ({ auth, request, response }) => { ... })
-  // router.put('/products/:id/stock', async ({ auth, params, request, response }) => { ... })
-  // router.get('/inventory/stats', [ProductsController, 'stats'])
-  // router.post('/products/:id/adjust-stock', [ProductsController, 'adjustStock'])
+  // ── Inventory: stock adjustment (used by ShopSettings product tab) ──
+  router.post('/products/:id/adjust-stock', [ProductsController, 'adjustStock'])
   // router.get('/products/:id/stock-history', [ProductsController, 'stockHistory'])
   // router.post('/products/import', [ProductsController, 'importCsv'])
   // router.get('/products/export', [ProductsController, 'exportCsv'])

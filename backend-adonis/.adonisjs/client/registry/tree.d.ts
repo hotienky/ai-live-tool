@@ -30,15 +30,7 @@ export interface ApiDefinition {
     store: typeof routes['products.store']
     update: typeof routes['products.update']
     destroy: typeof routes['products.destroy']
-    stats: typeof routes['products.stats']
     adjustStock: typeof routes['products.adjust_stock']
-    stockHistory: typeof routes['products.stock_history']
-    importCsv: typeof routes['products.import_csv']
-    exportCsv: typeof routes['products.export_csv']
-    getVariants: typeof routes['products.get_variants']
-    createVariant: typeof routes['products.create_variant']
-    updateVariant: typeof routes['products.update_variant']
-    deleteVariant: typeof routes['products.delete_variant']
   }
   leads: {
     index: typeof routes['leads.index']
@@ -77,43 +69,12 @@ export interface ApiDefinition {
     index: typeof routes['sessions.index']
     show: typeof routes['sessions.show']
   }
-  orders: {
-    index: typeof routes['orders.index']
-    stats: typeof routes['orders.stats']
-    store: typeof routes['orders.store']
-    show: typeof routes['orders.show']
-    update: typeof routes['orders.update']
-    destroy: typeof routes['orders.destroy']
-  }
   schedules: {
     index: typeof routes['schedules.index']
     store: typeof routes['schedules.store']
     show: typeof routes['schedules.show']
     update: typeof routes['schedules.update']
     destroy: typeof routes['schedules.destroy']
-  }
-  webhooks: {
-    index: typeof routes['webhooks.index']
-    store: typeof routes['webhooks.store']
-    update: typeof routes['webhooks.update']
-    destroy: typeof routes['webhooks.destroy']
-  }
-  activityLogs: {
-    index: typeof routes['activity_logs.index']
-  }
-  shipments: {
-    index: typeof routes['shipments.index']
-    store: typeof routes['shipments.store']
-    stats: typeof routes['shipments.stats']
-    show: typeof routes['shipments.show']
-    updateStatus: typeof routes['shipments.update_status']
-    tracking: typeof routes['shipments.tracking']
-    destroy: typeof routes['shipments.destroy']
-    getConfig: typeof routes['shipments.get_config']
-    saveConfig: typeof routes['shipments.save_config']
-    testConnection: typeof routes['shipments.test_connection']
-    calculateFee: typeof routes['shipments.calculate_fee']
-    getCarriers: typeof routes['shipments.get_carriers']
   }
   exports: {
     leads: typeof routes['exports.leads']

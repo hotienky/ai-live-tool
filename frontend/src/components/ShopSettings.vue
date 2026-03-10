@@ -5,38 +5,10 @@
         <Settings :size="20" />
         Cài đặt Shop
       </h2>
-      <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name }}</span>
+      <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name || currentShop.shopName }}</span>
     </div>
 
-    <div v-if="!currentShop && activeTab !== 'appearance'" class="settings__body">
-      <div class="settings__tabs">
-        <button
-          v-for="tab in allTabs"
-          :key="tab.key"
-          class="settings__tab"
-          :class="{ 'settings__tab--active': activeTab === tab.key }"
-          @click="activeTab = tab.key"
-          :disabled="tab.key !== 'appearance' && !currentShop"
-          :title="tab.key !== 'appearance' && !currentShop ? 'Chọn shop trước để mở tab này' : tab.label"
-        >
-          <component :is="tab.icon" :size="14" />
-          {{ tab.label }}
-          <Lock v-if="tab.key !== 'appearance' && !currentShop" :size="10" class="settings__tab-lock" />
-        </button>
-      </div>
-      <div class="settings__empty">
-        <div class="settings__empty-icon">
-          <Store :size="40" />
-        </div>
-        <h3 class="settings__empty-title">Chưa chọn Shop</h3>
-        <p class="settings__empty-desc">Chọn một shop từ header để bắt đầu cấu hình kết nối, sản phẩm, keywords, và auto-reply.</p>
-        <button class="settings__empty-cta" @click="$emit('openShopSelector')">
-          <Store :size="14" />
-          Chọn Shop ngay
-        </button>
-        <p class="settings__empty-hint">Hoặc chuyển sang tab <strong>Giao diện</strong> để tùy chỉnh theme</p>
-      </div>
-    </div>
+
 
     <!-- Appearance — always visible -->
     <div class="settings__body" v-if="activeTab === 'appearance'">
@@ -108,7 +80,7 @@
       </div>
     </div>
 
-    <div v-if="currentShop && activeTab !== 'appearance'" class="settings__body">
+    <div v-if="activeTab !== 'appearance'" class="settings__body">
       <!-- Tab Switcher -->
       <div class="settings__tabs">
         <button
@@ -213,6 +185,7 @@
         <div class="settings__add-row">
           <input v-model="newProduct.name" placeholder="Tên sản phẩm" class="settings__input settings__input--flex" />
           <input v-model="newProduct.price" type="number" placeholder="Giá" class="settings__input settings__input--sm" />
+          <input v-model="newProduct.category" placeholder="Danh mục" class="settings__input settings__input--sm" />
           <input v-model="newProduct.keywords" placeholder="Keywords (phân cách bằng dấu phẩy)" class="settings__input settings__input--flex" />
           <button class="settings__add-btn" @click="addProduct">
             <Plus :size="14" /> Thêm
@@ -221,8 +194,9 @@
         <div class="settings__list">
           <div v-for="p in products" :key="p.id" class="settings__list-item">
             <span class="settings__item-name">{{ p.name }}</span>
+            <span class="settings__item-category" v-if="p.category">{{ p.category }}</span>
             <span class="settings__item-price">{{ Number(p.price || 0).toLocaleString() }}đ</span>
-            <span class="settings__item-kw">{{ p.keywords }}</span>
+            <span class="settings__item-kw">{{ Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || '') }}</span>
             <span class="settings__item-sku" v-if="p.sku">SKU: {{ p.sku }}</span>
             <span class="settings__item-stock" :class="{ 'low-stock': (p.stock || 0) <= (p.lowStockThreshold || p.low_stock_threshold || 5) }">
               <Package :size="12" />
@@ -419,7 +393,7 @@ const shopForm = ref({
 
 // Products
 const products = ref([])
-const newProduct = ref({ name: '', price: '', keywords: '' })
+const newProduct = ref({ name: '', price: '', keywords: '', category: '' })
 
 // Keywords
 const keywords = ref([])
@@ -500,9 +474,12 @@ async function addProduct() {
       method: 'POST',
       body: JSON.stringify({ ...newProduct.value, shopId: props.currentShop.id }),
     })
-    newProduct.value = { name: '', price: '', keywords: '' }
+    newProduct.value = { name: '', price: '', keywords: '', category: '' }
     await loadProducts(props.currentShop.id)
-  } catch (e) { console.error(e) }
+    showToast('Đã thêm sản phẩm', 'success')
+  } catch (e) {
+    showToast('Lỗi thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
+  }
 }
 
 async function deleteProduct(id) {
@@ -510,15 +487,19 @@ async function deleteProduct(id) {
   try {
     await apiFetch(`/products/${id}`, { method: 'DELETE' })
     await loadProducts(props.currentShop.id)
-  } catch (e) { console.error(e) }
+    showToast('Đã xóa sản phẩm', 'success')
+  } catch (e) {
+    showToast('Lỗi xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
+  }
 }
 
 async function adjustStock(productId, action, quantity) {
   try {
-    const updated = await apiFetch(`/products/${productId}/stock`, {
-      method: 'PUT',
+    const res = await apiFetch(`/products/${productId}/adjust-stock`, {
+      method: 'POST',
       body: JSON.stringify({ action, quantity })
     })
+    const updated = await res.json()
     if (updated) {
       const idx = products.value.findIndex(p => p.id === productId)
       if (idx !== -1) {
@@ -760,6 +741,10 @@ defineExpose({ handleAutoReplyEvent })
 .settings__item-name { font-weight: 600; flex: 1; }
 .settings__item-price { color: #10b981; font-weight: 700; }
 .settings__item-kw { color: var(--color-text-muted); font-size: 12px; flex: 1; }
+.settings__item-category {
+  font-size: 11px; font-weight: 600; color: #818cf8;
+  background: rgba(129, 140, 248, 0.1); padding: 2px 8px; border-radius: 4px;
+}
 .settings__item-type { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
 .settings__item-reply { flex: 1; font-size: 12px; color: var(--color-text-secondary); }
 .settings__item-sku {

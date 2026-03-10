@@ -4,9 +4,22 @@ import FindOrCreateShopAction from '#actions/shops/find_or_create_shop_action'
 
 export default class ShopsController {
   async index({ auth, response }: HttpContext) {
-    const shops = await Shop.query()
+    let shops = await Shop.query()
       .where('userId', auth.user!.id)
       .orderBy('created_at', 'desc')
+
+    // 1 user = 1 shop: auto-create if user has no shop yet
+    if (shops.length === 0) {
+      const user = auth.user!
+      const shop = await Shop.create({
+        userId: user.id,
+        shopName: `${user.fullName || user.email.split('@')[0]}'s Shop`,
+        platform: 'tiktok',
+        isActive: true,
+      })
+      shops = [shop]
+    }
+
     return response.json(shops)
   }
 

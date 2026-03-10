@@ -47,13 +47,10 @@
 
       <!-- Row 2: Shop + Live Controls (contextual) -->
       <div class="app-header__row2">
-        <ShopSelector
-          ref="shopSelectorRef"
-          :shops="shops"
-          :currentShop="currentShop"
-          @select="onSelectShop"
-          @create="onCreateShop"
-        />
+        <!-- Shop Name (auto-loaded, 1 user = 1 shop) -->
+        <div class="app-header__shop-info" v-if="currentShop">
+          <span class="app-header__shop-name">{{ currentShop.shop_name || currentShop.shopName }}</span>
+        </div>
         <div class="app-header__status" v-if="activeView === 'live'">
           <span class="app-header__dot" :class="statusDotClass"></span>
           <span class="app-header__status-text">{{ statusText }}</span>
@@ -74,7 +71,7 @@
           <button class="app-header__icon-btn" :class="{ active: showHistory }" @click="showHistory = !showHistory" title="Lịch sử">
             <History :size="15" />
           </button>
-          <button class="app-header__icon-btn" @click="onExport" :disabled="!currentShop" title="Export CSV">
+          <button class="app-header__icon-btn" @click="onExport" title="Export CSV">
             <Download :size="15" />
           </button>
           <div class="app-header__divider"></div>
@@ -230,7 +227,7 @@ import { logger } from './utils/logger.js'
 import { useSocket } from './composables/useSocket.js'
 import { useShops } from './composables/useShops.js'
 import { useTTS } from './composables/useTTS.js'
-import ShopSelector from './components/ShopSelector.vue'
+import ShopSelector from './components/ShopSelector.vue' // keep import for potential future use
 import LeadPanel from './components/LeadPanel.vue'
 import ChatStream from './components/ChatStream.vue'
 import StatsBar from './components/StatsBar.vue'
@@ -326,7 +323,7 @@ const showQuickReply = ref(false)
 const quickReplyTarget = ref(null)
 const notifCenter = ref(null)
 const chatStreamRef = ref(null)
-const shopSelectorRef = ref(null)
+const shopSelectorRef = ref(null) // kept for compatibility
 const showShortcuts = ref(false)
 const showLiveModal = ref(false)
 
@@ -636,6 +633,22 @@ const statusText = computed(() => {
 }
 
 .app-header__spacer { flex: 1; }
+
+.app-header__shop-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--color-bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+.app-header__shop-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
 
 .app-header__status {
   display: flex;

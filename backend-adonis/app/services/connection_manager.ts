@@ -2,6 +2,7 @@
  * ConnectionManager — Quản lý nhiều kết nối Livestream đồng thời
  */
 import type { Server as SocketIOServer } from 'socket.io'
+import { DateTime } from 'luxon'
 import { analyzeComment } from '#services/ai_service'
 import { sendHotLeadAlert } from '#services/telegram_service'
 import { matchProduct } from '#services/product_match_service'
@@ -86,7 +87,7 @@ class ConnectionManager {
       try {
         const session = await LivestreamSession.create({
           shopId, platform, roomId: state.roomId, status: 'live',
-          viewerCount: state.viewerCount, commentCount: 0, hotLeadCount: 0, startedAt: new Date() as any,
+          viewerCount: state.viewerCount, commentCount: 0, hotLeadCount: 0, startedAt: DateTime.now(),
         })
         connInfo.sessionId = session.id
 
@@ -412,7 +413,7 @@ class ConnectionManager {
     try {
       const session = await LivestreamSession.create({
         shopId, platform: mockPlatform, status: 'live', viewerCount: mockViewers,
-        commentCount: 0, hotLeadCount: 0, startedAt: new Date() as any,
+        commentCount: 0, hotLeadCount: 0, startedAt: DateTime.now(),
       })
       connInfo.sessionId = session.id
     } catch (e: any) { console.error(`⚠️ Mock session error:`, e.message) }
@@ -435,7 +436,7 @@ class ConnectionManager {
           session.status = 'ended'
           session.commentCount = conn.stats.total
           session.hotLeadCount = conn.stats.hot
-          session.endedAt = new Date() as any
+          session.endedAt = DateTime.now()
           await session.save()
         }
 

@@ -1,4 +1,5 @@
 import User from '#models/user'
+import Shop from '#models/shop'
 
 interface Params {
   email: string
@@ -10,6 +11,7 @@ interface Result {
   error?: string
   token?: string
   user?: { id: number; email: string; fullName: string; role: string }
+  shop?: { id: number; shopName: string }
 }
 
 export default class RegisterUserAction {
@@ -26,11 +28,21 @@ export default class RegisterUserAction {
       return { error: 'Email đã được đăng ký' }
     }
 
+    const displayName = fullName || email.split('@')[0]
+
     const user = await User.create({
       email,
       password,
-      fullName: fullName || email.split('@')[0],
+      fullName: displayName,
       role: 'user',
+    })
+
+    // Auto-create default shop for the new user (1 user = 1 shop)
+    const shop = await Shop.create({
+      userId: user.id,
+      shopName: `${displayName}'s Shop`,
+      platform: 'tiktok',
+      isActive: true,
     })
 
     const token = await User.accessTokens.create(user)
@@ -39,6 +51,7 @@ export default class RegisterUserAction {
     return {
       token: tokenValue,
       user: { id: user.id, email: user.email, fullName: user.fullName || '', role: user.role },
+      shop: { id: shop.id, shopName: shop.shopName },
     }
   }
 }

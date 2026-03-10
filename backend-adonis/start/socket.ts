@@ -2,6 +2,7 @@
  * Socket.IO Setup — Attached after HTTP server starts
  */
 import { Server as SocketIOServer } from 'socket.io'
+import { Secret } from '@adonisjs/core/helpers'
 import connectionManager from '#services/connection_manager'
 import { SUPPORTED_PLATFORMS } from '#services/connectors'
 import User from '#models/user'
@@ -29,7 +30,7 @@ export function setupSocketIO(httpServer: any) {
       if (!token) return next(new Error('Authentication required'))
 
       // Verify token via AdonisJS access tokens
-      const accessToken = await User.accessTokens.verify(new User(), token)
+      const accessToken = await User.accessTokens.verify(new Secret(token))
       if (!accessToken) return next(new Error('Invalid token'))
 
       // Attach user info to socket for authorization

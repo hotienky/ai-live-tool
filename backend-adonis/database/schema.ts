@@ -337,7 +337,7 @@ export class ProductSchema extends BaseModel {
   declare price: number | null
 
   @column()
-  declare keywords: string | null
+  declare keywords: string[] | null
 
   @column()
   declare description: string | null

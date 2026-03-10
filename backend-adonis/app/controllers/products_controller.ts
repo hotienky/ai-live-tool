@@ -28,20 +28,33 @@ export default class ProductsController {
       'shopId', 'name', 'price', 'keywords', 'description', 'imageUrl',
       'sku', 'stock', 'lowStockThreshold', 'costPrice', 'category', 'unit', 'barcode',
     ])
-    if (!data.name) return response.badRequest({ error: 'name is required' })
+    if (!data.name) return response.badRequest({ error: 'Tên sản phẩm là bắt buộc' })
     if (data.shopId && !userShopIds.includes(String(data.shopId))) {
       return response.forbidden({ error: 'Shop not found' })
     }
-    const product = await Product.create({
-      ...data,
-      stock: Number(data.stock) || 0,
-      lowStockThreshold: Number(data.lowStockThreshold) || 5,
-      isActive: true,
-    })
 
-    try { await logActivity({ shopId: Number(data.shopId), userId: auth.user!.id, action: Actions.PRODUCT_CREATED, entityType: 'Product', entityId: product.id, details: { name: product.name } }) } catch { /* best-effort */ }
+    // Convert keywords: comma-separated string → array for PostgreSQL varchar[]
+    if (typeof data.keywords === 'string' && data.keywords.trim()) {
+      data.keywords = data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+    } else if (!data.keywords) {
+      data.keywords = null
+    }
 
-    return response.json(product)
+    try {
+      const product = await Product.create({
+        ...data,
+        stock: Number(data.stock) || 0,
+        lowStockThreshold: Number(data.lowStockThreshold) || 5,
+        isActive: true,
+      })
+
+      try { await logActivity({ shopId: Number(data.shopId), userId: auth.user!.id, action: Actions.PRODUCT_CREATED, entityType: 'Product', entityId: product.id, details: { name: product.name } }) } catch { /* best-effort */ }
+
+      return response.json(product)
+    } catch (err: any) {
+      console.error('Product create error:', err.message)
+      return response.internalServerError({ error: 'Không thể tạo sản phẩm: ' + err.message })
+    }
   }
 
   async update({ auth, params, request, response }: HttpContext) {
@@ -51,10 +64,18 @@ export default class ProductsController {
       .whereIn('shop_id', userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
-    product.merge(request.only([
+
+    const data = request.only([
       'name', 'price', 'keywords', 'description', 'imageUrl', 'isActive',
       'sku', 'costPrice', 'category', 'unit', 'barcode', 'lowStockThreshold',
-    ]))
+    ])
+
+    // Convert keywords: comma-separated string → array for PostgreSQL varchar[]
+    if (typeof data.keywords === 'string' && data.keywords.trim()) {
+      data.keywords = data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+    }
+
+    product.merge(data)
     await product.save()
     return response.json(product)
   }
