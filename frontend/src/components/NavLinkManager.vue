@@ -92,7 +92,7 @@ import { useToast } from '../composables/useToast.js'
 import { Menu } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { links, loading, fetchLinks, createLink, updateLink, deleteLink } = useNavLinks(apiFetch)
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const filterGroup = ref('')
 const showModal = ref(false)
@@ -102,9 +102,8 @@ const form = ref({ name: '', url: '', group: 'menu', type: 'single', collectionI
 
 const collectionLinks = computed(() => links.value.filter(l => l.type === 'collection'))
 
-function reload() { fetchLinks({ shopId: props.shopId, ...(filterGroup.value ? { group: filterGroup.value } : {}) }) }
+function reload() { fetchLinks({ ...(filterGroup.value ? { group: filterGroup.value } : {}) }) }
 onMounted(reload)
-watch(() => props.shopId, reload)
 
 function openCreate() {
   isEditing.value = false; editId.value = null
@@ -123,7 +122,7 @@ async function handleSave() {
       await updateLink(editId.value, form.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createLink({ ...form.value, storeId: props.shopId })
+      await createLink({ ...form.value,  })
       showToast('✅ Đã tạo', 'success')
     }
     showModal.value = false; reload()

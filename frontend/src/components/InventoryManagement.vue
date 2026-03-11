@@ -312,7 +312,7 @@ import {
 } from 'lucide-vue-next'
 const { showToast } = useToast()
 
-const props = defineProps({ shopId: [Number, String] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const products = ref([])
 const invStats = ref({ totalProducts: 0, totalStockValue: 0, totalCostValue: 0, lowStockCount: 0, outOfStockCount: 0, inStockCount: 0 })
@@ -424,7 +424,6 @@ watch([filterCategory, filterStock], () => { currentPage.value = 1 })
 async function fetchProducts() {
   try {
     let url = `/products?`
-    if (props.shopId) url += `shopId=${props.shopId}&`
     if (searchTerm.value) url += `search=${searchTerm.value}&`
     const res = await apiFetch(url)
     products.value = await res.json()
@@ -434,7 +433,6 @@ async function fetchProducts() {
 async function fetchStats() {
   try {
     let url = `/inventory/stats`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     invStats.value = await res.json()
   } catch { /* silent */ }
@@ -517,7 +515,7 @@ async function saveProduct() {
     } else {
       await apiFetch('/products', {
         method: 'POST',
-        body: JSON.stringify({ ...productForm.value, shopId: props.shopId }),
+        body: JSON.stringify({ ...productForm.value }),
       })
       showToast('Đã thêm sản phẩm', 'success')
     }
@@ -572,7 +570,6 @@ async function openHistoryModal(product) {
 async function exportProducts() {
   try {
     let url = `/products/export`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     const blob = await res.blob()
     const a = document.createElement('a')
@@ -617,7 +614,7 @@ async function submitImport() {
   try {
     const res = await apiFetch('/products/import', {
       method: 'POST',
-      body: JSON.stringify({ shopId: props.shopId, products: importPreview.value }),
+      body: JSON.stringify({ products: importPreview.value }),
     })
     const result = await res.json()
     showToast(`Đã nhập ${result.created} sản phẩm (${result.errors} lỗi)`, result.errors > 0 ? 'warning' : 'success')

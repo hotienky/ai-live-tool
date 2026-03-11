@@ -4,13 +4,16 @@ import ProductsPage from './views/ProductsPage.vue'
 import ProductDetailPage from './views/ProductDetailPage.vue'
 import CmsPage from './views/CmsPage.vue'
 
+/**
+ * Storefront Routes — Multi-Tenant Mode
+ * No /:storeId prefix needed. Tenant is resolved by subdomain.
+ */
 const routes = [
-  { path: '/:storeId', name: 'home', component: HomePage, props: true },
-  { path: '/:storeId/products', name: 'products', component: ProductsPage, props: true },
-  { path: '/:storeId/product/:productId', name: 'product-detail', component: ProductDetailPage, props: true },
-  { path: '/:storeId/category/:categoryId', name: 'category', component: ProductsPage, props: true },
-  { path: '/:storeId/page/:pageId', name: 'cms-page', component: CmsPage, props: true },
-  { path: '/', redirect: '/1' },
+  { path: '/', name: 'home', component: HomePage },
+  { path: '/products', name: 'products', component: ProductsPage },
+  { path: '/product/:productId', name: 'product-detail', component: ProductDetailPage, props: true },
+  { path: '/category/:categoryId', name: 'category', component: ProductsPage, props: true },
+  { path: '/page/:pageId', name: 'cms-page', component: CmsPage, props: true },
 ]
 
 const router = createRouter({

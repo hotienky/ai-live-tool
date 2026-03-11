@@ -50,7 +50,7 @@ import { useToast } from '../composables/useToast.js'
 import { Award, Edit3, Trash2 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const brands = ref([])
 const showModal = ref(false)
@@ -61,8 +61,7 @@ const form = ref(defaultForm())
 function defaultForm() { return { name: '', slug: '', description: '', image: '' } }
 
 async function fetchBrands() {
-  if (!props.shopId) return
-  try { const res = await apiFetch(`/brands?shopId=${props.shopId}`); brands.value = await res.json() }
+  try { const res = await apiFetch(`/brands`); brands.value = await res.json() }
   catch { brands.value = [] }
 }
 
@@ -75,7 +74,7 @@ function openEdit(b) {
 async function handleSave() {
   if (!form.value.name) return
   try {
-    const body = { ...form.value, shopId: props.shopId }
+    const body = { ...form.value }
     if (isEditing.value) {
       await apiFetch(`/brands/${editId.value}`, { method: 'PUT', body: JSON.stringify(body) })
       showToast('Đã cập nhật thương hiệu', 'success')
@@ -94,7 +93,6 @@ async function handleDelete(b) {
 }
 
 onMounted(() => fetchBrands())
-watch(() => props.shopId, () => fetchBrands())
 </script>
 
 <style scoped>

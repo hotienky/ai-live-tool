@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/${storeId}/product/${product.id}`" class="product-card">
+  <router-link :to="'/product/${product.id}`" class="product-card">
     <div class="product-card__image">
       <img v-if="product.image" :src="product.image" :alt="product.name" loading="lazy" />
       <div v-else class="product-card__placeholder">
@@ -34,7 +34,7 @@ import { Package, Eye } from 'lucide-vue-next'
 
 const props = defineProps({
   product: { type: Object, required: true },
-  storeId: { type: [String, Number], required: true },
+  
 })
 
 const isOnSale = computed(() => {

@@ -3,7 +3,7 @@
     <router-link
       v-for="cat in categories"
       :key="cat.id"
-      :to="`/${storeId}/category/${cat.id}`"
+      :to="'/category/${cat.id}`"
       class="category-card"
     >
       <div class="category-card__icon">
@@ -21,7 +21,7 @@ import { FolderOpen, ArrowRight } from 'lucide-vue-next'
 
 defineProps({
   categories: { type: Array, default: () => [] },
-  storeId: { type: [String, Number], required: true },
+  
 })
 </script>
 

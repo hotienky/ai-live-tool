@@ -163,7 +163,7 @@ import {
 import { apiFetch } from '../composables/useApi.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 
-const props = defineProps({ shopId: { type: String, default: null } })
+const props = defineProps({ /* tenant-scoped */ })
 
 const selectedDaysStr = useUrlParam('days', '7')
 const selectedDays = computed({
@@ -214,7 +214,7 @@ function formatDate(d) {
 
 async function loadAll() {
   loading.value = true
-  const params = `shopId=${props.shopId || ''}&days=${selectedDays.value}`
+  const params = `days=${selectedDays.value}`
   try {
     const [sumRes, dailyRes, hourlyRes, convRes, kwRes] = await Promise.all([
       apiFetch(`/analytics/summary?${params}`),

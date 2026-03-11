@@ -191,7 +191,7 @@ import {
 import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
-  shopId: { type: String, default: null },
+  /* tenant-scoped */,
 })
 
 const { leads, leadStats, loading, fetchLeads, fetchLeadStats, updateLead } = useLeads()
@@ -295,7 +295,7 @@ async function onDrop(colKey) {
 
   try {
     await updateLead(leadId, { status: colKey })
-    await fetchLeadStats(props.shopId)
+    await fetchLeadStats()
     showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
   } catch (e) {
     console.error('drop moveLead error:', e)
@@ -307,7 +307,7 @@ async function moveLead(leadId, newStatus) {
   const toLabel = columns.find(c => c.key === newStatus)?.label || newStatus
   try {
     await updateLead(leadId, { status: newStatus })
-    await fetchLeadStats(props.shopId)
+    await fetchLeadStats()
     showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
   } catch (e) {
     console.error('moveLead error:', e)
@@ -323,7 +323,7 @@ async function saveLeadDetails() {
       staff_notes: editNotes.value,
       product_intent: editProductIntent.value,
     })
-    await fetchLeadStats(props.shopId)
+    await fetchLeadStats()
     selectedLead.value = null
   } catch (e) {
     console.error('saveLead error:', e)
@@ -376,7 +376,6 @@ function copyLeadInfo() {
 async function fetchProducts() {
   try {
     let url = '/products'
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     const data = await res.json()
     products.value = Array.isArray(data) ? data : (data.data || [])
@@ -385,13 +384,12 @@ async function fetchProducts() {
 
 async function loadData() {
   await Promise.all([
-    fetchLeads(props.shopId),
-    fetchLeadStats(props.shopId),
+    fetchLeads(),
+    fetchLeadStats(),
     fetchProducts(),
   ])
 }
 
-watch(() => props.shopId, loadData)
 onMounted(loadData)
 </script>
 

@@ -144,7 +144,7 @@ const { showToast } = useToast()
 const emit = defineEmits(['startLive'])
 
 const props = defineProps({
-  shopId: [Number, String],
+  /* tenant-scoped */,
 })
 
 const schedules = ref([])
@@ -164,7 +164,6 @@ onMounted(fetchSchedules)
 async function fetchSchedules() {
   try {
     let url = `/schedules`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     schedules.value = await res.json()
   } catch { schedules.value = [] }
@@ -178,7 +177,7 @@ async function createSchedule() {
   try {
     await apiFetch('/schedules', {
       method: 'POST',
-      body: JSON.stringify({ ...form.value, shopId: props.shopId })
+      body: JSON.stringify({ ...form.value })
     })
     showModal.value = false
     form.value = { title: '', scheduledAt: '', durationMinutes: 60, platform: 'tiktok', script: '', description: '' }

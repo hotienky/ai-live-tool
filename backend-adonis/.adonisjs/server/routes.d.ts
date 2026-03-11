@@ -4,6 +4,18 @@ type ParamValue = string | number | bigint | boolean
 
 export type ScannedRoutes = {
   ALL: {
+    'master_auth.login': { paramsTuple?: []; params?: {} }
+    'master_auth.me': { paramsTuple?: []; params?: {} }
+    'master_auth.logout': { paramsTuple?: []; params?: {} }
+    'tenant.index': { paramsTuple?: []; params?: {} }
+    'tenant.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.store': { paramsTuple?: []; params?: {} }
+    'tenant.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.migrate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.seed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.me': { paramsTuple?: []; params?: {} }
@@ -176,6 +188,9 @@ export type ScannedRoutes = {
     'replies.sentiment': { paramsTuple?: []; params?: {} }
   }
   GET: {
+    'master_auth.me': { paramsTuple?: []; params?: {} }
+    'tenant.index': { paramsTuple?: []; params?: {} }
+    'tenant.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'shop_auth.me': { paramsTuple?: []; params?: {} }
     'storefront.products': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
@@ -258,6 +273,9 @@ export type ScannedRoutes = {
     'exports.report': { paramsTuple?: []; params?: {} }
   }
   HEAD: {
+    'master_auth.me': { paramsTuple?: []; params?: {} }
+    'tenant.index': { paramsTuple?: []; params?: {} }
+    'tenant.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.me': { paramsTuple?: []; params?: {} }
     'shop_auth.me': { paramsTuple?: []; params?: {} }
     'storefront.products': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
@@ -340,6 +358,13 @@ export type ScannedRoutes = {
     'exports.report': { paramsTuple?: []; params?: {} }
   }
   POST: {
+    'master_auth.login': { paramsTuple?: []; params?: {} }
+    'master_auth.logout': { paramsTuple?: []; params?: {} }
+    'tenant.store': { paramsTuple?: []; params?: {} }
+    'tenant.suspend': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.activate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.migrate': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'tenant.seed': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'auth.register': { paramsTuple?: []; params?: {} }
     'auth.login': { paramsTuple?: []; params?: {} }
     'shop_auth.register': { paramsTuple?: []; params?: {} }
@@ -378,6 +403,7 @@ export type ScannedRoutes = {
     'replies.sentiment': { paramsTuple?: []; params?: {} }
   }
   PUT: {
+    'tenant.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_auth.update_profile': { paramsTuple?: []; params?: {} }
     'shop_auth.change_password': { paramsTuple?: []; params?: {} }
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -409,6 +435,7 @@ export type ScannedRoutes = {
     'custom_fields.save_values': { paramsTuple: [ParamValue,ParamValue]; params: {'entityType': ParamValue,'entityId': ParamValue} }
   }
   DELETE: {
+    'tenant.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shops.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'keywords.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'shopId': ParamValue,'id': ParamValue} }
     'templates.destroy': { paramsTuple: [ParamValue,ParamValue]; params: {'shopId': ParamValue,'id': ParamValue} }

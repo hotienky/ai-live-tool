@@ -6,11 +6,10 @@ export function useBrands() {
   const loading = ref(false)
   const error = ref(null)
 
-  async function fetchBrands(shopId) {
+  async function fetchBrands() {
     loading.value = true
     try {
-      const params = shopId ? `?shopId=${shopId}` : ''
-      const res = await apiFetch(`/brands${params}`)
+      const res = await apiFetch('/brands')
       brands.value = await res.json()
     } catch (e) {
       error.value = e.message

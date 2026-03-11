@@ -2,7 +2,7 @@
   <div class="cms-page container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-      <router-link :to="`/${storeId}`">Trang chủ</router-link>
+      <router-link :to="'/'">Trang chủ</router-link>
       <ChevronRight :size="12" />
       <span>{{ page?.title || '...' }}</span>
     </nav>
@@ -32,7 +32,7 @@
     <div v-else class="cms-404">
       <FileQuestion :size="64" />
       <h2>Trang không tồn tại</h2>
-      <router-link :to="`/${storeId}`" class="btn btn--primary">
+      <router-link :to="'/'" class="btn btn--primary">
         <ArrowLeft :size="16" /> Về trang chủ
       </router-link>
     </div>
@@ -45,7 +45,7 @@ import { apiFetch } from '../api.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft } from 'lucide-vue-next'
 
 const props = defineProps({
-  storeId: { type: String, required: true },
+  
   pageId: { type: String, required: true },
 })
 
@@ -59,7 +59,7 @@ function formatDate(ts) {
 async function loadPage() {
   loading.value = true
   try {
-    page.value = await apiFetch(props.storeId, `/pages/${props.pageId}`)
+    page.value = await apiFetch(`/pages/${props.pageId}`)
     if (page.value?.title) {
       document.title = `${page.value.title} — Cửa hàng`
     }

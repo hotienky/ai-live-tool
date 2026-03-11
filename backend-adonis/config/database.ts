@@ -6,6 +6,7 @@ const dbConfig = defineConfig({
   connection: 'pg',
 
   connections: {
+    // Default tenant connection (will be dynamically patched per-request)
     pg: {
       client: 'pg',
       connection: {
@@ -21,7 +22,25 @@ const dbConfig = defineConfig({
       },
       debug: app.inDev,
     },
+
+    // Master DB — tenant registry, master users, plans
+    master: {
+      client: 'pg',
+      connection: {
+        host: env.get('DB_HOST', 'localhost'),
+        port: Number(env.get('DB_PORT', '5432')),
+        user: env.get('DB_USER', 'postgres'),
+        password: env.get('DB_PASSWORD', 'postgres'),
+        database: env.get('MASTER_DB_DATABASE', 'master_db'),
+      },
+      migrations: {
+        naturalSort: true,
+        paths: ['database/migrations/master'],
+      },
+      debug: app.inDev,
+    },
   },
 })
 
 export default dbConfig
+

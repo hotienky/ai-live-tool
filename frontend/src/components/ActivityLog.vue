@@ -64,7 +64,7 @@ import {
 } from 'lucide-vue-next'
 
 const props = defineProps({
-  shopId: { type: [Number, String], default: null }
+  /* tenant-scoped */
 })
 
 const logs = ref([])
@@ -76,7 +76,6 @@ async function loadLogs(page = 1) {
   loading.value = true
   try {
     const params = new URLSearchParams({ page: String(page), limit: '30' })
-    if (props.shopId) params.set('shopId', String(props.shopId))
     if (filterAction.value) params.set('action', filterAction.value)
     const res = await apiFetch(`/api/activity-logs?${params}`)
     if (res && res.data) {

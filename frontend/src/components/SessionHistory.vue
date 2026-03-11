@@ -102,7 +102,6 @@ import {
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
-  shopId: { type: String, default: null },
 })
 
 const emit = defineEmits(['close'])
@@ -139,9 +138,7 @@ function formatDuration(mins) {
 async function fetchSessions() {
   loading.value = true
   try {
-    const url = props.shopId
-      ? `/sessions?shopId=${props.shopId}&limit=50`
-      : `/sessions?limit=50`
+    const url = '/sessions?limit=50'
     const res = await apiFetch(url)
     sessions.value = await res.json()
   } catch (err) {

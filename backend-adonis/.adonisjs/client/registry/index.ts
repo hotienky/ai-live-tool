@@ -6,6 +6,78 @@ import type { ApiDefinition } from './tree.d.ts'
 const placeholder: any = {}
 
 const routes = {
+  'master_auth.login': {
+    methods: ["POST"],
+    pattern: '/api/master/auth/login',
+    tokens: [{"old":"/api/master/auth/login","type":0,"val":"api","end":""},{"old":"/api/master/auth/login","type":0,"val":"master","end":""},{"old":"/api/master/auth/login","type":0,"val":"auth","end":""},{"old":"/api/master/auth/login","type":0,"val":"login","end":""}],
+    types: placeholder as Registry['master_auth.login']['types'],
+  },
+  'master_auth.me': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/master/auth/me',
+    tokens: [{"old":"/api/master/auth/me","type":0,"val":"api","end":""},{"old":"/api/master/auth/me","type":0,"val":"master","end":""},{"old":"/api/master/auth/me","type":0,"val":"auth","end":""},{"old":"/api/master/auth/me","type":0,"val":"me","end":""}],
+    types: placeholder as Registry['master_auth.me']['types'],
+  },
+  'master_auth.logout': {
+    methods: ["POST"],
+    pattern: '/api/master/auth/logout',
+    tokens: [{"old":"/api/master/auth/logout","type":0,"val":"api","end":""},{"old":"/api/master/auth/logout","type":0,"val":"master","end":""},{"old":"/api/master/auth/logout","type":0,"val":"auth","end":""},{"old":"/api/master/auth/logout","type":0,"val":"logout","end":""}],
+    types: placeholder as Registry['master_auth.logout']['types'],
+  },
+  'tenant.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/master/tenants',
+    tokens: [{"old":"/api/master/tenants","type":0,"val":"api","end":""},{"old":"/api/master/tenants","type":0,"val":"master","end":""},{"old":"/api/master/tenants","type":0,"val":"tenants","end":""}],
+    types: placeholder as Registry['tenant.index']['types'],
+  },
+  'tenant.show': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/master/tenants/:id',
+    tokens: [{"old":"/api/master/tenants/:id","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['tenant.show']['types'],
+  },
+  'tenant.store': {
+    methods: ["POST"],
+    pattern: '/api/master/tenants',
+    tokens: [{"old":"/api/master/tenants","type":0,"val":"api","end":""},{"old":"/api/master/tenants","type":0,"val":"master","end":""},{"old":"/api/master/tenants","type":0,"val":"tenants","end":""}],
+    types: placeholder as Registry['tenant.store']['types'],
+  },
+  'tenant.update': {
+    methods: ["PUT"],
+    pattern: '/api/master/tenants/:id',
+    tokens: [{"old":"/api/master/tenants/:id","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['tenant.update']['types'],
+  },
+  'tenant.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/master/tenants/:id',
+    tokens: [{"old":"/api/master/tenants/:id","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id","type":1,"val":"id","end":""}],
+    types: placeholder as Registry['tenant.destroy']['types'],
+  },
+  'tenant.suspend': {
+    methods: ["POST"],
+    pattern: '/api/master/tenants/:id/suspend',
+    tokens: [{"old":"/api/master/tenants/:id/suspend","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id/suspend","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id/suspend","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id/suspend","type":1,"val":"id","end":""},{"old":"/api/master/tenants/:id/suspend","type":0,"val":"suspend","end":""}],
+    types: placeholder as Registry['tenant.suspend']['types'],
+  },
+  'tenant.activate': {
+    methods: ["POST"],
+    pattern: '/api/master/tenants/:id/activate',
+    tokens: [{"old":"/api/master/tenants/:id/activate","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id/activate","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id/activate","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id/activate","type":1,"val":"id","end":""},{"old":"/api/master/tenants/:id/activate","type":0,"val":"activate","end":""}],
+    types: placeholder as Registry['tenant.activate']['types'],
+  },
+  'tenant.migrate': {
+    methods: ["POST"],
+    pattern: '/api/master/tenants/:id/migrate',
+    tokens: [{"old":"/api/master/tenants/:id/migrate","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id/migrate","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id/migrate","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id/migrate","type":1,"val":"id","end":""},{"old":"/api/master/tenants/:id/migrate","type":0,"val":"migrate","end":""}],
+    types: placeholder as Registry['tenant.migrate']['types'],
+  },
+  'tenant.seed': {
+    methods: ["POST"],
+    pattern: '/api/master/tenants/:id/seed',
+    tokens: [{"old":"/api/master/tenants/:id/seed","type":0,"val":"api","end":""},{"old":"/api/master/tenants/:id/seed","type":0,"val":"master","end":""},{"old":"/api/master/tenants/:id/seed","type":0,"val":"tenants","end":""},{"old":"/api/master/tenants/:id/seed","type":1,"val":"id","end":""},{"old":"/api/master/tenants/:id/seed","type":0,"val":"seed","end":""}],
+    types: placeholder as Registry['tenant.seed']['types'],
+  },
   'auth.register': {
     methods: ["POST"],
     pattern: '/api/auth/register',

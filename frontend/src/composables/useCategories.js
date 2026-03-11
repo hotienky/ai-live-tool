@@ -6,11 +6,10 @@ export function useCategories() {
   const loading = ref(false)
   const error = ref(null)
 
-  async function fetchCategories(shopId) {
+  async function fetchCategories() {
     loading.value = true
     try {
-      const params = shopId ? `?shopId=${shopId}` : ''
-      const res = await apiFetch(`/categories${params}`)
+      const res = await apiFetch('/categories')
       categories.value = await res.json()
     } catch (e) {
       error.value = e.message

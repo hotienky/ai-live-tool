@@ -1,6 +1,6 @@
 <template>
   <div class="storefront-app">
-    <SiteHeader :storeName="storeInfo?.shop_name" :storeId="currentStoreId" />
+    <SiteHeader :storeName="storeInfo?.shop_name" />
     <main class="storefront-main">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
@@ -13,35 +13,26 @@
 </template>
 
 <script setup>
-import { ref, watch, provide } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted, provide } from 'vue'
 import { apiFetch } from './api.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
 
-const route = useRoute()
 const storeInfo = ref(null)
-const currentStoreId = ref(route.params.storeId || '1')
 
 async function loadStoreInfo() {
   try {
-    storeInfo.value = await apiFetch(currentStoreId.value, '/info')
+    storeInfo.value = await apiFetch('/info')
     if (storeInfo.value?.shop_name) {
       document.title = `${storeInfo.value.shop_name} — Cửa hàng trực tuyến`
     }
   } catch { /* ignore */ }
 }
 
-watch(() => route.params.storeId, (id) => {
-  if (id) {
-    currentStoreId.value = id
-    loadStoreInfo()
-  }
-}, { immediate: true })
+onMounted(loadStoreInfo)
 
 // Provide store info globally
 provide('storeInfo', storeInfo)
-provide('storeId', currentStoreId)
 </script>
 
 <style scoped>

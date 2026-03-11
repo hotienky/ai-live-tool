@@ -8,21 +8,20 @@ export function useCart(apiFetch) {
   const items = ref([])
   const loading = ref(false)
 
-  async function fetchCart(shopId) {
+  async function fetchCart() {
     loading.value = true
     try {
-      const qs = shopId ? `?shopId=${shopId}` : ''
-      const res = await apiFetch(`/cart${qs}`)
+      const res = await apiFetch('/cart')
       const json = await res.json()
       items.value = json.items || []
     } catch { items.value = [] }
     loading.value = false
   }
 
-  async function addItem({ shopId, productId, name, sku, qty = 1, price, attribute }) {
+  async function addItem({ productId, name, sku, qty = 1, price, attribute }) {
     const res = await apiFetch('/cart/items', {
       method: 'POST',
-      body: JSON.stringify({ shopId, productId, name, sku, qty, price, attribute }),
+      body: JSON.stringify({ productId, name, sku, qty, price, attribute }),
     })
     const json = await res.json()
     items.value = json.items || []
@@ -52,11 +51,11 @@ export function useCart(apiFetch) {
    * Checkout — S-Cart: createOrder pattern
    * Creates Order + OrderDetail + OrderTotal + OrderHistory in DB transaction
    */
-  async function checkout({ shopId, customerName, customerPhone, customerAddress, paymentMethod, notes, shippingFee, discount }) {
+  async function checkout({ customerName, customerPhone, customerAddress, paymentMethod, notes, shippingFee, discount }) {
     const res = await apiFetch('/cart/checkout', {
       method: 'POST',
       body: JSON.stringify({
-        shopId, customerName, customerPhone, customerAddress,
+        customerName, customerPhone, customerAddress,
         paymentMethod, notes, shippingFee, discount,
       }),
     })

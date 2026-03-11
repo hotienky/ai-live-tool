@@ -40,4 +40,6 @@ export const controllers = {
   SystemConfig: () => import('#controllers/system_config_controller'),
   Templates: () => import('#controllers/templates_controller'),
   Webhooks: () => import('#controllers/webhooks_controller'),
+  MasterAuth: () => import('#controllers/master_auth_controller'),
+  Tenant: () => import('#controllers/tenant_controller'),
 }

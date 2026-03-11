@@ -98,7 +98,7 @@
 
         <!-- Products Grid -->
         <div v-else-if="products.length > 0" class="product-grid">
-          <ProductCard v-for="p in products" :key="p.id" :product="p" :storeId="storeId" />
+          <ProductCard v-for="p in products" :key="p.id" :product="p" />
         </div>
 
         <!-- Empty -->
@@ -139,7 +139,7 @@ import ProductCard from '../components/ProductCard.vue'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps({
-  storeId: { type: String, required: true },
+  
   categoryId: { type: String, default: null },
 })
 
@@ -200,15 +200,15 @@ function debouncedReload() {
 }
 
 async function loadFilters() {
-  try { categories.value = await apiFetch(props.storeId, '/categories') } catch { categories.value = [] }
-  try { brands.value = await apiFetch(props.storeId, '/brands') } catch { brands.value = [] }
+  try { categories.value = await apiFetch('/categories') } catch { categories.value = [] }
+  try { brands.value = await apiFetch('/brands') } catch { brands.value = [] }
 }
 
 async function reload() {
   loading.value = true
   const [sort, order] = sortBy.value.split(':')
   try {
-    const data = await apiFetch(props.storeId, '/products', {
+    const data = await apiFetch('/products', {
       page: page.value,
       limit: 12,
       sort,

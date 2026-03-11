@@ -116,7 +116,7 @@ import { Users } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { customers, loading, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, fetchAddresses: fetchAddressesApi, addAddress, deleteAddress: deleteAddressApi } = useShopCustomers(apiFetch)
 
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const search = ref('')
 const showModal = ref(false)
@@ -130,13 +130,12 @@ const addressCustomer = ref(null)
 const addresses = ref([])
 const addrForm = ref({ firstName: '', lastName: '', phone: '', address1: '', district: '', city: '', province: '', postcode: '' })
 
-onMounted(() => fetchCustomers({ shopId: props.shopId }))
-watch(() => props.shopId, () => fetchCustomers({ shopId: props.shopId }))
+onMounted(() => fetchCustomers({  }))
 
 let searchTimer
 function onSearch() {
   clearTimeout(searchTimer)
-  searchTimer = setTimeout(() => fetchCustomers({ shopId: props.shopId, search: search.value }), 300)
+  searchTimer = setTimeout(() => fetchCustomers({ search: search.value }), 300)
 }
 
 function openCreate() {
@@ -157,18 +156,18 @@ async function handleSave() {
       await updateCustomer(editId.value, form.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createCustomer({ ...form.value, storeId: props.shopId })
+      await createCustomer({ ...form.value,  })
       showToast('✅ Đã tạo KH', 'success')
     }
     showModal.value = false
-    fetchCustomers({ shopId: props.shopId })
+    fetchCustomers({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
 async function handleDelete(c) {
   if (!confirm(`Xóa khách hàng ${c.firstName} ${c.lastName}?`)) return
   await deleteCustomer(c.id)
-  fetchCustomers({ shopId: props.shopId })
+  fetchCustomers({  })
   showToast('Đã xóa', 'success')
 }
 

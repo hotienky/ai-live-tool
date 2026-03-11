@@ -105,7 +105,7 @@ import { Tag } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { promotions, coupons, loading, fetchPromotions, savePromotion, deletePromotion, fetchCoupons, createCoupon, updateCoupon, deleteCoupon } = usePromotions(apiFetch)
 
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const subTab = ref('promotions')
 const products = ref([])
@@ -117,13 +117,11 @@ const promoForm = ref({ productId: '', pricePromotion: 0, dateStart: '', dateEnd
 const editCouponId = ref(null)
 const couponForm = ref({ code: '', type: 'percent', value: 0, minOrder: 0, maxUses: null, dateStart: '', dateEnd: '' })
 
-onMounted(() => { fetchPromotions({ shopId: props.shopId }); fetchCoupons({ shopId: props.shopId }); fetchProducts() })
-watch(() => props.shopId, () => { fetchPromotions({ shopId: props.shopId }); fetchCoupons({ shopId: props.shopId }); fetchProducts() })
+onMounted(() => { fetchPromotions({  }); fetchCoupons({  }); fetchProducts() })
 
 async function fetchProducts() {
   try {
     let url = `/products`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     const data = await res.json()
     products.value = Array.isArray(data) ? data : (data.data || [])
@@ -136,14 +134,14 @@ async function handleSavePromo() {
     await savePromotion(promoForm.value)
     showToast('✅ Đã lưu KM', 'success')
     promoForm.value = { productId: '', pricePromotion: 0, dateStart: '', dateEnd: '' }
-    fetchPromotions({ shopId: props.shopId })
+    fetchPromotions({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
 async function handleDeletePromo(productId) {
   if (!confirm('Xóa khuyến mãi?')) return
   await deletePromotion(productId)
-  fetchPromotions({ shopId: props.shopId })
+  fetchPromotions({  })
   showToast('Đã xóa', 'success')
 }
 
@@ -154,12 +152,12 @@ async function handleSaveCoupon() {
       await updateCoupon(editCouponId.value, couponForm.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createCoupon({ ...couponForm.value, storeId: props.shopId })
+      await createCoupon({ ...couponForm.value,  })
       showToast('✅ Đã tạo mã', 'success')
     }
     editCouponId.value = null
     couponForm.value = { code: '', type: 'percent', value: 0, minOrder: 0, maxUses: null, dateStart: '', dateEnd: '' }
-    fetchCoupons({ shopId: props.shopId })
+    fetchCoupons({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
@@ -171,7 +169,7 @@ function editCoupon(c) {
 async function handleDeleteCoupon(id) {
   if (!confirm('Xóa mã giảm giá?')) return
   await deleteCoupon(id)
-  fetchCoupons({ shopId: props.shopId })
+  fetchCoupons({  })
   showToast('Đã xóa', 'success')
 }
 

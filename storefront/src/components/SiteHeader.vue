@@ -2,17 +2,17 @@
   <header class="site-header">
     <div class="site-header__inner container">
       <!-- Logo -->
-      <router-link :to="`/${storeId}`" class="site-header__logo">
+      <router-link :to="'/'" class="site-header__logo">
         <Store :size="22" />
         <span class="site-header__name">{{ storeName || 'Shop' }}</span>
       </router-link>
 
       <!-- Navigation -->
       <nav class="site-header__nav">
-        <router-link :to="`/${storeId}`" class="site-header__link" exact-active-class="active">
+        <router-link :to="'/'" class="site-header__link" exact-active-class="active">
           <Home :size="16" /> Trang chủ
         </router-link>
-        <router-link :to="`/${storeId}/products`" class="site-header__link" active-class="active">
+        <router-link :to="'/products'" class="site-header__link" active-class="active">
           <ShoppingBag :size="16" /> Sản phẩm
         </router-link>
       </nav>
@@ -43,10 +43,10 @@
     <!-- Mobile menu -->
     <transition name="slide">
       <div v-if="mobileMenu" class="site-header__mobile">
-        <router-link :to="`/${storeId}`" class="site-header__mobile-link" @click="mobileMenu = false">
+        <router-link :to="'/'" class="site-header__mobile-link" @click="mobileMenu = false">
           <Home :size="16" /> Trang chủ
         </router-link>
-        <router-link :to="`/${storeId}/products`" class="site-header__mobile-link" @click="mobileMenu = false">
+        <router-link :to="'/products'" class="site-header__mobile-link" @click="mobileMenu = false">
           <ShoppingBag :size="16" /> Sản phẩm
         </router-link>
         <div class="site-header__mobile-search">
@@ -65,7 +65,7 @@ import { Store, Home, ShoppingBag, Search, X, Menu } from 'lucide-vue-next'
 
 const props = defineProps({
   storeName: { type: String, default: '' },
-  storeId: { type: [String, Number], default: '1' },
+  
 })
 
 const router = useRouter()
@@ -75,7 +75,7 @@ const mobileMenu = ref(false)
 
 function onSearch() {
   if (searchQuery.value.trim()) {
-    router.push({ name: 'products', params: { storeId: props.storeId }, query: { q: searchQuery.value } })
+    router.push({ name: 'products', query: { q: searchQuery.value } })
     mobileMenu.value = false
   }
 }

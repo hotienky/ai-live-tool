@@ -67,7 +67,7 @@ import { useToast } from '../composables/useToast.js'
 import { Webhook, Plus, Trash2, Globe, Clock, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps({
-  shopId: { type: [Number, String], default: null }
+  /* tenant-scoped */
 })
 
 const { showToast } = useToast()
@@ -77,10 +77,9 @@ const newUrl = ref('')
 const newEvent = ref('hot_lead')
 
 async function loadWebhooks() {
-  if (!props.shopId) return
   loading.value = true
   try {
-    const res = await apiFetch(`/api/webhooks?shopId=${props.shopId}`)
+    const res = await apiFetch(`/api/webhooks`)
     if (Array.isArray(res)) webhooks.value = res
   } catch (e) {
     console.error('Load webhooks error:', e)
@@ -90,11 +89,11 @@ async function loadWebhooks() {
 }
 
 async function addWebhook() {
-  if (!newUrl.value || !props.shopId) return
+  if (!newUrl.value) return
   try {
     const wh = await apiFetch('/webhooks', {
       method: 'POST',
-      body: JSON.stringify({ shopId: props.shopId, url: newUrl.value, events: [newEvent.value] })
+      body: JSON.stringify({ url: newUrl.value, events: [newEvent.value] })
     })
     if (wh) {
       webhooks.value.unshift(wh)
@@ -151,7 +150,6 @@ function formatTime(ts) {
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-watch(() => props.shopId, () => loadWebhooks())
 onMounted(() => loadWebhooks())
 </script>
 

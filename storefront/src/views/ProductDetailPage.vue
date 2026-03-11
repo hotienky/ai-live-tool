@@ -2,9 +2,9 @@
   <div class="detail-page container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-      <router-link :to="`/${storeId}`">Trang chủ</router-link>
+      <router-link :to="'/'">Trang chủ</router-link>
       <ChevronRight :size="12" />
-      <router-link :to="`/${storeId}/products`">Sản phẩm</router-link>
+      <router-link :to="'/products'">Sản phẩm</router-link>
       <ChevronRight :size="12" />
       <span>{{ product?.name || '...' }}</span>
     </nav>
@@ -118,7 +118,7 @@
       <PackageX :size="64" />
       <h2>Không tìm thấy sản phẩm</h2>
       <p>Sản phẩm này không tồn tại hoặc đã bị ẩn</p>
-      <router-link :to="`/${storeId}/products`" class="btn btn--primary">
+      <router-link :to="'/products'" class="btn btn--primary">
         <ArrowLeft :size="16" /> Quay lại cửa hàng
       </router-link>
     </div>
@@ -134,7 +134,7 @@ import {
 } from 'lucide-vue-next'
 
 const props = defineProps({
-  storeId: { type: String, required: true },
+  
   productId: { type: String, required: true },
 })
 
@@ -165,7 +165,7 @@ function copyLink() {
 async function loadProduct() {
   loading.value = true
   try {
-    product.value = await apiFetch(props.storeId, `/products/${props.productId}`)
+    product.value = await apiFetch(`/products/${props.productId}`)
     if (product.value?.name) {
       document.title = `${product.value.name} — Cửa hàng`
     }

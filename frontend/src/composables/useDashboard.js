@@ -29,10 +29,9 @@ export function useDashboard() {
     }
   }
 
-  async function fetchAnalytics(shopId = null, days = 7) {
+  async function fetchAnalytics(days = 7) {
     try {
       const params = new URLSearchParams({ days })
-      if (shopId) params.set('shopId', shopId)
       const res = await apiFetch(`/dashboard/analytics?${params}`)
       analytics.value = await res.json()
     } catch (err) {

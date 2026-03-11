@@ -2,6 +2,22 @@
 import type { routes } from './index.ts'
 
 export interface ApiDefinition {
+  masterAuth: {
+    login: typeof routes['master_auth.login']
+    me: typeof routes['master_auth.me']
+    logout: typeof routes['master_auth.logout']
+  }
+  tenant: {
+    index: typeof routes['tenant.index']
+    show: typeof routes['tenant.show']
+    store: typeof routes['tenant.store']
+    update: typeof routes['tenant.update']
+    destroy: typeof routes['tenant.destroy']
+    suspend: typeof routes['tenant.suspend']
+    activate: typeof routes['tenant.activate']
+    migrate: typeof routes['tenant.migrate']
+    seed: typeof routes['tenant.seed']
+  }
   auth: {
     register: typeof routes['auth.register']
     login: typeof routes['auth.login']

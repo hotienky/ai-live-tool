@@ -77,7 +77,7 @@ import { useToast } from '../composables/useToast.js'
 import { Image as ImageIcon } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { banners, loading, fetchBanners, createBanner, updateBanner, deleteBanner } = useBanners(apiFetch)
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const filterType = ref('')
 const showModal = ref(false)
@@ -85,9 +85,8 @@ const isEditing = ref(false)
 const editId = ref(null)
 const form = ref({ title: '', image: '', url: '', type: 'banner', sort: 0, status: 1 })
 
-function reload() { fetchBanners({ shopId: props.shopId, ...(filterType.value ? { type: filterType.value } : {}) }) }
+function reload() { fetchBanners({ ...(filterType.value ? { type: filterType.value } : {}) }) }
 onMounted(reload)
-watch(() => props.shopId, reload)
 
 function openCreate() {
   isEditing.value = false; editId.value = null
@@ -121,7 +120,7 @@ async function handleSave() {
       await updateBanner(editId.value, form.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createBanner({ ...form.value, storeId: props.shopId })
+      await createBanner({ ...form.value,  })
       showToast('✅ Đã tạo banner', 'success')
     }
     showModal.value = false; reload()

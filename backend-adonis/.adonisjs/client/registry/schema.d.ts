@@ -7,6 +7,150 @@ import type { InferInput, SimpleError } from '@vinejs/vine/types'
 export type ParamValue = string | number | bigint | boolean
 
 export interface Registry {
+  'master_auth.login': {
+    methods: ["POST"]
+    pattern: '/api/master/auth/login'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['login']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['login']>>>
+    }
+  }
+  'master_auth.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/master/auth/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['me']>>>
+    }
+  }
+  'master_auth.logout': {
+    methods: ["POST"]
+    pattern: '/api/master/auth/logout'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['logout']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/master_auth_controller').default['logout']>>>
+    }
+  }
+  'tenant.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/master/tenants'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['index']>>>
+    }
+  }
+  'tenant.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/master/tenants/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['show']>>>
+    }
+  }
+  'tenant.store': {
+    methods: ["POST"]
+    pattern: '/api/master/tenants'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['store']>>>
+    }
+  }
+  'tenant.update': {
+    methods: ["PUT"]
+    pattern: '/api/master/tenants/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['update']>>>
+    }
+  }
+  'tenant.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/master/tenants/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['destroy']>>>
+    }
+  }
+  'tenant.suspend': {
+    methods: ["POST"]
+    pattern: '/api/master/tenants/:id/suspend'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['suspend']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['suspend']>>>
+    }
+  }
+  'tenant.activate': {
+    methods: ["POST"]
+    pattern: '/api/master/tenants/:id/activate'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['activate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['activate']>>>
+    }
+  }
+  'tenant.migrate': {
+    methods: ["POST"]
+    pattern: '/api/master/tenants/:id/migrate'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['migrate']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['migrate']>>>
+    }
+  }
+  'tenant.seed': {
+    methods: ["POST"]
+    pattern: '/api/master/tenants/:id/seed'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['seed']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/tenant_controller').default['seed']>>>
+    }
+  }
   'auth.register': {
     methods: ["POST"]
     pattern: '/api/auth/register'

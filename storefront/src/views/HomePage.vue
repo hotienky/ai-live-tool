@@ -11,7 +11,7 @@
         <Grid :size="22" class="section-title__accent" />
         Danh mục sản phẩm
       </h2>
-      <CategoryGrid :categories="categories" :storeId="storeId" />
+      <CategoryGrid :categories="categories" />
     </section>
 
     <!-- Featured Products -->
@@ -21,7 +21,7 @@
           <Sparkles :size="22" class="section-title__accent" />
           Sản phẩm nổi bật
         </h2>
-        <router-link :to="`/${storeId}/products`" class="home-section__viewall">
+        <router-link :to="'/products'" class="home-section__viewall">
           Xem tất cả <ArrowRight :size="14" />
         </router-link>
       </div>
@@ -33,7 +33,7 @@
         </div>
       </div>
       <div v-else-if="products.length > 0" class="product-grid">
-        <ProductCard v-for="p in products" :key="p.id" :product="p" :storeId="storeId" />
+        <ProductCard v-for="p in products" :key="p.id" :product="p" />
       </div>
       <div v-else class="home-empty">
         <Package :size="48" />
@@ -50,7 +50,7 @@
         </h2>
       </div>
       <div class="product-grid">
-        <ProductCard v-for="p in newProducts" :key="p.id" :product="p" :storeId="storeId" />
+        <ProductCard v-for="p in newProducts" :key="p.id" :product="p" />
       </div>
     </section>
 
@@ -64,7 +64,7 @@
         <router-link
           v-for="pg in pages"
           :key="pg.id"
-          :to="`/${storeId}/page/${pg.id}`"
+          :to="'/page/${pg.id}`"
           class="home-page-card"
         >
           <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="home-page-card__img" />
@@ -90,7 +90,7 @@ import ProductCard from '../components/ProductCard.vue'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
 
 const props = defineProps({
-  storeId: { type: String, required: true },
+  
 })
 
 const banners = ref([])
@@ -104,11 +104,11 @@ async function loadAll() {
   loading.value = true
   try {
     const [bannersRes, catsRes, prodsRes, newRes, pagesRes] = await Promise.allSettled([
-      apiFetch(props.storeId, '/banners'),
-      apiFetch(props.storeId, '/categories'),
-      apiFetch(props.storeId, '/products', { limit: 8, sort: 'created_at', order: 'desc' }),
-      apiFetch(props.storeId, '/products', { limit: 4, sort: 'created_at', order: 'desc', page: 1 }),
-      apiFetch(props.storeId, '/pages'),
+      apiFetch('/banners'),
+      apiFetch('/categories'),
+      apiFetch('/products', { limit: 8, sort: 'created_at', order: 'desc' }),
+      apiFetch('/products', { limit: 4, sort: 'created_at', order: 'desc', page: 1 }),
+      apiFetch('/pages'),
     ])
     banners.value = bannersRes.status === 'fulfilled' ? bannersRes.value : []
     categories.value = catsRes.status === 'fulfilled' ? catsRes.value : []

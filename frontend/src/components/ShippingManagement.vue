@@ -298,7 +298,7 @@ import {
 } from 'lucide-vue-next'
 const { showToast } = useToast()
 
-const props = defineProps({ shopId: [Number, String] })
+const props = defineProps({ /* tenant-scoped */ })
 const emit = defineEmits(['navigate'])
 
 const shipments = ref([])
@@ -383,7 +383,7 @@ async function calcFee() {
         weight: shipForm.value.weight || 500,
         receiverProvince: shipForm.value.receiverProvince || '',
         codAmount: shipForm.value.codAmount || 0,
-        shopId: props.shopId,
+        ,
       }),
     })
     const data = await res.json()
@@ -421,7 +421,6 @@ function mapKeys(obj) {
 async function fetchShipments() {
   try {
     let url = `/shipments?`
-    if (props.shopId) url += `shopId=${props.shopId}&`
     if (filterStatus.value) url += `status=${filterStatus.value}&`
     if (filterCarrier.value) url += `carrier=${filterCarrier.value}&`
     const res = await apiFetch(url)
@@ -433,7 +432,6 @@ async function fetchShipments() {
 async function fetchStats() {
   try {
     let url = `/shipments/stats`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     shipStats.value = await res.json()
   } catch { /* silent */ }
@@ -483,7 +481,7 @@ async function createShipment() {
   try {
     await apiFetch('/shipments', {
       method: 'POST',
-      body: JSON.stringify({ ...shipForm.value, shopId: props.shopId }),
+      body: JSON.stringify({ ...shipForm.value }),
     })
     showToast('Đã tạo vận đơn', 'success')
     showCreateModal.value = false

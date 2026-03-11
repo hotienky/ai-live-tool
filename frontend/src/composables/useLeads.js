@@ -14,11 +14,10 @@ export function useLeads() {
     return Object.fromEntries(Object.entries(obj).map(([k, v]) => [toCamel(k), v]))
   }
 
-  async function fetchLeads(shopId = null, status = null) {
+  async function fetchLeads(status = null) {
     loading.value = true
     try {
       const params = new URLSearchParams()
-      if (shopId) params.set('shopId', shopId)
       if (status) params.set('status', status)
       params.set('limit', '100')
 
@@ -33,10 +32,9 @@ export function useLeads() {
     }
   }
 
-  async function fetchLeadStats(shopId = null) {
+  async function fetchLeadStats() {
     try {
-      const params = shopId ? `?shopId=${shopId}` : ''
-      const res = await apiFetch(`/leads/stats${params}`)
+      const res = await apiFetch('/leads/stats')
       leadStats.value = await res.json()
     } catch (err) {
       error.value = err.message

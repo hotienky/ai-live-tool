@@ -104,7 +104,7 @@ import { useToast } from '../composables/useToast.js'
 import { FileText } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { pages, loading, fetchPages, createPage, updatePage, deletePage } = useCmsPages(apiFetch)
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const showModal = ref(false)
 const showPreview = ref(false)
@@ -114,8 +114,7 @@ const editTab = ref('edit')
 const form = ref({ title: '', alias: '', content: '', image: '', status: 1, sort: 0 })
 const previewData = ref({})
 
-onMounted(() => fetchPages({ shopId: props.shopId }))
-watch(() => props.shopId, () => fetchPages({ shopId: props.shopId }))
+onMounted(() => fetchPages({  }))
 
 function openCreate() {
   isEditing.value = false; editId.value = null; editTab.value = 'edit'
@@ -136,7 +135,7 @@ async function toggleStatus(p) {
     const newStatus = p.status === 1 ? 0 : 1
     await updatePage(p.id, { status: newStatus })
     showToast(newStatus === 1 ? '✅ Published' : '📝 Set to Draft', 'success')
-    fetchPages({ shopId: props.shopId })
+    fetchPages({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 async function handleSave() {
@@ -146,17 +145,17 @@ async function handleSave() {
       await updatePage(editId.value, form.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createPage({ ...form.value, storeId: props.shopId })
+      await createPage({ ...form.value,  })
       showToast('✅ Đã tạo trang', 'success')
     }
     showModal.value = false
-    fetchPages({ shopId: props.shopId })
+    fetchPages({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 async function handleDelete(p) {
   if (!confirm(`Xóa trang "${p.title}"?`)) return
   await deletePage(p.id)
-  fetchPages({ shopId: props.shopId })
+  fetchPages({  })
   showToast('Đã xóa', 'success')
 }
 </script>

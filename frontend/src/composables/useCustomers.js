@@ -6,11 +6,10 @@ export function useCustomers() {
   const customerDetail = ref(null)
   const loading = ref(false)
 
-  async function fetchCustomers(shopId = null, search = null) {
+  async function fetchCustomers(search = null) {
     loading.value = true
     try {
       const params = new URLSearchParams()
-      if (shopId) params.set('shopId', shopId)
       if (search) params.set('search', search)
       const res = await apiFetch(`/customers?${params}`)
       customers.value = await res.json()

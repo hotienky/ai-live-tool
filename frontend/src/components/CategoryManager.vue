@@ -67,7 +67,7 @@ import { useToast } from '../composables/useToast.js'
 import { FolderOpen, Edit3, Trash2 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const categories = ref([])
 const showModal = ref(false)
@@ -78,9 +78,8 @@ const form = ref(defaultForm())
 function defaultForm() { return { name: '', slug: '', description: '', image: '', parent_id: null, sort: 0 } }
 
 async function fetchCategories() {
-  if (!props.shopId) return
   try {
-    const res = await apiFetch(`/categories?shopId=${props.shopId}`)
+    const res = await apiFetch(`/categories`)
     categories.value = await res.json()
   } catch { categories.value = [] }
 }
@@ -94,7 +93,7 @@ function openEdit(c) {
 async function handleSave() {
   if (!form.value.name) return
   try {
-    const body = { ...form.value, shopId: props.shopId }
+    const body = { ...form.value }
     if (isEditing.value) {
       await apiFetch(`/categories/${editId.value}`, { method: 'PUT', body: JSON.stringify(body) })
       showToast('Đã cập nhật danh mục', 'success')
@@ -120,7 +119,6 @@ async function toggleActive(c) {
 }
 
 onMounted(() => fetchCategories())
-watch(() => props.shopId, () => fetchCategories())
 </script>
 
 <style scoped>

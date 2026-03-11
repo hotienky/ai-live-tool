@@ -63,10 +63,10 @@ export function usePromotions(apiFetch) {
     await apiFetch(`/coupons/${id}`, { method: 'DELETE' })
   }
 
-  async function validateCoupon(code, shopId, subtotal) {
+  async function validateCoupon(code, subtotal) {
     const res = await apiFetch('/coupons/validate', {
       method: 'POST',
-      body: JSON.stringify({ code, shopId, subtotal }),
+      body: JSON.stringify({ code, subtotal }),
     })
     return await res.json()
   }

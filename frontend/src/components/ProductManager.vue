@@ -178,7 +178,7 @@ import { useToast } from '../composables/useToast.js'
 import { ShoppingBag, Search, Package, Minus, Plus, Edit3, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const { showToast } = useToast()
-const props = defineProps({ shopId: [String, Number] })
+const props = defineProps({ /* tenant-scoped */ })
 
 const products = ref([])
 const loading = ref(false)
@@ -215,10 +215,9 @@ function debouncedSearch() {
 }
 
 async function fetchProducts() {
-  if (!props.shopId) return
   loading.value = true
   try {
-    const params = new URLSearchParams({ shopId: props.shopId, page: pagination.value.page, limit: pagination.value.perPage })
+    const params = new URLSearchParams({ page: pagination.value.page, limit: pagination.value.perPage })
     if (searchQuery.value) params.set('search', searchQuery.value)
     const res = await apiFetch(`/products?${params}`)
     const data = await res.json()
@@ -265,7 +264,7 @@ function openEdit(p) {
 async function handleSave() {
   if (!form.value.name || !form.value.price) return
   try {
-    const body = { ...form.value, shopId: props.shopId }
+    const body = { ...form.value }
     if (isEditing.value) {
       await apiFetch(`/products/${editId.value}`, { method: 'PUT', body: JSON.stringify(body) })
       showToast('Đã cập nhật sản phẩm', 'success')
@@ -318,7 +317,6 @@ async function adjustStock(productId, action, quantity) {
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
 onMounted(() => fetchProducts())
-watch(() => props.shopId, () => { pagination.value.page = 1; fetchProducts() })
 </script>
 
 <style scoped>

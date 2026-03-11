@@ -250,7 +250,7 @@ import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag,
 const { showToast } = useToast()
 
 const props = defineProps({
-  shopId: [Number, String],
+  /* tenant-scoped */,
   prefillOrder: { type: Object, default: null },
 })
 const emit = defineEmits(['create-shipment'])
@@ -287,7 +287,6 @@ const detailHistory = ref([])
 
 onMounted(() => { fetchOrders(); fetchStats(); fetchProducts(); fetchStatuses() })
 watch(filterStatus, () => fetchOrders())
-watch(() => props.shopId, () => fetchProducts())
 
 // Auto-open form when prefill data comes from Lead
 watch(() => props.prefillOrder, (data) => {
@@ -322,7 +321,6 @@ function mapKeys(obj) {
 async function fetchOrders() {
   try {
     let url = `/orders?limit=50`
-    if (props.shopId) url += `&shopId=${props.shopId}`
     if (filterStatus.value) url += `&status=${filterStatus.value}`
     const res = await apiFetch(url)
     const data = await res.json()
@@ -334,7 +332,6 @@ async function fetchOrders() {
 async function fetchProducts() {
   try {
     let url = `/products`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     const data = await res.json()
     products.value = Array.isArray(data) ? data : (data.data || [])
@@ -361,7 +358,6 @@ function removeItem(idx) {
 async function fetchStats() {
   try {
     let url = `/orders/stats`
-    if (props.shopId) url += `?shopId=${props.shopId}`
     const res = await apiFetch(url)
     stats.value = await res.json()
   } catch { /* silent */ }
@@ -380,7 +376,7 @@ async function createOrder() {
         ...newOrder.value,
         items: items.map(i => ({ productId: i.productId, name: i.name, price: i.price, qty: i.qty })),
         totalAmount: computedTotal.value,
-        shopId: props.shopId,
+        ,
         status: 'pending',
         paymentStatus: 'unpaid',
       })
