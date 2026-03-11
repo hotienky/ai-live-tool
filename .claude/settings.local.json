@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker ps --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\")",
+      "Bash(docker ps -a --filter \"name=vsecure\" --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\")",
+      "Bash(docker ps -a --filter \"name=vsecure-api\" --format \"table {{.Names}}\\\\t{{.Status}}\\\\t{{.Image}}\\\\t{{.Ports}}\")",
+      "Bash(docker network ls --format \"table {{.Name}}\")",
+      "Bash(docker network inspect vsecure-api_vsecure-network --format '{{json .Labels}}')",
+      "Bash(docker exec vsecure-mysql mysql -uroot -proot -e \"CREATE DATABASE IF NOT EXISTS s_cart; SHOW DATABASES;\")",
+      "Bash(docker compose up -d mysql)",
+      "Bash(lsof -i :3306)",
+      "Bash(brew services stop mysql)",
+      "Bash(sudo kill 1132)",
+      "Bash(php artisan route:list)"
+    ]
+  }
+}

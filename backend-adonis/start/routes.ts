@@ -34,6 +34,7 @@ const CmsPagesController = () => import('#controllers/cms_pages_controller')
 const BannersNewController = () => import('#controllers/banners_controller')
 const NavLinksController = () => import('#controllers/nav_links_controller')
 const ActivityLogsController = () => import('#controllers/activity_logs_controller')
+const RolesController = () => import('#controllers/roles_controller')
 
 // ──── Health Check ────
 router.get('/api/health', async () => {
@@ -62,6 +63,31 @@ router.group(() => {
   router.post('/login', [AuthController, 'login'])
   router.get('/me', [AuthController, 'me']).use(middleware.auth())
 }).prefix('/api/auth')
+
+// ──── Storefront Customer Auth (Public — S-Cart: Shop\Auth pattern) ────
+const ShopAuthController = () => import('#controllers/shop_auth_controller')
+router.group(() => {
+  router.post('/register', [ShopAuthController, 'register'])
+  router.post('/login', [ShopAuthController, 'login'])
+  router.get('/me', [ShopAuthController, 'me'])
+  router.put('/profile', [ShopAuthController, 'updateProfile'])
+  router.put('/password', [ShopAuthController, 'changePassword'])
+  router.post('/forgot-password', [ShopAuthController, 'forgotPassword'])
+  router.post('/reset-password', [ShopAuthController, 'resetPassword'])
+}).prefix('/api/shop/auth')
+
+// ──── Storefront Public API (S-Cart: Front\Controllers pattern) ────
+const StorefrontController = () => import('#controllers/storefront_controller')
+router.group(() => {
+  router.get('/products', [StorefrontController, 'products'])
+  router.get('/products/:id', [StorefrontController, 'productDetail'])
+  router.get('/categories', [StorefrontController, 'categories'])
+  router.get('/brands', [StorefrontController, 'brands'])
+  router.get('/banners', [StorefrontController, 'banners'])
+  router.get('/pages', [StorefrontController, 'pages'])
+  router.get('/pages/:id', [StorefrontController, 'pageDetail'])
+  router.get('/info', [StorefrontController, 'storeInfo'])
+}).prefix('/api/shop/store/:storeId')
 
 // ──── API Routes ────
 router.group(() => {
@@ -114,6 +140,7 @@ router.group(() => {
   router.get('/dashboard/recent-leads', [DashboardController, 'recentLeads'])
   router.get('/dashboard/analytics', [DashboardController, 'analytics'])
   router.get('/dashboard/top-customers', [DashboardController, 'topCustomers'])
+  router.get('/dashboard/order-stats', [DashboardController, 'orderStats'])
 
   // Analytics
   router.get('/analytics/daily', [AnalyticsController, 'daily'])
@@ -121,6 +148,7 @@ router.group(() => {
   router.get('/analytics/conversion', [AnalyticsController, 'conversion'])
   router.get('/analytics/top-keywords', [AnalyticsController, 'topKeywords'])
   router.get('/analytics/summary', [AnalyticsController, 'summary'])
+  router.get('/analytics/revenue', [AnalyticsController, 'revenue'])
 
   // Notifications
   router.get('/notifications', [NotificationsController, 'index'])
@@ -207,13 +235,65 @@ router.group(() => {
   router.put('/nav-links/:id', [NavLinksController, 'update'])
   router.delete('/nav-links/:id', [NavLinksController, 'destroy'])
   router.post('/nav-links/reorder', [NavLinksController, 'reorder'])
-  // router.get('/webhooks', [WebhooksController, 'index'])
-  // router.post('/webhooks', [WebhooksController, 'store'])
-  // router.put('/webhooks/:id', [WebhooksController, 'update'])
-  // router.delete('/webhooks/:id', [WebhooksController, 'destroy'])
+  // ── Webhooks ──
+  router.get('/webhooks', [WebhooksController, 'index'])
+  router.post('/webhooks', [WebhooksController, 'store'])
+  router.put('/webhooks/:id', [WebhooksController, 'update'])
+  router.delete('/webhooks/:id', [WebhooksController, 'destroy'])
 
-  // ── DISABLED: Activity Logs (frontend removed) ──
-  // router.get('/activity-logs', [ActivityLogsController, 'index'])
+  // ── Activity Logs ──
+  router.get('/activity-logs', [ActivityLogsController, 'index'])
+  router.get('/activity-logs/stats', [ActivityLogsController, 'stats'])
+  router.get('/activity-logs/entity-types', [ActivityLogsController, 'entityTypes'])
+
+  // ── Roles & Permissions ──
+  router.get('/roles', [RolesController, 'index'])
+  router.get('/roles/permissions', [RolesController, 'permissions'])
+  router.post('/roles', [RolesController, 'store'])
+  router.get('/roles/:id', [RolesController, 'show'])
+  router.put('/roles/:id', [RolesController, 'update'])
+  router.delete('/roles/:id', [RolesController, 'destroy'])
+  router.get('/users', [RolesController, 'users'])
+  router.put('/users/:id/role', [RolesController, 'assignRole'])
+
+  // ── Wishlist & Compare (Phase 7) ──
+  router.get('/wishlist', [CartsController, 'showWishlist'])
+  router.post('/wishlist', [CartsController, 'addToWishlist'])
+  router.delete('/wishlist/:productId', [CartsController, 'removeFromWishlist'])
+  router.get('/compare', [CartsController, 'showCompare'])
+  router.post('/compare', [CartsController, 'addToCompare'])
+  router.delete('/compare/:productId', [CartsController, 'removeFromCompare'])
+
+  // ── System Config (Phase 8) ──
+  const SystemConfigController = () => import('#controllers/system_config_controller')
+  router.get('/system-config', [SystemConfigController, 'index'])
+  router.get('/system-config/:group', [SystemConfigController, 'show'])
+  router.put('/system-config/:group', [SystemConfigController, 'update'])
+
+  // ── API Keys (Phase 8) ──
+  const ApiKeysController = () => import('#controllers/api_keys_controller')
+  router.get('/api-keys', [ApiKeysController, 'index'])
+  router.post('/api-keys', [ApiKeysController, 'store'])
+  router.put('/api-keys/:id', [ApiKeysController, 'update'])
+  router.delete('/api-keys/:id', [ApiKeysController, 'destroy'])
+
+  // ── Languages (Phase 9) ──
+  const LanguagesController = () => import('#controllers/languages_controller')
+  router.get('/languages', [LanguagesController, 'index'])
+  router.post('/languages', [LanguagesController, 'store'])
+  router.put('/languages/:id', [LanguagesController, 'update'])
+  router.delete('/languages/:id', [LanguagesController, 'destroy'])
+  router.get('/languages/:id/translations', [LanguagesController, 'getTranslations'])
+  router.put('/languages/:id/translations', [LanguagesController, 'updateTranslations'])
+
+  // ── Custom Fields (Phase 10) ──
+  const CustomFieldsController = () => import('#controllers/custom_fields_controller')
+  router.get('/custom-fields', [CustomFieldsController, 'index'])
+  router.post('/custom-fields', [CustomFieldsController, 'store'])
+  router.put('/custom-fields/:id', [CustomFieldsController, 'update'])
+  router.delete('/custom-fields/:id', [CustomFieldsController, 'destroy'])
+  router.get('/custom-fields/values/:entityType/:entityId', [CustomFieldsController, 'getValues'])
+  router.put('/custom-fields/values/:entityType/:entityId', [CustomFieldsController, 'saveValues'])
 
   // Post-Live Report
   router.get('/sessions/:id/report', async ({ auth, params, response }) => {

@@ -80,6 +80,7 @@ export default class FullSeeder extends BaseSeeder {
     // ═══════════════════════════════════════════════════
     const [shop1, shop2] = await ShopSchema.createMany([
       {
+        userId: user.id,
         shopName: 'Baby Shop Sữa Mẹ',
         platform: 'tiktok',
         tiktokUsername: 'babyshop_suame',
@@ -102,6 +103,7 @@ export default class FullSeeder extends BaseSeeder {
         senderAddress: '123 Nguyễn Huệ, P. Bến Nghé, Q.1, TP.HCM',
       },
       {
+        userId: user.id,
         shopName: 'Thời Trang Trẻ Em',
         platform: 'facebook',
         tiktokUsername: '',

@@ -428,8 +428,8 @@ onMounted(loadData)
 }
 .pipeline__column {
   display: flex; flex-direction: column;
-  background: var(--glass-bg);
-  border: 2px solid var(--glass-border);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
   border-radius: 14px; overflow: hidden;
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
@@ -440,26 +440,27 @@ onMounted(loadData)
 }
 .pipeline__col-header {
   display: flex; align-items: center; gap: 8px;
-  padding: 12px 14px; font-size: 13px; font-weight: 700;
-  border-bottom: 2px solid; background: var(--color-bg-elevated);
+  padding: 14px 16px; font-size: 13px; font-weight: 700;
+  border-bottom: 1px solid var(--color-border);
+  border-left: 3px solid; background: var(--color-bg-elevated);
 }
 .pipeline__col-count {
   margin-left: auto; font-size: 11px; font-weight: 700;
-  background: var(--color-border); padding: 2px 10px; border-radius: 12px;
+  background: var(--color-bg-card-hover); padding: 3px 10px; border-radius: 12px;
 }
 .pipeline__col-body {
   flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
 }
 .pipeline__card {
-  background: var(--color-bg-card); border-radius: 10px;
-  padding: 12px; cursor: grab; border: 1px solid var(--color-border);
+  background: var(--color-bg-secondary); border-radius: 10px;
+  padding: 14px; cursor: grab; border: 1px solid var(--color-border);
   transition: all 0.25s;
 }
 .pipeline__card:active { cursor: grabbing; }
 .pipeline__card:hover {
   border-color: var(--color-border-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  box-shadow: var(--shadow-card);
 }
 .pipeline__card--dragging {
   opacity: 0.35;
@@ -469,7 +470,7 @@ onMounted(loadData)
 }
 .pipeline__card--hot {
   border-left: 3px solid #ef4444;
-  background: rgba(239,68,68,0.03);
+  background: rgba(239,68,68,0.04);
 }
 .pipeline__card-label {
   display: flex; align-items: center; gap: 6px; margin-bottom: 6px;

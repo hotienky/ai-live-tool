@@ -30,6 +30,33 @@ export class ActivityLogSchema extends BaseModel {
   declare createdAt: DateTime | null
 }
 
+export class ApiKeySchema extends BaseModel {
+  static $columns = ['id', 'userId', 'name', 'key', 'secret', 'permissions', 'isActive', 'lastUsedAt', 'expiresAt', 'createdAt', 'updatedAt'] as const
+  $columns = ApiKeySchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare userId: number
+  @column()
+  declare name: string
+  @column()
+  declare key: string
+  @column()
+  declare secret: string | null
+  @column()
+  declare permissions: any | null
+  @column()
+  declare isActive: boolean | null
+  @column.dateTime()
+  declare lastUsedAt: DateTime | null
+  @column.dateTime()
+  declare expiresAt: DateTime | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = ['id', 'tokenableId', 'type', 'name', 'hash', 'abilities', 'createdAt', 'updatedAt', 'lastUsedAt', 'expiresAt'] as const
   $columns = AuthAccessTokenSchema.$columns
@@ -109,6 +136,50 @@ export class ChatLogSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class CustomFieldValueSchema extends BaseModel {
+  static $columns = ['id', 'customFieldId', 'entityType', 'entityId', 'value'] as const
+  $columns = CustomFieldValueSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare customFieldId: number
+  @column()
+  declare entityType: string
+  @column()
+  declare entityId: number
+  @column()
+  declare value: string | null
+}
+
+export class CustomFieldSchema extends BaseModel {
+  static $columns = ['id', 'shopId', 'name', 'code', 'type', 'options', 'required', 'group', 'sort', 'isActive', 'createdAt', 'updatedAt'] as const
+  $columns = CustomFieldSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare shopId: number | null
+  @column()
+  declare name: string
+  @column()
+  declare code: string
+  @column()
+  declare type: string
+  @column()
+  declare options: any | null
+  @column()
+  declare required: boolean | null
+  @column()
+  declare group: string | null
+  @column()
+  declare sort: number | null
+  @column()
+  declare isActive: boolean | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class CustomerSchema extends BaseModel {
   static $columns = ['id', 'shopId', 'uniqueId', 'nickname', 'profilePictureUrl', 'profileLink', 'platform', 'totalComments', 'hotCount', 'lastLabel', 'tags', 'notes', 'createdAt', 'updatedAt'] as const
   $columns = CustomerSchema.$columns
@@ -136,6 +207,44 @@ export class CustomerSchema extends BaseModel {
   declare tags: any | null
   @column()
   declare notes: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class LanguageTranslationSchema extends BaseModel {
+  static $columns = ['id', 'languageId', 'group', 'key', 'value'] as const
+  $columns = LanguageTranslationSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare languageId: number
+  @column()
+  declare group: string
+  @column()
+  declare key: string
+  @column()
+  declare value: string | null
+}
+
+export class LanguageSchema extends BaseModel {
+  static $columns = ['id', 'code', 'name', 'icon', 'isDefault', 'isActive', 'sort', 'createdAt', 'updatedAt'] as const
+  $columns = LanguageSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare code: string
+  @column()
+  declare name: string
+  @column()
+  declare icon: string | null
+  @column()
+  declare isDefault: boolean | null
+  @column()
+  declare isActive: boolean | null
+  @column()
+  declare sort: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
@@ -354,6 +463,23 @@ export class OrderSchema extends BaseModel {
   declare domain: string | null
 }
 
+export class PasswordResetSchema extends BaseModel {
+  static $columns = ['id', 'email', 'storeId', 'token', 'expiresAt', 'createdAt'] as const
+  $columns = PasswordResetSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare email: string
+  @column()
+  declare storeId: number | null
+  @column()
+  declare token: string
+  @column.dateTime()
+  declare expiresAt: DateTime
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+}
+
 export class PaymentStatusSchema extends BaseModel {
   static $columns = ['id', 'name'] as const
   $columns = PaymentStatusSchema.$columns
@@ -489,6 +615,27 @@ export class ProductSchema extends BaseModel {
   declare weight: string | null
   @column()
   declare isFeatured: boolean | null
+}
+
+export class RoleSchema extends BaseModel {
+  static $columns = ['id', 'name', 'displayName', 'description', 'permissions', 'isSystem', 'createdAt', 'updatedAt'] as const
+  $columns = RoleSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare displayName: string | null
+  @column()
+  declare description: string | null
+  @column()
+  declare permissions: any | null
+  @column()
+  declare isSystem: boolean | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class ScheduledLivestreamSchema extends BaseModel {
@@ -647,7 +794,7 @@ export class ShoppingCartSchema extends BaseModel {
 }
 
 export class ShopSchema extends BaseModel {
-  static $columns = ['id', 'shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId', 'isActive', 'createdAt', 'updatedAt', 'moderationBlacklist', 'moderationHideSpam', 'moderationRateLimit', 'moderationMaxPerMinute', 'shippingConfig', 'defaultCarrier', 'senderName', 'senderPhone', 'senderAddress'] as const
+  static $columns = ['id', 'shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId', 'isActive', 'createdAt', 'updatedAt', 'moderationBlacklist', 'moderationHideSpam', 'moderationRateLimit', 'moderationMaxPerMinute', 'shippingConfig', 'defaultCarrier', 'senderName', 'senderPhone', 'senderAddress', 'userId'] as const
   $columns = ShopSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -687,6 +834,8 @@ export class ShopSchema extends BaseModel {
   declare senderPhone: string | null
   @column()
   declare senderAddress: string | null
+  @column()
+  declare userId: number | null
 }
 
 export class StockHistorySchema extends BaseModel {
@@ -718,8 +867,23 @@ export class StockHistorySchema extends BaseModel {
   declare createdAt: DateTime | null
 }
 
+export class SystemConfigSchema extends BaseModel {
+  static $columns = ['id', 'group', 'key', 'value', 'updatedAt'] as const
+  $columns = SystemConfigSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare group: string
+  @column()
+  declare key: string
+  @column()
+  declare value: string | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class UserSchema extends BaseModel {
-  static $columns = ['id', 'name', 'fullName', 'email', 'password', 'role', 'avatarUrl', 'isActive', 'lastLoginAt', 'createdAt', 'updatedAt'] as const
+  static $columns = ['id', 'name', 'fullName', 'email', 'password', 'role', 'avatarUrl', 'isActive', 'lastLoginAt', 'createdAt', 'updatedAt', 'roleId'] as const
   $columns = UserSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -743,6 +907,8 @@ export class UserSchema extends BaseModel {
   declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+  @column()
+  declare roleId: number | null
 }
 
 export class WebhookSchema extends BaseModel {

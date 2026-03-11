@@ -136,18 +136,47 @@ async function onSubmit() {
   justify-content: center;
   height: 100vh;
   background: var(--color-bg-primary);
-  background-image:
-    radial-gradient(circle at 20% 50%, rgba(255, 59, 92, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 50%, rgba(255, 140, 66, 0.05) 0%, transparent 50%);
+  position: relative;
+  overflow: hidden;
+}
+.login-page::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,59,92,0.12), transparent 70%);
+  top: -100px; left: -100px;
+  animation: float1 12s ease-in-out infinite;
+}
+.login-page::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%);
+  bottom: -80px; right: -80px;
+  animation: float2 15s ease-in-out infinite;
+}
+@keyframes float1 {
+  0%,100% { transform: translate(0,0); }
+  50% { transform: translate(60px,40px); }
+}
+@keyframes float2 {
+  0%,100% { transform: translate(0,0); }
+  50% { transform: translate(-40px,-30px); }
 }
 
 .login-card {
-  width: 400px;
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
-  padding: 36px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  width: 420px;
+  background: rgba(25,25,35,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  position: relative;
+  z-index: 1;
 }
 
 .login-card__logo {
@@ -158,6 +187,7 @@ async function onSubmit() {
 .login-card__logo svg {
   color: #ff3b5c;
   margin-bottom: 8px;
+  filter: drop-shadow(0 0 12px rgba(255,59,92,0.4));
 }
 
 .login-card__logo h1 {
@@ -238,6 +268,7 @@ async function onSubmit() {
 
 .login-card__input:focus {
   border-color: #ff3b5c;
+  box-shadow: 0 0 0 3px rgba(255,59,92,0.1);
 }
 
 .login-card__password-wrap {
@@ -289,8 +320,9 @@ async function onSubmit() {
 }
 
 .login-card__submit:hover:not(:disabled) {
-  opacity: 0.9;
-  transform: translateY(-1px);
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255,59,92,0.30);
 }
 
 .login-card__submit:disabled {

@@ -3,7 +3,9 @@
     <!-- Panel Header -->
     <div class="lead-panel__header">
       <h2 class="lead-panel__title">
-        <DollarSign :size="20" class="lead-panel__title-icon" />
+        <span class="lead-panel__title-badge">
+          <DollarSign :size="18" />
+        </span>
         Khách hàng tiềm năng
         <span class="lead-panel__count" v-if="filteredLeads.length">
           {{ filteredLeads.length }}
@@ -195,9 +197,14 @@ function clearAllFilters() { searchQuery.value = ''; activeKeyword.value = ''; a
 .lead-panel__header { padding: 16px 20px 12px; border-bottom: 1px solid var(--color-border); flex-shrink: 0; }
 .lead-panel__title {
   font-size: 18px; font-weight: 700; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 10px;
 }
-.lead-panel__title-icon { color: var(--color-accent-warm); }
+.lead-panel__title-badge {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, rgba(255,59,92,0.15), rgba(255,140,66,0.15));
+  color: var(--color-accent-warm);
+}
 .lead-panel__count {
   background: var(--color-accent-hot); color: white;
   font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 600;
@@ -205,8 +212,8 @@ function clearAllFilters() { searchQuery.value = ''; activeKeyword.value = ''; a
 
 .lead-panel__search {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 12px; border-radius: 8px; border: 1px solid var(--color-border);
-  background: var(--color-bg-primary); margin-bottom: 10px; transition: border-color 0.2s;
+  padding: 8px 12px; border-radius: 10px; border: 1px solid var(--color-border);
+  background: var(--color-bg-primary); margin-bottom: 10px; transition: all 0.2s;
 }
 .lead-panel__search:focus-within { border-color: var(--color-accent-warm); }
 .lead-panel__search-icon { color: var(--color-text-muted); flex-shrink: 0; }
@@ -228,8 +235,12 @@ function clearAllFilters() { searchQuery.value = ''; activeKeyword.value = ''; a
   background: transparent; color: var(--color-text-secondary);
   font-size: 13px; cursor: pointer; transition: all 0.2s;
 }
-.lead-panel__tab:hover { background: var(--color-bg-card); color: var(--color-text-primary); }
-.lead-panel__tab--active { background: var(--color-bg-card); color: var(--color-text-primary); border-color: var(--color-accent-hot); }
+.lead-panel__tab:hover { background: var(--color-bg-card-hover); color: var(--color-text-primary); }
+.lead-panel__tab--active {
+  background: var(--color-bg-card); color: var(--color-text-primary);
+  border-color: var(--color-accent-hot);
+  box-shadow: 0 0 8px rgba(255,59,92,0.1);
+}
 
 .lead-panel__tags {
   display: flex; flex-wrap: wrap; gap: 5px; align-items: center;

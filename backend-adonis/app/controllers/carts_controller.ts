@@ -211,4 +211,102 @@ export default class CartsController {
       return response.internalServerError({ error: err.message })
     }
   }
+
+  // ━━━━━━━━━━━ WISHLIST (S-Cart: 3 instances — cart, wishlist, compare) ━━━━━━━━━━━
+
+  /**
+   * GET /wishlist — Get wishlist items
+   */
+  async showWishlist({ auth, request, response }: HttpContext) {
+    return this._showList(auth.user!.id, 'wishlist', request.qs().shopId, response)
+  }
+
+  /**
+   * POST /wishlist — Add to wishlist
+   */
+  async addToWishlist({ auth, request, response }: HttpContext) {
+    const { shopId, productId, name, price, image } = request.only(['shopId', 'productId', 'name', 'price', 'image'])
+    return this._addToList(auth.user!.id, 'wishlist', shopId, { productId, name, price, image }, response)
+  }
+
+  /**
+   * DELETE /wishlist/:productId — Remove from wishlist
+   */
+  async removeFromWishlist({ auth, params, response }: HttpContext) {
+    return this._removeFromList(auth.user!.id, 'wishlist', params.productId, response)
+  }
+
+  // ━━━━━━━━━━━ COMPARE ━━━━━━━━━━━
+
+  /**
+   * GET /compare — Get compare list
+   */
+  async showCompare({ auth, request, response }: HttpContext) {
+    return this._showList(auth.user!.id, 'compare', request.qs().shopId, response)
+  }
+
+  /**
+   * POST /compare — Add to compare
+   */
+  async addToCompare({ auth, request, response }: HttpContext) {
+    const { shopId, productId, name, price, image } = request.only(['shopId', 'productId', 'name', 'price', 'image'])
+    return this._addToList(auth.user!.id, 'compare', shopId, { productId, name, price, image }, response)
+  }
+
+  /**
+   * DELETE /compare/:productId — Remove from compare
+   */
+  async removeFromCompare({ auth, params, response }: HttpContext) {
+    return this._removeFromList(auth.user!.id, 'compare', params.productId, response)
+  }
+
+  // ━━━━━━━━━━━ Shared helpers ━━━━━━━━━━━
+
+  private async _showList(identifier: number, instance: string, shopId: string | undefined, response: any) {
+    const row = await db.from('shopping_carts')
+      .where('identifier', identifier)
+      .where('instance', instance)
+      .modify((q: any) => { if (shopId) q.where('store_id', shopId) })
+      .first()
+    const items = row?.content ? JSON.parse(row.content) : []
+    return response.json({ items })
+  }
+
+  private async _addToList(identifier: number, instance: string, shopId: string, item: any, response: any) {
+    const row = await db.from('shopping_carts')
+      .where('identifier', identifier)
+      .where('instance', instance)
+      .first()
+
+    let items: any[] = row?.content ? JSON.parse(row.content) : []
+    const exists = items.find((i: any) => i.productId === item.productId)
+    if (!exists) {
+      items.push(item)
+    }
+
+    if (row) {
+      await db.from('shopping_carts').where('id', row.id)
+        .update({ content: JSON.stringify(items), updated_at: db.fn.now() })
+    } else {
+      await db.table('shopping_carts').insert({
+        identifier, instance, content: JSON.stringify(items), store_id: shopId || null,
+      })
+    }
+    return response.json({ items })
+  }
+
+  private async _removeFromList(identifier: number, instance: string, productId: string, response: any) {
+    const row = await db.from('shopping_carts')
+      .where('identifier', identifier)
+      .where('instance', instance)
+      .first()
+    if (!row) return response.json({ items: [] })
+
+    let items: any[] = JSON.parse(row.content || '[]')
+    items = items.filter((i: any) => i.productId !== productId)
+
+    await db.from('shopping_carts').where('id', row.id)
+      .update({ content: JSON.stringify(items), updated_at: db.fn.now() })
+    return response.json({ items })
+  }
 }

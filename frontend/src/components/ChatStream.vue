@@ -1,7 +1,7 @@
 <template>
   <div class="chat-stream">
     <div class="chat-stream__header">
-      <h3 class="chat-stream__title"><MessagesSquare :size="15" /> Live Chat</h3>
+      <h3 class="chat-stream__title"><span class="chat-stream__title-icon"><MessagesSquare :size="15" /></span> Live Chat</h3>
       <div class="chat-stream__header-right">
         <span class="chat-stream__count">{{ filteredComments.length }} / {{ comments.length }}</span>
         <button
@@ -272,7 +272,15 @@ defineExpose({ showSearch, searchInputRef })
   padding: 12px 16px; border-bottom: 1px solid var(--color-border);
   display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
 }
-.chat-stream__title { font-size: 15px; font-weight: 600; }
+.chat-stream__title {
+  font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-stream__title-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(129, 140, 248, 0.12); color: #818cf8;
+}
 .chat-stream__header-right { display: flex; align-items: center; gap: 8px; }
 .chat-stream__count { font-size: 12px; color: var(--color-text-muted); }
 
@@ -353,7 +361,7 @@ defineExpose({ showSearch, searchInputRef })
   display: flex; align-items: flex-start; gap: 4px; flex-wrap: wrap;
   cursor: pointer; transition: background 0.15s; position: relative;
 }
-.chat-msg:hover { background: var(--color-bg-card); }
+.chat-msg:hover { background: var(--color-bg-card-hover); }
 .chat-msg--hot { background: rgba(255, 59, 92, 0.08); }
 .chat-msg--hot:hover { background: rgba(255, 59, 92, 0.14); }
 .chat-msg--warm { background: rgba(255, 140, 66, 0.06); }

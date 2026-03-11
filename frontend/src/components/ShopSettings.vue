@@ -10,96 +10,87 @@
 
 
 
-    <!-- Appearance — always visible -->
-    <div class="settings__body" v-if="activeTab === 'appearance'">
-      <div class="settings__tabs">
-        <button
-          v-for="tab in allTabs"
-          :key="tab.key"
-          class="settings__tab"
-          :class="{ 'settings__tab--active': activeTab === tab.key }"
-          @click="activeTab = tab.key"
-        >
-          <component :is="tab.icon" :size="14" />
-          {{ tab.label }}
-        </button>
-      </div>
+    <div class="settings__layout">
+      <!-- Sidebar Navigation -->
+      <aside class="settings__sidebar">
+        <div v-for="group in tabGroups" :key="group.label" class="settings__sidebar-group">
+          <div class="settings__sidebar-label">{{ group.label }}</div>
+          <button
+            v-for="tab in group.items"
+            :key="tab.key"
+            class="settings__sidebar-item"
+            :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
+            @click="activeTab = tab.key"
+          >
+            <component :is="tab.icon" :size="16" />
+            <span>{{ tab.label }}</span>
+          </button>
+        </div>
+      </aside>
 
-      <div class="settings__panel">
-        <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện</h3>
+      <!-- Content Panel -->
+      <div class="settings__content">
 
-        <!-- Theme Mode -->
-        <div class="settings__section">
-          <label class="settings__field-label">Chế độ</label>
-          <div class="theme-mode-selector">
-            <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-              <Sun :size="16" /> Sáng
-            </button>
-            <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-              <Moon :size="16" /> Tối
-            </button>
-            <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
-              <MonitorIcon :size="16" /> Hệ thống
-            </button>
+        <!-- ═══ Tab: Appearance ═══ -->
+        <div v-if="activeTab === 'appearance'" class="settings__panel">
+          <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện</h3>
+
+          <!-- Theme Mode -->
+          <div class="settings__section">
+            <label class="settings__field-label">Chế độ</label>
+            <div class="theme-mode-selector">
+              <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
+                <Sun :size="16" /> Sáng
+              </button>
+              <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
+                <Moon :size="16" /> Tối
+              </button>
+              <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
+                <MonitorIcon :size="16" /> Hệ thống
+              </button>
+            </div>
+          </div>
+
+          <!-- Accent Color -->
+          <div class="settings__section">
+            <label class="settings__field-label">Màu nhấn</label>
+            <div class="accent-picker">
+              <button
+                v-for="(preset, name) in accentPresets"
+                :key="name"
+                class="accent-swatch"
+                :class="{ active: accentColor === name }"
+                :style="{ '--swatch': preset.primary }"
+                @click="setAccent(name)"
+                :title="name"
+              >
+                <span class="accent-swatch__dot"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Font Size -->
+          <div class="settings__section">
+            <label class="settings__field-label">Cỡ chữ</label>
+            <div class="font-size-selector">
+              <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
+                <span style="font-size:12px">A</span> Nhỏ gọn
+              </button>
+              <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
+                <span style="font-size:14px">A</span> Bình thường
+              </button>
+              <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
+                <span style="font-size:16px">A</span> Thoải mái
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Accent Color -->
-        <div class="settings__section">
-          <label class="settings__field-label">Màu nhấn</label>
-          <div class="accent-picker">
-            <button
-              v-for="(preset, name) in accentPresets"
-              :key="name"
-              class="accent-swatch"
-              :class="{ active: accentColor === name }"
-              :style="{ '--swatch': preset.primary }"
-              @click="setAccent(name)"
-              :title="name"
-            >
-              <span class="accent-swatch__dot"></span>
-            </button>
-          </div>
-        </div>
+        <!-- ═══ Tab: Connection ═══ -->
+        <div v-if="activeTab === 'connection'" class="settings__panel">
+          <h3 class="settings__panel-title"><Link :size="16" style="vertical-align:middle" /> Kết nối nền tảng</h3>
 
-        <!-- Font Size -->
-        <div class="settings__section">
-          <label class="settings__field-label">Cỡ chữ</label>
-          <div class="font-size-selector">
-            <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
-              <span style="font-size:12px">A</span> Nhỏ gọn
-            </button>
-            <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
-              <span style="font-size:14px">A</span> Bình thường
-            </button>
-            <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
-              <span style="font-size:16px">A</span> Thoải mái
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div v-if="activeTab !== 'appearance'" class="settings__body">
-      <!-- Tab Switcher -->
-      <div class="settings__tabs">
-        <button
-          v-for="tab in allTabs"
-          :key="tab.key"
-          class="settings__tab"
-          :class="{ 'settings__tab--active': activeTab === tab.key }"
-          @click="activeTab = tab.key"
-        >
-          <component :is="tab.icon" :size="14" />
-          {{ tab.label }}
-        </button>
-      </div>
-
-      <!-- ═══ Tab: Connection ═══ -->
-      <div v-if="activeTab === 'connection'" class="settings__panel">
-        <h3 class="settings__panel-title">🔗 Kết nối nền tảng</h3>
-
-        <!-- TikTok -->
+          <!-- TikTok -->
         <div class="settings__platform-group">
           <h4 class="settings__platform-label">
             <Music :size="14" style="vertical-align:middle" /> TikTok Live
@@ -181,91 +172,17 @@
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <h3 class="settings__panel-title"><ShoppingBag :size="16" style="vertical-align:middle" /> Sản phẩm ({{ products.length }})</h3>
-        <div class="settings__add-row">
-          <input v-model="newProduct.name" placeholder="Tên sản phẩm" class="settings__input settings__input--flex" />
-          <input v-model="newProduct.price" type="number" placeholder="Giá" class="settings__input settings__input--sm" />
-          <input v-model="newProduct.category" placeholder="Danh mục" class="settings__input settings__input--sm" />
-          <input v-model="newProduct.keywords" placeholder="Keywords (phân cách bằng dấu phẩy)" class="settings__input settings__input--flex" />
-          <button class="settings__add-btn" @click="addProduct">
-            <Plus :size="14" /> Thêm
-          </button>
-        </div>
-        <div class="settings__list">
-          <div v-for="p in products" :key="p.id" class="settings__list-item">
-            <span class="settings__item-name">{{ p.name }}</span>
-            <span class="settings__item-category" v-if="p.category">{{ p.category }}</span>
-            <span class="settings__item-price">{{ Number(p.price || 0).toLocaleString() }}đ</span>
-            <span class="settings__item-kw">{{ Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || '') }}</span>
-            <span class="settings__item-sku" v-if="p.sku">SKU: {{ p.sku }}</span>
-            <span class="settings__item-stock" :class="{ 'low-stock': (p.stock || 0) <= (p.lowStockThreshold || p.low_stock_threshold || 5) }">
-              <Package :size="12" />
-              {{ p.stock ?? 0 }}
-              <span v-if="(p.stock || 0) <= (p.lowStockThreshold || p.low_stock_threshold || 5)" class="low-badge">Sắp hết</span>
-            </span>
-            <div class="settings__stock-btns">
-              <button class="stock-btn stock-btn--minus" @click="adjustStock(p.id, 'deduct', 1)" title="Trừ 1">
-                <Minus :size="12" />
-              </button>
-              <button class="stock-btn stock-btn--plus" @click="adjustStock(p.id, 'add', 1)" title="Thêm 1">
-                <Plus :size="12" />
-              </button>
-            </div>
-            <button class="settings__del-btn" @click="deleteProduct(p.id)">
-              <Trash2 :size="12" />
-            </button>
-          </div>
-          <p v-if="products.length === 0" class="settings__empty-list">Chưa có sản phẩm</p>
-        </div>
+        <ProductManager :shopId="currentShop?.id" />
       </div>
 
       <!-- ═══ Tab: Categories ═══ -->
       <div v-if="activeTab === 'categories'" class="settings__panel">
-        <h3 class="settings__panel-title"><FolderTree :size="16" style="vertical-align:middle" /> Danh mục ({{ categoryList.length }})</h3>
-        <div class="settings__add-row">
-          <input v-model="newCategory.name" placeholder="Tên danh mục" class="settings__input settings__input--flex" />
-          <input v-model="newCategory.description" placeholder="Mô tả (tuỳ chọn)" class="settings__input settings__input--flex" />
-          <button class="settings__add-btn" @click="addCategory">
-            <Plus :size="14" /> Thêm
-          </button>
-        </div>
-        <div class="settings__list">
-          <div v-for="cat in categoryList" :key="cat.id" class="settings__list-item">
-            <span class="settings__item-name">{{ cat.name }}</span>
-            <span class="settings__item-slug">{{ cat.slug }}</span>
-            <span v-if="cat.description" class="settings__item-desc">{{ cat.description }}</span>
-            <span class="settings__item-badge" :class="cat.isActive || cat.is_active ? 'badge--active' : 'badge--inactive'">
-              {{ (cat.isActive || cat.is_active) ? 'Hiện' : 'Ẩn' }}
-            </span>
-            <button class="settings__del-btn" @click="removeCategory(cat.id)">
-              <Trash2 :size="12" />
-            </button>
-          </div>
-          <p v-if="categoryList.length === 0" class="settings__empty-list">Chưa có danh mục</p>
-        </div>
+        <CategoryManager :shopId="currentShop?.id" />
       </div>
 
       <!-- ═══ Tab: Brands ═══ -->
       <div v-if="activeTab === 'brands'" class="settings__panel">
-        <h3 class="settings__panel-title"><Award :size="16" style="vertical-align:middle" /> Thương hiệu ({{ brandList.length }})</h3>
-        <div class="settings__add-row">
-          <input v-model="newBrand.name" placeholder="Tên thương hiệu" class="settings__input settings__input--flex" />
-          <input v-model="newBrand.description" placeholder="Mô tả (tuỳ chọn)" class="settings__input settings__input--flex" />
-          <button class="settings__add-btn" @click="addBrand">
-            <Plus :size="14" /> Thêm
-          </button>
-        </div>
-        <div class="settings__list">
-          <div v-for="br in brandList" :key="br.id" class="settings__list-item">
-            <span class="settings__item-name">{{ br.name }}</span>
-            <span class="settings__item-slug">{{ br.slug }}</span>
-            <span v-if="br.description" class="settings__item-desc">{{ br.description }}</span>
-            <button class="settings__del-btn" @click="removeBrand(br.id)">
-              <Trash2 :size="12" />
-            </button>
-          </div>
-          <p v-if="brandList.length === 0" class="settings__empty-list">Chưa có thương hiệu</p>
-        </div>
+        <BrandManager :shopId="currentShop?.id" />
       </div>
 
       <!-- ═══ Tab: Keywords ═══ -->
@@ -414,7 +331,8 @@
       </div>
 
 
-    </div>
+      </div><!-- /settings__content -->
+    </div><!-- /settings__layout -->
   </div>
 </template>
 
@@ -432,6 +350,9 @@ import PromotionManager from './PromotionManager.vue'
 import CmsManager from './CmsManager.vue'
 import BannerManager from './BannerManager.vue'
 import NavLinkManager from './NavLinkManager.vue'
+import ProductManager from './ProductManager.vue'
+import CategoryManager from './CategoryManager.vue'
+import BrandManager from './BrandManager.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -470,6 +391,41 @@ const tabs = [
 const allTabs = [
   ...tabs,
   { key: 'appearance', label: 'Giao diện', icon: Palette },
+]
+const tabGroups = [
+  {
+    label: 'Kết nối',
+    items: [
+      { key: 'connection', label: 'Nền tảng', icon: Link },
+    ],
+  },
+  {
+    label: 'Sản phẩm & Kho',
+    items: [
+      { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
+      { key: 'categories', label: 'Danh mục', icon: FolderTree },
+      { key: 'brands', label: 'Thương hiệu', icon: Award },
+    ],
+  },
+  {
+    label: 'Tương tác',
+    items: [
+      { key: 'keywords', label: 'Keywords', icon: Key },
+      { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
+      { key: 'moderation', label: 'Moderation', icon: Shield },
+      { key: 'shop-customers', label: 'Khách hàng', icon: Users },
+      { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
+    ],
+  },
+  {
+    label: 'Giao diện',
+    items: [
+      { key: 'cms', label: 'Trang CMS', icon: BookOpen },
+      { key: 'banners', label: 'Banner', icon: Video },
+      { key: 'nav-links', label: 'Menu', icon: ClipboardList },
+      { key: 'appearance', label: 'Theme', icon: Palette },
+    ],
+  },
 ]
 
 // Connection form
@@ -760,8 +716,7 @@ defineExpose({ handleAutoReplyEvent })
 </script>
 
 <style scoped>
-.settings { padding: 20px; overflow-y: auto; height: 100%; }
-.settings__body { padding: 0 4px; }
+.settings { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
 .settings__platform-group {
   padding: 14px 16px; border-radius: 10px; background: var(--color-bg-primary);
   border: 1px solid var(--color-border); margin-bottom: 12px;
@@ -778,7 +733,8 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__help-text { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 .settings__header {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+  display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border); flex-shrink: 0;
 }
 .settings__title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
 .settings__shop-name { font-size: 14px; color: var(--color-text-muted); padding: 4px 12px; background: var(--color-bg-secondary); border-radius: 6px; }
@@ -817,26 +773,69 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__empty-hint strong { color: var(--color-accent, #7c3aed); }
 .settings__tab-lock { opacity: 0.5; margin-left: -2px; }
-.settings__tabs {
-  display: flex; gap: 2px; background: var(--color-bg-primary); border-radius: 8px; padding: 2px; margin-bottom: 20px;
+
+/* ── Sidebar Layout ── */
+.settings__layout {
+  display: flex;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
 }
-.settings__tab {
-  display: flex; align-items: center; gap: 5px; padding: 8px 16px; border-radius: 6px;
-  border: none; background: transparent; color: var(--color-text-muted);
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
-  position: relative;
+.settings__sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--color-bg-sidebar, var(--color-bg-primary));
+  border-right: 1px solid var(--color-border);
+  padding: 12px 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.settings__tab:hover { color: var(--color-text-primary); }
-.settings__tab:disabled { opacity: 0.4; cursor: not-allowed; }
-.settings__tab:disabled:hover { color: var(--color-text-muted); }
-.settings__tab--active {
-  background: var(--color-bg-secondary); color: var(--color-text-primary); font-weight: 600;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.settings__sidebar-group {
+  margin-bottom: 8px;
 }
-.settings__tab--active::after {
-  content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
-  width: 20px; height: 2px; border-radius: 1px;
-  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+.settings__sidebar-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  padding: 8px 12px 4px;
+  margin-bottom: 2px;
+}
+.settings__sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.settings__sidebar-item:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-card-hover);
+}
+.settings__sidebar-item--active {
+  color: var(--color-accent-primary);
+  background: rgba(124, 58, 237, 0.10);
+  font-weight: 600;
+}
+.settings__sidebar-item--active svg {
+  color: var(--color-accent-primary);
+}
+.settings__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
 }
 
 .settings__panel {

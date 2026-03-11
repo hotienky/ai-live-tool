@@ -5,6 +5,7 @@ import GetHourlyAnalyticsAction from '#actions/analytics/get_hourly_analytics_ac
 import GetConversionStatsAction from '#actions/analytics/get_conversion_stats_action'
 import GetTopKeywordsAction from '#actions/analytics/get_top_keywords_action'
 import GetAnalyticsSummaryAction from '#actions/analytics/get_analytics_summary_action'
+import GetRevenueTrendsAction from '#actions/analytics/get_revenue_trends_action'
 
 export default class AnalyticsController {
   async daily({ auth, request, response }: HttpContext) {
@@ -39,6 +40,13 @@ export default class AnalyticsController {
     const { shopId, days = 7 } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
     const result = await GetAnalyticsSummaryAction.handle({ userShopIds, shopId, days: Number(days) })
+    return response.json(result)
+  }
+
+  async revenue({ auth, request, response }: HttpContext) {
+    const { shopId, days = 30 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const result = await GetRevenueTrendsAction.handle({ userShopIds, shopId, days: Number(days) })
     return response.json(result)
   }
 }

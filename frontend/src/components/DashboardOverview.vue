@@ -6,37 +6,41 @@
         <div class="dashboard__card-icon">
           <Radio :size="22" />
         </div>
-        <div>
+        <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.totalActiveLives || 0 }}</p>
           <p class="dashboard__card-label">Đang Live</p>
         </div>
+        <div class="dashboard__card-shine"></div>
       </div>
       <div class="dashboard__card dashboard__card--leads">
         <div class="dashboard__card-icon">
           <Flame :size="22" />
         </div>
-        <div>
+        <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.dbStats?.todayLeads || 0 }}</p>
           <p class="dashboard__card-label">Leads hôm nay</p>
         </div>
+        <div class="dashboard__card-shine"></div>
       </div>
       <div class="dashboard__card dashboard__card--comments">
         <div class="dashboard__card-icon">
           <MessageSquare :size="22" />
         </div>
-        <div>
+        <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.dbStats?.todayComments || 0 }}</p>
           <p class="dashboard__card-label">Comments hôm nay</p>
         </div>
+        <div class="dashboard__card-shine"></div>
       </div>
       <div class="dashboard__card dashboard__card--rate">
         <div class="dashboard__card-icon">
           <TrendingUp :size="22" />
         </div>
-        <div>
-          <p class="dashboard__card-value">{{ conversionRate }}%</p>
+        <div class="dashboard__card-body">
+          <p class="dashboard__card-value">{{ conversionRate }}<span class="dashboard__card-unit">%</span></p>
           <p class="dashboard__card-label">Conversion Rate</p>
         </div>
+        <div class="dashboard__card-shine"></div>
       </div>
     </div>
 
@@ -44,10 +48,13 @@
       <!-- Active Lives -->
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
-          <Radio :size="16" /> Phiên Live đang hoạt động
+          <span class="dashboard__section-icon dashboard__section-icon--live"><Radio :size="15" /></span>
+          Phiên Live đang hoạt động
         </h3>
         <div v-if="activeLives.length === 0" class="dashboard__empty">
-          Không có phiên live nào đang hoạt động
+          <Radio :size="32" class="dashboard__empty-icon" />
+          <span>Không có phiên live nào</span>
+          <span class="dashboard__empty-hint">Bắt đầu phiên live từ <strong>Live Monitor</strong></span>
         </div>
         <div v-for="live in activeLives" :key="live.shopId" class="dashboard__live-item" @click="$emit('goLive', live)" style="cursor:pointer">
           <div class="dashboard__live-dot"></div>
@@ -56,10 +63,9 @@
             <span class="dashboard__live-platform">{{ live.platform }}</span>
           </div>
           <div class="dashboard__live-stats">
-            <span><Flame :size="13" style="color:#ff3b5c;vertical-align:middle" /> {{ live.stats.hot }}</span>
-            <span><CircleDot :size="13" style="color:#ff8c42;vertical-align:middle" /> {{ live.stats.warm }}</span>
-            <span><Circle :size="13" style="color:#a1a1aa;vertical-align:middle" /> {{ live.stats.cold }}</span>
-            <span class="dashboard__live-total">{{ live.stats.total }} total</span>
+            <span class="dashboard__live-stat dashboard__live-stat--hot"><Flame :size="13" /> {{ live.stats.hot }}</span>
+            <span class="dashboard__live-stat dashboard__live-stat--warm"><CircleDot :size="13" /> {{ live.stats.warm }}</span>
+            <span class="dashboard__live-stat dashboard__live-stat--cold"><Circle :size="13" /> {{ live.stats.cold }}</span>
           </div>
           <span class="dashboard__live-viewers" v-if="live.peakViewers > 0">
             <Eye :size="12" /> {{ live.peakViewers }}
@@ -70,17 +76,27 @@
       <!-- Recent Leads -->
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
-          <Flame :size="16" /> Leads mới nhất
+          <span class="dashboard__section-icon dashboard__section-icon--leads"><Flame :size="15" /></span>
+          Leads mới nhất
         </h3>
         <div v-if="recentLeads.length === 0" class="dashboard__empty">
-          Chưa có leads nào
+          <Flame :size="32" class="dashboard__empty-icon" />
+          <span>Chưa có leads nào</span>
+          <span class="dashboard__empty-hint">Leads sẽ xuất hiện khi AI phân loại comments</span>
         </div>
         <div v-for="lead in recentLeads.slice(0, 10)" :key="lead.id || lead.timestamp" class="dashboard__lead-item" @click="$emit('goLead', lead)" style="cursor:pointer">
-          <Flame v-if="(lead.ChatLog?.ai_label || lead.label) === 'HOT' || (lead.ChatLog?.ai_label || lead.label) === '[HOT]'" :size="14" style="color: #ff3b5c" />
-          <CircleDot v-else :size="14" style="color: #ff8c42" />
-          <span class="dashboard__lead-name">{{ lead.ChatLog?.nickname || lead.nickname || 'Unknown' }}</span>
-          <span class="dashboard__lead-text">{{ (lead.ChatLog?.comment_text || lead.comment || '').substring(0, 60) }}</span>
-          <span class="dashboard__lead-time">{{ formatTime(lead.created_at || lead.timestamp) }}</span>
+          <div class="dashboard__lead-avatar" :class="{
+            'dashboard__lead-avatar--hot': (lead.ChatLog?.ai_label || lead.label) === 'HOT' || (lead.ChatLog?.ai_label || lead.label) === '[HOT]'
+          }">
+            {{ ((lead.ChatLog?.nickname || lead.nickname || '?').charAt(0)).toUpperCase() }}
+          </div>
+          <div class="dashboard__lead-body">
+            <div class="dashboard__lead-header">
+              <span class="dashboard__lead-name">{{ lead.ChatLog?.nickname || lead.nickname || 'Unknown' }}</span>
+              <span class="dashboard__lead-time">{{ formatTime(lead.created_at || lead.timestamp) }}</span>
+            </div>
+            <p class="dashboard__lead-text">{{ (lead.ChatLog?.comment_text || lead.comment || '').substring(0, 80) }}</p>
+          </div>
         </div>
       </div>
     </div>
@@ -186,6 +202,13 @@ onUnmounted(() => {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0;
   width: 3px; border-radius: 16px 0 0 16px;
 }
+.dashboard__card-shine {
+  position: absolute; top: -50%; right: -50%;
+  width: 100%; height: 200%;
+  opacity: 0.03;
+  border-radius: 50%;
+  pointer-events: none;
+}
 .dashboard__card:hover {
   transform: translateY(-3px);
   border-color: var(--color-border-hover);
@@ -196,16 +219,22 @@ onUnmounted(() => {
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
+.dashboard__card-body { flex: 1; }
 .dashboard__card--live::before { background: linear-gradient(180deg, #10b981, #059669); }
 .dashboard__card--live .dashboard__card-icon { background: rgba(16,185,129,0.12); color: #34d399; }
+.dashboard__card--live .dashboard__card-shine { background: radial-gradient(circle, #10b981, transparent); }
 .dashboard__card--leads::before { background: linear-gradient(180deg, #ef4444, #dc2626); }
 .dashboard__card--leads .dashboard__card-icon { background: rgba(239,68,68,0.12); color: #f87171; }
+.dashboard__card--leads .dashboard__card-shine { background: radial-gradient(circle, #ef4444, transparent); }
 .dashboard__card--comments::before { background: linear-gradient(180deg, #3b82f6, #2563eb); }
 .dashboard__card--comments .dashboard__card-icon { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.dashboard__card--comments .dashboard__card-shine { background: radial-gradient(circle, #3b82f6, transparent); }
 .dashboard__card--rate::before { background: linear-gradient(180deg, #a855f7, #7c3aed); }
 .dashboard__card--rate .dashboard__card-icon { background: rgba(168,85,247,0.12); color: #c084fc; }
+.dashboard__card--rate .dashboard__card-shine { background: radial-gradient(circle, #a855f7, transparent); }
 
 .dashboard__card-value { font-size: 28px; font-weight: 800; line-height: 1; color: var(--color-text-primary); }
+.dashboard__card-unit { font-size: 18px; font-weight: 600; opacity: 0.6; }
 .dashboard__card-label { font-size: 12px; color: var(--color-text-muted); margin-top: 4px; font-weight: 500; }
 
 /* ── Grid Layout ── */
@@ -219,14 +248,24 @@ onUnmounted(() => {
 .dashboard__section:hover { border-color: var(--color-border-hover); }
 .dashboard__section-title {
   font-size: 14px; font-weight: 800; margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 10px;
   color: var(--color-text-primary);
 }
+.dashboard__section-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.dashboard__section-icon--live { background: rgba(16,185,129,0.12); color: #34d399; }
+.dashboard__section-icon--leads { background: rgba(239,68,68,0.12); color: #f87171; }
 .dashboard__empty {
   display: flex; flex-direction: column; align-items: center;
   justify-content: center; padding: 40px 20px;
-  color: var(--color-text-muted); font-size: 13px; font-style: italic;
+  color: var(--color-text-muted); font-size: 13px;
+  gap: 6px;
 }
+.dashboard__empty-icon { opacity: 0.3; margin-bottom: 4px; }
+.dashboard__empty-hint { font-size: 11px; opacity: 0.7; }
+.dashboard__empty-hint strong { color: var(--color-accent-primary); }
 
 /* Live Items */
 .dashboard__live-item {
@@ -249,28 +288,45 @@ onUnmounted(() => {
 .dashboard__live-name { font-size: 13px; font-weight: 700; }
 .dashboard__live-platform { font-size: 11px; color: var(--color-text-muted); text-transform: capitalize; }
 .dashboard__live-stats { display: flex; gap: 8px; font-size: 12px; }
-.dashboard__live-total { color: var(--color-text-muted); }
+.dashboard__live-stat { display: flex; align-items: center; gap: 3px; }
+.dashboard__live-stat--hot { color: #ff3b5c; }
+.dashboard__live-stat--warm { color: #ff8c42; }
+.dashboard__live-stat--cold { color: var(--color-text-muted); }
 .dashboard__live-viewers {
   font-size: 12px; color: var(--color-text-muted);
   display: flex; align-items: center; gap: 3px;
 }
 
-/* Lead Items */
+/* Lead Items — Redesigned with avatars */
 .dashboard__lead-item {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 8px; border-radius: 8px; font-size: 13px;
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 8px; border-radius: 10px; font-size: 13px;
   transition: background 0.15s;
 }
-.dashboard__lead-item:hover { background: rgba(124,58,237,0.04); }
+.dashboard__lead-item:hover { background: var(--color-bg-card-hover); }
+.dashboard__lead-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.dashboard__lead-avatar--hot {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  box-shadow: 0 0 10px rgba(239,68,68,0.3);
+}
+.dashboard__lead-body { flex: 1; min-width: 0; }
+.dashboard__lead-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px;
+}
 .dashboard__lead-name {
-  font-weight: 700; white-space: nowrap; min-width: 90px; color: var(--color-text-primary);
+  font-weight: 700; color: var(--color-text-primary); font-size: 13px;
 }
 .dashboard__lead-text {
-  flex: 1; color: var(--color-text-secondary);
+  color: var(--color-text-secondary); font-size: 12px; line-height: 1.4;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .dashboard__lead-time {
-  font-size: 11px; color: var(--color-text-muted); white-space: nowrap;
+  font-size: 10px; color: var(--color-text-muted); white-space: nowrap;
   font-family: 'SF Mono', 'Fira Code', monospace;
 }
 

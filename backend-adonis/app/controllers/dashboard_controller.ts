@@ -4,6 +4,7 @@ import GetDashboardOverviewAction from '#actions/dashboard/get_dashboard_overvie
 import GetRecentLeadsAction from '#actions/dashboard/get_recent_leads_action'
 import GetDashboardAnalyticsAction from '#actions/dashboard/get_dashboard_analytics_action'
 import GetTopCustomersAction from '#actions/dashboard/get_top_customers_action'
+import GetOrderStatsAction from '#actions/dashboard/get_order_stats_action'
 
 export default class DashboardController {
   async overview({ auth, request, response }: HttpContext) {
@@ -33,4 +34,12 @@ export default class DashboardController {
     const customers = await GetTopCustomersAction.handle({ userShopIds, limit: Number(limit) })
     return response.json(customers)
   }
+
+  async orderStats({ auth, request, response }: HttpContext) {
+    const { shopId, days = 30 } = request.qs()
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    const result = await GetOrderStatsAction.handle({ userShopIds, shopId, days: Number(days) })
+    return response.json(result)
+  }
 }
+

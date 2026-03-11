@@ -133,16 +133,21 @@ class ConnectionManager {
           }
 
           const label = await analyzeComment(data.comment)
+          // ── Normalize label to [HOT]/[WARM]/[COLD] format (frontend expects brackets) ──
+          const rawLabel = typeof label === 'string' ? label : label.label || 'COLD'
+          const normalizedLabel = rawLabel.startsWith('[') ? rawLabel : `[${rawLabel.replace(/[\[\]]/g, '').toUpperCase()}]`
+
           const commentData: any = {
             id: `${platform}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
             shopId, platform, nickname: data.nickname, uniqueId: data.uniqueId,
-            comment: data.comment, label: label.label || label,
+            comment: data.comment, label: normalizedLabel,
             profileLink: buildLink(data.uniqueId), profilePictureUrl: data.profilePictureUrl,
             timestamp: new Date().toISOString(),
+            aiSummary: typeof label === 'object' ? label.summary : '',
+            productIntent: typeof label === 'object' ? label.product_intent : '',
           }
 
-          const lbl = typeof label === 'string' ? label : label.label
-          if (lbl === '[HOT]' || lbl === 'HOT') {
+          if (normalizedLabel === '[HOT]') {
             stats.hot++; sendHotLeadAlert(commentData, shopName)
             // In-app notification for HOT lead
             try {
@@ -152,12 +157,12 @@ class ConnectionManager {
               }
             } catch { /* best-effort */ }
           }
-          else if (lbl === '[WARM]' || lbl === 'WARM') stats.warm++
+          else if (normalizedLabel === '[WARM]') stats.warm++
           else stats.cold++
           stats.total++
 
           // Product matching
-          if ((lbl === '[HOT]' || lbl === 'HOT' || lbl === '[WARM]' || lbl === 'WARM') && connInfo.products.length > 0) {
+          if ((normalizedLabel === '[HOT]' || normalizedLabel === '[WARM]') && connInfo.products.length > 0) {
             try {
               const match = await matchProduct(data.comment, connInfo.products)
               if (match) commentData.matchedProduct = match
@@ -165,7 +170,7 @@ class ConnectionManager {
           }
 
           // F4: Auto-Order Pipeline — HOT comment + matched product → draft order
-          if ((lbl === '[HOT]' || lbl === 'HOT') && commentData.matchedProduct?.product?.id) {
+          if (normalizedLabel === '[HOT]' && commentData.matchedProduct?.product?.id) {
             try {
               const Order = (await import('#models/order')).default
               // Detect quantity from comment: "+2", "lấy 3 cái", "2 cái", etc

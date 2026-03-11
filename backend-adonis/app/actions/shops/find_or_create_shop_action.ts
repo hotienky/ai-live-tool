@@ -5,13 +5,13 @@ interface Params {
   platform: string
   tiktokUsername?: string
   facebookPageId?: string
-  youtubeChannel?: string
-  shopeeShopId?: string
+  youtubeChannelId?: string
+  shopeeId?: string
   sessionName?: string
 }
 
 export default class FindOrCreateShopAction {
-  static async handle({ userId, platform, tiktokUsername, facebookPageId, youtubeChannel, shopeeShopId, sessionName }: Params) {
+  static async handle({ userId, platform, tiktokUsername, facebookPageId, youtubeChannelId, shopeeId, sessionName }: Params) {
     // Build lookup query by platform + identifier
     let query = Shop.query().where('userId', userId).where('platform', platform)
     let identifier = ''
@@ -22,12 +22,12 @@ export default class FindOrCreateShopAction {
     } else if (platform === 'facebook' && facebookPageId) {
       query = query.where('facebookPageId', facebookPageId)
       identifier = facebookPageId
-    } else if (platform === 'youtube' && youtubeChannel) {
-      query = query.where('youtubeChannel', youtubeChannel)
-      identifier = youtubeChannel
-    } else if (platform === 'shopee' && shopeeShopId) {
-      query = query.where('shopeeShopId', shopeeShopId)
-      identifier = shopeeShopId
+    } else if (platform === 'youtube' && youtubeChannelId) {
+      query = query.where('youtubeChannelId', youtubeChannelId)
+      identifier = youtubeChannelId
+    } else if (platform === 'shopee' && shopeeId) {
+      query = query.where('shopeeId', shopeeId)
+      identifier = shopeeId
     }
 
     let shop = await query.first()
@@ -39,8 +39,8 @@ export default class FindOrCreateShopAction {
         platform,
         tiktokUsername: platform === 'tiktok' ? identifier : null,
         facebookPageId: platform === 'facebook' ? identifier : null,
-        youtubeChannel: platform === 'youtube' ? identifier : null,
-        shopeeShopId: platform === 'shopee' ? identifier : null,
+        youtubeChannelId: platform === 'youtube' ? identifier : null,
+        shopeeId: platform === 'shopee' ? identifier : null,
         isActive: true,
       })
     }

@@ -7,6 +7,25 @@ export interface ApiDefinition {
     login: typeof routes['auth.login']
     me: typeof routes['auth.me']
   }
+  shopAuth: {
+    register: typeof routes['shop_auth.register']
+    login: typeof routes['shop_auth.login']
+    me: typeof routes['shop_auth.me']
+    updateProfile: typeof routes['shop_auth.update_profile']
+    changePassword: typeof routes['shop_auth.change_password']
+    forgotPassword: typeof routes['shop_auth.forgot_password']
+    resetPassword: typeof routes['shop_auth.reset_password']
+  }
+  storefront: {
+    products: typeof routes['storefront.products']
+    productDetail: typeof routes['storefront.product_detail']
+    categories: typeof routes['storefront.categories']
+    brands: typeof routes['storefront.brands']
+    banners: typeof routes['storefront.banners']
+    pages: typeof routes['storefront.pages']
+    pageDetail: typeof routes['storefront.page_detail']
+    storeInfo: typeof routes['storefront.store_info']
+  }
   shops: {
     index: typeof routes['shops.index']
     store: typeof routes['shops.store']
@@ -57,6 +76,7 @@ export interface ApiDefinition {
     recentLeads: typeof routes['dashboard.recent_leads']
     analytics: typeof routes['dashboard.analytics']
     topCustomers: typeof routes['dashboard.top_customers']
+    orderStats: typeof routes['dashboard.order_stats']
   }
   analytics: {
     daily: typeof routes['analytics.daily']
@@ -64,6 +84,7 @@ export interface ApiDefinition {
     conversion: typeof routes['analytics.conversion']
     topKeywords: typeof routes['analytics.top_keywords']
     summary: typeof routes['analytics.summary']
+    revenue: typeof routes['analytics.revenue']
   }
   notifications: {
     index: typeof routes['notifications.index']
@@ -101,6 +122,12 @@ export interface ApiDefinition {
     updateItem: typeof routes['carts.update_item']
     removeItem: typeof routes['carts.remove_item']
     checkout: typeof routes['carts.checkout']
+    showWishlist: typeof routes['carts.show_wishlist']
+    addToWishlist: typeof routes['carts.add_to_wishlist']
+    removeFromWishlist: typeof routes['carts.remove_from_wishlist']
+    showCompare: typeof routes['carts.show_compare']
+    addToCompare: typeof routes['carts.add_to_compare']
+    removeFromCompare: typeof routes['carts.remove_from_compare']
   }
   schedules: {
     index: typeof routes['schedules.index']
@@ -150,6 +177,54 @@ export interface ApiDefinition {
     update: typeof routes['nav_links.update']
     destroy: typeof routes['nav_links.destroy']
     reorder: typeof routes['nav_links.reorder']
+  }
+  webhooks: {
+    index: typeof routes['webhooks.index']
+    store: typeof routes['webhooks.store']
+    update: typeof routes['webhooks.update']
+    destroy: typeof routes['webhooks.destroy']
+  }
+  activityLogs: {
+    index: typeof routes['activity_logs.index']
+    stats: typeof routes['activity_logs.stats']
+    entityTypes: typeof routes['activity_logs.entity_types']
+  }
+  roles: {
+    index: typeof routes['roles.index']
+    permissions: typeof routes['roles.permissions']
+    store: typeof routes['roles.store']
+    show: typeof routes['roles.show']
+    update: typeof routes['roles.update']
+    destroy: typeof routes['roles.destroy']
+    users: typeof routes['roles.users']
+    assignRole: typeof routes['roles.assign_role']
+  }
+  systemConfig: {
+    index: typeof routes['system_config.index']
+    show: typeof routes['system_config.show']
+    update: typeof routes['system_config.update']
+  }
+  apiKeys: {
+    index: typeof routes['api_keys.index']
+    store: typeof routes['api_keys.store']
+    update: typeof routes['api_keys.update']
+    destroy: typeof routes['api_keys.destroy']
+  }
+  languages: {
+    index: typeof routes['languages.index']
+    store: typeof routes['languages.store']
+    update: typeof routes['languages.update']
+    destroy: typeof routes['languages.destroy']
+    getTranslations: typeof routes['languages.get_translations']
+    updateTranslations: typeof routes['languages.update_translations']
+  }
+  customFields: {
+    index: typeof routes['custom_fields.index']
+    store: typeof routes['custom_fields.store']
+    update: typeof routes['custom_fields.update']
+    destroy: typeof routes['custom_fields.destroy']
+    getValues: typeof routes['custom_fields.get_values']
+    saveValues: typeof routes['custom_fields.save_values']
   }
   exports: {
     leads: typeof routes['exports.leads']

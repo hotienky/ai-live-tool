@@ -1,6 +1,38 @@
 <template>
+  <!-- ═══ Storefront: No login required ═══ -->
+  <div v-if="isStorefront" class="storefront-wrapper">
+    <StorefrontHome
+      v-if="shopView === 'home'"
+      :storeId="shopStoreId"
+      @viewProduct="(id) => shopNavigate('product', id)"
+      @viewPage="(id) => shopNavigate('page', id)"
+    />
+    <StorefrontProduct
+      v-else-if="shopView === 'product'"
+      :storeId="shopStoreId"
+      :productId="shopItemId"
+      @back="shopNavigate('home')"
+      @addToCart="onAddToCart"
+    />
+    <StorefrontCategory
+      v-else-if="shopView === 'category'"
+      :storeId="shopStoreId"
+      :categoryId="shopItemId"
+      @back="shopNavigate('home')"
+      @viewProduct="(id) => shopNavigate('product', id)"
+    />
+    <StorefrontPage
+      v-else-if="shopView === 'page'"
+      :storeId="shopStoreId"
+      :pageId="shopItemId"
+      @back="shopNavigate('home')"
+    />
+    <StorefrontHome v-else :storeId="shopStoreId" @viewProduct="(id) => shopNavigate('product', id)" @viewPage="(id) => shopNavigate('page', id)" />
+    <ToastContainer />
+  </div>
+
   <!-- Login Gate -->
-  <LoginPage v-if="!isLoggedIn" @loginSuccess="onLoginSuccess" />
+  <LoginPage v-else-if="!isLoggedIn" @loginSuccess="onLoginSuccess" />
 
   <div class="app" v-else>
     <!-- Connection Lost Banner -->
@@ -9,10 +41,10 @@
     </div>
     <!-- Top Header Bar -->
     <header class="app-header">
-      <!-- Row 1: Logo + Nav + User -->
+      <!-- Single Row: Logo + Nav + User -->
       <div class="app-header__row1">
         <div class="app-header__logo">
-          <Rocket :size="18" />
+          <Rocket :size="20" />
           <span>AI Live Tool</span>
         </div>
         <nav class="app-nav">
@@ -24,43 +56,42 @@
             @click="navigateTo(tab.key)"
             :title="tab.label"
           >
-            <component :is="tab.icon" :size="14" />
+            <component :is="tab.icon" :size="18" />
             <span class="app-nav__label">{{ tab.label }}</span>
           </button>
         </nav>
         <div class="app-header__actions">
           <button class="app-header__icon-btn app-header__theme-btn" @click="toggleTheme" :title="'Theme: ' + theme">
-            <Sun v-if="resolvedTheme === 'light'" :size="14" />
-            <Moon v-else-if="resolvedTheme === 'dark' && theme !== 'system'" :size="14" />
-            <Monitor v-else :size="14" />
+            <Sun v-if="resolvedTheme === 'light'" :size="16" />
+            <Moon v-else-if="resolvedTheme === 'dark' && theme !== 'system'" :size="16" />
+            <Monitor v-else :size="16" />
           </button>
           <NotificationBell @navigate="navigateTo" />
           <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
-            <UserIcon :size="14" />
+            <UserIcon :size="16" />
             <span class="app-header__username">{{ currentUser.fullName || currentUser.name || currentUser.email }}</span>
           </button>
           <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất" v-if="currentUser">
-            <LogOut :size="14" />
+            <LogOut :size="16" />
           </button>
         </div>
       </div>
 
-      <!-- Row 2: Shop + Live Controls (contextual) -->
-      <div class="app-header__row2">
-        <!-- Shop Name (auto-loaded, 1 user = 1 shop) -->
+      <!-- Row 2: Live Controls (only visible on Live Monitor) -->
+      <div class="app-header__row2" v-if="activeView === 'live'">
         <div class="app-header__shop-info" v-if="currentShop">
           <span class="app-header__shop-name">{{ currentShop.shop_name || currentShop.shopName }}</span>
         </div>
-        <div class="app-header__status" v-if="activeView === 'live'">
+        <div class="app-header__status">
           <span class="app-header__dot" :class="statusDotClass"></span>
           <span class="app-header__status-text">{{ statusText }}</span>
         </div>
-        <div class="app-header__viewers" v-if="viewerCount > 0 && activeView === 'live'">
+        <div class="app-header__viewers" v-if="viewerCount > 0">
           <Eye :size="13" />
           {{ viewerCount.toLocaleString() }}
         </div>
         <div class="app-header__spacer"></div>
-        <div class="app-header__controls" v-if="activeView === 'live'">
+        <div class="app-header__controls">
           <button class="app-header__icon-btn" :class="{ active: ttsEnabled }" @click="toggleTTS" title="TTS">
             <Volume2 v-if="ttsEnabled" :size="15" />
             <VolumeX v-else :size="15" />
@@ -247,6 +278,10 @@ import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
 import PostLiveReport from './components/PostLiveReport.vue'
+import StorefrontHome from './components/StorefrontHome.vue'
+import StorefrontProduct from './components/StorefrontProduct.vue'
+import StorefrontCategory from './components/StorefrontCategory.vue'
+import StorefrontPage from './components/StorefrontPage.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
@@ -283,6 +318,31 @@ const tabs = [
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
 const validViews = tabs.map(t => t.key)
+// ── Storefront Detection ──
+function parseShopPath() {
+  const m = window.location.pathname.match(/^\/shop\/([^\/]+)(\/([^\/]*))?(\/(.*))?/)
+  if (!m) return null
+  return { storeId: m[1], view: m[3] || 'home', itemId: m[5] || null }
+}
+const isStorefront = ref(!!parseShopPath())
+const shopStoreId = ref(parseShopPath()?.storeId || '')
+const shopView = ref(parseShopPath()?.view || 'home')
+const shopItemId = ref(parseShopPath()?.itemId || null)
+
+function shopNavigate(view, itemId = null) {
+  shopView.value = view
+  shopItemId.value = itemId
+  let path = `/shop/${shopStoreId.value}`
+  if (view && view !== 'home') path += `/${view}`
+  if (itemId) path += `/${itemId}`
+  history.pushState({ shopView: view, shopItemId: itemId }, '', path)
+}
+
+function onAddToCart(data) {
+  // placeholder for cart logic
+  console.log('Add to cart:', data)
+}
+
 function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '').split('/')[0] || ''
   return validViews.includes(path) ? path : 'live'
@@ -296,14 +356,21 @@ function navigateTo(view) {
   history.pushState({ view }, '', '/' + view)
 }
 
-
-
 window.addEventListener('popstate', () => {
-  activeView.value = viewFromPath()
+  const sp = parseShopPath()
+  if (sp) {
+    isStorefront.value = true
+    shopStoreId.value = sp.storeId
+    shopView.value = sp.view
+    shopItemId.value = sp.itemId
+  } else {
+    isStorefront.value = false
+    activeView.value = viewFromPath()
+  }
 })
 
-// Set initial URL if on root
-if (!window.location.pathname || window.location.pathname === '/') {
+// Set initial URL if on root (only for admin, not storefront)
+if (!isStorefront.value && (!window.location.pathname || window.location.pathname === '/')) {
   history.replaceState({ view: activeView.value }, '', '/' + activeView.value)
 }
 
@@ -507,8 +574,12 @@ const statusText = computed(() => {
   if (!currentShop.value) return 'Chọn shop để bắt đầu'
   if (!isConnected.value) return 'Mất kết nối server'
   const status = crawlerStatus.value?.status
-  if (status === 'connected') return `Đang Live @${currentShop.value.tiktok_username}`
-  if (status === 'mock') return `Mock - ${currentShop.value.shop_name}`
+  if (status === 'connected' || status === 'mock') {
+    const shop = currentShop.value
+    const identifier = shop.tiktok_username || shop.shopee_id || shop.facebook_page_id || shop.youtube_channel_id || shop.shop_name || ''
+    const prefix = status === 'mock' ? 'Mock' : 'Đang Live'
+    return `${prefix} - ${shop.shop_name}${identifier && identifier !== shop.shop_name ? ` @${identifier}` : ''}`
+  }
   if (status === 'error') return 'Lỗi: ' + (crawlerStatus.value?.message || '')
   if (status === 'disconnected') return 'Ngắt kết nối'
   return 'Sẵn sàng kết nối'
@@ -585,13 +656,13 @@ const statusText = computed(() => {
 .app-nav__tab {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
+  gap: 6px;
+  padding: 7px 14px;
   border-radius: 8px;
   border: none;
   background: transparent;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s;

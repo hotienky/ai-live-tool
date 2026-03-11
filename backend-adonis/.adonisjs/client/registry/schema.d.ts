@@ -43,6 +43,186 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['me']>>>
     }
   }
+  'shop_auth.register': {
+    methods: ["POST"]
+    pattern: '/api/shop/auth/register'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['register']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['register']>>>
+    }
+  }
+  'shop_auth.login': {
+    methods: ["POST"]
+    pattern: '/api/shop/auth/login'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['login']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['login']>>>
+    }
+  }
+  'shop_auth.me': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/auth/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['me']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['me']>>>
+    }
+  }
+  'shop_auth.update_profile': {
+    methods: ["PUT"]
+    pattern: '/api/shop/auth/profile'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['updateProfile']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['updateProfile']>>>
+    }
+  }
+  'shop_auth.change_password': {
+    methods: ["PUT"]
+    pattern: '/api/shop/auth/password'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['changePassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['changePassword']>>>
+    }
+  }
+  'shop_auth.forgot_password': {
+    methods: ["POST"]
+    pattern: '/api/shop/auth/forgot-password'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['forgotPassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['forgotPassword']>>>
+    }
+  }
+  'shop_auth.reset_password': {
+    methods: ["POST"]
+    pattern: '/api/shop/auth/reset-password'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['resetPassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/shop_auth_controller').default['resetPassword']>>>
+    }
+  }
+  'storefront.products': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/products'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['products']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['products']>>>
+    }
+  }
+  'storefront.product_detail': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/products/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { storeId: ParamValue; id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['productDetail']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['productDetail']>>>
+    }
+  }
+  'storefront.categories': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/categories'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['categories']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['categories']>>>
+    }
+  }
+  'storefront.brands': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/brands'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['brands']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['brands']>>>
+    }
+  }
+  'storefront.banners': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/banners'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['banners']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['banners']>>>
+    }
+  }
+  'storefront.pages': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/pages'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['pages']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['pages']>>>
+    }
+  }
+  'storefront.page_detail': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/pages/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { storeId: ParamValue; id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['pageDetail']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['pageDetail']>>>
+    }
+  }
+  'storefront.store_info': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/shop/store/:storeId/info'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { storeId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['storeInfo']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/storefront_controller').default['storeInfo']>>>
+    }
+  }
   'shops.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/shops'
@@ -451,6 +631,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['topCustomers']>>>
     }
   }
+  'dashboard.order_stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/dashboard/order-stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['orderStats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/dashboard_controller').default['orderStats']>>>
+    }
+  }
   'analytics.daily': {
     methods: ["GET","HEAD"]
     pattern: '/api/analytics/daily'
@@ -509,6 +701,18 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['summary']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['summary']>>>
+    }
+  }
+  'analytics.revenue': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/analytics/revenue'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['revenue']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/analytics_controller').default['revenue']>>>
     }
   }
   'notifications.index': {
@@ -1277,6 +1481,486 @@ export interface Registry {
       query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/nav_links_controller').default['reorder']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/nav_links_controller').default['reorder']>>>
+    }
+  }
+  'webhooks.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/webhooks'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['index']>>>
+    }
+  }
+  'webhooks.store': {
+    methods: ["POST"]
+    pattern: '/api/webhooks'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['store']>>>
+    }
+  }
+  'webhooks.update': {
+    methods: ["PUT"]
+    pattern: '/api/webhooks/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['update']>>>
+    }
+  }
+  'webhooks.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/webhooks/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/webhooks_controller').default['destroy']>>>
+    }
+  }
+  'activity_logs.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/activity-logs'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['index']>>>
+    }
+  }
+  'activity_logs.stats': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/activity-logs/stats'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['stats']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['stats']>>>
+    }
+  }
+  'activity_logs.entity_types': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/activity-logs/entity-types'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['entityTypes']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/activity_logs_controller').default['entityTypes']>>>
+    }
+  }
+  'roles.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/roles'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['index']>>>
+    }
+  }
+  'roles.permissions': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/roles/permissions'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['permissions']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['permissions']>>>
+    }
+  }
+  'roles.store': {
+    methods: ["POST"]
+    pattern: '/api/roles'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['store']>>>
+    }
+  }
+  'roles.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/roles/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['show']>>>
+    }
+  }
+  'roles.update': {
+    methods: ["PUT"]
+    pattern: '/api/roles/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['update']>>>
+    }
+  }
+  'roles.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/roles/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['destroy']>>>
+    }
+  }
+  'roles.users': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/users'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['users']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['users']>>>
+    }
+  }
+  'roles.assign_role': {
+    methods: ["PUT"]
+    pattern: '/api/users/:id/role'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['assignRole']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/roles_controller').default['assignRole']>>>
+    }
+  }
+  'carts.show_wishlist': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/wishlist'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['showWishlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['showWishlist']>>>
+    }
+  }
+  'carts.add_to_wishlist': {
+    methods: ["POST"]
+    pattern: '/api/wishlist'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['addToWishlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['addToWishlist']>>>
+    }
+  }
+  'carts.remove_from_wishlist': {
+    methods: ["DELETE"]
+    pattern: '/api/wishlist/:productId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { productId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['removeFromWishlist']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['removeFromWishlist']>>>
+    }
+  }
+  'carts.show_compare': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/compare'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['showCompare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['showCompare']>>>
+    }
+  }
+  'carts.add_to_compare': {
+    methods: ["POST"]
+    pattern: '/api/compare'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['addToCompare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['addToCompare']>>>
+    }
+  }
+  'carts.remove_from_compare': {
+    methods: ["DELETE"]
+    pattern: '/api/compare/:productId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { productId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['removeFromCompare']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/carts_controller').default['removeFromCompare']>>>
+    }
+  }
+  'system_config.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/system-config'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['index']>>>
+    }
+  }
+  'system_config.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/system-config/:group'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { group: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['show']>>>
+    }
+  }
+  'system_config.update': {
+    methods: ["PUT"]
+    pattern: '/api/system-config/:group'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { group: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/system_config_controller').default['update']>>>
+    }
+  }
+  'api_keys.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/api-keys'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['index']>>>
+    }
+  }
+  'api_keys.store': {
+    methods: ["POST"]
+    pattern: '/api/api-keys'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['store']>>>
+    }
+  }
+  'api_keys.update': {
+    methods: ["PUT"]
+    pattern: '/api/api-keys/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['update']>>>
+    }
+  }
+  'api_keys.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/api-keys/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/api_keys_controller').default['destroy']>>>
+    }
+  }
+  'languages.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/languages'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['index']>>>
+    }
+  }
+  'languages.store': {
+    methods: ["POST"]
+    pattern: '/api/languages'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['store']>>>
+    }
+  }
+  'languages.update': {
+    methods: ["PUT"]
+    pattern: '/api/languages/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['update']>>>
+    }
+  }
+  'languages.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/languages/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['destroy']>>>
+    }
+  }
+  'languages.get_translations': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/languages/:id/translations'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['getTranslations']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['getTranslations']>>>
+    }
+  }
+  'languages.update_translations': {
+    methods: ["PUT"]
+    pattern: '/api/languages/:id/translations'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['updateTranslations']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/languages_controller').default['updateTranslations']>>>
+    }
+  }
+  'custom_fields.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/custom-fields'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['index']>>>
+    }
+  }
+  'custom_fields.store': {
+    methods: ["POST"]
+    pattern: '/api/custom-fields'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['store']>>>
+    }
+  }
+  'custom_fields.update': {
+    methods: ["PUT"]
+    pattern: '/api/custom-fields/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['update']>>>
+    }
+  }
+  'custom_fields.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/custom-fields/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['destroy']>>>
+    }
+  }
+  'custom_fields.get_values': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/custom-fields/values/:entityType/:entityId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { entityType: ParamValue; entityId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['getValues']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['getValues']>>>
+    }
+  }
+  'custom_fields.save_values': {
+    methods: ["PUT"]
+    pattern: '/api/custom-fields/values/:entityType/:entityId'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue, ParamValue]
+      params: { entityType: ParamValue; entityId: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['saveValues']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/custom_fields_controller').default['saveValues']>>>
     }
   }
   'products.adjust_stock': {

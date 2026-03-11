@@ -24,7 +24,7 @@ export default class ShopsController {
   }
 
   async store({ auth, request, response }: HttpContext) {
-    const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel'])
+    const data = request.only(['shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId'])
     if (!data.shopName) {
       return response.badRequest({ error: 'shopName is required' })
     }
@@ -49,7 +49,7 @@ export default class ShopsController {
     if (!shop) return response.notFound({ error: 'Shop not found' })
 
     const data = request.only([
-      'shopName', 'platform', 'tiktokUsername', 'shopeeShopId', 'facebookPageId', 'youtubeChannel',
+      'shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId',
       'isActive', 'autoReplyEnabled',
       'facebookAccessToken', 'youtubeApiKey',
       'shopeePartnerId', 'shopeePartnerKey', 'shopeeShopIdApi',
@@ -61,13 +61,13 @@ export default class ShopsController {
   }
 
   async findOrCreate({ auth, request, response }: HttpContext) {
-    const { platform, tiktokUsername, facebookPageId, youtubeChannel, shopeeShopId, sessionName } =
+    const { platform, tiktokUsername, facebookPageId, youtubeChannelId, shopeeId, sessionName } =
       request.only([
         'platform',
         'tiktokUsername',
         'facebookPageId',
-        'youtubeChannel',
-        'shopeeShopId',
+        'youtubeChannelId',
+        'shopeeId',
         'sessionName',
       ])
     if (!platform) return response.badRequest({ error: 'platform is required' })
@@ -77,8 +77,8 @@ export default class ShopsController {
       platform,
       tiktokUsername,
       facebookPageId,
-      youtubeChannel,
-      shopeeShopId,
+      youtubeChannelId,
+      shopeeId,
       sessionName,
     })
     return response.json(shop)
