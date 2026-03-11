@@ -330,6 +330,25 @@
         <NavLinkManager :shopId="currentShop?.id" />
       </div>
 
+      <!-- ═══ Tab: System Config ═══ -->
+      <div v-if="activeTab === 'system-config'" class="settings__panel">
+        <SystemConfigPanel />
+      </div>
+
+      <!-- ═══ Tab: API Keys ═══ -->
+      <div v-if="activeTab === 'api-keys'" class="settings__panel">
+        <ApiKeyManager />
+      </div>
+
+      <!-- ═══ Tab: Languages ═══ -->
+      <div v-if="activeTab === 'languages'" class="settings__panel">
+        <LanguageManager />
+      </div>
+
+      <!-- ═══ Tab: Custom Fields ═══ -->
+      <div v-if="activeTab === 'custom-fields'" class="settings__panel">
+        <CustomFieldManager />
+      </div>
 
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
@@ -343,7 +362,8 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag
+  FolderTree, Award, Users, Tag,
+  Cog, KeyRound, Globe, LayoutList,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
 import PromotionManager from './PromotionManager.vue'
@@ -353,6 +373,10 @@ import NavLinkManager from './NavLinkManager.vue'
 import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
+import SystemConfigPanel from './SystemConfigPanel.vue'
+import ApiKeyManager from './ApiKeyManager.vue'
+import LanguageManager from './LanguageManager.vue'
+import CustomFieldManager from './CustomFieldManager.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -370,7 +394,7 @@ const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'cms', 'banners', 'nav-links']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'languages', 'custom-fields']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -424,6 +448,15 @@ const tabGroups = [
       { key: 'banners', label: 'Banner', icon: Video },
       { key: 'nav-links', label: 'Menu', icon: ClipboardList },
       { key: 'appearance', label: 'Theme', icon: Palette },
+    ],
+  },
+  {
+    label: 'Hệ thống',
+    items: [
+      { key: 'system-config', label: 'Cấu hình', icon: Cog },
+      { key: 'api-keys', label: 'API Keys', icon: KeyRound },
+      { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
+      { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
     ],
   },
 ]

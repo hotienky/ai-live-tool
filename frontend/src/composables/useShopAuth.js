@@ -104,6 +104,34 @@ export function useShopAuth() {
     localStorage.removeItem(STORAGE_KEY)
   }
 
+  async function forgotPassword(email) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await api.post('/shop/auth/forgot-password', { email })
+      return res
+    } catch (e) {
+      error.value = e.response?.data?.error || 'Không thể gửi email đặt lại mật khẩu'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function resetPassword(token, newPassword) {
+    loading.value = true
+    error.value = null
+    try {
+      const res = await api.post('/shop/auth/reset-password', { token, password: newPassword })
+      return res
+    } catch (e) {
+      error.value = e.response?.data?.error || 'Không thể đặt lại mật khẩu'
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     customer,
     loading,
@@ -114,6 +142,8 @@ export function useShopAuth() {
     fetchProfile,
     updateProfile,
     changePassword,
+    forgotPassword,
+    resetPassword,
     logout,
   }
 }

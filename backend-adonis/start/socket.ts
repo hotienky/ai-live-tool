@@ -60,6 +60,12 @@ export function setupSocketIO(httpServer: any) {
 
       const status = connectionManager.isConnected(shopId)
       socket.emit('crawler_status', { status: status || 'waiting' })
+
+      // ── Send existing comments from in-memory store (comment persistence on reload) ──
+      const existingComments = connectionManager.leads.get(shopId)
+      if (existingComments && existingComments.length > 0) {
+        socket.emit('chat_history', existingComments)
+      }
     })
 
     // Start mock mode

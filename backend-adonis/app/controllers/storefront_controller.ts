@@ -22,6 +22,8 @@ export default class StorefrontController {
 
     const query = db
       .from('products')
+      .leftJoin('product_categories', 'products.category_id', 'product_categories.id')
+      .leftJoin('product_brands', 'products.brand_id', 'product_brands.id')
       .where('products.shop_id', params.storeId)
       .where('products.is_active', true)
       .select(
@@ -29,14 +31,19 @@ export default class StorefrontController {
         'products.name',
         'products.sku',
         'products.price',
+        'products.promotion_price',
+        'products.promotion_start',
+        'products.promotion_end',
         'products.image_url as image',
         'products.description',
-        'products.category',
         'products.stock',
         'products.slug',
         'products.is_featured',
+        'products.weight',
         'products.created_at',
-        'products.updated_at'
+        'products.updated_at',
+        'product_categories.name as category',
+        'product_brands.name as brand'
       )
 
     if (search) {
@@ -46,7 +53,7 @@ export default class StorefrontController {
           .orWhereILike('products.description', `%${search}%`)
       })
     }
-    if (category) query.where('products.category', category)
+    if (category) query.where('products.category_id', category)
     if (brand) query.where('products.brand_id', brand)
 
     const validSorts = ['created_at', 'price', 'name', 'stock']
@@ -64,9 +71,16 @@ export default class StorefrontController {
   async productDetail({ params, response }: HttpContext) {
     const product = await db
       .from('products')
-      .where('id', params.id)
-      .where('shop_id', params.storeId)
-      .where('is_active', true)
+      .leftJoin('product_categories', 'products.category_id', 'product_categories.id')
+      .leftJoin('product_brands', 'products.brand_id', 'product_brands.id')
+      .where('products.id', params.id)
+      .where('products.shop_id', params.storeId)
+      .where('products.is_active', true)
+      .select(
+        'products.*',
+        'product_categories.name as category',
+        'product_brands.name as brand'
+      )
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
     return response.json(product)
@@ -102,26 +116,34 @@ export default class StorefrontController {
    * GET /shop/store/:storeId/banners — Active banners (public)
    */
   async banners({ params, response }: HttpContext) {
-    const banners = await db
-      .from('banners')
-      .where('store_id', params.storeId)
-      .where('status', 1)
-      .select('id', 'title', 'image', 'url', 'description', 'sort', 'type')
-      .orderBy('sort', 'asc')
-    return response.json(banners)
+    try {
+      const banners = await db
+        .from('banners')
+        .where('store_id', params.storeId)
+        .where('status', 1)
+        .select('id', 'title', 'image', 'url', 'description', 'sort', 'type')
+        .orderBy('sort', 'asc')
+      return response.json(banners)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**
    * GET /shop/store/:storeId/pages — Published CMS pages (public)
    */
   async pages({ params, response }: HttpContext) {
-    const pages = await db
-      .from('cms_pages')
-      .where('store_id', params.storeId)
-      .where('status', 1)
-      .select('id', 'title', 'alias as slug', 'image', 'created_at')
-      .orderBy('sort', 'asc')
-    return response.json(pages)
+    try {
+      const pages = await db
+        .from('cms_pages')
+        .where('store_id', params.storeId)
+        .where('status', 1)
+        .select('id', 'title', 'alias as slug', 'image', 'created_at')
+        .orderBy('sort', 'asc')
+      return response.json(pages)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**

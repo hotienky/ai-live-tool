@@ -114,6 +114,25 @@ export function useSocket() {
       } catch { /* silent */ }
     })
 
+    // ── Chat history: load existing comments from active session on join/reload ──
+    socket.value.on('chat_history', (history) => {
+      if (Array.isArray(history) && history.length > 0) {
+        // Merge: keep existing comments, prepend history (avoid duplicates)
+        const existingIds = new Set(allComments.value.map(c => c.id))
+        const newComments = history.filter(c => !existingIds.has(c.id))
+        if (newComments.length > 0) {
+          allComments.value = [...newComments]
+          // Also populate leads from history
+          const hotWarm = newComments.filter(c => c.label === '[HOT]' || c.label === '[WARM]')
+          if (hotWarm.length > 0) {
+            const leadIds = new Set(leads.value.map(l => l.id))
+            const newLeads = hotWarm.filter(c => !leadIds.has(c.id))
+            leads.value = [...newLeads, ...leads.value]
+          }
+        }
+      }
+    })
+
     socket.value.on('shipment_updated', (data) => {
       try {
         const { showToast } = useToast()

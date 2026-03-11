@@ -123,21 +123,37 @@ function fallbackAnalysis(comment: string): {
 } {
   const lower = comment.toLowerCase().trim()
 
-  // HOT signals
+  // HOT signals (buying intent)
   const hotPatterns = [
     /muốn\s*mua/, /mua\s*ngay/, /đặt\s*hàng/, /ship\s*(cho|dùm|giùm)/,
     /inbox\s*(mình|em|shop)/, /cho\s*(em|mình)\s*(1|một|hai|2)/,
     /lấy\s*\d/, /\+\s*\d/, /giá\s*(bao|bnh|bn)/, /bao\s*nhiêu/,
     /còn\s*hàng/, /sdt/, /số\s*điện\s*thoại/, /chốt\s*đơn/,
     /^[+]\d*$/, /ib\s*(shop|mình|em)/, /cách\s*đặt/,
+    // ── Enhanced Vietnamese patterns ──
+    /giá\s*\d+/, /\d+k\b/, /\d+\s*ngàn/, /\d+\s*nghìn/, /\d+\s*đồng/,
+    /mấy\s*(cục|cái|tờ|chai|hộp|gói|bộ|chiếc)/,
+    /bao\s*(nhiêu|nhiu)\s*(tờ|cục|cái|tiền|vậy)/,
+    /giá\s*(sao|vậy|thế|nào|ny|v)/, /giao\s*hàng/, /ship\s*(về|đi|k|ko|không)/,
+    /cho\s*(xin|hỏi|em)\s*(giá|sđt|số|link)/, /đặt\s*(1|2|3|một|mấy)/,
+    /mua\s*(đi|nha|nhé|luôn|dc|được)/, /có\s*giao/, /gửi\s*(về|cho)/,
+    /\b(ib|inbox|dm)\b/i, /lấy\s*(hàng|đơn)/, /thanh\s*toán/,
+    /đặt\s*(đơn|cho)/, /order/, /có\s*ship/, /fship|freeship/i,
   ]
 
-  // WARM signals
+  // WARM signals (interested but not committed)
   const warmPatterns = [
     /chất\s*lượng/, /review/, /size/, /màu/, /feedback/,
     /dùng\s*(có|được)/, /có\s*tốt/, /so\s*với/, /khác\s*gì/,
     /bảo\s*hành/, /đổi\s*trả/, /freeship/, /ship\s*bao\s*lâu/,
     /có\s*mấy\s*loại/, /có\s*mấy\s*màu/,
+    // ── Enhanced Vietnamese patterns ──
+    /xài\s*(được|tốt|ok)/, /ngon\s*không/, /chất\s*(lượng|liệu)/,
+    /có\s*bền/, /dùng\s*(được|lâu)/, /nguyên\s*liệu/,
+    /hàng\s*(có|còn|xịn|fake|auth|real)/, /hạn\s*sử\s*dụng/,
+    /thành\s*phần/, /xuất\s*xứ/, /hàng\s*(việt|trung|nội)/,
+    /loại\s*nào/, /cái\s*nào/, /có\s*size/, /có\s*màu/,
+    /có\s*(lớn|nhỏ|vừa)/, /mẫu\s*mới/, /deal|combo|khuyến\s*mãi/,
   ]
 
   for (const p of hotPatterns) {
