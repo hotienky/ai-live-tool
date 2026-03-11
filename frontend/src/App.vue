@@ -126,7 +126,6 @@
     <!-- Session History Panel -->
     <SessionHistory
       :visible="showHistory"
-      :shopId="currentShop?.id"
       @close="showHistory = false"
     />
 
@@ -169,14 +168,12 @@
     <!-- ═══ View: CRM Pipeline ═══ -->
     <LeadPipeline
       v-if="activeView === 'crm'"
-      :shopId="currentShop?.id"
       @openCustomer="openCustomerDetail"
     />
 
     <!-- ═══ View: Reports ═══ -->
     <ReportPage
       v-if="activeView === 'reports'"
-      :shopId="currentShop?.id"
     />
 
     <!-- ═══ View: Settings ═══ -->
@@ -189,7 +186,6 @@
     <!-- ═══ View: Schedule ═══ -->
     <SchedulePlanner
       v-if="activeView === 'schedule'"
-      :shopId="currentShop?.id"
       @startLive="onScheduleStartLive"
     />
 
@@ -559,7 +555,7 @@ function onScheduleStartLive(schedule) {
 
 function onExport() {
   if (!currentShop.value) return
-  window.open(`${API_BASE}/export/leads?shopId=${currentShop.value.id}&format=csv`, '_blank')
+  window.open(`${API_BASE}/export/leads?format=csv`, '_blank')
 }
 
 const statusDotClass = computed(() => {

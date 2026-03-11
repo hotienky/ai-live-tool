@@ -57,5 +57,5 @@ router.group(() => {
 // ──── TENANT MODULE ────
 // (Storefront + Shop Auth + Tenant Admin API)
 // ════════════════════════════════════════════════════════════
-import { registerTenantRoutes } from '#modules/tenant/routes'
+import { registerTenantRoutes } from '#modules/tenant/routes/index'
 registerTenantRoutes()
