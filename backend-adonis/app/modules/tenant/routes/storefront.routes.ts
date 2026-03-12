@@ -16,6 +16,7 @@ export function registerStorefrontRoutes() {
     router.get('/pages', [StorefrontController, 'pages'])
     router.get('/pages/:id', [StorefrontController, 'pageDetail'])
     router.get('/info', [StorefrontController, 'storeInfo'])
+    router.post('/checkout', [StorefrontController, 'checkout'])
   }).prefix('/api/storefront')
 
   // Legacy backward-compat

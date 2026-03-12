@@ -15,6 +15,10 @@
         <router-link :to="'/products'" class="site-header__link" active-class="active">
           <ShoppingBag :size="16" /> Sản phẩm
         </router-link>
+        <router-link :to="'/cart'" class="site-header__link site-header__cart" active-class="active">
+          <ShoppingCart :size="16" />
+          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+        </router-link>
       </nav>
 
       <!-- Search -->
@@ -49,6 +53,10 @@
         <router-link :to="'/products'" class="site-header__mobile-link" @click="mobileMenu = false">
           <ShoppingBag :size="16" /> Sản phẩm
         </router-link>
+        <router-link :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
+          <ShoppingCart :size="16" /> Giỏ hàng
+          <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
+        </router-link>
         <div class="site-header__mobile-search">
           <Search :size="16" />
           <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch; mobileMenu = false" />
@@ -61,7 +69,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Store, Home, ShoppingBag, Search, X, Menu } from 'lucide-vue-next'
+import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu } from 'lucide-vue-next'
+import { useCart } from '../composables/useCart.js'
+
+const { cartCount } = useCart()
 
 const props = defineProps({
   storeName: { type: String, default: '' },
@@ -264,5 +275,21 @@ function onSearch() {
   .site-header__nav { display: none; }
   .site-header__search { display: none; }
   .site-header__menu-btn { display: flex; }
+}
+</style>
+<!-- Extra cart styles -->
+<style scoped>
+.site-header__cart { position: relative; }
+.cart-badge {
+  position: absolute; top: 2px; right: 2px;
+  min-width: 18px; height: 18px; line-height: 18px;
+  border-radius: 9px; background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff; font-size: 10px; font-weight: 800; text-align: center;
+  padding: 0 4px;
+}
+.cart-badge--mobile {
+  position: static; margin-left: auto;
+  min-width: 22px; height: 22px; line-height: 22px;
+  font-size: 11px;
 }
 </style>

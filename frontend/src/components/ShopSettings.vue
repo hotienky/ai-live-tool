@@ -350,6 +350,40 @@
         <CustomFieldManager />
       </div>
 
+      <!-- ═══ Tab: Orders ═══ -->
+      <div v-if="activeTab === 'orders'" class="settings__panel">
+        <OrderManagement />
+      </div>
+
+      <!-- ═══ Tab: Webhooks ═══ -->
+      <div v-if="activeTab === 'webhooks'" class="settings__panel">
+        <WebhookManager />
+      </div>
+
+      <!-- ═══ Tab: Activity Logs ═══ -->
+      <div v-if="activeTab === 'activity-logs'" class="settings__panel">
+        <ActivityLog />
+      </div>
+
+      <!-- ═══ Tab: Roles ═══ -->
+      <div v-if="activeTab === 'roles'" class="settings__panel">
+        <h3 class="settings__panel-title">Phân quyền</h3>
+        <div class="settings__table-wrapper">
+          <table class="settings__table">
+            <thead><tr><th>Tên vai trò</th><th>Hiển thị</th><th>Mô tả</th><th>Hệ thống</th></tr></thead>
+            <tbody>
+              <tr v-for="role in roles" :key="role.id">
+                <td><strong>{{ role.name }}</strong></td>
+                <td>{{ role.display_name }}</td>
+                <td>{{ role.description }}</td>
+                <td>{{ role.is_system ? '✓' : '' }}</td>
+              </tr>
+              <tr v-if="!roles.length"><td colspan="4" style="text-align:center;opacity:.6">Chưa có vai trò nào</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
   </div>
@@ -364,6 +398,7 @@ import {
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
   FolderTree, Award, Users, Tag,
   Cog, KeyRound, Globe, LayoutList,
+  ShieldCheck, Webhook, ScrollText, Receipt,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
 import PromotionManager from './PromotionManager.vue'
@@ -377,6 +412,9 @@ import SystemConfigPanel from './SystemConfigPanel.vue'
 import ApiKeyManager from './ApiKeyManager.vue'
 import LanguageManager from './LanguageManager.vue'
 import CustomFieldManager from './CustomFieldManager.vue'
+import OrderManagement from './OrderManagement.vue'
+import WebhookManager from './WebhookManager.vue'
+import ActivityLog from './ActivityLog.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -394,7 +432,7 @@ const emit = defineEmits(['openShopSelector'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'languages', 'custom-fields']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -429,6 +467,7 @@ const tabGroups = [
       { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
       { key: 'categories', label: 'Danh mục', icon: FolderTree },
       { key: 'brands', label: 'Thương hiệu', icon: Award },
+      { key: 'orders', label: 'Đơn hàng', icon: Receipt },
     ],
   },
   {
@@ -455,8 +494,11 @@ const tabGroups = [
     items: [
       { key: 'system-config', label: 'Cấu hình', icon: Cog },
       { key: 'api-keys', label: 'API Keys', icon: KeyRound },
+      { key: 'webhooks', label: 'Webhooks', icon: Webhook },
       { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
       { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
+      { key: 'activity-logs', label: 'Nhật ký', icon: ScrollText },
+      { key: 'roles', label: 'Phân quyền', icon: ShieldCheck },
     ],
   },
 ]
@@ -489,6 +531,9 @@ const newKeyword = ref({ keyword: '', alert_type: 'highlight', color: '#ff3b5c',
 const templates = ref([])
 const newTemplate = ref({ trigger_label: 'HOT', template_text: '' })
 
+// Roles
+const roles = ref([])
+
 // Moderation
 const moderationConfig = ref({
   blacklist: '',
@@ -518,7 +563,15 @@ async function loadAll(shop) {
     shopeePartnerKey: shop.shopee_partner_key || '',
   }
   autoReplyEnabled.value = !!shop.auto_reply_enabled
-  await Promise.all([loadProducts(), loadKeywords(shop.id), loadTemplates(shop.id)])
+  await Promise.all([loadProducts(), loadKeywords(shop.id), loadTemplates(shop.id), loadRoles()])
+}
+
+async function loadRoles() {
+  try {
+    const res = await apiFetch('/roles')
+    const data = await res.json()
+    roles.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { roles.value = [] }
 }
 
 async function loadProducts() {

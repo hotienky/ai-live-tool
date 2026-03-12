@@ -551,6 +551,132 @@ CREATE TABLE IF NOT EXISTS product_promotions (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Shop Customers (e-commerce)
+CREATE TABLE IF NOT EXISTS shop_customers (
+  id SERIAL PRIMARY KEY,
+  first_name VARCHAR(255),
+  last_name VARCHAR(255),
+  email VARCHAR(255),
+  phone VARCHAR(50),
+  password VARCHAR(255),
+  status INTEGER DEFAULT 1,
+  address_id INTEGER,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Customer Addresses
+CREATE TABLE IF NOT EXISTS customer_addresses (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES shop_customers(id) ON DELETE CASCADE,
+  first_name VARCHAR(255),
+  last_name VARCHAR(255),
+  phone VARCHAR(50),
+  address1 TEXT,
+  address2 TEXT,
+  country VARCHAR(100),
+  province VARCHAR(100),
+  city VARCHAR(100),
+  district VARCHAR(100),
+  postcode VARCHAR(20),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Promotions
+CREATE TABLE IF NOT EXISTS promotions (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) DEFAULT 'discount',
+  value DECIMAL(10,2) DEFAULT 0,
+  min_order DECIMAL(10,2) DEFAULT 0,
+  max_discount DECIMAL(10,2),
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT true,
+  usage_limit INTEGER,
+  usage_count INTEGER DEFAULT 0,
+  applicable_products JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Order Statuses (configurable)
+CREATE TABLE IF NOT EXISTS order_statuses (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  label VARCHAR(100),
+  color VARCHAR(20),
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Payment Statuses
+CREATE TABLE IF NOT EXISTS payment_statuses (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  label VARCHAR(100),
+  color VARCHAR(20),
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Order Details (line items)
+CREATE TABLE IF NOT EXISTS order_details (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  product_id INTEGER,
+  name VARCHAR(255),
+  sku VARCHAR(100),
+  price DECIMAL(12,2) DEFAULT 0,
+  qty INTEGER DEFAULT 1,
+  total_price DECIMAL(12,2) DEFAULT 0,
+  tax DECIMAL(10,2) DEFAULT 0,
+  attribute TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Order Totals (subtotal, shipping, discount, total)
+CREATE TABLE IF NOT EXISTS order_totals (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  title VARCHAR(255),
+  code VARCHAR(50),
+  value DECIMAL(12,2) DEFAULT 0,
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Order History (status change timeline)
+CREATE TABLE IF NOT EXISTS order_history (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  order_status_id INTEGER,
+  content TEXT,
+  admin_id INTEGER,
+  add_date TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Seed default order statuses
+INSERT INTO order_statuses (name, label, color, sort) VALUES
+  ('pending', 'Chờ xác nhận', '#fbbf24', 1),
+  ('confirmed', 'Đã xác nhận', '#60a5fa', 2),
+  ('processing', 'Đang xử lý', '#a78bfa', 3),
+  ('shipping', 'Đang giao', '#22d3ee', 4),
+  ('delivered', 'Đã giao', '#34d399', 5),
+  ('completed', 'Hoàn thành', '#86efac', 6),
+  ('cancelled', 'Đã hủy', '#fca5a5', 7),
+  ('refunded', 'Hoàn tiền', '#fdba74', 8)
+ON CONFLICT DO NOTHING;
+
+-- Seed default payment statuses
+INSERT INTO payment_statuses (name, label, color, sort) VALUES
+  ('unpaid', 'Chưa thanh toán', '#fbbf24', 1),
+  ('paid', 'Đã thanh toán', '#34d399', 2),
+  ('refunded', 'Hoàn tiền', '#fca5a5', 3)
+ON CONFLICT DO NOTHING;
+
 -- Nav Links (storefront menu)
 CREATE TABLE IF NOT EXISTS nav_links (
   id SERIAL PRIMARY KEY,

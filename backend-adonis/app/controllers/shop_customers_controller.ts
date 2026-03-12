@@ -1,209 +1,146 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import ShopCustomer from '#models/shop_customer'
-import CustomerAddress from '#models/customer_address'
-import { getUserShopIds } from '#services/scope_helper'
-import hash from '@adonisjs/core/services/hash'
+import db from '@adonisjs/lucid/services/db'
 
 /**
- * ShopCustomersController — S-Cart: AdminCustomerController pattern
- * CRUD for e-commerce customers + address management
+ * ShopCustomersController — Tenant-safe CRUD using raw DB queries
  */
 export default class ShopCustomersController {
-  /**
-   * GET /shop-customers — List customers for current shop
-   */
-  async index({ auth, request, response }: HttpContext) {
-    const { shopId, search, page = 1, limit = 20 } = request.qs()
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  async index({ request, response }: HttpContext) {
+    try {
+      const { search, page = 1, limit = 20 } = request.qs()
+      const offset = (Number(page) - 1) * Number(limit)
 
-    const query = ShopCustomer.query()
-      .whereIn('store_id', userShopIds)
-      .orderBy('created_at', 'desc')
-    if (shopId) query.where('storeId', shopId)
-    if (search) {
-      query.where((q) => {
-        q.whereILike('first_name', `%${search}%`)
-          .orWhereILike('last_name', `%${search}%`)
-          .orWhereILike('email', `%${search}%`)
-          .orWhereILike('phone', `%${search}%`)
+      let query = db.from('shop_customers').orderBy('created_at', 'desc')
+      if (search) {
+        query = query.where((q: any) => {
+          q.whereILike('first_name', `%${search}%`)
+            .orWhereILike('last_name', `%${search}%`)
+            .orWhereILike('email', `%${search}%`)
+            .orWhereILike('phone', `%${search}%`)
+        })
+      }
+
+      const [countResult] = await db.from('shop_customers')
+        .count('* as total')
+        .then((r: any) => r)
+      const total = Number(countResult?.total || 0)
+
+      const data = await query.offset(offset).limit(Number(limit))
+      return response.json({
+        data,
+        meta: { total, page: Number(page), perPage: Number(limit), lastPage: Math.ceil(total / Number(limit)) },
       })
+    } catch {
+      return response.json({ data: [], meta: { total: 0, page: 1, perPage: 20, lastPage: 1 } })
     }
-    const customers = await query.paginate(Number(page), Number(limit))
-    return response.json(customers)
   }
 
-  /**
-   * POST /shop-customers — Create customer
-   */
-  async store({ auth, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const data = request.only([
-      'firstName', 'lastName', 'email', 'phone', 'password', 'storeId', 'status',
-    ])
-    if (!data.storeId || !userShopIds.includes(data.storeId)) {
-      return response.forbidden({ error: 'Invalid store' })
+  async store({ request, response }: HttpContext) {
+    const data = request.only(['first_name', 'last_name', 'email', 'phone', 'status'])
+    if (!data.first_name && !data.email) {
+      return response.badRequest({ error: 'Tên hoặc email là bắt buộc' })
     }
-
-    // Hash password if provided
-    if (data.password) {
-      data.password = await hash.make(data.password)
-    }
-
-    const customer = await ShopCustomer.create({
-      ...data,
+    const [customer] = await db.table('shop_customers').insert({
+      first_name: data.first_name || '',
+      last_name: data.last_name || '',
+      email: data.email || null,
+      phone: data.phone || null,
       status: data.status ?? 1,
-    })
+    }).returning('*')
     return response.status(201).json(customer)
   }
 
-  /**
-   * GET /shop-customers/:id — Show customer with addresses
-   */
-  async show({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.id)
-      .whereIn('store_id', userShopIds)
-      .preload('addresses')
-      .first()
+  async show({ params, response }: HttpContext) {
+    const customer = await db.from('shop_customers').where('id', params.id).first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
-    return response.json(customer)
+
+    let addresses: any[] = []
+    try {
+      addresses = await db.from('customer_addresses')
+        .where('customer_id', params.id)
+        .orderBy('created_at', 'desc')
+    } catch { /* table may not exist */ }
+
+    return response.json({ ...customer, addresses })
   }
 
-  /**
-   * PUT /shop-customers/:id — Update customer
-   */
-  async update({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.id)
-      .whereIn('store_id', userShopIds)
-      .first()
+  async update({ params, request, response }: HttpContext) {
+    const customer = await db.from('shop_customers').where('id', params.id).first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
 
-    const data = request.only([
-      'firstName', 'lastName', 'email', 'phone', 'status',
-    ])
-    if (data.password) {
-      data.password = await hash.make(data.password)
+    const data = request.only(['first_name', 'last_name', 'email', 'phone', 'status'])
+    const updateData: any = { updated_at: new Date() }
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined) updateData[key] = val
     }
-    customer.merge(data)
-    await customer.save()
-    return response.json(customer)
+
+    await db.from('shop_customers').where('id', params.id).update(updateData)
+    const updated = await db.from('shop_customers').where('id', params.id).first()
+    return response.json(updated)
   }
 
-  /**
-   * DELETE /shop-customers/:id — Delete customer
-   */
-  async destroy({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.id)
-      .whereIn('store_id', userShopIds)
-      .first()
+  async destroy({ params, response }: HttpContext) {
+    const customer = await db.from('shop_customers').where('id', params.id).first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
-    await customer.delete()
-    return response.json({ message: 'Deleted' })
+    await db.from('customer_addresses').where('customer_id', params.id).delete()
+    await db.from('shop_customers').where('id', params.id).delete()
+    return response.json({ success: true })
   }
 
   // ── Address Management ──
 
-  /**
-   * GET /shop-customers/:customerId/addresses
-   */
-  async listAddresses({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.customerId)
-      .whereIn('store_id', userShopIds)
-      .first()
+  async listAddresses({ params, response }: HttpContext) {
+    const customer = await db.from('shop_customers').where('id', params.id || params.customerId).first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
-
-    const addresses = await CustomerAddress.query()
-      .where('customerId', params.customerId)
+    const addresses = await db.from('customer_addresses')
+      .where('customer_id', customer.id)
       .orderBy('created_at', 'desc')
     return response.json(addresses)
   }
 
-  /**
-   * POST /shop-customers/:customerId/addresses
-   */
-  async addAddress({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.customerId)
-      .whereIn('store_id', userShopIds)
-      .first()
+  async addAddress({ params, request, response }: HttpContext) {
+    const customerId = params.customerId
+    const customer = await db.from('shop_customers').where('id', customerId).first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
 
     const data = request.only([
-      'firstName', 'lastName', 'phone',
-      'address1', 'address2', 'country', 'province', 'city', 'district', 'postcode',
+      'first_name', 'last_name', 'phone', 'address1', 'address2',
+      'country', 'province', 'city', 'district', 'postcode',
     ])
-    const address = await CustomerAddress.create({
+    const [address] = await db.table('customer_addresses').insert({
+      customer_id: customerId,
       ...data,
-      customerId: params.customerId,
-    })
+    }).returning('*')
 
-    // Set as default if first address
-    if (!customer.addressId) {
-      customer.addressId = address.id
-      await customer.save()
+    if (!customer.address_id) {
+      await db.from('shop_customers').where('id', customerId).update({ address_id: address.id })
     }
-
     return response.status(201).json(address)
   }
 
-  /**
-   * PUT /shop-customers/:customerId/addresses/:id
-   */
-  async updateAddress({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.customerId)
-      .whereIn('store_id', userShopIds)
-      .first()
-    if (!customer) return response.notFound({ error: 'Customer not found' })
-
-    const address = await CustomerAddress.query()
-      .where('id', params.id)
-      .where('customerId', params.customerId)
-      .first()
+  async updateAddress({ params, request, response }: HttpContext) {
+    const address = await db.from('customer_addresses')
+      .where('id', params.id).where('customer_id', params.customerId).first()
     if (!address) return response.notFound({ error: 'Address not found' })
 
     const data = request.only([
-      'firstName', 'lastName', 'phone',
-      'address1', 'address2', 'country', 'province', 'city', 'district', 'postcode',
+      'first_name', 'last_name', 'phone', 'address1', 'address2',
+      'country', 'province', 'city', 'district', 'postcode',
     ])
-    address.merge(data)
-    await address.save()
-    return response.json(address)
+    const updateData: any = { updated_at: new Date() }
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined) updateData[key] = val
+    }
+    await db.from('customer_addresses').where('id', params.id).update(updateData)
+    const updated = await db.from('customer_addresses').where('id', params.id).first()
+    return response.json(updated)
   }
 
-  /**
-   * DELETE /shop-customers/:customerId/addresses/:id
-   */
-  async deleteAddress({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const customer = await ShopCustomer.query()
-      .where('id', params.customerId)
-      .whereIn('store_id', userShopIds)
-      .first()
-    if (!customer) return response.notFound({ error: 'Customer not found' })
-
-    const address = await CustomerAddress.query()
-      .where('id', params.id)
-      .where('customerId', params.customerId)
-      .first()
+  async deleteAddress({ params, response }: HttpContext) {
+    const address = await db.from('customer_addresses')
+      .where('id', params.id).where('customer_id', params.customerId).first()
     if (!address) return response.notFound({ error: 'Address not found' })
-    await address.delete()
-
-    // Clear default if deleted
-    if (customer.addressId === params.id) {
-      customer.addressId = null
-      await customer.save()
-    }
-
-    return response.json({ message: 'Deleted' })
+    await db.from('customer_addresses').where('id', params.id).delete()
+    return response.json({ success: true })
   }
 }

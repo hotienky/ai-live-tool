@@ -3,6 +3,8 @@ import HomePage from './views/HomePage.vue'
 import ProductsPage from './views/ProductsPage.vue'
 import ProductDetailPage from './views/ProductDetailPage.vue'
 import CmsPage from './views/CmsPage.vue'
+import CartPage from './views/CartPage.vue'
+import CheckoutPage from './views/CheckoutPage.vue'
 
 /**
  * Storefront Routes — Multi-Tenant Mode
@@ -14,6 +16,8 @@ const routes = [
   { path: '/product/:productId', name: 'product-detail', component: ProductDetailPage, props: true },
   { path: '/category/:categoryId', name: 'category', component: ProductsPage, props: true },
   { path: '/page/:pageId', name: 'cms-page', component: CmsPage, props: true },
+  { path: '/cart', name: 'cart', component: CartPage },
+  { path: '/checkout', name: 'checkout', component: CheckoutPage },
 ]
 
 const router = createRouter({

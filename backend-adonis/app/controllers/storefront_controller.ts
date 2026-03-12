@@ -172,4 +172,75 @@ export default class StorefrontController {
     if (!store) return response.notFound({ error: 'Store not found' })
     return response.json(store)
   }
+
+  /**
+   * POST /api/storefront/checkout — Guest checkout (no auth required)
+   */
+  async checkout({ request, response }: HttpContext) {
+    const { customerName, customerPhone, customerAddress, paymentMethod, notes, items, totalAmount } = request.body()
+
+    if (!customerName || !customerPhone || !customerAddress) {
+      return response.badRequest({ error: 'Vui lòng điền đầy đủ họ tên, SĐT và địa chỉ' })
+    }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return response.badRequest({ error: 'Giỏ hàng trống' })
+    }
+
+    try {
+      // Calculate total
+      const subtotal = items.reduce((sum: number, i: any) =>
+        sum + (Number(i.price) || 0) * (Number(i.qty) || 1), 0)
+      const finalTotal = Number(totalAmount) || subtotal
+
+      // Create order
+      const [order] = await db.table('orders').insert({
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_address: customerAddress,
+        status: 'pending',
+        total_amount: finalTotal,
+        items: JSON.stringify(items),
+        notes: notes || null,
+        payment_method: paymentMethod || 'cod',
+        payment_status: 'unpaid',
+      }).returning('*')
+
+      // Insert order details
+      for (const item of items) {
+        await db.table('order_details').insert({
+          order_id: order.id,
+          product_id: item.productId || null,
+          name: item.name || 'Sản phẩm',
+          sku: item.sku || null,
+          price: Number(item.price) || 0,
+          qty: Number(item.qty) || 1,
+          total_price: (Number(item.price) || 0) * (Number(item.qty) || 1),
+        })
+      }
+
+      // Insert order totals
+      await db.table('order_totals').insert([
+        { order_id: order.id, title: 'Tạm tính', code: 'subtotal', value: subtotal, sort: 1 },
+        { order_id: order.id, title: 'Phí vận chuyển', code: 'shipping', value: 0, sort: 2 },
+        { order_id: order.id, title: 'Tổng cộng', code: 'total', value: finalTotal, sort: 100 },
+      ])
+
+      // Insert history
+      await db.table('order_history').insert({
+        order_id: order.id,
+        order_status_id: 1,
+        content: 'Đơn hàng mới từ website',
+      })
+
+      return response.status(201).json({
+        id: order.id,
+        status: order.status,
+        totalAmount: order.total_amount,
+        message: 'Đặt hàng thành công!',
+      })
+    } catch (err: any) {
+      console.error('Checkout error:', err.message)
+      return response.internalServerError({ error: 'Đặt hàng thất bại: ' + err.message })
+    }
+  }
 }

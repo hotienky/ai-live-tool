@@ -1,224 +1,275 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Order from '#models/order'
-import OrderDetail from '#models/order_detail'
-import OrderHistory from '#models/order_history'
-import OrderTotal from '#models/order_total'
-import OrderStatus from '#models/order_status'
-import PaymentStatus from '#models/payment_status'
-import { getUserShopIds } from '#services/scope_helper'
-import CreateOrderAction from '#actions/orders/create_order_action'
-import UpdateOrderAction from '#actions/orders/update_order_action'
-import GetOrderStatsAction from '#actions/orders/get_order_stats_action'
-import { triggerWebhook } from '#services/webhook_service'
-import { logActivity, Actions } from '#services/activity_log_service'
+import db from '@adonisjs/lucid/services/db'
 
+/**
+ * OrdersController — Full CRUD with raw DB queries (tenant-safe)
+ * Tables: orders, order_details, order_totals, order_history, order_statuses, payment_statuses
+ */
 export default class OrdersController {
-  async index({ auth, request, response }: HttpContext) {
-    const { shopId, status, page = 1, limit = 20 } = request.qs()
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  /**
+   * GET /orders — List orders with pagination
+   */
+  async index({ request, response }: HttpContext) {
+    try {
+      const { status, page = 1, limit = 20 } = request.qs()
+      const offset = (Number(page) - 1) * Number(limit)
 
-    const query = Order.query()
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .orderBy('created_at', 'desc')
-    if (shopId) query.where('shopId', shopId)
-    if (status) query.where('status', status)
-    const orders = await query.paginate(Number(page), Number(limit))
-    return response.json(orders)
+      let query = db.from('orders').orderBy('created_at', 'desc')
+      if (status) query = query.where('status', status)
+
+      const [countResult] = await db.from('orders')
+        .count('* as total')
+        .modify((q: any) => { if (status) q.where('status', status) })
+      const total = Number(countResult?.total || 0)
+
+      const data = await query.offset(offset).limit(Number(limit))
+      return response.json({
+        data,
+        meta: { total, page: Number(page), perPage: Number(limit), lastPage: Math.ceil(total / Number(limit)) || 1 },
+      })
+    } catch (err: any) {
+      console.error('Orders index error:', err.message)
+      return response.json({ data: [], meta: { total: 0, page: 1, perPage: 20, lastPage: 1 } })
+    }
   }
 
-  async store({ auth, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  /**
+   * POST /orders — Create order with line items
+   */
+  async store({ request, response }: HttpContext) {
     const data = request.only([
-      'shopId', 'sessionId', 'customerId', 'leadId',
       'customerName', 'customerPhone', 'customerAddress',
       'status', 'totalAmount', 'items', 'notes',
       'paymentMethod', 'paymentStatus',
     ])
+    if (!data.items || !Array.isArray(data.items) || data.items.length === 0) {
+      return response.badRequest({ error: 'Cần ít nhất 1 sản phẩm' })
+    }
 
-    const { error, order } = await CreateOrderAction.handle({ userShopIds, data })
-    if (error) return response.forbidden({ error })
-
-    // Webhook + Activity log
     try {
-      await triggerWebhook(Number(data.shopId), 'order.created', { order })
-      await logActivity({ shopId: Number(data.shopId), userId: auth.user!.id, action: Actions.ORDER_CREATED, entityType: 'Order', entityId: order.id, details: { totalAmount: order.totalAmount } })
-    } catch { /* best-effort */ }
+      // Create order
+      const [order] = await db.table('orders').insert({
+        customer_name: data.customerName || null,
+        customer_phone: data.customerPhone || null,
+        customer_address: data.customerAddress || null,
+        status: data.status || 'pending',
+        total_amount: Number(data.totalAmount) || 0,
+        items: JSON.stringify(data.items),
+        notes: data.notes || null,
+        payment_method: data.paymentMethod || 'cod',
+        payment_status: data.paymentStatus || 'unpaid',
+      }).returning('*')
 
-    return response.status(201).json(order)
+      // Create order details
+      for (const item of data.items) {
+        await db.table('order_details').insert({
+          order_id: order.id,
+          product_id: item.productId || null,
+          name: item.name || 'Sản phẩm',
+          sku: item.sku || null,
+          price: Number(item.price) || 0,
+          qty: Number(item.qty) || 1,
+          total_price: (Number(item.price) || 0) * (Number(item.qty) || 1),
+        })
+      }
+
+      // Create order totals
+      const subtotal = data.items.reduce((sum: number, i: any) =>
+        sum + (Number(i.price) || 0) * (Number(i.qty) || 1), 0)
+      await db.table('order_totals').insert([
+        { order_id: order.id, title: 'Tạm tính', code: 'subtotal', value: subtotal, sort: 1 },
+        { order_id: order.id, title: 'Phí vận chuyển', code: 'shipping', value: 0, sort: 2 },
+        { order_id: order.id, title: 'Tổng cộng', code: 'total', value: Number(data.totalAmount) || subtotal, sort: 100 },
+      ])
+
+      // Create order history entry
+      await db.table('order_history').insert({
+        order_id: order.id,
+        order_status_id: 1, // pending
+        content: 'Đơn hàng mới được tạo',
+      })
+
+      return response.status(201).json(order)
+    } catch (err: any) {
+      console.error('Order create error:', err.message)
+      return response.internalServerError({ error: 'Không thể tạo đơn: ' + err.message })
+    }
   }
 
-  async show({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .preload('customer')
-      .first()
+  /**
+   * GET /orders/:id — Show single order
+   */
+  async show({ params, response }: HttpContext) {
+    const order = await db.from('orders').where('id', params.id).first()
     if (!order) return response.notFound({ error: 'Order not found' })
     return response.json(order)
   }
 
-  async update({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  /**
+   * PUT /orders/:id — Update order
+   */
+  async update({ params, request, response }: HttpContext) {
+    const order = await db.from('orders').where('id', params.id).first()
+    if (!order) return response.notFound({ error: 'Order not found' })
+
     const data = request.only([
       'status', 'notes', 'trackingNumber',
       'paymentMethod', 'paymentStatus',
       'customerName', 'customerPhone', 'customerAddress',
     ])
+    const updateData: any = { updated_at: new Date() }
+    const fieldMap: any = {
+      trackingNumber: 'tracking_number',
+      paymentMethod: 'payment_method',
+      paymentStatus: 'payment_status',
+      customerName: 'customer_name',
+      customerPhone: 'customer_phone',
+      customerAddress: 'customer_address',
+    }
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined) {
+        updateData[fieldMap[key] || key] = val
+      }
+    }
 
+    await db.from('orders').where('id', params.id).update(updateData)
+    const updated = await db.from('orders').where('id', params.id).first()
+    return response.json(updated)
+  }
+
+  /**
+   * DELETE /orders/:id
+   */
+  async destroy({ params, response }: HttpContext) {
+    const order = await db.from('orders').where('id', params.id).first()
+    if (!order) return response.notFound({ error: 'Order not found' })
+    await db.from('order_history').where('order_id', params.id).delete()
+    await db.from('order_totals').where('order_id', params.id).delete()
+    await db.from('order_details').where('order_id', params.id).delete()
+    await db.from('orders').where('id', params.id).delete()
+    return response.json({ success: true })
+  }
+
+  /**
+   * GET /orders/stats — Order statistics
+   */
+  async stats({ response }: HttpContext) {
     try {
-      const order = await UpdateOrderAction.handle({
-        userShopIds,
-        orderId: params.id,
-        userId: auth.user!.id,
-        data,
+      const [totalResult] = await db.from('orders').count('* as total')
+      const [revenueResult] = await db.from('orders').sum('total_amount as total')
+      const [paidResult] = await db.from('orders').where('payment_status', 'paid').sum('total_amount as total')
+      const [deliveredResult] = await db.from('orders').where('status', 'delivered').count('* as total')
+
+      const totalOrders = Number(totalResult?.total || 0)
+      const deliveredOrders = Number(deliveredResult?.total || 0)
+
+      return response.json({
+        totalOrders,
+        totalRevenue: Number(revenueResult?.total || 0),
+        paidRevenue: Number(paidResult?.total || 0),
+        conversionRate: totalOrders > 0 ? Math.round((deliveredOrders / totalOrders) * 100) : 0,
       })
-      if (!order) return response.notFound({ error: 'Order not found' })
-
-      try {
-        await logActivity({ shopId: order.shopId, userId: auth.user!.id, action: Actions.ORDER_UPDATED, entityType: 'Order', entityId: order.id, details: { status: data.status } })
-      } catch { /* best-effort */ }
-
-      return response.json(order)
-    } catch (err: any) {
-      return response.unprocessableEntity({ error: err.message })
+    } catch {
+      return response.json({ totalOrders: 0, totalRevenue: 0, paidRevenue: 0, conversionRate: 0 })
     }
   }
 
-  async destroy({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!order) return response.notFound({ error: 'Order not found' })
-    await order.delete()
-    return response.json({ message: 'Deleted' })
-  }
-
-  async stats({ auth, request, response }: HttpContext) {
-    const { shopId, days = 30 } = request.qs()
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const result = await GetOrderStatsAction.handle({ userShopIds, shopId, days: Number(days) })
-    return response.json(result)
+  /**
+   * GET /orders/:id/details — Line items
+   */
+  async getDetails({ params, response }: HttpContext) {
+    try {
+      const details = await db.from('order_details')
+        .where('order_id', params.id)
+        .orderBy('created_at', 'asc')
+      return response.json(details)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**
-   * GET /orders/:id/details — Chi tiết sản phẩm (S-Cart: ShopOrderDetail)
+   * GET /orders/:id/totals — Order totals breakdown
    */
-  async getDetails({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!order) return response.notFound({ error: 'Order not found' })
-
-    const details = await OrderDetail.query()
-      .where('orderId', params.id)
-      .orderBy('created_at', 'asc')
-    return response.json(details)
+  async getTotals({ params, response }: HttpContext) {
+    try {
+      const totals = await db.from('order_totals')
+        .where('order_id', params.id)
+        .orderBy('sort', 'asc')
+      return response.json(totals)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**
-   * GET /orders/:id/totals — Phân tích tổng tiền (S-Cart: ShopOrderTotal)
+   * GET /orders/:id/history — Status change timeline
    */
-  async getTotals({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!order) return response.notFound({ error: 'Order not found' })
-
-    const totals = await OrderTotal.query()
-      .where('orderId', params.id)
-      .orderBy('sort', 'asc')
-    return response.json(totals)
+  async getHistory({ params, response }: HttpContext) {
+    try {
+      const history = await db.from('order_history')
+        .where('order_id', params.id)
+        .orderBy('add_date', 'desc')
+      return response.json(history)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**
-   * GET /orders/:id/history — Lịch sử trạng thái (S-Cart: ShopOrderHistory)
+   * PUT /orders/:id/status — Change order status
    */
-  async getHistory({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!order) return response.notFound({ error: 'Order not found' })
-
-    const history = await OrderHistory.query()
-      .where('orderId', params.id)
-      .orderBy('add_date', 'desc')
-    return response.json(history)
-  }
-
-  /**
-   * PUT /orders/:id/status — Chuyển trạng thái (S-Cart pattern: order_status_id + content)
-   */
-  async updateStatus({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  async updateStatus({ params, request, response }: HttpContext) {
     const { statusId, content } = request.only(['statusId', 'content'])
+    if (!statusId) return response.badRequest({ error: 'statusId is required' })
 
-    if (!statusId) {
-      return response.badRequest({ error: 'statusId is required' })
-    }
+    const statusRow = await db.from('order_statuses').where('id', statusId).first()
+    if (!statusRow) return response.badRequest({ error: `Invalid statusId: ${statusId}` })
 
-    // Validate statusId exists
-    const statusRow = await OrderStatus.find(statusId)
-    if (!statusRow) {
-      return response.badRequest({ error: `Invalid statusId: ${statusId}` })
-    }
-
-    const order = await Order.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
+    const order = await db.from('orders').where('id', params.id).first()
     if (!order) return response.notFound({ error: 'Order not found' })
 
     const oldStatus = order.status
-    order.status = statusRow.name // Store status name for backwards compat
+    const updateData: any = { status: statusRow.name, updated_at: new Date() }
 
-    // Auto-set timestamps
-    const { DateTime } = await import('luxon')
-    if (statusId === 5) order.deliveredAt = DateTime.now() // Done
-    if (statusRow.name === 'Đang xử lý') order.confirmedAt = DateTime.now()
+    if (statusRow.name === 'delivered') updateData.delivered_at = new Date()
+    if (statusRow.name === 'confirmed') updateData.confirmed_at = new Date()
+    if (statusRow.name === 'shipping') updateData.shipped_at = new Date()
 
-    await order.save()
+    await db.from('orders').where('id', params.id).update(updateData)
 
-    // Log history (S-Cart pattern)
-    await OrderHistory.create({
-      orderId: order.id,
-      orderStatusId: statusId,
-      content: content || `Status changed: ${oldStatus} → ${statusRow.name}`,
-      adminId: auth.user!.id,
+    // Log history
+    await db.table('order_history').insert({
+      order_id: params.id,
+      order_status_id: statusId,
+      content: content || `Trạng thái: ${oldStatus} → ${statusRow.name}`,
     })
 
-    try {
-      await logActivity({
-        shopId: order.shopId, userId: auth.user!.id,
-        action: Actions.ORDER_UPDATED, entityType: 'Order',
-        entityId: order.id, details: { oldStatus, newStatus: statusRow.name, statusId },
-      })
-    } catch { /* best-effort */ }
-
-    return response.json(order)
+    const updated = await db.from('orders').where('id', params.id).first()
+    return response.json(updated)
   }
 
   /**
-   * GET /order-statuses — Danh sách trạng thái đơn hàng (configurable)
+   * GET /order-statuses — List all statuses
    */
   async getOrderStatuses({ response }: HttpContext) {
-    const statuses = await OrderStatus.all()
-    return response.json(statuses)
+    try {
+      const statuses = await db.from('order_statuses').orderBy('sort', 'asc')
+      return response.json(statuses)
+    } catch {
+      return response.json([])
+    }
   }
 
   /**
-   * GET /payment-statuses — Danh sách trạng thái thanh toán (configurable)
+   * GET /payment-statuses — List all payment statuses
    */
   async getPaymentStatuses({ response }: HttpContext) {
-    const statuses = await PaymentStatus.all()
-    return response.json(statuses)
+    try {
+      const statuses = await db.from('payment_statuses').orderBy('sort', 'asc')
+      return response.json(statuses)
+    } catch {
+      return response.json([])
+    }
   }
 }

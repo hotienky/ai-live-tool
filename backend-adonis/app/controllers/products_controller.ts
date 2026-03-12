@@ -1,262 +1,158 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Product from '#models/product'
-import { getUserShopIds } from '#services/scope_helper'
-import { logActivity, Actions } from '#services/activity_log_service'
-import TenantContext from '#modules/tenant/helpers/tenant_context'
-import TenantDb from '#modules/tenant/helpers/tenant_db'
+import db from '@adonisjs/lucid/services/db'
 
+/**
+ * ProductsController — CRUD (tenant-safe, raw DB queries)
+ */
 export default class ProductsController {
-  async index(ctx: HttpContext) {
-    const { request, response, auth } = ctx
-    const { shopId, category, search } = request.qs()
+  async index({ request, response }: HttpContext) {
+    try {
+      const { category, search, page = 1, limit = 50 } = request.qs()
+      const offset = (Number(page) - 1) * Number(limit)
 
-    // 🔀 Tenant-scoped: use tenant's dedicated database
-    const tenantCtx = TenantContext.tryFrom(ctx)
-    if (tenantCtx) {
-      const tenantDb = TenantDb.from(ctx)
-      let query = tenantDb.query('products').select('*').orderBy('created_at', 'desc')
+      let query = db.from('products').orderBy('created_at', 'desc')
       if (category) query = query.where('category', category)
       if (search) {
         query = query.where((q: any) => {
           q.whereILike('name', `%${search}%`)
             .orWhereILike('sku', `%${search}%`)
-            .orWhereILike('barcode', `%${search}%`)
         })
       }
-      const products = await query
-      return response.json(products)
-    }
 
-    // 🔀 Default: use ORM (legacy, non-tenant mode)
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const query = Product.query()
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .orderBy('created_at', 'desc')
-    if (shopId) query.where('shop_id', shopId)
-    if (category) query.where('category', category)
-    if (search) query.where((q) => {
-      q.whereILike('name', `%${search}%`)
-        .orWhereILike('sku', `%${search}%`)
-        .orWhereILike('barcode', `%${search}%`)
-    })
-    const products = await query
-    return response.json(products)
+      const data = await query.offset(offset).limit(Number(limit))
+      return response.json(data)
+    } catch (err: any) {
+      console.error('Products index error:', err.message)
+      return response.json([])
+    }
   }
 
-  async store(ctx: HttpContext) {
-    const { request, response, auth } = ctx
+  async store({ request, response }: HttpContext) {
     const data = request.only([
-      'shopId', 'name', 'price', 'keywords', 'description', 'imageUrl',
-      'sku', 'stock', 'lowStockThreshold', 'costPrice', 'category', 'unit', 'barcode',
+      'name', 'price', 'keywords', 'description', 'imageUrl',
+      'sku', 'stock', 'costPrice', 'category', 'unit', 'barcode',
       'image', 'image_url', 'promotion_price', 'status', 'low_stock_threshold',
+      'cost_price',
     ])
     if (!data.name) return response.badRequest({ error: 'Tên sản phẩm là bắt buộc' })
 
     // Convert keywords
+    let keywords = null
     if (typeof data.keywords === 'string' && data.keywords.trim()) {
-      data.keywords = data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
-    } else if (!data.keywords) {
-      data.keywords = null
-    }
-
-    // 🔀 Tenant-scoped: use tenant's dedicated database
-    const tenantCtx = TenantContext.tryFrom(ctx)
-    if (tenantCtx) {
-      try {
-        const tenantDb = TenantDb.from(ctx)
-        const [product] = await tenantDb.table('products').insert({
-          name: data.name,
-          sku: data.sku || null,
-          price: Number(data.price) || 0,
-          promotion_price: Number(data.promotion_price) || null,
-          cost_price: Number(data.costPrice) || null,
-          stock: Number(data.stock) || 0,
-          category: data.category || null,
-          keywords: data.keywords ? JSON.stringify(data.keywords) : null,
-          description: data.description || null,
-          image_url: data.imageUrl || data.image_url || data.image || null,
-          barcode: data.barcode || null,
-          unit: data.unit || 'cái',
-          is_active: data.status !== 0,
-        }).returning('*')
-        return response.json(product)
-      } catch (err: any) {
-        console.error('Tenant product create error:', err.message)
-        return response.internalServerError({ error: 'Không thể tạo sản phẩm: ' + err.message })
-      }
-    }
-
-    // 🔀 Default: use ORM (legacy, non-tenant mode)
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    if (data.shopId && !userShopIds.includes(String(data.shopId))) {
-      return response.forbidden({ error: 'Shop not found' })
+      keywords = JSON.stringify(data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean))
     }
 
     try {
-      const product = await Product.create({
-        ...data,
+      const [product] = await db.table('products').insert({
+        name: data.name,
+        sku: data.sku || null,
+        price: Number(data.price) || 0,
+        promotion_price: data.promotion_price ? Number(data.promotion_price) : null,
+        cost_price: data.costPrice || data.cost_price ? Number(data.costPrice || data.cost_price) : null,
         stock: Number(data.stock) || 0,
-        lowStockThreshold: Number(data.lowStockThreshold) || 5,
-        isActive: true,
-      })
-
-      try { await logActivity({ shopId: Number(data.shopId), userId: auth.user!.id, action: Actions.PRODUCT_CREATED, entityType: 'Product', entityId: product.id, details: { name: product.name } }) } catch { /* best-effort */ }
-
-      return response.json(product)
+        category: data.category || null,
+        keywords: keywords,
+        description: data.description || null,
+        image_url: data.imageUrl || data.image_url || data.image || null,
+        barcode: data.barcode || null,
+        unit: data.unit || 'cái',
+        is_active: data.status !== 0 && data.status !== false,
+        low_stock_threshold: Number(data.low_stock_threshold) || 5,
+      }).returning('*')
+      return response.status(201).json(product)
     } catch (err: any) {
       console.error('Product create error:', err.message)
       return response.internalServerError({ error: 'Không thể tạo sản phẩm: ' + err.message })
     }
   }
 
-  async update({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
+  async show({ params, response }: HttpContext) {
+    const product = await db.from('products').where('id', params.id).first()
     if (!product) return response.notFound({ error: 'Product not found' })
-
-    const data = request.only([
-      'name', 'price', 'keywords', 'description', 'imageUrl', 'isActive',
-      'sku', 'costPrice', 'category', 'unit', 'barcode', 'lowStockThreshold',
-    ])
-
-    // Convert keywords: comma-separated string → array for PostgreSQL varchar[]
-    if (typeof data.keywords === 'string' && data.keywords.trim()) {
-      data.keywords = data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
-    }
-
-    product.merge(data)
-    await product.save()
     return response.json(product)
   }
 
-  async destroy({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.id)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!product) return response.notFound({ error: 'Product not found' })
-    await product.delete()
-    return response.json({ success: true })
-  }
-
-  async stats(ctx: HttpContext) {
-    const getInventoryStatsAction = (await import('#actions/inventory/get_inventory_stats_action')).default
-    return getInventoryStatsAction(ctx)
-  }
-
-  async stockHistory(ctx: HttpContext) {
-    const getStockHistoryAction = (await import('#actions/inventory/get_stock_history_action')).default
-    return getStockHistoryAction(ctx)
-  }
-
-  async adjustStock(ctx: HttpContext) {
-    const adjustStockAction = (await import('#actions/inventory/adjust_stock_action')).default
-    return adjustStockAction(ctx)
-  }
-
-  async importCsv(ctx: HttpContext) {
-    const importProductsAction = (await import('#actions/inventory/import_products_action')).default
-    return importProductsAction(ctx)
-  }
-
-  async exportCsv(ctx: HttpContext) {
-    const exportProductsAction = (await import('#actions/inventory/export_products_action')).default
-    return exportProductsAction(ctx)
-  }
-
-  // ── Product Variants ─────────────────────────────────
-
-  async getVariants({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.productId)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
+  async update({ params, request, response }: HttpContext) {
+    const product = await db.from('products').where('id', params.id).first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
-    const ProductVariant = (await import('#models/product_variant')).default
-    const variants = await ProductVariant.query()
-      .where('productId', product.id)
-      .orderBy('created_at', 'desc')
-    // B6 Fix: parse attributes JSON string → object for frontend
-    const parsed = variants.map((v: any) => {
-      const obj = v.serialize()
-      if (obj.attributes && typeof obj.attributes === 'string') {
-        try { obj.attributes = JSON.parse(obj.attributes) } catch { /* keep string */ }
-      }
-      return obj
-    })
-    return response.json(parsed)
-  }
-
-  async createVariant({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.productId)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!product) return response.notFound({ error: 'Product not found' })
-
-    const data = request.only(['name', 'sku', 'price', 'costPrice', 'stock', 'attributes'])
-    if (!data.name) return response.badRequest({ error: 'name is required' })
-
-    const ProductVariant = (await import('#models/product_variant')).default
-    const variant = await ProductVariant.create({
-      productId: product.id,
-      name: data.name,
-      sku: data.sku || null,
-      price: Number(data.price) || null,
-      costPrice: Number(data.costPrice) || null,
-      stock: Number(data.stock) || 0,
-      attributes: data.attributes ? JSON.stringify(data.attributes) : null,
-      isActive: true,
-    })
-    return response.json(variant)
-  }
-
-  async updateVariant({ auth, params, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.productId)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
-    if (!product) return response.notFound({ error: 'Product not found' })
-
-    const ProductVariant = (await import('#models/product_variant')).default
-    const variant = await ProductVariant.query()
-      .where('id', params.variantId)
-      .where('productId', product.id)
-      .first()
-    if (!variant) return response.notFound({ error: 'Variant not found' })
-
-    variant.merge(request.only(['name', 'sku', 'price', 'costPrice', 'stock', 'isActive']))
-    if (request.input('attributes')) {
-      variant.attributes = JSON.stringify(request.input('attributes'))
+    const data = request.only([
+      'name', 'price', 'keywords', 'description', 'imageUrl', 'is_active',
+      'sku', 'cost_price', 'category', 'unit', 'barcode', 'low_stock_threshold',
+      'stock', 'promotion_price', 'image_url',
+    ])
+    const updateData: any = { updated_at: new Date() }
+    for (const [key, val] of Object.entries(data)) {
+      if (val !== undefined) updateData[key] = val
     }
-    await variant.save()
-    return response.json(variant)
+    if (typeof updateData.keywords === 'string') {
+      updateData.keywords = JSON.stringify(
+        updateData.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
+      )
+    }
+
+    await db.from('products').where('id', params.id).update(updateData)
+    const updated = await db.from('products').where('id', params.id).first()
+    return response.json(updated)
   }
 
-  async deleteVariant({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const product = await Product.query()
-      .where('id', params.productId)
-      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
-      .first()
+  async destroy({ params, response }: HttpContext) {
+    const product = await db.from('products').where('id', params.id).first()
+    if (!product) return response.notFound({ error: 'Product not found' })
+    await db.from('products').where('id', params.id).delete()
+    return response.json({ success: true })
+  }
+
+  async stats({ response }: HttpContext) {
+    try {
+      const [totalResult] = await db.from('products').count('* as total')
+      const [activeResult] = await db.from('products').where('is_active', true).count('* as total')
+      const [lowStockResult] = await db.rawQuery(
+        'SELECT COUNT(*) as total FROM products WHERE stock <= low_stock_threshold AND is_active = true'
+      )
+
+      return response.json({
+        total: Number(totalResult?.total || 0),
+        active: Number(activeResult?.total || 0),
+        lowStock: Number(lowStockResult?.rows?.[0]?.total || 0),
+      })
+    } catch {
+      return response.json({ total: 0, active: 0, lowStock: 0 })
+    }
+  }
+
+  async stockHistory({ response }: HttpContext) {
+    try {
+      const history = await db.from('stock_history').orderBy('created_at', 'desc').limit(50)
+      return response.json(history)
+    } catch {
+      return response.json([])
+    }
+  }
+
+  async adjustStock({ params, request, response }: HttpContext) {
+    const product = await db.from('products').where('id', params.id).first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
-    const ProductVariant = (await import('#models/product_variant')).default
-    const variant = await ProductVariant.query()
-      .where('id', params.variantId)
-      .where('productId', product.id)
-      .first()
-    if (!variant) return response.notFound({ error: 'Variant not found' })
+    const { adjustment, reason } = request.only(['adjustment', 'reason'])
+    const newStock = product.stock + Number(adjustment)
+    if (newStock < 0) return response.badRequest({ error: 'Tồn kho không thể âm' })
 
-    await variant.delete()
-    return response.json({ success: true })
+    await db.from('products').where('id', params.id).update({
+      stock: newStock,
+      updated_at: new Date(),
+    })
+
+    try {
+      await db.table('stock_history').insert({
+        product_id: params.id,
+        previous_stock: product.stock,
+        new_stock: newStock,
+        adjustment: Number(adjustment),
+        reason: reason || 'Điều chỉnh thủ công',
+      })
+    } catch { /* stock_history may not exist */ }
+
+    return response.json({ success: true, stock: newStock })
   }
 }

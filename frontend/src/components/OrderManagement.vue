@@ -376,7 +376,6 @@ async function createOrder() {
         ...newOrder.value,
         items: items.map(i => ({ productId: i.productId, name: i.name, price: i.price, qty: i.qty })),
         totalAmount: computedTotal.value,
-        ,
         status: 'pending',
         paymentStatus: 'unpaid',
       })

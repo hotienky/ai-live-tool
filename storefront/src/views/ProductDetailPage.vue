@@ -84,7 +84,7 @@
 
           <!-- Actions -->
           <div class="detail-actions">
-            <button class="btn btn--primary btn--lg" :disabled="product.stock <= 0">
+            <button class="btn btn--primary btn--lg" :disabled="product.stock <= 0" @click="handleAddToCart">
               <ShoppingCart :size="18" />
               Thêm vào giỏ hàng
             </button>
@@ -132,6 +132,9 @@ import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
   Heart, Link, FileText, ArrowLeft
 } from 'lucide-vue-next'
+import { useCart } from '../composables/useCart.js'
+
+const { addToCart } = useCart()
 
 const props = defineProps({
   
@@ -177,6 +180,14 @@ async function loadProduct() {
 
 onMounted(() => loadProduct())
 watch(() => props.productId, () => { qty.value = 1; loadProduct() })
+
+const addedToCart = ref(false)
+function handleAddToCart() {
+  if (!product.value) return
+  addToCart(product.value, qty.value)
+  addedToCart.value = true
+  setTimeout(() => { addedToCart.value = false }, 2000)
+}
 </script>
 
 <style scoped>
