@@ -103,6 +103,33 @@ export class AutoReplyTemplateSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class BannerSchema extends BaseModel {
+  static $columns = ['id', 'storeId', 'title', 'description', 'image', 'url', 'type', 'sort', 'status', 'createdAt', 'updatedAt'] as const
+  $columns = BannerSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare storeId: number | null
+  @column()
+  declare title: string
+  @column()
+  declare description: string | null
+  @column()
+  declare image: string | null
+  @column()
+  declare url: string | null
+  @column()
+  declare type: string | null
+  @column()
+  declare sort: number | null
+  @column()
+  declare status: number | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class ChatLogSchema extends BaseModel {
   static $columns = ['id', 'shopId', 'sessionId', 'customerId', 'uniqueId', 'nickname', 'commentText', 'aiLabel', 'aiSummary', 'productIntent', 'platform', 'profileLink', 'createdAt', 'updatedAt'] as const
   $columns = ChatLogSchema.$columns
@@ -130,6 +157,31 @@ export class ChatLogSchema extends BaseModel {
   declare platform: string | null
   @column()
   declare profileLink: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class CmsPageSchema extends BaseModel {
+  static $columns = ['id', 'storeId', 'title', 'alias', 'image', 'content', 'sort', 'status', 'createdAt', 'updatedAt'] as const
+  $columns = CmsPageSchema.$columns
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare storeId: number | null
+  @column()
+  declare title: string
+  @column()
+  declare alias: string | null
+  @column()
+  declare image: string | null
+  @column()
+  declare content: string | null
+  @column()
+  declare sort: number | null
+  @column()
+  declare status: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
@@ -567,7 +619,7 @@ export class ProductVariantSchema extends BaseModel {
 }
 
 export class ProductSchema extends BaseModel {
-  static $columns = ['id', 'shopId', 'name', 'price', 'imageUrl', 'keywords', 'isActive', 'sku', 'stock', 'createdAt', 'updatedAt', 'costPrice', 'category', 'unit', 'barcode', 'categoryId', 'brandId', 'slug', 'description', 'images', 'variants', 'weight', 'isFeatured'] as const
+  static $columns = ['id', 'shopId', 'name', 'price', 'imageUrl', 'keywords', 'isActive', 'sku', 'stock', 'createdAt', 'updatedAt', 'costPrice', 'category', 'unit', 'barcode', 'categoryId', 'brandId', 'slug', 'description', 'images', 'variants', 'weight', 'isFeatured', 'promotionPrice', 'promotionStart', 'promotionEnd'] as const
   $columns = ProductSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -615,6 +667,12 @@ export class ProductSchema extends BaseModel {
   declare weight: string | null
   @column()
   declare isFeatured: boolean | null
+  @column()
+  declare promotionPrice: string | null
+  @column.dateTime()
+  declare promotionStart: DateTime | null
+  @column.dateTime()
+  declare promotionEnd: DateTime | null
 }
 
 export class RoleSchema extends BaseModel {
@@ -794,7 +852,7 @@ export class ShoppingCartSchema extends BaseModel {
 }
 
 export class ShopSchema extends BaseModel {
-  static $columns = ['id', 'shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId', 'isActive', 'createdAt', 'updatedAt', 'moderationBlacklist', 'moderationHideSpam', 'moderationRateLimit', 'moderationMaxPerMinute', 'shippingConfig', 'defaultCarrier', 'senderName', 'senderPhone', 'senderAddress', 'userId'] as const
+  static $columns = ['id', 'shopName', 'platform', 'tiktokUsername', 'shopeeId', 'facebookPageId', 'youtubeChannelId', 'isActive', 'createdAt', 'updatedAt', 'moderationBlacklist', 'moderationHideSpam', 'moderationRateLimit', 'moderationMaxPerMinute', 'shippingConfig', 'defaultCarrier', 'senderName', 'senderPhone', 'senderAddress', 'userId', 'logo'] as const
   $columns = ShopSchema.$columns
   @column({ isPrimary: true })
   declare id: number
@@ -836,6 +894,8 @@ export class ShopSchema extends BaseModel {
   declare senderAddress: string | null
   @column()
   declare userId: number | null
+  @column()
+  declare logo: string | null
 }
 
 export class StockHistorySchema extends BaseModel {
