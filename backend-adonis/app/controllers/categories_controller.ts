@@ -8,9 +8,9 @@ export default class CategoriesController {
     const userShopIds = await getUserShopIds(auth.user!.id)
 
     const query = ProductCategory.query()
-      .whereIn('shop_id', userShopIds)
       .orderBy('sort_order', 'asc')
       .orderBy('name', 'asc')
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
     if (shopId) query.where('shop_id', shopId)
     const categories = await query
     return response.json(categories)
@@ -22,7 +22,7 @@ export default class CategoriesController {
       'shopId', 'name', 'description', 'imageUrl', 'parentId', 'sortOrder',
     ])
     if (!data.name) return response.badRequest({ error: 'Tên danh mục là bắt buộc' })
-    if (data.shopId && !userShopIds.includes(String(data.shopId))) {
+    if (userShopIds && data.shopId && !userShopIds.includes(String(data.shopId))) {
       return response.forbidden({ error: 'Shop not found' })
     }
 
@@ -49,10 +49,9 @@ export default class CategoriesController {
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const category = await ProductCategory.query()
-      .whereIn('shop_id', userShopIds)
-      .where('id', params.id)
-      .first()
+    const query = ProductCategory.query().where('id', params.id)
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
+    const category = await query.first()
     if (!category) return response.notFound({ error: 'Category not found' })
 
     const data = request.only([
@@ -73,10 +72,9 @@ export default class CategoriesController {
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const category = await ProductCategory.query()
-      .whereIn('shop_id', userShopIds)
-      .where('id', params.id)
-      .first()
+    const query = ProductCategory.query().where('id', params.id)
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
+    const category = await query.first()
     if (!category) return response.notFound({ error: 'Category not found' })
     await category.delete()
     return response.json({ success: true })

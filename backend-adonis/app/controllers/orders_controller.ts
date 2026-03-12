@@ -18,7 +18,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
 
     const query = Order.query()
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .orderBy('created_at', 'desc')
     if (shopId) query.where('shopId', shopId)
     if (status) query.where('status', status)
@@ -51,7 +51,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .preload('customer')
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
@@ -89,7 +89,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
     await order.delete()
@@ -110,7 +110,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
 
@@ -127,7 +127,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
 
@@ -144,7 +144,7 @@ export default class OrdersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
 
@@ -173,7 +173,7 @@ export default class OrdersController {
 
     const order = await Order.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!order) return response.notFound({ error: 'Order not found' })
 

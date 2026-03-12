@@ -42,13 +42,13 @@
       <div>
         <label class="block text-sm text-surface-300 mb-1.5">Gói dịch vụ</label>
         <div class="flex gap-3">
-          <label v-for="p in plans" :key="p.value"
-                 class="flex-1 card p-3 cursor-pointer transition-all"
-                 :class="form.plan === p.value ? 'border-primary-500/50 bg-primary-600/10' : 'hover:border-surface-600/60'">
-            <input v-model="form.plan" type="radio" :value="p.value" class="hidden" />
+          <div v-for="p in plans" :key="p.value"
+               @click="form.plan = p.value"
+               class="flex-1 card p-3 cursor-pointer transition-all select-none"
+               :class="form.plan === p.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : 'hover:border-surface-600/60'">
             <p class="text-sm font-medium text-white">{{ p.label }}</p>
             <p class="text-xs text-surface-400 mt-0.5">{{ p.desc }}</p>
-          </label>
+          </div>
         </div>
       </div>
 

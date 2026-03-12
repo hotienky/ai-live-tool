@@ -46,12 +46,17 @@ router.get('/api/platforms', async () => {
 import { registerMasterRoutes } from '#modules/master/routes'
 registerMasterRoutes()
 
-// ──── Auth Routes (Public) ────
+// ──── Auth Routes (Tenant-aware — patches DB for subdomain tenants) ────
+import TenantMiddleware from '#modules/tenant/middleware/tenant_middleware'
+const tenantAuthMw = async (ctx: any, next: any) => {
+  const mw = new TenantMiddleware()
+  return mw.handle(ctx, next)
+}
 router.group(() => {
   router.post('/register', [AuthController, 'register'])
   router.post('/login', [AuthController, 'login'])
   router.get('/me', [AuthController, 'me']).use(middleware.auth())
-}).prefix('/api/auth')
+}).prefix('/api/auth').use(tenantAuthMw)
 
 // ════════════════════════════════════════════════════════════
 // ──── TENANT MODULE ────

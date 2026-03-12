@@ -16,6 +16,7 @@ const CustomFieldsController = () => import('#controllers/custom_fields_controll
  */
 export function registerSystemRoutes(group: ReturnType<typeof router.group>) {
   // Dashboard
+  group.get('/dashboard', [DashboardController, 'overview']).as('dashboard.overviewAlias')
   group.get('/dashboard/overview', [DashboardController, 'overview'])
   group.get('/dashboard/recent-leads', [DashboardController, 'recentLeads'])
   group.get('/dashboard/analytics', [DashboardController, 'analytics'])
@@ -45,7 +46,6 @@ export function registerSystemRoutes(group: ReturnType<typeof router.group>) {
   // Activity Logs
   group.get('/activity-logs', [ActivityLogsController, 'index'])
   group.get('/activity-logs/stats', [ActivityLogsController, 'stats'])
-  group.get('/activity-logs/entity-types', [ActivityLogsController, 'entityTypes'])
 
   // Roles & Permissions
   group.get('/roles', [RolesController, 'index'])
@@ -59,8 +59,9 @@ export function registerSystemRoutes(group: ReturnType<typeof router.group>) {
 
   // System Config
   group.get('/system-config', [SystemConfigController, 'index'])
-  group.get('/system-config/:group', [SystemConfigController, 'show'])
-  group.put('/system-config/:group', [SystemConfigController, 'update'])
+  group.post('/system-config', [SystemConfigController, 'store'])
+  group.get('/system-config/group/:group', [SystemConfigController, 'showGroup'])
+  group.put('/system-config/group/:group', [SystemConfigController, 'updateGroup'])
 
   // API Keys
   group.get('/api-keys', [ApiKeysController, 'index'])

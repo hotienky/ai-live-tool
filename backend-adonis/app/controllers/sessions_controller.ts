@@ -8,7 +8,7 @@ export default class SessionsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
 
     const query = LivestreamSession.query()
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .orderBy('started_at', 'desc')
     if (shopId) query.where('shop_id', shopId)
     const sessions = await query.paginate(Number(page), Number(limit))
@@ -19,7 +19,7 @@ export default class SessionsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const session = await LivestreamSession.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .preload('chatLogs')
       .first()
     if (!session) return response.notFound({ error: 'Session not found' })

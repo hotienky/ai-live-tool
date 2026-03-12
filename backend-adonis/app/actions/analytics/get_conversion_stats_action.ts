@@ -15,13 +15,15 @@ export default class GetConversionStatsAction {
     const funnel: Array<{ status: string; count: number }> = []
 
     for (const status of statuses) {
-      const result = await Lead.query()
+      const query = Lead.query()
         .where('status', status)
         .where('created_at', '>=', startDate.toISOString())
-        .whereIn('chat_log_id',
+      if (userShopIds) {
+        query.whereIn('chat_log_id',
           ChatLog.query().select('id').whereIn('shop_id', userShopIds)
         )
-        .count('* as total')
+      }
+      const result = await query.count('* as total')
       funnel.push({ status, count: Number(result[0].$extras.total) })
     }
 

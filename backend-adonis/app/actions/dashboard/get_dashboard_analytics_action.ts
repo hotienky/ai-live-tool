@@ -3,7 +3,7 @@ import Lead from '#models/lead'
 import db from '@adonisjs/lucid/services/db'
 
 interface Params {
-  userShopIds: string[]
+  userShopIds: string[] | null
   shopId?: string
   days: number
 }
@@ -19,9 +19,9 @@ export default class GetDashboardAnalyticsAction {
       .select(db.raw("DATE(created_at) as date"), 'ai_label')
       .count('* as count')
       .where('created_at', '>=', startDate.toISOString())
-      .whereIn('shop_id', userShopIds)
       .groupByRaw('DATE(created_at), ai_label')
       .orderByRaw('DATE(created_at) ASC')
+    if (userShopIds) dailyQuery.whereIn('shop_id', userShopIds)
     if (shopId) dailyQuery.where('shop_id', shopId)
     const dailyRows = await dailyQuery
 
@@ -37,13 +37,15 @@ export default class GetDashboardAnalyticsAction {
     const statuses = ['New', 'Contacting', 'Closed', 'Ignored']
     const funnel: Array<{ status: string; count: number }> = []
     for (const status of statuses) {
-      const result = await Lead.query()
+      const query = Lead.query()
         .where('status', status)
         .where('created_at', '>=', startDate.toISOString())
-        .whereIn('chat_log_id',
+      if (userShopIds) {
+        query.whereIn('chat_log_id',
           ChatLog.query().select('id').whereIn('shop_id', userShopIds)
         )
-        .count('* as total')
+      }
+      const result = await query.count('* as total')
       funnel.push({ status, count: Number(result[0].$extras.total) })
     }
     const totalLeads = funnel.reduce((sum, f) => sum + f.count, 0)

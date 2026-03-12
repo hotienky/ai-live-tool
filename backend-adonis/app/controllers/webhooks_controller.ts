@@ -1,73 +1,53 @@
 /**
  * Webhooks Controller — CRUD for webhook management
+ * Tenant-safe: uses shared getUserShopIds; in tenant mode (null), skips shop scoping
  */
 import type { HttpContext } from '@adonisjs/core/http'
-import { getWebhooks, createWebhook, updateWebhook, deleteWebhook } from '#services/webhook_service'
-import { logActivity, Actions } from '#services/activity_log_service'
-
-async function getUserShopIds(userId: number) {
-  const Shop = (await import('#models/shop')).default
-  const shops = await Shop.query().where('userId', userId).select('id')
-  return shops.map((s) => s.id)
-}
+import db from '@adonisjs/lucid/services/db'
+import { getUserShopIds } from '#services/scope_helper'
 
 export default class WebhooksController {
-  async index({ auth, request, response }: HttpContext) {
-    const { shopId } = request.qs()
+  async index({ auth, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const targetShopId = Number(shopId) || userShopIds[0]
-    if (!userShopIds.includes(targetShopId)) return response.forbidden({ error: 'Access denied' })
-
-    const webhooks = await getWebhooks(targetShopId)
+    const query = db.from('webhooks').orderBy('created_at', 'desc')
+    if (userShopIds) query.whereIn('user_id', [auth.user!.id])
+    const webhooks = await query
     return response.json(webhooks)
   }
 
   async store({ auth, request, response }: HttpContext) {
-    const { shopId, url, events } = request.only(['shopId', 'url', 'events'])
-    if (!shopId || !url) return response.badRequest({ error: 'shopId and url are required' })
+    const { url, events } = request.only(['url', 'events'])
+    if (!url) return response.badRequest({ error: 'url is required' })
 
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    if (!userShopIds.includes(Number(shopId))) return response.forbidden({ error: 'Access denied' })
-
-    const webhook = await createWebhook(Number(shopId), url, events)
-    await logActivity({
-      shopId: Number(shopId),
-      userId: auth.user!.id,
-      action: Actions.WEBHOOK_CREATED,
-      entityType: 'Webhook',
-      entityId: webhook.id,
-      details: { url, events },
-    })
-    return response.created(webhook)
+    const [webhook] = await db.table('webhooks').insert({
+      user_id: auth.user!.id,
+      url,
+      events: JSON.stringify(events || []),
+      is_active: true,
+    }).returning('*')
+    return response.status(201).json(webhook)
   }
 
   async update({ auth, params, request, response }: HttpContext) {
-    const data = request.only(['url', 'events', 'isActive'])
-    const userShopIds = await getUserShopIds(auth.user!.id)
+    const data = request.only(['url', 'events', 'is_active'])
+    const wh = await db.from('webhooks').where('id', params.id).where('user_id', auth.user!.id).first()
+    if (!wh) return response.notFound({ error: 'Webhook not found' })
 
-    // Get webhook to check shop ownership
-    const { WebhookSchema } = await import('../../database/schema.js')
-    const wh = await WebhookSchema.find(params.id)
-    if (!wh || !userShopIds.includes(wh.shopId)) return response.forbidden({ error: 'Access denied' })
+    const updateData: any = {}
+    if (data.url !== undefined) updateData.url = data.url
+    if (data.events !== undefined) updateData.events = JSON.stringify(data.events)
+    if (data.is_active !== undefined) updateData.is_active = data.is_active
+    updateData.updated_at = db.fn.now()
 
-    const webhook = await updateWebhook(Number(params.id), wh.shopId, data)
-    return response.json(webhook)
+    await db.from('webhooks').where('id', params.id).update(updateData)
+    const updated = await db.from('webhooks').where('id', params.id).first()
+    return response.json(updated)
   }
 
   async destroy({ auth, params, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
-    const { WebhookSchema } = await import('../../database/schema.js')
-    const wh = await WebhookSchema.find(params.id)
-    if (!wh || !userShopIds.includes(wh.shopId)) return response.forbidden({ error: 'Access denied' })
-
-    await deleteWebhook(Number(params.id), wh.shopId)
-    await logActivity({
-      shopId: wh.shopId,
-      userId: auth.user!.id,
-      action: Actions.WEBHOOK_DELETED,
-      entityType: 'Webhook',
-      entityId: Number(params.id),
-    })
+    const wh = await db.from('webhooks').where('id', params.id).where('user_id', auth.user!.id).first()
+    if (!wh) return response.notFound({ error: 'Webhook not found' })
+    await db.from('webhooks').where('id', params.id).delete()
     return response.json({ success: true })
   }
 }

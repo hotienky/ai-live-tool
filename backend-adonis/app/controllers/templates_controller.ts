@@ -3,9 +3,9 @@ import AutoReplyTemplate from '#models/auto_reply_template'
 
 export default class TemplatesController {
   async index({ params, response }: HttpContext) {
-    const templates = await AutoReplyTemplate.query()
-      .where('shop_id', params.shopId)
-      .orderBy('created_at', 'desc')
+    const query = AutoReplyTemplate.query().orderBy('created_at', 'desc')
+    if (params.shopId) query.where('shop_id', params.shopId)
+    const templates = await query
     return response.json(templates)
   }
 
@@ -16,7 +16,7 @@ export default class TemplatesController {
     }
 
     const t = await AutoReplyTemplate.create({
-      shopId: params.shopId,
+      shopId: params.shopId || null,
       triggerLabel,
       templateText,
       isActive: true,
@@ -25,10 +25,9 @@ export default class TemplatesController {
   }
 
   async destroy({ params, response }: HttpContext) {
-    const t = await AutoReplyTemplate.query()
-      .where('id', params.id)
-      .where('shop_id', params.shopId)
-      .first()
+    const query = AutoReplyTemplate.query().where('id', params.id)
+    if (params.shopId) query.where('shop_id', params.shopId)
+    const t = await query.first()
     if (!t) return response.notFound({ error: 'Template not found' })
     await t.delete()
     return response.json({ success: true })

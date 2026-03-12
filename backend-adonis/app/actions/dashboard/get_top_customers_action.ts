@@ -1,22 +1,23 @@
 import db from '@adonisjs/lucid/services/db'
 
 interface Params {
-  userShopIds: string[]
+  userShopIds: string[] | null
   limit: number
 }
 
 export default class GetTopCustomersAction {
   static async handle({ userShopIds, limit }: Params) {
-    const customers = await db
+    const query = db
       .from('chat_logs')
       .select('nickname')
       .count('* as total_comments')
       .select(db.raw("SUM(CASE WHEN ai_label = '[HOT]' THEN 1 ELSE 0 END) as hot_count"))
-      .whereIn('shop_id', userShopIds)
       .groupBy('nickname')
       .orderBy('total_comments', 'desc')
       .limit(limit)
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
 
+    const customers = await query
     return customers.map((c: any) => ({
       nickname: c.nickname,
       totalComments: Number(c.total_comments),

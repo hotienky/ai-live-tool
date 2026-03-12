@@ -5,7 +5,7 @@
 import Order from '#models/order'
 
 interface Params {
-  userShopIds: string[]
+  userShopIds: string[] | null
   shopId?: string
   days?: number
 }
@@ -17,8 +17,8 @@ export default class GetOrderStatsAction {
 
     const baseQuery = () => {
       const q = Order.query()
-        .whereIn('shop_id', userShopIds)
         .where('created_at', '>=', startDate.toISOString())
+      if (userShopIds) q.whereIn('shop_id', userShopIds)
       if (shopId) q.where('shop_id', shopId)
       return q
     }

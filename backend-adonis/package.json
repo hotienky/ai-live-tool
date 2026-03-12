@@ -37,7 +37,8 @@
     "#tests/*": "./tests/*.js",
     "#start/*": "./start/*.js",
     "#config/*": "./config/*.js",
-    "#modules/*": "./app/modules/*.js"
+    "#modules/*": "./app/modules/*.js",
+    "#jobs/*": "./app/jobs/*.js"
   },
   "devDependencies": {
     "@adonisjs/assembler": "^8.0.0",
@@ -71,6 +72,7 @@
     "@vinejs/vine": "^4.3.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
+    "bullmq": "^5.71.0",
     "jsonwebtoken": "^9.0.3",
     "luxon": "^3.7.2",
     "pg": "^8.20.0",

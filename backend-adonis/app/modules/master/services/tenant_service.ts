@@ -1,4 +1,5 @@
 import db from '@adonisjs/lucid/services/db'
+import hash from '@adonisjs/core/services/hash'
 import { scryptSync, randomBytes } from 'node:crypto'
 
 /**
@@ -15,7 +16,8 @@ function hashPassword(password: string): string {
  */
 export default class TenantService {
   /**
-   * Create a new tenant: insert into master DB + create PostgreSQL database + seed owner
+   * Create a new tenant: insert into master DB + dispatch provisioning job.
+   * The actual DB creation happens in the queue worker.
    */
   static async createTenant(data: {
     name: string
@@ -27,7 +29,7 @@ export default class TenantService {
   }) {
     const dbName = `tenant_${data.slug}`
 
-    // 1. Insert into master DB
+    // 1. Insert into master DB with status 'provisioning'
     const [tenant] = await db.connection('master')
       .table('tenants')
       .insert({
@@ -37,21 +39,34 @@ export default class TenantService {
         owner_email: data.ownerEmail,
         owner_name: data.ownerName || data.name,
         plan: data.plan || 'free',
-        status: 'active',
+        status: 'provisioning',
       })
       .returning('*')
 
-    // 2. Create the PostgreSQL database for this tenant
-    await db.rawQuery(`CREATE DATABASE "${dbName}" OWNER postgres`)
+    // 2. Dispatch queue job for DB creation
+    const { dispatch } = await import('#services/queue_service')
+    await dispatch('create-tenant-db', {
+      slug: data.slug,
+      dbName,
+      ownerEmail: data.ownerEmail,
+      ownerName: data.ownerName || data.name,
+      ownerPassword: data.ownerPassword,
+    })
 
-    // 3. Run tenant migrations on the new DB
-    await this.migrateTenant(data.slug, dbName)
+    return tenant
+  }
 
-    // 4. Seed owner as admin user in tenant DB
-    const ownerPassword = data.ownerPassword || 'Admin@123'
-    const hashedPassword = hashPassword(ownerPassword)
-    
-    const connectionName = `seed_owner_${data.slug}`
+  /**
+   * Seed the owner user into a tenant's database.
+   * Called by the create-tenant-db job.
+   */
+  static async seedOwner(slug: string, dbName: string, owner: {
+    email: string
+    name: string
+    password: string
+  }) {
+    const hashedPassword = await hash.make(owner.password)
+    const connectionName = `seed_owner_${slug}`
     db.manager.patch(connectionName, {
       client: 'pg',
       connection: {
@@ -67,11 +82,9 @@ export default class TenantService {
       `INSERT INTO users (name, full_name, email, password, role)
        VALUES (?, ?, ?, ?, 'admin')
        ON CONFLICT (email) DO NOTHING`,
-      [data.ownerName || data.name, data.ownerName || data.name, data.ownerEmail, hashedPassword]
+      [owner.name, owner.name, owner.email, hashedPassword]
     )
     await db.manager.close(connectionName)
-
-    return tenant
   }
 
   /**
@@ -161,7 +174,7 @@ export default class TenantService {
   }
 
   /**
-   * Delete a tenant (careful!)
+   * Delete a tenant — marks as 'deleting' and dispatches queue job.
    */
   static async deleteTenant(slug: string) {
     const tenant = await db.connection('master')
@@ -170,14 +183,18 @@ export default class TenantService {
       .first()
     if (!tenant) throw new Error(`Tenant ${slug} not found`)
 
-    // Drop the tenant database
-    await db.rawQuery(`DROP DATABASE IF EXISTS "${tenant.db_name}"`)
-
-    // Remove from master
+    // Mark as deleting
     await db.connection('master')
       .from('tenants')
       .where('slug', slug)
-      .delete()
+      .update({ status: 'deleting', updated_at: new Date() })
+
+    // Dispatch queue job
+    const { dispatch } = await import('#services/queue_service')
+    await dispatch('delete-tenant-db', {
+      slug: tenant.slug,
+      dbName: tenant.db_name,
+    })
 
     return true
   }
@@ -483,6 +500,128 @@ CREATE TABLE IF NOT EXISTS system_configs (
   value TEXT,
   type VARCHAR(50) DEFAULT 'string',
   group_name VARCHAR(100) DEFAULT 'general',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Product Promotions
+CREATE TABLE IF NOT EXISTS product_promotions (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) DEFAULT 'discount',
+  value DECIMAL(12,2) DEFAULT 0,
+  min_order DECIMAL(12,2) DEFAULT 0,
+  max_discount DECIMAL(12,2),
+  start_date TIMESTAMPTZ,
+  end_date TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT true,
+  usage_limit INTEGER,
+  usage_count INTEGER DEFAULT 0,
+  applicable_products JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Scheduled Livestreams
+CREATE TABLE IF NOT EXISTS scheduled_livestreams (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255),
+  platform VARCHAR(50),
+  scheduled_at TIMESTAMPTZ NOT NULL,
+  duration_minutes INTEGER DEFAULT 60,
+  status VARCHAR(50) DEFAULT 'scheduled',
+  notes TEXT,
+  products JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Nav Links (storefront menu)
+CREATE TABLE IF NOT EXISTS nav_links (
+  id SERIAL PRIMARY KEY,
+  collection_id INTEGER,
+  title VARCHAR(255) NOT NULL,
+  url VARCHAR(500),
+  icon VARCHAR(100),
+  sort INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Languages (i18n)
+CREATE TABLE IF NOT EXISTS languages (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(10) UNIQUE NOT NULL,
+  icon VARCHAR(100),
+  is_default BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  sort INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Translations
+CREATE TABLE IF NOT EXISTS translations (
+  id SERIAL PRIMARY KEY,
+  language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
+  key VARCHAR(255) NOT NULL,
+  value TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Custom Fields
+CREATE TABLE IF NOT EXISTS custom_fields (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  code VARCHAR(255) NOT NULL,
+  type VARCHAR(50) DEFAULT 'text',
+  options JSONB,
+  required BOOLEAN DEFAULT false,
+  entity_type VARCHAR(100),
+  sort INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Custom Field Values
+CREATE TABLE IF NOT EXISTS custom_field_values (
+  id SERIAL PRIMARY KEY,
+  custom_field_id INTEGER REFERENCES custom_fields(id) ON DELETE CASCADE,
+  entity_type VARCHAR(100),
+  entity_id INTEGER,
+  value TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- API Keys
+CREATE TABLE IF NOT EXISTS api_keys (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255),
+  key VARCHAR(255) UNIQUE NOT NULL,
+  secret VARCHAR(255),
+  permissions JSONB,
+  is_active BOOLEAN DEFAULT true,
+  last_used_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Webhooks
+CREATE TABLE IF NOT EXISTS webhooks (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  url VARCHAR(500) NOT NULL,
+  events JSONB,
+  secret VARCHAR(255),
+  is_active BOOLEAN DEFAULT true,
+  last_triggered_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

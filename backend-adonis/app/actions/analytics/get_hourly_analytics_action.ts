@@ -18,7 +18,7 @@ export default class GetHourlyAnalyticsAction {
       .select(db.raw("EXTRACT(HOUR FROM created_at) as hour"), 'ai_label')
       .count('* as count')
       .whereBetween('created_at', [startOfDay.toISOString(), endOfDay.toISOString()])
-      .whereIn('shop_id', userShopIds)
+      
       .groupByRaw('EXTRACT(HOUR FROM created_at), ai_label')
 
     if (shopId) query.where('shop_id', shopId)

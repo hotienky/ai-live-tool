@@ -13,7 +13,7 @@ export default class GetOrderStatsAction {
 
     const query = Order.query()
       .where('created_at', '>=', startDate.toISOString())
-      .whereIn('shop_id', userShopIds)
+      
     if (shopId) query.where('shopId', shopId)
     const orders = await query
 

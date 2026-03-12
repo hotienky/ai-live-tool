@@ -15,7 +15,7 @@ export default class GetDailyAnalyticsAction {
       .select(db.raw("DATE(created_at) as date"), 'ai_label')
       .count('* as count')
       .where('created_at', '>=', startDate.toISOString())
-      .whereIn('shop_id', userShopIds)
+      
       .groupByRaw('DATE(created_at), ai_label')
       .orderByRaw('DATE(created_at) ASC')
 

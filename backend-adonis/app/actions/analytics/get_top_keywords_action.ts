@@ -24,7 +24,7 @@ export default class GetTopKeywordsAction {
     const query = ChatLog.query()
       .select('commentText')
       .where('created_at', '>=', startDate.toISOString())
-      .whereIn('shop_id', userShopIds)
+      
       .limit(5000)
     if (shopId) query.where('shopId', shopId)
     const comments = await query

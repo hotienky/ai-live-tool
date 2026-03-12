@@ -63,10 +63,10 @@ export default class TenantMiddleware {
         }
       }
 
-      // Patch dynamic connection
+      // Patch dynamic connection (for explicit TenantDb usage)
       const connectionName = `tenant_${tenant.slug}`
-      db.manager.patch(connectionName, {
-        client: 'pg',
+      const tenantDbConfig = {
+        client: 'pg' as const,
         connection: {
           host: process.env.DB_HOST || 'localhost',
           port: Number(process.env.DB_PORT || '5432'),
@@ -74,7 +74,13 @@ export default class TenantMiddleware {
           password: process.env.DB_PASSWORD || 'postgres',
           database: tenant.db_name,
         },
-      })
+      }
+      db.manager.patch(connectionName, tenantDbConfig)
+
+      // CRITICAL: Also patch the DEFAULT 'pg' connection so ALL Lucid ORM models
+      // (Product, Banner, Category, etc.) automatically query the tenant DB.
+      // Without this, models query ai_live_tool (the default database).
+      db.manager.patch('pg', tenantDbConfig)
 
       // Track in pool
       ConnectionPoolManager.markActive(connectionName, tenant.slug)

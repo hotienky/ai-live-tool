@@ -10,7 +10,7 @@ interface Result {
   error?: string
   token?: string
   user?: { id: number; email: string; fullName: string; role: string }
-  shop?: { id: number; shopName: string }
+  shop?: { id: number; shopName: string } | null
 }
 
 export default class LoginUserAction {
@@ -24,15 +24,20 @@ export default class LoginUserAction {
       return { error: 'Sai email hoặc mật khẩu' }
     }
 
-    // Find or create user's shop (1 user = 1 shop)
-    let shop = await Shop.query().where('userId', user.id).first()
-    if (!shop) {
-      shop = await Shop.create({
-        userId: user.id,
-        shopName: `${user.fullName || user.email.split('@')[0]}'s Shop`,
-        platform: 'tiktok',
-        isActive: true,
-      })
+    // Find or create user's shop (skip gracefully for tenant DBs without shops table)
+    let shop: any = null
+    try {
+      shop = await Shop.query().where('userId', user.id).first()
+      if (!shop) {
+        shop = await Shop.create({
+          userId: user.id,
+          shopName: `${user.fullName || user.email.split('@')[0]}'s Shop`,
+          platform: 'tiktok',
+          isActive: true,
+        })
+      }
+    } catch {
+      // shops table doesn't exist in tenant DB — skip
     }
 
     const token = await User.accessTokens.create(user)
@@ -41,7 +46,7 @@ export default class LoginUserAction {
     return {
       token: tokenValue,
       user: { id: user.id, email: user.email, fullName: user.fullName || '', role: user.role },
-      shop: { id: shop.id, shopName: shop.shopName },
+      shop: shop ? { id: shop.id, shopName: shop.shopName } : null,
     }
   }
 }

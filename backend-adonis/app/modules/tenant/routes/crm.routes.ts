@@ -11,6 +11,7 @@ export function registerCrmRoutes(group: ReturnType<typeof router.group>) {
   // Leads
   group.get('/leads', [LeadsController, 'index'])
   group.get('/leads/stats', [LeadsController, 'pipelineStats'])
+  group.get('/leads/pipeline-stats', [LeadsController, 'pipelineStats']).as('leads.pipelineStatsAlias')
   group.get('/leads/:id', [LeadsController, 'show'])
   group.put('/leads/:id', [LeadsController, 'update'])
   group.delete('/leads/:id', [LeadsController, 'destroy'])

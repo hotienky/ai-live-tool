@@ -30,15 +30,20 @@ export default class AuthController {
     const user = auth.user
     if (!user) return response.unauthorized({ error: 'Chưa đăng nhập' })
 
-    // Find or create user's shop
-    let shop = await Shop.query().where('userId', user.id).first()
-    if (!shop) {
-      shop = await Shop.create({
-        userId: user.id,
-        shopName: `${user.fullName || user.email.split('@')[0]}'s Shop`,
-        platform: 'tiktok',
-        isActive: true,
-      })
+    // Find or create user's shop (skip gracefully for tenant DBs)
+    let shop: any = null
+    try {
+      shop = await Shop.query().where('userId', user.id).first()
+      if (!shop) {
+        shop = await Shop.create({
+          userId: user.id,
+          shopName: `${user.fullName || user.email.split('@')[0]}'s Shop`,
+          platform: 'tiktok',
+          isActive: true,
+        })
+      }
+    } catch {
+      // shops table doesn't exist in tenant DB
     }
 
     return response.json({
@@ -46,7 +51,7 @@ export default class AuthController {
       email: user.email,
       fullName: user.fullName,
       role: user.role,
-      shop: { id: shop.id, shopName: shop.shopName },
+      shop: shop ? { id: shop.id, shopName: shop.shopName } : null,
     })
   }
 }

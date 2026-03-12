@@ -14,7 +14,7 @@ export default class ShipmentsController {
     const { shopId, status, carrier } = request.qs()
 
     const query = ShipmentSchema.query()
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .orderBy('created_at', 'desc')
     if (shopId) query.where('shop_id', shopId)
     if (status) query.where('status', status)
@@ -131,7 +131,7 @@ export default class ShipmentsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const shipment = await ShipmentSchema.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .preload('history')
       .first()
     if (!shipment) return response.notFound({ error: 'Shipment not found' })
@@ -143,7 +143,7 @@ export default class ShipmentsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const shipment = await ShipmentSchema.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!shipment) return response.notFound({ error: 'Shipment not found' })
 
@@ -226,7 +226,7 @@ export default class ShipmentsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const shipment = await ShipmentSchema.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!shipment) return response.notFound({ error: 'Shipment not found' })
 
@@ -282,7 +282,7 @@ export default class ShipmentsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const shipment = await ShipmentSchema.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!shipment) return response.notFound({ error: 'Shipment not found' })
     if (shipment.status !== 'draft') {

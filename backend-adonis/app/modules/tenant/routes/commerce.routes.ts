@@ -38,15 +38,11 @@ export function registerCommerceRoutes(group: ReturnType<typeof router.group>) {
   group.post('/compare', [CartsController, 'addToCompare'])
   group.delete('/compare/:productId', [CartsController, 'removeFromCompare'])
 
-  // Promotions & Coupons
+  // Promotions
   group.get('/promotions', [PromotionsController, 'index'])
   group.post('/promotions', [PromotionsController, 'store'])
-  group.delete('/promotions/:productId', [PromotionsController, 'destroyPromotion'])
-  group.get('/coupons', [PromotionsController, 'listCoupons'])
-  group.post('/coupons', [PromotionsController, 'storeCoupon'])
-  group.put('/coupons/:id', [PromotionsController, 'updateCoupon'])
-  group.delete('/coupons/:id', [PromotionsController, 'destroyCoupon'])
-  group.post('/coupons/validate', [PromotionsController, 'validateCoupon'])
+  group.put('/promotions/:id', [PromotionsController, 'update'])
+  group.delete('/promotions/:id', [PromotionsController, 'destroy'])
 
   // Shop Customers
   group.get('/shop-customers', [ShopCustomersController, 'index'])

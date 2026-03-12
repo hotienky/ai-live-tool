@@ -11,9 +11,9 @@ export default class BannersController {
     const { shopId, type } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
     const query = Banner.query()
-      .whereIn('store_id', userShopIds)
       .orderBy('sort', 'asc')
       .orderBy('created_at', 'desc')
+    if (userShopIds) query.whereIn('store_id', userShopIds)
     if (shopId) query.where('storeId', shopId)
     if (type) query.where('type', type)
     const banners = await query
@@ -23,7 +23,7 @@ export default class BannersController {
   async store({ auth, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const data = request.only(['title', 'image', 'url', 'type', 'sort', 'status', 'storeId'])
-    if (!data.storeId || !userShopIds.includes(data.storeId)) {
+    if (userShopIds && (!data.storeId || !userShopIds.includes(data.storeId))) {
       return response.forbidden({ error: 'Invalid store' })
     }
     const banner = await Banner.create({
@@ -37,8 +37,9 @@ export default class BannersController {
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const banner = await Banner.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = Banner.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const banner = await query.first()
     if (!banner) return response.notFound({ error: 'Banner not found' })
     const data = request.only(['title', 'image', 'url', 'type', 'sort', 'status'])
     banner.merge(data)
@@ -48,8 +49,9 @@ export default class BannersController {
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const banner = await Banner.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = Banner.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const banner = await query.first()
     if (!banner) return response.notFound({ error: 'Banner not found' })
     await banner.delete()
     return response.json({ message: 'Deleted' })

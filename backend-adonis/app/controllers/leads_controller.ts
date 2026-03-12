@@ -3,19 +3,16 @@ import Lead from '#models/lead'
 import ChatLog from '#models/chat_log'
 import { getUserShopIds } from '#services/scope_helper'
 import GetPipelineStatsAction from '#actions/leads/get_pipeline_stats_action'
-import { logActivity, Actions } from '#services/activity_log_service'
 
 export default class LeadsController {
   async index({ auth, request, response }: HttpContext) {
     const { shopId, status, page = 1, limit = 50 } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
 
-    const query = Lead.query()
-      .whereIn('chat_log_id',
-        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
-      )
-      .orderBy('created_at', 'desc')
-
+    const query = Lead.query().orderBy('created_at', 'desc')
+    if (userShopIds) {
+      query.whereIn('chat_log_id', ChatLog.query().select('id').whereIn('shop_id', userShopIds))
+    }
     if (status) query.where('status', status)
     if (shopId) query.whereHas('chatLog', (q) => q.where('shop_id', shopId))
 
@@ -25,46 +22,37 @@ export default class LeadsController {
 
   async show({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const lead = await Lead.query()
-      .where('id', params.id)
-      .whereIn('chat_log_id',
-        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
-      )
-      .first()
+    const query = Lead.query().where('id', params.id)
+    if (userShopIds) {
+      query.whereIn('chat_log_id', ChatLog.query().select('id').whereIn('shop_id', userShopIds))
+    }
+    const lead = await query.first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
     return response.json(lead)
   }
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const lead = await Lead.query()
-      .where('id', params.id)
-      .whereIn('chat_log_id',
-        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
-      )
-      .first()
+    const query = Lead.query().where('id', params.id)
+    if (userShopIds) {
+      query.whereIn('chat_log_id', ChatLog.query().select('id').whereIn('shop_id', userShopIds))
+    }
+    const lead = await query.first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
 
     const data = request.only(['status', 'notes', 'productIntent'])
-    const oldStatus = lead.status
     lead.merge(data)
     await lead.save()
-
-    if (data.status && data.status !== oldStatus) {
-      try { await logActivity({ shopId: lead.chatLog?.shopId || 0, userId: auth.user!.id, action: Actions.LEAD_STATUS_CHANGED, entityType: 'Lead', entityId: lead.id, details: { from: oldStatus, to: data.status } }) } catch { /* best-effort */ }
-    }
-
     return response.json(lead)
   }
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const lead = await Lead.query()
-      .where('id', params.id)
-      .whereIn('chat_log_id',
-        ChatLog.query().select('id').whereIn('shop_id', userShopIds)
-      )
-      .first()
+    const query = Lead.query().where('id', params.id)
+    if (userShopIds) {
+      query.whereIn('chat_log_id', ChatLog.query().select('id').whereIn('shop_id', userShopIds))
+    }
+    const lead = await query.first()
     if (!lead) return response.notFound({ error: 'Lead not found' })
     await lead.delete()
     return response.json({ success: true })

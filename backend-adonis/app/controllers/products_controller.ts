@@ -2,14 +2,35 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Product from '#models/product'
 import { getUserShopIds } from '#services/scope_helper'
 import { logActivity, Actions } from '#services/activity_log_service'
+import TenantContext from '#modules/tenant/helpers/tenant_context'
+import TenantDb from '#modules/tenant/helpers/tenant_db'
 
 export default class ProductsController {
-  async index({ auth, request, response }: HttpContext) {
+  async index(ctx: HttpContext) {
+    const { request, response, auth } = ctx
     const { shopId, category, search } = request.qs()
-    const userShopIds = await getUserShopIds(auth.user!.id)
 
+    // 🔀 Tenant-scoped: use tenant's dedicated database
+    const tenantCtx = TenantContext.tryFrom(ctx)
+    if (tenantCtx) {
+      const tenantDb = TenantDb.from(ctx)
+      let query = tenantDb.query('products').select('*').orderBy('created_at', 'desc')
+      if (category) query = query.where('category', category)
+      if (search) {
+        query = query.where((q: any) => {
+          q.whereILike('name', `%${search}%`)
+            .orWhereILike('sku', `%${search}%`)
+            .orWhereILike('barcode', `%${search}%`)
+        })
+      }
+      const products = await query
+      return response.json(products)
+    }
+
+    // 🔀 Default: use ORM (legacy, non-tenant mode)
+    const userShopIds = await getUserShopIds(auth.user!.id)
     const query = Product.query()
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .orderBy('created_at', 'desc')
     if (shopId) query.where('shop_id', shopId)
     if (category) query.where('category', category)
@@ -22,22 +43,53 @@ export default class ProductsController {
     return response.json(products)
   }
 
-  async store({ auth, request, response }: HttpContext) {
-    const userShopIds = await getUserShopIds(auth.user!.id)
+  async store(ctx: HttpContext) {
+    const { request, response, auth } = ctx
     const data = request.only([
       'shopId', 'name', 'price', 'keywords', 'description', 'imageUrl',
       'sku', 'stock', 'lowStockThreshold', 'costPrice', 'category', 'unit', 'barcode',
+      'image', 'image_url', 'promotion_price', 'status', 'low_stock_threshold',
     ])
     if (!data.name) return response.badRequest({ error: 'Tên sản phẩm là bắt buộc' })
-    if (data.shopId && !userShopIds.includes(String(data.shopId))) {
-      return response.forbidden({ error: 'Shop not found' })
-    }
 
-    // Convert keywords: comma-separated string → array for PostgreSQL varchar[]
+    // Convert keywords
     if (typeof data.keywords === 'string' && data.keywords.trim()) {
       data.keywords = data.keywords.split(',').map((k: string) => k.trim()).filter(Boolean)
     } else if (!data.keywords) {
       data.keywords = null
+    }
+
+    // 🔀 Tenant-scoped: use tenant's dedicated database
+    const tenantCtx = TenantContext.tryFrom(ctx)
+    if (tenantCtx) {
+      try {
+        const tenantDb = TenantDb.from(ctx)
+        const [product] = await tenantDb.table('products').insert({
+          name: data.name,
+          sku: data.sku || null,
+          price: Number(data.price) || 0,
+          promotion_price: Number(data.promotion_price) || null,
+          cost_price: Number(data.costPrice) || null,
+          stock: Number(data.stock) || 0,
+          category: data.category || null,
+          keywords: data.keywords ? JSON.stringify(data.keywords) : null,
+          description: data.description || null,
+          image_url: data.imageUrl || data.image_url || data.image || null,
+          barcode: data.barcode || null,
+          unit: data.unit || 'cái',
+          is_active: data.status !== 0,
+        }).returning('*')
+        return response.json(product)
+      } catch (err: any) {
+        console.error('Tenant product create error:', err.message)
+        return response.internalServerError({ error: 'Không thể tạo sản phẩm: ' + err.message })
+      }
+    }
+
+    // 🔀 Default: use ORM (legacy, non-tenant mode)
+    const userShopIds = await getUserShopIds(auth.user!.id)
+    if (data.shopId && !userShopIds.includes(String(data.shopId))) {
+      return response.forbidden({ error: 'Shop not found' })
     }
 
     try {
@@ -61,7 +113,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
@@ -84,7 +136,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
     await product.delete()
@@ -122,7 +174,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.productId)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
@@ -145,7 +197,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.productId)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
@@ -170,7 +222,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.productId)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
 
@@ -193,7 +245,7 @@ export default class ProductsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const product = await Product.query()
       .where('id', params.productId)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!product) return response.notFound({ error: 'Product not found' })
 

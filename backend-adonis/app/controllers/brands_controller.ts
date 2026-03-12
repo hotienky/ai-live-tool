@@ -7,9 +7,8 @@ export default class BrandsController {
     const { shopId } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
 
-    const query = ProductBrand.query()
-      .whereIn('shop_id', userShopIds)
-      .orderBy('name', 'asc')
+    const query = ProductBrand.query().orderBy('name', 'asc')
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
     if (shopId) query.where('shop_id', shopId)
     const brands = await query
     return response.json(brands)
@@ -19,7 +18,7 @@ export default class BrandsController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const data = request.only(['shopId', 'name', 'description', 'logoUrl'])
     if (!data.name) return response.badRequest({ error: 'Tên thương hiệu là bắt buộc' })
-    if (data.shopId && !userShopIds.includes(String(data.shopId))) {
+    if (userShopIds && data.shopId && !userShopIds.includes(String(data.shopId))) {
       return response.forbidden({ error: 'Shop not found' })
     }
 
@@ -44,10 +43,9 @@ export default class BrandsController {
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const brand = await ProductBrand.query()
-      .whereIn('shop_id', userShopIds)
-      .where('id', params.id)
-      .first()
+    const query = ProductBrand.query().where('id', params.id)
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
+    const brand = await query.first()
     if (!brand) return response.notFound({ error: 'Brand not found' })
 
     const data = request.only(['name', 'description', 'logoUrl', 'isActive'])
@@ -66,10 +64,9 @@ export default class BrandsController {
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const brand = await ProductBrand.query()
-      .whereIn('shop_id', userShopIds)
-      .where('id', params.id)
-      .first()
+    const query = ProductBrand.query().where('id', params.id)
+    if (userShopIds) query.whereIn('shop_id', userShopIds)
+    const brand = await query.first()
     if (!brand) return response.notFound({ error: 'Brand not found' })
     await brand.delete()
     return response.json({ success: true })

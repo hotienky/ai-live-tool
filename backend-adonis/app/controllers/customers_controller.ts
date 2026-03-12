@@ -8,7 +8,7 @@ export default class CustomersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
 
     const query = Customer.query()
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .orderBy('updated_at', 'desc')
 
     if (shopId) query.where('shop_id', shopId)
@@ -27,7 +27,7 @@ export default class CustomersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const customer = await Customer.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .preload('chatLogs')
       .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
@@ -38,7 +38,7 @@ export default class CustomersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const customer = await Customer.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
 
@@ -52,7 +52,7 @@ export default class CustomersController {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const customer = await Customer.query()
       .where('id', params.id)
-      .whereIn('shop_id', userShopIds)
+      ; if (userShopIds) query.whereIn("shop_id", userShopIds)
       .first()
     if (!customer) return response.notFound({ error: 'Customer not found' })
     await customer.delete()

@@ -11,9 +11,9 @@ export default class CmsPagesController {
     const { shopId } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
     const query = CmsPage.query()
-      .whereIn('store_id', userShopIds)
       .orderBy('sort', 'asc')
       .orderBy('created_at', 'desc')
+    if (userShopIds) query.whereIn('store_id', userShopIds)
     if (shopId) query.where('storeId', shopId)
     const pages = await query
     return response.json(pages)
@@ -22,10 +22,9 @@ export default class CmsPagesController {
   async store({ auth, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
     const data = request.only(['title', 'alias', 'content', 'image', 'status', 'sort', 'storeId'])
-    if (!data.storeId || !userShopIds.includes(data.storeId)) {
+    if (userShopIds && (!data.storeId || !userShopIds.includes(data.storeId))) {
       return response.forbidden({ error: 'Invalid store' })
     }
-    // Auto-generate alias from title if not provided
     if (!data.alias) {
       data.alias = data.title
         .toLowerCase()
@@ -39,16 +38,18 @@ export default class CmsPagesController {
 
   async show({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const page = await CmsPage.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = CmsPage.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const page = await query.first()
     if (!page) return response.notFound({ error: 'Page not found' })
     return response.json(page)
   }
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const page = await CmsPage.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = CmsPage.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const page = await query.first()
     if (!page) return response.notFound({ error: 'Page not found' })
     const data = request.only(['title', 'alias', 'content', 'image', 'status', 'sort'])
     page.merge(data)
@@ -58,8 +59,9 @@ export default class CmsPagesController {
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const page = await CmsPage.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = CmsPage.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const page = await query.first()
     if (!page) return response.notFound({ error: 'Page not found' })
     await page.delete()
     return response.json({ message: 'Deleted' })

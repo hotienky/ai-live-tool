@@ -11,10 +11,9 @@ export default class NavLinksController {
     const { shopId, group } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
     const query = NavLink.query()
-      .whereIn('store_id', userShopIds)
       .whereNull('collectionId') // Only top-level
-      .preload('children', (cq) => cq.orderBy('sort', 'asc'))
       .orderBy('sort', 'asc')
+    if (userShopIds) query.whereIn('store_id', userShopIds)
     if (shopId) query.where('storeId', shopId)
     if (group) query.where('group', group)
     const links = await query
@@ -25,9 +24,8 @@ export default class NavLinksController {
   async flat({ auth, request, response }: HttpContext) {
     const { shopId, group } = request.qs()
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const query = NavLink.query()
-      .whereIn('store_id', userShopIds)
-      .orderBy('sort', 'asc')
+    const query = NavLink.query().orderBy('sort', 'asc')
+    if (userShopIds) query.whereIn('store_id', userShopIds)
     if (shopId) query.where('storeId', shopId)
     if (group) query.where('group', group)
     const links = await query
@@ -39,7 +37,7 @@ export default class NavLinksController {
     const data = request.only([
       'name', 'url', 'group', 'type', 'collectionId', 'target', 'icon', 'sort', 'status', 'storeId',
     ])
-    if (!data.storeId || !userShopIds.includes(data.storeId)) {
+    if (userShopIds && (!data.storeId || !userShopIds.includes(data.storeId))) {
       return response.forbidden({ error: 'Invalid store' })
     }
     const link = await NavLink.create({
@@ -55,8 +53,9 @@ export default class NavLinksController {
 
   async update({ auth, params, request, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const link = await NavLink.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = NavLink.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const link = await query.first()
     if (!link) return response.notFound({ error: 'Link not found' })
     const data = request.only([
       'name', 'url', 'group', 'type', 'collectionId', 'target', 'icon', 'sort', 'status',
@@ -68,8 +67,9 @@ export default class NavLinksController {
 
   async destroy({ auth, params, response }: HttpContext) {
     const userShopIds = await getUserShopIds(auth.user!.id)
-    const link = await NavLink.query()
-      .where('id', params.id).whereIn('store_id', userShopIds).first()
+    const query = NavLink.query().where('id', params.id)
+    if (userShopIds) query.whereIn('store_id', userShopIds)
+    const link = await query.first()
     if (!link) return response.notFound({ error: 'Link not found' })
     await link.delete()
     return response.json({ message: 'Deleted' })
@@ -81,10 +81,9 @@ export default class NavLinksController {
     const { items } = request.only(['items']) // [{id, sort}]
     if (!Array.isArray(items)) return response.badRequest({ error: 'items required' })
     for (const item of items) {
-      await NavLink.query()
-        .where('id', item.id)
-        .whereIn('store_id', userShopIds)
-        .update({ sort: item.sort })
+      const query = NavLink.query().where('id', item.id)
+      if (userShopIds) query.whereIn('store_id', userShopIds)
+      await query.update({ sort: item.sort })
     }
     return response.json({ message: 'Reordered' })
   }

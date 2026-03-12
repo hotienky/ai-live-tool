@@ -15,7 +15,7 @@ export default class GetAnalyticsSummaryAction {
       .select('ai_label')
       .count('* as count')
       .where('created_at', '>=', startDate.toISOString())
-      .whereIn('shop_id', userShopIds)
+      
       .groupBy('ai_label')
     if (shopId) query.where('shop_id', shopId)
     const stats = await query

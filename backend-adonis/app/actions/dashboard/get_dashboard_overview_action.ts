@@ -2,10 +2,9 @@ import ChatLog from '#models/chat_log'
 import Lead from '#models/lead'
 import LivestreamSession from '#models/livestream_session'
 import Order from '#models/order'
-import ScheduledLivestream from '#models/scheduled_livestream'
 
 interface Params {
-  userShopIds: string[]
+  userShopIds: string[] | null
   shopId?: string
 }
 
@@ -15,8 +14,9 @@ export default class GetDashboardOverviewAction {
     let activeConnections: any[] = []
     try {
       const connectionManager = (await import('#services/connection_manager')).default
-      activeConnections = Array.from(connectionManager.connections.entries())
-        .filter(([id]: [any, any]) => userShopIds.includes(String(id)))
+      const entries = Array.from(connectionManager.connections.entries())
+      activeConnections = entries
+        .filter(([id]: [any, any]) => !userShopIds || userShopIds.includes(String(id)))
         .map(([id, conn]: [any, any]) => ({
           shopId: id,
           shopName: conn.shopName || `Shop ${id}`,
@@ -35,9 +35,8 @@ export default class GetDashboardOverviewAction {
     } catch (_e) {}
 
     // Active sessions from DB
-    const sessionsQuery = LivestreamSession.query()
-      .where('status', 'live')
-      .whereIn('shop_id', userShopIds)
+    const sessionsQuery = LivestreamSession.query().where('status', 'live')
+    if (userShopIds) sessionsQuery.whereIn('shop_id', userShopIds)
     if (shopId) sessionsQuery.where('shop_id', shopId)
     const activeSessions = await sessionsQuery
 
@@ -45,47 +44,51 @@ export default class GetDashboardOverviewAction {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const commentsQuery = ChatLog.query()
-      .where('created_at', '>=', today.toISOString())
-      .whereIn('shop_id', userShopIds)
+    const commentsQuery = ChatLog.query().where('created_at', '>=', today.toISOString())
+    if (userShopIds) commentsQuery.whereIn('shop_id', userShopIds)
     if (shopId) commentsQuery.where('shop_id', shopId)
     const todayComments = await commentsQuery.count('* as total')
 
-    const leadsQuery = Lead.query()
-      .where('created_at', '>=', today.toISOString())
-      .whereIn('chat_log_id',
+    const leadsQuery = Lead.query().where('created_at', '>=', today.toISOString())
+    if (userShopIds) {
+      leadsQuery.whereIn('chat_log_id',
         ChatLog.query().select('id').whereIn('shop_id', userShopIds)
       )
+    }
     const todayLeads = await leadsQuery.count('* as total')
 
     const hotLeadsQuery = Lead.query()
       .where('created_at', '>=', today.toISOString())
       .where('label', 'HOT')
-      .whereIn('chat_log_id',
+    if (userShopIds) {
+      hotLeadsQuery.whereIn('chat_log_id',
         ChatLog.query().select('id').whereIn('shop_id', userShopIds)
       )
+    }
     const hotLeads = await hotLeadsQuery.count('* as total')
 
     // Revenue today
     let todayRevenue = 0
     try {
-      const revenueResult = await Order.query()
+      const revenueQuery = Order.query()
         .where('created_at', '>=', today.toISOString())
         .where('payment_status', 'paid')
-        .whereIn('shop_id', userShopIds)
-        .sum('total_amount as total')
+      if (userShopIds) revenueQuery.whereIn('shop_id', userShopIds)
+      const revenueResult = await revenueQuery.sum('total_amount as total')
       todayRevenue = Number(revenueResult[0].$extras.total) || 0
     } catch (_e) {}
 
     // Upcoming schedules
     let upcomingSchedules: any[] = []
     try {
-      upcomingSchedules = await ScheduledLivestream.query()
+      const ScheduledLivestream = (await import('#models/scheduled_livestream')).default
+      const schedQuery = ScheduledLivestream.query()
         .where('status', 'scheduled')
         .where('scheduled_at', '>=', new Date().toISOString())
-        .whereIn('shop_id', userShopIds)
         .orderBy('scheduled_at', 'asc')
         .limit(5)
+      if (userShopIds) schedQuery.whereIn('shop_id', userShopIds)
+      upcomingSchedules = await schedQuery
     } catch (_e) {}
 
     return {

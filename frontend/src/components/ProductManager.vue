@@ -118,11 +118,17 @@
         <div class="form-row">
           <div class="form-group form-group--flex">
             <label>Danh mục</label>
-            <input v-model="form.category" placeholder="Danh mục" />
+            <select v-model="form.category">
+              <option value="">-- Chọn danh mục --</option>
+              <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
+            </select>
           </div>
           <div class="form-group form-group--flex">
             <label>Thương hiệu</label>
-            <input v-model="form.brand" placeholder="Thương hiệu" />
+            <select v-model="form.brand">
+              <option value="">-- Chọn thương hiệu --</option>
+              <option v-for="b in brands" :key="b.id" :value="b.name">{{ b.name }}</option>
+            </select>
           </div>
         </div>
 
@@ -182,6 +188,8 @@ const { showToast } = useToast()
 const props = defineProps({ /* tenant-scoped */ })
 
 const products = ref([])
+const categories = ref([])
+const brands = ref([])
 const loading = ref(false)
 const searchQuery = ref('')
 const pagination = ref({ page: 1, lastPage: 1, total: 0, perPage: 15 })
@@ -238,6 +246,22 @@ async function fetchProducts() {
 function goPage(pg) {
   pagination.value.page = pg
   fetchProducts()
+}
+
+async function fetchCategories() {
+  try {
+    const res = await apiFetch('/categories')
+    const data = await res.json()
+    categories.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { categories.value = [] }
+}
+
+async function fetchBrands() {
+  try {
+    const res = await apiFetch('/brands')
+    const data = await res.json()
+    brands.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { brands.value = [] }
 }
 
 function openCreate() {
@@ -317,7 +341,11 @@ async function adjustStock(productId, action, quantity) {
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
-onMounted(() => fetchProducts())
+onMounted(() => {
+  fetchProducts()
+  fetchCategories()
+  fetchBrands()
+})
 </script>
 
 <style scoped>

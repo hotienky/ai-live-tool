@@ -38,7 +38,7 @@ export function registerTenantRoutes() {
   // 2. Shop customer auth (tenant-scoped, no auth)
   registerShopAuthRoutes()
 
-  // 3. Tenant Admin API (authenticated, grouped under /api)
+  // 3. Tenant Admin API (tenant-scoped + authenticated)
   router.group(() => {
     registerCatalogRoutes(router)
     registerCrmRoutes(router)
@@ -46,5 +46,6 @@ export function registerTenantRoutes() {
     registerContentRoutes(router)
     registerSystemRoutes(router)
     registerLiveRoutes(router)
-  }).prefix('/api').use(middleware.auth())
+  }).prefix('/api').use(tenantMw).use(middleware.auth())
 }
+
