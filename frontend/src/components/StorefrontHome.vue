@@ -100,7 +100,7 @@
 
     <!-- Footer -->
     <footer class="sf-footer">
-      <p>© {{ new Date().getFullYear() }} {{ storeInfo?.shop_name || 'Shop' }}. Powered by AI Live Tool</p>
+      <p>© {{ new Date().getFullYear() }} {{ storeInfo?.shop_name || 'Shop' }}. Powered by KAC company</p>
     </footer>
   </div>
 </template>

@@ -183,11 +183,7 @@
       @openShopSelector="shopSelectorRef?.open()"
     />
 
-    <!-- ═══ View: Schedule ═══ -->
-    <SchedulePlanner
-      v-if="activeView === 'schedule'"
-      @startLive="onScheduleStartLive"
-    />
+
 
     <!-- Customer Detail Modal -->
     <CustomerDetail
@@ -269,7 +265,7 @@ import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
 import QuickReply from './components/QuickReply.vue'
-import SchedulePlanner from './components/SchedulePlanner.vue'
+
 import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
@@ -310,7 +306,7 @@ const tabs = [
   { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
   { key: 'crm', label: 'CRM', icon: Users },
   { key: 'reports', label: 'Reports', icon: BarChart2 },
-  { key: 'schedule', label: 'Schedule', icon: Radio },
+
   { key: 'settings', label: 'Settings', icon: Settings },
 ]
 const validViews = tabs.map(t => t.key)
@@ -546,10 +542,7 @@ function onResetStats() {
   }
 }
 
-function onScheduleStartLive(schedule) {
-  navigateTo('live')
-  showLiveModal.value = true
-}
+
 
 
 

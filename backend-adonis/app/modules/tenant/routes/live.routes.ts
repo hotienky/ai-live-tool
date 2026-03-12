@@ -3,12 +3,11 @@ import router from '@adonisjs/core/services/router'
 const ShopsController = () => import('#controllers/shops_controller')
 const KeywordsController = () => import('#controllers/keywords_controller')
 const TemplatesController = () => import('#controllers/templates_controller')
-const SchedulesController = () => import('#controllers/schedules_controller')
 const ExportsController = () => import('#controllers/exports_controller')
 const RepliesController = () => import('#controllers/replies_controller')
 
 /**
- * Live routes — Shops, Keywords, Templates, Schedules, Exports, AI Reply,
+ * Live routes — Shops, Keywords, Templates, Exports, AI Reply,
  *               Post-Live Report, Profile/Password, Shop Connections
  */
 export function registerLiveRoutes(group: ReturnType<typeof router.group>) {
@@ -29,13 +28,6 @@ export function registerLiveRoutes(group: ReturnType<typeof router.group>) {
   group.get('/templates', [TemplatesController, 'index'])
   group.post('/templates', [TemplatesController, 'store'])
   group.delete('/templates/:id', [TemplatesController, 'destroy'])
-
-  // Schedules
-  group.get('/schedules', [SchedulesController, 'index'])
-  group.post('/schedules', [SchedulesController, 'store'])
-  group.get('/schedules/:id', [SchedulesController, 'show'])
-  group.put('/schedules/:id', [SchedulesController, 'update'])
-  group.delete('/schedules/:id', [SchedulesController, 'destroy'])
 
   // Export
   group.get('/export/leads', [ExportsController, 'leads'])

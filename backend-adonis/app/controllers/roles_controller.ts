@@ -1,119 +1,92 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import Role from '#models/role'
-import User from '#models/user'
+import db from '@adonisjs/lucid/services/db'
 
 export default class RolesController {
-  /**
-   * List all roles
-   */
   async index({ response }: HttpContext) {
-    const roles = await Role.query().orderBy('id', 'asc')
+    const roles = await db.from('roles').orderBy('id', 'asc')
     return response.json(roles)
   }
 
-  /**
-   * Get available permissions list
-   */
   async permissions({ response }: HttpContext) {
-    return response.json(Role.availablePermissions())
+    return response.json([
+      'dashboard', 'crm.*', 'leads.*', 'orders.*', 'products.*',
+      'content.*', 'settings.*', 'analytics.*', 'users.*', '*',
+    ])
   }
 
-  /**
-   * Create a new role
-   */
   async store({ request, response }: HttpContext) {
-    const { name, displayName, description, permissions } = request.only([
-      'name', 'displayName', 'description', 'permissions',
+    const { name, display_name, description, permissions } = request.only([
+      'name', 'display_name', 'description', 'permissions',
     ])
-
     if (!name) return response.badRequest({ error: 'Tên role không được trống' })
 
-    const existing = await Role.findBy('name', name)
+    const existing = await db.from('roles').where('name', name).first()
     if (existing) return response.conflict({ error: 'Role đã tồn tại' })
 
-    const role = await Role.create({
+    const [role] = await db.table('roles').insert({
       name,
-      displayName: displayName || name,
+      display_name: display_name || name,
       description: description || '',
-      permissions: permissions || [],
-      isSystem: false,
-    })
+      permissions: JSON.stringify(permissions || []),
+      is_system: false,
+    }).returning('*')
 
-    return response.created(role)
+    return response.status(201).json(role)
   }
 
-  /**
-   * Show a single role
-   */
   async show({ params, response }: HttpContext) {
-    const role = await Role.find(params.id)
+    const role = await db.from('roles').where('id', params.id).first()
     if (!role) return response.notFound({ error: 'Role không tồn tại' })
     return response.json(role)
   }
 
-  /**
-   * Update a role
-   */
   async update({ params, request, response }: HttpContext) {
-    const role = await Role.find(params.id)
+    const role = await db.from('roles').where('id', params.id).first()
     if (!role) return response.notFound({ error: 'Role không tồn tại' })
 
-    const { displayName, description, permissions } = request.only([
-      'displayName', 'description', 'permissions',
-    ])
+    const data = request.only(['display_name', 'description', 'permissions'])
+    const updateData: any = {}
+    if (data.display_name !== undefined) updateData.display_name = data.display_name
+    if (data.description !== undefined) updateData.description = data.description
+    if (data.permissions !== undefined) updateData.permissions = JSON.stringify(data.permissions)
+    updateData.updated_at = new Date()
 
-    if (displayName !== undefined) role.displayName = displayName
-    if (description !== undefined) role.description = description
-    if (permissions !== undefined) role.permissions = permissions
-
-    await role.save()
-    return response.json(role)
+    await db.from('roles').where('id', params.id).update(updateData)
+    const updated = await db.from('roles').where('id', params.id).first()
+    return response.json(updated)
   }
 
-  /**
-   * Delete a role (non-system only)
-   */
   async destroy({ params, response }: HttpContext) {
-    const role = await Role.find(params.id)
+    const role = await db.from('roles').where('id', params.id).first()
     if (!role) return response.notFound({ error: 'Role không tồn tại' })
-    if (role.isSystem) return response.forbidden({ error: 'Không thể xóa role hệ thống' })
+    if (role.is_system) return response.forbidden({ error: 'Không thể xóa role hệ thống' })
 
-    // Unset role_id for users with this role
-    await User.query().where('roleId', role.id).update({ roleId: null })
-    await role.delete()
-
+    await db.from('users').where('role_id', role.id).update({ role_id: null })
+    await db.from('roles').where('id', params.id).delete()
     return response.json({ success: true })
   }
 
-  /**
-   * List all users with their roles
-   */
   async users({ response }: HttpContext) {
-    const users = await User.query()
-      .select('id', 'name', 'fullName', 'email', 'role', 'roleId', 'isActive', 'lastLoginAt', 'createdAt')
+    const users = await db.from('users')
+      .select('id', 'full_name', 'email', 'role', 'role_id', 'is_active', 'last_login_at', 'created_at')
       .orderBy('id', 'asc')
     return response.json(users)
   }
 
-  /**
-   * Assign a role to a user
-   */
   async assignRole({ params, request, response }: HttpContext) {
-    const user = await User.find(params.id)
+    const user = await db.from('users').where('id', params.id).first()
     if (!user) return response.notFound({ error: 'User không tồn tại' })
 
     const { roleId } = request.only(['roleId'])
     if (roleId) {
-      const role = await Role.find(roleId)
+      const role = await db.from('roles').where('id', roleId).first()
       if (!role) return response.notFound({ error: 'Role không tồn tại' })
-      user.roleId = roleId
-      user.role = role.name
+      await db.from('users').where('id', params.id).update({ role_id: roleId, role: role.name })
     } else {
-      user.roleId = null as any
-      user.role = 'user'
+      await db.from('users').where('id', params.id).update({ role_id: null, role: 'user' })
     }
 
-    await user.save()
-    return response.json({ id: user.id, email: user.email, role: user.role, roleId: user.roleId })
+    const updated = await db.from('users').where('id', params.id).first()
+    return response.json({ id: updated.id, email: updated.email, role: updated.role, role_id: updated.role_id })
   }
 }

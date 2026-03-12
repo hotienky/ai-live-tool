@@ -24,7 +24,7 @@
 
       <!-- Info Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <!-- Details -->
+        <!-- Details (read-only) -->
         <div class="card p-5">
           <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">Thông tin</h3>
           <dl class="space-y-3">
@@ -37,8 +37,10 @@
               <dd class="text-sm text-white">{{ tenant.owner_email }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-surface-400">Gói</dt>
-              <dd class="text-sm text-white capitalize">{{ tenant.plan }}</dd>
+              <dt class="text-sm text-surface-400">Gói hiện tại</dt>
+              <dd class="text-sm text-white capitalize">
+                <span :class="planBadgeClass(tenant.plan)">{{ tenant.plan }}</span>
+              </dd>
             </div>
             <div class="flex justify-between">
               <dt class="text-sm text-surface-400">Ngày tạo</dt>
@@ -65,6 +67,41 @@
             </div>
           </div>
           <p v-else class="text-sm text-surface-400">Không có dữ liệu thống kê</p>
+        </div>
+      </div>
+
+      <!-- Edit Settings -->
+      <div class="card p-5 mb-6">
+        <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <Settings :size="16" class="text-primary-400" /> Cài đặt Tenant
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Name -->
+          <div>
+            <label class="block text-xs text-surface-400 mb-1.5">Tên Tenant</label>
+            <input v-model="editForm.name" type="text" class="input w-full" />
+          </div>
+          <!-- Plan -->
+          <div>
+            <label class="block text-xs text-surface-400 mb-1.5">Gói dùng</label>
+            <select v-model="editForm.plan" class="input w-full">
+              <option value="free">Free</option>
+              <option value="starter">Starter</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+          </div>
+          <!-- Custom Domain -->
+          <div>
+            <label class="block text-xs text-surface-400 mb-1.5">Custom Domain</label>
+            <input v-model="editForm.custom_domain" type="text" class="input w-full" placeholder="ví dụ: shop.example.com" />
+          </div>
+        </div>
+        <div class="flex items-center gap-3 mt-4">
+          <button @click="handleSaveSettings" :disabled="actionLoading || !hasChanges" class="btn-primary text-sm flex items-center gap-2" :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }">
+            <Save :size="16" /> Lưu thay đổi
+          </button>
+          <span v-if="editMsg" class="text-sm" :class="editError ? 'text-red-400' : 'text-emerald-400'">{{ editMsg }}</span>
         </div>
       </div>
 
@@ -97,9 +134,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Building2, Pause, Play, Database, Sprout, Trash2 } from 'lucide-vue-next'
+import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save } from 'lucide-vue-next'
 import { tenants } from '../services/api.js'
 
 const route = useRoute()
@@ -109,6 +146,54 @@ const loading = ref(true)
 const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
+
+// Edit form
+const editForm = ref({ name: '', plan: '', custom_domain: '' })
+const editMsg = ref('')
+const editError = ref(false)
+
+const hasChanges = computed(() => {
+  if (!tenant.value) return false
+  return editForm.value.name !== tenant.value.name
+    || editForm.value.plan !== tenant.value.plan
+    || editForm.value.custom_domain !== (tenant.value.custom_domain || '')
+})
+
+function syncEditForm() {
+  if (tenant.value) {
+    editForm.value = {
+      name: tenant.value.name || '',
+      plan: tenant.value.plan || 'free',
+      custom_domain: tenant.value.custom_domain || '',
+    }
+  }
+}
+
+watch(tenant, syncEditForm)
+
+function planBadgeClass(plan) {
+  const base = 'px-2.5 py-0.5 rounded-full text-xs font-medium'
+  if (plan === 'enterprise') return `${base} bg-amber-500/15 text-amber-400 border border-amber-500/20`
+  if (plan === 'pro') return `${base} bg-primary-500/15 text-primary-400 border border-primary-500/20`
+  if (plan === 'starter') return `${base} bg-cyan-500/15 text-cyan-400 border border-cyan-500/20`
+  return `${base} bg-surface-700/50 text-surface-300 border border-surface-600/30`
+}
+
+async function handleSaveSettings() {
+  editMsg.value = ''
+  editError.value = false
+  actionLoading.value = true
+  try {
+    await tenants.update(route.params.id, editForm.value)
+    editMsg.value = '✅ Đã lưu thành công'
+    await load()
+  } catch (err) {
+    editMsg.value = err.message
+    editError.value = true
+  } finally {
+    actionLoading.value = false
+  }
+}
 
 function statusClass(status) {
   if (status === 'active') return 'badge-active'

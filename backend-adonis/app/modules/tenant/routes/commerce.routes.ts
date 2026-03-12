@@ -4,9 +4,10 @@ const OrdersController = () => import('#controllers/orders_controller')
 const CartsController = () => import('#controllers/carts_controller')
 const PromotionsController = () => import('#controllers/promotions_controller')
 const ShopCustomersController = () => import('#controllers/shop_customers_controller')
+const ShipmentsController = () => import('#controllers/shipments_controller')
 
 /**
- * Commerce routes — Orders, Cart, Promotions, Coupons, Shop Customers
+ * Commerce routes — Orders, Cart, Promotions, Coupons, Shipments, Shop Customers
  */
 export function registerCommerceRoutes(group: ReturnType<typeof router.group>) {
   // Orders
@@ -54,4 +55,12 @@ export function registerCommerceRoutes(group: ReturnType<typeof router.group>) {
   group.post('/shop-customers/:customerId/addresses', [ShopCustomersController, 'addAddress'])
   group.put('/shop-customers/:customerId/addresses/:id', [ShopCustomersController, 'updateAddress'])
   group.delete('/shop-customers/:customerId/addresses/:id', [ShopCustomersController, 'deleteAddress'])
+  // Shipments
+  group.get('/shipments', [ShipmentsController, 'index'])
+  group.post('/shipments', [ShipmentsController, 'store'])
+  group.get('/shipments/stats', [ShipmentsController, 'stats'])
+  group.get('/shipments/:id', [ShipmentsController, 'show'])
+  group.put('/shipments/:id/status', [ShipmentsController, 'updateStatus'])
+  group.get('/shipments/:id/tracking', [ShipmentsController, 'tracking'])
+  group.delete('/shipments/:id', [ShipmentsController, 'destroy'])
 }

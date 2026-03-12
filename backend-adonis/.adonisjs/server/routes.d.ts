@@ -104,6 +104,13 @@ export type ScannedRoutes = {
     'shop_customers.add_address': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
     'shop_customers.update_address': { paramsTuple: [ParamValue,ParamValue]; params: {'customerId': ParamValue,'id': ParamValue} }
     'shop_customers.delete_address': { paramsTuple: [ParamValue,ParamValue]; params: {'customerId': ParamValue,'id': ParamValue} }
+    'shipments.index': { paramsTuple?: []; params?: {} }
+    'shipments.store': { paramsTuple?: []; params?: {} }
+    'shipments.stats': { paramsTuple?: []; params?: {} }
+    'shipments.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shipments.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shipments.tracking': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shipments.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cms_pages.index': { paramsTuple?: []; params?: {} }
     'cms_pages.store': { paramsTuple?: []; params?: {} }
     'cms_pages.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -242,6 +249,10 @@ export type ScannedRoutes = {
     'shop_customers.index': { paramsTuple?: []; params?: {} }
     'shop_customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.list_addresses': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'shipments.index': { paramsTuple?: []; params?: {} }
+    'shipments.stats': { paramsTuple?: []; params?: {} }
+    'shipments.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shipments.tracking': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cms_pages.index': { paramsTuple?: []; params?: {} }
     'cms_pages.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'banners.index': { paramsTuple?: []; params?: {} }
@@ -335,6 +346,10 @@ export type ScannedRoutes = {
     'shop_customers.index': { paramsTuple?: []; params?: {} }
     'shop_customers.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.list_addresses': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'shipments.index': { paramsTuple?: []; params?: {} }
+    'shipments.stats': { paramsTuple?: []; params?: {} }
+    'shipments.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'shipments.tracking': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cms_pages.index': { paramsTuple?: []; params?: {} }
     'cms_pages.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'banners.index': { paramsTuple?: []; params?: {} }
@@ -405,6 +420,7 @@ export type ScannedRoutes = {
     'promotions.store': { paramsTuple?: []; params?: {} }
     'shop_customers.store': { paramsTuple?: []; params?: {} }
     'shop_customers.add_address': { paramsTuple: [ParamValue]; params: {'customerId': ParamValue} }
+    'shipments.store': { paramsTuple?: []; params?: {} }
     'cms_pages.store': { paramsTuple?: []; params?: {} }
     'banners.store': { paramsTuple?: []; params?: {} }
     'nav_links.store': { paramsTuple?: []; params?: {} }
@@ -438,6 +454,7 @@ export type ScannedRoutes = {
     'promotions.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.update_address': { paramsTuple: [ParamValue,ParamValue]; params: {'customerId': ParamValue,'id': ParamValue} }
+    'shipments.update_status': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cms_pages.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'banners.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'nav_links.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -469,6 +486,7 @@ export type ScannedRoutes = {
     'promotions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'shop_customers.delete_address': { paramsTuple: [ParamValue,ParamValue]; params: {'customerId': ParamValue,'id': ParamValue} }
+    'shipments.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'cms_pages.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'banners.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'nav_links.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

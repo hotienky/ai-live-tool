@@ -78,18 +78,7 @@ export default class GetDashboardOverviewAction {
       todayRevenue = Number(revenueResult[0].$extras.total) || 0
     } catch (_e) {}
 
-    // Upcoming schedules
-    let upcomingSchedules: any[] = []
-    try {
-      const ScheduledLivestream = (await import('#models/scheduled_livestream')).default
-      const schedQuery = ScheduledLivestream.query()
-        .where('status', 'scheduled')
-        .where('scheduled_at', '>=', new Date().toISOString())
-        .orderBy('scheduled_at', 'asc')
-        .limit(5)
-      if (userShopIds) schedQuery.whereIn('shop_id', userShopIds)
-      upcomingSchedules = await schedQuery
-    } catch (_e) {}
+
 
     return {
       activeConnections,
@@ -98,7 +87,6 @@ export default class GetDashboardOverviewAction {
       todayLeads: Number(todayLeads[0].$extras.total),
       todayHotLeads: Number(hotLeads[0].$extras.total),
       todayRevenue,
-      upcomingSchedules,
       aiStats,
       sessions: activeSessions,
     }

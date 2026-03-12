@@ -233,9 +233,38 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) UNIQUE NOT NULL,
   password VARCHAR(255) NOT NULL,
   role VARCHAR(50) DEFAULT 'admin',
+  role_id INTEGER,
+  is_active BOOLEAN DEFAULT true,
+  last_login_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Roles
+CREATE TABLE IF NOT EXISTS roles (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  display_name VARCHAR(200),
+  description TEXT,
+  permissions JSONB DEFAULT '[]',
+  is_system BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add FK constraint
+DO $$ BEGIN
+  ALTER TABLE users ADD CONSTRAINT fk_users_role_id FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE SET NULL;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+-- Seed default roles
+INSERT INTO roles (name, display_name, description, permissions, is_system)
+VALUES
+  ('admin', 'Quản trị viên', 'Toàn quyền', '["*"]', true),
+  ('editor', 'Biên tập viên', 'Quản lý nội dung', '["content.*","products.*"]', true),
+  ('viewer', 'Xem', 'Chỉ xem', '["read"]', true)
+ON CONFLICT (name) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS auth_access_tokens (
   id SERIAL PRIMARY KEY,
@@ -518,20 +547,6 @@ CREATE TABLE IF NOT EXISTS product_promotions (
   usage_limit INTEGER,
   usage_count INTEGER DEFAULT 0,
   applicable_products JSONB,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Scheduled Livestreams
-CREATE TABLE IF NOT EXISTS scheduled_livestreams (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255),
-  platform VARCHAR(50),
-  scheduled_at TIMESTAMPTZ NOT NULL,
-  duration_minutes INTEGER DEFAULT 60,
-  status VARCHAR(50) DEFAULT 'scheduled',
-  notes TEXT,
-  products JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
