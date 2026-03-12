@@ -172,17 +172,17 @@
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <ProductManager :shopId="currentShop?.id" />
+        <ProductManager />
       </div>
 
       <!-- ═══ Tab: Categories ═══ -->
       <div v-if="activeTab === 'categories'" class="settings__panel">
-        <CategoryManager :shopId="currentShop?.id" />
+        <CategoryManager />
       </div>
 
       <!-- ═══ Tab: Brands ═══ -->
       <div v-if="activeTab === 'brands'" class="settings__panel">
-        <BrandManager :shopId="currentShop?.id" />
+        <BrandManager />
       </div>
 
       <!-- ═══ Tab: Keywords ═══ -->
@@ -307,27 +307,27 @@
 
       <!-- ═══ Tab: Shop Customers ═══ -->
       <div v-if="activeTab === 'shop-customers'" class="settings__panel">
-        <CustomerManager :shopId="currentShop?.id" />
+        <CustomerManager />
       </div>
 
       <!-- ═══ Tab: Promotions + Coupons ═══ -->
       <div v-if="activeTab === 'promotions'" class="settings__panel">
-        <PromotionManager :shopId="currentShop?.id" />
+        <PromotionManager />
       </div>
 
       <!-- ═══ Tab: CMS Pages ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
-        <CmsManager :shopId="currentShop?.id" />
+        <CmsManager />
       </div>
 
       <!-- ═══ Tab: Banners ═══ -->
       <div v-if="activeTab === 'banners'" class="settings__panel">
-        <BannerManager :shopId="currentShop?.id" />
+        <BannerManager />
       </div>
 
       <!-- ═══ Tab: Nav Links ═══ -->
       <div v-if="activeTab === 'nav-links'" class="settings__panel">
-        <NavLinkManager :shopId="currentShop?.id" />
+        <NavLinkManager />
       </div>
 
       <!-- ═══ Tab: System Config ═══ -->
@@ -518,12 +518,12 @@ async function loadAll(shop) {
     shopeePartnerKey: shop.shopee_partner_key || '',
   }
   autoReplyEnabled.value = !!shop.auto_reply_enabled
-  await Promise.all([loadProducts(shop.id), loadKeywords(shop.id), loadTemplates(shop.id)])
+  await Promise.all([loadProducts(), loadKeywords(shop.id), loadTemplates(shop.id)])
 }
 
-async function loadProducts(shopId) {
+async function loadProducts() {
   try {
-    const res = await apiFetch(`/products?shopId=${shopId}`)
+    const res = await apiFetch('/products')
     products.value = await res.json()
   } catch { products.value = [] }
 }
@@ -558,10 +558,10 @@ async function addProduct() {
   try {
     await apiFetch('/products', {
       method: 'POST',
-      body: JSON.stringify({ ...newProduct.value, shopId: props.currentShop.id }),
+      body: JSON.stringify(newProduct.value),
     })
     newProduct.value = { name: '', price: '', keywords: '', category: '' }
-    await loadProducts(props.currentShop.id)
+    await loadProducts()
     showToast('Đã thêm sản phẩm', 'success')
   } catch (e) {
     showToast('Lỗi thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
@@ -572,7 +572,7 @@ async function deleteProduct(id) {
   if (!confirm('Xóa sản phẩm này?')) return
   try {
     await apiFetch(`/products/${id}`, { method: 'DELETE' })
-    await loadProducts(props.currentShop.id)
+    await loadProducts()
     showToast('Đã xóa sản phẩm', 'success')
   } catch (e) {
     showToast('Lỗi xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
@@ -583,7 +583,7 @@ async function deleteProduct(id) {
 async function addCategory() {
   if (!newCategory.value.name || !props.currentShop) return
   try {
-    await createCategory({ ...newCategory.value, shopId: props.currentShop.id })
+    await createCategory(newCategory.value)
     newCategory.value = { name: '', description: '' }
     showToast('Đã thêm danh mục', 'success')
   } catch (e) {
@@ -604,7 +604,7 @@ async function removeCategory(id) {
 async function addBrand() {
   if (!newBrand.value.name || !props.currentShop) return
   try {
-    await createBrand({ ...newBrand.value, shopId: props.currentShop.id })
+    await createBrand(newBrand.value)
     newBrand.value = { name: '', description: '' }
     showToast('Đã thêm thương hiệu', 'success')
   } catch (e) {
