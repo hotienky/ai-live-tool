@@ -77,6 +77,10 @@ export function registerSystemRoutes(group: ReturnType<typeof router.group>) {
   group.get('/languages/:id/translations', [LanguagesController, 'getTranslations'])
   group.put('/languages/:id/translations', [LanguagesController, 'updateTranslations'])
 
+  // Content Translations (product/category/page i18n)
+  group.get('/languages/content/:tableName/:rowId', [LanguagesController, 'getContentTranslations'])
+  group.put('/languages/content/:tableName/:rowId', [LanguagesController, 'updateContentTranslations'])
+
   // Custom Fields
   group.get('/custom-fields', [CustomFieldsController, 'index'])
   group.post('/custom-fields', [CustomFieldsController, 'store'])

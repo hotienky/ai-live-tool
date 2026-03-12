@@ -37,6 +37,31 @@
         </button>
       </div>
 
+      <!-- Language Switcher -->
+      <div class="lang-switcher" v-if="i18nLanguages.length > 1">
+        <button class="lang-switcher__btn" @click="langOpen = !langOpen">
+          <Globe :size="14" />
+          <span>{{ currentLang.toUpperCase() }}</span>
+        </button>
+        <div v-if="langOpen" class="lang-switcher__dropdown">
+          <button
+            v-for="lang in i18nLanguages" :key="lang.code"
+            class="lang-switcher__item"
+            :class="{ active: lang.code === currentLang }"
+            @click="switchLang(lang.code)"
+          >
+            <span v-if="lang.icon" class="lang-icon">{{ lang.icon }}</span>
+            {{ lang.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Theme Toggle -->
+      <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
+        <Sun v-if="isDark" :size="16" />
+        <Moon v-else :size="16" />
+      </button>
+
       <!-- Mobile menu toggle -->
       <button class="site-header__menu-btn" @click="mobileMenu = !mobileMenu">
         <Menu v-if="!mobileMenu" :size="22" />
@@ -67,12 +92,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu } from 'lucide-vue-next'
+import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu, Globe, Sun, Moon } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
+import { useI18n } from '../composables/useI18n.js'
+import { useTheme } from '../composables/useTheme.js'
 
 const { cartCount } = useCart()
+const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
+const { isDark, toggleTheme } = useTheme()
+
+const langOpen = ref(false)
+async function switchLang(code) {
+  await setLang(code)
+  langOpen.value = false
+}
+onMounted(() => initI18n())
 
 const props = defineProps({
   storeName: { type: String, default: '' },
@@ -100,9 +136,10 @@ function onSearch() {
   right: 0;
   z-index: 100;
   height: var(--sf-header-height);
-  background: rgba(10, 10, 15, 0.85);
+  background: var(--sf-header-bg);
   backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--sf-border);
+  transition: background-color 0.3s ease;
 }
 
 .site-header__inner {
@@ -153,7 +190,7 @@ function onSearch() {
 
 .site-header__link:hover {
   color: var(--sf-text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--sf-bg-card-hover);
 }
 
 .site-header__link.active {
@@ -170,15 +207,15 @@ function onSearch() {
   gap: 8px;
   padding: 8px 16px;
   border-radius: 100px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--sf-input-bg);
   border: 1px solid var(--sf-border);
   transition: all var(--sf-transition);
 }
 
 .site-header__search.focused {
   border-color: var(--sf-accent);
-  background: rgba(124, 58, 237, 0.08);
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  background: var(--sf-accent-glow);
+  box-shadow: 0 0 0 3px var(--sf-accent-glow);
 }
 
 .site-header__search-icon {
@@ -243,7 +280,7 @@ function onSearch() {
 }
 
 .site-header__mobile-link:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--sf-bg-card-hover);
   color: var(--sf-text-primary);
 }
 
@@ -253,7 +290,7 @@ function onSearch() {
   gap: 8px;
   padding: 10px 16px;
   border-radius: var(--sf-radius-sm);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--sf-input-bg);
   border: 1px solid var(--sf-border);
   color: var(--sf-text-muted);
 }
@@ -292,4 +329,44 @@ function onSearch() {
   min-width: 22px; height: 22px; line-height: 22px;
   font-size: 11px;
 }
+
+/* Language Switcher */
+.lang-switcher { position: relative; margin-left: 8px; }
+.lang-switcher__btn {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  color: var(--sf-text-secondary); font-size: 12px; font-weight: 700;
+  transition: all 0.2s;
+}
+.lang-switcher__btn:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
+.lang-switcher__dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 100;
+  min-width: 160px; padding: 6px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: 10px; box-shadow: var(--sf-shadow-md);
+}
+.lang-switcher__item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 12px; border: none; border-radius: 6px;
+  background: none; color: var(--sf-text-secondary);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.lang-switcher__item:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
+.lang-switcher__item.active { color: var(--sf-accent, #a78bfa); font-weight: 700; }
+.lang-icon { font-size: 16px; }
+
+/* Theme Toggle */
+.theme-toggle {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px; margin-left: 6px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary); cursor: pointer; transition: all 0.25s;
+}
+.theme-toggle:hover {
+  color: var(--sf-accent-light, #f59e0b);
+  background: var(--sf-bg-card-hover);
+  transform: rotate(15deg);
+}
 </style>
+

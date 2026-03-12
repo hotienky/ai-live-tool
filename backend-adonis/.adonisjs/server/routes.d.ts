@@ -28,6 +28,9 @@ export type ScannedRoutes = {
     'storefront.page_detail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'storefront.store_info': { paramsTuple?: []; params?: {} }
     'storefront.checkout': { paramsTuple?: []; params?: {} }
+    'storefront.languages': { paramsTuple?: []; params?: {} }
+    'storefront.translations': { paramsTuple: [ParamValue]; params: {'langCode': ParamValue} }
+    'storefront.theme': { paramsTuple?: []; params?: {} }
     'legacy.storefront.products': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
     'legacy.storefront.productDetail': { paramsTuple: [ParamValue,ParamValue]; params: {'storeId': ParamValue,'id': ParamValue} }
     'legacy.storefront.categories': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
@@ -171,6 +174,8 @@ export type ScannedRoutes = {
     'languages.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'languages.get_translations': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'languages.update_translations': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'languages.get_content_translations': { paramsTuple: [ParamValue,ParamValue]; params: {'tableName': ParamValue,'rowId': ParamValue} }
+    'languages.update_content_translations': { paramsTuple: [ParamValue,ParamValue]; params: {'tableName': ParamValue,'rowId': ParamValue} }
     'custom_fields.index': { paramsTuple?: []; params?: {} }
     'custom_fields.store': { paramsTuple?: []; params?: {} }
     'custom_fields.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -209,6 +214,9 @@ export type ScannedRoutes = {
     'storefront.pages': { paramsTuple?: []; params?: {} }
     'storefront.page_detail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'storefront.store_info': { paramsTuple?: []; params?: {} }
+    'storefront.languages': { paramsTuple?: []; params?: {} }
+    'storefront.translations': { paramsTuple: [ParamValue]; params: {'langCode': ParamValue} }
+    'storefront.theme': { paramsTuple?: []; params?: {} }
     'legacy.storefront.products': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
     'legacy.storefront.productDetail': { paramsTuple: [ParamValue,ParamValue]; params: {'storeId': ParamValue,'id': ParamValue} }
     'legacy.storefront.categories': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
@@ -280,6 +288,7 @@ export type ScannedRoutes = {
     'api_keys.index': { paramsTuple?: []; params?: {} }
     'languages.index': { paramsTuple?: []; params?: {} }
     'languages.get_translations': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'languages.get_content_translations': { paramsTuple: [ParamValue,ParamValue]; params: {'tableName': ParamValue,'rowId': ParamValue} }
     'custom_fields.index': { paramsTuple?: []; params?: {} }
     'custom_fields.get_values': { paramsTuple: [ParamValue,ParamValue]; params: {'entityType': ParamValue,'entityId': ParamValue} }
     'shops.index': { paramsTuple?: []; params?: {} }
@@ -304,6 +313,9 @@ export type ScannedRoutes = {
     'storefront.pages': { paramsTuple?: []; params?: {} }
     'storefront.page_detail': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'storefront.store_info': { paramsTuple?: []; params?: {} }
+    'storefront.languages': { paramsTuple?: []; params?: {} }
+    'storefront.translations': { paramsTuple: [ParamValue]; params: {'langCode': ParamValue} }
+    'storefront.theme': { paramsTuple?: []; params?: {} }
     'legacy.storefront.products': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
     'legacy.storefront.productDetail': { paramsTuple: [ParamValue,ParamValue]; params: {'storeId': ParamValue,'id': ParamValue} }
     'legacy.storefront.categories': { paramsTuple: [ParamValue]; params: {'storeId': ParamValue} }
@@ -375,6 +387,7 @@ export type ScannedRoutes = {
     'api_keys.index': { paramsTuple?: []; params?: {} }
     'languages.index': { paramsTuple?: []; params?: {} }
     'languages.get_translations': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'languages.get_content_translations': { paramsTuple: [ParamValue,ParamValue]; params: {'tableName': ParamValue,'rowId': ParamValue} }
     'custom_fields.index': { paramsTuple?: []; params?: {} }
     'custom_fields.get_values': { paramsTuple: [ParamValue,ParamValue]; params: {'entityType': ParamValue,'entityId': ParamValue} }
     'shops.index': { paramsTuple?: []; params?: {} }
@@ -459,6 +472,7 @@ export type ScannedRoutes = {
     'api_keys.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'languages.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'languages.update_translations': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'languages.update_content_translations': { paramsTuple: [ParamValue,ParamValue]; params: {'tableName': ParamValue,'rowId': ParamValue} }
     'custom_fields.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'custom_fields.save_values': { paramsTuple: [ParamValue,ParamValue]; params: {'entityType': ParamValue,'entityId': ParamValue} }
     'shops.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

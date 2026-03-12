@@ -703,15 +703,39 @@ CREATE TABLE IF NOT EXISTS languages (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Translations
-CREATE TABLE IF NOT EXISTS translations (
+-- UI String Translations
+CREATE TABLE IF NOT EXISTS language_translations (
   id SERIAL PRIMARY KEY,
-  language_id INTEGER REFERENCES languages(id) ON DELETE CASCADE,
+  language_id INTEGER NOT NULL REFERENCES languages(id) ON DELETE CASCADE,
+  "group" VARCHAR(100) DEFAULT 'common',
   key VARCHAR(255) NOT NULL,
   value TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(language_id, "group", key)
 );
+
+-- Content Translations (EAV for products/categories/pages)
+CREATE TABLE IF NOT EXISTS content_translations (
+  id SERIAL PRIMARY KEY,
+  table_name VARCHAR(100) NOT NULL,
+  row_id INTEGER NOT NULL,
+  field_name VARCHAR(100) NOT NULL,
+  language_id INTEGER NOT NULL REFERENCES languages(id) ON DELETE CASCADE,
+  value TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(table_name, row_id, field_name, language_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_trans_lookup ON content_translations(table_name, row_id, language_id);
+CREATE INDEX IF NOT EXISTS idx_lang_trans_lookup ON language_translations(language_id, "group");
+
+-- Seed default languages
+INSERT INTO languages (code, name, icon, is_default, is_active, sort) VALUES
+  ('vi', 'Tiếng Việt', '🇻🇳', true, true, 1),
+  ('en', 'English', '🇬🇧', false, true, 2)
+ON CONFLICT (code) DO NOTHING;
 
 -- Custom Fields
 CREATE TABLE IF NOT EXISTS custom_fields (

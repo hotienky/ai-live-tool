@@ -48,17 +48,50 @@
           <span>AI Live Tool</span>
         </div>
         <nav class="app-nav">
-          <button
-            v-for="tab in tabs"
-            :key="tab.key"
-            class="app-nav__tab"
-            :class="{ 'app-nav__tab--active': activeView === tab.key }"
-            @click="navigateTo(tab.key)"
-            :title="tab.label"
-          >
-            <component :is="tab.icon" :size="18" />
-            <span class="app-nav__label">{{ tab.label }}</span>
-          </button>
+          <template v-for="item in navItems" :key="item.key">
+            <!-- Standalone tab (no dropdown) -->
+            <button
+              v-if="!item.children"
+              class="app-nav__tab"
+              :class="{ 'app-nav__tab--active': activeView === item.key }"
+              @click="navigateTo(item.key)"
+              :title="item.label"
+            >
+              <component :is="item.icon" :size="18" />
+              <span class="app-nav__label">{{ item.label }}</span>
+            </button>
+            <!-- Dropdown tab -->
+            <div
+              v-else
+              class="app-nav__dropdown"
+              @mouseenter="onDropdownEnter(item.key)"
+              @mouseleave="onDropdownLeave()"
+            >
+              <button
+                class="app-nav__tab"
+                :class="{ 'app-nav__tab--active': item.children.some(c => activeView === c.view && (!c.settingsTab || activeView === 'settings')) || item.activeKeys?.includes(activeView) }"
+                @click="navigateTo(item.children[0].view, item.children[0].settingsTab)"
+              >
+                <component :is="item.icon" :size="18" />
+                <span class="app-nav__label">{{ item.label }}</span>
+                <ChevronDown :size="12" class="app-nav__chevron" :class="{ 'app-nav__chevron--open': openDropdown === item.key }" />
+              </button>
+              <div class="app-nav__menu" v-show="openDropdown === item.key">
+                <div class="app-nav__menu-inner">
+                  <button
+                    v-for="child in item.children"
+                    :key="child.key"
+                    class="app-nav__menu-item"
+                    :class="{ 'app-nav__menu-item--active': activeView === child.view && (!child.settingsTab || settingsInitTab === child.settingsTab) }"
+                    @click="navigateTo(child.view, child.settingsTab); openDropdown = null"
+                  >
+                    <component :is="child.icon" :size="15" />
+                    <span>{{ child.label }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
         </nav>
         <div class="app-header__actions">
           <button class="app-header__icon-btn app-header__theme-btn" @click="toggleTheme" :title="'Theme: ' + theme">
@@ -180,6 +213,7 @@
     <ShopSettings
       v-if="activeView === 'settings'"
       :currentShop="currentShop"
+      :initialTab="settingsInitTab"
       @openShopSelector="shopSelectorRef?.open()"
     />
 
@@ -283,9 +317,10 @@ import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
   Radio, Drama, Square, RotateCcw, History,
   LayoutDashboard, MonitorPlay, Users, BarChart2,
-  User as UserIcon, LogOut, Settings,
+  User as UserIcon, LogOut, Settings, Store, ChevronDown,
   BellRing, BellOff,
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
+  ShoppingBag, FolderTree, Award, Receipt, Tag,
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -301,15 +336,33 @@ function onProfileUpdated(user) {
 }
 
 // ── Navigation ──
-const tabs = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { key: 'live', label: 'Live Monitor', icon: MonitorPlay },
-  { key: 'crm', label: 'CRM', icon: Users },
-  { key: 'reports', label: 'Reports', icon: BarChart2 },
+const openDropdown = ref(null)
+let dropdownTimer = null
+const settingsInitTab = ref('connection')
 
-  { key: 'settings', label: 'Settings', icon: Settings },
+function onDropdownEnter(key) {
+  if (dropdownTimer) { clearTimeout(dropdownTimer); dropdownTimer = null }
+  openDropdown.value = key
+}
+function onDropdownLeave() {
+  dropdownTimer = setTimeout(() => { openDropdown.value = null }, 150)
+}
+
+const navItems = [
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  {
+    key: 'live-group', label: 'Live', icon: MonitorPlay,
+    activeKeys: ['live', 'crm', 'reports'],
+    children: [
+      { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
+      { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
+      { key: 'reports', view: 'reports', label: 'Báo cáo', icon: BarChart2 },
+    ],
+  },
+  { key: 'settings', label: 'Cửa hàng', icon: Store },
 ]
-const validViews = tabs.map(t => t.key)
+
+const validViews = ['dashboard', 'live', 'crm', 'reports', 'settings']
 // ── Storefront Detection ──
 function parseShopPath() {
   const m = window.location.pathname.match(/^\/shop\/([^\/]+)(\/([^\/]*))?(\/(.*))?/)
@@ -341,9 +394,10 @@ function viewFromPath() {
 }
 const activeView = ref(viewFromPath())
 
-function navigateTo(view) {
+function navigateTo(view, settingsTab) {
   if (!validViews.includes(view)) view = 'live'
   activeView.value = view
+  if (settingsTab) settingsInitTab.value = settingsTab
   // Clear query params when switching pages — each page has its own filter state
   history.pushState({ view }, '', '/' + view)
 }
@@ -666,6 +720,63 @@ const statusText = computed(() => {
   background: rgba(124,58,237,0.12);
   font-weight: 700;
   box-shadow: 0 0 12px rgba(124,58,237,0.15);
+}
+
+/* Dropdown nav */
+.app-nav__dropdown {
+  position: relative;
+}
+.app-nav__chevron {
+  transition: transform 0.2s;
+  opacity: 0.5;
+}
+.app-nav__chevron--open {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+.app-nav__menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  padding-top: 6px; /* visual gap without breaking hover */
+  z-index: 1000;
+  animation: dropdownFadeIn 0.15s ease;
+}
+.app-nav__menu-inner {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+@keyframes dropdownFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.app-nav__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.app-nav__menu-item:hover {
+  background: var(--color-bg-card-hover);
+  color: var(--color-text-primary);
+}
+.app-nav__menu-item--active {
+  color: var(--color-accent-primary);
+  background: rgba(124,58,237,0.1);
+  font-weight: 600;
 }
 
 /* User actions area */

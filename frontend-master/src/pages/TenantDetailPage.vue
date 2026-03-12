@@ -1,9 +1,9 @@
 <template>
   <div class="p-6 lg:p-8">
     <!-- Back -->
-    <router-link to="/tenants" class="text-sm text-surface-400 hover:text-primary-400 transition-colors mb-4 inline-block">← Quay lại danh sách</router-link>
+    <router-link to="/tenants" class="mp-link mb-4 inline-block">← Quay lại danh sách</router-link>
 
-    <div v-if="loading" class="text-center py-16 text-surface-400">Đang tải...</div>
+    <div v-if="loading" class="text-center py-16 mp-text-muted">Đang tải...</div>
 
     <template v-else-if="tenant">
       <!-- Tenant Header -->
@@ -14,8 +14,8 @@
               <Building2 :size="28" class="text-primary-400" />
             </div>
             <div>
-              <h1 class="text-xl font-bold text-white">{{ tenant.name }}</h1>
-              <p class="text-sm text-surface-400">{{ tenant.slug }}.domain.com</p>
+              <h1 class="text-xl font-bold mp-text-primary">{{ tenant.name }}</h1>
+              <p class="text-sm mp-text-muted">{{ tenant.slug }}.domain.com</p>
             </div>
           </div>
           <span :class="statusClass(tenant.status)" class="text-sm">{{ tenant.status }}</span>
@@ -26,64 +26,62 @@
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <!-- Details (read-only) -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">Thông tin</h3>
+          <h3 class="mp-section-title">Thông tin</h3>
           <dl class="space-y-3">
             <div class="flex justify-between">
-              <dt class="text-sm text-surface-400">Database</dt>
-              <dd class="text-sm text-white font-mono">{{ tenant.db_name }}</dd>
+              <dt class="text-sm mp-text-muted">Database</dt>
+              <dd class="text-sm mp-text-primary font-mono">{{ tenant.db_name }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-surface-400">Owner</dt>
-              <dd class="text-sm text-white">{{ tenant.owner_email }}</dd>
+              <dt class="text-sm mp-text-muted">Owner</dt>
+              <dd class="text-sm mp-text-primary">{{ tenant.owner_email }}</dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-surface-400">Gói hiện tại</dt>
-              <dd class="text-sm text-white capitalize">
+              <dt class="text-sm mp-text-muted">Gói hiện tại</dt>
+              <dd class="text-sm mp-text-primary capitalize">
                 <span :class="planBadgeClass(tenant.plan)">{{ tenant.plan }}</span>
               </dd>
             </div>
             <div class="flex justify-between">
-              <dt class="text-sm text-surface-400">Ngày tạo</dt>
-              <dd class="text-sm text-white">{{ formatDate(tenant.created_at) }}</dd>
+              <dt class="text-sm mp-text-muted">Ngày tạo</dt>
+              <dd class="text-sm mp-text-primary">{{ formatDate(tenant.created_at) }}</dd>
             </div>
           </dl>
         </div>
 
         <!-- Stats -->
         <div class="card p-5">
-          <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">Thống kê</h3>
+          <h3 class="mp-section-title">Thống kê</h3>
           <div v-if="tenant.stats" class="grid grid-cols-3 gap-3">
-            <div class="text-center p-3 rounded-lg bg-surface-900/40">
-              <p class="text-xl font-bold text-white">{{ tenant.stats.users }}</p>
-              <p class="text-xs text-surface-400 mt-1">Users</p>
+            <div class="text-center p-3 rounded-lg mp-stat-card">
+              <p class="text-xl font-bold mp-text-primary">{{ tenant.stats.users }}</p>
+              <p class="text-xs mp-text-muted mt-1">Users</p>
             </div>
-            <div class="text-center p-3 rounded-lg bg-surface-900/40">
-              <p class="text-xl font-bold text-white">{{ tenant.stats.products }}</p>
-              <p class="text-xs text-surface-400 mt-1">Products</p>
+            <div class="text-center p-3 rounded-lg mp-stat-card">
+              <p class="text-xl font-bold mp-text-primary">{{ tenant.stats.products }}</p>
+              <p class="text-xs mp-text-muted mt-1">Products</p>
             </div>
-            <div class="text-center p-3 rounded-lg bg-surface-900/40">
-              <p class="text-xl font-bold text-white">{{ tenant.stats.orders }}</p>
-              <p class="text-xs text-surface-400 mt-1">Orders</p>
+            <div class="text-center p-3 rounded-lg mp-stat-card">
+              <p class="text-xl font-bold mp-text-primary">{{ tenant.stats.orders }}</p>
+              <p class="text-xs mp-text-muted mt-1">Orders</p>
             </div>
           </div>
-          <p v-else class="text-sm text-surface-400">Không có dữ liệu thống kê</p>
+          <p v-else class="text-sm mp-text-muted">Không có dữ liệu thống kê</p>
         </div>
       </div>
 
       <!-- Edit Settings -->
       <div class="card p-5 mb-6">
-        <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <h3 class="mp-section-title flex items-center gap-2">
           <Settings :size="16" class="text-primary-400" /> Cài đặt Tenant
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- Name -->
           <div>
-            <label class="block text-xs text-surface-400 mb-1.5">Tên Tenant</label>
+            <label class="mp-label">Tên Tenant</label>
             <input v-model="editForm.name" type="text" class="input w-full" />
           </div>
-          <!-- Plan -->
           <div>
-            <label class="block text-xs text-surface-400 mb-1.5">Gói dùng</label>
+            <label class="mp-label">Gói dùng</label>
             <select v-model="editForm.plan" class="input w-full">
               <option value="free">Free</option>
               <option value="starter">Starter</option>
@@ -91,9 +89,8 @@
               <option value="enterprise">Enterprise</option>
             </select>
           </div>
-          <!-- Custom Domain -->
           <div>
-            <label class="block text-xs text-surface-400 mb-1.5">Custom Domain</label>
+            <label class="mp-label">Custom Domain</label>
             <input v-model="editForm.custom_domain" type="text" class="input w-full" placeholder="ví dụ: shop.example.com" />
           </div>
         </div>
@@ -107,7 +104,7 @@
 
       <!-- Actions -->
       <div class="card p-5">
-        <h3 class="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">Thao tác</h3>
+        <h3 class="mp-section-title">Thao tác</h3>
         <div class="flex flex-wrap gap-3">
           <button v-if="tenant.status === 'active'" @click="handleSuspend" :disabled="actionLoading" class="btn-ghost text-amber-400 border border-amber-500/20 flex items-center gap-2 text-sm">
             <Pause :size="16" /> Tạm dừng
@@ -129,7 +126,7 @@
       </div>
     </template>
 
-    <div v-else class="text-center py-16 text-surface-400">Không tìm thấy tenant</div>
+    <div v-else class="text-center py-16 mp-text-muted">Không tìm thấy tenant</div>
   </div>
 </template>
 
@@ -147,7 +144,6 @@ const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
 
-// Edit form
 const editForm = ref({ name: '', plan: '', custom_domain: '' })
 const editMsg = ref('')
 const editError = ref(false)
@@ -176,7 +172,7 @@ function planBadgeClass(plan) {
   if (plan === 'enterprise') return `${base} bg-amber-500/15 text-amber-400 border border-amber-500/20`
   if (plan === 'pro') return `${base} bg-primary-500/15 text-primary-400 border border-primary-500/20`
   if (plan === 'starter') return `${base} bg-cyan-500/15 text-cyan-400 border border-cyan-500/20`
-  return `${base} bg-surface-700/50 text-surface-300 border border-surface-600/30`
+  return `${base} mp-stat-card mp-text-secondary`
 }
 
 async function handleSaveSettings() {
@@ -253,3 +249,14 @@ async function handleDelete() {
 
 onMounted(load)
 </script>
+
+<style scoped>
+.mp-text-primary { color: var(--mp-text-primary); }
+.mp-text-secondary { color: var(--mp-text-secondary); }
+.mp-text-muted { color: var(--mp-text-muted); }
+.mp-link { font-size: 0.875rem; color: var(--mp-text-muted); transition: color 0.2s; }
+.mp-link:hover { color: #3b8bfa; }
+.mp-section-title { font-size: 0.75rem; font-weight: 600; color: var(--mp-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+.mp-label { display: block; font-size: 0.75rem; color: var(--mp-text-muted); margin-bottom: 6px; }
+.mp-stat-card { background: var(--mp-bg-input); }
+</style>

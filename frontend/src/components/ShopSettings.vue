@@ -3,7 +3,7 @@
     <div class="settings__header">
       <h2 class="settings__title">
         <Settings :size="20" />
-        Cài đặt Shop
+        Cài đặt cửa hàng
       </h2>
       <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name || currentShop.shopName }}</span>
     </div>
@@ -83,6 +83,12 @@
                 <span style="font-size:16px">A</span> Thoải mái
               </button>
             </div>
+          </div>
+
+          <!-- Storefront Theme Customizer -->
+          <div style="margin-top: 24px">
+            <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Storefront</h3>
+            <ThemeCustomizer />
           </div>
         </div>
 
@@ -415,6 +421,7 @@ import CustomFieldManager from './CustomFieldManager.vue'
 import OrderManagement from './OrderManagement.vue'
 import WebhookManager from './WebhookManager.vue'
 import ActivityLog from './ActivityLog.vue'
+import ThemeCustomizer from './ThemeCustomizer.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -426,6 +433,7 @@ const { showToast } = useToast()
 
 const props = defineProps({
   currentShop: { type: Object, default: null },
+  initialTab: { type: String, default: '' },
 })
 
 const emit = defineEmits(['openShopSelector'])
@@ -436,6 +444,12 @@ const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keyword
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
+// Sync with parent initialTab prop
+watch(() => props.initialTab, (newTab) => {
+  if (newTab && validTabKeys.includes(newTab)) {
+    activeTab.value = newTab
+  }
+}, { immediate: true })
 const tabs = [
   { key: 'connection', label: 'Kết nối', icon: Link },
   { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },

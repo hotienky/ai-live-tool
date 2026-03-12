@@ -2,9 +2,9 @@
   <div class="p-6 lg:p-8 max-w-2xl">
     <!-- Header -->
     <div class="mb-6">
-      <router-link to="/tenants" class="text-sm text-surface-400 hover:text-primary-400 transition-colors mb-2 inline-block">← Quay lại</router-link>
-      <h1 class="text-2xl font-bold text-white mb-1">Tạo Tenant mới</h1>
-      <p class="text-surface-400 text-sm">Tạo cửa hàng mới với database và schema riêng</p>
+      <router-link to="/tenants" class="mp-link mb-2 inline-block">← Quay lại</router-link>
+      <h1 class="text-2xl font-bold mp-text-primary mb-1">Tạo Tenant mới</h1>
+      <p class="text-sm mp-text-muted">Tạo cửa hàng mới với database và schema riêng</p>
     </div>
 
     <!-- Error -->
@@ -16,38 +16,38 @@
     <form @submit.prevent="handleCreate" class="card p-6 space-y-5">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Tên cửa hàng *</label>
+          <label class="mp-label">Tên cửa hàng *</label>
           <input v-model="form.name" type="text" class="input" placeholder="Fashion Store VN" required />
         </div>
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Slug (subdomain) *</label>
+          <label class="mp-label">Slug (subdomain) *</label>
           <div class="flex">
             <input v-model="form.slug" type="text" class="input rounded-r-none" placeholder="fashion-store" required pattern="^[a-z0-9][a-z0-9-]*[a-z0-9]$" />
-            <span class="px-3 py-2 bg-surface-700/60 border border-l-0 border-surface-600/40 rounded-r-lg text-surface-400 text-sm whitespace-nowrap">.domain.com</span>
+            <span class="mp-slug-suffix">.domain.com</span>
           </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Email chủ sở hữu *</label>
+          <label class="mp-label">Email chủ sở hữu *</label>
           <input v-model="form.ownerEmail" type="email" class="input" placeholder="owner@store.com" required />
         </div>
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Tên chủ sở hữu</label>
+          <label class="mp-label">Tên chủ sở hữu</label>
           <input v-model="form.ownerName" type="text" class="input" placeholder="Nguyễn Văn A" />
         </div>
       </div>
 
       <div>
-        <label class="block text-sm text-surface-300 mb-1.5">Gói dịch vụ</label>
+        <label class="mp-label">Gói dịch vụ</label>
         <div class="flex gap-3">
           <div v-for="p in plans" :key="p.value"
                @click="form.plan = p.value"
                class="flex-1 card p-3 cursor-pointer transition-all select-none"
-               :class="form.plan === p.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : 'hover:border-surface-600/60'">
-            <p class="text-sm font-medium text-white">{{ p.label }}</p>
-            <p class="text-xs text-surface-400 mt-0.5">{{ p.desc }}</p>
+               :class="form.plan === p.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
+            <p class="text-sm font-medium mp-text-primary">{{ p.label }}</p>
+            <p class="text-xs mp-text-muted mt-0.5">{{ p.desc }}</p>
           </div>
         </div>
       </div>
@@ -100,3 +100,21 @@ async function handleCreate() {
   }
 }
 </script>
+
+<style scoped>
+.mp-text-primary { color: var(--mp-text-primary); }
+.mp-text-muted { color: var(--mp-text-muted); }
+.mp-link { font-size: 0.875rem; color: var(--mp-text-muted); transition: color 0.2s; }
+.mp-link:hover { color: #3b8bfa; }
+.mp-label { display: block; font-size: 0.875rem; color: var(--mp-text-secondary); margin-bottom: 6px; }
+.mp-slug-suffix {
+  padding: 8px 12px;
+  background: var(--mp-bg-input);
+  border: 1px solid var(--mp-border);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+  color: var(--mp-text-muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+</style>

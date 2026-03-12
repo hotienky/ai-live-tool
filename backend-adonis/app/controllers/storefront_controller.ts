@@ -187,12 +187,10 @@ export default class StorefrontController {
     }
 
     try {
-      // Calculate total
       const subtotal = items.reduce((sum: number, i: any) =>
         sum + (Number(i.price) || 0) * (Number(i.qty) || 1), 0)
       const finalTotal = Number(totalAmount) || subtotal
 
-      // Create order
       const [order] = await db.table('orders').insert({
         customer_name: customerName,
         customer_phone: customerPhone,
@@ -205,7 +203,6 @@ export default class StorefrontController {
         payment_status: 'unpaid',
       }).returning('*')
 
-      // Insert order details
       for (const item of items) {
         await db.table('order_details').insert({
           order_id: order.id,
@@ -218,14 +215,12 @@ export default class StorefrontController {
         })
       }
 
-      // Insert order totals
       await db.table('order_totals').insert([
         { order_id: order.id, title: 'Tạm tính', code: 'subtotal', value: subtotal, sort: 1 },
         { order_id: order.id, title: 'Phí vận chuyển', code: 'shipping', value: 0, sort: 2 },
         { order_id: order.id, title: 'Tổng cộng', code: 'total', value: finalTotal, sort: 100 },
       ])
 
-      // Insert history
       await db.table('order_history').insert({
         order_id: order.id,
         order_status_id: 1,
@@ -241,6 +236,60 @@ export default class StorefrontController {
     } catch (err: any) {
       console.error('Checkout error:', err.message)
       return response.internalServerError({ error: 'Đặt hàng thất bại: ' + err.message })
+    }
+  }
+
+  // ══════════════════════════════════════
+  //  i18n Public API
+  // ══════════════════════════════════════
+
+  /** GET /api/storefront/languages — Active languages */
+  async languages({ response }: HttpContext) {
+    try {
+      const langs = await db.from('languages')
+        .where('is_active', true)
+        .orderBy('sort', 'asc')
+        .select('id', 'code', 'name', 'icon', 'is_default')
+      return response.json(langs)
+    } catch {
+      return response.json([])
+    }
+  }
+
+  /** GET /api/storefront/translations/:langCode — UI translations for a language */
+  async translations({ params, response }: HttpContext) {
+    try {
+      const lang = await db.from('languages').where('code', params.langCode).first()
+      if (!lang) return response.json({})
+
+      const rows = await db.from('language_translations')
+        .where('language_id', lang.id)
+        .select('group', 'key', 'value')
+
+      // Build flat object: { "storefront.home": "Home", ... }
+      const translations: Record<string, string> = {}
+      for (const r of rows) {
+        translations[`${r.group}.${r.key}`] = r.value
+      }
+      return response.json(translations)
+    } catch {
+      return response.json({})
+    }
+  }
+
+  /** GET /api/storefront/theme — Theme settings (public) */
+  async theme({ response }: HttpContext) {
+    try {
+      const rows = await db.from('system_configs')
+        .where('group_name', 'theme')
+        .select('key', 'value')
+      const config: Record<string, string> = {}
+      for (const r of rows) {
+        config[r.key] = r.value
+      }
+      return response.json(config)
+    } catch {
+      return response.json({})
     }
   }
 }

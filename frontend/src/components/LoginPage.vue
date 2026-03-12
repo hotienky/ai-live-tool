@@ -124,13 +124,13 @@ async function onSubmit() {
 
 .login-card {
   width: 420px;
-  background: rgba(25,25,35,0.85);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset;
+  box-shadow: var(--shadow-elevated);
   position: relative;
   z-index: 1;
 }

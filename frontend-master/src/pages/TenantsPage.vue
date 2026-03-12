@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-white mb-1">Quản lý Tenants</h1>
-        <p class="text-surface-400 text-sm">{{ total }} tenant trong hệ thống</p>
+        <h1 class="mp-heading">Quản lý Tenants</h1>
+        <p class="mp-subheading">{{ total }} tenant trong hệ thống</p>
       </div>
       <router-link to="/tenants/new" class="btn-primary flex items-center gap-2">
         <Plus :size="18" /> Tạo Tenant
@@ -18,34 +18,33 @@
 
     <!-- Table -->
     <div class="card overflow-hidden">
-      <div v-if="loading" class="p-8 text-center text-surface-400">Đang tải...</div>
-      <div v-else-if="list.length === 0" class="p-8 text-center text-surface-400">Không tìm thấy tenant</div>
+      <div v-if="loading" class="p-8 text-center mp-text-muted">Đang tải...</div>
+      <div v-else-if="list.length === 0" class="p-8 text-center mp-text-muted">Không tìm thấy tenant</div>
       <table v-else class="w-full">
         <thead>
-          <tr class="border-b border-surface-700/30">
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Tenant</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Database</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Owner</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Trạng thái</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Gói</th>
-            <th class="text-right text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Hành động</th>
+          <tr class="mp-table-border">
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Tenant</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Database</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Owner</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Trạng thái</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Gói</th>
+            <th class="text-right text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Hành động</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="t in list" :key="t.id"
-              class="border-b border-surface-800/50 hover:bg-surface-800/40 transition-colors">
+          <tr v-for="t in list" :key="t.id" class="mp-table-row">
             <td class="px-5 py-3">
               <router-link :to="`/tenants/${t.id}`" class="block">
-                <p class="text-sm font-medium text-white hover:text-primary-400 transition-colors">{{ t.name }}</p>
-                <p class="text-xs text-surface-400">{{ t.slug }}.{{ baseDomain }}</p>
+                <p class="text-sm font-medium mp-text-primary hover:text-primary-400 transition-colors">{{ t.name }}</p>
+                <p class="text-xs mp-text-muted">{{ t.slug }}.{{ baseDomain }}</p>
               </router-link>
             </td>
-            <td class="px-5 py-3 text-sm text-surface-300 font-mono text-xs">{{ t.db_name }}</td>
-            <td class="px-5 py-3 text-sm text-surface-300">{{ t.owner_email }}</td>
+            <td class="px-5 py-3 text-sm mp-text-secondary font-mono text-xs">{{ t.db_name }}</td>
+            <td class="px-5 py-3 text-sm mp-text-secondary">{{ t.owner_email }}</td>
             <td class="px-5 py-3">
               <span :class="statusClass(t.status)">{{ t.status }}</span>
             </td>
-            <td class="px-5 py-3 text-sm text-surface-300 capitalize">{{ t.plan }}</td>
+            <td class="px-5 py-3 text-sm mp-text-secondary capitalize">{{ t.plan }}</td>
             <td class="px-5 py-3 text-right">
               <div class="flex items-center justify-end gap-1">
                 <a :href="getTenantUrl(t.slug)" target="_blank" class="btn-ghost text-xs px-2 py-1 text-primary-400 hover:text-primary-300" title="Truy cập tenant">
@@ -73,8 +72,8 @@
       </table>
 
       <!-- Pagination -->
-      <div v-if="lastPage > 1" class="px-5 py-3 border-t border-surface-700/30 flex items-center justify-between">
-        <p class="text-sm text-surface-400">Trang {{ page }} / {{ lastPage }}</p>
+      <div v-if="lastPage > 1" class="px-5 py-3 mp-table-border-top flex items-center justify-between">
+        <p class="text-sm mp-text-muted">Trang {{ page }} / {{ lastPage }}</p>
         <div class="flex gap-2">
           <button @click="page > 1 && (page--, loadTenants())" :disabled="page <= 1" class="btn-ghost text-xs px-3 py-1">← Trước</button>
           <button @click="page < lastPage && (page++, loadTenants())" :disabled="page >= lastPage" class="btn-ghost text-xs px-3 py-1">Sau →</button>
@@ -84,10 +83,10 @@
 
     <!-- Confirm Modal -->
     <Teleport to="body">
-      <div v-if="confirmModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" @click.self="confirmModal = null">
+      <div v-if="confirmModal" class="fixed inset-0 mp-overlay z-50 flex items-center justify-center p-4" @click.self="confirmModal = null">
         <div class="card p-6 max-w-sm w-full">
-          <h3 class="text-lg font-semibold text-white mb-2">{{ confirmModal.title }}</h3>
-          <p class="text-sm text-surface-300 mb-5">{{ confirmModal.message }}</p>
+          <h3 class="text-lg font-semibold mp-text-primary mb-2">{{ confirmModal.title }}</h3>
+          <p class="text-sm mp-text-secondary mb-5">{{ confirmModal.message }}</p>
           <div class="flex justify-end gap-2">
             <button @click="confirmModal = null" class="btn-ghost text-sm">Hủy</button>
             <button @click="confirmModal.action()" :class="confirmModal.danger ? 'btn-danger' : 'btn-primary'" class="text-sm">
@@ -193,3 +192,16 @@ function getCmsUrl(slug) {
 
 onMounted(loadTenants)
 </script>
+
+<style scoped>
+.mp-heading { font-size: 1.5rem; font-weight: 700; color: var(--mp-text-primary); margin-bottom: 4px; }
+.mp-subheading { font-size: 0.875rem; color: var(--mp-text-muted); }
+.mp-text-primary { color: var(--mp-text-primary); }
+.mp-text-secondary { color: var(--mp-text-secondary); }
+.mp-text-muted { color: var(--mp-text-muted); }
+.mp-table-border { border-bottom: 1px solid var(--mp-border); }
+.mp-table-border-top { border-top: 1px solid var(--mp-border); }
+.mp-table-row { border-bottom: 1px solid var(--mp-border); cursor: pointer; transition: background 0.15s; }
+.mp-table-row:hover { background: var(--mp-nav-hover-bg); }
+.mp-overlay { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+</style>

@@ -1,47 +1,46 @@
 <template>
-  <div class="min-h-screen bg-surface-950 flex">
+  <div class="mp-layout">
     <!-- Sidebar -->
-    <aside class="w-64 glass border-r border-surface-700/30 flex flex-col fixed h-full z-10">
+    <aside class="mp-sidebar">
       <!-- Logo -->
-      <div class="p-5 border-b border-surface-700/30">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-            <component :is="icons.Shield" :size="20" class="text-white" />
-          </div>
-          <div>
-            <h1 class="text-sm font-bold text-white">Master Panel</h1>
-            <p class="text-[10px] text-surface-400 uppercase tracking-wider">Multi-Tenant</p>
-          </div>
+      <div class="mp-sidebar__brand">
+        <div class="mp-sidebar__logo-icon">
+          <component :is="icons.Shield" :size="20" />
+        </div>
+        <div>
+          <h1 class="mp-sidebar__title">Master Panel</h1>
+          <p class="mp-sidebar__subtitle">Multi-Tenant</p>
         </div>
       </div>
 
       <!-- Nav -->
-      <nav class="flex-1 p-3 space-y-1">
+      <nav class="mp-sidebar__nav">
         <router-link
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200"
-          :class="$route.path === item.to
-            ? 'bg-primary-600/15 text-primary-400 border border-primary-500/20'
-            : 'text-surface-300 hover:bg-surface-700/40 hover:text-white'"
+          class="mp-sidebar__link"
+          :class="{ 'mp-sidebar__link--active': $route.path === item.to }"
         >
           <component :is="item.icon" :size="18" />
           {{ item.label }}
         </router-link>
       </nav>
 
-      <!-- User -->
-      <div class="p-3 border-t border-surface-700/30">
-        <div class="flex items-center gap-3 px-3 py-2">
-          <div class="w-8 h-8 rounded-full bg-primary-600/30 flex items-center justify-center text-primary-400 text-xs font-bold">
-            {{ user?.name?.charAt(0) || 'A' }}
+      <!-- Bottom: Theme Toggle + User -->
+      <div class="mp-sidebar__footer">
+        <button class="mp-theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
+          <Sun v-if="isDark" :size="16" />
+          <Moon v-else :size="16" />
+          <span>{{ isDark ? 'Sáng' : 'Tối' }}</span>
+        </button>
+        <div class="mp-sidebar__user">
+          <div class="mp-sidebar__avatar">{{ user?.name?.charAt(0) || 'A' }}</div>
+          <div class="mp-sidebar__user-info">
+            <p class="mp-sidebar__user-name">{{ user?.name }}</p>
+            <p class="mp-sidebar__user-email">{{ user?.email }}</p>
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-white truncate">{{ user?.name }}</p>
-            <p class="text-xs text-surface-400 truncate">{{ user?.email }}</p>
-          </div>
-          <button @click="handleLogout" class="text-surface-400 hover:text-red-400 transition-colors">
+          <button @click="handleLogout" class="mp-sidebar__logout" title="Đăng xuất">
             <component :is="icons.LogOut" :size="16" />
           </button>
         </div>
@@ -49,15 +48,15 @@
     </aside>
 
     <!-- Main -->
-    <main class="flex-1 ml-64 min-h-screen">
+    <main class="mp-main">
       <router-view />
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { LayoutDashboard, Building2, Shield, LogOut } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon } from 'lucide-vue-next'
 import { getStoredUser, logout } from '../services/api.js'
 
 const icons = { LayoutDashboard, Building2, Shield, LogOut }
@@ -68,7 +67,205 @@ const navItems = [
   { to: '/tenants', label: 'Tenants', icon: Building2 },
 ]
 
+const isDark = ref(true)
+
+function applyTheme(mode) {
+  document.documentElement.setAttribute('data-theme', mode)
+  localStorage.setItem('master-theme', mode)
+}
+
+function toggleTheme() {
+  isDark.value = !isDark.value
+  applyTheme(isDark.value ? 'dark' : 'light')
+}
+
+onMounted(() => {
+  const saved = localStorage.getItem('master-theme') || 'dark'
+  isDark.value = saved === 'dark'
+  applyTheme(saved)
+})
+
 function handleLogout() {
   logout()
 }
 </script>
+
+<style scoped>
+.mp-layout {
+  min-height: 100vh;
+  display: flex;
+  background: var(--mp-bg-primary);
+}
+
+/* ── Sidebar ── */
+.mp-sidebar {
+  width: 256px;
+  position: fixed;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--mp-bg-sidebar);
+  backdrop-filter: blur(12px);
+  border-right: 1px solid var(--mp-border);
+  z-index: 10;
+  transition: background 0.3s ease;
+}
+
+.mp-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid var(--mp-border);
+}
+
+.mp-sidebar__logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1a6df5, #0d52d9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.mp-sidebar__title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--mp-text-primary);
+  margin: 0;
+}
+
+.mp-sidebar__subtitle {
+  font-size: 10px;
+  color: var(--mp-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.mp-sidebar__nav {
+  flex: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mp-sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mp-text-secondary);
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.mp-sidebar__link:hover {
+  background: var(--mp-nav-hover-bg);
+  color: var(--mp-text-primary);
+}
+.mp-sidebar__link--active {
+  background: var(--mp-nav-active-bg);
+  color: var(--mp-nav-active-text);
+  border-color: var(--mp-nav-active-border);
+  font-weight: 600;
+}
+
+/* ── Sidebar Footer ── */
+.mp-sidebar__footer {
+  border-top: 1px solid var(--mp-border);
+  padding: 8px 12px 12px;
+}
+
+.mp-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: var(--mp-bg-input);
+  border: 1px solid var(--mp-border);
+  color: var(--mp-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mp-theme-toggle:hover {
+  background: var(--mp-nav-hover-bg);
+  color: var(--mp-text-primary);
+}
+
+.mp-sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
+.mp-sidebar__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--mp-avatar-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--mp-avatar-text);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mp-sidebar__user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mp-sidebar__user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--mp-text-primary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-sidebar__user-email {
+  font-size: 11px;
+  color: var(--mp-text-muted);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-sidebar__logout {
+  background: none;
+  border: none;
+  color: var(--mp-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+.mp-sidebar__logout:hover {
+  color: #ef4444;
+}
+
+/* ── Main ── */
+.mp-main {
+  flex: 1;
+  margin-left: 256px;
+  min-height: 100vh;
+}
+</style>

@@ -1,19 +1,19 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-surface-950 relative overflow-hidden">
+  <div class="mp-login">
     <!-- Background decoration -->
-    <div class="absolute inset-0 pointer-events-none">
-      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/8 rounded-full blur-3xl"></div>
-      <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-primary-500/5 rounded-full blur-3xl"></div>
+    <div class="mp-login__bg">
+      <div class="mp-login__glow mp-login__glow--1"></div>
+      <div class="mp-login__glow mp-login__glow--2"></div>
     </div>
 
-    <div class="card w-full max-w-md mx-4 p-8 relative z-10">
+    <div class="card mp-login__card">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="w-14 h-14 mx-auto rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center mb-4">
-          <component :is="Shield" :size="28" class="text-white" />
+        <div class="mp-login__icon">
+          <component :is="Shield" :size="28" />
         </div>
-        <h1 class="text-xl font-bold text-white">Master Panel</h1>
-        <p class="text-sm text-surface-400 mt-1">Multi-Tenant Management System</p>
+        <h1 class="mp-login__title">Master Panel</h1>
+        <p class="mp-login__subtitle">Multi-Tenant Management System</p>
       </div>
 
       <!-- Error -->
@@ -24,11 +24,11 @@
       <!-- Form -->
       <form @submit.prevent="handleLogin" class="space-y-4">
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Email</label>
+          <label class="mp-login__label">Email</label>
           <input v-model="email" type="email" class="input" placeholder="admin@master.com" required autofocus />
         </div>
         <div>
-          <label class="block text-sm text-surface-300 mb-1.5">Password</label>
+          <label class="mp-login__label">Password</label>
           <input v-model="password" type="password" class="input" placeholder="••••••••" required />
         </div>
         <button type="submit" :disabled="loading" class="btn-primary w-full flex items-center justify-center gap-2 py-2.5">
@@ -65,3 +65,49 @@ async function handleLogin() {
   }
 }
 </script>
+
+<style scoped>
+.mp-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mp-bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+.mp-login__bg { position: absolute; inset: 0; pointer-events: none; }
+.mp-login__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+.mp-login__glow--1 {
+  top: 25%; left: 25%; width: 384px; height: 384px;
+  background: rgba(13, 82, 217, 0.06);
+}
+.mp-login__glow--2 {
+  bottom: 25%; right: 25%; width: 320px; height: 320px;
+  background: rgba(26, 109, 245, 0.04);
+}
+.mp-login__card {
+  width: 100%; max-width: 420px; margin: 0 16px; padding: 32px;
+  position: relative; z-index: 10;
+}
+.mp-login__icon {
+  width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 12px;
+  background: linear-gradient(135deg, #1a6df5, #0d52d9);
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.mp-login__title {
+  font-size: 1.25rem; font-weight: 700;
+  color: var(--mp-text-primary); margin: 0;
+}
+.mp-login__subtitle {
+  font-size: 0.875rem; color: var(--mp-text-muted); margin-top: 4px;
+}
+.mp-login__label {
+  display: block; font-size: 0.875rem;
+  color: var(--mp-text-secondary); margin-bottom: 6px;
+}
+</style>

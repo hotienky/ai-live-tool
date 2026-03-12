@@ -17,6 +17,9 @@ export function registerStorefrontRoutes() {
     router.get('/pages/:id', [StorefrontController, 'pageDetail'])
     router.get('/info', [StorefrontController, 'storeInfo'])
     router.post('/checkout', [StorefrontController, 'checkout'])
+    router.get('/languages', [StorefrontController, 'languages'])
+    router.get('/translations/:langCode', [StorefrontController, 'translations'])
+    router.get('/theme', [StorefrontController, 'theme'])
   }).prefix('/api/storefront')
 
   // Legacy backward-compat

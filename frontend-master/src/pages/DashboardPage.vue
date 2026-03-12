@@ -2,8 +2,8 @@
   <div class="p-6 lg:p-8">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-2xl font-bold text-white mb-1">Dashboard</h1>
-      <p class="text-surface-400 text-sm">Tổng quan hệ thống multi-tenant</p>
+      <h1 class="mp-heading">Dashboard</h1>
+      <p class="mp-subheading">Tổng quan hệ thống multi-tenant</p>
     </div>
 
     <!-- Stats Grid -->
@@ -11,8 +11,8 @@
       <div v-for="stat in stats" :key="stat.label" class="card p-5 group hover:border-primary-500/30 transition-all">
         <div class="flex items-start justify-between">
           <div>
-            <p class="text-sm text-surface-400 mb-1">{{ stat.label }}</p>
-            <p class="text-2xl font-bold text-white">{{ stat.value }}</p>
+            <p class="text-sm mp-text-muted mb-1">{{ stat.label }}</p>
+            <p class="text-2xl font-bold mp-text-primary">{{ stat.value }}</p>
           </div>
           <div class="w-10 h-10 rounded-lg flex items-center justify-center" :class="stat.bgClass">
             <component :is="stat.icon" :size="20" :class="stat.iconClass" />
@@ -23,38 +23,38 @@
 
     <!-- Recent Tenants Table -->
     <div class="card">
-      <div class="p-5 border-b border-surface-700/30 flex items-center justify-between">
-        <h2 class="text-lg font-semibold text-white">Tenants gần đây</h2>
+      <div class="p-5 mp-table-border flex items-center justify-between">
+        <h2 class="text-lg font-semibold mp-text-primary">Tenants gần đây</h2>
         <router-link to="/tenants" class="text-sm text-primary-400 hover:text-primary-300 transition-colors">
           Xem tất cả →
         </router-link>
       </div>
-      <div v-if="loading" class="p-8 text-center text-surface-400">Đang tải...</div>
-      <div v-else-if="recentTenants.length === 0" class="p-8 text-center text-surface-400">Chưa có tenant nào</div>
+      <div v-if="loading" class="p-8 text-center mp-text-muted">Đang tải...</div>
+      <div v-else-if="recentTenants.length === 0" class="p-8 text-center mp-text-muted">Chưa có tenant nào</div>
       <table v-else class="w-full">
         <thead>
-          <tr class="border-b border-surface-700/30">
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Tenant</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Trạng thái</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Gói</th>
-            <th class="text-left text-xs font-medium text-surface-400 uppercase tracking-wider px-5 py-3">Ngày tạo</th>
+          <tr class="mp-table-border">
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Tenant</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Trạng thái</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Gói</th>
+            <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Ngày tạo</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="t in recentTenants" :key="t.id"
-              class="border-b border-surface-800/50 hover:bg-surface-800/40 transition-colors cursor-pointer"
+              class="mp-table-row"
               @click="$router.push(`/tenants/${t.id}`)">
             <td class="px-5 py-3">
               <div>
-                <p class="text-sm font-medium text-white">{{ t.name }}</p>
-                <p class="text-xs text-surface-400">{{ t.slug }}.domain.com</p>
+                <p class="text-sm font-medium mp-text-primary">{{ t.name }}</p>
+                <p class="text-xs mp-text-muted">{{ t.slug }}.domain.com</p>
               </div>
             </td>
             <td class="px-5 py-3">
               <span :class="statusClass(t.status)">{{ t.status }}</span>
             </td>
-            <td class="px-5 py-3 text-sm text-surface-300 capitalize">{{ t.plan }}</td>
-            <td class="px-5 py-3 text-sm text-surface-400">{{ formatDate(t.created_at) }}</td>
+            <td class="px-5 py-3 text-sm mp-text-secondary capitalize">{{ t.plan }}</td>
+            <td class="px-5 py-3 text-sm mp-text-muted">{{ formatDate(t.created_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -101,3 +101,18 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.mp-heading { font-size: 1.5rem; font-weight: 700; color: var(--mp-text-primary); margin-bottom: 4px; }
+.mp-subheading { font-size: 0.875rem; color: var(--mp-text-muted); }
+.mp-text-primary { color: var(--mp-text-primary); }
+.mp-text-secondary { color: var(--mp-text-secondary); }
+.mp-text-muted { color: var(--mp-text-muted); }
+.mp-table-border { border-bottom: 1px solid var(--mp-border); }
+.mp-table-row {
+  border-bottom: 1px solid var(--mp-border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mp-table-row:hover { background: var(--mp-nav-hover-bg); }
+</style>
