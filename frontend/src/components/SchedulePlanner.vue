@@ -144,7 +144,7 @@ const { showToast } = useToast()
 const emit = defineEmits(['startLive'])
 
 const props = defineProps({
-  /* tenant-scoped */,
+  // tenant-scoped
 })
 
 const schedules = ref([])

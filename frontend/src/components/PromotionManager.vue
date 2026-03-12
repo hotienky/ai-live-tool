@@ -24,7 +24,7 @@
           </div>
           <div class="form-group">
             <label>Giá KM</label>
-            <input v-model.number="promoForm.pricePromotion" type="number" placeholder="0" />
+            <CurrencyInput v-model="promoForm.pricePromotion" placeholder="0" input-class="form-input" />
           </div>
         </div>
         <div class="form-row">
@@ -102,6 +102,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { usePromotions } from '../composables/usePromotions.js'
 import { useToast } from '../composables/useToast.js'
 import { Tag } from 'lucide-vue-next'
+import CurrencyInput from './CurrencyInput.vue'
 const { showToast } = useToast()
 const { promotions, coupons, loading, fetchPromotions, savePromotion, deletePromotion, fetchCoupons, createCoupon, updateCoupon, deleteCoupon } = usePromotions(apiFetch)
 

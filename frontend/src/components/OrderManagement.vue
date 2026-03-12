@@ -250,7 +250,7 @@ import { Package, CheckCircle, Truck, XCircle, Hourglass, FileEdit, ShoppingBag,
 const { showToast } = useToast()
 
 const props = defineProps({
-  /* tenant-scoped */,
+  // tenant-scoped
   prefillOrder: { type: Object, default: null },
 })
 const emit = defineEmits(['create-shipment'])

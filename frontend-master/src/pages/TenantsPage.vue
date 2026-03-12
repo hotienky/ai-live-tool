@@ -37,7 +37,7 @@
             <td class="px-5 py-3">
               <router-link :to="`/tenants/${t.id}`" class="block">
                 <p class="text-sm font-medium text-white hover:text-primary-400 transition-colors">{{ t.name }}</p>
-                <p class="text-xs text-surface-400">{{ t.slug }}.domain.com</p>
+                <p class="text-xs text-surface-400">{{ t.slug }}.{{ baseDomain }}</p>
               </router-link>
             </td>
             <td class="px-5 py-3 text-sm text-surface-300 font-mono text-xs">{{ t.db_name }}</td>
@@ -48,6 +48,15 @@
             <td class="px-5 py-3 text-sm text-surface-300 capitalize">{{ t.plan }}</td>
             <td class="px-5 py-3 text-right">
               <div class="flex items-center justify-end gap-1">
+                <a :href="getTenantUrl(t.slug)" target="_blank" class="btn-ghost text-xs px-2 py-1 text-primary-400 hover:text-primary-300" title="Truy cập tenant">
+                  <ExternalLink :size="14" />
+                </a>
+                <a :href="getTenantUrl(t.slug, '/login')" target="_blank" class="btn-ghost text-xs px-2 py-1 text-sky-400 hover:text-sky-300" title="Đăng nhập tenant">
+                  <LogIn :size="14" />
+                </a>
+                <a :href="getCmsUrl(t.slug)" target="_blank" class="btn-ghost text-xs px-2 py-1 text-orange-400 hover:text-orange-300" title="Quản lý CMS">
+                  <LayoutDashboard :size="14" />
+                </a>
                 <button v-if="t.status === 'active'" @click.stop="handleSuspend(t)" class="btn-ghost text-xs px-2 py-1 text-amber-400 hover:text-amber-300">
                   <Pause :size="14" />
                 </button>
@@ -93,7 +102,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Plus, Pause, Play, Trash2 } from 'lucide-vue-next'
+import { Plus, Pause, Play, Trash2, ExternalLink, LogIn, LayoutDashboard } from 'lucide-vue-next'
 import { tenants } from '../services/api.js'
 
 const list = ref([])
@@ -170,6 +179,16 @@ function handleDelete(t) {
       loadTenants()
     },
   }
+}
+
+const baseDomain = import.meta.env.VITE_BASE_DOMAIN || location.hostname || 'localhost'
+
+function getTenantUrl(slug, path = '') {
+  return `${location.protocol}//${slug}.${baseDomain}${path}`
+}
+
+function getCmsUrl(slug) {
+  return `${location.protocol}//${slug}.cms.${baseDomain}`
 }
 
 onMounted(loadTenants)

@@ -7,36 +7,7 @@
         <p class="login-card__subtitle">Công cụ hỗ trợ livestream thông minh</p>
       </div>
 
-      <!-- Toggle Login / Register -->
-      <div class="login-card__tabs">
-        <button
-          class="login-card__tab"
-          :class="{ 'login-card__tab--active': mode === 'login' }"
-          @click="mode = 'login'"
-        >
-          Đăng nhập
-        </button>
-        <button
-          class="login-card__tab"
-          :class="{ 'login-card__tab--active': mode === 'register' }"
-          @click="mode = 'register'"
-        >
-          Đăng ký
-        </button>
-      </div>
-
       <form @submit.prevent="onSubmit" class="login-card__form">
-        <!-- Name (register only) -->
-        <div class="login-card__field" v-if="mode === 'register'">
-          <label><User :size="14" /> Tên hiển thị</label>
-          <input
-            v-model="name"
-            type="text"
-            placeholder="Nhập tên của bạn..."
-            class="login-card__input"
-          />
-        </div>
-
         <!-- Email -->
         <div class="login-card__field">
           <label><Mail :size="14" /> Email</label>
@@ -56,10 +27,9 @@
             <input
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Tối thiểu 6 ký tự"
+              placeholder="Nhập mật khẩu"
               class="login-card__input"
               required
-              minlength="6"
             />
             <button
               type="button"
@@ -86,16 +56,9 @@
         >
           <Loader2 v-if="loading" :size="16" class="spin" />
           <LogIn v-else :size="16" />
-          {{ mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản' }}
+          Đăng nhập
         </button>
       </form>
-
-      <p class="login-card__footer">
-        {{ mode === 'login' ? 'Chưa có tài khoản?' : 'Đã có tài khoản?' }}
-        <a href="#" @click.prevent="mode = mode === 'login' ? 'register' : 'login'">
-          {{ mode === 'login' ? 'Đăng ký ngay' : 'Đăng nhập' }}
-        </a>
-      </p>
     </div>
   </div>
 </template>
@@ -104,27 +67,20 @@
 import { ref } from 'vue'
 import { useAuth } from '../composables/useAuth.js'
 import {
-  Rocket, User, Mail, Lock, Eye, EyeOff,
+  Rocket, Mail, Lock, Eye, EyeOff,
   AlertCircle, Loader2, LogIn
 } from 'lucide-vue-next'
 
 const emit = defineEmits(['loginSuccess'])
 
-const { login, register, loading, error } = useAuth()
+const { login, loading, error } = useAuth()
 
-const mode = ref('login') // 'login' | 'register'
 const email = ref('')
 const password = ref('')
-const name = ref('')
 const showPassword = ref(false)
 
 async function onSubmit() {
-  let success
-  if (mode.value === 'login') {
-    success = await login(email.value, password.value)
-  } else {
-    success = await register(email.value, password.value, name.value)
-  }
+  const success = await login(email.value, password.value)
   if (success) emit('loginSuccess')
 }
 </script>

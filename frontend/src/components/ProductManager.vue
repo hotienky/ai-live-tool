@@ -103,11 +103,11 @@
         <div class="form-row">
           <div class="form-group">
             <label>Giá *</label>
-            <input v-model.number="form.price" type="number" placeholder="0" />
+            <CurrencyInput v-model="form.price" placeholder="0" input-class="form-input" />
           </div>
           <div class="form-group">
             <label>Giá khuyến mãi</label>
-            <input v-model.number="form.promotion_price" type="number" placeholder="0" />
+            <CurrencyInput v-model="form.promotion_price" placeholder="0" input-class="form-input" />
           </div>
           <div class="form-group">
             <label>Số lượng tồn</label>
@@ -176,6 +176,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { ShoppingBag, Search, Package, Minus, Plus, Edit3, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import CurrencyInput from './CurrencyInput.vue'
 
 const { showToast } = useToast()
 const props = defineProps({ /* tenant-scoped */ })

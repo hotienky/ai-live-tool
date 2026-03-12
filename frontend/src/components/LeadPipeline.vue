@@ -191,7 +191,7 @@ import {
 import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
-  /* tenant-scoped */,
+  // tenant-scoped
 })
 
 const { leads, leadStats, loading, fetchLeads, fetchLeadStats, updateLead } = useLeads()

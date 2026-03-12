@@ -131,11 +131,11 @@
           </div>
           <div class="form-group">
             <label>Giá bán (VNĐ)</label>
-            <input type="number" v-model.number="productForm.price" placeholder="0" />
+            <CurrencyInput v-model="productForm.price" placeholder="0" />
           </div>
           <div class="form-group">
             <label>Giá nhập (VNĐ)</label>
-            <input type="number" v-model.number="productForm.costPrice" placeholder="0" />
+            <CurrencyInput v-model="productForm.costPrice" placeholder="0" />
           </div>
           <div class="form-group">
             <label>Tồn kho</label>
@@ -174,7 +174,7 @@
             <div v-for="(v, i) in variants" :key="v.id || i" class="variant-row" style="display:grid;grid-template-columns:1fr 100px 100px 80px 40px;gap:8px;align-items:center;margin-bottom:6px">
               <input v-model="v.name" placeholder="Tên (VD: Đỏ - XL)" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
               <input v-model="v.sku" placeholder="SKU" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
-              <input v-model.number="v.price" type="number" placeholder="Giá" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <CurrencyInput v-model="v.price" placeholder="Giá" suffix="" />
               <input v-model.number="v.stock" type="number" placeholder="Kho" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
               <button @click="deleteVariant(v, i)" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:6px;cursor:pointer" title="Xóa"><Trash2 :size="14" /></button>
             </div>
@@ -310,6 +310,7 @@ import {
   AlertTriangle, XCircle, DollarSign, Download, Upload,
   ChevronLeft, ChevronRight, Layers
 } from 'lucide-vue-next'
+import CurrencyInput from './CurrencyInput.vue'
 const { showToast } = useToast()
 
 const props = defineProps({ /* tenant-scoped */ })

@@ -1,17 +1,28 @@
 import db from '@adonisjs/lucid/services/db'
+import { scryptSync, randomBytes } from 'node:crypto'
+
+/**
+ * Hash password using Node.js scrypt — matches AdonisJS scrypt driver PHC format.
+ */
+function hashPassword(password: string): string {
+  const salt = randomBytes(16)
+  const derived = scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 })
+  return `$scrypt$n=16384,r=8,p=1$${salt.toString('base64').replace(/=/g, '')}$${derived.toString('base64').replace(/=/g, '')}`
+}
 
 /**
  * TenantService — Manages tenant lifecycle: create, migrate, seed, suspend, delete.
  */
 export default class TenantService {
   /**
-   * Create a new tenant: insert into master DB + create PostgreSQL database
+   * Create a new tenant: insert into master DB + create PostgreSQL database + seed owner
    */
   static async createTenant(data: {
     name: string
     slug: string
     ownerEmail: string
     ownerName?: string
+    ownerPassword?: string
     plan?: string
   }) {
     const dbName = `tenant_${data.slug}`
@@ -31,11 +42,34 @@ export default class TenantService {
       .returning('*')
 
     // 2. Create the PostgreSQL database for this tenant
-    // Use raw connection to avoid transaction issues with CREATE DATABASE
     await db.rawQuery(`CREATE DATABASE "${dbName}" OWNER postgres`)
 
     // 3. Run tenant migrations on the new DB
     await this.migrateTenant(data.slug, dbName)
+
+    // 4. Seed owner as admin user in tenant DB
+    const ownerPassword = data.ownerPassword || 'Admin@123'
+    const hashedPassword = hashPassword(ownerPassword)
+    
+    const connectionName = `seed_owner_${data.slug}`
+    db.manager.patch(connectionName, {
+      client: 'pg',
+      connection: {
+        host: process.env.DB_HOST || 'localhost',
+        port: Number(process.env.DB_PORT || '5432'),
+        user: process.env.DB_USER || 'postgres',
+        password: process.env.DB_PASSWORD || 'postgres',
+        database: dbName,
+      },
+    })
+    const conn = db.connection(connectionName)
+    await conn.rawQuery(
+      `INSERT INTO users (name, full_name, email, password, role)
+       VALUES (?, ?, ?, ?, 'admin')
+       ON CONFLICT (email) DO NOTHING`,
+      [data.ownerName || data.name, data.ownerName || data.name, data.ownerEmail, hashedPassword]
+    )
+    await db.manager.close(connectionName)
 
     return tenant
   }
