@@ -187,7 +187,7 @@ const allImages = computed(() => {
   if (!product.value) return []
   const imgs = new Set()
   // Main image
-  if (product.value.image) imgs.add(product.value.image)
+  if (product.value.image_url) imgs.add(product.value.image_url)
   // Additional images
   const extra = product.value.images
   if (extra) {

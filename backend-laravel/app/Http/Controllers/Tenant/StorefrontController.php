@@ -69,7 +69,7 @@ class StorefrontController extends Controller
 
     public function pageDetail($slug)
     {
-        $page = $this->cmsPageRepo->findBy('slug', $slug);
+        $page = $this->cmsPageRepo->findBy('alias', $slug);
         return $page ? $this->successResponse($page) : $this->notFoundResponse('Page not found');
     }
 

@@ -68,7 +68,7 @@
         <router-link
           v-for="pg in pages"
           :key="pg.id"
-          :to="`/page/${pg.slug || pg.id}`"
+          :to="`/page/${pg.alias || pg.id}`"
           class="home-page-card"
         >
           <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="home-page-card__img" />

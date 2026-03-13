@@ -6,6 +6,16 @@
 const API_BASE = '/api/storefront'
 
 /**
+ * Unwrap API envelope: { type: "success", data: ... } → data
+ */
+function unwrap(json) {
+  if (json && typeof json === 'object' && 'data' in json && json.type) {
+    return json.data
+  }
+  return json
+}
+
+/**
  * Fetch from storefront API (GET)
  * @param {string} path — e.g. '/products', '/categories'
  * @param {object} params — query params object
@@ -17,7 +27,7 @@ export async function apiFetch(path, params = {}) {
   }
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error(`API ${res.status}`)
-  return res.json()
+  return unwrap(await res.json())
 }
 
 /**
@@ -32,7 +42,8 @@ export async function apiPost(path, body = {}) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-  return data
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || json.message || `HTTP ${res.status}`)
+  return unwrap(json)
 }
+

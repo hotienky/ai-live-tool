@@ -1,7 +1,7 @@
 <template>
   <router-link :to="`/product/${product.slug || product.sku || product.id}`" class="product-card">
     <div class="product-card__image">
-      <img v-if="product.image" :src="product.image" :alt="product.name" loading="lazy" />
+      <img v-if="product.image_url" :src="product.image_url" :alt="product.name" loading="lazy" />
       <div v-else class="product-card__placeholder">
         <Package :size="40" />
       </div>

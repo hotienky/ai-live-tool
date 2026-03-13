@@ -160,7 +160,7 @@ async function loadProducts() {
     if (search.value) params.set('search', search.value)
     if (selectedCat.value) params.set('category', selectedCat.value)
     const data = await sfApiFetch(`/products?${params}`)
-    products.value = data.data || data
+    products.value = Array.isArray(data) ? data : (data.data || data)
     totalProducts.value = data.meta?.total || products.value.length
     totalPages.value = data.meta?.lastPage || data.meta?.last_page || 1
   } catch { products.value = [] }

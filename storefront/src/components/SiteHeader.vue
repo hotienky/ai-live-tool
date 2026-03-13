@@ -15,10 +15,6 @@
         <router-link :to="'/products'" class="site-header__link" active-class="active">
           <ShoppingBag :size="16" /> Sản phẩm
         </router-link>
-        <router-link :to="'/cart'" class="site-header__link site-header__cart" active-class="active">
-          <ShoppingCart :size="16" />
-          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
-        </router-link>
       </nav>
 
       <!-- Search -->
@@ -37,40 +33,49 @@
         </button>
       </div>
 
-      <!-- Auth Link (right side) -->
-      <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
-        <User :size="16" />
-        <span>Tài khoản</span>
-      </router-link>
-      <router-link v-else :to="'/auth'" class="site-header__auth-btn">
-        <User :size="16" />
-        <span>Đăng nhập</span>
-      </router-link>
-
-      <!-- Language Switcher -->
-      <div class="lang-switcher" v-if="i18nLanguages.length > 1">
-        <button class="lang-switcher__btn" @click="langOpen = !langOpen">
-          <Globe :size="14" />
-          <span>{{ currentLang.toUpperCase() }}</span>
-        </button>
-        <div v-if="langOpen" class="lang-switcher__dropdown">
-          <button
-            v-for="lang in i18nLanguages" :key="lang.code"
-            class="lang-switcher__item"
-            :class="{ active: lang.code === currentLang }"
-            @click="switchLang(lang.code)"
-          >
-            <span v-if="lang.icon" class="lang-icon">{{ lang.icon }}</span>
-            {{ lang.name }}
+      <!-- Right side: Language → Cart → Auth → Theme -->
+      <div class="site-header__right">
+        <!-- Language Switcher -->
+        <div class="lang-switcher" v-if="i18nLanguages.length > 1">
+          <button class="lang-switcher__btn" @click="langOpen = !langOpen">
+            <Globe :size="14" />
+            <span>{{ currentLang.toUpperCase() }}</span>
           </button>
+          <div v-if="langOpen" class="lang-switcher__dropdown">
+            <button
+              v-for="lang in i18nLanguages" :key="lang.code"
+              class="lang-switcher__item"
+              :class="{ active: lang.code === currentLang }"
+              @click="switchLang(lang.code)"
+            >
+              <span v-if="lang.icon" class="lang-icon">{{ lang.icon }}</span>
+              {{ lang.name }}
+            </button>
+          </div>
         </div>
-      </div>
 
-      <!-- Theme Toggle -->
-      <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
-        <Sun v-if="isDark" :size="16" />
-        <Moon v-else :size="16" />
-      </button>
+        <!-- Cart -->
+        <router-link :to="'/cart'" class="site-header__cart-btn" active-class="active">
+          <ShoppingCart :size="16" />
+          <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+        </router-link>
+
+        <!-- Auth -->
+        <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
+          <User :size="16" />
+          <span>Tài khoản</span>
+        </router-link>
+        <router-link v-else :to="'/auth'" class="site-header__auth-btn">
+          <User :size="16" />
+          <span>Đăng nhập</span>
+        </router-link>
+
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
+          <Sun v-if="isDark" :size="16" />
+          <Moon v-else :size="16" />
+        </button>
+      </div>
 
       <!-- Mobile menu toggle -->
       <button class="site-header__menu-btn" @click="mobileMenu = !mobileMenu">
@@ -219,7 +224,6 @@ function onSearch() {
 .site-header__search {
   flex: 1;
   max-width: 400px;
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -326,7 +330,81 @@ function onSearch() {
 .slide-leave-active { animation: slideDown 0.2s ease reverse; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Auth Button (right side) */
+@media (max-width: 768px) {
+  .site-header__nav { display: none; }
+  .site-header__search { display: none; }
+  .site-header__right .site-header__auth-btn { display: none; }
+  .site-header__right .lang-switcher { display: none; }
+  .site-header__menu-btn { display: flex; }
+}
+</style>
+<!-- Extra cart styles -->
+<style scoped>
+/* Right side group */
+.site-header__right {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+}
+
+/* Cart button (right side) */
+.site-header__cart-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: none; border: none;
+  color: var(--sf-text-secondary);
+  text-decoration: none; cursor: pointer;
+  transition: all 0.2s;
+}
+.site-header__cart-btn:hover {
+  color: var(--sf-accent, #7c3aed);
+  background: var(--sf-accent-glow);
+}
+.site-header__cart-btn.active {
+  color: var(--sf-accent-light);
+}
+
+/* Cart badge */
+.cart-badge {
+  position: absolute; top: 2px; right: 0;
+  min-width: 16px; height: 16px; line-height: 16px;
+  border-radius: 8px; background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #fff; font-size: 9px; font-weight: 800; text-align: center;
+  padding: 0 4px; pointer-events: none;
+}
+.cart-badge--mobile {
+  position: static; margin-left: auto;
+  min-width: 22px; height: 22px; line-height: 22px;
+  font-size: 11px;
+}
+
+/* Language Switcher */
+.lang-switcher { position: relative; }
+.lang-switcher__btn {
+  display: flex; align-items: center; gap: 5px;
+  background: none; border: none;
+  border-radius: 8px; padding: 6px 10px; cursor: pointer;
+  color: var(--sf-text-secondary); font-size: 12px; font-weight: 700;
+  transition: all 0.2s;
+}
+.lang-switcher__btn:hover { color: var(--sf-text-primary); background: var(--sf-bg-card-hover); }
+.lang-switcher__dropdown {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 100;
+  min-width: 160px; padding: 6px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: 10px; box-shadow: var(--sf-shadow-md);
+}
+.lang-switcher__item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 12px; border: none; border-radius: 6px;
+  background: none; color: var(--sf-text-secondary);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
+}
+.lang-switcher__item:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
+.lang-switcher__item.active { color: var(--sf-accent, #a78bfa); font-weight: 700; }
+.lang-icon { font-size: 16px; }
+
+/* Auth Button */
 .site-header__auth-btn {
   display: flex; align-items: center; gap: 6px;
   font-size: 13px; font-weight: 600;
@@ -345,60 +423,11 @@ function onSearch() {
   background: rgba(124, 58, 237, 0.06);
 }
 
-@media (max-width: 768px) {
-  .site-header__nav { display: none; }
-  .site-header__search { display: none; }
-  .site-header__auth-btn { display: none; }
-  .site-header__menu-btn { display: flex; }
-}
-</style>
-<!-- Extra cart styles -->
-<style scoped>
-.site-header__cart { position: relative; }
-.cart-badge {
-  position: absolute; top: 2px; right: 2px;
-  min-width: 18px; height: 18px; line-height: 18px;
-  border-radius: 9px; background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff; font-size: 10px; font-weight: 800; text-align: center;
-  padding: 0 4px;
-}
-.cart-badge--mobile {
-  position: static; margin-left: auto;
-  min-width: 22px; height: 22px; line-height: 22px;
-  font-size: 11px;
-}
-
-/* Language Switcher */
-.lang-switcher { position: relative; margin-left: 8px; }
-.lang-switcher__btn {
-  display: flex; align-items: center; gap: 5px;
-  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
-  border-radius: 8px; padding: 6px 12px; cursor: pointer;
-  color: var(--sf-text-secondary); font-size: 12px; font-weight: 700;
-  transition: all 0.2s;
-}
-.lang-switcher__btn:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
-.lang-switcher__dropdown {
-  position: absolute; top: calc(100% + 6px); right: 0; z-index: 100;
-  min-width: 160px; padding: 6px;
-  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
-  border-radius: 10px; box-shadow: var(--sf-shadow-md);
-}
-.lang-switcher__item {
-  display: flex; align-items: center; gap: 8px; width: 100%;
-  padding: 8px 12px; border: none; border-radius: 6px;
-  background: none; color: var(--sf-text-secondary);
-  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
-}
-.lang-switcher__item:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
-.lang-switcher__item.active { color: var(--sf-accent, #a78bfa); font-weight: 700; }
-.lang-icon { font-size: 16px; }
-
 /* Theme Toggle */
 .theme-toggle {
   display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 8px; margin-left: 6px;
-  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  width: 36px; height: 36px; border-radius: 8px;
+  background: none; border: none;
   color: var(--sf-text-secondary); cursor: pointer; transition: all 0.25s;
 }
 .theme-toggle:hover {
