@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
-
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\Category\CategoryRepositoryInterface;
 use App\Repositories\Brand\BrandRepositoryInterface;
@@ -12,9 +11,9 @@ use App\Repositories\CmsPage\CmsPageRepositoryInterface;
 use App\Repositories\Language\LanguageRepositoryInterface;
 use App\Repositories\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Order\OrderRepositoryInterface;
+use App\Repositories\SystemConfig\SystemConfigRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class StorefrontController extends Controller
 {
@@ -29,6 +28,7 @@ class StorefrontController extends Controller
         private LanguageRepositoryInterface $langRepo,
         private FlashSaleRepositoryInterface $flashSaleRepo,
         private OrderRepositoryInterface $orderRepo,
+        private SystemConfigRepositoryInterface $configRepo,
     ) {}
 
     public function products(Request $request)
@@ -41,8 +41,7 @@ class StorefrontController extends Controller
         $product = $this->productRepo->findBySlugOrId($identifier);
         if (!$product) return $this->notFoundResponse('Product not found');
 
-        $variants = DB::table('product_variants')->where('product_id', $product->id)->get();
-        $product->variants_list = $variants;
+        $product->variants_list = $this->orderRepo->getVariants($product->id);
         return $this->successResponse($product);
     }
 
@@ -76,7 +75,7 @@ class StorefrontController extends Controller
 
     public function storeInfo()
     {
-        $configs = DB::table('system_configs')->where('group', 'store')->get();
+        $configs = $this->configRepo->getByGroup('store');
         $info = [];
         foreach ($configs as $c) { $info[$c->key] = $c->value; }
         return $this->successResponse($info);
@@ -110,7 +109,7 @@ class StorefrontController extends Controller
 
     public function theme()
     {
-        $configs = DB::table('system_configs')->where('group', 'theme')->get();
+        $configs = $this->configRepo->getByGroup('theme');
         $theme = [];
         foreach ($configs as $c) { $theme[$c->key] = $c->value; }
         return $this->successResponse($theme);
@@ -143,17 +142,7 @@ class StorefrontController extends Controller
                 'status' => 'pending',
             ]);
 
-            foreach ($data['items'] as $item) {
-                DB::table('order_details')->insert([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'] ?? null,
-                    'product_name' => $item['name'] ?? '',
-                    'sku' => $item['sku'] ?? '',
-                    'price' => $item['price'] ?? 0,
-                    'quantity' => $item['qty'] ?? 1,
-                    'total' => (floatval($item['price'] ?? 0) * intval($item['qty'] ?? 1)),
-                ]);
-            }
+            $this->orderRepo->createOrderDetails($order->id, $data['items']);
 
             return $this->successResponse($order, 'Order created successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

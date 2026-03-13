@@ -37,6 +37,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Tenant\TenantRepositoryInterface::class, \App\Repositories\Tenant\TenantRepository::class);
         $this->app->bind(\App\Repositories\MasterUser\MasterUserRepositoryInterface::class, \App\Repositories\MasterUser\MasterUserRepository::class);
         $this->app->bind(\App\Repositories\Dashboard\DashboardRepositoryInterface::class, \App\Repositories\Dashboard\DashboardRepository::class);
+        $this->app->bind(\App\Repositories\SystemConfig\SystemConfigRepositoryInterface::class, \App\Repositories\SystemConfig\SystemConfigRepository::class);
     }
 
     public function boot(): void {}

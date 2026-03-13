@@ -3,11 +3,9 @@
 namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
-
 use App\Repositories\ShopCustomer\ShopCustomerRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ShopCustomersController extends Controller
 {
@@ -48,33 +46,30 @@ class ShopCustomersController extends Controller
         return $this->successResponse(null, 'Customer deleted');
     }
 
-    public function addresses($id)
+    public function listAddresses($customerId)
     {
-        return $this->successResponse(DB::table('shop_customer_addresses')->where('shop_customer_id', $id)->get());
+        return $this->successResponse($this->repo->getAddresses($customerId));
     }
 
-    public function storeAddress(Request $request, $id)
+    public function addAddress(Request $request, $customerId)
     {
         try {
-            $data = $request->all();
-            $data['shop_customer_id'] = $id;
-            $data['created_at'] = now();
-            $addrId = DB::table('shop_customer_addresses')->insertGetId($data);
-            return $this->successResponse(DB::table('shop_customer_addresses')->where('id', $addrId)->first(), 'Address created', 201);
+            $address = $this->repo->createAddress($customerId, $request->all());
+            return $this->successResponse($address, 'Address created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
 
-    public function updateAddress(Request $request, $id, $addressId)
+    public function updateAddress(Request $request, $customerId, $id)
     {
-        DB::table('shop_customer_addresses')->where('id', $addressId)->where('shop_customer_id', $id)->update($request->all());
-        return $this->successResponse(DB::table('shop_customer_addresses')->where('id', $addressId)->first(), 'Address updated');
+        $address = $this->repo->updateAddress($customerId, $id, $request->all());
+        return $this->successResponse($address, 'Address updated');
     }
 
-    public function deleteAddress($id, $addressId)
+    public function deleteAddress($customerId, $id)
     {
-        DB::table('shop_customer_addresses')->where('id', $addressId)->where('shop_customer_id', $id)->delete();
+        $this->repo->deleteAddress($customerId, $id);
         return $this->successResponse(null, 'Address deleted');
     }
 }

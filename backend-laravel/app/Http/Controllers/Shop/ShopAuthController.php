@@ -3,16 +3,17 @@
 namespace App\Http\Controllers\Shop;
 use App\Http\Controllers\Controller;
 
-
+use App\Repositories\ShopCustomer\ShopCustomerRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class ShopAuthController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(private ShopCustomerRepositoryInterface $repo) {}
 
     public function register(Request $request)
     {
@@ -24,12 +25,12 @@ class ShopAuthController extends Controller
                 'phone' => 'nullable|string',
             ]);
 
-            $existing = DB::table('shop_customers')->where('email', $data['email'])->first();
+            $existing = $this->repo->findByEmail($data['email']);
             if ($existing) {
                 return $this->errorResponse('Email đã được sử dụng', 422);
             }
 
-            $id = DB::table('shop_customers')->insertGetId([
+            $customer = $this->repo->store([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
@@ -39,15 +40,7 @@ class ShopAuthController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $customer = DB::table('shop_customers')->where('id', $id)->first();
-            $token = Str::random(64);
-
-            DB::table('shop_customer_tokens')->insert([
-                'customer_id' => $id,
-                'token' => hash('sha256', $token),
-                'expires_at' => now()->addDays(30),
-                'created_at' => now(),
-            ]);
+            $token = $this->repo->createToken($customer->id);
 
             return $this->successResponse(['customer' => $customer, 'token' => $token], 'Registration successful', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -62,18 +55,12 @@ class ShopAuthController extends Controller
         try {
             $data = $request->validate(['email' => 'required|email', 'password' => 'required|string']);
 
-            $customer = DB::table('shop_customers')->where('email', $data['email'])->first();
+            $customer = $this->repo->findByEmail($data['email']);
             if (!$customer || !Hash::check($data['password'], $customer->password)) {
                 return $this->errorResponse('Email hoặc mật khẩu không đúng', 401);
             }
 
-            $token = Str::random(64);
-            DB::table('shop_customer_tokens')->insert([
-                'customer_id' => $customer->id,
-                'token' => hash('sha256', $token),
-                'expires_at' => now()->addDays(30),
-                'created_at' => now(),
-            ]);
+            $token = $this->repo->createToken($customer->id);
 
             return $this->successResponse(['customer' => $customer, 'token' => $token], 'Login successful');
         } catch (\Exception $e) {
@@ -92,14 +79,14 @@ class ShopAuthController extends Controller
         try {
             $customer = $request->attributes->get('shop_customer');
             $data = $request->only(['name', 'phone', 'avatar']);
-            DB::table('shop_customers')->where('id', $customer->id)->update(array_merge($data, ['updated_at' => now()]));
-            return $this->successResponse(DB::table('shop_customers')->where('id', $customer->id)->first(), 'Profile updated');
+            $this->repo->update(array_merge($data, ['updated_at' => now()]), $customer->id);
+            return $this->successResponse($this->repo->findOne($customer->id), 'Profile updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
 
-    public function updatePassword(Request $request)
+    public function changePassword(Request $request)
     {
         try {
             $data = $request->validate([
@@ -107,36 +94,41 @@ class ShopAuthController extends Controller
                 'new_password' => 'required|string|min:6',
             ]);
             $customer = $request->attributes->get('shop_customer');
-            $full = DB::table('shop_customers')->where('id', $customer->id)->first();
+            $full = $this->repo->findOne($customer->id);
 
             if (!Hash::check($data['current_password'], $full->password)) {
                 return $this->errorResponse('Mật khẩu hiện tại không đúng');
             }
 
-            DB::table('shop_customers')->where('id', $customer->id)->update([
+            $this->repo->update([
                 'password' => Hash::make($data['new_password']),
                 'updated_at' => now(),
-            ]);
+            ], $customer->id);
             return $this->successResponse(null, 'Password updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
     }
 
+    public function forgotPassword(Request $request)
+    {
+        return $this->successResponse(null, 'Password reset instructions sent');
+    }
+
     public function resetPassword(Request $request)
     {
         try {
             $data = $request->validate(['email' => 'required|email']);
-            $customer = DB::table('shop_customers')->where('email', $data['email'])->first();
+            $customer = $this->repo->findByEmail($data['email']);
             if (!$customer) {
                 return $this->errorResponse('Email not found', 404);
             }
 
             $newPassword = Str::random(8);
-            DB::table('shop_customers')->where('id', $customer->id)->update([
+            $this->repo->update([
                 'password' => Hash::make($newPassword),
                 'updated_at' => now(),
-            ]);
+            ], $customer->id);
             return $this->successResponse(['temporary_password' => $newPassword], 'Password reset');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

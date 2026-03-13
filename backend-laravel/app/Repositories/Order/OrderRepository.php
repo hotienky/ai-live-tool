@@ -50,4 +50,49 @@ class OrderRepository extends BaseEloquentRepository implements OrderRepositoryI
 
         return $this->find($id);
     }
+
+    public function getDetails(int $orderId)
+    {
+        return DB::table('order_details')->where('order_id', $orderId)->get();
+    }
+
+    public function getTotals(int $orderId)
+    {
+        return DB::table('order_totals')->where('order_id', $orderId)->orderBy('sort')->get();
+    }
+
+    public function getHistory(int $orderId)
+    {
+        return DB::table('order_histories')->where('order_id', $orderId)->orderByDesc('add_date')->get();
+    }
+
+    public function getOrderStatuses()
+    {
+        return DB::table('order_statuses')->get();
+    }
+
+    public function getPaymentStatuses()
+    {
+        return DB::table('payment_statuses')->get();
+    }
+
+    public function createOrderDetails(int $orderId, array $items): void
+    {
+        foreach ($items as $item) {
+            DB::table('order_details')->insert([
+                'order_id' => $orderId,
+                'product_id' => $item['product_id'] ?? null,
+                'product_name' => $item['name'] ?? '',
+                'sku' => $item['sku'] ?? '',
+                'price' => $item['price'] ?? 0,
+                'quantity' => $item['qty'] ?? 1,
+                'total' => (floatval($item['price'] ?? 0) * intval($item['qty'] ?? 1)),
+            ]);
+        }
+    }
+
+    public function getVariants(int $productId)
+    {
+        return DB::table('product_variants')->where('product_id', $productId)->get();
+    }
 }
