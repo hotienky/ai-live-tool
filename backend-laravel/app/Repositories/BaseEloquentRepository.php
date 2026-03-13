@@ -36,7 +36,18 @@ abstract class BaseEloquentRepository implements BaseRepoInterface
                 'to' => $result->lastItem(),
                 'has_more_pages' => $result->hasMorePages(),
             ],
+            'links' => [
+                'first' => $result->url(1),
+                'last' => $result->url($result->lastPage()),
+                'prev' => $result->previousPageUrl(),
+                'next' => $result->nextPageUrl(),
+            ],
         ];
+    }
+
+    public function findWith($id, array|string $with = '')
+    {
+        return $this->model->with($with)->find($id);
     }
 
     public function store($data = [])
