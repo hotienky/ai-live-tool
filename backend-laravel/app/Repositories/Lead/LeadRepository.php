@@ -19,7 +19,7 @@ class LeadRepository extends BaseEloquentRepository implements LeadRepositoryInt
 
     public function getPipelineStats()
     {
-        return $this->model->selectRaw('status, count(*) as count, coalesce(sum(value), 0) as total_value')
+        return $this->model->selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->get();
     }

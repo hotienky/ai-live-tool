@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
-
 use App\Repositories\Shop\ShopRepositoryInterface;
+use App\Transformers\ShopTransformer;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -12,24 +12,27 @@ class ShopsController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private ShopRepositoryInterface $repo) {}
+    public function __construct(
+        private ShopRepositoryInterface $repo,
+        private ShopTransformer $transformer,
+    ) {}
 
     public function index()
     {
-        return $this->successResponse($this->repo->all());
+        return $this->successResponse($this->transformer->transformCollection($this->repo->all()));
     }
 
     public function show($id)
     {
         $shop = $this->repo->find($id);
-        return $shop ? $this->successResponse($shop) : $this->notFoundResponse('Shop not found');
+        return $shop ? $this->successResponse($this->transformer->transform($shop)) : $this->notFoundResponse('Shop not found');
     }
 
     public function store(Request $request)
     {
         try {
             $shop = $this->repo->store($request->all());
-            return $this->successResponse($shop, 'Shop created', 201);
+            return $this->successResponse($this->transformer->transform($shop), 'Shop created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -38,7 +41,7 @@ class ShopsController extends Controller
     public function update(Request $request, $id)
     {
         $this->repo->update($request->all(), $id);
-        return $this->successResponse($this->repo->find($id), 'Shop updated');
+        return $this->successResponse($this->transformer->transform($this->repo->find($id)), 'Shop updated');
     }
 
     public function destroy($id)
@@ -51,7 +54,7 @@ class ShopsController extends Controller
     {
         try {
             $shop = $this->repo->findOrCreate($request->input('platform'), $request->input('shop_id'), $request->all());
-            return $this->successResponse($shop);
+            return $this->successResponse($this->transformer->transform($shop));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -64,7 +67,7 @@ class ShopsController extends Controller
             'access_token' => $request->input('access_token'),
             'updated_at' => now(),
         ], $id);
-        return $this->successResponse($this->repo->findOne($id));
+        return $this->successResponse($this->transformer->transform($this->repo->findOne($id)));
     }
 
     public function disconnect($id)
@@ -74,6 +77,6 @@ class ShopsController extends Controller
             'access_token' => null,
             'updated_at' => now(),
         ], $id);
-        return $this->successResponse($this->repo->findOne($id));
+        return $this->successResponse($this->transformer->transform($this->repo->findOne($id)));
     }
 }

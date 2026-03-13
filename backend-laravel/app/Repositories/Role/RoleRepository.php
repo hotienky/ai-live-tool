@@ -53,8 +53,7 @@ class RoleRepository extends BaseEloquentRepository implements RoleRepositoryInt
     public function getUsers()
     {
         return DB::table('users')
-            ->leftJoin('user_roles', 'users.id', '=', 'user_roles.user_id')
-            ->leftJoin('roles', 'roles.id', '=', 'user_roles.role_id')
+            ->leftJoin('roles', 'roles.id', '=', 'users.role_id')
             ->select('users.id', 'users.full_name', 'users.email', 'users.is_active', 'roles.id as role_id', 'roles.name as role_name')
             ->get();
     }

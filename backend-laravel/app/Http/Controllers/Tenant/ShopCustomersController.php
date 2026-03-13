@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
 use App\Repositories\ShopCustomer\ShopCustomerRepositoryInterface;
+use App\Transformers\ShopCustomerTransformer;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -11,24 +12,27 @@ class ShopCustomersController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private ShopCustomerRepositoryInterface $repo) {}
+    public function __construct(
+        private ShopCustomerRepositoryInterface $repo,
+        private ShopCustomerTransformer $transformer,
+    ) {}
 
     public function index()
     {
-        return $this->successResponse($this->repo->all());
+        return $this->successResponse($this->transformer->transformCollection($this->repo->all()));
     }
 
     public function show($id)
     {
         $customer = $this->repo->find($id);
-        return $customer ? $this->successResponse($customer) : $this->notFoundResponse('Customer not found');
+        return $customer ? $this->successResponse($this->transformer->transform($customer)) : $this->notFoundResponse('Customer not found');
     }
 
     public function store(Request $request)
     {
         try {
             $customer = $this->repo->store($request->all());
-            return $this->successResponse($customer, 'Customer created', 201);
+            return $this->successResponse($this->transformer->transform($customer), 'Customer created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -37,7 +41,7 @@ class ShopCustomersController extends Controller
     public function update(Request $request, $id)
     {
         $this->repo->update($request->all(), $id);
-        return $this->successResponse($this->repo->find($id), 'Customer updated');
+        return $this->successResponse($this->transformer->transform($this->repo->find($id)), 'Customer updated');
     }
 
     public function destroy($id)

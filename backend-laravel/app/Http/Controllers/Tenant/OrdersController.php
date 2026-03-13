@@ -8,6 +8,7 @@ use App\Actions\Order\StatsAction;
 use App\Actions\Order\ShowAction;
 use App\Actions\Order\UpdateStatusAction;
 use App\Repositories\Order\OrderRepositoryInterface;
+use App\Transformers\OrderTransformer;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,10 @@ class OrdersController extends Controller
 {
     use ApiResponse;
 
-    public function __construct(private OrderRepositoryInterface $repo) {}
+    public function __construct(
+        private OrderRepositoryInterface $repo,
+        private OrderTransformer $transformer,
+    ) {}
 
     public function index(IndexAction $action) { return $action(); }
     public function stats(StatsAction $action) { return $action(); }
@@ -29,7 +33,7 @@ class OrdersController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
-            return $this->successResponse($order, 'Order created', 201);
+            return $this->successResponse($this->transformer->transform($order), 'Order created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -38,7 +42,7 @@ class OrdersController extends Controller
     public function update(Request $request, $id)
     {
         $this->repo->update(array_merge($request->all(), ['updated_at' => now()]), $id);
-        return $this->successResponse($this->repo->find($id), 'Order updated');
+        return $this->successResponse($this->transformer->transform($this->repo->find($id)), 'Order updated');
     }
 
     public function destroy($id)
