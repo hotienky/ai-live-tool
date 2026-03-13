@@ -1,7 +1,7 @@
 /**
  * Shared API fetch helper — includes Authorization header automatically.
- * Auto-parses JSON and unwraps the { type, data } API envelope.
- * Returns the unwrapped data directly (not a Response object).
+ * Returns a Response-like object whose .json() auto-unwraps the
+ * { type, data } API envelope, so callers always get just the data.
  */
 import { API_BASE } from '../config.js'
 
@@ -24,7 +24,7 @@ export async function apiFetch(path, options = {}) {
     },
   })
 
-  // Handle 401 — clear auth state but don't reload (let the app handle it)
+  // Handle 401 — clear auth state
   if (res.status === 401 && !isRedirecting) {
     isRedirecting = true
     localStorage.removeItem('auth_token')
@@ -33,17 +33,18 @@ export async function apiFetch(path, options = {}) {
     isRedirecting = false
   }
 
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({}))
-    throw new Error(errorBody.message || `API error ${res.status}`)
+  // Wrap response so .json() auto-unwraps API envelope
+  const originalJson = res.json.bind(res)
+  res.json = async () => {
+    const json = await originalJson()
+    // Unwrap: { type: "success", data: ... } → data
+    if (json && typeof json === 'object' && 'data' in json && json.type) {
+      return json.data
+    }
+    return json
   }
 
-  const json = await res.json().catch(() => null)
-  // Unwrap API envelope: { type: "success", data: ... } → return data
-  if (json && typeof json === 'object' && 'data' in json && json.type) {
-    return json.data
-  }
-  return json
+  return res
 }
 
 export { API_BASE }

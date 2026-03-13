@@ -25,7 +25,7 @@
     <section class="sf-banners" v-if="banners.length > 0">
       <div class="sf-banner-track" :style="{ transform: `translateX(-${bannerIdx * 100}%)` }">
         <div v-for="b in banners" :key="b.id" class="sf-banner-slide">
-          <img v-if="b.image" :src="b.image" :alt="b.title" class="sf-banner-img" />
+          <img v-if="b.image_url || b.image" :src="b.image_url || b.image" :alt="b.title" class="sf-banner-img" />
           <div class="sf-banner-overlay">
             <h2 class="sf-banner-title">{{ b.title }}</h2>
             <p class="sf-banner-desc" v-if="b.description">{{ b.description }}</p>
@@ -57,7 +57,7 @@
       <div class="sf-products" v-if="products.length > 0">
         <div v-for="p in products" :key="p.id" class="sf-product-card" @click="$emit('viewProduct', p.id)">
           <div class="sf-product-img-wrap">
-            <img v-if="p.image" :src="p.image" :alt="p.name" class="sf-product-img" />
+            <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" class="sf-product-img" />
             <Package v-else :size="40" class="sf-product-placeholder" />
             <span class="sf-promo-badge" v-if="isOnPromotion(p)">
               -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
@@ -130,21 +130,26 @@ const bannerIdx = ref(0)
 
 let bannerTimer = null
 
-async function apiFetch(path) {
-  const res = await fetch(`${API_BASE}/shop/store/${props.storeId}${path}`)
-  return res.json()
+async function sfApiFetch(path) {
+  const res = await fetch(`${API_BASE}/storefront${path}`, {
+    headers: { 'Accept': 'application/json' },
+  })
+  const json = await res.json()
+  // Unwrap API envelope
+  if (json && typeof json === 'object' && 'data' in json && json.type) return json.data
+  return json
 }
 
 async function loadStoreInfo() {
-  try { storeInfo.value = await apiFetch('/info') } catch { /* ignore */ }
+  try { storeInfo.value = await sfApiFetch('/info') } catch { /* ignore */ }
 }
 
 async function loadBanners() {
-  try { banners.value = await apiFetch('/banners') } catch { banners.value = [] }
+  try { banners.value = await sfApiFetch('/banners') } catch { banners.value = [] }
 }
 
 async function loadCategories() {
-  try { categories.value = await apiFetch('/categories') } catch { categories.value = [] }
+  try { categories.value = await sfApiFetch('/categories') } catch { categories.value = [] }
 }
 
 async function loadProducts() {
@@ -154,7 +159,7 @@ async function loadProducts() {
     params.set('limit', '12')
     if (search.value) params.set('search', search.value)
     if (selectedCat.value) params.set('category', selectedCat.value)
-    const data = await apiFetch(`/products?${params}`)
+    const data = await sfApiFetch(`/products?${params}`)
     products.value = data.data || data
     totalProducts.value = data.meta?.total || products.value.length
     totalPages.value = data.meta?.lastPage || data.meta?.last_page || 1
@@ -162,7 +167,7 @@ async function loadProducts() {
 }
 
 async function loadPages() {
-  try { pages.value = await apiFetch('/pages') } catch { pages.value = [] }
+  try { pages.value = await sfApiFetch('/pages') } catch { pages.value = [] }
 }
 
 function isOnPromotion(p) {

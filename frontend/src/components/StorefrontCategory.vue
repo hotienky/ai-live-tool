@@ -58,7 +58,7 @@
         <div class="sc-products" v-if="products.length">
           <div v-for="p in products" :key="p.id" class="sc-card" @click="$emit('viewProduct', p.id)">
             <div class="sc-card__img">
-              <img v-if="p.image" :src="p.image" :alt="p.name" />
+              <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" />
               <Package v-else :size="36" class="sc-card__placeholder" />
               <span class="sc-badge" v-if="hasPromo(p)">
                 -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
@@ -115,7 +115,12 @@ const headerTitle = computed(() => {
   return 'Tất cả sản phẩm'
 })
 
-async function api(path) { return (await fetch(`${API_BASE}/shop/store/${props.storeId}${path}`)).json() }
+async function api(path) {
+  const res = await fetch(`${API_BASE}/storefront${path}`, { headers: { 'Accept': 'application/json' } })
+  const json = await res.json()
+  if (json && typeof json === 'object' && 'data' in json && json.type) return json.data
+  return json
+}
 
 async function loadFilters() {
   try { categories.value = await api('/categories') } catch { categories.value = [] }

@@ -402,7 +402,12 @@ const validViews = [
   ...Object.keys(routeToTab),
 ]
 // ── Storefront Detection ──
+// CMS mode: running on *.cms.* domain — never show storefront
+function isCmsMode() {
+  return window.location.hostname.includes('.cms.')
+}
 function parseShopPath() {
+  if (isCmsMode()) return null // CMS never shows storefront
   const m = window.location.pathname.match(/^\/shop\/([^\/]+)(\/([^\/]*))?(\/(.*))?/)
   if (!m) return null
   return { storeId: m[1], view: m[3] || 'home', itemId: m[5] || null }

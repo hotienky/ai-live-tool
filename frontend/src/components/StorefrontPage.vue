@@ -46,7 +46,7 @@ function formatDate(d) {
 async function loadPage() {
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE}/shop/store/${props.storeId}/pages/${props.pageId}`)
+    const res = await fetch(`${API_BASE}/storefront/pages/${props.pageId}`, { headers: { 'Accept': 'application/json' } })
     if (!res.ok) throw new Error('Not found')
     page.value = await res.json()
   } catch { page.value = null }

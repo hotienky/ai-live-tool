@@ -10,7 +10,7 @@
         <!-- Left: Image Gallery -->
         <div class="sp-gallery">
           <div class="sp-main-img">
-            <img v-if="product.image" :src="product.image" :alt="product.name" class="sp-img" />
+            <img v-if="product.image_url" :src="product.image_url" :alt="product.name" class="sp-img" />
             <Package v-else :size="80" class="sp-img-placeholder" />
             <span class="sp-promo-badge" v-if="isOnPromotion">
               -{{ Math.round((1 - product.promotion_price / product.price) * 100) }}%
@@ -95,7 +95,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowLeft, Package, Minus, Plus, ShoppingCart, Loader2, PackageX } from 'lucide-vue-next'
-import { API_BASE } from '../config.js'
+import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
   storeId: { type: [String, Number], required: true },
@@ -121,9 +121,8 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 async function loadProduct() {
   loading.value = true
   try {
-    const res = await fetch(`${API_BASE}/shop/store/${props.storeId}/products/${props.productId}`)
-    if (!res.ok) throw new Error('Not found')
-    product.value = await res.json()
+    const data = await apiFetch(`/storefront/products/${props.productId}`)
+    product.value = await data.json()
   } catch { product.value = null }
   loading.value = false
 }

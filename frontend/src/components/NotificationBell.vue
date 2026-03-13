@@ -62,7 +62,7 @@ async function fetchNotifications() {
   try {
     const res = await apiFetch('/notifications?limit=20')
     const data = await res.json()
-    notifications.value = data.data || []
+    notifications.value = Array.isArray(data) ? data : (data.data || [])
   } catch { /* silent */ }
 }
 
