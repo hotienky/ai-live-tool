@@ -69,8 +69,8 @@
             >
               <button
                 class="app-nav__tab"
-                :class="{ 'app-nav__tab--active': item.children.some(c => activeView === c.view && (!c.settingsTab || activeView === 'settings')) || item.activeKeys?.includes(activeView) }"
-                @click="navigateTo(item.children[0].view, item.children[0].settingsTab)"
+                :class="{ 'app-nav__tab--active': item.children.some(c => activeView === c.view) || item.activeKeys?.includes(activeView) }"
+                @click="navigateTo(item.children[0].view)"
               >
                 <component :is="item.icon" :size="18" />
                 <span class="app-nav__label">{{ item.label }}</span>
@@ -82,8 +82,8 @@
                     v-for="child in item.children"
                     :key="child.key"
                     class="app-nav__menu-item"
-                    :class="{ 'app-nav__menu-item--active': activeView === child.view && (!child.settingsTab || settingsInitTab === child.settingsTab) }"
-                    @click="navigateTo(child.view, child.settingsTab); openDropdown = null"
+                    :class="{ 'app-nav__menu-item--active': activeView === child.view }"
+                    @click="navigateTo(child.view); openDropdown = null"
                   >
                     <component :is="child.icon" :size="15" />
                     <span>{{ child.label }}</span>
@@ -209,20 +209,13 @@
       v-if="activeView === 'reports'"
     />
 
-    <!-- ═══ View: Settings (Cửa hàng) ═══ -->
+    <!-- ═══ View: Settings-based Pages (Shop/Live settings/Orders) ═══ -->
     <ShopSettings
-      v-if="activeView === 'settings'"
+      v-if="isSettingsView"
       :currentShop="currentShop"
-      :initialTab="settingsInitTab"
+      :initialTab="settingsActiveTab"
       @openShopSelector="shopSelectorRef?.open()"
-    />
-
-    <!-- ═══ View: Orders (Đơn hàng) ═══ -->
-    <ShopSettings
-      v-if="activeView === 'orders'"
-      :currentShop="currentShop"
-      :initialTab="settingsInitTab"
-      @openShopSelector="shopSelectorRef?.open()"
+      @navigate="navigateTo"
     />
     <!-- Customer Detail Modal -->
     <CustomerDetail
@@ -359,44 +352,55 @@ const navItems = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   {
     key: 'live-group', label: 'Live', icon: MonitorPlay,
-    activeKeys: ['live', 'crm', 'reports'],
+    activeKeys: ['live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
     children: [
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
       { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
       { key: 'reports', view: 'reports', label: 'Báo cáo', icon: BarChart2 },
-      { key: 'live-keywords', view: 'settings', settingsTab: 'keywords', label: 'Keywords', icon: Key },
-      { key: 'live-replies', view: 'settings', settingsTab: 'replies', label: 'Auto Reply', icon: MessageCircle },
-      { key: 'live-moderation', view: 'settings', settingsTab: 'moderation', label: 'Moderation', icon: Shield },
-      { key: 'live-connection', view: 'settings', settingsTab: 'connection', label: 'Kết nối', icon: Link },
+      { key: 'live-keywords', view: 'live/keywords', label: 'Keywords', icon: Key },
+      { key: 'live-replies', view: 'live/replies', label: 'Auto Reply', icon: MessageCircle },
+      { key: 'live-moderation', view: 'live/moderation', label: 'Moderation', icon: Shield },
+      { key: 'live-connection', view: 'live/connection', label: 'Kết nối', icon: Link },
     ],
   },
   {
     key: 'store-group', label: 'Cửa hàng', icon: Store,
-    activeKeys: ['settings'],
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages'],
     children: [
-      { key: 'store-products', view: 'settings', settingsTab: 'products', label: 'Sản phẩm', icon: ShoppingBag },
-      { key: 'store-categories', view: 'settings', settingsTab: 'categories', label: 'Danh mục', icon: FolderTree },
-      { key: 'store-brands', view: 'settings', settingsTab: 'brands', label: 'Thương hiệu', icon: Award },
-      { key: 'store-promotions', view: 'settings', settingsTab: 'promotions', label: 'Khuyến mãi', icon: Tag },
-      { key: 'store-banners', view: 'settings', settingsTab: 'banners', label: 'Banner', icon: Image },
-      { key: 'store-cms', view: 'settings', settingsTab: 'cms', label: 'Trang CMS', icon: BookOpen },
-      { key: 'store-nav', view: 'settings', settingsTab: 'nav-links', label: 'Menu', icon: ClipboardList },
-      { key: 'store-appearance', view: 'settings', settingsTab: 'appearance', label: 'Giao diện', icon: Palette },
-      { key: 'store-config', view: 'settings', settingsTab: 'system-config', label: 'Cấu hình', icon: Cog },
-      { key: 'store-languages', view: 'settings', settingsTab: 'languages', label: 'Ngôn ngữ', icon: Globe },
+      { key: 'store-products', view: 'shop/products', label: 'Sản phẩm', icon: ShoppingBag },
+      { key: 'store-categories', view: 'shop/categories', label: 'Danh mục', icon: FolderTree },
+      { key: 'store-brands', view: 'shop/brands', label: 'Thương hiệu', icon: Award },
+      { key: 'store-promotions', view: 'shop/promotions', label: 'Khuyến mãi', icon: Tag },
+      { key: 'store-banners', view: 'shop/banners', label: 'Banner', icon: Image },
+      { key: 'store-cms', view: 'shop/cms', label: 'Trang CMS', icon: BookOpen },
+      { key: 'store-nav', view: 'shop/nav', label: 'Menu', icon: ClipboardList },
+      { key: 'store-appearance', view: 'shop/appearance', label: 'Giao diện', icon: Palette },
+      { key: 'store-config', view: 'shop/config', label: 'Cấu hình', icon: Cog },
+      { key: 'store-languages', view: 'shop/languages', label: 'Ngôn ngữ', icon: Globe },
     ],
   },
   {
     key: 'orders-group', label: 'Đơn hàng', icon: Receipt,
-    activeKeys: ['orders'],
+    activeKeys: ['orders', 'orders/customers'],
     children: [
-      { key: 'orders-list', view: 'orders', settingsTab: 'orders', label: 'Đơn hàng', icon: Receipt },
-      { key: 'orders-customers', view: 'orders', settingsTab: 'shop-customers', label: 'Khách hàng', icon: Users },
+      { key: 'orders-list', view: 'orders', label: 'Đơn hàng', icon: Receipt },
+      { key: 'orders-customers', view: 'orders/customers', label: 'Khách hàng', icon: Users },
     ],
   },
 ]
 
-const validViews = ['dashboard', 'live', 'crm', 'reports', 'settings', 'orders']
+// Route → settingsTab mapping
+const routeToTab = {
+  'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
+  'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
+  'shop/promotions': 'promotions', 'shop/banners': 'banners', 'shop/cms': 'cms',
+  'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/config': 'system-config', 'shop/languages': 'languages',
+  'orders': 'orders', 'orders/customers': 'shop-customers',
+}
+const validViews = [
+  'dashboard', 'live', 'crm', 'reports',
+  ...Object.keys(routeToTab),
+]
 // ── Storefront Detection ──
 function parseShopPath() {
   const m = window.location.pathname.match(/^\/shop\/([^\/]+)(\/([^\/]*))?(\/(.*))?/)
@@ -423,16 +427,24 @@ function onAddToCart(data) {
 }
 
 function viewFromPath() {
-  const path = window.location.pathname.replace(/^\//, '').split('/')[0] || ''
-  return validViews.includes(path) ? path : 'live'
+  const path = window.location.pathname.replace(/^\//, '')
+  // Match multi-segment routes like shop/products, orders/customers etc
+  if (validViews.includes(path)) return path
+  // Try first segment
+  const first = path.split('/')[0] || ''
+  if (validViews.includes(first)) return first
+  return 'live'
 }
 const activeView = ref(viewFromPath())
 
-function navigateTo(view, settingsTab) {
+// Computed: which settings tab to show
+const settingsActiveTab = computed(() => routeToTab[activeView.value] || 'products')
+// Is the current view a settings-based page?
+const isSettingsView = computed(() => activeView.value in routeToTab)
+
+function navigateTo(view) {
   if (!validViews.includes(view)) view = 'live'
   activeView.value = view
-  if (settingsTab) settingsInitTab.value = settingsTab
-  // Clear query params when switching pages — each page has its own filter state
   history.pushState({ view }, '', '/' + view)
 }
 

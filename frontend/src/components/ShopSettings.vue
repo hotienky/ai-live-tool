@@ -3,24 +3,22 @@
     <div class="settings__header">
       <h2 class="settings__title">
         <Settings :size="20" />
-        Cài đặt cửa hàng
+        {{ sectionTitle }}
       </h2>
       <span class="settings__shop-name" v-if="currentShop">{{ currentShop.shop_name || currentShop.shopName }}</span>
     </div>
 
-
-
     <div class="settings__layout">
       <!-- Sidebar Navigation -->
       <aside class="settings__sidebar">
-        <div v-for="group in tabGroups" :key="group.label" class="settings__sidebar-group">
+        <div v-for="group in activeTabGroups" :key="group.label" class="settings__sidebar-group">
           <div class="settings__sidebar-label">{{ group.label }}</div>
           <button
             v-for="tab in group.items"
             :key="tab.key"
             class="settings__sidebar-item"
             :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
-            @click="activeTab = tab.key"
+            @click="onSidebarClick(tab.key)"
           >
             <component :is="tab.icon" :size="16" />
             <span>{{ tab.label }}</span>
@@ -388,7 +386,7 @@
             </tbody>
           </table>
         </div>
-      </div>
+      </div><!-- /last panel -->
 
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
@@ -396,7 +394,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
@@ -436,7 +434,7 @@ const props = defineProps({
   initialTab: { type: String, default: '' },
 })
 
-const emit = defineEmits(['openShopSelector'])
+const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
@@ -516,6 +514,44 @@ const tabGroups = [
     ],
   },
 ]
+
+// ── Tab → Route mapping for sidebar navigation ──
+const tabToRoute = {
+  'keywords': 'live/keywords', 'replies': 'live/replies', 'moderation': 'live/moderation', 'connection': 'live/connection',
+  'products': 'shop/products', 'categories': 'shop/categories', 'brands': 'shop/brands',
+  'promotions': 'shop/promotions', 'banners': 'shop/banners', 'cms': 'shop/cms',
+  'nav-links': 'shop/nav', 'appearance': 'shop/appearance', 'system-config': 'shop/config', 'languages': 'shop/languages',
+  'orders': 'orders', 'shop-customers': 'orders/customers',
+}
+
+// Section-specific sidebar groups
+const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
+const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const ordersTabs = ['orders', 'shop-customers']
+
+const activeTabGroups = computed(() => {
+  const tab = activeTab.value
+  let allowedTabs
+  if (liveTabs.includes(tab)) allowedTabs = liveTabs
+  else if (ordersTabs.includes(tab)) allowedTabs = ordersTabs
+  else allowedTabs = shopTabs
+  return tabGroups
+    .map(g => ({ ...g, items: g.items.filter(i => allowedTabs.includes(i.key)) }))
+    .filter(g => g.items.length > 0)
+})
+
+const sectionTitle = computed(() => {
+  const tab = activeTab.value
+  if (liveTabs.includes(tab)) return 'Cài đặt Live'
+  if (ordersTabs.includes(tab)) return 'Đơn hàng'
+  return 'Cửa hàng'
+})
+
+function onSidebarClick(tabKey) {
+  activeTab.value = tabKey
+  const route = tabToRoute[tabKey]
+  if (route) emit('navigate', route)
+}
 
 // Connection form
 const shopForm = ref({
@@ -936,6 +972,11 @@ defineExpose({ handleAutoReplyEvent })
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+}
+.settings__content--full {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .settings__panel {

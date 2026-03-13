@@ -138,18 +138,64 @@
         </div>
 
         <div class="form-group">
-          <label>Hình ảnh (URL)</label>
-          <input v-model="form.image" placeholder="https://..." />
-        </div>
-        <div class="form-group" v-if="form.image">
-          <div class="image-preview">
-            <img :src="form.image" alt="Preview" @error="$event.target.style.display='none'" />
+          <label>Hình ảnh sản phẩm</label>
+          <div class="images-gallery">
+            <div class="img-item" v-for="(img, idx) in form.images" :key="idx">
+              <img :src="img" alt="" @error="$event.target.style.display='none'" />
+              <button class="img-remove" @click="form.images.splice(idx, 1)" type="button">&times;</button>
+              <span class="img-main-badge" v-if="idx === 0">Chính</span>
+            </div>
+            <div class="img-add">
+              <input v-model="newImageUrl" placeholder="Nhập URL ảnh..." @keyup.enter="addImage" />
+              <button type="button" @click="addImage" :disabled="!newImageUrl.trim()">+</button>
+            </div>
           </div>
+          <p class="form-hint" v-if="form.images.length">Ảnh đầu tiên = ảnh chính. Kéo để sắp xếp.</p>
         </div>
 
         <div class="form-group">
           <label>Mô tả</label>
           <textarea v-model="form.description" rows="4" placeholder="Mô tả sản phẩm..."></textarea>
+        </div>
+
+        <!-- Variants Section -->
+        <div class="variants-section">
+          <div class="variants-header">
+            <label><Layers :size="14" /> Biến thể sản phẩm ({{ form.variants.length }})</label>
+            <button type="button" class="btn-add-variant" @click="addVariant">+ Thêm biến thể</button>
+          </div>
+          <div class="variant-list" v-if="form.variants.length">
+            <div class="variant-card" v-for="(v, vi) in form.variants" :key="vi">
+              <div class="variant-row">
+                <div class="form-group form-group--flex">
+                  <label>Tên biến thể</label>
+                  <input v-model="v.name" placeholder="VD: Đỏ - Size M" />
+                </div>
+                <div class="form-group">
+                  <label>SKU</label>
+                  <input v-model="v.sku" placeholder="SKU biến thể" />
+                </div>
+                <button class="btn-sm btn-del variant-del" @click="form.variants.splice(vi, 1)" type="button">
+                  <Trash2 :size="13" />
+                </button>
+              </div>
+              <div class="variant-row">
+                <div class="form-group">
+                  <label>Giá</label>
+                  <CurrencyInput v-model="v.price" placeholder="0" input-class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label>Tồn kho</label>
+                  <input v-model.number="v.stock" type="number" placeholder="0" />
+                </div>
+                <div class="form-group form-group--flex">
+                  <label>Ảnh (URL)</label>
+                  <input v-model="v.image" placeholder="URL ảnh biến thể" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <p v-else class="form-hint">Không có biến thể. Sản phẩm đơn giản sẽ dùng giá/tồn kho ở trên.</p>
         </div>
 
         <div class="form-row">
@@ -181,7 +227,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { ShoppingBag, Search, Package, Minus, Plus, Edit3, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ShoppingBag, Search, Package, Minus, Plus, Edit3, Trash2, ChevronLeft, ChevronRight, Layers } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 
 const { showToast } = useToast()
@@ -198,10 +244,27 @@ const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
 const form = ref(defaultForm())
+const newImageUrl = ref('')
 
 function defaultForm() {
-  return { name: '', sku: '', price: '', promotion_price: '', stock: 0, category: '', brand: '',
-    keywords: '', image: '', description: '', low_stock_threshold: 5, status: 1 }
+  return {
+    name: '', sku: '', price: '', promotion_price: '', stock: 0, category: '', brand: '',
+    keywords: '', description: '', low_stock_threshold: 5, status: 1,
+    images: [],
+    variants: [],
+  }
+}
+
+function addImage() {
+  const url = newImageUrl.value.trim()
+  if (url && !form.value.images.includes(url)) {
+    form.value.images.push(url)
+    newImageUrl.value = ''
+  }
+}
+
+function addVariant() {
+  form.value.variants.push({ name: '', sku: '', price: '', stock: 0, image: '' })
 }
 
 // Pagination page numbers with ellipsis
@@ -272,14 +335,21 @@ function openCreate() {
 }
 
 function openEdit(p) {
+  const imgs = p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : []
+  const vars = p.variants ? (typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants) : []
+  // If no images array but has image, add it
+  if (imgs.length === 0 && (p.image || p.image_url)) imgs.push(p.image || p.image_url)
+
   form.value = {
     name: p.name || '', sku: p.sku || '', price: p.price || 0,
     promotion_price: p.promotion_price || '', stock: p.stock || 0,
     category: p.category || '', brand: p.brand || '',
     keywords: Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || ''),
-    image: p.image || '', description: p.description || '',
+    description: p.description || '',
     low_stock_threshold: p.low_stock_threshold || p.lowStockThreshold || 5,
     status: p.status ?? 1,
+    images: imgs,
+    variants: vars,
   }
   isEditing.value = true
   editId.value = p.id
@@ -289,7 +359,10 @@ function openEdit(p) {
 async function handleSave() {
   if (!form.value.name || !form.value.price) return
   try {
-    const body = { ...form.value }
+    const body = {
+      ...form.value,
+      image: form.value.images.length > 0 ? form.value.images[0] : '',
+    }
     if (isEditing.value) {
       await apiFetch(`/products/${editId.value}`, { method: 'PUT', body: JSON.stringify(body) })
       showToast('Đã cập nhật sản phẩm', 'success')
@@ -466,8 +539,51 @@ onMounted(() => {
 .form-row { display: flex; gap: 12px; }
 .form-row .form-group { flex: 1; }
 
-.image-preview { text-align: center; }
-.image-preview img { max-height: 120px; border-radius: 8px; border: 1px solid var(--color-border); }
+/* ── Images Gallery ── */
+.images-gallery { display: flex; flex-wrap: wrap; gap: 8px; }
+.img-item {
+  position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+.img-item img { width: 100%; height: 100%; object-fit: cover; }
+.img-remove {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; border: none; background: rgba(0,0,0,0.6); color: #fff;
+  font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.img-main-badge {
+  position: absolute; bottom: 2px; left: 2px; font-size: 9px; font-weight: 700;
+  background: var(--color-accent-primary); color: #fff; padding: 1px 6px; border-radius: 4px;
+}
+.img-add {
+  display: flex; align-items: center; gap: 4px; width: 100%;
+}
+.img-add input { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg-primary); color: var(--color-text-primary); font-size: 12px; outline: none; }
+.img-add button {
+  padding: 6px 12px; border-radius: 6px; border: none; background: var(--color-accent-primary);
+  color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+}
+.img-add button:disabled { opacity: 0.4; cursor: not-allowed; }
+.form-hint { font-size: 11px; color: var(--color-text-muted); margin: 4px 0 0; }
+
+/* ── Variants Section ── */
+.variants-section { margin-top: 8px; padding: 16px; border-radius: 12px; background: var(--color-bg-primary); border: 1px solid var(--color-border); }
+.variants-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.variants-header label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--color-text-primary); }
+.btn-add-variant {
+  padding: 4px 12px; border-radius: 6px; border: 1px dashed var(--color-accent-primary);
+  background: transparent; color: var(--color-accent-primary); font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.btn-add-variant:hover { background: rgba(124,58,237,0.08); }
+.variant-list { display: flex; flex-direction: column; gap: 10px; }
+.variant-card {
+  padding: 12px; border-radius: 10px; background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+}
+.variant-row { display: flex; gap: 8px; align-items: flex-end; }
+.variant-row .form-group { margin-bottom: 6px; }
+.variant-del { flex-shrink: 0; margin-bottom: 6px; }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--color-border); }
 .btn-cancel {

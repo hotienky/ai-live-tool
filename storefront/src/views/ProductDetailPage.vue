@@ -25,14 +25,26 @@
     <!-- Product Detail -->
     <div v-else-if="product" class="detail-content">
       <div class="detail-grid">
-        <!-- Image -->
+        <!-- Image Gallery -->
         <div class="detail-gallery">
           <div class="detail-main-img">
-            <img v-if="product.image" :src="product.image" :alt="product.name" />
+            <img v-if="activeImage" :src="activeImage" :alt="product.name" />
             <div v-else class="detail-placeholder">
               <Package :size="80" />
             </div>
             <span v-if="discountPercent" class="detail-badge">-{{ discountPercent }}%</span>
+          </div>
+          <!-- Thumbnails -->
+          <div class="detail-thumbs" v-if="allImages.length > 1">
+            <button
+              v-for="(img, idx) in allImages"
+              :key="idx"
+              class="detail-thumb"
+              :class="{ active: activeImage === img }"
+              @click="activeImage = img"
+            >
+              <img :src="img" :alt="`${product.name} - ${idx + 1}`" />
+            </button>
           </div>
         </div>
 
@@ -43,22 +55,39 @@
 
           <!-- Prices -->
           <div class="detail-prices">
-            <span v-if="isOnSale" class="price price--original" style="font-size:16px">
-              {{ formatPrice(product.price) }}
+            <span v-if="displayOnSale" class="price price--original" style="font-size:16px">
+              {{ formatPrice(displayPrice) }}
             </span>
-            <span :class="['price', isOnSale ? 'price--sale' : 'price--current']" style="font-size:28px">
-              {{ formatPrice(isOnSale ? product.promotion_price : product.price) }}
+            <span :class="['price', displayOnSale ? 'price--sale' : 'price--current']" style="font-size:28px">
+              {{ formatPrice(displayOnSale ? displayPromoPrice : displayPrice) }}
             </span>
-            <span v-if="isOnSale" class="detail-save">
-              Tiết kiệm {{ formatPrice(product.price - product.promotion_price) }}
+            <span v-if="displayOnSale" class="detail-save">
+              Tiết kiệm {{ formatPrice(displayPrice - displayPromoPrice) }}
             </span>
+          </div>
+
+          <!-- Variant Selector -->
+          <div class="variant-selector" v-if="variants.length">
+            <label class="variant-label">Phân loại:</label>
+            <div class="variant-options">
+              <button
+                v-for="(v, vi) in variants"
+                :key="vi"
+                class="variant-option"
+                :class="{ active: selectedVariant === vi }"
+                @click="selectVariant(vi)"
+              >
+                <img v-if="v.image" :src="v.image" class="variant-option__img" />
+                <span>{{ v.name }}</span>
+              </button>
+            </div>
           </div>
 
           <!-- Meta info -->
           <div class="detail-metas">
-            <div v-if="product.sku" class="detail-meta">
+            <div v-if="displaySku" class="detail-meta">
               <span class="detail-meta__label">SKU</span>
-              <span class="detail-meta__value">{{ product.sku }}</span>
+              <span class="detail-meta__value">{{ displaySku }}</span>
             </div>
             <div v-if="product.category" class="detail-meta">
               <span class="detail-meta__label">Danh mục</span>
@@ -66,8 +95,8 @@
             </div>
             <div class="detail-meta">
               <span class="detail-meta__label">Tình trạng</span>
-              <span class="detail-meta__value" :class="product.stock > 0 ? 'in-stock' : 'out-stock'">
-                {{ product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng' }}
+              <span class="detail-meta__value" :class="displayStock > 0 ? 'in-stock' : 'out-stock'">
+                {{ displayStock > 0 ? `Còn hàng (${displayStock})` : 'Hết hàng' }}
               </span>
             </div>
           </div>
@@ -84,7 +113,7 @@
 
           <!-- Actions -->
           <div class="detail-actions">
-            <button class="btn btn--primary btn--lg" :disabled="product.stock <= 0" @click="handleAddToCart">
+            <button class="btn btn--primary btn--lg" :disabled="displayStock <= 0" @click="handleAddToCart">
               <ShoppingCart :size="18" />
               Thêm vào giỏ hàng
             </button>
@@ -143,8 +172,47 @@ const props = defineProps({
 const product = ref(null)
 const loading = ref(true)
 const qty = ref(1)
+const activeImage = ref(null)
+const selectedVariant = ref(null)
 
-const isOnSale = computed(() => {
+// Parse variants from product data
+const variants = computed(() => {
+  if (!product.value?.variants) return []
+  const v = product.value.variants
+  return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [])
+})
+
+// Build all images array (main image + additional images + variant images)
+const allImages = computed(() => {
+  if (!product.value) return []
+  const imgs = new Set()
+  // Main image
+  if (product.value.image) imgs.add(product.value.image)
+  // Additional images
+  const extra = product.value.images
+  if (extra) {
+    const arr = Array.isArray(extra) ? extra : (typeof extra === 'string' ? JSON.parse(extra) : [])
+    arr.forEach(i => imgs.add(i))
+  }
+  // Variant images
+  variants.value.forEach(v => { if (v.image) imgs.add(v.image) })
+  return [...imgs]
+})
+
+// Display values (based on selected variant or base product)
+const displayPrice = computed(() => {
+  if (selectedVariant.value !== null && variants.value[selectedVariant.value]?.price) {
+    return Number(variants.value[selectedVariant.value].price)
+  }
+  return Number(product.value?.price || 0)
+})
+
+const displayPromoPrice = computed(() => {
+  return Number(product.value?.promotion_price || 0)
+})
+
+const displayOnSale = computed(() => {
+  if (selectedVariant.value !== null) return false // Variants don't have promo prices
   const p = product.value
   if (!p || !p.promotion_price || p.promotion_price >= p.price) return false
   const now = Date.now()
@@ -153,10 +221,32 @@ const isOnSale = computed(() => {
   return true
 })
 
-const discountPercent = computed(() => {
-  if (!isOnSale.value) return 0
-  return Math.round((1 - product.value.promotion_price / product.value.price) * 100)
+const displayStock = computed(() => {
+  if (selectedVariant.value !== null && variants.value[selectedVariant.value]?.stock !== undefined) {
+    return Number(variants.value[selectedVariant.value].stock)
+  }
+  return Number(product.value?.stock || 0)
 })
+
+const displaySku = computed(() => {
+  if (selectedVariant.value !== null && variants.value[selectedVariant.value]?.sku) {
+    return variants.value[selectedVariant.value].sku
+  }
+  return product.value?.sku || ''
+})
+
+const discountPercent = computed(() => {
+  if (!displayOnSale.value) return 0
+  return Math.round((1 - displayPromoPrice.value / displayPrice.value) * 100)
+})
+
+function selectVariant(idx) {
+  selectedVariant.value = selectedVariant.value === idx ? null : idx
+  const v = variants.value[idx]
+  if (v?.image) {
+    activeImage.value = v.image
+  }
+}
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
@@ -166,24 +256,47 @@ function copyLink() {
 
 async function loadProduct() {
   loading.value = true
-  try {
-    product.value = await apiFetch(`/products/${props.slug}`)
-    if (product.value?.name) {
-      document.title = `${product.value.name} — Cửa hàng`
+  let attempts = 0
+  const maxAttempts = 3
+  while (attempts < maxAttempts) {
+    try {
+      product.value = await apiFetch(`/products/${props.slug}`)
+      if (product.value?.name) {
+        document.title = `${product.value.name} — Cửa hàng`
+      }
+      // Set initial active image
+      if (product.value) {
+        const imgs = allImages.value
+        activeImage.value = imgs.length > 0 ? imgs[0] : null
+      }
+      break
+    } catch (e) {
+      attempts++
+      if (attempts >= maxAttempts) {
+        product.value = null
+      } else {
+        await new Promise(r => setTimeout(r, 500))
+      }
     }
-  } catch {
-    product.value = null
   }
   loading.value = false
 }
 
 onMounted(() => loadProduct())
-watch(() => props.slug, () => { qty.value = 1; loadProduct() })
+watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loadProduct() })
 
 const addedToCart = ref(false)
 function handleAddToCart() {
   if (!product.value) return
-  addToCart(product.value, qty.value)
+  const cartItem = { ...product.value }
+  if (selectedVariant.value !== null) {
+    const v = variants.value[selectedVariant.value]
+    cartItem.name = `${product.value.name} - ${v.name}`
+    if (v.price) cartItem.price = v.price
+    if (v.sku) cartItem.sku = v.sku
+    if (v.image) cartItem.image = v.image
+  }
+  addToCart(cartItem, qty.value)
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
 }
@@ -209,11 +322,12 @@ function handleAddToCart() {
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 
 /* Gallery */
+.detail-gallery { display: flex; flex-direction: column; gap: 12px; }
 .detail-main-img {
   position: relative; border-radius: var(--sf-radius-xl); overflow: hidden;
   background: var(--sf-bg-card); border: 1px solid var(--sf-border); aspect-ratio: 1;
 }
-.detail-main-img img { width: 100%; height: 100%; object-fit: cover; }
+.detail-main-img img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s; }
 .detail-placeholder {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -225,6 +339,19 @@ function handleAddToCart() {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: #fff; font-size: 16px; font-weight: 900;
 }
+
+/* Thumbnails */
+.detail-thumbs {
+  display: flex; gap: 8px; overflow-x: auto; padding: 4px 0;
+}
+.detail-thumb {
+  width: 64px; height: 64px; flex-shrink: 0; border-radius: 10px; overflow: hidden;
+  border: 2px solid transparent; cursor: pointer; background: var(--sf-bg-card);
+  padding: 0; transition: all 0.2s;
+}
+.detail-thumb:hover { border-color: var(--sf-accent); opacity: 0.85; }
+.detail-thumb.active { border-color: var(--sf-accent-light); box-shadow: 0 0 0 2px rgba(124,58,237,0.3); }
+.detail-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Info */
 .detail-info { display: flex; flex-direction: column; gap: 16px; }
@@ -241,6 +368,32 @@ function handleAddToCart() {
 .detail-save {
   font-size: 12px; font-weight: 700; color: #10b981;
   background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 100px;
+}
+
+/* Variant Selector */
+.variant-selector {
+  padding: 16px 0; border-bottom: 1px solid var(--sf-border);
+}
+.variant-label {
+  display: block; font-size: 13px; font-weight: 700;
+  color: var(--sf-text-secondary); margin-bottom: 10px;
+}
+.variant-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.variant-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 10px;
+  border: 2px solid var(--sf-border); background: var(--sf-bg-card);
+  color: var(--sf-text-primary); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.variant-option:hover { border-color: var(--sf-accent); }
+.variant-option.active {
+  border-color: var(--sf-accent-light);
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--sf-accent-light);
+}
+.variant-option__img {
+  width: 28px; height: 28px; border-radius: 6px; object-fit: cover;
 }
 
 .detail-metas {
@@ -272,7 +425,7 @@ function handleAddToCart() {
   border-left: 1px solid var(--sf-border); border-right: 1px solid var(--sf-border);
   background: var(--sf-bg-primary); color: var(--sf-text-primary);
   font-size: 15px; font-weight: 700; outline: none;
-  -moz-appearance: textfield;
+  -moz-appearance: textfield; -webkit-appearance: none; appearance: none;
 }
 .detail-qty__ctrl input::-webkit-outer-spin-button,
 .detail-qty__ctrl input::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -315,5 +468,7 @@ function handleAddToCart() {
   .detail-name { font-size: 22px; }
   .detail-actions { flex-direction: column; }
   .btn--lg { width: 100%; justify-content: center; }
+  .variant-options { gap: 6px; }
+  .variant-option { padding: 6px 12px; font-size: 12px; }
 }
 </style>
