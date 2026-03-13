@@ -40,10 +40,11 @@ export const api = {
 
 // ──── Auth ────
 export async function login(email, password) {
-  const data = await request('POST', '/api/master/auth/login', { email, password })
-  localStorage.setItem('master_token', data.token)
-  localStorage.setItem('master_user', JSON.stringify(data.user))
-  return data
+  const res = await request('POST', '/api/master/auth/login', { email, password })
+  const payload = res.data || res
+  localStorage.setItem('master_token', payload.token)
+  localStorage.setItem('master_user', JSON.stringify(payload.user))
+  return payload
 }
 
 export async function getMe() {

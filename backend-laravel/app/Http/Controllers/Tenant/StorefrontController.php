@@ -58,7 +58,7 @@ class StorefrontController extends Controller
     public function banners()
     {
         return $this->successResponse(
-            $this->bannerRepo->manyBy('is_active', true)
+            $this->bannerRepo->manyBy('status', 1)
         );
     }
 

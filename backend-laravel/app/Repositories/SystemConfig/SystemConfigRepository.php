@@ -8,20 +8,20 @@ class SystemConfigRepository implements SystemConfigRepositoryInterface
     public function getAll(?string $group = null)
     {
         $query = DB::table('system_configs');
-        if ($group) $query->where('group', $group);
+        if ($group) $query->where('group_name', $group);
         return $query->get();
     }
 
     public function getByGroup(string $group)
     {
-        return DB::table('system_configs')->where('group', $group)->get();
+        return DB::table('system_configs')->where('group_name', $group)->get();
     }
 
     public function upsertItems(array $items): void
     {
         foreach ($items as $item) {
             DB::table('system_configs')->updateOrInsert(
-                ['key' => $item['key'], 'group' => $item['group'] ?? 'general'],
+                ['key' => $item['key'], 'group_name' => $item['group'] ?? 'general'],
                 ['value' => $item['value'], 'updated_at' => now()]
             );
         }
@@ -31,7 +31,7 @@ class SystemConfigRepository implements SystemConfigRepositoryInterface
     {
         foreach ($items as $item) {
             DB::table('system_configs')->updateOrInsert(
-                ['key' => $item['key'], 'group' => $group],
+                ['key' => $item['key'], 'group_name' => $group],
                 ['value' => $item['value'], 'updated_at' => now()]
             );
         }
