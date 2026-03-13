@@ -1,9 +1,25 @@
 import { ref, computed } from 'vue'
 import { API_BASE } from '../config.js'
 
-// Shared state across components
-const token = ref(localStorage.getItem('auth_token') || null)
-const currentUser = ref(JSON.parse(localStorage.getItem('auth_user') || 'null'))
+// Shared state across components — robust parsing for corrupted localStorage
+function safeGetToken() {
+  const t = localStorage.getItem('auth_token')
+  if (!t || t === 'undefined' || t === 'null') {
+    localStorage.removeItem('auth_token')
+    return null
+  }
+  return t
+}
+function safeGetUser() {
+  const u = localStorage.getItem('auth_user')
+  if (!u || u === 'undefined' || u === 'null') {
+    localStorage.removeItem('auth_user')
+    return null
+  }
+  try { return JSON.parse(u) } catch { localStorage.removeItem('auth_user'); return null }
+}
+const token = ref(safeGetToken())
+const currentUser = ref(safeGetUser())
 
 export function useAuth() {
   const loading = ref(false)
@@ -38,10 +54,11 @@ export function useAuth() {
         return false
       }
 
-      token.value = data.token
-      currentUser.value = data.user
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
+      const payload = data.data || data
+      token.value = payload.token
+      currentUser.value = payload.user
+      localStorage.setItem('auth_token', payload.token)
+      localStorage.setItem('auth_user', JSON.stringify(payload.user))
       return true
     } catch (err) {
       error.value = err.message
@@ -70,10 +87,11 @@ export function useAuth() {
         return false
       }
 
-      token.value = data.token
-      currentUser.value = data.user
-      localStorage.setItem('auth_token', data.token)
-      localStorage.setItem('auth_user', JSON.stringify(data.user))
+      const payload = data.data || data
+      token.value = payload.token
+      currentUser.value = payload.user
+      localStorage.setItem('auth_token', payload.token)
+      localStorage.setItem('auth_user', JSON.stringify(payload.user))
       return true
     } catch (err) {
       error.value = err.message

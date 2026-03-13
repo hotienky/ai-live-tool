@@ -1,5 +1,7 @@
 /**
- * Shared API fetch helper — includes Authorization header automatically
+ * Shared API fetch helper — includes Authorization header automatically.
+ * Auto-parses JSON and unwraps the { type, data } API envelope.
+ * Returns the unwrapped data directly (not a Response object).
  */
 import { API_BASE } from '../config.js'
 
@@ -27,12 +29,21 @@ export async function apiFetch(path, options = {}) {
     isRedirecting = true
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
-    // Dispatch event so useAuth can react without reload
     window.dispatchEvent(new Event('auth:logout'))
     isRedirecting = false
   }
 
-  return res
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}))
+    throw new Error(errorBody.message || `API error ${res.status}`)
+  }
+
+  const json = await res.json().catch(() => null)
+  // Unwrap API envelope: { type: "success", data: ... } → return data
+  if (json && typeof json === 'object' && 'data' in json && json.type) {
+    return json.data
+  }
+  return json
 }
 
 export { API_BASE }

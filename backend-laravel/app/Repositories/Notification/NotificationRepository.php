@@ -21,19 +21,19 @@ class NotificationRepository extends BaseEloquentRepository implements Notificat
     public function getUnreadCount(int $userId): int
     {
         return $this->model->where('user_id', $userId)
-            ->whereNull('read_at')
+            ->where('is_read', false)
             ->count();
     }
 
     public function markAsRead(int $id)
     {
-        return $this->update(['read_at' => now()], $id);
+        return $this->update(['is_read' => true], $id);
     }
 
     public function markAllAsRead(int $userId)
     {
         return $this->model->where('user_id', $userId)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
     }
 }
