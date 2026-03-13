@@ -15,7 +15,7 @@
     <!-- Cart Items -->
     <div v-else class="cart-content">
       <div class="cart-items">
-        <div class="cart-item" v-for="item in cartItems" :key="item.id">
+        <div class="cart-item" v-for="item in cartItems" :key="item.key || item.id">
           <div class="cart-item__img">
             <img v-if="item.image" :src="item.image" :alt="item.name" />
             <Package v-else :size="32" />
@@ -26,16 +26,16 @@
             <span class="cart-item__price">{{ formatPrice(item.price) }}/{{ item.unit }}</span>
           </div>
           <div class="cart-item__qty">
-            <button @click="updateQty(item.id, item.qty - 1)" :disabled="item.qty <= 1">
+            <button @click="updateQty(item.key || item.id, item.qty - 1)" :disabled="item.qty <= 1">
               <Minus :size="14" />
             </button>
-            <input v-model.number="item.qty" type="number" min="1" @change="updateQty(item.id, item.qty)" />
-            <button @click="updateQty(item.id, item.qty + 1)">
+            <input v-model.number="item.qty" type="number" min="1" @change="updateQty(item.key || item.id, item.qty)" />
+            <button @click="updateQty(item.key || item.id, item.qty + 1)">
               <Plus :size="14" />
             </button>
           </div>
           <div class="cart-item__total">{{ formatPrice(item.price * item.qty) }}</div>
-          <button class="cart-item__remove" @click="removeFromCart(item.id)">
+          <button class="cart-item__remove" @click="removeFromCart(item.key || item.id)">
             <Trash2 :size="16" />
           </button>
         </div>

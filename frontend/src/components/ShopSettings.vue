@@ -388,6 +388,11 @@
         </div>
       </div><!-- /last panel -->
 
+      <!-- ═══ Tab: Payment Settings ═══ -->
+      <div v-if="activeTab === 'payment'" class="settings__panel">
+        <PaymentSettings />
+      </div>
+
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
   </div>
@@ -398,7 +403,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
-  Palette, Sun, Moon, Monitor as MonitorIcon, Lock,
+  Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
   FolderTree, Award, Users, Tag,
   Cog, KeyRound, Globe, LayoutList,
@@ -420,6 +425,7 @@ import OrderManagement from './OrderManagement.vue'
 import WebhookManager from './WebhookManager.vue'
 import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
+import PaymentSettings from './PaymentSettings.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -438,7 +444,7 @@ const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -505,6 +511,7 @@ const tabGroups = [
     label: 'Hệ thống',
     items: [
       { key: 'system-config', label: 'Cấu hình', icon: Cog },
+      { key: 'payment', label: 'Thanh toán', icon: CreditCard },
       { key: 'api-keys', label: 'API Keys', icon: KeyRound },
       { key: 'webhooks', label: 'Webhooks', icon: Webhook },
       { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
@@ -526,7 +533,7 @@ const tabToRoute = {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'system-config', 'payment', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 const ordersTabs = ['orders', 'shop-customers']
 
 const activeTabGroups = computed(() => {

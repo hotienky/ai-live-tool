@@ -11,6 +11,8 @@ Route::get('/pages', [\App\Http\Controllers\Tenant\StorefrontController::class, 
 Route::get('/pages/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'pageDetail']);
 Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
+Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontController::class, 'paymentMethods']);
+Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'orderDetail']);
 Route::get('/languages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'languages']);
 Route::get('/translations/{langCode}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'translations']);
 Route::get('/theme', [\App\Http\Controllers\Tenant\StorefrontController::class, 'theme']);

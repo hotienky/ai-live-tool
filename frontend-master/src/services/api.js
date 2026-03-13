@@ -28,7 +28,7 @@ async function request(method, path, body) {
   }
 
   if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`)
-  return data
+  return data.data !== undefined ? data.data : data
 }
 
 export const api = {

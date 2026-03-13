@@ -115,6 +115,37 @@ class StorefrontController extends Controller
         return $this->successResponse($theme);
     }
 
+    public function paymentMethods()
+    {
+        $configs = $this->configRepo->getByGroup('payment');
+        $map = [];
+        foreach ($configs as $c) { $map[$c->key] = $c->value; }
+
+        $methods = [];
+        if (($map['payment_cod_enabled'] ?? '') === 'true') {
+            $methods[] = [
+                'code' => 'cod',
+                'name' => $map['payment_cod_name'] ?? 'COD',
+                'description' => $map['payment_cod_description'] ?? '',
+            ];
+        }
+        if (($map['payment_bank_enabled'] ?? '') === 'true') {
+            $methods[] = [
+                'code' => 'bank',
+                'name' => $map['payment_bank_name'] ?? 'Bank Transfer',
+                'description' => $map['payment_bank_description'] ?? '',
+                'bank_info' => [
+                    'account_name' => $map['payment_bank_account_name'] ?? '',
+                    'account_number' => $map['payment_bank_account_number'] ?? '',
+                    'bank_name' => $map['payment_bank_name_display'] ?? '',
+                    'branch' => $map['payment_bank_branch'] ?? '',
+                    'note_template' => $map['payment_bank_note_template'] ?? '',
+                ],
+            ];
+        }
+        return $this->successResponse($methods);
+    }
+
     public function checkout(Request $request)
     {
         try {
@@ -127,6 +158,7 @@ class StorefrontController extends Controller
                 'items' => 'required|array',
             ]);
 
+            $paymentMethod = $data['payment_method'] ?? 'cod';
             $totalAmount = collect($data['items'])->reduce(
                 fn($sum, $i) => $sum + (floatval($i['price'] ?? 0) * intval($i['qty'] ?? 1)), 0
             );
@@ -135,7 +167,8 @@ class StorefrontController extends Controller
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
                 'customer_address' => $data['customer_address'],
-                'payment_method' => $data['payment_method'] ?? 'cod',
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentMethod === 'bank' ? 'unpaid' : 'pending',
                 'notes' => $data['notes'] ?? null,
                 'items' => json_encode($data['items']),
                 'total_amount' => $totalAmount,
@@ -144,12 +177,53 @@ class StorefrontController extends Controller
 
             $this->orderRepo->createOrderDetails($order->id, $data['items']);
 
-            return $this->successResponse($order, 'Order created successfully', 201);
+            // Build response with bank info if bank transfer
+            $response = $order->toArray();
+            if ($paymentMethod === 'bank') {
+                $configs = $this->configRepo->getByGroup('payment');
+                $map = [];
+                foreach ($configs as $c) { $map[$c->key] = $c->value; }
+                $response['bank_info'] = [
+                    'account_name' => $map['payment_bank_account_name'] ?? '',
+                    'account_number' => $map['payment_bank_account_number'] ?? '',
+                    'bank_name' => $map['payment_bank_name_display'] ?? '',
+                    'bank_bin' => $map['payment_bank_bin'] ?? '',
+                    'branch' => $map['payment_bank_branch'] ?? '',
+                    'note' => str_replace('{order_id}', $order->id, $map['payment_bank_note_template'] ?? ''),
+                ];
+            }
+
+            return $this->successResponse($response, 'Order created successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
+    }
+
+    public function orderDetail($id)
+    {
+        $order = $this->orderRepo->find($id);
+        if (!$order) return $this->notFoundResponse('Order not found');
+
+        $response = $order->toArray();
+        $response['details'] = $this->orderRepo->getDetails($id);
+
+        if ($order->payment_method === 'bank') {
+            $configs = $this->configRepo->getByGroup('payment');
+            $map = [];
+            foreach ($configs as $c) { $map[$c->key] = $c->value; }
+            $response['bank_info'] = [
+                'account_name' => $map['payment_bank_account_name'] ?? '',
+                'account_number' => $map['payment_bank_account_number'] ?? '',
+                'bank_name' => $map['payment_bank_name_display'] ?? '',
+                'bank_bin' => $map['payment_bank_bin'] ?? '',
+                'branch' => $map['payment_bank_branch'] ?? '',
+                'note' => str_replace('{order_id}', $order->id, $map['payment_bank_note_template'] ?? ''),
+            ];
+        }
+
+        return $this->successResponse($response);
     }
 
     public function flashSales()

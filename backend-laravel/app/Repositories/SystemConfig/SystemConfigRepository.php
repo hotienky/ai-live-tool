@@ -20,8 +20,9 @@ class SystemConfigRepository implements SystemConfigRepositoryInterface
     public function upsertItems(array $items): void
     {
         foreach ($items as $item) {
+            $group = $item['group_name'] ?? $item['group'] ?? 'general';
             DB::table('system_configs')->updateOrInsert(
-                ['key' => $item['key'], 'group_name' => $item['group'] ?? 'general'],
+                ['key' => $item['key'], 'group_name' => $group],
                 ['value' => $item['value'], 'updated_at' => now()]
             );
         }

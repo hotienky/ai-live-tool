@@ -14,7 +14,28 @@
     </div>
 
     <div class="bm-grid" v-if="banners.length">
-      <div class="bm-card" v-for="b in banners" :key="b.id" :class="{ 'bm-inactive': b.status !== 1 }">
+      <div
+        v-for="(b, index) in banners"
+        :key="b.id"
+        class="bm-card"
+        :class="{
+          'bm-inactive': b.status !== 1,
+          'bm-dragging': dragIndex === index,
+          'bm-drag-over': dragOverIndex === index && dragIndex !== index,
+        }"
+        draggable="true"
+        @dragstart="onDragStart($event, index)"
+        @dragend="onDragEnd"
+        @dragover.prevent="onDragOver($event, index)"
+        @dragenter.prevent="onDragEnter(index)"
+        @dragleave="onDragLeave(index)"
+        @drop.prevent="onDrop(index)"
+      >
+        <!-- Drag Handle -->
+        <div class="bm-card__drag-handle" title="Kéo để sắp xếp">
+          <GripVertical :size="16" />
+        </div>
+
         <div class="bm-card__img" :style="{ backgroundImage: b.image ? `url(${b.image})` : 'none' }">
           <span class="bm-type-badge">{{ b.type }}</span>
           <span class="bm-sort-badge">#{{ b.sort }}</span>
@@ -27,8 +48,6 @@
           <a v-if="b.url" :href="b.url" target="_blank" class="bm-url">{{ b.url }}</a>
         </div>
         <div class="bm-card__actions">
-          <button class="btn-sm" @click="moveSort(b, -1)" title="Lên">↑</button>
-          <button class="btn-sm" @click="moveSort(b, 1)" title="Xuống">↓</button>
           <button class="btn-sm btn-edit" @click="openEdit(b)">Sửa</button>
           <button class="btn-sm btn-del" @click="handleDelete(b)">×</button>
         </div>
@@ -70,20 +89,76 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useBanners } from '../composables/useBanners.js'
 import { useToast } from '../composables/useToast.js'
-import { Image as ImageIcon } from 'lucide-vue-next'
+import { Image as ImageIcon, GripVertical } from 'lucide-vue-next'
 const { showToast } = useToast()
 const { banners, loading, fetchBanners, createBanner, updateBanner, deleteBanner } = useBanners(apiFetch)
-const props = defineProps({ /* tenant-scoped */ })
 
 const filterType = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
 const form = ref({ title: '', image: '', url: '', type: 'banner', sort: 0, status: 1 })
+
+// ─── Drag & Drop state ───
+const dragIndex = ref(null)
+const dragOverIndex = ref(null)
+
+function onDragStart(e, index) {
+  dragIndex.value = index
+  e.dataTransfer.effectAllowed = 'move'
+  // Needed for Firefox
+  e.dataTransfer.setData('text/plain', String(index))
+}
+
+function onDragEnd() {
+  dragIndex.value = null
+  dragOverIndex.value = null
+}
+
+function onDragOver(e, index) {
+  e.dataTransfer.dropEffect = 'move'
+}
+
+function onDragEnter(index) {
+  if (dragIndex.value !== null && dragIndex.value !== index) {
+    dragOverIndex.value = index
+  }
+}
+
+function onDragLeave(index) {
+  if (dragOverIndex.value === index) {
+    dragOverIndex.value = null
+  }
+}
+
+async function onDrop(targetIndex) {
+  const fromIndex = dragIndex.value
+  dragOverIndex.value = null
+  dragIndex.value = null
+
+  if (fromIndex === null || fromIndex === targetIndex) return
+
+  // Reorder locally for instant feedback
+  const list = [...banners.value]
+  const [moved] = list.splice(fromIndex, 1)
+  list.splice(targetIndex, 0, moved)
+  banners.value = list
+
+  // Persist: update sort values for all items based on new positions
+  try {
+    const updates = list.map((b, i) => updateBanner(b.id, { sort: i }))
+    await Promise.all(updates)
+    showToast('✅ Đã sắp xếp lại', 'success')
+    reload()
+  } catch (e) {
+    showToast('Lỗi sắp xếp: ' + e.message, 'error')
+    reload()
+  }
+}
 
 function reload() { fetchBanners({ ...(filterType.value ? { type: filterType.value } : {}) }) }
 onMounted(reload)
@@ -106,13 +181,6 @@ async function toggleStatus(b) {
     reload()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
-async function moveSort(b, direction) {
-  const newSort = Math.max(0, (b.sort || 0) + direction)
-  try {
-    await updateBanner(b.id, { sort: newSort })
-    reload()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
-}
 async function handleSave() {
   if (!form.value.image) return showToast('Nhập URL hình ảnh', 'error')
   try {
@@ -120,7 +188,7 @@ async function handleSave() {
       await updateBanner(editId.value, form.value)
       showToast('✅ Đã cập nhật', 'success')
     } else {
-      await createBanner({ ...form.value,  })
+      await createBanner({ ...form.value })
       showToast('✅ Đã tạo banner', 'success')
     }
     showModal.value = false; reload()
@@ -140,25 +208,148 @@ async function handleDelete(b) {
 .bm-actions { display: flex; gap: .5rem; }
 .bm-filter { padding: .3rem .5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-2); color: var(--text-1); font-size: .8rem; }
 .btn-add { background: var(--accent); color: #fff; border: none; padding: .4rem .8rem; border-radius: 6px; cursor: pointer; font-size: .8rem; }
-.bm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .6rem; }
-.bm-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: all .2s; }
-.bm-card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.bm-inactive { opacity: .6; }
-.bm-card__img { height: 100px; background-size: cover; background-position: center; background-color: var(--bg-3, #333); position: relative; }
-.bm-type-badge { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: .65rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-.bm-sort-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: .65rem; padding: 2px 6px; border-radius: 4px; }
-.bm-status-toggle { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.5); border: none; cursor: pointer; font-size: .9rem; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+.bm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.bm-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all .25s cubic-bezier(.4, 0, .2, 1);
+  position: relative;
+  cursor: grab;
+}
+.bm-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.bm-card:active { cursor: grabbing; }
+.bm-inactive { opacity: .5; }
+
+/* Drag States */
+.bm-dragging {
+  opacity: .35;
+  transform: scale(.96) rotate(1deg);
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  border-color: var(--accent) !important;
+}
+
+.bm-drag-over {
+  border: 2px dashed var(--accent) !important;
+  transform: scale(1.02);
+  box-shadow: 0 0 0 4px rgba(124, 58, 237, .12);
+  background: rgba(124, 58, 237, .03);
+}
+
+/* Drag Handle */
+.bm-card__drag-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 100%;
+  color: rgba(255,255,255,.4);
+  background: linear-gradient(90deg, rgba(0,0,0,.25) 0%, transparent 100%);
+  cursor: grab;
+  transition: all .2s;
+  opacity: 0;
+}
+.bm-card:hover .bm-card__drag-handle {
+  opacity: 1;
+  color: rgba(255,255,255,.8);
+}
+.bm-card__drag-handle:active { cursor: grabbing; }
+
+/* Image — fixed 16:9 aspect ratio for consistency */
+.bm-card__img {
+  aspect-ratio: 16 / 9;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg-3, #333);
+  position: relative;
+  flex-shrink: 0;
+}
+.bm-type-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  color: #fff; font-size: .65rem; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px; text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.bm-sort-badge {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+  color: #fff; font-size: .65rem; font-weight: 600;
+  padding: 3px 8px; border-radius: 4px;
+}
+.bm-status-toggle {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(4px);
+  border: none; cursor: pointer; font-size: .9rem;
+  border-radius: 50%; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
 .bm-status-toggle.on { color: #22c55e; }
 .bm-status-toggle.off { color: #ef4444; }
 .bm-status-toggle:hover { background: rgba(0,0,0,.8); transform: scale(1.1); }
-.bm-card__info { padding: .5rem .6rem; }
-.bm-card__info strong { font-size: .85rem; display: block; }
-.bm-url { font-size: .7rem; color: var(--accent); word-break: break-all; }
-.bm-card__actions { display: flex; gap: .3rem; padding: 0 .6rem .5rem; }
-.btn-sm { padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-2); cursor: pointer; font-size: .75rem; color: var(--text-1); }
+
+/* Info — flex-grow to fill remaining space, consistent padding */
+.bm-card__info {
+  flex: 1;
+  padding: .75rem .85rem .5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 56px;
+}
+.bm-card__info strong {
+  font-size: .85rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.3;
+}
+.bm-url {
+  font-size: .7rem;
+  color: var(--accent);
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  opacity: .8;
+}
+
+/* Actions — pinned at bottom, no more ↑↓ buttons */
+.bm-card__actions {
+  display: flex;
+  gap: .4rem;
+  padding: .5rem .85rem .75rem;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
+}
+.btn-sm {
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  cursor: pointer;
+  font-size: .75rem;
+  color: var(--text-1);
+  transition: all .15s;
+}
+.btn-sm:hover { background: var(--bg-3, #f0f0f0); }
 .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
 .btn-del { color: #ef4444; }
-.btn-del:hover { background: rgba(239,68,68,.1); }
+.btn-del:hover { background: rgba(239,68,68,.1); border-color: #ef4444; }
 .empty { color: var(--text-3); text-align: center; padding: 2rem 0; }
 
 /* Image Preview in Modal */

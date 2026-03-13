@@ -175,10 +175,11 @@ const qty = ref(1)
 const activeImage = ref(null)
 const selectedVariant = ref(null)
 
-// Parse variants from product data
+// Parse variants from product data (prefer variants_list from API, fallback to variants jsonb)
 const variants = computed(() => {
-  if (!product.value?.variants) return []
-  const v = product.value.variants
+  if (!product.value) return []
+  const v = product.value.variants_list || product.value.variants
+  if (!v) return []
   return Array.isArray(v) ? v : (typeof v === 'string' ? JSON.parse(v) : [])
 })
 
@@ -288,15 +289,8 @@ watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loa
 const addedToCart = ref(false)
 function handleAddToCart() {
   if (!product.value) return
-  const cartItem = { ...product.value }
-  if (selectedVariant.value !== null) {
-    const v = variants.value[selectedVariant.value]
-    cartItem.name = `${product.value.name} - ${v.name}`
-    if (v.price) cartItem.price = v.price
-    if (v.sku) cartItem.sku = v.sku
-    if (v.image) cartItem.image = v.image
-  }
-  addToCart(cartItem, qty.value)
+  const v = selectedVariant.value !== null ? variants.value[selectedVariant.value] : null
+  addToCart(product.value, qty.value, v)
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
 }

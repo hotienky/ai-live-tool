@@ -85,6 +85,7 @@
             <select v-model="editForm.plan" class="input w-full">
               <option value="free">Free</option>
               <option value="starter">Starter</option>
+              <option value="premium">Premium</option>
               <option value="pro">Pro</option>
               <option value="enterprise">Enterprise</option>
             </select>

@@ -79,14 +79,17 @@ class OrderRepository extends BaseEloquentRepository implements OrderRepositoryI
     public function createOrderDetails(int $orderId, array $items): void
     {
         foreach ($items as $item) {
+            $qty = intval($item['qty'] ?? 1);
+            $price = floatval($item['price'] ?? 0);
             DB::table('order_details')->insert([
                 'order_id' => $orderId,
-                'product_id' => $item['product_id'] ?? null,
-                'product_name' => $item['name'] ?? '',
+                'product_id' => $item['product_id'] ?? $item['productId'] ?? null,
+                'name' => $item['name'] ?? '',
                 'sku' => $item['sku'] ?? '',
-                'price' => $item['price'] ?? 0,
-                'quantity' => $item['qty'] ?? 1,
-                'total' => (floatval($item['price'] ?? 0) * intval($item['qty'] ?? 1)),
+                'price' => $price,
+                'qty' => $qty,
+                'total_price' => $price * $qty,
+                'created_at' => now(),
             ]);
         }
     }
