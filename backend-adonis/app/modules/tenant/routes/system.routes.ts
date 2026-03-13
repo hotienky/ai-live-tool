@@ -10,6 +10,7 @@ const SystemConfigController = () => import('#controllers/system_config_controll
 const ApiKeysController = () => import('#controllers/api_keys_controller')
 const LanguagesController = () => import('#controllers/languages_controller')
 const CustomFieldsController = () => import('#controllers/custom_fields_controller')
+const FlashSalesController = () => import('#controllers/flash_sales_controller')
 
 /**
  * System routes — Dashboard, Analytics, Notifications, Config, Roles, Webhooks, Logs, i18n, Custom Fields
@@ -88,4 +89,11 @@ export function registerSystemRoutes(group: ReturnType<typeof router.group>) {
   group.delete('/custom-fields/:id', [CustomFieldsController, 'destroy'])
   group.get('/custom-fields/values/:entityType/:entityId', [CustomFieldsController, 'getValues'])
   group.put('/custom-fields/values/:entityType/:entityId', [CustomFieldsController, 'saveValues'])
+
+  // Flash Sales
+  group.get('/flash-sales', [FlashSalesController, 'index'])
+  group.get('/flash-sales/:id', [FlashSalesController, 'show'])
+  group.post('/flash-sales', [FlashSalesController, 'store'])
+  group.put('/flash-sales/:id', [FlashSalesController, 'update'])
+  group.delete('/flash-sales/:id', [FlashSalesController, 'destroy'])
 }

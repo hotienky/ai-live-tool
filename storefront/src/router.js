@@ -5,6 +5,8 @@ import ProductDetailPage from './views/ProductDetailPage.vue'
 import CmsPage from './views/CmsPage.vue'
 import CartPage from './views/CartPage.vue'
 import CheckoutPage from './views/CheckoutPage.vue'
+import AuthPage from './views/AuthPage.vue'
+import AccountPage from './views/AccountPage.vue'
 
 /**
  * Storefront Routes — Multi-Tenant Mode
@@ -13,11 +15,14 @@ import CheckoutPage from './views/CheckoutPage.vue'
 const routes = [
   { path: '/', name: 'home', component: HomePage },
   { path: '/products', name: 'products', component: ProductsPage },
-  { path: '/product/:productId', name: 'product-detail', component: ProductDetailPage, props: true },
-  { path: '/category/:categoryId', name: 'category', component: ProductsPage, props: true },
-  { path: '/page/:pageId', name: 'cms-page', component: CmsPage, props: true },
+  { path: '/product/:slug', name: 'product-detail', component: ProductDetailPage, props: true },
+  { path: '/category/:slug', name: 'category', component: ProductsPage, props: true },
+  { path: '/page/:slug', name: 'cms-page', component: CmsPage, props: true },
   { path: '/cart', name: 'cart', component: CartPage },
   { path: '/checkout', name: 'checkout', component: CheckoutPage },
+  { path: '/auth', name: 'auth', component: AuthPage },
+  { path: '/account', name: 'account', component: AccountPage },
+  { path: '/search', name: 'search', component: ProductsPage },
 ]
 
 const router = createRouter({
@@ -29,3 +34,4 @@ const router = createRouter({
 })
 
 export default router
+

@@ -3,7 +3,7 @@
     <router-link
       v-for="cat in categories"
       :key="cat.id"
-      :to="`/category/${cat.id}`"
+      :to="`/category/${cat.slug || cat.id}`"
       class="category-card"
     >
       <div class="category-card__icon">

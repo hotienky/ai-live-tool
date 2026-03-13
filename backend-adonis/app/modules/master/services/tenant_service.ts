@@ -790,6 +790,38 @@ CREATE TABLE IF NOT EXISTS webhooks (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Flash Sales
+CREATE TABLE IF NOT EXISTS flash_sales (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  start_date TIMESTAMPTZ NOT NULL,
+  end_date TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Flash Sale Items (products in a flash sale)
+CREATE TABLE IF NOT EXISTS flash_sale_items (
+  id SERIAL PRIMARY KEY,
+  flash_sale_id INTEGER REFERENCES flash_sales(id) ON DELETE CASCADE,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  sale_price DECIMAL(12,2) NOT NULL,
+  original_price DECIMAL(12,2),
+  stock_limit INTEGER,
+  sold_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Wishlists (customer favorites)
+CREATE TABLE IF NOT EXISTS wishlists (
+  id SERIAL PRIMARY KEY,
+  customer_id INTEGER REFERENCES shop_customers(id) ON DELETE CASCADE,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(customer_id, product_id)
+);
 `
 
 // ═══════════════════════════════════════════════════════════

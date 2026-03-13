@@ -209,7 +209,7 @@
       v-if="activeView === 'reports'"
     />
 
-    <!-- ═══ View: Settings ═══ -->
+    <!-- ═══ View: Settings (Cửa hàng) ═══ -->
     <ShopSettings
       v-if="activeView === 'settings'"
       :currentShop="currentShop"
@@ -217,8 +217,13 @@
       @openShopSelector="shopSelectorRef?.open()"
     />
 
-
-
+    <!-- ═══ View: Orders (Đơn hàng) ═══ -->
+    <ShopSettings
+      v-if="activeView === 'orders'"
+      :currentShop="currentShop"
+      :initialTab="settingsInitTab"
+      @openShopSelector="shopSelectorRef?.open()"
+    />
     <!-- Customer Detail Modal -->
     <CustomerDetail
       :visible="showCustomerDetail"
@@ -321,6 +326,8 @@ import {
   BellRing, BellOff,
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
   ShoppingBag, FolderTree, Award, Receipt, Tag,
+  Key, MessageCircle, Shield, Link, Image, BookOpen,
+  ClipboardList, Palette, Cog, Globe,
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -357,12 +364,39 @@ const navItems = [
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
       { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
       { key: 'reports', view: 'reports', label: 'Báo cáo', icon: BarChart2 },
+      { key: 'live-keywords', view: 'settings', settingsTab: 'keywords', label: 'Keywords', icon: Key },
+      { key: 'live-replies', view: 'settings', settingsTab: 'replies', label: 'Auto Reply', icon: MessageCircle },
+      { key: 'live-moderation', view: 'settings', settingsTab: 'moderation', label: 'Moderation', icon: Shield },
+      { key: 'live-connection', view: 'settings', settingsTab: 'connection', label: 'Kết nối', icon: Link },
     ],
   },
-  { key: 'settings', label: 'Cửa hàng', icon: Store },
+  {
+    key: 'store-group', label: 'Cửa hàng', icon: Store,
+    activeKeys: ['settings'],
+    children: [
+      { key: 'store-products', view: 'settings', settingsTab: 'products', label: 'Sản phẩm', icon: ShoppingBag },
+      { key: 'store-categories', view: 'settings', settingsTab: 'categories', label: 'Danh mục', icon: FolderTree },
+      { key: 'store-brands', view: 'settings', settingsTab: 'brands', label: 'Thương hiệu', icon: Award },
+      { key: 'store-promotions', view: 'settings', settingsTab: 'promotions', label: 'Khuyến mãi', icon: Tag },
+      { key: 'store-banners', view: 'settings', settingsTab: 'banners', label: 'Banner', icon: Image },
+      { key: 'store-cms', view: 'settings', settingsTab: 'cms', label: 'Trang CMS', icon: BookOpen },
+      { key: 'store-nav', view: 'settings', settingsTab: 'nav-links', label: 'Menu', icon: ClipboardList },
+      { key: 'store-appearance', view: 'settings', settingsTab: 'appearance', label: 'Giao diện', icon: Palette },
+      { key: 'store-config', view: 'settings', settingsTab: 'system-config', label: 'Cấu hình', icon: Cog },
+      { key: 'store-languages', view: 'settings', settingsTab: 'languages', label: 'Ngôn ngữ', icon: Globe },
+    ],
+  },
+  {
+    key: 'orders-group', label: 'Đơn hàng', icon: Receipt,
+    activeKeys: ['orders'],
+    children: [
+      { key: 'orders-list', view: 'orders', settingsTab: 'orders', label: 'Đơn hàng', icon: Receipt },
+      { key: 'orders-customers', view: 'orders', settingsTab: 'shop-customers', label: 'Khách hàng', icon: Users },
+    ],
+  },
 ]
 
-const validViews = ['dashboard', 'live', 'crm', 'reports', 'settings']
+const validViews = ['dashboard', 'live', 'crm', 'reports', 'settings', 'orders']
 // ── Storefront Detection ──
 function parseShopPath() {
   const m = window.location.pathname.match(/^\/shop\/([^\/]+)(\/([^\/]*))?(\/(.*))?/)

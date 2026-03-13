@@ -13,6 +13,10 @@
       </h2>
       <CategoryGrid :categories="categories" />
     </section>
+    <!-- Flash Sale -->
+    <div class="container">
+      <FlashSale />
+    </div>
 
     <!-- Featured Products -->
     <section class="home-section container">
@@ -64,7 +68,7 @@
         <router-link
           v-for="pg in pages"
           :key="pg.id"
-          :to="`/page/${pg.id}`"
+          :to="`/page/${pg.slug || pg.id}`"
           class="home-page-card"
         >
           <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="home-page-card__img" />
@@ -87,6 +91,7 @@ import { apiFetch } from '../api.js'
 import BannerSlider from '../components/BannerSlider.vue'
 import CategoryGrid from '../components/CategoryGrid.vue'
 import ProductCard from '../components/ProductCard.vue'
+import FlashSale from '../components/FlashSale.vue'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
 
 const props = defineProps({

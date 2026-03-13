@@ -1,6 +1,14 @@
 import router from '@adonisjs/core/services/router'
+import TenantMiddleware from '../middleware/tenant_middleware.js'
 
 const StorefrontController = () => import('#controllers/storefront_controller')
+const FlashSalesController = () => import('#controllers/flash_sales_controller')
+
+// Tenant middleware handler (no auth required)
+const tenantMw = async (ctx: any, next: any) => {
+  const mw = new TenantMiddleware()
+  return mw.handle(ctx, next)
+}
 
 /**
  * Storefront Public API — No auth, tenant-scoped via middleware
@@ -20,7 +28,8 @@ export function registerStorefrontRoutes() {
     router.get('/languages', [StorefrontController, 'languages'])
     router.get('/translations/:langCode', [StorefrontController, 'translations'])
     router.get('/theme', [StorefrontController, 'theme'])
-  }).prefix('/api/storefront')
+    router.get('/flash-sales', [FlashSalesController, 'active'])
+  }).prefix('/api/storefront').use(tenantMw)
 
   // Legacy backward-compat
   router.group(() => {
@@ -32,5 +41,5 @@ export function registerStorefrontRoutes() {
     router.get('/pages', [StorefrontController, 'pages']).as('legacy.storefront.pages')
     router.get('/pages/:id', [StorefrontController, 'pageDetail']).as('legacy.storefront.pageDetail')
     router.get('/info', [StorefrontController, 'storeInfo']).as('legacy.storefront.storeInfo')
-  }).prefix('/api/shop/store/:storeId')
+  }).prefix('/api/shop/store/:storeId').use(tenantMw)
 }

@@ -45,8 +45,7 @@ import { apiFetch } from '../api.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft } from 'lucide-vue-next'
 
 const props = defineProps({
-  
-  pageId: { type: String, required: true },
+  slug: { type: String, required: true },
 })
 
 const page = ref(null)
@@ -59,7 +58,7 @@ function formatDate(ts) {
 async function loadPage() {
   loading.value = true
   try {
-    page.value = await apiFetch(`/pages/${props.pageId}`)
+    page.value = await apiFetch(`/pages/${props.slug}`)
     if (page.value?.title) {
       document.title = `${page.value.title} — Cửa hàng`
     }
@@ -70,7 +69,7 @@ async function loadPage() {
 }
 
 onMounted(() => loadPage())
-watch(() => props.pageId, () => loadPage())
+watch(() => props.slug, () => loadPage())
 </script>
 
 <style scoped>

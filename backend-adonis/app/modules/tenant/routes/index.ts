@@ -32,7 +32,7 @@ const tenantMw = async (ctx: any, next: any) => {
  *   live.routes        — Shops, Keywords, Templates, Schedules, Exports, AI Reply, Connections
  */
 export function registerTenantRoutes() {
-  // 1. Public storefront (tenant-scoped, no auth)
+  // 1. Public storefront (tenant-scoped, no auth — middleware in storefront.routes.ts)
   registerStorefrontRoutes()
 
   // 2. Shop customer auth (tenant-scoped, no auth)

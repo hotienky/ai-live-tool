@@ -37,6 +37,16 @@
         </button>
       </div>
 
+      <!-- Auth Link (right side) -->
+      <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
+        <User :size="16" />
+        <span>Tài khoản</span>
+      </router-link>
+      <router-link v-else :to="'/auth'" class="site-header__auth-btn">
+        <User :size="16" />
+        <span>Đăng nhập</span>
+      </router-link>
+
       <!-- Language Switcher -->
       <div class="lang-switcher" v-if="i18nLanguages.length > 1">
         <button class="lang-switcher__btn" @click="langOpen = !langOpen">
@@ -82,6 +92,12 @@
           <ShoppingCart :size="16" /> Giỏ hàng
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
+        <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
+          <User :size="16" /> Tài khoản
+        </router-link>
+        <router-link v-else :to="'/auth'" class="site-header__mobile-link" @click="mobileMenu = false">
+          <User :size="16" /> Đăng nhập
+        </router-link>
         <div class="site-header__mobile-search">
           <Search :size="16" />
           <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch; mobileMenu = false" />
@@ -94,14 +110,16 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu, Globe, Sun, Moon } from 'lucide-vue-next'
+import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu, Globe, Sun, Moon, User } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useTheme } from '../composables/useTheme.js'
+import { useAuth } from '../composables/useAuth.js'
 
 const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
 const { isDark, toggleTheme } = useTheme()
+const { isLoggedIn } = useAuth()
 
 const langOpen = ref(false)
 async function switchLang(code) {
@@ -308,9 +326,29 @@ function onSearch() {
 .slide-leave-active { animation: slideDown 0.2s ease reverse; }
 @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* Auth Button (right side) */
+.site-header__auth-btn {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 600;
+  color: var(--sf-text-primary);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.site-header__auth-btn:hover {
+  border-color: var(--sf-accent, #7c3aed);
+  color: var(--sf-accent, #7c3aed);
+  background: rgba(124, 58, 237, 0.06);
+}
+
 @media (max-width: 768px) {
   .site-header__nav { display: none; }
   .site-header__search { display: none; }
+  .site-header__auth-btn { display: none; }
   .site-header__menu-btn { display: flex; }
 }
 </style>

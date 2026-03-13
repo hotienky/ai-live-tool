@@ -137,8 +137,7 @@ import { useCart } from '../composables/useCart.js'
 const { addToCart } = useCart()
 
 const props = defineProps({
-  
-  productId: { type: String, required: true },
+  slug: { type: String, required: true },
 })
 
 const product = ref(null)
@@ -168,7 +167,7 @@ function copyLink() {
 async function loadProduct() {
   loading.value = true
   try {
-    product.value = await apiFetch(`/products/${props.productId}`)
+    product.value = await apiFetch(`/products/${props.slug}`)
     if (product.value?.name) {
       document.title = `${product.value.name} — Cửa hàng`
     }
@@ -179,7 +178,7 @@ async function loadProduct() {
 }
 
 onMounted(() => loadProduct())
-watch(() => props.productId, () => { qty.value = 1; loadProduct() })
+watch(() => props.slug, () => { qty.value = 1; loadProduct() })
 
 const addedToCart = ref(false)
 function handleAddToCart() {

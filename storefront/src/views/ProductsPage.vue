@@ -139,8 +139,7 @@ import ProductCard from '../components/ProductCard.vue'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const props = defineProps({
-  
-  categoryId: { type: String, default: null },
+  slug: { type: String, default: null },
 })
 
 const route = useRoute()
@@ -149,7 +148,7 @@ const categories = ref([])
 const brands = ref([])
 const loading = ref(true)
 const search = ref(route.query.q || '')
-const selectedCategory = ref(props.categoryId || null)
+const selectedCategory = ref(props.slug || null)
 const selectedBrand = ref(null)
 const sortBy = ref('created_at:desc')
 const page = ref(1)
@@ -226,7 +225,7 @@ async function reload() {
   loading.value = false
 }
 
-watch(() => props.categoryId, (v) => { selectedCategory.value = v; page.value = 1; reload() })
+watch(() => props.slug, (v) => { selectedCategory.value = v; page.value = 1; reload() })
 onMounted(async () => { await loadFilters(); await reload() })
 </script>
 
