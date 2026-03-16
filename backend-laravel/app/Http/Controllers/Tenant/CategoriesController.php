@@ -20,6 +20,13 @@ class CategoriesController extends Controller
         return $this->successResponse($this->repo->getCategories());
     }
 
+    public function show($id)
+    {
+        $category = $this->repo->find($id);
+        if (!$category) return $this->notFoundResponse('Category not found');
+        return $this->successResponse($category);
+    }
+
     public function store(Request $request)
     {
         try {
@@ -44,3 +51,4 @@ class CategoriesController extends Controller
         return $this->successResponse(null, 'Category deleted');
     }
 }
+

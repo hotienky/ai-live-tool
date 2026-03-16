@@ -36,6 +36,25 @@ class ExportController extends Controller
 
     public function report()
     {
-        return $this->successResponse(['message' => 'Report generated']);
+        try {
+            $leads = $this->leadRepo->all();
+            $customers = $this->customerRepo->all();
+            $orders = DB::table('orders')->get();
+
+            return $this->successResponse([
+                'generated_at' => now()->toISOString(),
+                'summary' => [
+                    'total_leads' => $leads->count(),
+                    'total_customers' => $customers->count(),
+                    'total_orders' => $orders->count(),
+                    'total_revenue' => $orders->sum('total_amount'),
+                    'avg_order_value' => $orders->count() > 0 ? round($orders->avg('total_amount'), 0) : 0,
+                ],
+                'orders_by_status' => $orders->groupBy('status')->map->count(),
+                'orders_by_payment' => $orders->groupBy('payment_status')->map->count(),
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 }

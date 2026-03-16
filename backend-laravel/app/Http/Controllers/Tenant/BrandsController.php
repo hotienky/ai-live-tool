@@ -20,6 +20,13 @@ class BrandsController extends Controller
         return $this->successResponse($this->repo->all());
     }
 
+    public function show($id)
+    {
+        $brand = $this->repo->find($id);
+        if (!$brand) return $this->notFoundResponse('Brand not found');
+        return $this->successResponse($brand);
+    }
+
     public function store(Request $request)
     {
         try {
@@ -44,3 +51,4 @@ class BrandsController extends Controller
         return $this->successResponse(null, 'Brand deleted');
     }
 }
+

@@ -170,8 +170,9 @@ async function trackOrder() {
   try {
     const data = await apiFetch(`/orders/${orderId.value}`, { phone: phone.value })
     if (data && data.id) {
-      // Verify phone matches
-      if (data.customer_phone !== phone.value) {
+      // Normalize phone for comparison — strip non-digits, compare last 9
+      const normalizePhone = (p) => (p || '').replace(/[\s\-\+]/g, '').slice(-9)
+      if (normalizePhone(data.customer_phone) !== normalizePhone(phone.value)) {
         errorMsg.value = 'Số điện thoại không khớp với đơn hàng này'
       } else {
         orderData.value = data

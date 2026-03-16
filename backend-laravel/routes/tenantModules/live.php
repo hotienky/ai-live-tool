@@ -24,7 +24,9 @@ Route::delete('/keywords/{id}', [KeywordsController::class, 'destroy']);
 
 // Auto-Reply Templates
 Route::get('/templates', [TemplatesController::class, 'index']);
+Route::get('/templates/{id}', [TemplatesController::class, 'show']);
 Route::post('/templates', [TemplatesController::class, 'store']);
+Route::put('/templates/{id}', [TemplatesController::class, 'update']);
 Route::delete('/templates/{id}', [TemplatesController::class, 'destroy']);
 
 // Export

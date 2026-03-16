@@ -1,5 +1,8 @@
 <template>
   <div class="home-page">
+    <!-- SEO H1 (visually part of hero, but critical for heading hierarchy) -->
+    <h1 class="sr-only">Cửa hàng trực tuyến — Sản phẩm chất lượng cao</h1>
+
     <!-- Hero Banner -->
     <section class="home-hero container">
       <BannerSlider :banners="banners" />
@@ -136,6 +139,7 @@ onMounted(() => loadAll())
 
 <style scoped>
 .home-page { padding-bottom: 60px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 .home-hero { padding-top: 24px; padding-bottom: 8px; }
 

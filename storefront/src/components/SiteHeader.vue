@@ -39,7 +39,7 @@
         <div class="lang-switcher" v-if="i18nLanguages.length > 1">
           <button class="lang-switcher__btn" @click="langOpen = !langOpen">
             <Globe :size="14" />
-            <span>{{ currentLang.toUpperCase() }}</span>
+            <span>{{ (currentLang || 'vi').toUpperCase() }}</span>
           </button>
           <div v-if="langOpen" class="lang-switcher__dropdown">
             <button

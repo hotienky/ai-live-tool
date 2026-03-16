@@ -13,12 +13,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted, provide } from 'vue'
+import { ref, onMounted, provide, onErrorCaptured } from 'vue'
 import { apiFetch } from './api.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
+
+// Global error handler (B19) — prevent entire app from crashing
+onErrorCaptured((err, instance, info) => {
+  console.error('[Storefront Error]', err, info)
+  return false // prevent propagation
+})
 
 const { init: initTheme } = useTheme()
 const { init: initI18n } = useI18n()

@@ -16,18 +16,60 @@ class TemplatesController extends Controller
 
     public function index()
     {
-        return $this->successResponse($this->repo->all());
+        try {
+            return $this->successResponse($this->repo->all());
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function show($id)
+    {
+        $template = $this->repo->find($id);
+        if (!$template) return $this->notFoundResponse('Template not found');
+        return $this->successResponse($template);
     }
 
     public function store(Request $request)
     {
-        $template = $this->repo->store($request->all());
-        return $this->successResponse($template, 'Template created', 201);
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'content' => 'nullable|string',
+                'type' => 'nullable|string|max:50',
+                'is_active' => 'nullable|boolean',
+            ]);
+            $template = $this->repo->store($data);
+            return $this->successResponse($template, 'Template created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse(json_encode($e->errors()), 422);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            $template = $this->repo->find($id);
+            if (!$template) return $this->notFoundResponse('Template not found');
+            $this->repo->update($request->all(), $id);
+            return $this->successResponse($this->repo->find($id), 'Template updated');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $this->repo->delete($id);
-        return $this->successResponse(null, 'Template deleted');
+        try {
+            $template = $this->repo->find($id);
+            if (!$template) return $this->notFoundResponse('Template not found');
+            $this->repo->delete($id);
+            return $this->successResponse(null, 'Template deleted');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 }
+

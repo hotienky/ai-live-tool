@@ -33,6 +33,23 @@
           </button>
         </div>
 
+        <!-- Price Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Khoảng giá</label>
+          <div class="price-presets">
+            <button v-for="p in pricePresets" :key="p.label" class="filter-btn price-preset"
+              :class="{ active: activePricePreset === p.label }"
+              @click="applyPricePreset(p)">
+              {{ p.label }}
+            </button>
+          </div>
+          <div class="price-inputs">
+            <input v-model.number="priceMin" type="number" placeholder="Từ" class="price-input" @change="onPriceChange" />
+            <span class="price-sep">—</span>
+            <input v-model.number="priceMax" type="number" placeholder="Đến" class="price-input" @change="onPriceChange" />
+          </div>
+        </div>
+
         <!-- Sort -->
         <div class="filter-group">
           <label class="filter-label">Sắp xếp</label>
@@ -82,6 +99,12 @@
               <label class="filter-label">Thương hiệu</label>
               <div class="filter-chips">
                 <button v-for="b in brands" :key="b.id" class="filter-chip" :class="{ active: selectedBrand == b.id }" @click="toggleFilter('brand', b.id)">{{ b.name }}</button>
+              </div>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">Khoảng giá</label>
+              <div class="filter-chips">
+                <button v-for="p in pricePresets" :key="p.label" class="filter-chip" :class="{ active: activePricePreset === p.label }" @click="applyPricePreset(p)">{{ p.label }}</button>
               </div>
             </div>
           </div>
@@ -155,8 +178,38 @@ const page = ref(1)
 const total = ref(0)
 const lastPage = ref(1)
 const showMobileFilter = ref(false)
+const priceMin = ref(null)
+const priceMax = ref(null)
+const activePricePreset = ref(null)
 
-const hasFilters = computed(() => !!(selectedCategory.value || selectedBrand.value || search.value))
+const pricePresets = [
+  { label: 'Dưới 200K', min: null, max: 200000 },
+  { label: '200K - 500K', min: 200000, max: 500000 },
+  { label: '500K - 1 triệu', min: 500000, max: 1000000 },
+  { label: 'Trên 1 triệu', min: 1000000, max: null },
+]
+
+function applyPricePreset(p) {
+  if (activePricePreset.value === p.label) {
+    activePricePreset.value = null
+    priceMin.value = null
+    priceMax.value = null
+  } else {
+    activePricePreset.value = p.label
+    priceMin.value = p.min
+    priceMax.value = p.max
+  }
+  page.value = 1
+  reload()
+}
+
+function onPriceChange() {
+  activePricePreset.value = null
+  page.value = 1
+  reload()
+}
+
+const hasFilters = computed(() => !!(selectedCategory.value || selectedBrand.value || search.value || priceMin.value || priceMax.value))
 
 const pageTitle = computed(() => {
   if (selectedCategory.value) {
@@ -188,6 +241,9 @@ function clearFilters() {
   selectedCategory.value = null
   selectedBrand.value = null
   search.value = ''
+  priceMin.value = null
+  priceMax.value = null
+  activePricePreset.value = null
   page.value = 1
   reload()
 }
@@ -215,6 +271,8 @@ async function reload() {
       search: search.value || null,
       category: selectedCategory.value,
       brand: selectedBrand.value,
+      price_min: priceMin.value || null,
+      price_max: priceMax.value || null,
     })
     products.value = data.data || data
     total.value = data.meta?.total || products.value.length
@@ -282,6 +340,20 @@ onMounted(async () => { await loadFilters(); await reload() })
   cursor: pointer; transition: all 0.2s;
 }
 .filter-clear:hover { color: var(--sf-sale); border-color: var(--sf-sale); }
+
+/* Price Filter */
+.price-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px; }
+.price-preset { font-size: 12px !important; padding: 7px 10px !important; text-align: center; justify-content: center; }
+.price-inputs { display: flex; align-items: center; gap: 6px; }
+.price-input {
+  flex: 1; padding: 8px 10px; border-radius: var(--sf-radius-sm);
+  border: 1px solid var(--sf-border); background: var(--sf-bg-card);
+  color: var(--sf-text-primary); font-size: 12px; outline: none;
+  width: 0; /* let flex handle it */
+}
+.price-input:focus { border-color: var(--sf-accent); }
+.price-input::placeholder { color: var(--sf-text-muted); }
+.price-sep { color: var(--sf-text-muted); font-size: 12px; flex-shrink: 0; }
 
 /* Main */
 .products-main__header {

@@ -19,11 +19,28 @@ class BannersController extends Controller
         return $this->successResponse($this->repo->all());
     }
 
+    public function show($id)
+    {
+        $banner = $this->repo->find($id);
+        if (!$banner) return $this->notFoundResponse('Banner not found');
+        return $this->successResponse($banner);
+    }
+
     public function store(Request $request)
     {
         try {
-            $banner = $this->repo->store($request->all());
+            $data = $request->validate([
+                'title' => 'required|string|max:255',
+                'image_url' => 'required|string',
+                'link_url' => 'nullable|string',
+                'position' => 'nullable|string|max:50',
+                'sort_order' => 'nullable|integer',
+                'is_active' => 'nullable|boolean',
+            ]);
+            $banner = $this->repo->store($data);
             return $this->successResponse($banner, 'Banner created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -31,13 +48,26 @@ class BannersController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->repo->update($request->all(), $id);
-        return $this->successResponse($this->repo->find($id), 'Banner updated');
+        try {
+            $banner = $this->repo->find($id);
+            if (!$banner) return $this->notFoundResponse('Banner not found');
+            $this->repo->update($request->all(), $id);
+            return $this->successResponse($this->repo->find($id), 'Banner updated');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $this->repo->delete($id);
-        return $this->successResponse(null, 'Banner deleted');
+        try {
+            $banner = $this->repo->find($id);
+            if (!$banner) return $this->notFoundResponse('Banner not found');
+            $this->repo->delete($id);
+            return $this->successResponse(null, 'Banner deleted');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
     }
 }
+

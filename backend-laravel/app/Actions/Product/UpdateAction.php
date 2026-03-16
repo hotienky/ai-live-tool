@@ -2,6 +2,9 @@
 namespace App\Actions\Product;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use App\Models\ProductCategory;
+use App\Models\ProductBrand;
 
 class UpdateAction extends BaseAction
 {
@@ -23,6 +26,26 @@ class UpdateAction extends BaseAction
                 }
             }
 
+            // Map category name → category_id
+            if (isset($data['category']) && !isset($data['category_id'])) {
+                $cat = ProductCategory::where('name', $data['category'])->first();
+                $data['category_id'] = $cat?->id;
+            }
+
+            // Map brand name → brand_id
+            if (isset($data['brand']) && !isset($data['brand_id'])) {
+                $brand = ProductBrand::where('name', $data['brand'])->first();
+                $data['brand_id'] = $brand?->id;
+            }
+
+            // Auto-generate slug if name changed
+            if (isset($data['name']) && $data['name'] !== $product->name) {
+                $data['slug'] = Str::slug($data['name']);
+            }
+
+            // Strip non-DB fields
+            unset($data['category'], $data['brand'], $data['image'], $data['status']);
+
             $this->productRepository->update($data, $id);
             $product = $this->productRepository->find($id);
 
@@ -32,3 +55,4 @@ class UpdateAction extends BaseAction
         }
     }
 }
+

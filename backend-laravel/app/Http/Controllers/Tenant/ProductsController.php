@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 
 
 use App\Actions\Product\IndexAction;
+use App\Actions\Product\ShowAction;
 use App\Actions\Product\StoreAction;
 use App\Actions\Product\UpdateAction;
 use App\Actions\Product\DestroyAction;
@@ -16,6 +17,11 @@ class ProductsController extends Controller
     public function index(IndexAction $action)
     {
         return $action();
+    }
+
+    public function show($id, ShowAction $action)
+    {
+        return $action($id);
     }
 
     public function store(Request $request, StoreAction $action)
@@ -38,3 +44,4 @@ class ProductsController extends Controller
         return $action($request, $id);
     }
 }
+

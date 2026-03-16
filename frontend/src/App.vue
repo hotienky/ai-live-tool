@@ -276,7 +276,15 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onErrorCaptured } from 'vue'
+
+// ── Error Boundary ──
+const appError = ref(null)
+onErrorCaptured((err, instance, info) => {
+  console.error('[App Error Boundary]', err, info)
+  appError.value = { message: err.message || 'Đã xảy ra lỗi', info }
+  return false // prevent propagation
+})
 import { API_BASE } from './config.js'
 import { logger } from './utils/logger.js'
 import { useSocket } from './composables/useSocket.js'

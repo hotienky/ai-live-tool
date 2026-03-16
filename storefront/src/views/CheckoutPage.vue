@@ -305,7 +305,7 @@ onMounted(async () => {
         if (!form.value.customerName) form.value.customerName = defaultAddr.name || ''
         if (!form.value.customerPhone) form.value.customerPhone = defaultAddr.phone || ''
       }
-    } catch { /* no addresses */ }
+    } catch (err) { console.warn('[Checkout] Address load failed:', err?.message || err) }
   }
 
   // Load payment methods for the form

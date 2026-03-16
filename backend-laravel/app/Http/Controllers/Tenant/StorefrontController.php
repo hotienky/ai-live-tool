@@ -41,8 +41,43 @@ class StorefrontController extends Controller
         $product = $this->productRepo->findBySlugOrId($identifier);
         if (!$product) return $this->notFoundResponse('Product not found');
 
-        $product->variants_list = $this->orderRepo->getVariants($product->id);
+        $dbVariants = $this->orderRepo->getVariants($product->id);
+        $jsonVariants = is_array($product->variants) ? $product->variants : [];
+
+        // Merge promotion_price from JSON variants into DB variants (by matching sku or name)
+        if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
+            $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
+            $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
+                $key = $v->sku ?: $v->name;
+                $json = $jsonMap->get($key);
+                if ($json && isset($json['promotion_price'])) {
+                    $v->promotion_price = $json['promotion_price'];
+                }
+                return $v;
+            });
+        }
+
+        // If no DB variants, use JSON variants directly (they include promotion_price)
+        $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
         return $this->successResponse($product);
+    }
+
+    public function relatedProducts($slug)
+    {
+        $product = $this->productRepo->findBySlugOrId($slug);
+        if (!$product) return $this->notFoundResponse('Product not found');
+
+        try {
+            $related = $this->productRepo->query()
+                ->where('is_active', true)
+                ->where('id', '!=', $product->id)
+                ->when($product->category_id, fn($q) => $q->where('category_id', $product->category_id))
+                ->limit(6)
+                ->get();
+            return $this->successResponse($related);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
+        }
     }
 
     public function categories()

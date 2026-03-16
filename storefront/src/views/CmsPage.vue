@@ -43,6 +43,9 @@
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../api.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft } from 'lucide-vue-next'
+import { useSeo } from '../composables/useSeo.js'
+
+const { setPageSeo } = useSeo()
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -61,8 +64,14 @@ async function loadPage() {
     page.value = await apiFetch(`/pages/${props.slug}`)
     if (page.value?.title) {
       document.title = `${page.value.title} — Cửa hàng`
+      setPageSeo({
+        title: page.value.title + ' — Cửa hàng',
+        description: page.value.meta_description || page.value.content?.replace(/<[^>]*>/g, '').slice(0, 160) || '',
+        keywords: page.value.meta_keywords || '',
+      })
     }
-  } catch {
+  } catch (err) {
+    console.error('[CmsPage] Load failed:', err)
     page.value = null
   }
   loading.value = false

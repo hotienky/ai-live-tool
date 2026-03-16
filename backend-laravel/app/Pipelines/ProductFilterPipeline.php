@@ -12,6 +12,8 @@ class ProductFilterPipeline extends AbstractFilterPipeline
         \App\QueryBuilder\Product\BrandId::class,
         \App\QueryBuilder\Product\Featured::class,
         \App\QueryBuilder\Product\IsActive::class,
+        \App\QueryBuilder\Product\PriceMin::class,
+        \App\QueryBuilder\Product\PriceMax::class,
     ];
 
     public static function run(EloquentBuilder|QueryBuilder $builder, array $context): EloquentBuilder|QueryBuilder

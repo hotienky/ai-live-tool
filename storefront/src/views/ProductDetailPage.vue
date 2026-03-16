@@ -232,9 +232,11 @@ import {
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
+import { useSeo } from '../composables/useSeo.js'
 
 const { addToCart } = useCart()
 const { isLoggedIn, token: authToken } = useAuth()
+const { setProductSeo, setBreadcrumbs } = useSeo()
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -263,8 +265,10 @@ const allImages = computed(() => {
   // Additional images
   const extra = product.value.images
   if (extra) {
-    const arr = Array.isArray(extra) ? extra : (typeof extra === 'string' ? JSON.parse(extra) : [])
-    arr.forEach(i => imgs.add(i))
+    try {
+      const arr = Array.isArray(extra) ? extra : (typeof extra === 'string' ? JSON.parse(extra) : [])
+      arr.forEach(i => imgs.add(i))
+    } catch { /* malformed JSON — skip */ }
   }
   // Variant images
   variants.value.forEach(v => { if (v.image) imgs.add(v.image) })
@@ -280,13 +284,20 @@ const displayPrice = computed(() => {
 })
 
 const displayPromoPrice = computed(() => {
+  if (selectedVariant.value !== null) {
+    const v = variants.value[selectedVariant.value]
+    return Number(v?.promotion_price || 0)
+  }
   return Number(product.value?.promotion_price || 0)
 })
 
 const displayOnSale = computed(() => {
-  if (selectedVariant.value !== null) return false // Variants don't have promo prices
+  const promoPrice = displayPromoPrice.value
+  const basePrice = displayPrice.value
+  if (!promoPrice || promoPrice >= basePrice) return false
+  // Check date range only for product-level (variant inherits validity)
   const p = product.value
-  if (!p || !p.promotion_price || p.promotion_price >= p.price) return false
+  if (!p) return false
   const now = Date.now()
   if (p.promotion_start && new Date(p.promotion_start).getTime() > now) return false
   if (p.promotion_end && new Date(p.promotion_end).getTime() < now) return false
@@ -334,7 +345,15 @@ async function loadProduct() {
     try {
       product.value = await apiFetch(`/products/${props.slug}`)
       if (product.value?.name) {
-        document.title = `${product.value.name} — Cửa hàng`
+        setProductSeo(product.value)
+        // Breadcrumb JSON-LD
+        const base = window.location.origin
+        const crumbs = [{ name: 'Trang chủ', url: base + '/' }]
+        if (product.value.category_name) {
+          crumbs.push({ name: product.value.category_name, url: base + '/products?category=' + encodeURIComponent(product.value.category_name) })
+        }
+        crumbs.push({ name: product.value.name, url: window.location.href })
+        setBreadcrumbs(crumbs)
       }
       // Set initial active image
       if (product.value) {
@@ -398,6 +417,11 @@ async function loadReviews() {
 
 async function submitReview() {
   if (!product.value || !reviewForm.value.rating) return
+  if (!isLoggedIn.value) {
+    reviewMsg.value = 'Vui lòng đăng nhập để gửi đánh giá'
+    reviewMsgType.value = 'error'
+    return
+  }
   reviewSubmitting.value = true
   reviewMsg.value = ''
   try {

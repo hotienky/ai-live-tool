@@ -14,7 +14,15 @@ export function usePromotions(apiFetch) {
     try {
       const qs = new URLSearchParams(params).toString()
       const res = await apiFetch(`/promotions?${qs}`)
-      promotions.value = await res.json()
+      const data = await res.json()
+      // Map snake_case from backend to camelCase for frontend
+      promotions.value = (Array.isArray(data) ? data : []).map(p => ({
+        ...p,
+        productId: p.product_id || p.productId,
+        pricePromotion: p.price_promotion || p.pricePromotion || 0,
+        dateStart: p.date_start || p.dateStart,
+        dateEnd: p.date_end || p.dateEnd,
+      }))
     } catch { promotions.value = [] }
     loading.value = false
   }
