@@ -21,15 +21,16 @@ Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontControlle
 Route::post('/shipping/calculate', [\App\Http\Controllers\Tenant\ShippingController::class, 'calculate']);
 Route::get('/shipping/providers', [\App\Http\Controllers\Tenant\ShippingController::class, 'providers']);
 Route::get('/shipping/provinces', [\App\Http\Controllers\Tenant\ShippingController::class, 'provinces']);
-Route::get('/shipping/districts/{provinceId}', [\App\Http\Controllers\Tenant\ShippingController::class, 'districts']);
-Route::get('/shipping/wards/{districtId}', [\App\Http\Controllers\Tenant\ShippingController::class, 'wards']);
+Route::get('/shipping/wards/{provinceCode}', [\App\Http\Controllers\Tenant\ShippingController::class, 'wards']);
+Route::get('/shipping/vietmap-autocomplete', [\App\Http\Controllers\Tenant\ShippingController::class, 'vietmapAutocomplete']);
 Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'orderDetail']);
 Route::get('/languages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'languages']);
 Route::get('/translations/{langCode}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'translations']);
 Route::get('/theme', [\App\Http\Controllers\Tenant\StorefrontController::class, 'theme']);
 Route::get('/featured-products', [\App\Http\Controllers\Tenant\StorefrontController::class, 'featuredProducts']);
 Route::get('/flash-sales', [\App\Http\Controllers\Tenant\StorefrontController::class, 'flashSales']);
-Route::get('/orders', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storefrontOrders']);
+Route::get('/orders', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storefrontOrders'])
+    ->middleware([\App\Http\Middleware\ShopCustomerAuth::class]);
 Route::get('/shipment/{orderId}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'shipmentTracking']);
 Route::get('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\StorefrontController::class, 'productReviews']);
 Route::post('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\StorefrontController::class, 'createReview'])

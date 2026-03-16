@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\Shipping\ShippingManager;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ShippingController extends Controller
 {
@@ -19,7 +20,6 @@ class ShippingController extends Controller
 
     /**
      * POST /shipping/calculate
-     * Calculate shipping fee from all active providers
      */
     public function calculate(Request $request)
     {
@@ -33,10 +33,8 @@ class ShippingController extends Controller
         }
 
         $params = [
-            'to_province' => $request->input('to_province_id', 0),
+            'to_province' => $request->input('to_province_code', 0),
             'to_province_name' => $request->input('to_province_name', ''),
-            'to_district' => $request->input('to_district_id', 0),
-            'to_district_name' => $request->input('to_district_name', ''),
             'to_ward' => $request->input('to_ward_code', ''),
             'to_ward_name' => $request->input('to_ward_name', ''),
             'weight' => $request->input('weight', 500),
@@ -55,7 +53,6 @@ class ShippingController extends Controller
 
     /**
      * GET /shipping/providers
-     * List active shipping providers (for CMS display)
      */
     public function providers()
     {
@@ -64,28 +61,123 @@ class ShippingController extends Controller
 
     /**
      * GET /shipping/provinces
+     * Danh sách tỉnh/thành phố từ JSON tĩnh (VietMap)
      */
     public function provinces()
     {
-        $provinces = $this->manager()->getProvinces();
-        return $this->successResponse($provinces);
+        $data = Cache::remember('vn_provinces', 86400, function () {
+            $path = database_path('data/province.json');
+            if (!file_exists($path)) return [];
+            $raw = json_decode(file_get_contents($path), true);
+            $result = [];
+            foreach ($raw as $code => $p) {
+                $result[] = [
+                    'code' => $p['code'] ?? $code,
+                    'name' => $p['name_with_type'] ?? $p['name'],
+                    'slug' => $p['slug'] ?? '',
+                    'type' => $p['type'] ?? '',
+                ];
+            }
+            // Sort by name
+            usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
+            return $result;
+        });
+
+        return $this->successResponse($data);
     }
 
     /**
-     * GET /shipping/districts/{provinceId}
+     * GET /shipping/wards/{provinceCode}
+     * Danh sách phường/xã thuộc tỉnh (parent_code = provinceCode)
      */
-    public function districts($provinceId)
+    public function wards($provinceCode)
     {
-        $districts = $this->manager()->getDistricts($provinceId);
-        return $this->successResponse($districts);
+        $cacheKey = "vn_wards_{$provinceCode}";
+        $data = Cache::remember($cacheKey, 86400, function () use ($provinceCode) {
+            $path = database_path('data/ward.json');
+            if (!file_exists($path)) return [];
+            $raw = json_decode(file_get_contents($path), true);
+            $result = [];
+            foreach ($raw as $code => $w) {
+                if (($w['parent_code'] ?? '') == $provinceCode) {
+                    $result[] = [
+                        'code' => $w['code'] ?? $code,
+                        'name' => $w['name_with_type'] ?? $w['name'],
+                        'slug' => $w['slug'] ?? '',
+                        'type' => $w['type'] ?? '',
+                        'path' => $w['path'] ?? '',
+                    ];
+                }
+            }
+            usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
+            return $result;
+        });
+
+        return $this->successResponse($data);
     }
 
     /**
-     * GET /shipping/wards/{districtId}
+     * GET /shipping/vietmap-autocomplete?text=...
+     * Proxy VietMap Autocomplete v4 — giữ API key ở server, trả kết quả cho storefront
      */
-    public function wards($districtId)
+    public function vietmapAutocomplete(Request $request)
     {
-        $wards = $this->manager()->getWards($districtId);
-        return $this->successResponse($wards);
+        $text = $request->input('text', '');
+        if (mb_strlen($text) < 2) {
+            return $this->successResponse([]);
+        }
+
+        $apiKey = \App\Models\SystemConfig::where('key', 'shipping_vietmap_api_key')->value('value');
+        if (!$apiKey) {
+            return $this->successResponse([]);
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::get('https://maps.vietmap.vn/api/autocomplete/v4', [
+                'apikey' => $apiKey,
+                'text' => $text,
+            ]);
+
+            if (!$response->successful()) {
+                return $this->successResponse([]);
+            }
+
+            $items = $response->json() ?? [];
+            if (!is_array($items)) {
+                $items = [];
+            }
+
+            $results = [];
+            foreach (array_slice($items, 0, 8) as $item) {
+                $boundaries = $item['boundaries'] ?? [];
+                $province = null;
+                $ward = null;
+
+                foreach ($boundaries as $b) {
+                    $type = $b['type'] ?? '';
+                    if (in_array($type, ['province', 'city'])) {
+                        $province = ['id' => $b['id'] ?? '', 'name' => $b['name'] ?? ''];
+                    }
+                    if (in_array($type, ['ward', 'commune'])) {
+                        $ward = ['id' => $b['id'] ?? '', 'name' => $b['name'] ?? ''];
+                    }
+                }
+
+                $results[] = [
+                    'display' => $item['display'] ?? $item['name'] ?? '',
+                    'address' => $item['address'] ?? '',
+                    'name' => $item['name'] ?? '',
+                    'lat' => $item['lat'] ?? null,
+                    'lng' => $item['lng'] ?? null,
+                    'province' => $province,
+                    'ward' => $ward,
+                ];
+            }
+
+            return $this->successResponse($results);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning('[VietMap] Autocomplete error: ' . $e->getMessage());
+            return $this->successResponse([]);
+        }
     }
 }

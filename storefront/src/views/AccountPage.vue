@@ -111,7 +111,7 @@
               </div>
               <div class="order-items" v-if="order.details?.length">
                 <div v-for="item in order.details.slice(0, 3)" :key="item.id" class="order-item-tag">
-                  {{ item.name }} × {{ item.qty }}
+                  {{ item.name }} × {{ item.qty }} — {{ formatPrice(item.price) }}
                 </div>
                 <span v-if="order.details.length > 3" class="order-more">+{{ order.details.length - 3 }} sản phẩm</span>
               </div>
@@ -119,7 +119,7 @@
                 <router-link :to="`/order-tracking?order_id=${order.id}&phone=${order.customer_phone || ''}`" class="btn-link-sm">
                   Chi tiết →
                 </router-link>
-                <span class="order-total">{{ formatPrice(order.total) }}</span>
+                <span class="order-total">{{ formatPrice(order.total_amount) }}</span>
               </div>
             </div>
           </div>
@@ -146,11 +146,10 @@
               <div class="field"><label>Điện thoại</label><input v-model="addrForm.phone" placeholder="0901234567" /></div>
               <div class="field"><label>Địa chỉ chi tiết *</label><input v-model="addrForm.address1" placeholder="123 Đường ABC, Phường X" required /></div>
               <div class="field-row">
-                <div class="field"><label>Quận/Huyện</label><input v-model="addrForm.district" placeholder="Quận 1" /></div>
-                <div class="field"><label>Thành phố</label><input v-model="addrForm.city" placeholder="TP. Hồ Chí Minh" /></div>
+                <div class="field"><label>Phường/Xã</label><input v-model="addrForm.city" placeholder="Phường Bến Nghé" /></div>
+                <div class="field"><label>Tỉnh/Thành phố</label><input v-model="addrForm.province" placeholder="Hồ Chí Minh" /></div>
               </div>
               <div class="field-row">
-                <div class="field"><label>Tỉnh/Thành</label><input v-model="addrForm.province" placeholder="Hồ Chí Minh" /></div>
                 <div class="field"><label>Quốc gia</label><input v-model="addrForm.country" /></div>
               </div>
               <div class="form-actions">
@@ -192,7 +191,7 @@
                   <span v-if="addr.phone" class="addr-phone">{{ addr.phone }}</span>
                 </div>
                 <p class="addr-line">{{ addr.address1 }}<span v-if="addr.address2">, {{ addr.address2 }}</span></p>
-                <p class="addr-region">{{ [addr.district, addr.city, addr.province].filter(Boolean).join(', ') }}</p>
+                <p class="addr-region">{{ [addr.city, addr.province].filter(Boolean).join(', ') }}</p>
               </div>
               <div class="addr-actions">
                 <button class="btn-action" @click="editAddress(addr)" title="Sửa">✏️</button>

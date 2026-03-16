@@ -372,11 +372,30 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function storefrontOrders()
+    public function storefrontOrders(Request $request)
     {
-        return $this->successResponse(
-            $this->orderRepo->query()->orderByDesc('created_at')->limit(50)->get()
-        );
+        $customer = $request->attributes->get('shop_customer');
+        if (!$customer) {
+            return $this->errorResponse('Authentication required', 401);
+        }
+
+        $orders = $this->orderRepo->query()
+            ->where(function ($q) use ($customer) {
+                $q->where('customer_email', $customer->email);
+                if ($customer->phone) {
+                    $q->orWhere('customer_phone', $customer->phone);
+                }
+            })
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        // Attach details for each order
+        $orders->each(function ($order) {
+            $order->details = $this->orderRepo->getDetails($order->id);
+        });
+
+        return $this->successResponse($orders);
     }
 
     public function productReviews($productId)

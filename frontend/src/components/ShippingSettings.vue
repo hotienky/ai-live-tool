@@ -121,6 +121,25 @@
       </div>
     </div>
 
+    <!-- VietMap API -->
+    <div class="provider-card active">
+      <div class="provider-card__header">
+        <div class="provider-card__info">
+          <strong>🗺️ VietMap (Địa chỉ autocomplete)</strong>
+          <span class="provider-card__badge" :class="form.shipping_vietmap_api_key ? 'badge--green' : 'badge--gray'">
+            {{ form.shipping_vietmap_api_key ? '✓ Đã cấu hình' : '○ Chưa có key' }}
+          </span>
+        </div>
+      </div>
+      <div class="provider-card__body">
+        <div class="form-group">
+          <label>VietMap API Key</label>
+          <input v-model="form.shipping_vietmap_api_key" type="password" placeholder="API Key từ VietMap" />
+        </div>
+        <p class="provider-card__hint">Dùng cho tính năng autocomplete địa chỉ trên storefront. Đăng ký tại: <a href="https://maps.vietmap.vn" target="_blank">maps.vietmap.vn</a></p>
+      </div>
+    </div>
+
     <button class="btn-primary" @click="save" :disabled="saving" style="margin-top:8px">
       <Save :size="14" />
       {{ saving ? 'Đang lưu...' : 'Lưu cấu hình vận chuyển' }}
@@ -144,6 +163,7 @@ const KEYS = [
   'shipping_ghtk_pick_province', 'shipping_ghtk_pick_district', 'shipping_ghtk_sandbox',
   'shipping_vtp_enabled', 'shipping_vtp_token',
   'shipping_vtp_sender_province', 'shipping_vtp_sender_district',
+  'shipping_vietmap_api_key',
 ]
 
 const form = ref(Object.fromEntries(KEYS.map(k => [k, ''])))

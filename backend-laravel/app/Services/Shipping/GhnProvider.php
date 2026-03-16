@@ -4,7 +4,13 @@ namespace App\Services\Shipping;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
+/**
+ * GHN Provider — resolves province/ward names to GHN internal IDs,
+ * then calls GHN API for fee calculation.
+ */
 class GhnProvider implements ShippingProviderInterface
 {
     private string $token;
@@ -31,26 +37,48 @@ class GhnProvider implements ShippingProviderInterface
     public function calculateFee(array $params): array
     {
         try {
-            // First get available services
-            $services = $this->getAvailableServices($params['to_district'] ?? 0);
+            $provinceName = $params['to_province_name'] ?? '';
+            $wardName = $params['to_ward_name'] ?? '';
+
+            // Resolve GHN province → district (best match)
+            $ghnProvinceId = $this->resolveProvinceId($provinceName);
+            if (!$ghnProvinceId) {
+                Log::info("[GHN] Could not resolve province: {$provinceName}");
+                return [];
+            }
+
+            // Get first district of resolved province (fallback since VN no longer has districts)
+            $ghnDistrictId = $this->resolveDistrictId($ghnProvinceId, $wardName);
+            if (!$ghnDistrictId) {
+                Log::info("[GHN] Could not resolve district for province {$ghnProvinceId}");
+                return [];
+            }
+
+            // Try to resolve ward code within district
+            $ghnWardCode = $this->resolveWardCode($ghnDistrictId, $wardName);
+
+            // Get available services
+            $services = $this->getAvailableServices($ghnDistrictId);
 
             $results = [];
             foreach ($services as $svc) {
-                $response = Http::withHeaders([
-                    'Token' => $this->token,
-                    'ShopId' => $this->shopId,
-                ])->post("{$this->baseUrl}/v2/shipping-order/fee", [
+                $payload = [
                     'from_district_id' => $this->fromDistrictId,
                     'from_ward_code' => $this->fromWardCode,
-                    'to_district_id' => (int) ($params['to_district'] ?? 0),
-                    'to_ward_code' => $params['to_ward'] ?? '',
+                    'to_district_id' => $ghnDistrictId,
+                    'to_ward_code' => $ghnWardCode ?: '',
                     'weight' => (int) ($params['weight'] ?? 500),
                     'length' => (int) ($params['length'] ?? 20),
                     'width' => (int) ($params['width'] ?? 15),
                     'height' => (int) ($params['height'] ?? 10),
                     'insurance_value' => (int) ($params['value'] ?? 0),
                     'service_type_id' => $svc['service_type_id'],
-                ]);
+                ];
+
+                $response = Http::withHeaders([
+                    'Token' => $this->token,
+                    'ShopId' => $this->shopId,
+                ])->post("{$this->baseUrl}/v2/shipping-order/fee", $payload);
 
                 if ($response->successful()) {
                     $data = $response->json('data');
@@ -69,29 +97,128 @@ class GhnProvider implements ShippingProviderInterface
             }
             return $results;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('[GHN] calculateFee error: ' . $e->getMessage());
+            Log::warning('[GHN] calculateFee error: ' . $e->getMessage());
             return [];
         }
     }
 
+    // ─── Name → ID resolution ────────────────────────────────────
+
+    /**
+     * Find GHN ProvinceID by name similarity
+     */
+    private function resolveProvinceId(string $name): ?int
+    {
+        if (!$name) return null;
+
+        $provinces = Cache::remember('ghn_provinces_raw', 86400, function () {
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->get("{$this->baseUrl}/master-data/province");
+            return $response->successful() ? ($response->json('data') ?? []) : [];
+        });
+
+        $needle = $this->normalizeVn($name);
+        $best = null;
+        $bestScore = 0;
+
+        foreach ($provinces as $p) {
+            $pName = $this->normalizeVn($p['ProvinceName'] ?? '');
+            $score = similar_text($needle, $pName);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $p['ProvinceID'] ?? null;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Find GHN DistrictID by ward name within a province (best match)
+     */
+    private function resolveDistrictId(int $provinceId, string $wardName): ?int
+    {
+        $districts = Cache::remember("ghn_districts_raw_{$provinceId}", 86400, function () use ($provinceId) {
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->post("{$this->baseUrl}/master-data/district", ['province_id' => $provinceId]);
+            return $response->successful() ? ($response->json('data') ?? []) : [];
+        });
+
+        if (empty($districts)) return null;
+
+        // If no ward name, return first district
+        if (!$wardName) {
+            return $districts[0]['DistrictID'] ?? null;
+        }
+
+        // Try to find the district containing the ward
+        $needle = $this->normalizeVn($wardName);
+        foreach ($districts as $d) {
+            $districtId = $d['DistrictID'] ?? null;
+            if (!$districtId) continue;
+
+            $wards = $this->getWardsList($districtId);
+            foreach ($wards as $w) {
+                $wName = $this->normalizeVn($w['WardName'] ?? '');
+                if (str_contains($wName, $needle) || str_contains($needle, $wName) || similar_text($needle, $wName) > strlen($needle) * 0.6) {
+                    return $districtId;
+                }
+            }
+        }
+
+        // Fallback: first district
+        return $districts[0]['DistrictID'] ?? null;
+    }
+
+    /**
+     * Find GHN WardCode by name within district
+     */
+    private function resolveWardCode(int $districtId, string $wardName): ?string
+    {
+        if (!$wardName) return null;
+
+        $wards = $this->getWardsList($districtId);
+        $needle = $this->normalizeVn($wardName);
+        $best = null;
+        $bestScore = 0;
+
+        foreach ($wards as $w) {
+            $wName = $this->normalizeVn($w['WardName'] ?? '');
+            $score = similar_text($needle, $wName);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = $w['WardCode'] ?? null;
+            }
+        }
+
+        return $best;
+    }
+
+    private function getWardsList(int $districtId): array
+    {
+        return Cache::remember("ghn_wards_raw_{$districtId}", 86400, function () use ($districtId) {
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->post("{$this->baseUrl}/master-data/ward", ['district_id' => $districtId]);
+            return $response->successful() ? ($response->json('data') ?? []) : [];
+        });
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────
+
     private function getAvailableServices(int $toDistrictId): array
     {
         try {
-            $response = Http::withHeaders([
-                'Token' => $this->token,
-            ])->post("{$this->baseUrl}/v2/shipping-order/available-services", [
-                'shop_id' => (int) $this->shopId,
-                'from_district' => $this->fromDistrictId,
-                'to_district' => $toDistrictId,
-            ]);
-
-            if ($response->successful()) {
-                return $response->json('data') ?? [];
-            }
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->post("{$this->baseUrl}/v2/shipping-order/available-services", [
+                    'shop_id' => (int) $this->shopId,
+                    'from_district' => $this->fromDistrictId,
+                    'to_district' => $toDistrictId,
+                ]);
+            return $response->successful() ? ($response->json('data') ?? []) : [];
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('[GHN] getAvailableServices error: ' . $e->getMessage());
+            Log::warning('[GHN] getAvailableServices error: ' . $e->getMessage());
+            return [];
         }
-        return [];
     }
 
     private function estimateDays(int $serviceTypeId): string
@@ -103,65 +230,11 @@ class GhnProvider implements ShippingProviderInterface
         };
     }
 
-    public function getProvinces(): array
+    private function normalizeVn(string $s): string
     {
-        return Cache::remember('ghn_provinces', 86400, function () {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->get("{$this->baseUrl}/master-data/province");
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($p) => [
-                    'id' => $p['ProvinceID'],
-                    'name' => $p['ProvinceName'],
-                    'code' => $p['Code'] ?? '',
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
-    }
-
-    public function getDistricts($provinceId): array
-    {
-        return Cache::remember("ghn_districts_{$provinceId}", 86400, function () use ($provinceId) {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->post("{$this->baseUrl}/master-data/district", [
-                    'province_id' => (int) $provinceId,
-                ]);
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($d) => [
-                    'id' => $d['DistrictID'],
-                    'name' => $d['DistrictName'],
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
-    }
-
-    public function getWards($districtId): array
-    {
-        return Cache::remember("ghn_wards_{$districtId}", 86400, function () use ($districtId) {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->post("{$this->baseUrl}/master-data/ward", [
-                    'district_id' => (int) $districtId,
-                ]);
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($w) => [
-                    'id' => $w['WardCode'],
-                    'name' => $w['WardName'],
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
+        $s = mb_strtolower(trim($s));
+        // Remove common prefixes
+        $s = preg_replace('/^(thanh pho|tinh|thi xa|quan|huyen|phuong|xa|thi tran)\s+/u', '', Str::ascii($s));
+        return trim($s);
     }
 }

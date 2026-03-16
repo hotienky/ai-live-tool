@@ -3,8 +3,14 @@
 namespace App\Services\Shipping;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
+/**
+ * GHTK Provider — uses province/ward names directly (no ID resolution needed).
+ * GHTK API accepts text names for province, district, ward.
+ * Since VN admin reform removed districts, we pass ward name as "district" too (GHTK will fuzzy match).
+ */
 class GhtkProvider implements ShippingProviderInterface
 {
     private string $token;
@@ -29,6 +35,9 @@ class GhtkProvider implements ShippingProviderInterface
     public function calculateFee(array $params): array
     {
         try {
+            $provinceName = $this->cleanName($params['to_province_name'] ?? '');
+            $wardName = $this->cleanName($params['to_ward_name'] ?? '');
+
             $results = [];
 
             // GHTK supports 2 transport modes: road and fly
@@ -38,9 +47,9 @@ class GhtkProvider implements ShippingProviderInterface
                 ])->get("{$this->baseUrl}/services/shipment/fee", [
                     'pick_province' => $this->pickProvince,
                     'pick_district' => $this->pickDistrict,
-                    'province' => $params['to_province_name'] ?? '',
-                    'district' => $params['to_district_name'] ?? '',
-                    'ward' => $params['to_ward_name'] ?? '',
+                    'province' => $provinceName,
+                    'district' => $wardName, // GHTK still needs "district" — pass ward as best match
+                    'ward' => $wardName,
                     'weight' => (int) ($params['weight'] ?? 500),
                     'value' => (int) ($params['value'] ?? 0),
                     'transport' => $transport,
@@ -64,16 +73,16 @@ class GhtkProvider implements ShippingProviderInterface
             }
             return $results;
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('[GHTK] calculateFee error: ' . $e->getMessage());
+            Log::warning('[GHTK] calculateFee error: ' . $e->getMessage());
             return [];
         }
     }
 
     /**
-     * GHTK uses province/district names, not IDs.
-     * We return GHN's province list as the address selector source.
+     * Strip prefixes like "Tỉnh ", "Thành phố ", "Xã ", "Phường "
      */
-    public function getProvinces(): array { return []; }
-    public function getDistricts($provinceId): array { return []; }
-    public function getWards($districtId): array { return []; }
+    private function cleanName(string $name): string
+    {
+        return preg_replace('/^(Tỉnh|Thành phố|Xã|Phường|Thị trấn|Thị xã|Quận|Huyện)\s+/u', '', trim($name));
+    }
 }

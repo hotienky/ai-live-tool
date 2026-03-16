@@ -59,7 +59,12 @@
               <span class="badge" :class="'badge--' + (orderData.payment_status || 'pending')">{{ paymentStatusLabel(orderData.payment_status) }}</span>
             </div>
           </div>
-          <div class="total-row"><span>Tổng cộng</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong></div>
+          <div class="total-row" v-if="orderData.discount_amount > 0 || orderData.shipping_fee > 0">
+            <span>Tổng cộng</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
+          </div>
+          <div class="total-row" v-else>
+            <span>Tổng cộng</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
+          </div>
         </div>
 
         <!-- Order Details / Items -->
@@ -72,6 +77,25 @@
                 <span class="detail-meta">{{ item.qty }} × {{ formatPrice(item.price) }}</span>
               </div>
               <span class="detail-total">{{ formatPrice(item.total_price) }}</span>
+            </div>
+          </div>
+          <!-- Price Breakdown -->
+          <div class="price-breakdown">
+            <div class="breakdown-row">
+              <span>Tạm tính</span>
+              <span>{{ formatPrice(itemsSubtotal) }}</span>
+            </div>
+            <div class="breakdown-row discount" v-if="orderData.discount_amount > 0">
+              <span>Giảm giá <template v-if="orderData.coupon_code">({{ orderData.coupon_code }})</template></span>
+              <span>-{{ formatPrice(orderData.discount_amount) }}</span>
+            </div>
+            <div class="breakdown-row" v-if="orderData.shipping_fee > 0">
+              <span>Phí vận chuyển</span>
+              <span>{{ formatPrice(orderData.shipping_fee) }}</span>
+            </div>
+            <div class="breakdown-row breakdown-total">
+              <strong>Tổng cộng</strong>
+              <strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
             </div>
           </div>
         </div>
@@ -238,6 +262,11 @@ function paymentStatusLabel(s) { return paymentStatusMap[s] || s }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '' }
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
+const itemsSubtotal = computed(() => {
+  if (!orderData.value?.details) return 0
+  return orderData.value.details.reduce((sum, item) => sum + Number(item.total_price || 0), 0)
+})
+
 const vietQrUrl = computed(() => {
   const d = orderData.value
   if (!d?.bank_info?.bank_bin || !d?.bank_info?.account_number) return ''
@@ -345,6 +374,21 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
 .detail-info strong { display: block; font-size: 13px; }
 .detail-meta { font-size: 12px; color: var(--sf-text-muted); }
 .detail-total { font-weight: 700; font-size: 14px; color: var(--sf-accent); }
+
+.price-breakdown {
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--sf-border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.breakdown-row {
+  display: flex; justify-content: space-between; font-size: 13px;
+  color: var(--sf-text-muted, #888);
+}
+.breakdown-row.discount { color: #16a34a; }
+.breakdown-row.breakdown-total {
+  padding-top: 10px; margin-top: 4px;
+  border-top: 1px dashed var(--sf-border);
+  font-size: 15px;
+}
 
 /* Bank Card */
 .bank-card { border-color: rgba(124,58,237,.2); }

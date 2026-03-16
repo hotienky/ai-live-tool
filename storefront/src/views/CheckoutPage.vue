@@ -175,38 +175,44 @@
                 <input v-model="form.customerEmail" type="email" placeholder="email@example.com" />
               </div>
             </div>
-            <!-- Address Selector -->
-            <div class="form-row form-row--3col">
+            <!-- Address Selector (2-level: Province → Ward) -->
+            <div class="form-row">
               <div class="form-group">
                 <label>Tỉnh/Thành phố *</label>
                 <select @change="e => onProvinceChange(e.target.value)" :value="selectedProvince || ''">
                   <option value="" disabled>{{ loadingProvinces ? 'Đang tải...' : 'Chọn tỉnh/thành' }}</option>
-                  <option v-for="p in provinces" :key="p.id" :value="p.id">{{ p.name }}</option>
+                  <option v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Quận/Huyện *</label>
-                <select @change="e => onDistrictChange(e.target.value)" :value="selectedDistrict || ''" :disabled="!selectedProvince">
-                  <option value="" disabled>{{ loadingDistricts ? 'Đang tải...' : 'Chọn quận/huyện' }}</option>
-                  <option v-for="d in districts" :key="d.id" :value="d.id">{{ d.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Phường/Xã</label>
-                <select @change="e => onWardChange(e.target.value)" :value="selectedWard || ''" :disabled="!selectedDistrict">
+                <label>Phường/Xã *</label>
+                <select @change="e => onWardChange(e.target.value)" :value="selectedWard || ''" :disabled="!selectedProvince">
                   <option value="" disabled>{{ loadingWards ? 'Đang tải...' : 'Chọn phường/xã' }}</option>
-                  <option v-for="w in wards" :key="w.id" :value="w.id">{{ w.name }}</option>
+                  <option v-for="w in wards" :key="w.code" :value="w.code">{{ w.name }}</option>
                 </select>
               </div>
             </div>
-            <div class="form-group">
+            <div class="form-group address-autocomplete-wrapper">
               <label>Địa chỉ chi tiết *</label>
-              <input v-model="form.customerAddress" placeholder="Số nhà, tên đường..." required />
+              <input
+                v-model="form.customerAddress"
+                placeholder="Số nhà, tên đường..."
+                required
+                @input="e => searchAddress(e.target.value)"
+                @blur="() => setTimeout(() => clearSuggestions(), 200)"
+                autocomplete="off"
+              />
+              <div v-if="loadingSuggestions" class="address-loading">Đang tìm...</div>
+              <ul v-if="addressSuggestions.length" class="address-suggestions">
+                <li v-for="(s, i) in addressSuggestions" :key="i" @mousedown.prevent="handleSelectSuggestion(s)">
+                  {{ s.display }}
+                </li>
+              </ul>
             </div>
           </div>
 
           <!-- Shipping Options -->
-          <div class="form-section shipping-section" v-if="selectedDistrict">
+          <div class="form-section shipping-section" v-if="selectedProvince">
             <h3><Truck :size="16" /> Đơn vị vận chuyển</h3>
             <div v-if="loadingShipping" class="shipping-loading">
               <span class="spinner"></span> Đang tính phí vận chuyển...
@@ -324,7 +330,7 @@
               <div class="total-row">
                 <span>Phí giao hàng</span>
                 <span v-if="shippingFee > 0">{{ formatPrice(shippingFee) }}</span>
-                <span v-else class="free">{{ selectedDistrict ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
+                <span v-else class="free">{{ selectedProvince ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
               </div>
               <div class="total-row total-row--grand">
                 <span>Tổng thanh toán</span>
@@ -387,15 +393,21 @@ const {
 
 // Shipping
 const {
-  provinces, districts, wards,
-  loadingProvinces, loadingDistricts, loadingWards,
-  selectedProvince, selectedDistrict, selectedWard,
-  selectedProvinceName, selectedDistrictName, selectedWardName,
+  provinces, wards,
+  loadingProvinces, loadingWards,
+  selectedProvince, selectedWard,
+  selectedProvinceName, selectedWardName,
+  addressSuggestions, loadingSuggestions,
   shippingOptions, selectedShipping, shippingFee,
   loadingShipping, shippingError, fullAddress,
-  fetchProvinces, onProvinceChange, onDistrictChange, onWardChange,
+  fetchProvinces, onProvinceChange, onWardChange,
+  searchAddress, clearSuggestions, selectSuggestion,
   calculateShipping, selectShipping,
 } = useShipping()
+
+function handleSelectSuggestion(s) {
+  selectSuggestion(s, form)
+}
 
 const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value))
 
@@ -407,7 +419,7 @@ const paymentMethodsList = ref([
 ])
 
 onMounted(async () => {
-  // Fetch address data from shipping API
+  // Fetch address data
   fetchProvinces()
 
   // Re-validate saved coupon on mount
@@ -497,7 +509,6 @@ async function placeOrder() {
     // Build full address from selectors + detail
     const addressParts = [form.value.customerAddress]
     if (selectedWardName.value) addressParts.push(selectedWardName.value)
-    if (selectedDistrictName.value) addressParts.push(selectedDistrictName.value)
     if (selectedProvinceName.value) addressParts.push(selectedProvinceName.value)
     const fullAddr = addressParts.filter(Boolean).join(', ')
 
@@ -520,8 +531,7 @@ async function placeOrder() {
       shipping_provider: selectedShipping.value?.provider || null,
       shipping_service: selectedShipping.value?.service_code || null,
       shipping_fee: shippingFee.value,
-      to_province_id: selectedProvince.value || null,
-      to_district_id: selectedDistrict.value || null,
+      to_province_code: selectedProvince.value || null,
       to_ward_code: selectedWard.value || null,
     }
     // Include coupon if applied
@@ -581,8 +591,22 @@ async function placeOrder() {
 }
 .form-group input:focus, textarea:focus { border-color: var(--sf-accent); }
 
-/* Address selector (3-col row) */
-.form-row--3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+/* Address selector */
+.address-autocomplete-wrapper { position: relative; }
+.address-suggestions {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 50;
+  background: var(--sf-bg-secondary); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-sm); margin-top: 4px;
+  max-height: 220px; overflow-y: auto; list-style: none; padding: 0;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.address-suggestions li {
+  padding: 10px 14px; font-size: 13px; color: var(--sf-text-primary);
+  cursor: pointer; border-bottom: 1px solid var(--sf-border);
+  transition: background 0.15s;
+}
+.address-suggestions li:last-child { border-bottom: none; }
+.address-suggestions li:hover { background: var(--sf-accent); color: #fff; }
 .form-group select {
   width: 100%; background: var(--sf-bg-secondary);
   border: 1px solid var(--sf-border); color: var(--sf-text-primary);

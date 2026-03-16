@@ -4,7 +4,13 @@ namespace App\Services\Shipping;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
+/**
+ * Viettel Post Provider — resolves province/ward names to VTP internal IDs,
+ * then calls VTP API for fee calculation.
+ */
 class ViettelPostProvider implements ShippingProviderInterface
 {
     private string $token;
@@ -26,14 +32,32 @@ class ViettelPostProvider implements ShippingProviderInterface
     public function calculateFee(array $params): array
     {
         try {
+            $provinceName = $params['to_province_name'] ?? '';
+            $wardName = $params['to_ward_name'] ?? '';
+
+            // Resolve VTP ProvinceID from name
+            $vtpProvinceId = $this->resolveProvinceId($provinceName);
+            if (!$vtpProvinceId) {
+                Log::info("[VTP] Could not resolve province: {$provinceName}");
+                return [];
+            }
+
+            // Resolve VTP DistrictID (find district containing ward)
+            $vtpDistrictId = $this->resolveDistrictId($vtpProvinceId, $wardName);
+            if (!$vtpDistrictId) {
+                Log::info("[VTP] Could not resolve district for province {$vtpProvinceId}, ward: {$wardName}");
+                // Fallback: use province-level pricing with district = 0
+                $vtpDistrictId = 0;
+            }
+
             $response = Http::withHeaders([
                 'Token' => $this->token,
                 'Content-Type' => 'application/json',
             ])->post("{$this->baseUrl}/order/getPriceAll", [
                 'SENDER_PROVINCE' => $this->senderProvince,
                 'SENDER_DISTRICT' => $this->senderDistrict,
-                'RECEIVER_PROVINCE' => (int) ($params['to_province'] ?? 0),
-                'RECEIVER_DISTRICT' => (int) ($params['to_district'] ?? 0),
+                'RECEIVER_PROVINCE' => $vtpProvinceId,
+                'RECEIVER_DISTRICT' => $vtpDistrictId,
                 'PRODUCT_TYPE' => 'HH',
                 'PRODUCT_WEIGHT' => (int) ($params['weight'] ?? 500),
                 'PRODUCT_PRICE' => (int) ($params['value'] ?? 0),
@@ -50,7 +74,6 @@ class ViettelPostProvider implements ShippingProviderInterface
 
             $results = [];
             foreach ($services as $svc) {
-                // Filter only common services
                 $code = $svc['MA_DV_CHINH'] ?? '';
                 $name = $svc['TEN_DICHVU'] ?? '';
                 $fee = $svc['GIA_CUOC'] ?? 0;
@@ -68,17 +91,84 @@ class ViettelPostProvider implements ShippingProviderInterface
                 }
             }
 
-            // Limit to top 3 most relevant services
             return array_slice($results, 0, 3);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning('[VTP] calculateFee error: ' . $e->getMessage());
+            Log::warning('[VTP] calculateFee error: ' . $e->getMessage());
             return [];
         }
     }
 
+    // ─── Name → ID resolution ────────────────────────────────────
+
+    private function resolveProvinceId(string $name): ?int
+    {
+        if (!$name) return null;
+
+        $provinces = Cache::remember('vtp_provinces_raw', 86400, function () {
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->get("{$this->baseUrl}/categories/listProvinceById", ['provinceId' => -1]);
+            return $response->successful() ? ($response->json('data') ?? []) : [];
+        });
+
+        $needle = $this->normalizeVn($name);
+        $best = null;
+        $bestScore = 0;
+
+        foreach ($provinces as $p) {
+            $pName = $this->normalizeVn($p['PROVINCE_NAME'] ?? $p['provinceName'] ?? '');
+            $score = similar_text($needle, $pName);
+            if ($score > $bestScore) {
+                $bestScore = $score;
+                $best = (int) ($p['PROVINCE_ID'] ?? $p['provinceId'] ?? 0);
+            }
+        }
+
+        return $best ?: null;
+    }
+
+    private function resolveDistrictId(int $provinceId, string $wardName): ?int
+    {
+        $districts = Cache::remember("vtp_districts_raw_{$provinceId}", 86400, function () use ($provinceId) {
+            $response = Http::withHeaders(['Token' => $this->token])
+                ->get("{$this->baseUrl}/categories/listDistrict", ['provinceId' => $provinceId]);
+            return $response->successful() ? ($response->json('data') ?? []) : [];
+        });
+
+        if (empty($districts)) return null;
+
+        // If no ward name, return first district
+        if (!$wardName) {
+            return (int) ($districts[0]['DISTRICT_ID'] ?? $districts[0]['districtId'] ?? 0) ?: null;
+        }
+
+        // Try to find district containing this ward by searching wards in each district
+        $needle = $this->normalizeVn($wardName);
+        foreach ($districts as $d) {
+            $dId = (int) ($d['DISTRICT_ID'] ?? $d['districtId'] ?? 0);
+            if (!$dId) continue;
+
+            $wards = Cache::remember("vtp_wards_raw_{$dId}", 86400, function () use ($dId) {
+                $response = Http::withHeaders(['Token' => $this->token])
+                    ->get("{$this->baseUrl}/categories/listWards", ['districtId' => $dId]);
+                return $response->successful() ? ($response->json('data') ?? []) : [];
+            });
+
+            foreach ($wards as $w) {
+                $wName = $this->normalizeVn($w['WARDS_NAME'] ?? $w['wardsName'] ?? '');
+                if (str_contains($wName, $needle) || str_contains($needle, $wName) || similar_text($needle, $wName) > strlen($needle) * 0.6) {
+                    return $dId;
+                }
+            }
+        }
+
+        // Fallback: first district
+        return (int) ($districts[0]['DISTRICT_ID'] ?? $districts[0]['districtId'] ?? 0) ?: null;
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────
+
     private function estimateDays(string $serviceCode): string
     {
-        // VHT = Hỏa tốc, VCN = Chuyển nhanh, VTK = Tiết kiệm
         return match (true) {
             str_contains($serviceCode, 'VHT') => '1 ngày',
             str_contains($serviceCode, 'VCN'), str_contains($serviceCode, 'NCOD') => '1-2 ngày',
@@ -87,60 +177,10 @@ class ViettelPostProvider implements ShippingProviderInterface
         };
     }
 
-    public function getProvinces(): array
+    private function normalizeVn(string $s): string
     {
-        return Cache::remember('vtp_provinces', 86400, function () {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->get("{$this->baseUrl}/categories/listProvinceById", ['provinceId' => -1]);
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($p) => [
-                    'id' => $p['PROVINCE_ID'] ?? $p['provinceId'] ?? '',
-                    'name' => $p['PROVINCE_NAME'] ?? $p['provinceName'] ?? '',
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
-    }
-
-    public function getDistricts($provinceId): array
-    {
-        return Cache::remember("vtp_districts_{$provinceId}", 86400, function () use ($provinceId) {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->get("{$this->baseUrl}/categories/listDistrict", ['provinceId' => (int) $provinceId]);
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($d) => [
-                    'id' => $d['DISTRICT_ID'] ?? $d['districtId'] ?? '',
-                    'name' => $d['DISTRICT_NAME'] ?? $d['districtName'] ?? '',
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
-    }
-
-    public function getWards($districtId): array
-    {
-        return Cache::remember("vtp_wards_{$districtId}", 86400, function () use ($districtId) {
-            $response = Http::withHeaders(['Token' => $this->token])
-                ->get("{$this->baseUrl}/categories/listWards", ['districtId' => (int) $districtId]);
-
-            if (!$response->successful()) return [];
-
-            return collect($response->json('data') ?? [])
-                ->map(fn($w) => [
-                    'id' => $w['WARDS_ID'] ?? $w['wardsId'] ?? '',
-                    'name' => $w['WARDS_NAME'] ?? $w['wardsName'] ?? '',
-                ])
-                ->sortBy('name')
-                ->values()
-                ->toArray();
-        });
+        $s = mb_strtolower(trim($s));
+        $s = preg_replace('/^(thanh pho|tinh|thi xa|quan|huyen|phuong|xa|thi tran)\s+/u', '', Str::ascii($s));
+        return trim($s);
     }
 }
