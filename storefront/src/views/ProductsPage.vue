@@ -159,7 +159,10 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import ProductCard from '../components/ProductCard.vue'
+import { useSeo } from '../composables/useSeo.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+
+const { setPageSeo } = useSeo()
 
 const props = defineProps({
   slug: { type: String, default: null },
@@ -293,6 +296,12 @@ async function reload() {
     products.value = []
   }
   loading.value = false
+
+  // SEO — set page meta tags (C1)
+  setPageSeo({
+    title: `${pageTitle.value} (${total.value}) — Cửa hàng`,
+    description: `Xem ${total.value} sản phẩm${search.value ? ' cho "' + search.value + '"' : ''}. Lọc theo danh mục, thương hiệu, giá.`,
+  })
 }
 
 watch(() => props.slug, (v) => { selectedCategory.value = v; page.value = 1; reload() })

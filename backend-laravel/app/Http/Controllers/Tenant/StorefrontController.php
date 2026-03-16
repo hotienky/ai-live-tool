@@ -12,6 +12,7 @@ use App\Repositories\Language\LanguageRepositoryInterface;
 use App\Repositories\FlashSale\FlashSaleRepositoryInterface;
 use App\Repositories\Order\OrderRepositoryInterface;
 use App\Repositories\SystemConfig\SystemConfigRepositoryInterface;
+use App\Repositories\Coupon\CouponRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,7 @@ class StorefrontController extends Controller
         private FlashSaleRepositoryInterface $flashSaleRepo,
         private OrderRepositoryInterface $orderRepo,
         private SystemConfigRepositoryInterface $configRepo,
+        private CouponRepositoryInterface $couponRepo,
     ) {}
 
     public function products(Request $request)
@@ -209,6 +211,20 @@ class StorefrontController extends Controller
                 fn($sum, $i) => $sum + (floatval($i['price'] ?? 0) * intval($i['qty'] ?? 1)), 0
             );
 
+            // Coupon/Voucher processing
+            $couponCode = $request->input('coupon_code');
+            $discountAmount = 0;
+            if ($couponCode) {
+                $couponResult = $this->couponRepo->validateCoupon($couponCode, $totalAmount);
+                if ($couponResult['valid']) {
+                    $discountAmount = min($couponResult['discount'], $totalAmount);
+                    // Increment used_count
+                    $coupon = $couponResult['coupon'];
+                    $coupon->increment('used_count');
+                }
+                // Silently ignore invalid coupon at checkout (already validated on frontend)
+            }
+
             $order = $this->orderRepo->store([
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
@@ -218,7 +234,9 @@ class StorefrontController extends Controller
                 'payment_status' => $paymentMethod === 'bank' ? 'unpaid' : 'pending',
                 'notes' => $data['notes'] ?? null,
                 'items' => json_encode($data['items']),
-                'total_amount' => $totalAmount,
+                'total_amount' => $totalAmount - $discountAmount,
+                'discount_amount' => $discountAmount,
+                'coupon_code' => $discountAmount > 0 ? $couponCode : null,
                 'status' => 'pending',
             ]);
 
@@ -420,5 +438,40 @@ class StorefrontController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());
         }
+    }
+
+    public function validateCoupon(Request $request)
+    {
+        $code = strtoupper(trim($request->input('code', '')));
+        $orderTotal = floatval($request->input('order_total', 0));
+
+        if (!$code) {
+            return $this->successResponse(['valid' => false, 'message' => 'Vui lòng nhập mã giảm giá']);
+        }
+
+        $result = $this->couponRepo->validateCoupon($code, $orderTotal);
+
+        if (!$result['valid']) {
+            $messages = [
+                'Coupon not found' => 'Mã giảm giá không tồn tại',
+                'Coupon has expired' => 'Mã giảm giá đã hết hạn',
+                'Order total does not meet minimum requirement' => 'Đơn hàng chưa đạt giá trị tối thiểu',
+            ];
+            return $this->successResponse([
+                'valid' => false,
+                'message' => $messages[$result['message']] ?? $result['message'],
+            ]);
+        }
+
+        $coupon = $result['coupon'];
+        return $this->successResponse([
+            'valid' => true,
+            'discount' => round($result['discount'], 0),
+            'coupon' => [
+                'code' => $coupon->code,
+                'type' => $coupon->type,
+                'value' => $coupon->value,
+            ],
+        ]);
     }
 }

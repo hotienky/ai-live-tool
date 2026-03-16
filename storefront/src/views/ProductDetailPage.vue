@@ -225,7 +225,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { apiFetch, apiPost } from '../api.js'
+import { apiFetch, apiAuthPost } from '../api.js'
 import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
   Heart, Link, FileText, ArrowLeft, Star
@@ -429,19 +429,10 @@ async function submitReview() {
   reviewSubmitting.value = true
   reviewMsg.value = ''
   try {
-    const res = await fetch(`/api/storefront/products/${product.value.id}/reviews`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken.value}`,
-      },
-      body: JSON.stringify({
-        rating: reviewForm.value.rating,
-        comment: reviewForm.value.comment,
-      }),
+    await apiAuthPost(`/products/${product.value.id}/reviews`, {
+      rating: reviewForm.value.rating,
+      comment: reviewForm.value.comment,
     })
-    const json = await res.json()
-    if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`)
     reviewMsg.value = 'Đánh giá của bạn đã được gửi!'
     reviewMsgType.value = 'success'
     reviewForm.value = { rating: 0, comment: '' }

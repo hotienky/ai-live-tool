@@ -47,3 +47,24 @@ export async function apiPost(path, body = {}) {
   return unwrap(json)
 }
 
+/**
+ * Authenticated POST to storefront API (uses customer token)
+ * @param {string} path — e.g. '/products/1/reviews'
+ * @param {object} body — JSON body
+ */
+export async function apiAuthPost(path, body = {}) {
+  const token = localStorage.getItem('sf_token') || ''
+  const url = `${API_BASE}${path}`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  })
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || json.message || `HTTP ${res.status}`)
+  return unwrap(json)
+}
+

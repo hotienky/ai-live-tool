@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Middleware\TenantMiddleware;
+use App\Http\Middleware\InitializeTenancyBySlug;
 use App\Http\Middleware\TokenAuth;
 
 /*
@@ -29,14 +29,14 @@ Route::get('/health', fn () => response()->json([
 // ════════════════════════════════════════════════════════════
 // ──── STOREFRONT PUBLIC API (tenant-scoped, no auth) ────
 // ════════════════════════════════════════════════════════════
-Route::middleware([TenantMiddleware::class])->prefix('storefront')->group(function () {
+Route::middleware([InitializeTenancyBySlug::class])->prefix('storefront')->group(function () {
     foreach (glob(__DIR__ . '/storefrontModules/*.php') as $file) {
         require $file;
     }
 });
 
 // Legacy backward-compat storefront
-Route::middleware([TenantMiddleware::class])->prefix('shop/store/{storeId}')->group(function () {
+Route::middleware([InitializeTenancyBySlug::class])->prefix('shop/store/{storeId}')->group(function () {
     Route::get('/products', [\App\Http\Controllers\Tenant\StorefrontController::class, 'products']);
     Route::get('/products/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'productDetail']);
     Route::get('/categories', [\App\Http\Controllers\Tenant\StorefrontController::class, 'categories']);
@@ -48,7 +48,7 @@ Route::middleware([TenantMiddleware::class])->prefix('shop/store/{storeId}')->gr
 });
 
 // ──── Shop Customer Auth (tenant-scoped) ────
-Route::middleware([TenantMiddleware::class])->prefix('shop/auth')->group(function () {
+Route::middleware([InitializeTenancyBySlug::class])->prefix('shop/auth')->group(function () {
     // Public routes (rate limited)
     Route::post('/register', [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])
         ->middleware([\App\Http\Middleware\RateLimitShopAuth::class . ':register']);
@@ -74,7 +74,7 @@ Route::middleware([TenantMiddleware::class])->prefix('shop/auth')->group(functio
 });
 
 // ──── Tenant Auth (tenant-scoped) ────
-Route::middleware([TenantMiddleware::class])->prefix('auth')->group(function () {
+Route::middleware([InitializeTenancyBySlug::class])->prefix('auth')->group(function () {
     Route::post('/register', [\App\Http\Controllers\Tenant\AuthController::class, 'register']);
     Route::post('/login', [\App\Http\Controllers\Tenant\AuthController::class, 'login']);
     Route::get('/me', [\App\Http\Controllers\Tenant\AuthController::class, 'me'])->middleware(TokenAuth::class);
@@ -83,7 +83,7 @@ Route::middleware([TenantMiddleware::class])->prefix('auth')->group(function () 
 // ════════════════════════════════════════════════════════════
 // ──── TENANT ADMIN API (tenant-scoped + authenticated) ────
 // ════════════════════════════════════════════════════════════
-Route::middleware([TenantMiddleware::class, TokenAuth::class])->group(function () {
+Route::middleware([InitializeTenancyBySlug::class, TokenAuth::class])->group(function () {
     foreach (glob(__DIR__ . '/tenantModules/*.php') as $file) {
         require $file;
     }

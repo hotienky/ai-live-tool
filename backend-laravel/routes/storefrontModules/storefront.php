@@ -14,6 +14,7 @@ Route::get('/pages/{slug}', [\App\Http\Controllers\Tenant\StorefrontController::
 Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
 Route::get('/nav-links', [\App\Http\Controllers\Tenant\NavLinksController::class, 'flat']);
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
+Route::post('/coupon/validate', [\App\Http\Controllers\Tenant\StorefrontController::class, 'validateCoupon']);
 Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontController::class, 'paymentMethods']);
 Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'orderDetail']);
 Route::get('/languages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'languages']);

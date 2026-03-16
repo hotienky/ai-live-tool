@@ -95,7 +95,10 @@ import BannerSlider from '../components/BannerSlider.vue'
 import CategoryGrid from '../components/CategoryGrid.vue'
 import ProductCard from '../components/ProductCard.vue'
 import FlashSale from '../components/FlashSale.vue'
+import { useSeo } from '../composables/useSeo.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
+
+const { setPageSeo } = useSeo()
 
 const props = defineProps({
   
@@ -127,6 +130,13 @@ async function loadAll() {
     pages.value = pagesRes.status === 'fulfilled' ? pagesRes.value : []
   } catch { /* ignore */ }
   loading.value = false
+
+  // SEO — set page meta tags (C1)
+  setPageSeo({
+    title: 'Trang chủ — Cửa hàng trực tuyến',
+    description: 'Khám phá các sản phẩm thời trang chất lượng cao, giá tốt nhất. Miễn phí giao hàng cho đơn từ 500K.',
+    type: 'website',
+  })
 }
 
 function formatDate(ts) {

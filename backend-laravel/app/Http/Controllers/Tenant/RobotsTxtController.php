@@ -17,7 +17,12 @@ class RobotsTxtController extends Controller
         $content .= "Disallow: /api/\n";
         $content .= "Disallow: /login\n";
         $content .= "Disallow: /register\n";
-        $content .= "Disallow: /admin/\n\n";
+        $content .= "Disallow: /admin/\n";
+        $content .= "Disallow: /checkout/\n";
+        $content .= "Disallow: /checkout\n";
+        $content .= "Disallow: /cart\n";
+        $content .= "Disallow: /account/\n";
+        $content .= "Disallow: /account\n\n";
         $content .= "# Sitemap\n";
         $content .= "Sitemap: {$baseUrl}/api/storefront/sitemap.xml\n";
 

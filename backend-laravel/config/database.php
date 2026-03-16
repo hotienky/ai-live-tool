@@ -99,13 +99,18 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
-        'master' => [
-            'driver' => 'pgsql',
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
+        'master' => env('MASTER_DB_DRIVER', env('DB_CONNECTION', 'pgsql')) === 'sqlite' ? [
+            'driver' => 'sqlite',
+            'database' => env('MASTER_DB_DATABASE', database_path('master.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+        ] : [
+            'driver' => env('MASTER_DB_DRIVER', 'pgsql'),
+            'host' => env('MASTER_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('MASTER_DB_PORT', env('DB_PORT', '5432')),
             'database' => env('MASTER_DB_DATABASE', 'master_db'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
+            'username' => env('MASTER_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('MASTER_DB_PASSWORD', env('DB_PASSWORD', '')),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,

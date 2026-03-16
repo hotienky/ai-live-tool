@@ -53,9 +53,49 @@
             <span>Phí vận chuyển</span>
             <span class="free">Miễn phí</span>
           </div>
+
+          <!-- Voucher -->
+          <div class="cart-voucher">
+            <div class="voucher-input-row">
+              <input
+                v-model="couponCode"
+                placeholder="Nhập mã giảm giá"
+                :disabled="couponApplied || couponLoading"
+                class="voucher-input"
+                @keyup.enter="applyCoupon"
+              />
+              <button
+                v-if="!couponApplied"
+                class="btn btn--accent voucher-apply-btn"
+                :disabled="!couponCode.trim() || couponLoading"
+                @click="applyCoupon"
+              >
+                <template v-if="couponLoading">...</template>
+                <template v-else>Áp dụng</template>
+              </button>
+              <button
+                v-else
+                class="btn btn--outline voucher-remove-btn"
+                @click="removeCoupon"
+              >
+                <X :size="14" />
+              </button>
+            </div>
+            <div v-if="couponError" class="voucher-msg voucher-msg--error">
+              <AlertTriangle :size="12" /> {{ couponError }}
+            </div>
+            <div v-if="couponApplied" class="voucher-msg voucher-msg--success">
+              <CheckCircle :size="12" /> Giảm <strong>{{ formatPrice(couponDiscount) }}</strong>
+            </div>
+          </div>
+
+          <div v-if="couponDiscount > 0" class="summary-row summary-row--discount">
+            <span>Giảm giá</span>
+            <span>-{{ formatPrice(couponDiscount) }}</span>
+          </div>
           <div class="summary-row summary-row--total">
             <span>Tổng cộng</span>
-            <span>{{ formatPrice(cartTotal) }}</span>
+            <span>{{ formatPrice(finalTotal) }}</span>
           </div>
           <router-link to="/checkout" class="btn btn--primary btn--block">
             Thanh toán <ArrowRight :size="16" />
@@ -70,12 +110,57 @@
 </template>
 
 <script setup>
-import { ShoppingCart, ShoppingBag, Package, Minus, Plus, Trash2, ArrowLeft, ArrowRight } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import {
+  ShoppingCart, ShoppingBag, Package, Minus, Plus, Trash2, ArrowLeft, ArrowRight,
+  X, AlertTriangle, CheckCircle
+} from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
+import { apiPost } from '../api.js'
 
 const { cartItems, cartCount, cartTotal, updateQty, removeFromCart } = useCart()
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+
+// Voucher state
+const couponCode = ref('')
+const couponDiscount = ref(0)
+const couponApplied = ref(false)
+const couponError = ref('')
+const couponLoading = ref(false)
+
+const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value))
+
+async function applyCoupon() {
+  if (!couponCode.value.trim()) return
+  couponLoading.value = true
+  couponError.value = ''
+  try {
+    const result = await apiPost('/coupon/validate', {
+      code: couponCode.value.trim(),
+      order_total: cartTotal.value,
+    })
+    if (result.valid) {
+      couponDiscount.value = result.discount
+      couponApplied.value = true
+      couponError.value = ''
+    } else {
+      couponError.value = result.message || 'Mã giảm giá không hợp lệ'
+      couponDiscount.value = 0
+      couponApplied.value = false
+    }
+  } catch (err) {
+    couponError.value = err.message || 'Không thể kiểm tra mã giảm giá'
+  }
+  couponLoading.value = false
+}
+
+function removeCoupon() {
+  couponCode.value = ''
+  couponDiscount.value = 0
+  couponApplied.value = false
+  couponError.value = ''
+}
 </script>
 
 <style scoped>
@@ -170,11 +255,49 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
   border-bottom: 1px solid var(--sf-border);
 }
 .summary-row .free { color: #10b981; font-weight: 600; }
+.summary-row--discount span { color: #16a34a; font-weight: 600; }
 .summary-row--total {
   border-bottom: none; padding-top: 14px; margin-top: 4px;
   font-size: 18px; font-weight: 900; color: var(--sf-text-primary);
 }
 .summary-row--total span:last-child { color: var(--sf-accent-light); }
+
+/* Voucher in Cart */
+.cart-voucher {
+  padding: 12px 0; border-bottom: 1px solid var(--sf-border);
+}
+.voucher-input-row {
+  display: flex; gap: 6px; align-items: center;
+}
+.voucher-input {
+  flex: 1; padding: 8px 10px; border: 1.5px dashed var(--sf-border);
+  border-radius: 6px; font-size: 13px; text-transform: uppercase;
+  letter-spacing: 0.5px; background: var(--sf-bg);
+  transition: border-color 0.2s; min-width: 0;
+}
+.voucher-input:focus { border-color: var(--sf-accent); outline: none; }
+.voucher-input:disabled { opacity: 0.6; }
+.voucher-apply-btn {
+  white-space: nowrap; padding: 8px 14px;
+  background: var(--sf-accent); color: #fff;
+  border: none; border-radius: 6px; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: background 0.2s;
+}
+.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent-dark, #6d28d9); }
+.voucher-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.voucher-remove-btn {
+  padding: 8px 10px; border: 1px solid var(--sf-border);
+  border-radius: 6px; background: transparent; color: var(--sf-text-muted);
+  cursor: pointer; transition: all 0.2s; display: flex; align-items: center;
+}
+.voucher-remove-btn:hover { color: #ef4444; border-color: #ef4444; }
+.voucher-msg {
+  display: flex; align-items: center; gap: 4px;
+  margin-top: 6px; padding: 5px 8px; border-radius: 4px;
+  font-size: 12px; font-weight: 500;
+}
+.voucher-msg--error { background: #fef2f2; color: #dc2626; }
+.voucher-msg--success { background: #f0fdf4; color: #16a34a; }
 
 .btn--block {
   display: flex; align-items: center; justify-content: center; gap: 8px;

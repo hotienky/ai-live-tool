@@ -43,6 +43,10 @@
                 <span class="info-label">Phương thức</span>
                 <span class="info-value">{{ orderData.payment_method === 'bank' ? 'Chuyển khoản' : 'COD' }}</span>
               </div>
+              <div v-if="orderData.coupon_code" class="info-row">
+                <span class="info-label">Mã giảm giá</span>
+                <span class="info-value" style="color:#16a34a;font-weight:700">{{ orderData.coupon_code }} (−{{ formatPrice(orderData.discount_amount) }})</span>
+              </div>
               <div class="info-row info-row--total">
                 <span class="info-label">Tổng thanh toán</span>
                 <span class="info-value info-value--accent">{{ formatPrice(orderData.total_amount) }}</span>
@@ -177,6 +181,43 @@
             </div>
           </div>
 
+          <!-- Voucher / Coupon -->
+          <div class="form-section voucher-section">
+            <h3><Tag :size="16" /> Mã giảm giá</h3>
+            <div class="voucher-input-row">
+              <input
+                v-model="couponCode"
+                placeholder="Nhập mã giảm giá"
+                :disabled="couponApplied || couponLoading"
+                class="voucher-input"
+                @keyup.enter="applyCoupon"
+              />
+              <button
+                v-if="!couponApplied"
+                class="btn btn--accent voucher-apply-btn"
+                :disabled="!couponCode.trim() || couponLoading"
+                @click="applyCoupon"
+              >
+                <template v-if="couponLoading">Đang kiểm tra...</template>
+                <template v-else>Áp dụng</template>
+              </button>
+              <button
+                v-else
+                class="btn btn--outline voucher-remove-btn"
+                @click="removeCoupon"
+              >
+                <X :size="14" /> Xóa
+              </button>
+            </div>
+            <div v-if="couponError" class="voucher-msg voucher-msg--error">
+              <AlertTriangle :size="14" /> {{ couponError }}
+            </div>
+            <div v-if="couponApplied" class="voucher-msg voucher-msg--success">
+              <CheckCircle :size="14" />
+              Mã <strong>{{ couponCode.toUpperCase() }}</strong> — Giảm <strong>{{ formatPrice(couponDiscount) }}</strong>
+            </div>
+          </div>
+
           <div class="form-section">
             <h3><Wallet :size="16" /> Phương thức thanh toán</h3>
             <div class="payment-options">
@@ -219,16 +260,20 @@
 
             <div class="summary-totals">
               <div class="total-row"><span>Tạm tính</span><span>{{ formatPrice(cartTotal) }}</span></div>
+              <div v-if="couponDiscount > 0" class="total-row total-row--discount">
+                <span>Giảm giá ({{ couponCode.toUpperCase() }})</span>
+                <span>-{{ formatPrice(couponDiscount) }}</span>
+              </div>
               <div class="total-row"><span>Phí giao hàng</span><span class="free">Miễn phí</span></div>
               <div class="total-row total-row--grand">
                 <span>Tổng thanh toán</span>
-                <span>{{ formatPrice(cartTotal) }}</span>
+                <span>{{ formatPrice(finalTotal) }}</span>
               </div>
             </div>
 
             <button class="btn btn--primary btn--block btn--lg" @click="placeOrder" :disabled="submitting || !isValid">
               <template v-if="submitting">Đang xử lý...</template>
-              <template v-else><ShoppingCart :size="16" /> Đặt hàng — {{ formatPrice(cartTotal) }}</template>
+              <template v-else><ShoppingCart :size="16" /> Đặt hàng — {{ formatPrice(finalTotal) }}</template>
             </button>
 
             <p v-if="error" class="order-error">{{ error }}</p>
@@ -244,7 +289,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   CreditCard, User, Truck, FileText, Package, ShoppingCart,
-  CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode
+  CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode,
+  Tag, X
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
@@ -269,6 +315,16 @@ const error = ref('')
 const orderSuccess = ref(false)
 const orderData = ref({})
 const loadingOrder = ref(false)
+
+// Voucher/Coupon state
+const couponCode = ref('')
+const couponDiscount = ref(0)
+const couponApplied = ref(false)
+const couponError = ref('')
+const couponLoading = ref(false)
+
+const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value))
+
 const paymentMethodsList = ref([
   { code: 'cod', name: 'Thanh toán khi nhận hàng (COD)', description: 'Trả tiền mặt khi nhận hàng' },
   { code: 'bank', name: 'Chuyển khoản ngân hàng', description: 'Thanh toán qua tài khoản ngân hàng' },
@@ -353,12 +409,43 @@ const vietQrUrl = computed(() => {
   return `https://img.vietqr.io/image/${bin}-${acct}-compact2.png?amount=${amount}&addInfo=${note}&accountName=${encodeURIComponent(d.bank_info.account_name || '')}`
 })
 
+async function applyCoupon() {
+  if (!couponCode.value.trim()) return
+  couponLoading.value = true
+  couponError.value = ''
+  try {
+    const result = await apiPost('/coupon/validate', {
+      code: couponCode.value.trim(),
+      order_total: cartTotal.value,
+    })
+    if (result.valid) {
+      couponDiscount.value = result.discount
+      couponApplied.value = true
+      couponError.value = ''
+    } else {
+      couponError.value = result.message || 'Mã giảm giá không hợp lệ'
+      couponDiscount.value = 0
+      couponApplied.value = false
+    }
+  } catch (err) {
+    couponError.value = err.message || 'Không thể kiểm tra mã giảm giá'
+  }
+  couponLoading.value = false
+}
+
+function removeCoupon() {
+  couponCode.value = ''
+  couponDiscount.value = 0
+  couponApplied.value = false
+  couponError.value = ''
+}
+
 async function placeOrder() {
   if (!isValid.value) { error.value = 'Vui lòng điền đầy đủ thông tin'; return }
   submitting.value = true
   error.value = ''
   try {
-    const result = await apiPost('/checkout', {
+    const payload = {
       customer_name: form.value.customerName,
       customer_phone: form.value.customerPhone,
       customer_email: form.value.customerEmail || undefined,
@@ -373,7 +460,12 @@ async function placeOrder() {
         qty: i.qty,
         sku: i.sku,
       })),
-    })
+    }
+    // Include coupon if applied
+    if (couponApplied.value && couponCode.value.trim()) {
+      payload.coupon_code = couponCode.value.trim()
+    }
+    const result = await apiPost('/checkout', payload)
     orderData.value = result
     orderSuccess.value = true
     clearCart()
@@ -684,6 +776,43 @@ async function placeOrder() {
 .cod-sub { font-size: 13px !important; color: var(--sf-text-muted) !important; }
 
 /* Success Actions */
+/* Voucher */
+.voucher-section { background: linear-gradient(135deg, rgba(124,58,237,0.03), rgba(168,85,247,0.06)); }
+.voucher-input-row {
+  display: flex; gap: 8px; align-items: center;
+}
+.voucher-input {
+  flex: 1; padding: 10px 14px; border: 1.5px dashed var(--sf-border);
+  border-radius: 8px; font-size: 14px; text-transform: uppercase;
+  letter-spacing: 1px; background: var(--sf-bg);
+  transition: border-color 0.2s;
+}
+.voucher-input:focus { border-color: var(--sf-accent); outline: none; }
+.voucher-input:disabled { opacity: 0.6; }
+.voucher-apply-btn {
+  white-space: nowrap; padding: 10px 20px;
+  background: var(--sf-accent); color: #fff;
+  border: none; border-radius: 8px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent-dark, #6d28d9); }
+.voucher-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.voucher-remove-btn {
+  white-space: nowrap; display: flex; align-items: center; gap: 4px;
+  padding: 10px 16px; border: 1px solid var(--sf-border);
+  border-radius: 8px; background: transparent; color: var(--sf-text-muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.voucher-remove-btn:hover { color: #ef4444; border-color: #ef4444; }
+.voucher-msg {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 8px; padding: 8px 12px; border-radius: 6px;
+  font-size: 13px; font-weight: 500;
+}
+.voucher-msg--error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.voucher-msg--success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.total-row--discount span { color: #16a34a; font-weight: 600; }
+
 .success-actions {
   display: flex; gap: 14px; justify-content: center;
 }
@@ -696,5 +825,8 @@ async function placeOrder() {
   .step-line { width: 40px; }
   .success-actions { flex-direction: column; }
   .bank-qr__img { width: 200px; }
+  .voucher-input-row { flex-direction: column; }
+  .voucher-apply-btn, .voucher-remove-btn { width: 100%; justify-content: center; }
 }
 </style>
+
