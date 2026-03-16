@@ -421,21 +421,7 @@
 
       <!-- ═══ Tab: Roles ═══ -->
       <div v-if="activeTab === 'roles'" class="settings__panel">
-        <h3 class="settings__panel-title">Phân quyền</h3>
-        <div class="settings__table-wrapper">
-          <table class="settings__table">
-            <thead><tr><th>Tên vai trò</th><th>Hiển thị</th><th>Mô tả</th><th>Hệ thống</th></tr></thead>
-            <tbody>
-              <tr v-for="role in roles" :key="role.id">
-                <td><strong>{{ role.name }}</strong></td>
-                <td>{{ role.display_name }}</td>
-                <td>{{ role.description }}</td>
-                <td>{{ role.is_system ? '✓' : '' }}</td>
-              </tr>
-              <tr v-if="!roles.length"><td colspan="4" style="text-align:center;opacity:.6">Chưa có vai trò nào</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <RoleManager />
       </div><!-- /last panel -->
 
       <!-- ═══ Tab: Payment Settings ═══ -->
@@ -473,6 +459,7 @@ import NavLinkManager from './NavLinkManager.vue'
 import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
+import RoleManager from './RoleManager.vue'
 import SystemConfigPanel from './SystemConfigPanel.vue'
 import ApiKeyManager from './ApiKeyManager.vue'
 import LanguageManager from './LanguageManager.vue'
@@ -488,6 +475,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
 import { useTheme } from '../composables/useTheme.js'
+import { usePermissions } from '../composables/usePermissions.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
 import { logger } from '../utils/logger.js'
@@ -501,6 +489,31 @@ const props = defineProps({
 const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
+const { can, canAny, isSuperAdmin } = usePermissions()
+
+// ── Tab → Permission mapping ──
+const tabPermissions = {
+  'products': 'products.view',
+  'categories': 'products.view',
+  'brands': 'products.view',
+  'orders': 'orders.view',
+  'shop-customers': 'customers.view',
+  'promotions': 'promotions.view',
+  'cms': 'cms.view',
+  'banners': 'banners.view',
+  'nav-links': 'settings.view',
+  'appearance': 'settings.view',
+  'storefront-layout': 'settings.view',
+  'system-config': 'settings.view',
+  'payment': 'settings.edit',
+  'shipping': 'settings.edit',
+  'api-keys': 'system.api_keys',
+  'webhooks': 'system.webhooks',
+  'languages': 'settings.view',
+  'custom-fields': 'settings.edit',
+  'activity-logs': 'system.activity_logs',
+  'roles': 'system.roles',
+}
 
 // ── Appearance Live Preview ──
 const apDevice = ref('desktop')
@@ -629,7 +642,16 @@ const activeTabGroups = computed(() => {
   else if (ordersTabs.includes(tab)) allowedTabs = ordersTabs
   else allowedTabs = shopTabs
   return tabGroups
-    .map(g => ({ ...g, items: g.items.filter(i => allowedTabs.includes(i.key)) }))
+    .map(g => ({
+      ...g,
+      items: g.items.filter(i => {
+        if (!allowedTabs.includes(i.key)) return false
+        // Filter by permission (if no mapping, allow)
+        const requiredPerm = tabPermissions[i.key]
+        if (!requiredPerm) return true
+        return can(requiredPerm)
+      }),
+    }))
     .filter(g => g.items.length > 0)
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <header class="site-header">
+  <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }">
     <div class="site-header__inner container">
       <!-- Logo -->
       <router-link :to="'/'" class="site-header__logo">
@@ -44,7 +44,7 @@
       </nav>
 
       <!-- Search -->
-      <div class="site-header__search" :class="{ focused: searchFocused }">
+      <div v-if="headerCfg.showSearch" class="site-header__search" :class="{ focused: searchFocused }">
         <Search :size="16" class="site-header__search-icon" />
         <input
           v-model="searchQuery"
@@ -99,7 +99,7 @@
         </template>
 
         <!-- Theme Toggle -->
-        <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
+        <button v-if="headerCfg.showThemeToggle" class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
           <Sun v-if="isDark" :size="16" />
           <Moon v-else :size="16" />
         </button>
@@ -190,6 +190,12 @@ const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = us
 const { isDark, toggleTheme } = useTheme()
 const { isLoggedIn, customer } = useAuth()
 
+const headerCfg = computed(() => {
+  const defaults = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
+  const hc = layoutConfig.value?.headerConfig
+  return hc ? { ...defaults, ...hc } : defaults
+})
+
 const langOpen = ref(false)
 async function switchLang(code) {
   await setLang(code)
@@ -216,7 +222,7 @@ const fallbackLinks = [
   { id: 'f2', name: 'Sản phẩm', url: '/products', icon: 'ShoppingBag', sort: 2 },
 ]
 
-const MAX_VISIBLE = 5
+const MAX_VISIBLE = computed(() => headerCfg.value.maxNavLinks)
 const moreOpen = ref(false)
 const moreDropdownRef = ref(null)
 
@@ -227,8 +233,8 @@ const menuLinks = computed(() => {
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))
 })
 
-const visibleLinks = computed(() => menuLinks.value.slice(0, MAX_VISIBLE))
-const overflowLinks = computed(() => menuLinks.value.slice(MAX_VISIBLE))
+const visibleLinks = computed(() => menuLinks.value.slice(0, MAX_VISIBLE.value))
+const overflowLinks = computed(() => menuLinks.value.slice(MAX_VISIBLE.value))
 const overflowHasActive = computed(() => overflowLinks.value.some(l => isActiveLink(l.url)))
 
 function isActiveLink(url) {
@@ -277,6 +283,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   border-bottom: 1px solid var(--sf-border);
   transition: background-color 0.3s ease;
 }
+/* Non-sticky: relative position instead of fixed */
+.site-header:not(.site-header--sticky) { position: relative; }
+/* Logo center */
+.site-header--logo-center .site-header__inner { justify-content: center; }
+.site-header--logo-center .site-header__logo { position: absolute; left: 50%; transform: translateX(-50%); }
+.site-header--logo-center .site-header__nav { margin-left: auto; }
 
 .site-header__inner {
   display: flex;

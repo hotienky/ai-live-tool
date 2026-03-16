@@ -1,12 +1,12 @@
 <template>
   <div class="products-page container">
-    <div class="products-layout">
+    <div class="products-layout" :class="'layout--sidebar-' + pageConfig.sidebarPosition">
       <!-- Sidebar Filters -->
-      <aside class="products-sidebar">
+      <aside v-if="pageConfig.sidebarPosition !== 'hidden'" class="products-sidebar">
         <h3 class="sidebar-title"><SlidersHorizontal :size="16" /> Bộ lọc</h3>
 
         <!-- Categories -->
-        <div class="filter-group" v-if="categories.length > 0">
+        <div class="filter-group" v-if="categories.length > 0 && pageConfig.showFilters.category">
           <label class="filter-label">Danh mục</label>
           <button
             v-for="c in categories"
@@ -20,7 +20,7 @@
         </div>
 
         <!-- Brands -->
-        <div class="filter-group" v-if="brands.length > 0">
+        <div class="filter-group" v-if="brands.length > 0 && pageConfig.showFilters.brand">
           <label class="filter-label">Thương hiệu</label>
           <button
             v-for="b in brands"
@@ -34,7 +34,7 @@
         </div>
 
         <!-- Price Filter -->
-        <div class="filter-group">
+        <div class="filter-group" v-if="pageConfig.showFilters.price">
           <label class="filter-label">Khoảng giá</label>
           <div class="price-presets">
             <button v-for="p in pricePresets" :key="p.label" class="filter-btn price-preset"
@@ -111,7 +111,7 @@
         </transition>
 
         <!-- Loading -->
-        <div v-if="loading" class="product-skeleton-grid">
+        <div v-if="loading" class="product-skeleton-grid" :style="gridStyle">
           <div v-for="i in 12" :key="i" class="product-skeleton">
             <div class="skeleton" style="aspect-ratio:1"></div>
             <div class="skeleton" style="height:14px;width:70%;margin-top:12px"></div>
@@ -120,7 +120,7 @@
         </div>
 
         <!-- Products Grid -->
-        <div v-else-if="products.length > 0" class="product-grid">
+        <div v-else-if="products.length > 0" class="product-grid" :style="gridStyle">
           <ProductCard v-for="p in products" :key="p.id" :product="p" />
         </div>
 
@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import ProductCard from '../components/ProductCard.vue'
@@ -163,6 +163,13 @@ import { useSeo } from '../composables/useSeo.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 const { setPageSeo } = useSeo()
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const pageConfig = computed(() => {
+  const defaults = { sidebarPosition: 'left', gridColumns: 4, itemsPerPage: 12, showFilters: { category: true, brand: true, price: true } }
+  const pc = layoutConfig.value?.pageConfigs?.products
+  return pc ? { ...defaults, ...pc, showFilters: { ...defaults.showFilters, ...(pc.showFilters || {}) } } : defaults
+})
 
 const props = defineProps({
   slug: { type: String, default: null },
@@ -222,6 +229,13 @@ const pageTitle = computed(() => {
   return 'Tất cả sản phẩm'
 })
 
+const gridStyle = computed(() => {
+  const cols = pageConfig.value.gridColumns
+  // Map column count to minmax value for responsive grid
+  const minWidth = { 2: '300px', 3: '260px', 4: '220px', 5: '180px' }[cols] || '220px'
+  return { gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))` }
+})
+
 const visiblePages = computed(() => {
   const pages = []
   const start = Math.max(1, page.value - 2)
@@ -272,7 +286,7 @@ async function reload() {
   try {
     const data = await apiFetch('/products', {
       page: page.value,
-      per_page: 12,
+      per_page: pageConfig.value.itemsPerPage,
       sort,
       order,
       search: search.value || null,
@@ -315,6 +329,17 @@ onMounted(async () => { await loadFilters(); await reload() })
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 32px;
+}
+
+/* Sidebar position variants */
+.layout--sidebar-right {
+  grid-template-columns: 1fr 240px;
+}
+.layout--sidebar-right .products-sidebar { order: 2; }
+.layout--sidebar-right .products-main { order: 1; }
+
+.layout--sidebar-hidden {
+  grid-template-columns: 1fr;
 }
 
 /* Sidebar */

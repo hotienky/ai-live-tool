@@ -457,6 +457,21 @@ return new class extends Migration
                 $table->timestamps();
             });
         }
+
+        // ── Auth Access Tokens ──
+        if (!Schema::hasTable('auth_access_tokens')) {
+            Schema::create('auth_access_tokens', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('tokenable_id');
+                $table->string('type')->default('auth_token');
+                $table->string('name')->nullable();
+                $table->string('hash', 64);
+                $table->json('abilities')->nullable();
+                $table->timestamp('last_used_at')->nullable();
+                $table->timestamp('expires_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

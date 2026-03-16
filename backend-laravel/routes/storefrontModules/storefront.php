@@ -37,6 +37,10 @@ Route::get('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\Storef
 Route::post('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\StorefrontController::class, 'createReview'])
     ->middleware([\App\Http\Middleware\ShopCustomerAuth::class]);
 
+// Newsletter
+Route::post('/newsletter/subscribe', [\App\Http\Controllers\Tenant\NewsletterController::class, 'subscribe']);
+Route::post('/newsletter/unsubscribe', [\App\Http\Controllers\Tenant\NewsletterController::class, 'unsubscribe']);
+
 // Sitemap
 Route::get('/sitemap.xml', [\App\Http\Controllers\Tenant\SitemapController::class, 'index']);
 

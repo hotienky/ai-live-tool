@@ -5,13 +5,19 @@
 
     <!-- Dynamic sections rendered in configured order -->
     <template v-for="section in activeSections" :key="section.type + '-' + section.order">
+      <div :id="section.params?.anchorId || undefined" :class="section.params?.cssClass || undefined" :style="sectionWrapStyle(section.params)">
 
       <!-- Banner -->
       <section v-if="section.type === 'banner'" class="home-hero container">
         <div v-if="loading" class="banner-skeleton">
           <div class="skeleton" style="width:100%;aspect-ratio:21/7;border-radius:16px"></div>
         </div>
-        <BannerSlider v-else :banners="banners" />
+        <BannerSlider
+          v-else
+          :banners="banners"
+          :autoplay="section.params?.autoplay !== false"
+          :interval="section.params?.interval || 5000"
+        />
       </section>
 
       <!-- Categories -->
@@ -22,18 +28,18 @@
             <div v-for="i in 6" :key="i" class="skeleton" style="width:120px;height:100px;border-radius:12px;flex-shrink:0"></div>
           </div>
         </section>
-        <section class="home-section container" v-else-if="categories.length > 0">
+        <section class="home-section container" v-else-if="filteredCategories(section).length > 0">
           <h2 class="section-title">
             <Grid :size="22" class="section-title__accent" />
             Danh mục sản phẩm
           </h2>
-          <CategoryGrid :categories="categories" />
+          <CategoryGrid :categories="filteredCategories(section)" />
         </section>
       </template>
 
       <!-- Flash Sale -->
       <div v-if="section.type === 'flash_sale'" class="container">
-        <FlashSale />
+        <FlashSale :params="section.params" />
       </div>
 
       <!-- Featured Products -->
@@ -142,7 +148,7 @@
         :params="section.params"
         :content="section.content"
       />
-
+      </div>
     </template>
   </div>
 </template>
@@ -197,6 +203,21 @@ const activeSections = computed(() => {
 function gridStyle(columns) {
   if (!columns) return {}
   return { gridTemplateColumns: `repeat(${columns}, 1fr)` }
+}
+
+const paddingMap = { sm: '16px 0', md: '32px 0', lg: '48px 0', xl: '64px 0' }
+function sectionWrapStyle(params) {
+  if (!params) return {}
+  const s = {}
+  if (params.sectionBgColor) s.background = params.sectionBgColor
+  if (params.sectionPadding) s.padding = paddingMap[params.sectionPadding] || ''
+  return s
+}
+
+function filteredCategories(section) {
+  const ids = section.params?.selectedCategoryIds
+  if (!ids || !ids.length) return categories.value
+  return categories.value.filter(c => ids.includes(c.id))
 }
 
 async function loadAll() {

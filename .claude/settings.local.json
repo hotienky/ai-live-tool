@@ -12,7 +12,8 @@
       "Bash(brew services stop mysql)",
       "Bash(sudo kill 1132)",
       "Bash(php artisan route:list)",
-      "Bash(ls -la /Users/hotienky/datas/App/read-comment/*.md)"
+      "Bash(ls -la /Users/hotienky/datas/App/read-comment/*.md)",
+      "Bash(xargs basename -a)"
     ]
   }
 }

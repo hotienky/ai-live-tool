@@ -32,7 +32,7 @@ const items = computed(() => props.content.length ? props.content : [])
 .section-brands { padding-top: 40px; }
 .brands-slider { overflow: hidden; padding: 16px 0; }
 .brands-track {
-  display: flex; gap: 32px; animation: scrollBrands 20s linear infinite;
+  display: flex; gap: 32px; animation: scrollBrands v-bind("(params?.animationSpeed || 20) + 's'") linear infinite;
 }
 .brand-item {
   display: flex; align-items: center; justify-content: center;

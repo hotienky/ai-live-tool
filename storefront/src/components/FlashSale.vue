@@ -49,13 +49,18 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Zap } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
 
+const props = defineProps({
+  params: { type: Object, default: () => ({}) },
+})
+
 const sales = ref([])
 const countdown = ref(null)
 let timer = null
 
 const displayItems = computed(() => {
   if (sales.value.length === 0) return []
-  return sales.value[0].items?.slice(0, 8) || []
+  const count = props.params?.count || 8
+  return sales.value[0].items?.slice(0, count) || []
 })
 
 function discountPercent(item) {

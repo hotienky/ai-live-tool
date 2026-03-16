@@ -3,13 +3,19 @@
     <div class="layout-builder__header">
       <h3><LayoutDashboard :size="16" /> Bố cục Storefront</h3>
       <div class="layout-builder__header-actions">
+        <button v-if="undoStack.length" class="btn-undo" @click="undo" title="Hoàn tác">
+          <Undo2 :size="14" />
+        </button>
         <button class="btn-preview-toggle" @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'">
           <Monitor v-if="previewMode === 'wireframe'" :size="14" />
           <Eye v-else :size="14" />
           {{ previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe' }}
         </button>
+        <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" title="Lưu nháp">
+          <FileEdit :size="14" /> Nháp
+        </button>
         <button class="btn-save" @click="saveLayout" :disabled="saving">
-          <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu bố cục' }}
+          <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Xuất bản' }}
         </button>
       </div>
     </div>
@@ -119,6 +125,31 @@
                         <span class="toggle-slider"></span>
                       </label>
                     </div>
+                    <div class="param-row">
+                      <label>Bố cục</label>
+                      <select v-model="section.params.layoutStyle" class="param-select">
+                        <option value="grid">Lưới</option>
+                        <option value="carousel">Carousel</option>
+                      </select>
+                    </div>
+                    <div class="param-row">
+                      <label>Hiện số SP</label>
+                      <label class="toggle-switch toggle-switch--sm" @click.stop>
+                        <input type="checkbox" v-model="section.params.showCount" />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div class="content-editor" v-if="allCategories.length">
+                      <label class="content-editor__label">Chọn danh mục hiển thị</label>
+                      <div v-for="cat in allCategories" :key="cat.id" class="param-row">
+                        <label style="font-size:12px">{{ cat.name }}</label>
+                        <label class="toggle-switch toggle-switch--sm" @click.stop>
+                          <input type="checkbox" :checked="(section.params.selectedCategoryIds || []).includes(cat.id)" @change="toggleCategoryId(section, cat.id)" />
+                          <span class="toggle-slider"></span>
+                        </label>
+                      </div>
+                      <small style="color:#888;font-size:11px">Bỏ chọn tất cả = hiện tất cả</small>
+                    </div>
                   </template>
 
                   <template v-if="section.type === 'flash_sale'">
@@ -135,6 +166,16 @@
                         <input type="checkbox" v-model="section.params.showProgress" />
                         <span class="toggle-slider"></span>
                       </label>
+                    </div>
+                    <div class="param-row">
+                      <label>Số SP</label>
+                      <input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" />
+                      <span class="param-value">{{ section.params.count || 8 }}</span>
+                    </div>
+                    <div class="param-row">
+                      <label>Số cột</label>
+                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
+                      <span class="param-value">{{ section.params.columns || 4 }}</span>
                     </div>
                   </template>
 
@@ -153,6 +194,22 @@
                       <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
                       <span class="param-value">{{ section.params.columns }}</span>
                     </div>
+                    <div class="param-row">
+                      <label>Lọc danh mục</label>
+                      <select v-model="section.params.filterCategory" class="param-select">
+                        <option value="">Tất cả</option>
+                        <option v-for="c in allCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                      </select>
+                    </div>
+                    <div class="param-row">
+                      <label>Sắp xếp</label>
+                      <select v-model="section.params.sortOrder" class="param-select">
+                        <option value="newest">Mới nhất</option>
+                        <option value="bestselling">Bán chạy</option>
+                        <option value="price_asc">Giá tăng</option>
+                        <option value="price_desc">Giá giảm</option>
+                      </select>
+                    </div>
                   </template>
 
                   <template v-if="section.type === 'new_arrivals'">
@@ -164,6 +221,20 @@
                       <label>Số lượng</label>
                       <input type="range" v-model.number="section.params.count" min="4" max="12" class="param-range" />
                       <span class="param-value">{{ section.params.count }}</span>
+                    </div>
+                    <div class="param-row">
+                      <label>Số cột</label>
+                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
+                      <span class="param-value">{{ section.params.columns || 4 }}</span>
+                    </div>
+                    <div class="param-row">
+                      <label>Sắp xếp</label>
+                      <select v-model="section.params.sortOrder" class="param-select">
+                        <option value="newest">Mới nhất</option>
+                        <option value="bestselling">Bán chạy</option>
+                        <option value="price_asc">Giá tăng</option>
+                        <option value="price_desc">Giá giảm</option>
+                      </select>
                     </div>
                   </template>
 
@@ -182,13 +253,227 @@
                     </div>
                   </template>
 
-                  <!-- Custom section content editors will go here in Phase 3 -->
-                  <template v-if="section.type === 'testimonials' || section.type === 'faq' || section.type === 'text_block' || section.type === 'image_gallery' || section.type === 'video_embed' || section.type === 'newsletter' || section.type === 'social_feed' || section.type === 'brands_slider'">
+                  <!-- Video Embed -->
+                  <template v-if="section.type === 'video_embed'">
                     <div class="param-row">
                       <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" />
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Video" />
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Danh sách video</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL video (YouTube, TikTok...)" />
+                          <input type="text" v-model="item.caption" class="param-input param-input--wide" placeholder="Chú thích (tùy chọn)" />
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })">
+                        <Plus :size="12" /> Thêm video
+                      </button>
                     </div>
                   </template>
+
+                  <!-- Testimonials -->
+                  <template v-if="section.type === 'testimonials'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Khách hàng nói gì" />
+                    </div>
+                    <div class="param-row">
+                      <label>Số cột</label>
+                      <input type="range" v-model.number="section.params.columns" min="2" max="4" class="param-range" />
+                      <span class="param-value">{{ section.params.columns }}</span>
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Danh sách đánh giá</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên khách hàng" />
+                          <textarea v-model="item.text" class="param-input param-input--wide content-textarea" placeholder="Nội dung đánh giá" rows="2"></textarea>
+                          <div class="content-item__row">
+                            <select v-model.number="item.rating" class="param-select">
+                              <option :value="5">5 sao</option>
+                              <option :value="4">4 sao</option>
+                              <option :value="3">3 sao</option>
+                              <option :value="2">2 sao</option>
+                              <option :value="1">1 sao</option>
+                            </select>
+                            <input type="url" v-model="item.avatar" class="param-input param-input--wide" placeholder="URL avatar (tùy chọn)" />
+                          </div>
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { name: '', text: '', rating: 5, avatar: '' })">
+                        <Plus :size="12" /> Thêm đánh giá
+                      </button>
+                    </div>
+                  </template>
+
+                  <!-- FAQ -->
+                  <template v-if="section.type === 'faq'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Câu hỏi thường gặp" />
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Danh sách câu hỏi</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <input type="text" v-model="item.question" class="param-input param-input--wide" placeholder="Câu hỏi" />
+                          <textarea v-model="item.answer" class="param-input param-input--wide content-textarea" placeholder="Trả lời" rows="2"></textarea>
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { question: '', answer: '' })">
+                        <Plus :size="12" /> Thêm câu hỏi
+                      </button>
+                    </div>
+                  </template>
+
+                  <!-- Image Gallery -->
+                  <template v-if="section.type === 'image_gallery'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Thư viện ảnh" />
+                    </div>
+                    <div class="param-row">
+                      <label>Số cột</label>
+                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
+                      <span class="param-value">{{ section.params.columns }}</span>
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Danh sách ảnh</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL ảnh" />
+                          <input type="text" v-model="item.caption" class="param-input param-input--wide" placeholder="Chú thích (tùy chọn)" />
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })">
+                        <Plus :size="12" /> Thêm ảnh
+                      </button>
+                    </div>
+                  </template>
+
+                  <!-- Text Block -->
+                  <template v-if="section.type === 'text_block'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Tiêu đề khối văn bản" />
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Nội dung HTML</label>
+                      <textarea
+                        :value="typeof section.content === 'string' ? section.content : ''"
+                        @input="section.content = $event.target.value"
+                        class="param-input param-input--wide content-html-editor"
+                        rows="6"
+                        placeholder="<h2>Tiêu đề</h2>&#10;<p>Nội dung văn bản...</p>"
+                        spellcheck="false"
+                      ></textarea>
+                    </div>
+                  </template>
+
+                  <!-- Newsletter -->
+                  <template v-if="section.type === 'newsletter'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Đăng ký nhận tin" />
+                    </div>
+                    <div class="param-row">
+                      <label>Phụ đề</label>
+                      <input type="text" v-model="section.params.subtitle" class="param-input param-input--wide" placeholder="Nhận thông tin khuyến mãi..." />
+                    </div>
+                    <div class="param-row">
+                      <label>Nút bấm</label>
+                      <input type="text" v-model="section.params.buttonText" class="param-input param-input--wide" placeholder="Đăng ký" />
+                    </div>
+                  </template>
+
+                  <!-- Social Feed -->
+                  <template v-if="section.type === 'social_feed'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Theo dõi chúng tôi" />
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Liên kết mạng xã hội</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <div class="content-item__row">
+                            <select v-model="item.platform" class="param-select">
+                              <option value="facebook">Facebook</option>
+                              <option value="instagram">Instagram</option>
+                              <option value="youtube">YouTube</option>
+                              <option value="tiktok">TikTok</option>
+                              <option value="zalo">Zalo</option>
+                              <option value="twitter">Twitter/X</option>
+                            </select>
+                            <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL trang mạng xã hội" />
+                          </div>
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { platform: 'facebook', url: '', label: '' })">
+                        <Plus :size="12" /> Thêm liên kết
+                      </button>
+                    </div>
+                  </template>
+
+                  <!-- Brands Slider -->
+                  <template v-if="section.type === 'brands_slider'">
+                    <div class="param-row">
+                      <label>Tiêu đề</label>
+                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Thương hiệu" />
+                    </div>
+                    <div class="content-editor">
+                      <label class="content-editor__label">Danh sách thương hiệu</label>
+                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
+                        <div class="content-item__fields">
+                          <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên thương hiệu" />
+                          <div class="content-item__row">
+                            <input type="url" v-model="item.logo" class="param-input param-input--wide" placeholder="URL logo" />
+                            <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL website (tùy chọn)" />
+                          </div>
+                        </div>
+                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
+                      </div>
+                      <button class="btn-add-item" @click="addContentItem(section, { name: '', logo: '', url: '' })">
+                        <Plus :size="12" /> Thêm thương hiệu
+                      </button>
+                    </div>
+                  </template>
+
+                  <!-- Section Style Config (all sections) -->
+                  <div class="section-style-divider"></div>
+                  <details class="section-style-details">
+                    <summary>🎨 Style & Advanced</summary>
+                    <div class="param-row">
+                      <label>Nền</label>
+                      <input type="color" v-model="section.params.sectionBgColor" class="param-color" />
+                      <button v-if="section.params.sectionBgColor" class="btn-clear-color" @click="section.params.sectionBgColor = ''" title="Xóa"><X :size="10" /></button>
+                    </div>
+                    <div class="param-row">
+                      <label>Padding</label>
+                      <select v-model="section.params.sectionPadding" class="param-select">
+                        <option value="">Mặc định</option>
+                        <option value="sm">Nhỏ (16px)</option>
+                        <option value="md">Vừa (32px)</option>
+                        <option value="lg">Lớn (48px)</option>
+                        <option value="xl">Rất lớn (64px)</option>
+                      </select>
+                    </div>
+                    <div class="param-row">
+                      <label>Anchor ID</label>
+                      <input type="text" v-model="section.params.anchorId" class="param-input" placeholder="vd: flash-sale" />
+                    </div>
+                    <div class="param-row">
+                      <label>CSS Class</label>
+                      <input type="text" v-model="section.params.cssClass" class="param-input" placeholder="custom-class" />
+                    </div>
+                  </details>
                 </div>
               </transition>
             </div>
@@ -218,7 +503,191 @@
           </div>
         </div>
 
-        <!-- Custom CSS (Phase 4) -->
+        <!-- Page Configs -->
+        <div class="lb-section">
+          <h4 class="lb-section__title"><Settings2 :size="14" /> Cấu hình trang</h4>
+
+          <!-- Products Page Config -->
+          <div class="page-config" :class="{ expanded: expandedPageConfig === 'products' }">
+            <div class="page-config__header" @click="expandedPageConfig = expandedPageConfig === 'products' ? null : 'products'">
+              <ShoppingBag :size="14" />
+              <span>Trang sản phẩm</span>
+              <ChevronDown :size="12" class="page-config__chevron" />
+            </div>
+            <div v-if="expandedPageConfig === 'products'" class="page-config__body">
+              <div class="param-row">
+                <label>Sidebar</label>
+                <select v-model="pageConfigs.products.sidebarPosition" class="param-select">
+                  <option value="left">Bên trái</option>
+                  <option value="right">Bên phải</option>
+                  <option value="hidden">Ẩn</option>
+                </select>
+              </div>
+              <div class="param-row">
+                <label>Cột sản phẩm</label>
+                <input type="range" v-model.number="pageConfigs.products.gridColumns" min="2" max="5" class="param-range" />
+                <span class="param-value">{{ pageConfigs.products.gridColumns }}</span>
+              </div>
+              <div class="param-row">
+                <label>SP mỗi trang</label>
+                <select v-model.number="pageConfigs.products.itemsPerPage" class="param-select">
+                  <option :value="8">8</option>
+                  <option :value="12">12</option>
+                  <option :value="16">16</option>
+                  <option :value="24">24</option>
+                </select>
+              </div>
+              <div class="param-row">
+                <label>Filter danh mục</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.category" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row">
+                <label>Filter thương hiệu</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.brand" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row">
+                <label>Filter giá</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.price" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Product Detail Config -->
+          <div class="page-config" :class="{ expanded: expandedPageConfig === 'productDetail' }">
+            <div class="page-config__header" @click="expandedPageConfig = expandedPageConfig === 'productDetail' ? null : 'productDetail'">
+              <Package :size="14" />
+              <span>Chi tiết sản phẩm</span>
+              <ChevronDown :size="12" class="page-config__chevron" />
+            </div>
+            <div v-if="expandedPageConfig === 'productDetail'" class="page-config__body">
+              <div class="param-row">
+                <label>Gallery</label>
+                <select v-model="pageConfigs.productDetail.galleryStyle" class="param-select">
+                  <option value="thumbnails">Thumbnail</option>
+                  <option value="grid">Grid</option>
+                </select>
+              </div>
+              <div class="param-row">
+                <label>Tỷ lệ layout</label>
+                <select v-model="pageConfigs.productDetail.layoutRatio" class="param-select">
+                  <option value="50-50">50 / 50</option>
+                  <option value="60-40">60 / 40</option>
+                  <option value="40-60">40 / 60</option>
+                </select>
+              </div>
+              <div class="param-row">
+                <label>Breadcrumb</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showBreadcrumb" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row">
+                <label>SP liên quan</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showRelatedProducts" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row" v-if="pageConfigs.productDetail.showRelatedProducts">
+                <label>Số SP liên quan</label>
+                <input type="range" v-model.number="pageConfigs.productDetail.relatedCount" min="4" max="8" class="param-range" />
+                <span class="param-value">{{ pageConfigs.productDetail.relatedCount }}</span>
+              </div>
+              <div class="param-row">
+                <label>Đánh giá</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showReviews" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Header Config -->
+        <div class="lb-section">
+          <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Header</h4>
+          <div class="param-row">
+            <label>Vị trí logo</label>
+            <select v-model="headerConfig.logoPosition" class="param-select">
+              <option value="left">Trái</option>
+              <option value="center">Giữa</option>
+            </select>
+          </div>
+          <div class="param-row">
+            <label>Max nav links</label>
+            <input type="range" v-model.number="headerConfig.maxNavLinks" min="3" max="10" class="param-range" />
+            <span class="param-value">{{ headerConfig.maxNavLinks }}</span>
+          </div>
+          <div class="param-row">
+            <label>Hiện Search</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="headerConfig.showSearch" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Sticky</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="headerConfig.sticky" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Theme toggle</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="headerConfig.showThemeToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Footer Config -->
+        <div class="lb-section">
+          <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
+          <div class="param-row">
+            <label>Số cột</label>
+            <input type="range" v-model.number="footerConfig.columns" min="2" max="4" class="param-range" />
+            <span class="param-value">{{ footerConfig.columns }}</span>
+          </div>
+          <div class="param-row">
+            <label>Hiện liên hệ</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="footerConfig.showContact" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Hiện links</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="footerConfig.showLinks" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Payment icons</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="footerConfig.showPaymentIcons" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Copyright</label>
+            <input type="text" v-model="footerConfig.copyrightText" class="param-input param-input--wide" placeholder="© 2026 Shop Name" />
+          </div>
+        </div>
+
+        <!-- Custom CSS -->
         <div class="lb-section">
           <h4 class="lb-section__title"><Code :size="14" /> CSS tùy chỉnh</h4>
           <textarea
@@ -323,8 +792,8 @@ import {
   Eye, ShoppingBag, ShoppingCart, User, Truck, FileStack, Plus, X, Code,
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers,
-  // Library section icons
-  MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award
+  MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
+  Trash2, Undo2, FileEdit
 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
@@ -340,6 +809,49 @@ const previewMode = ref('wireframe')
 const previewWidth = ref('100%')
 const previewKey = ref(0)
 const storefrontUrl = ref('')
+const expandedPageConfig = ref(null)
+const allCategories = ref([])
+
+// Undo stack
+const undoStack = ref([])
+const MAX_UNDO = 20
+function pushUndo() {
+  const snap = JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value })
+  undoStack.value.push(snap)
+  if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
+}
+function undo() {
+  if (!undoStack.value.length) return
+  const snap = JSON.parse(undoStack.value.pop())
+  sections.value = ensureParams(snap.sections || [])
+  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
+  if (snap.headerConfig) headerConfig.value = snap.headerConfig
+  if (snap.footerConfig) footerConfig.value = snap.footerConfig
+}
+
+// Header / Footer config
+const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
+const defaultFooterConfig = { columns: 3, showContact: true, showLinks: true, showPaymentIcons: false, copyrightText: '' }
+const headerConfig = ref({ ...defaultHeaderConfig })
+const footerConfig = ref({ ...defaultFooterConfig })
+
+const defaultPageConfigs = {
+  products: {
+    sidebarPosition: 'left',
+    gridColumns: 4,
+    itemsPerPage: 12,
+    showFilters: { category: true, brand: true, price: true },
+  },
+  productDetail: {
+    galleryStyle: 'thumbnails',
+    layoutRatio: '50-50',
+    showBreadcrumb: true,
+    showRelatedProducts: true,
+    relatedCount: 6,
+    showReviews: true,
+  },
+}
+const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
 
 // ─── Drag & Drop ───
 const dragIndex = ref(null)
@@ -375,6 +887,30 @@ function toggleExpand(type) {
   expandedSection.value = expandedSection.value === type ? null : type
 }
 
+// ─── Content item helpers ───
+function addContentItem(section, defaultItem) {
+  if (!section.content) section.content = []
+  section.content.push({ ...defaultItem })
+}
+function removeContentItem(section, index) {
+  section.content.splice(index, 1)
+}
+
+function toggleCategoryId(section, catId) {
+  if (!section.params.selectedCategoryIds) section.params.selectedCategoryIds = []
+  const idx = section.params.selectedCategoryIds.indexOf(catId)
+  if (idx >= 0) section.params.selectedCategoryIds.splice(idx, 1)
+  else section.params.selectedCategoryIds.push(catId)
+}
+
+async function loadCategories() {
+  try {
+    const res = await apiFetch('/categories')
+    const data = await res.json()
+    allCategories.value = Array.isArray(data) ? data : (data.data || [])
+  } catch { allCategories.value = [] }
+}
+
 // ─── Section Meta ───
 const sectionMeta = {
   banner: { label: 'Banner', icon: Image, pvHeight: '50px' },
@@ -396,19 +932,19 @@ const sectionMeta = {
 
 const defaultParams = {
   banner: { autoplay: true, interval: 4000, height: 'md' },
-  categories: { columns: 6, showDescription: false },
-  flash_sale: { showTimer: true, showProgress: true },
-  featured_products: { title: 'Sản phẩm nổi bật', count: 8, columns: 4 },
-  new_arrivals: { title: 'Hàng mới về', count: 4 },
+  categories: { columns: 6, showDescription: false, layoutStyle: 'grid', showCount: false, selectedCategoryIds: [] },
+  flash_sale: { showTimer: true, showProgress: true, count: 8, columns: 4 },
+  featured_products: { title: 'Sản phẩm nổi bật', count: 8, columns: 4, filterCategory: '', sortOrder: 'newest' },
+  new_arrivals: { title: 'Hàng mới về', count: 4, columns: 4, sortOrder: 'newest' },
   cms_pages: { layout: 'grid', maxPages: 6 },
   testimonials: { title: 'Khách hàng nói gì', columns: 3 },
   faq: { title: 'Câu hỏi thường gặp' },
   image_gallery: { title: 'Thư viện ảnh', columns: 3 },
   video_embed: { title: 'Video' },
   text_block: { title: '' },
-  newsletter: { title: 'Đăng ký nhận tin' },
+  newsletter: { title: 'Đăng ký nhận tin', subtitle: 'Nhận thông tin khuyến mãi và sản phẩm mới nhất', buttonText: 'Đăng ký' },
   social_feed: { title: 'Theo dõi chúng tôi' },
-  brands_slider: { title: 'Thương hiệu' },
+  brands_slider: { title: 'Thương hiệu', animationSpeed: 20 },
 }
 
 // ─── Library ───
@@ -500,9 +1036,13 @@ const livePreviewUrl = computed(() => {
 
 // Debounced preview refresh
 let previewTimer
-watch([sections, pages, customCss], () => {
+let undoTimer
+watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs], () => {
   clearTimeout(previewTimer)
   previewTimer = setTimeout(() => { previewKey.value++ }, 800)
+  // Push undo snapshot on changes (debounced)
+  clearTimeout(undoTimer)
+  undoTimer = setTimeout(() => pushUndo(), 1500)
 }, { deep: true })
 
 // ─── Load / Save ───
@@ -538,6 +1078,17 @@ async function loadLayout() {
     activeTemplate.value = map.layout_template || 'full_store'
     customCss.value = map.layout_custom_css || ''
     storefrontUrl.value = map.storefront_url || ''
+    const parsedPC = map.layout_page_configs ? JSON.parse(map.layout_page_configs) : null
+    if (parsedPC) {
+      pageConfigs.value = {
+        products: { ...defaultPageConfigs.products, ...parsedPC.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(parsedPC.products?.showFilters || {}) } },
+        productDetail: { ...defaultPageConfigs.productDetail, ...parsedPC.productDetail },
+      }
+    }
+    const parsedHC = map.layout_header_config ? JSON.parse(map.layout_header_config) : null
+    if (parsedHC) headerConfig.value = { ...defaultHeaderConfig, ...parsedHC }
+    const parsedFC = map.layout_footer_config ? JSON.parse(map.layout_footer_config) : null
+    if (parsedFC) footerConfig.value = { ...defaultFooterConfig, ...parsedFC }
   } catch {
     sections.value = ensureParams([
       { type: 'banner', enabled: true, order: 0 },
@@ -562,18 +1113,42 @@ async function saveLayout() {
           { key: 'layout_pages', value: JSON.stringify(pages.value) },
           { key: 'layout_template', value: activeTemplate.value },
           { key: 'layout_custom_css', value: customCss.value },
+          { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
+          { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
+          { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
           { key: 'storefront_url', value: storefrontUrl.value },
         ],
       }),
     })
-    showToast('Đã lưu bố cục storefront', 'success')
+    showToast('Đã xuất bản bố cục storefront', 'success')
   } catch (e) {
     showToast('Lỗi lưu: ' + e.message, 'error')
   }
   saving.value = false
 }
 
-onMounted(loadLayout)
+async function saveDraft() {
+  saving.value = true
+  try {
+    await apiFetch('/system-config/group/storefront_layout', {
+      method: 'PUT',
+      body: JSON.stringify({
+        items: [
+          { key: 'layout_draft_sections', value: JSON.stringify(sections.value) },
+          { key: 'layout_draft_page_configs', value: JSON.stringify(pageConfigs.value) },
+          { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
+          { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
+        ],
+      }),
+    })
+    showToast('Đã lưu nháp', 'success')
+  } catch (e) {
+    showToast('Lỗi lưu nháp: ' + e.message, 'error')
+  }
+  saving.value = false
+}
+
+onMounted(() => { loadLayout(); loadCategories() })
 </script>
 
 <style scoped>
@@ -689,9 +1264,97 @@ onMounted(loadLayout)
 }
 
 /* Expand animation */
-.expand-enter-active, .expand-leave-active { transition: all 0.2s ease; overflow: hidden; }
+.expand-enter-active, .expand-leave-active { transition: all 0.3s ease; overflow: hidden; }
 .expand-enter-from, .expand-leave-to { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; }
-.expand-enter-to, .expand-leave-from { opacity: 1; max-height: 300px; }
+.expand-enter-to, .expand-leave-from { opacity: 1; max-height: 1200px; }
+
+/* Content editor */
+.content-editor { margin-top: 6px; }
+.content-editor__label {
+  display: block; font-size: 11px; font-weight: 700; color: var(--color-text-muted);
+  margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.content-item {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px; margin-bottom: 6px; border-radius: 8px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+}
+.content-item__fields { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.content-item__row { display: flex; gap: 6px; }
+.content-item__row .param-select { min-width: 110px; }
+.content-textarea {
+  resize: vertical; min-height: 40px; line-height: 1.4;
+  font-family: inherit;
+}
+.content-html-editor {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 11px; line-height: 1.5; resize: vertical; min-height: 100px;
+}
+.btn-add-item {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  width: 100%; padding: 7px; margin-top: 4px;
+  border: 1px dashed var(--glass-border); border-radius: 6px;
+  background: transparent; color: var(--color-text-muted);
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.btn-add-item:hover { border-color: #7c3aed; color: #a78bfa; background: rgba(124, 58, 237, 0.03); }
+.btn-remove-item {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; min-width: 24px; margin-top: 4px;
+  border-radius: 6px; border: 1px solid transparent;
+  background: transparent; color: var(--color-text-muted);
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-remove-item:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.06); }
+
+/* Page config */
+.page-config { margin-bottom: 6px; border-radius: 10px; border: 1px solid var(--glass-border); overflow: hidden; }
+.page-config.expanded { border-color: #7c3aed; }
+.page-config__header {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  background: var(--glass-bg); cursor: pointer; font-size: 13px; font-weight: 600;
+  transition: all 0.15s;
+}
+.page-config__header:hover { background: rgba(124, 58, 237, 0.03); }
+.page-config__header span { flex: 1; }
+.page-config__chevron { transition: transform 0.2s; color: var(--color-text-muted); }
+.page-config.expanded .page-config__chevron { transform: rotate(180deg); color: #a78bfa; }
+.page-config__body { padding: 10px 14px; background: rgba(124, 58, 237, 0.03); border-top: 1px solid var(--glass-border); }
+
+/* Section style */
+.section-style-divider { height: 1px; background: var(--glass-border); margin: 10px 0; }
+.section-style-details { font-size: 12px; }
+.section-style-details summary {
+  cursor: pointer; font-weight: 600; color: var(--color-text-muted);
+  padding: 6px 0; user-select: none; font-size: 11px;
+}
+.section-style-details summary:hover { color: #a78bfa; }
+.section-style-details[open] summary { color: #7c3aed; }
+.param-color {
+  width: 32px; height: 24px; border: 1px solid var(--glass-border);
+  border-radius: 6px; cursor: pointer; padding: 0;
+}
+.btn-clear-color {
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 4px;
+  border: none; background: rgba(239,68,68,0.1); color: #ef4444;
+  cursor: pointer; font-size: 10px;
+}
+
+/* Undo & Draft */
+.btn-undo {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  color: var(--color-text-muted); cursor: pointer; transition: all 0.15s;
+}
+.btn-undo:hover { border-color: #7c3aed; color: #a78bfa; }
+.btn-save--draft {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--color-text-muted) !important;
+}
+.btn-save--draft:hover { border-color: #7c3aed !important; color: #a78bfa !important; }
 
 /* Add section */
 .btn-add-section {

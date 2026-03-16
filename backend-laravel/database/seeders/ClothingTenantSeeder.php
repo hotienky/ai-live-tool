@@ -363,6 +363,110 @@ class ClothingTenantSeeder extends Seeder
         echo "   🔑 Password: password\n";
 
         // ═══════════════════════════════
+        // RBAC: Roles & Permissions
+        // ═══════════════════════════════
+        echo "🛡️  Seeding RBAC roles & permissions...\n";
+
+        // ── Seed all permissions ──
+        $permModules = [
+            'products' => [
+                ['name' => 'products.view',   'display_name' => 'Xem sản phẩm'],
+                ['name' => 'products.create', 'display_name' => 'Tạo sản phẩm'],
+                ['name' => 'products.edit',   'display_name' => 'Sửa sản phẩm'],
+                ['name' => 'products.delete', 'display_name' => 'Xóa sản phẩm'],
+            ],
+            'orders' => [
+                ['name' => 'orders.view',   'display_name' => 'Xem đơn hàng'],
+                ['name' => 'orders.create', 'display_name' => 'Tạo đơn hàng'],
+                ['name' => 'orders.edit',   'display_name' => 'Sửa đơn hàng'],
+                ['name' => 'orders.delete', 'display_name' => 'Xóa đơn hàng'],
+                ['name' => 'orders.export', 'display_name' => 'Xuất đơn hàng'],
+            ],
+            'customers' => [
+                ['name' => 'customers.view',   'display_name' => 'Xem khách hàng'],
+                ['name' => 'customers.edit',   'display_name' => 'Sửa khách hàng'],
+                ['name' => 'customers.delete', 'display_name' => 'Xóa khách hàng'],
+            ],
+            'cms' => [
+                ['name' => 'cms.view',   'display_name' => 'Xem trang CMS'],
+                ['name' => 'cms.create', 'display_name' => 'Tạo trang CMS'],
+                ['name' => 'cms.edit',   'display_name' => 'Sửa trang CMS'],
+                ['name' => 'cms.delete', 'display_name' => 'Xóa trang CMS'],
+            ],
+            'banners' => [
+                ['name' => 'banners.view',   'display_name' => 'Xem banner'],
+                ['name' => 'banners.create', 'display_name' => 'Tạo banner'],
+                ['name' => 'banners.edit',   'display_name' => 'Sửa banner'],
+                ['name' => 'banners.delete', 'display_name' => 'Xóa banner'],
+            ],
+            'promotions' => [
+                ['name' => 'promotions.view',   'display_name' => 'Xem khuyến mãi'],
+                ['name' => 'promotions.create', 'display_name' => 'Tạo khuyến mãi'],
+                ['name' => 'promotions.edit',   'display_name' => 'Sửa khuyến mãi'],
+                ['name' => 'promotions.delete', 'display_name' => 'Xóa khuyến mãi'],
+            ],
+            'settings' => [
+                ['name' => 'settings.view', 'display_name' => 'Xem cài đặt'],
+                ['name' => 'settings.edit', 'display_name' => 'Sửa cài đặt'],
+            ],
+            'system' => [
+                ['name' => 'system.roles',         'display_name' => 'Quản lý roles'],
+                ['name' => 'system.users',         'display_name' => 'Quản lý users'],
+                ['name' => 'system.api_keys',      'display_name' => 'Quản lý API keys'],
+                ['name' => 'system.webhooks',      'display_name' => 'Quản lý webhooks'],
+                ['name' => 'system.activity_logs', 'display_name' => 'Xem nhật ký'],
+            ],
+        ];
+
+        foreach ($permModules as $module => $perms) {
+            foreach ($perms as $p) {
+                $db->table('permissions')->updateOrInsert(
+                    ['name' => $p['name']],
+                    ['module' => $module, 'display_name' => $p['display_name'], 'created_at' => now()]
+                );
+            }
+        }
+        $allPermIds = $db->table('permissions')->pluck('id', 'name');
+        echo "   ✅ " . count($allPermIds) . " permissions seeded\n";
+
+        // ── Seed 4 default roles ──
+        $rolesDef = [
+            ['name' => 'super_admin', 'display_name' => 'Super Admin', 'perms_json' => ['*'], 'perm_filter' => fn($name) => true],
+            ['name' => 'manager',     'display_name' => 'Quản lý',    'perms_json' => ['products.*','orders.*','customers.*','cms.*','banners.*','promotions.*','settings.view'], 'perm_filter' => fn($name) => in_array(explode('.', $name)[0], ['products','orders','customers','cms','banners','promotions']) || $name === 'settings.view'],
+            ['name' => 'editor',      'display_name' => 'Biên tập viên', 'perms_json' => ['products.view','products.edit','cms.*','banners.*','settings.view'], 'perm_filter' => fn($name) => in_array($name, ['products.view','products.edit','cms.view','cms.create','cms.edit','cms.delete','banners.view','banners.create','banners.edit','banners.delete','settings.view'])],
+            ['name' => 'viewer',      'display_name' => 'Chỉ xem',    'perms_json' => ['*.view'], 'perm_filter' => fn($name) => str_ends_with($name, '.view')],
+        ];
+
+        foreach ($rolesDef as $rd) {
+            $db->table('roles')->updateOrInsert(
+                ['name' => $rd['name']],
+                ['display_name' => $rd['display_name'], 'permissions' => json_encode($rd['perms_json']), 'created_at' => now(), 'updated_at' => now()]
+            );
+            $roleId = $db->table('roles')->where('name', $rd['name'])->value('id');
+
+            // Sync permissions for this role
+            $db->table('role_permissions')->where('role_id', $roleId)->delete();
+            foreach ($allPermIds as $pName => $pId) {
+                if (($rd['perm_filter'])($pName)) {
+                    $db->table('role_permissions')->insert(['role_id' => $roleId, 'permission_id' => $pId]);
+                }
+            }
+            echo "   ✅ Role: {$rd['display_name']}\n";
+        }
+
+        // ── Assign super_admin to admin user ──
+        $adminUser = $db->table('users')->where('email', 'admin@fashionvn.com')->first();
+        $superAdminRoleId = $db->table('roles')->where('name', 'super_admin')->value('id');
+        if ($adminUser && $superAdminRoleId) {
+            $db->table('users')->where('id', $adminUser->id)->update(['role_id' => $superAdminRoleId]);
+            $db->table('user_roles')->updateOrInsert(
+                ['user_id' => $adminUser->id],
+                ['role_id' => $superAdminRoleId]
+            );
+            echo "   ✅ Admin user assigned: Super Admin\n";
+        }
+
+        // ═══════════════════════════════
         // Banners
         // ═══════════════════════════════
         echo "🖼️  Seeding banners...\n";
@@ -678,6 +782,22 @@ HTML,
 .cms-about table td, .cms-about table th, .cms-policy table td, .cms-policy table th, .cms-size-guide table td, .cms-size-guide table th { padding: 10px 14px; border: 1px solid var(--sf-border); text-align: left; }
 .cms-about table th, .cms-policy table th, .cms-size-guide table th { background: var(--sf-bg-card); font-weight: 700; }'],
             ['group_name' => 'storefront_layout', 'key' => 'storefront_url', 'value' => 'https://fashionvn.store'],
+            ['group_name' => 'storefront_layout', 'key' => 'layout_page_configs', 'value' => json_encode([
+                'products' => [
+                    'sidebarPosition' => 'left',
+                    'gridColumns' => 4,
+                    'itemsPerPage' => 12,
+                    'showFilters' => ['category' => true, 'brand' => true, 'price' => true],
+                ],
+                'productDetail' => [
+                    'galleryStyle' => 'thumbnails',
+                    'layoutRatio' => '50-50',
+                    'showBreadcrumb' => true,
+                    'showRelatedProducts' => true,
+                    'relatedCount' => 6,
+                    'showReviews' => true,
+                ],
+            ])],
         ];
         foreach ($layoutConfigs as $lc) {
             $lc['created_at'] = $lc['updated_at'] = now();

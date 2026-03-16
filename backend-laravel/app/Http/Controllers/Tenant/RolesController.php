@@ -28,9 +28,12 @@ class RolesController extends Controller
     public function store(Request $request)
     {
         try {
-            $data = $request->validate(['name' => 'required|string', 'description' => 'nullable|string']);
+            $data = $request->validate(['name' => 'required|string', 'display_name' => 'nullable|string', 'description' => 'nullable|string']);
             $role = $this->repo->store($data);
-            return $this->successResponse($role, 'Role created', 201);
+            if ($request->has('permissions')) {
+                $this->repo->syncPermissions($role->id, $request->input('permissions', []));
+            }
+            return $this->successResponse($this->repo->findWithPermissions($role->id), 'Role created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -38,8 +41,11 @@ class RolesController extends Controller
 
     public function update(Request $request, $id)
     {
-        $this->repo->update($request->only(['name', 'description']), $id);
-        return $this->successResponse($this->repo->find($id), 'Role updated');
+        $this->repo->update($request->only(['name', 'display_name', 'description']), $id);
+        if ($request->has('permissions')) {
+            $this->repo->syncPermissions($id, $request->input('permissions', []));
+        }
+        return $this->successResponse($this->repo->findWithPermissions($id), 'Role updated');
     }
 
     public function destroy($id)

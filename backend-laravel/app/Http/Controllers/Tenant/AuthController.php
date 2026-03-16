@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\User\UserRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
@@ -88,8 +89,14 @@ class AuthController extends Controller
             $this->userRepo->update(['last_login_at' => now()], $user->id);
 
             unset($user->password);
+
+            // Load RBAC
+            $rbac = $this->loadUserRbac($user->id);
+            $user->role = $rbac['role'];
+
             return $this->successResponse([
                 'user' => $user,
+                'permissions' => $rbac['permissions'],
                 'token' => $token,
             ], 'Login successful');
         } catch (\Exception $e) {
@@ -100,7 +107,58 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->attributes->get('auth_user');
-        return $this->successResponse($user);
+        $permissions = $request->attributes->get('user_permissions', []);
+        return $this->successResponse([
+            'user' => $user,
+            'permissions' => $permissions,
+        ]);
+    }
+
+    private function loadUserRbac(int $userId): array
+    {
+        try {
+            $role = DB::table('roles')
+                ->join('user_roles', 'user_roles.role_id', '=', 'roles.id')
+                ->where('user_roles.user_id', $userId)
+                ->select('roles.id', 'roles.name', 'roles.display_name', 'roles.permissions as role_permissions_json')
+                ->first();
+
+            if (!$role) {
+                $roleId = DB::table('users')->where('id', $userId)->value('role_id');
+                if ($roleId) {
+                    $role = DB::table('roles')
+                        ->where('id', $roleId)
+                        ->select('id', 'name', 'display_name', 'permissions as role_permissions_json')
+                        ->first();
+                }
+            }
+
+            if (!$role) {
+                return ['role' => null, 'permissions' => []];
+            }
+
+            $jsonPerms = json_decode($role->role_permissions_json ?? '[]', true);
+            if (is_array($jsonPerms) && in_array('*', $jsonPerms)) {
+                return [
+                    'role' => (object) ['id' => $role->id, 'name' => $role->name, 'display_name' => $role->display_name],
+                    'permissions' => ['*'],
+                ];
+            }
+
+            $perms = DB::table('role_permissions')
+                ->join('permissions', 'permissions.id', '=', 'role_permissions.permission_id')
+                ->where('role_permissions.role_id', $role->id)
+                ->pluck('permissions.name')
+                ->unique()->values()->toArray();
+
+            return [
+                'role' => (object) ['id' => $role->id, 'name' => $role->name, 'display_name' => $role->display_name],
+                'permissions' => $perms,
+            ];
+        } catch (\Exception $e) {
+            // RBAC tables may not exist yet — degrade gracefully
+            return ['role' => null, 'permissions' => ['*']];
+        }
     }
 
     public function updateProfile(Request $request)

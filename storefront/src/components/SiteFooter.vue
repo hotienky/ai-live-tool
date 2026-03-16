@@ -13,7 +13,7 @@
         </div>
 
         <!-- Contact Info -->
-        <div class="site-footer__contact" v-if="info?.phone || info?.email || info?.address">
+        <div class="site-footer__contact" v-if="footerCfg.showContact && (info?.phone || info?.email || info?.address)">
           <div v-if="info.phone" class="site-footer__contact-item">
             <Phone :size="14" />
             <a :href="'tel:' + info.phone.replace(/\s/g, '')">{{ info.phone }}</a>
@@ -29,7 +29,7 @@
         </div>
 
         <!-- Footer Nav Links (from API) -->
-        <div class="site-footer__links" v-if="footerLinks.length">
+        <div class="site-footer__links" v-if="footerCfg.showLinks && footerLinks.length">
           <router-link
             v-for="link in footerLinks"
             :key="link.id"
@@ -41,7 +41,7 @@
       <!-- Bottom Bar: Copyright + Social -->
       <div class="site-footer__bottom">
         <p class="site-footer__copy">
-          {{ info?.copyright || `© ${year} ${info?.shop_name || storeName || 'Shop'}. Powered by AI Live Tool` }}
+          {{ footerCfg.copyrightText || info?.copyright || `© ${year} ${info?.shop_name || storeName || 'Shop'}. Powered by AI Live Tool` }}
         </p>
         <div class="site-footer__social" v-if="socialLinks.length">
           <a
@@ -68,8 +68,15 @@ import { Store, Phone, Mail, MapPin, Facebook, Instagram, Youtube, Twitter, Mess
 defineProps({ storeName: { type: String, default: '' } })
 
 const storeInfo = inject('storeInfo', ref(null))
+const layoutConfig = inject('layoutConfig', ref(null))
 const info = computed(() => storeInfo.value || {})
 const year = new Date().getFullYear()
+
+const footerCfg = computed(() => {
+  const defaults = { columns: 3, showContact: true, showLinks: true, showPaymentIcons: false, copyrightText: '' }
+  const fc = layoutConfig.value?.footerConfig
+  return fc ? { ...defaults, ...fc } : defaults
+})
 
 const footerLinks = ref([])
 
@@ -107,7 +114,7 @@ onMounted(async () => {
 
 .site-footer__top {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(v-bind('footerCfg.columns'), 1fr);
   gap: 24px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--sf-border);

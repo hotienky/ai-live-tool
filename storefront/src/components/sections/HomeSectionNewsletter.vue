@@ -3,20 +3,23 @@
     <div class="newsletter-card">
       <Mail :size="32" class="newsletter-icon" />
       <h2>{{ params?.title || 'Đăng ký nhận tin' }}</h2>
-      <p>Nhận thông tin khuyến mãi và sản phẩm mới nhất</p>
+      <p>{{ params?.subtitle || 'Nhận thông tin khuyến mãi và sản phẩm mới nhất' }}</p>
       <form class="newsletter-form" @submit.prevent="onSubmit">
         <input v-model="email" type="email" placeholder="Email của bạn..." required />
-        <button type="submit" :disabled="submitted">
-          {{ submitted ? 'Đã đăng ký!' : 'Đăng ký' }}
+        <button type="submit" :disabled="loading || submitted">
+          <Loader v-if="loading" :size="14" class="spin" />
+          {{ submitted ? '✓ Đã đăng ký!' : (params?.buttonText || 'Đăng ký') }}
         </button>
       </form>
+      <p v-if="message" class="newsletter-msg" :class="{ error: isError }">{{ message }}</p>
     </div>
   </section>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { Mail } from 'lucide-vue-next'
+import { Mail, Loader } from 'lucide-vue-next'
+import { apiFetch } from '../../api.js'
 
 defineProps({
   params: { type: Object, default: () => ({}) },
@@ -25,11 +28,28 @@ defineProps({
 
 const email = ref('')
 const submitted = ref(false)
+const loading = ref(false)
+const message = ref('')
+const isError = ref(false)
 
-function onSubmit() {
-  // Placeholder — actual API integration can be added
-  submitted.value = true
-  setTimeout(() => { submitted.value = false; email.value = '' }, 3000)
+async function onSubmit() {
+  if (!email.value || loading.value) return
+  loading.value = true
+  message.value = ''
+  isError.value = false
+  try {
+    const res = await apiFetch('/newsletter/subscribe', {}, {
+      method: 'POST',
+      body: JSON.stringify({ email: email.value }),
+    })
+    submitted.value = true
+    message.value = res?.message || 'Đăng ký nhận tin thành công!'
+    setTimeout(() => { submitted.value = false; email.value = ''; message.value = '' }, 4000)
+  } catch (err) {
+    isError.value = true
+    message.value = err?.message || 'Không thể đăng ký. Vui lòng thử lại.'
+  }
+  loading.value = false
 }
 </script>
 
@@ -55,9 +75,13 @@ function onSubmit() {
   padding: 12px 24px; border-radius: 100px; border: none;
   background: var(--sf-accent-gradient); color: #fff;
   font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap;
-  transition: all 0.2s;
+  transition: all 0.2s; display: flex; align-items: center; gap: 6px;
 }
 .newsletter-form button:hover { transform: scale(1.02); }
-.newsletter-form button:disabled { opacity: 0.6; }
+.newsletter-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+.newsletter-msg { font-size: 13px; margin-top: 12px; color: #22c55e; font-weight: 600; }
+.newsletter-msg.error { color: #ef4444; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 @media (max-width: 480px) { .newsletter-form { flex-direction: column; } }
 </style>

@@ -185,11 +185,47 @@ class StorefrontController extends Controller
             'products' => true,
         ];
 
+        $defaultPageConfigs = [
+            'products' => [
+                'sidebarPosition' => 'left',
+                'gridColumns' => 4,
+                'itemsPerPage' => 12,
+                'showFilters' => ['category' => true, 'brand' => true, 'price' => true],
+            ],
+            'productDetail' => [
+                'galleryStyle' => 'thumbnails',
+                'layoutRatio' => '50-50',
+                'showBreadcrumb' => true,
+                'showRelatedProducts' => true,
+                'relatedCount' => 6,
+                'showReviews' => true,
+            ],
+        ];
+
+        $defaultHeaderConfig = [
+            'logoPosition' => 'left',
+            'maxNavLinks' => 5,
+            'showSearch' => true,
+            'sticky' => true,
+            'showThemeToggle' => true,
+        ];
+
+        $defaultFooterConfig = [
+            'columns' => 3,
+            'showContact' => true,
+            'showLinks' => true,
+            'showPaymentIcons' => false,
+            'copyrightText' => '',
+        ];
+
         return $this->successResponse([
             'sections' => json_decode($map['layout_sections'] ?? 'null') ?: $defaultSections,
             'pages' => json_decode($map['layout_pages'] ?? 'null') ?: $defaultPages,
             'template' => $map['layout_template'] ?? 'full_store',
             'customCss' => $map['layout_custom_css'] ?? '',
+            'pageConfigs' => json_decode($map['layout_page_configs'] ?? 'null', true) ?: $defaultPageConfigs,
+            'headerConfig' => json_decode($map['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
+            'footerConfig' => json_decode($map['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
         ]);
     }
 

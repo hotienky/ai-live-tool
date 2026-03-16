@@ -41,6 +41,8 @@ import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-vue-next'
 
 const props = defineProps({
   banners: { type: Array, default: () => [] },
+  autoplay: { type: Boolean, default: true },
+  interval: { type: Number, default: 5000 },
 })
 
 const activeIndex = ref(0)
@@ -59,14 +61,14 @@ function goTo(i) {
 }
 
 function startAuto() {
-  timer = setInterval(next, 5000)
+  timer = setInterval(next, props.interval)
 }
 
 function stopAuto() {
   if (timer) clearInterval(timer)
 }
 
-onMounted(() => { if (props.banners.length > 1) startAuto() })
+onMounted(() => { if (props.banners.length > 1 && props.autoplay) startAuto() })
 onBeforeUnmount(() => stopAuto())
 </script>
 

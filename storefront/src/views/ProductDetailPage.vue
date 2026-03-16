@@ -1,7 +1,7 @@
 <template>
   <div class="detail-page container">
     <!-- Breadcrumb -->
-    <nav class="breadcrumb">
+    <nav v-if="detailConfig.showBreadcrumb" class="breadcrumb">
       <router-link :to="'/'">Trang chủ</router-link>
       <ChevronRight :size="12" />
       <router-link :to="'/products'">Sản phẩm</router-link>
@@ -24,9 +24,9 @@
 
     <!-- Product Detail -->
     <div v-else-if="product" class="detail-content">
-      <div class="detail-grid">
+      <div class="detail-grid" :style="layoutRatioStyle">
         <!-- Image Gallery -->
-        <div class="detail-gallery">
+        <div class="detail-gallery" :class="'gallery--' + detailConfig.galleryStyle">
           <div class="detail-main-img">
             <img v-if="activeImage" :src="activeImage" :alt="product.name" />
             <div v-else class="detail-placeholder">
@@ -141,8 +141,19 @@
         <div class="detail-desc-content" v-html="product.description"></div>
       </div>
 
+      <!-- Related Products -->
+      <div class="related-section" v-if="detailConfig.showRelatedProducts && relatedProducts.length > 0">
+        <h2 class="section-title">
+          <Package :size="20" class="section-title__accent" />
+          Sản phẩm liên quan
+        </h2>
+        <div class="related-grid">
+          <ProductCard v-for="p in relatedProducts" :key="p.id" :product="p" />
+        </div>
+      </div>
+
       <!-- Reviews Section -->
-      <div class="reviews-section" id="reviews">
+      <div v-if="detailConfig.showReviews" class="reviews-section" id="reviews">
         <h2 class="section-title">
           <Star :size="20" class="section-title__accent" />
           Đánh giá sản phẩm
@@ -224,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, inject, onMounted, watch } from 'vue'
 import { apiFetch, apiAuthPost } from '../api.js'
 import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
@@ -233,10 +244,23 @@ import {
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useSeo } from '../composables/useSeo.js'
+import ProductCard from '../components/ProductCard.vue'
 
 const { addToCart } = useCart()
 const { isLoggedIn, token: authToken } = useAuth()
 const { setProductSeo, setBreadcrumbs } = useSeo()
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const detailConfig = computed(() => {
+  const defaults = { galleryStyle: 'thumbnails', layoutRatio: '50-50', showBreadcrumb: true, showRelatedProducts: true, relatedCount: 6, showReviews: true }
+  const dc = layoutConfig.value?.pageConfigs?.productDetail
+  return dc ? { ...defaults, ...dc } : defaults
+})
+
+const layoutRatioStyle = computed(() => {
+  const map = { '50-50': '1fr 1fr', '60-40': '3fr 2fr', '40-60': '2fr 3fr' }
+  return { gridTemplateColumns: map[detailConfig.value.layoutRatio] || '1fr 1fr' }
+})
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -373,7 +397,7 @@ async function loadProduct() {
   loading.value = false
 }
 
-onMounted(() => { loadProduct().then(() => loadReviews()) })
+onMounted(() => { loadProduct().then(() => { loadReviews(); loadRelated() }) })
 watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loadProduct() })
 
 const addedToCart = ref(false)
@@ -383,6 +407,20 @@ function handleAddToCart() {
   addToCart(product.value, qty.value, v)
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
+}
+
+// ── Related Products ──
+const relatedProducts = ref([])
+async function loadRelated() {
+  if (!product.value || !detailConfig.value.showRelatedProducts) return
+  try {
+    const data = await apiFetch('/products', {
+      per_page: detailConfig.value.relatedCount,
+      category: product.value.category_id || null,
+    })
+    const items = data?.data || (Array.isArray(data) ? data : [])
+    relatedProducts.value = items.filter(p => p.id !== product.value.id).slice(0, detailConfig.value.relatedCount)
+  } catch { relatedProducts.value = [] }
 }
 
 // ── Reviews ──
@@ -688,6 +726,27 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 }
 .reviews-empty p { margin: 8px 0 0; font-size: 14px; }
 
+/* Gallery grid style */
+.gallery--grid .detail-main-img { aspect-ratio: auto; }
+.gallery--grid .detail-thumbs {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px;
+  overflow-x: visible;
+}
+.gallery--grid .detail-thumb {
+  width: 100%; height: auto; aspect-ratio: 1;
+}
+
+/* Related Products */
+.related-section {
+  margin-top: 32px; padding: 32px; border-radius: var(--sf-radius-lg);
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+}
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px; margin-top: 20px;
+}
+
 @media (max-width: 768px) {
   .detail-grid { grid-template-columns: 1fr; gap: 24px; }
   .detail-skeleton { grid-template-columns: 1fr; }
@@ -697,5 +756,6 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
   .variant-options { gap: 6px; }
   .variant-option { padding: 6px 12px; font-size: 12px; }
   .review-summary { flex-direction: column; gap: 16px; }
+  .related-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 </style>

@@ -1,5 +1,6 @@
 import { ref, computed } from 'vue'
 import { API_BASE } from '../config.js'
+import { setPermissions, clearPermissions } from './usePermissions.js'
 
 // Shared state across components — robust parsing for corrupted localStorage
 function safeGetToken() {
@@ -59,6 +60,8 @@ export function useAuth() {
       currentUser.value = payload.user
       localStorage.setItem('auth_token', payload.token)
       localStorage.setItem('auth_user', JSON.stringify(payload.user))
+      // Save RBAC permissions
+      setPermissions(payload.permissions || [], payload.user?.role || null)
       return true
     } catch (err) {
       error.value = err.message
@@ -92,6 +95,7 @@ export function useAuth() {
       currentUser.value = payload.user
       localStorage.setItem('auth_token', payload.token)
       localStorage.setItem('auth_user', JSON.stringify(payload.user))
+      setPermissions(payload.permissions || [], payload.user?.role || null)
       return true
     } catch (err) {
       error.value = err.message
@@ -109,6 +113,7 @@ export function useAuth() {
     currentUser.value = null
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
+    clearPermissions()
   }
 
   /**
