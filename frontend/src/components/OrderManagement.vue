@@ -277,6 +277,15 @@ function getStatusNameById(id) {
   return s ? s.name : `#${id}`
 }
 const paymentLabels = { unpaid: 'Chưa TT', paid: 'Đã TT', refunded: 'Hoàn tiền' }
+const statusLabels = {
+  pending: 'Chờ xác nhận',
+  confirmed: 'Đã xác nhận',
+  processing: 'Đang xử lý',
+  shipping: 'Đang giao',
+  delivered: 'Đã giao',
+  cancelled: 'Đã huỷ',
+  returned: 'Hoàn hàng',
+}
 
 // Detail modal
 const showDetailModal = ref(false)
@@ -631,14 +640,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
   background: rgba(0,0,0,0.7); display: flex; align-items: center;
   justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
 }
-.modal {
-  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
-  border-radius: 16px; padding: 28px;
-  width: 440px; max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  animation: slideUp 0.3s ease-out;
-}
-.modal--wide { width: 600px; }
+/* Removed local modal */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -739,7 +741,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
 .clickable-row:hover { background: rgba(124,58,237,0.06) !important; }
 
 /* Order Detail Modal */
-.modal--detail { width: 660px; max-height: 85vh; overflow-y: auto; }
+/* Removed local modal detail */
 .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .detail-header h3 { margin: 0; font-weight: 800; }
 .btn-close {

@@ -121,7 +121,7 @@ onMounted(() => fetchBrands())
 .btn-del:hover { color: #ef4444; border-color: #ef4444; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: 16px; padding: 24px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.3); }
+/* Removed local modal */
 .modal h3 { font-size: 17px; font-weight: 700; margin: 0 0 20px; }
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px; }

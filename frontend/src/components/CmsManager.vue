@@ -67,8 +67,17 @@
             </div>
           </div>
           <div class="form-group">
-            <label>Nội dung (HTML)</label>
-            <textarea v-model="form.content" rows="12" class="cm-textarea"></textarea>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; margin-bottom: 12px; color: var(--accent); font-weight: bold;">
+              <input type="checkbox" v-model="form.is_dynamic" style="width: auto;" />
+              Sử dụng Storefront Layout Builder (Kéo thả section)
+            </label>
+            <div v-if="form.is_dynamic" style="padding: 12px; background: rgba(124, 58, 237, 0.1); border-radius: 6px; color: var(--accent); font-size: 0.85rem;">
+              Trang này sẽ được thiết kế bằng Layout Builder. Hãy lưu lại và chuyển sang tab "Bố cục Store" để thiết kế kéo thả.
+            </div>
+            <div v-else>
+              <label>Nội dung (HTML)</label>
+              <textarea v-model="form.content" rows="12" class="cm-textarea"></textarea>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -111,19 +120,19 @@ const showPreview = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
 const editTab = ref('edit')
-const form = ref({ title: '', alias: '', content: '', image: '', status: 1, sort: 0 })
+const form = ref({ title: '', alias: '', content: '', image: '', status: 1, sort: 0, is_dynamic: false })
 const previewData = ref({})
 
 onMounted(() => fetchPages({  }))
 
 function openCreate() {
   isEditing.value = false; editId.value = null; editTab.value = 'edit'
-  form.value = { title: '', alias: '', content: '', image: '', status: 1, sort: 0 }
+  form.value = { title: '', alias: '', content: '', image: '', status: 1, sort: 0, is_dynamic: false }
   showModal.value = true
 }
 function openEdit(p) {
   isEditing.value = true; editId.value = p.id; editTab.value = 'edit'
-  form.value = { title: p.title, alias: p.alias, content: p.content || '', image: p.image || '', status: p.status, sort: p.sort }
+  form.value = { title: p.title, alias: p.alias, content: p.content || '', image: p.image || '', status: p.status, sort: p.sort, is_dynamic: p.is_dynamic || false }
   showModal.value = true
 }
 function previewPage(p) {
@@ -204,8 +213,8 @@ async function handleDelete(p) {
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { background: var(--bg-1); border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-.modal--wide { max-width: 700px; }
+/* Removed local modal style */
+/* Removed modal wide override */
 .modal h3 { margin: 0 0 1rem; font-size: 1rem; }
 .form-row { display: flex; gap: .5rem; }
 .form-row .form-group { flex: 1; }

@@ -120,6 +120,49 @@ class StorefrontController extends Controller
         return $page ? $this->successResponse($page) : $this->notFoundResponse('Page not found');
     }
 
+    public function resolveUrl(Request $request)
+    {
+        $path = ltrim($request->input('path'), '/');
+        if (empty($path)) return $this->notFoundResponse('Path is required');
+
+        // 1. Check CMS Page
+        $page = $this->cmsPageRepo->findBy('alias', $path);
+        if ($page) {
+            return $this->successResponse(['type' => 'page', 'data' => $page]);
+        }
+
+        // 2. Check Product
+        $product = $this->productRepo->findBySlugOrId($path);
+        if ($product) {
+            // Need the full product detail data, so reuse productDetail logic
+            $dbVariants = $this->orderRepo->getVariants($product->id);
+            $jsonVariants = is_array($product->variants) ? $product->variants : [];
+
+            if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
+                $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
+                $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
+                    $key = $v->sku ?: $v->name;
+                    $json = $jsonMap->get($key);
+                    if ($json && isset($json['promotion_price'])) {
+                        $v->promotion_price = $json['promotion_price'];
+                    }
+                    return $v;
+                });
+            }
+            $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
+            
+            return $this->successResponse(['type' => 'product', 'data' => $product]);
+        }
+
+        // 3. Check Category
+        $category = $this->categoryRepo->findBy('slug', $path);
+        if ($category) {
+            return $this->successResponse(['type' => 'category', 'data' => $category]);
+        }
+
+        return $this->notFoundResponse('Route not found');
+    }
+
     public function storeInfo()
     {
         $configs = $this->configRepo->getByGroup('store');

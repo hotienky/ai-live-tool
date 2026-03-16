@@ -787,7 +787,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
   box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out;
   max-height: 85vh; overflow-y: auto;
 }
-.modal--wide { width: 640px; }
+/* Removed local modal wide */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

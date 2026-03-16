@@ -358,7 +358,7 @@ async function handleDelete(b) {
 
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { background: var(--bg-1); border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+/* Removed local modal style */
 .modal h3 { margin: 0 0 1rem; font-size: 1rem; }
 .form-row { display: flex; gap: .5rem; }
 .form-row .form-group { flex: 1; }

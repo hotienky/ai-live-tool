@@ -44,6 +44,8 @@ class CmsPagesController extends Controller
                 'published_at' => 'nullable|date',
                 'meta_description' => 'nullable|string',
                 'meta_keywords' => 'nullable|string',
+                'is_dynamic' => 'nullable|boolean',
+                'layout_data' => 'nullable|array',
             ]);
             $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
             $data['alias'] = $data['alias'] ?? $data['slug'];
@@ -60,9 +62,24 @@ class CmsPagesController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $data = $request->validate([
+                'title' => 'nullable|string|max:255',
+                'slug' => 'nullable|string',
+                'alias' => 'nullable|string',
+                'content' => 'nullable|string',
+                'image' => 'nullable|string',
+                'is_active' => 'nullable|boolean',
+                'status' => 'nullable|string|in:draft,published,scheduled',
+                'published_at' => 'nullable|date',
+                'meta_description' => 'nullable|string',
+                'meta_keywords' => 'nullable|string',
+                'is_dynamic' => 'nullable|boolean',
+                'layout_data' => 'nullable|array',
+            ]);
+
             $page = $this->repo->find($id);
             if (!$page) return $this->notFoundResponse('Page not found');
-            $this->repo->update($request->all(), $id);
+            $this->repo->update($data, $id);
             return $this->successResponse($this->repo->find($id), 'Page updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

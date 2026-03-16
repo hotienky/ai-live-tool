@@ -635,8 +635,10 @@ const tabToRoute = {
   'keywords': 'live/keywords', 'replies': 'live/replies', 'moderation': 'live/moderation', 'connection': 'live/connection',
   'products': 'shop/products', 'categories': 'shop/categories', 'brands': 'shop/brands',
   'promotions': 'shop/promotions', 'banners': 'shop/banners', 'cms': 'shop/cms',
-  'store-info': 'shop/info',
-  'nav-links': 'shop/nav', 'appearance': 'shop/appearance', 'system-config': 'shop/config', 'languages': 'shop/languages',
+  'nav-links': 'shop/nav', 'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
+  'store-info': 'shop/info', 'system-config': 'shop/config', 'payment': 'shop/payment', 'shipping': 'shop/shipping',
+  'api-keys': 'system/api-keys', 'webhooks': 'system/webhooks', 'languages': 'shop/languages', 'custom-fields': 'shop/custom-fields',
+  'activity-logs': 'system/logs', 'roles': 'system/roles',
   'orders': 'orders', 'shop-customers': 'orders/customers',
 }
 

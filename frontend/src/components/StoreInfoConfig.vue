@@ -84,7 +84,7 @@
       </div>
 
       <div class="si-actions">
-        <button class="si-save-btn" @click="save" :disabled="saving">
+        <button class="btn-create" @click="save" :disabled="saving">
           <Save :size="16" /> {{ saving ? 'Đang lưu...' : 'Lưu thông tin' }}
         </button>
       </div>
@@ -241,22 +241,7 @@ onMounted(() => loadData())
   margin-top: 16px;
 }
 
-.si-save-btn {
-  background: var(--color-success, #10b981); color: #fff;
-  border: none; padding: 10px 24px; border-radius: 8px;
-  font-size: 14px; font-weight: 600; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 8px;
-  transition: all 0.2s; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
-}
-
-.si-save-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
-}
-
-.si-save-btn:disabled {
-  opacity: 0.7; cursor: wait; transform: none; box-shadow: none;
-}
+/* btn-create is provided by style.css globally */
 
 .loading-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;

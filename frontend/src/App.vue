@@ -402,7 +402,10 @@ const routeToTab = {
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
   'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
   'shop/promotions': 'promotions', 'shop/banners': 'banners', 'shop/cms': 'cms',
-  'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/config': 'system-config', 'shop/languages': 'languages',
+  'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
+  'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
+  'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
+  'system/logs': 'activity-logs', 'system/roles': 'roles',
   'orders': 'orders', 'orders/customers': 'shop-customers',
 }
 const validViews = [

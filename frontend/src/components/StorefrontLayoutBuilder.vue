@@ -1,7 +1,13 @@
 <template>
   <div class="layout-builder">
     <div class="layout-builder__header">
-      <h3><LayoutDashboard :size="16" /> Bố cục Storefront</h3>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <h3><LayoutDashboard :size="16" /> Bố cục Storefront</h3>
+        <select v-model="activePageId" class="param-select" style="min-width: 200px" @change="loadLayout">
+          <option :value="null">[ Trang Chủ (Global) ]</option>
+          <option v-for="p in dynamicPages" :key="p.id" :value="p.id">Trang: {{ p.title }}</option>
+        </select>
+      </div>
       <div class="layout-builder__header-actions">
         <button v-if="undoStack.length" class="btn-undo" @click="undo" title="Hoàn tác">
           <Undo2 :size="14" />
@@ -25,7 +31,7 @@
       <div class="layout-builder__controls">
 
         <!-- Templates -->
-        <div class="lb-section">
+        <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục</h4>
           <div class="template-grid">
             <button
@@ -44,7 +50,7 @@
 
         <!-- Sections with Drag & Drop -->
         <div class="lb-section">
-          <h4 class="lb-section__title"><Rows3 :size="14" /> Sections trang chủ</h4>
+          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activePageId ? 'Sections trong trang' : 'Sections trang chủ' }}</h4>
           <div class="section-list">
             <div
               v-for="(section, idx) in sections"
@@ -486,7 +492,7 @@
         </div>
 
         <!-- Page Toggles -->
-        <div class="lb-section">
+        <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><FileStack :size="14" /> Trang sẵn có</h4>
           <div class="page-toggle-list">
             <div v-for="pg in pageList" :key="pg.key" class="page-toggle-item">
@@ -504,7 +510,7 @@
         </div>
 
         <!-- Page Configs -->
-        <div class="lb-section">
+        <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><Settings2 :size="14" /> Cấu hình trang</h4>
 
           <!-- Products Page Config -->
@@ -615,7 +621,7 @@
         </div>
 
         <!-- Header Config -->
-        <div class="lb-section">
+        <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Header</h4>
           <div class="param-row">
             <label>Vị trí logo</label>
@@ -653,7 +659,7 @@
         </div>
 
         <!-- Footer Config -->
-        <div class="lb-section">
+        <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
           <div class="param-row">
             <label>Số cột</label>
@@ -811,6 +817,9 @@ const previewKey = ref(0)
 const storefrontUrl = ref('')
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
+
+const activePageId = ref(null)
+const dynamicPages = ref([])
 
 // Undo stack
 const undoStack = ref([])
@@ -1031,7 +1040,8 @@ const livePreviewUrl = computed(() => {
     customCss: customCss.value,
   }
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))))
-  return `${storefrontUrl.value}?preview_layout=${encoded}`
+  const path = activePageId.value ? `/page/${dynamicPages.value.find(p => p.id === activePageId.value)?.alias}` : ''
+  return `${storefrontUrl.value}${path}?preview_layout=${encoded}`
 })
 
 // Debounced preview refresh
@@ -1056,6 +1066,13 @@ function ensureParams(sections) {
 
 async function loadLayout() {
   try {
+    if (activePageId.value) {
+      const res = await apiFetch(`/cms-pages/${activePageId.value}`)
+      const data = await res.json()
+      sections.value = ensureParams(data.layout_data || [])
+      return
+    }
+
     const res = await apiFetch('/system-config/group/storefront_layout')
     const data = await res.json()
     const items = Array.isArray(data) ? data : (data.data || [])
@@ -1105,6 +1122,16 @@ async function loadLayout() {
 async function saveLayout() {
   saving.value = true
   try {
+    if (activePageId.value) {
+      await apiFetch(`/cms-pages/${activePageId.value}`, {
+        method: 'PUT',
+        body: JSON.stringify({ layout_data: sections.value }),
+      })
+      showToast('Đã lưu bố cục trang CMS', 'success')
+      saving.value = false
+      return
+    }
+
     await apiFetch('/system-config/group/storefront_layout', {
       method: 'PUT',
       body: JSON.stringify({
@@ -1130,6 +1157,16 @@ async function saveLayout() {
 async function saveDraft() {
   saving.value = true
   try {
+    if (activePageId.value) {
+      await apiFetch(`/cms-pages/${activePageId.value}`, {
+        method: 'PUT',
+        body: JSON.stringify({ layout_data: sections.value }),
+      })
+      showToast('Đã lưu nháp bố cục trang CMS', 'success')
+      saving.value = false
+      return
+    }
+
     await apiFetch('/system-config/group/storefront_layout', {
       method: 'PUT',
       body: JSON.stringify({
@@ -1148,7 +1185,15 @@ async function saveDraft() {
   saving.value = false
 }
 
-onMounted(() => { loadLayout(); loadCategories() })
+async function loadDynamicPages() {
+  try {
+    const res = await apiFetch('/cms-pages')
+    const data = await res.json()
+    dynamicPages.value = (Array.isArray(data) ? data : (data.data || [])).filter(p => p.is_dynamic)
+  } catch (e) {}
+}
+
+onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 </script>
 
 <style scoped>
@@ -1460,7 +1505,7 @@ onMounted(() => { loadLayout(); loadCategories() })
 
 /* Library Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal--library { background: var(--bg-1, #1a1a2e); border-radius: 16px; padding: 24px; width: 90%; max-width: 700px; max-height: 80vh; overflow-y: auto; }
+.modal--library { background: var(--bg-1, #1a1a2e); border-radius: 16px; padding: 24px; max-height: 80vh; overflow-y: auto; }
 .modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .modal__header h3 { margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
 .btn-close { background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; }

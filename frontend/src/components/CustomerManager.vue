@@ -220,7 +220,7 @@ function formatDate(d) {
 .empty { color: var(--text-3); text-align: center; padding: 2rem 0; font-size: .9rem; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { background: var(--bg-1); border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
+/* Removed local modal style */
 .modal--wide { max-width: 650px; }
 .modal h3 { margin: 0 0 1rem; font-size: 1rem; }
 .modal h4 { margin: 1rem 0 .5rem; font-size: .9rem; border-top: 1px solid var(--border); padding-top: .8rem; }

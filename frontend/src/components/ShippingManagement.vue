@@ -381,9 +381,7 @@ async function calcFee() {
       body: JSON.stringify({
         carrier: shipForm.value.carrier,
         weight: shipForm.value.weight || 500,
-        receiverProvince: shipForm.value.receiverProvince || '',
-        codAmount: shipForm.value.codAmount || 0,
-        ,
+        codAmount: shipForm.value.codAmount || 0
       }),
     })
     const data = await res.json()
@@ -724,13 +722,7 @@ tr:hover { background: rgba(124,58,237,0.03); }
   background: rgba(0,0,0,0.7); display: flex; align-items: center;
   justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
 }
-.modal {
-  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
-  border-radius: 16px; padding: 28px; width: 440px; max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out;
-  max-height: 85vh; overflow-y: auto;
-}
-.modal--wide { width: 680px; }
+/* Removed local modal */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }

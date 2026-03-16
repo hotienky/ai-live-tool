@@ -233,8 +233,8 @@ async function handleDelete(l) {
 .btn-del:hover { background: rgba(239,68,68,.1); }
 .empty { color: var(--text-3); text-align: center; padding: 2rem 0; }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal { background: var(--bg-1); border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-.modal h3 { margin: 0 0 1rem; font-size: 1rem; }
+/* Removed local modal style */
+/* Removed local modal override */
 .form-row { display: flex; gap: .5rem; }
 .form-row .form-group { flex: 1; }
 .form-group { margin-bottom: .5rem; }
