@@ -12,6 +12,7 @@ Route::get('/banners', [\App\Http\Controllers\Tenant\StorefrontController::class
 Route::get('/pages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'pages']);
 Route::get('/pages/{slug}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'pageDetail']);
 Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
+Route::get('/nav-links', [\App\Http\Controllers\Tenant\NavLinksController::class, 'flat']);
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
 Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontController::class, 'paymentMethods']);
 Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'orderDetail']);

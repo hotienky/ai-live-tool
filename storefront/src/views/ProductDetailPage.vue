@@ -345,7 +345,7 @@ async function loadProduct() {
     try {
       product.value = await apiFetch(`/products/${props.slug}`)
       if (product.value?.name) {
-        setProductSeo(product.value)
+        setProductSeo(product.value, reviewStats.value)
         // Breadcrumb JSON-LD
         const base = window.location.origin
         const crumbs = [{ name: 'Trang chủ', url: base + '/' }]
@@ -413,6 +413,10 @@ async function loadReviews() {
     }
   } catch { /* ignore */ }
   reviewsLoading.value = false
+  // Update Product JSON-LD with AggregateRating (C15/C18)
+  if (product.value && reviewStats.value.total_reviews > 0) {
+    setProductSeo(product.value, reviewStats.value)
+  }
 }
 
 async function submitReview() {
@@ -429,7 +433,7 @@ async function submitReview() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(authToken.value ? { 'Authorization': `Bearer ${authToken.value}` } : {}),
+        'Authorization': `Bearer ${authToken.value}`,
       },
       body: JSON.stringify({
         rating: reviewForm.value.rating,

@@ -9,6 +9,9 @@ class OrderFilterPipeline extends AbstractFilterPipeline
     protected $pipes = [
         \App\QueryBuilder\Order\Search::class,
         \App\QueryBuilder\Order\Status::class,
+        \App\QueryBuilder\Order\PaymentStatus::class,
+        \App\QueryBuilder\Order\DateRange::class,
+        \App\QueryBuilder\Order\Customer::class,
     ];
 
     public static function run(EloquentBuilder|QueryBuilder $builder, array $context): EloquentBuilder|QueryBuilder

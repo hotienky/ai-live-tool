@@ -7,14 +7,39 @@
         <span class="site-header__name">{{ storeName || 'Shop' }}</span>
       </router-link>
 
-      <!-- Navigation -->
+      <!-- Navigation (dynamic from API) -->
       <nav class="site-header__nav">
-        <router-link :to="'/'" class="site-header__link" exact-active-class="active">
-          <Home :size="16" /> Trang chủ
+        <router-link
+          v-for="link in visibleLinks" :key="link.id"
+          :to="link.url"
+          class="site-header__link"
+          :class="{ active: isActiveLink(link.url) }"
+        >
+          <component v-if="link.icon && iconMap[link.icon]" :is="iconMap[link.icon]" :size="15" />
+          {{ link.name }}
         </router-link>
-        <router-link :to="'/products'" class="site-header__link" active-class="active">
-          <ShoppingBag :size="16" /> Sản phẩm
-        </router-link>
+        <!-- Overflow "More" dropdown -->
+        <div v-if="overflowLinks.length" class="nav-more" ref="moreDropdownRef">
+          <button class="site-header__link nav-more__trigger" @click="moreOpen = !moreOpen" :class="{ active: overflowHasActive }">
+            <MoreHorizontal :size="15" />
+            Thêm
+            <ChevronDown :size="12" class="nav-more__arrow" :class="{ rotated: moreOpen }" />
+          </button>
+          <transition name="dropdown">
+            <div v-if="moreOpen" class="nav-more__dropdown">
+              <router-link
+                v-for="link in overflowLinks" :key="link.id"
+                :to="link.url"
+                class="nav-more__item"
+                :class="{ active: isActiveLink(link.url) }"
+                @click="moreOpen = false"
+              >
+                <component v-if="link.icon && iconMap[link.icon]" :is="iconMap[link.icon]" :size="15" />
+                {{ link.name }}
+              </router-link>
+            </div>
+          </transition>
+        </div>
       </nav>
 
       <!-- Search -->
@@ -87,11 +112,14 @@
     <!-- Mobile menu -->
     <transition name="slide">
       <div v-if="mobileMenu" class="site-header__mobile">
-        <router-link :to="'/'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <Home :size="16" /> Trang chủ
-        </router-link>
-        <router-link :to="'/products'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <ShoppingBag :size="16" /> Sản phẩm
+        <router-link
+          v-for="link in menuLinks" :key="'m-' + link.id"
+          :to="link.url"
+          class="site-header__mobile-link"
+          @click="mobileMenu = false"
+        >
+          <component v-if="link.icon && iconMap[link.icon]" :is="iconMap[link.icon]" :size="16" />
+          {{ link.name }}
         </router-link>
         <router-link :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
           <ShoppingCart :size="16" /> Giỏ hàng
@@ -105,7 +133,7 @@
         </router-link>
         <div class="site-header__mobile-search">
           <Search :size="16" />
-          <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch; mobileMenu = false" />
+          <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch(); mobileMenu = false" />
         </div>
       </div>
     </transition>
@@ -113,13 +141,39 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu, Globe, Sun, Moon, User } from 'lucide-vue-next'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { apiFetch } from '../api.js'
+import {
+  Store, Home, ShoppingBag, ShoppingCart, Search, X, Menu, Globe, Sun, Moon, User,
+  Tag, Star, Phone, Info, Heart, Settings, Bell, Mail, MapPin,
+  BookOpen, FileText, Image, Video, Music, Calendar, Clock,
+  Zap, Award, Gift, Bookmark, Grid, List, LayoutGrid,
+  ArrowRight, ExternalLink, Link, Folder, FolderOpen,
+  Package, Truck, CreditCard, Percent, TrendingUp,
+  MessageCircle, Send, Share2, ThumbsUp, Eye,
+  Sparkles, Flame, BadgePercent, Layers, Coffee, Shirt, Gem, Crown, Palette,
+  Headphones, Camera, Monitor, Smartphone, Watch,
+  Car, Plane, Building2, Trees, MoreHorizontal, ChevronDown
+} from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
+
+// Lucide icon map for dynamic rendering
+const iconMap = {
+  Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
+  Search, Heart, User, Settings, Bell, Mail, MapPin, Globe,
+  BookOpen, FileText, Image, Video, Music, Calendar, Clock,
+  Zap, Award, Gift, Bookmark, Grid, List, LayoutGrid,
+  ArrowRight, ExternalLink, Link, Folder, FolderOpen,
+  Package, Truck, CreditCard, Percent, TrendingUp,
+  MessageCircle, Send, Share2, ThumbsUp, Eye,
+  Sparkles, Flame, BadgePercent, Store, Layers, Coffee, Shirt, Gem, Crown, Palette,
+  Headphones, Camera, Monitor, Smartphone, Watch,
+  Car, Plane, Building2, Trees, Sun, Moon, Menu
+}
 
 const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
@@ -135,13 +189,56 @@ onMounted(() => initI18n())
 
 const props = defineProps({
   storeName: { type: String, default: '' },
-  
 })
 
 const router = useRouter()
+const route = useRoute()
 const searchQuery = ref('')
 const searchFocused = ref(false)
 const mobileMenu = ref(false)
+
+// Dynamic nav links from API
+const navLinks = ref([])
+
+// Fallback links if API returns empty
+const fallbackLinks = [
+  { id: 'f1', name: 'Trang chủ', url: '/', icon: 'Home', sort: 1 },
+  { id: 'f2', name: 'Sản phẩm', url: '/products', icon: 'ShoppingBag', sort: 2 },
+]
+
+const MAX_VISIBLE = 5
+const moreOpen = ref(false)
+const moreDropdownRef = ref(null)
+
+const menuLinks = computed(() => {
+  const links = navLinks.value.length > 0 ? navLinks.value : fallbackLinks
+  return links
+    .filter(l => l.is_active !== false)
+    .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+})
+
+const visibleLinks = computed(() => menuLinks.value.slice(0, MAX_VISIBLE))
+const overflowLinks = computed(() => menuLinks.value.slice(MAX_VISIBLE))
+const overflowHasActive = computed(() => overflowLinks.value.some(l => isActiveLink(l.url)))
+
+function isActiveLink(url) {
+  if (url === '/') return route.path === '/'
+  return route.path.startsWith(url)
+}
+
+// Close "More" dropdown on outside click
+function onClickOutside(e) {
+  if (moreDropdownRef.value && !moreDropdownRef.value.contains(e.target)) {
+    moreOpen.value = false
+  }
+}
+
+async function loadNavLinks() {
+  try {
+    const data = await apiFetch('/nav-links')
+    navLinks.value = Array.isArray(data) ? data : []
+  } catch { /* use fallback */ }
+}
 
 function onSearch() {
   if (searchQuery.value.trim()) {
@@ -149,6 +246,12 @@ function onSearch() {
     mobileMenu.value = false
   }
 }
+
+onMounted(() => {
+  loadNavLinks()
+  document.addEventListener('click', onClickOutside)
+})
+onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 </script>
 
 <style scoped>
@@ -195,20 +298,25 @@ function onSearch() {
 
 .site-header__nav {
   display: flex;
-  gap: 4px;
+  gap: 2px;
+  align-items: center;
 }
 
 .site-header__link {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 5px;
+  padding: 6px 12px;
   border-radius: var(--sf-radius-sm);
   font-size: 13px;
   font-weight: 600;
   color: var(--sf-text-secondary);
   transition: all var(--sf-transition);
   text-decoration: none;
+  white-space: nowrap;
+  border: none;
+  background: none;
+  cursor: pointer;
 }
 
 .site-header__link:hover {
@@ -219,6 +327,61 @@ function onSearch() {
 .site-header__link.active {
   color: var(--sf-accent-light);
   background: var(--sf-accent-glow);
+}
+
+/* "More" dropdown */
+.nav-more {
+  position: relative;
+}
+.nav-more__trigger {
+  gap: 4px;
+}
+.nav-more__arrow {
+  transition: transform 0.2s ease;
+}
+.nav-more__arrow.rotated {
+  transform: rotate(180deg);
+}
+.nav-more__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 200;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--sf-bg-card, #fff);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.15);
+}
+.nav-more__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  text-decoration: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-more__item:hover {
+  background: var(--sf-bg-card-hover);
+  color: var(--sf-text-primary);
+}
+.nav-more__item.active {
+  color: var(--sf-accent-light);
+  background: var(--sf-accent-glow);
+}
+
+/* Dropdown animation */
+.dropdown-enter-active { animation: dropIn 0.2s ease; }
+.dropdown-leave-active { animation: dropIn 0.15s ease reverse; }
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .site-header__search {
@@ -436,4 +599,3 @@ function onSearch() {
   transform: rotate(15deg);
 }
 </style>
-

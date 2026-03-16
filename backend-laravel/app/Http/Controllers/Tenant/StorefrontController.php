@@ -33,7 +33,17 @@ class StorefrontController extends Controller
 
     public function products(Request $request)
     {
-        return $this->successResponse($this->productRepo->getProducts());
+        $perPage = min((int) $request->input('per_page', 20), 100);
+        $paginated = $this->productRepo->getProducts($perPage);
+        return $this->successResponse([
+            'data' => $paginated->items(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+        ]);
     }
 
     public function productDetail($identifier)
@@ -157,14 +167,14 @@ class StorefrontController extends Controller
         foreach ($configs as $c) { $map[$c->key] = $c->value; }
 
         $methods = [];
-        if (($map['payment_cod_enabled'] ?? '') === 'true') {
+        if (filter_var($map['payment_cod_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $methods[] = [
                 'code' => 'cod',
                 'name' => $map['payment_cod_name'] ?? 'COD',
                 'description' => $map['payment_cod_description'] ?? '',
             ];
         }
-        if (($map['payment_bank_enabled'] ?? '') === 'true') {
+        if (filter_var($map['payment_bank_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
             $methods[] = [
                 'code' => 'bank',
                 'name' => $map['payment_bank_name'] ?? 'Bank Transfer',
@@ -395,7 +405,7 @@ class StorefrontController extends Controller
                 $id = \Illuminate\Support\Facades\DB::table('product_reviews')->insertGetId([
                     'product_id' => $productId,
                     'customer_id' => $customer->id,
-                    'customer_name' => trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? '')) ?: 'Khách hàng',
+                    'customer_name' => trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? '')) ?: __('messages.default_customer_name', [], 'Khách hàng'),
                     'rating' => $data['rating'],
                     'comment' => $data['comment'] ?? null,
                     'is_approved' => true,

@@ -8,7 +8,15 @@ class Product extends Model
 {
     protected $table = 'products';
 
-    protected $guarded = ['id'];
+    protected $fillable = [
+        'name', 'slug', 'sku', 'description', 'content',
+        'price', 'cost_price', 'promotion_price',
+        'promotion_start', 'promotion_end',
+        'stock', 'category_id', 'brand_id',
+        'images', 'image_url', 'keywords', 'variants',
+        'is_active', 'is_featured', 'weight', 'sort_order',
+        'meta_title', 'meta_description', 'meta_keywords',
+    ];
 
     protected $casts = [
         'images' => 'array',
@@ -34,5 +42,31 @@ class Product extends Model
     public function productVariants()
     {
         return $this->hasMany(ProductVariant::class);
+    }
+
+    /* Scopes */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    public function scopeInStock($query)
+    {
+        return $query->where('stock', '>', 0);
+    }
+
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    public function scopeByBrand($query, $brandId)
+    {
+        return $query->where('brand_id', $brandId);
     }
 }

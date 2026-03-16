@@ -13,11 +13,14 @@ class ProductRepository extends BaseEloquentRepository implements ProductReposit
         parent::__construct($model);
     }
 
-    public function getProducts()
+    public function getProducts($perPage = null)
     {
         $query = $this->model->query();
         $query = ProductFilterPipeline::run($query, request()->all());
         $query->orderByDesc('created_at');
+        if ($perPage) {
+            return $query->paginate($perPage);
+        }
         return $query->get();
     }
 

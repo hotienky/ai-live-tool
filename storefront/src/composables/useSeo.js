@@ -84,7 +84,7 @@ export function useSeo() {
     setCanonical(url || window.location.href)
   }
 
-  function setProductSeo(product) {
+  function setProductSeo(product, reviewStats = null) {
     if (!product) return
     const desc = product.meta_description || product.description?.replace(/<[^>]*>/g, '').slice(0, 160) || ''
     const img = product.image_url || (product.images && product.images[0]) || ''
@@ -100,7 +100,7 @@ export function useSeo() {
     // JSON-LD Product schema
     const price = product.promotion_price && product.promotion_price < product.price
       ? product.promotion_price : product.price
-    setJsonLd({
+    const schema = {
       '@type': 'Product',
       name: product.name,
       description: desc,
@@ -116,7 +116,20 @@ export function useSeo() {
           : 'https://schema.org/OutOfStock',
         url: window.location.href,
       },
-    })
+    }
+
+    // AggregateRating (C15/C18)
+    if (reviewStats && reviewStats.total_reviews > 0) {
+      schema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: String(reviewStats.average_rating || 0),
+        reviewCount: String(reviewStats.total_reviews),
+        bestRating: '5',
+        worstRating: '1',
+      }
+    }
+
+    setJsonLd(schema)
   }
 
   function setCategorySeo(category) {
@@ -141,11 +154,38 @@ export function useSeo() {
     })
   }
 
+  function setOrganizationSeo({ name, url, logo, description } = {}) {
+    if (!name) return
+    setJsonLd({
+      '@type': 'Organization',
+      name,
+      url: url || window.location.origin,
+      logo: logo || undefined,
+      description: description || undefined,
+    })
+  }
+
+  function setHreflang(langs) {
+    // langs: [{ lang: 'vi', url: '...' }, { lang: 'en', url: '...' }]
+    // Remove existing hreflang links
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach(el => el.remove())
+    if (!langs?.length) return
+    langs.forEach(({ lang, url }) => {
+      const link = document.createElement('link')
+      link.rel = 'alternate'
+      link.hreflang = lang
+      link.href = url
+      document.head.appendChild(link)
+    })
+  }
+
   return {
     setPageSeo,
     setProductSeo,
     setCategorySeo,
     setBreadcrumbs,
+    setOrganizationSeo,
+    setHreflang,
     setJsonLd,
     createMetaTag,
     setCanonical,

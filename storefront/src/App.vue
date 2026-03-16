@@ -20,6 +20,8 @@ import SiteFooter from './components/SiteFooter.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
 
+import { useSeo } from './composables/useSeo.js'
+
 // Global error handler (B19) — prevent entire app from crashing
 onErrorCaptured((err, instance, info) => {
   console.error('[Storefront Error]', err, info)
@@ -28,6 +30,7 @@ onErrorCaptured((err, instance, info) => {
 
 const { init: initTheme } = useTheme()
 const { init: initI18n } = useI18n()
+const { setOrganizationSeo } = useSeo()
 
 const storeInfo = ref(null)
 
@@ -36,6 +39,12 @@ async function loadStoreInfo() {
     storeInfo.value = await apiFetch('/info')
     if (storeInfo.value?.shop_name) {
       document.title = `${storeInfo.value.shop_name} — Cửa hàng trực tuyến`
+      // C2: Organization JSON-LD
+      setOrganizationSeo({
+        name: storeInfo.value.shop_name,
+        description: storeInfo.value.description || '',
+        logo: storeInfo.value.logo || '',
+      })
     }
   } catch { /* ignore */ }
 }

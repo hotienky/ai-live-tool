@@ -121,9 +121,9 @@ async function loadAll() {
     banners.value = bannersRes.status === 'fulfilled' ? bannersRes.value : []
     categories.value = catsRes.status === 'fulfilled' ? catsRes.value : []
     const prodData = prodsRes.status === 'fulfilled' ? prodsRes.value : []
-    products.value = prodData.data || prodData
+    products.value = Array.isArray(prodData) ? prodData : (prodData.data || [])
     const newData = newRes.status === 'fulfilled' ? newRes.value : []
-    newProducts.value = (newData.data || newData).slice(0, 4)
+    newProducts.value = (Array.isArray(newData) ? newData : (newData.data || [])).slice(0, 4)
     pages.value = pagesRes.status === 'fulfilled' ? pagesRes.value : []
   } catch { /* ignore */ }
   loading.value = false

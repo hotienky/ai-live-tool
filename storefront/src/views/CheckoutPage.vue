@@ -280,7 +280,14 @@ onMounted(async () => {
   if (orderId) {
     loadingOrder.value = true
     try {
-      const data = await apiFetch(`/orders/${orderId}`)
+      // Use authFetch if logged in (preserves auth context), else apiFetch for guest
+      let data
+      if (isLoggedIn.value) {
+        data = await authFetch(`/orders/${orderId}`).catch(() => null)
+      }
+      if (!data) {
+        data = await apiFetch(`/orders/${orderId}`)
+      }
       if (data && data.id) {
         orderData.value = data
         orderSuccess.value = true
@@ -318,8 +325,16 @@ onMounted(async () => {
   } catch { /* fallback to defaults */ }
 })
 
+const phoneRegex = /^(0|\+84)(3|5|7|8|9)\d{8}$/
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const formError = ref('')
+
 const isValid = computed(() => {
-  return form.value.customerName.trim() && form.value.customerPhone.trim() && form.value.customerAddress.trim()
+  const f = form.value
+  if (!f.customerName.trim() || !f.customerPhone.trim() || !f.customerAddress.trim()) return false
+  if (!phoneRegex.test(f.customerPhone.replace(/[\s\-]/g, ''))) return false
+  if (f.customerEmail && !emailRegex.test(f.customerEmail)) return false
+  return true
 })
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }

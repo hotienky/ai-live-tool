@@ -9,7 +9,14 @@ export function useNavLinks(apiFetch) {
     try {
       const qs = new URLSearchParams(params).toString()
       const res = await apiFetch(`/nav-links?${qs}`)
-      links.value = await res.json()
+      // apiFetch may return parsed data directly or a Response
+      if (Array.isArray(res)) {
+        links.value = res
+      } else if (res && typeof res.json === 'function') {
+        links.value = await res.json()
+      } else {
+        links.value = res || []
+      }
     } catch { links.value = [] }
     loading.value = false
   }

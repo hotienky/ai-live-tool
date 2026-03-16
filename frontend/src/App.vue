@@ -606,7 +606,7 @@ watch(currentShop, (shop) => {
 })
 
 onMounted(async () => {
-  await fetchShops()
+  try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
   startTimelineCollection()
 })
 

@@ -249,6 +249,7 @@ function clearFilters() {
 }
 
 let debounceTimer = null
+let abortController = null
 function debouncedReload() {
   clearTimeout(debounceTimer)
   debounceTimer = setTimeout(() => { page.value = 1; reload() }, 350)
@@ -261,11 +262,14 @@ async function loadFilters() {
 
 async function reload() {
   loading.value = true
+  // Cancel any in-flight request to prevent race conditions (B27)
+  if (abortController) abortController.abort()
+  abortController = new AbortController()
   const [sort, order] = sortBy.value.split(':')
   try {
     const data = await apiFetch('/products', {
       page: page.value,
-      limit: 12,
+      per_page: 12,
       sort,
       order,
       search: search.value || null,
@@ -274,10 +278,18 @@ async function reload() {
       price_min: priceMin.value || null,
       price_max: priceMax.value || null,
     })
-    products.value = data.data || data
-    total.value = data.meta?.total || products.value.length
-    lastPage.value = data.meta?.lastPage || data.meta?.last_page || 1
-  } catch {
+    // Handle both paginated {data:[], meta:{}} and flat array responses
+    if (data && data.data && Array.isArray(data.data)) {
+      products.value = data.data
+      total.value = data.meta?.total || data.data.length
+      lastPage.value = data.meta?.last_page || data.meta?.lastPage || 1
+    } else {
+      products.value = Array.isArray(data) ? data : []
+      total.value = products.value.length
+      lastPage.value = 1
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return // Ignore cancelled requests
     products.value = []
   }
   loading.value = false

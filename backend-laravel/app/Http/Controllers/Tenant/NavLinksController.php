@@ -16,24 +16,54 @@ class NavLinksController extends Controller
 
     public function index()
     {
-        return $this->successResponse($this->repo->all());
+        $all = $this->repo->all();
+        // Transform to frontend format and nest children under collections
+        $mapped = $all->map(fn($link) => [
+            'id' => $link->id,
+            'name' => $link->title ?? $link->label ?? '',
+            'url' => $link->url ?? '#',
+            'group' => $link->group ?? 'menu',
+            'type' => $link->type ?? 'single',
+            'sort' => $link->sort_order ?? 0,
+            'parent_id' => $link->parent_id,
+            'target' => $link->target ?? '_self',
+            'icon' => $link->icon ?? '',
+            'is_active' => $link->is_active ?? true,
+            'collectionId' => $link->parent_id,
+        ]);
+
+        // Nest children under parent collections
+        $parents = $mapped->whereNull('parent_id')->values();
+        return $this->successResponse($parents->map(function ($p) use ($mapped) {
+            $p['children'] = $mapped->where('parent_id', $p['id'])->values()->all();
+            return $p;
+        }));
     }
 
     public function store(Request $request)
     {
         try {
-            $data = $request->validate([
-                'label' => 'required|string|max:255',
-                'url' => 'required|string',
-                'parent_id' => 'nullable|integer',
-                'sort_order' => 'nullable|integer',
-                'is_active' => 'nullable|boolean',
-                'target' => 'nullable|string|in:_self,_blank',
-            ]);
+            // Accept both frontend field names (name, sort, collectionId) and standard names (label, sort_order, parent_id)
+            $title = $request->input('name') ?? $request->input('label') ?? $request->input('title');
+            if (!$title) {
+                return $this->errorResponse('Tên liên kết là bắt buộc', 422);
+            }
+
+            $data = [
+                'title' => $title,
+                'label' => $title, // alias
+                'url' => $request->input('url', '#'),
+                'group' => $request->input('group', 'menu'),
+                'type' => $request->input('type', 'single'),
+                'sort_order' => $request->input('sort') ?? $request->input('sort_order', 0),
+                'parent_id' => $request->input('collectionId') ?? $request->input('parent_id'),
+                'target' => $request->input('target', '_self'),
+                'icon' => $request->input('icon', ''),
+                'is_active' => $request->input('is_active', true),
+            ];
+
             $navLink = $this->repo->store($data);
             return $this->successResponse($navLink, 'Nav link created', 201);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return $this->errorResponse($e->getMessage(), 422);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -44,7 +74,14 @@ class NavLinksController extends Controller
         try {
             $link = $this->repo->find($id);
             if (!$link) return $this->notFoundResponse('Nav link not found');
-            $this->repo->update($request->all(), $id);
+
+            // Map frontend field names to DB columns
+            $data = $request->all();
+            if (isset($data['name'])) { $data['title'] = $data['name']; $data['label'] = $data['name']; unset($data['name']); }
+            if (isset($data['sort'])) { $data['sort_order'] = $data['sort']; unset($data['sort']); }
+            if (array_key_exists('collectionId', $data)) { $data['parent_id'] = $data['collectionId']; unset($data['collectionId']); }
+
+            $this->repo->update($data, $id);
             return $this->successResponse($this->repo->find($id), 'Nav link updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -79,10 +116,16 @@ class NavLinksController extends Controller
         return $this->successResponse($links->map(function ($link) {
             return [
                 'id' => $link->id,
-                'label' => $link->label,
+                'name' => $link->title ?? $link->label ?? '',
+                'label' => $link->title ?? $link->label ?? '',
                 'url' => $link->url,
-                'parent_id' => $link->parent_id,
+                'group' => $link->group ?? 'menu',
+                'type' => $link->type ?? 'single',
+                'sort' => $link->sort_order ?? 0,
                 'sort_order' => $link->sort_order ?? 0,
+                'parent_id' => $link->parent_id,
+                'target' => $link->target ?? '_self',
+                'icon' => $link->icon ?? '',
                 'is_active' => $link->is_active ?? true,
             ];
         }));
