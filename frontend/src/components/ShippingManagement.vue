@@ -192,7 +192,7 @@
             </div>
           </div>
           <button v-if="shipForm.carrier !== 'manual'" class="btn-calc-fee" @click="calcFee" :disabled="calcingFee" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;font-weight:700;cursor:pointer;opacity:1" :style="{ opacity: calcingFee ? 0.6 : 1 }">
-            {{ calcingFee ? 'Đang tính...' : '💰 Tính phí tự động' }}
+            <Calculator :size="14" v-if="!calcingFee" /> {{ calcingFee ? 'Đang tính...' : 'Tính phí tự động' }}
           </button>
         </div>
 
@@ -268,7 +268,7 @@
                 <span class="tracking-source">{{ entry.source }}</span>
               </div>
               <div class="tracking-desc" v-if="entry.description">{{ entry.description }}</div>
-              <div class="tracking-loc" v-if="entry.location">📍 {{ entry.location }}</div>
+              <div class="tracking-loc" v-if="entry.location"><MapPin :size="12" /> {{ entry.location }}</div>
               <div class="tracking-time">{{ formatDate(entry.createdAt) }}</div>
             </div>
           </div>

@@ -110,7 +110,7 @@ export function useSocket() {
     socket.value.on('low_stock_alert', (data) => {
       try {
         const { showToast } = useToast()
-        showToast(`⚠️ Sắp hết hàng: ${data.name} (còn ${data.stock})`, 'warning', 8000)
+        showToast(`Sắp hết hàng: ${data.name} (còn ${data.stock})`, 'warning', 8000)
       } catch { /* silent */ }
     })
 
@@ -144,7 +144,7 @@ export function useSocket() {
       try {
         playNotificationSound()
         const { showToast } = useToast()
-        showToast(`🛒 Auto-order: ${data.customerName} — ${data.product} x${data.qty} (${Number(data.totalAmount).toLocaleString('vi-VN')}đ)`, 'success', 10000)
+        showToast(`Auto-order: ${data.customerName} — ${data.product} x${data.qty} (${Number(data.totalAmount).toLocaleString('vi-VN')}đ)`, 'success', 10000)
       } catch { /* silent */ }
     })
 
@@ -152,7 +152,7 @@ export function useSocket() {
       try {
         playNotificationSound()
         const { showToast } = useToast()
-        showToast(`⏰ Sắp live: "${data.title}" (${data.shopName}) - còn 5 phút!`, 'warning', 15000)
+        showToast(`Sắp live: "${data.title}" (${data.shopName}) - còn 5 phút!`, 'warning', 15000)
       } catch { /* silent */ }
     })
   }

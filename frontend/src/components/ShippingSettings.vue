@@ -125,7 +125,7 @@
     <div class="provider-card active">
       <div class="provider-card__header">
         <div class="provider-card__info">
-          <strong>🗺️ VietMap (Địa chỉ autocomplete)</strong>
+          <strong><Map :size="14" /> VietMap (Địa chỉ autocomplete)</strong>
           <span class="provider-card__badge" :class="form.shipping_vietmap_api_key ? 'badge--green' : 'badge--gray'">
             {{ form.shipping_vietmap_api_key ? '✓ Đã cấu hình' : '○ Chưa có key' }}
           </span>

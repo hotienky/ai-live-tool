@@ -12,21 +12,21 @@
         </div>
         <nav class="account-nav">
           <button :class="{ active: tab === 'profile' }" @click="tab = 'profile'">
-            <span class="nav-icon">👤</span> Thông tin cá nhân
+            <span class="nav-icon"><User :size="16" /></span> Thông tin cá nhân
           </button>
           <button :class="{ active: tab === 'orders' }" @click="tab = 'orders'; loadOrders()">
-            <span class="nav-icon">📦</span> Đơn hàng
+            <span class="nav-icon"><Package :size="16" /></span> Đơn hàng
             <span v-if="orders.length" class="nav-badge">{{ orders.length }}</span>
           </button>
           <button :class="{ active: tab === 'addresses' }" @click="tab = 'addresses'; loadAddresses()">
-            <span class="nav-icon">📍</span> Địa chỉ giao hàng
+            <span class="nav-icon"><MapPin :size="16" /></span> Địa chỉ giao hàng
           </button>
           <button :class="{ active: tab === 'password' }" @click="tab = 'password'">
-            <span class="nav-icon">🔒</span> Đổi mật khẩu
+            <span class="nav-icon"><Lock :size="16" /></span> Đổi mật khẩu
           </button>
           <div class="nav-divider"></div>
           <button class="logout-btn" @click="onLogout">
-            <span class="nav-icon">🚪</span> Đăng xuất
+            <span class="nav-icon"><LogOut :size="16" /></span> Đăng xuất
           </button>
         </nav>
       </aside>
@@ -60,9 +60,9 @@
             </div>
             <div class="form-actions">
               <button type="submit" class="btn-primary" :disabled="saving">
-                {{ saving ? 'Đang lưu...' : '💾 Cập nhật thông tin' }}
+                <Save :size="14" v-if="!saving" /> {{ saving ? 'Đang lưu...' : 'Cập nhật thông tin' }}
               </button>
-              <span class="save-msg success" v-if="saveMsg">✓ {{ saveMsg }}</span>
+              <span class="save-msg success" v-if="saveMsg"><Check :size="14" /> {{ saveMsg }}</span>
             </div>
           </form>
         </div>
@@ -93,10 +93,10 @@
             </div>
           </div>
           <div v-else-if="orders.length === 0" class="empty-state">
-            <div class="empty-icon">📦</div>
+            <div class="empty-icon"><Package :size="48" /></div>
             <h3>Chưa có đơn hàng nào</h3>
             <p>Hãy bắt đầu mua sắm ngay!</p>
-            <router-link to="/products" class="btn-primary">🛍 Mua sắm ngay</router-link>
+            <router-link to="/products" class="btn-primary"><ShoppingBag :size="14" /> Mua sắm ngay</router-link>
           </div>
           <div v-else class="orders-list">
             <div v-for="order in orders" :key="order.id" class="order-card">
@@ -131,7 +131,8 @@
             <h2>Địa chỉ giao hàng</h2>
             <p class="tab-desc">Quản lý địa chỉ để thanh toán nhanh hơn</p>
             <button class="btn-primary btn-sm" @click="showAddrForm = !showAddrForm" style="margin-top: 8px;">
-              {{ showAddrForm ? '✕ Đóng' : '+ Thêm địa chỉ mới' }}
+              <template v-if="showAddrForm"><X :size="14" /> Đóng</template>
+              <template v-else><Plus :size="14" /> Thêm địa chỉ mới</template>
             </button>
           </div>
 
@@ -154,7 +155,7 @@
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn-primary" :disabled="saving">
-                  {{ editingAddrId ? '💾 Cập nhật' : '💾 Lưu địa chỉ' }}
+                  <Save :size="14" /> {{ editingAddrId ? 'Cập nhật' : 'Lưu địa chỉ' }}
                 </button>
                 <button type="button" class="btn-outline" @click="resetAddrForm">Hủy</button>
               </div>
@@ -179,7 +180,7 @@
             </div>
           </div>
           <div v-else-if="addresses.length === 0 && !showAddrForm" class="empty-state">
-            <div class="empty-icon">📍</div>
+            <div class="empty-icon"><MapPin :size="48" /></div>
             <h3>Chưa có địa chỉ nào</h3>
             <p>Thêm địa chỉ giao hàng để thanh toán nhanh hơn</p>
           </div>
@@ -194,8 +195,8 @@
                 <p class="addr-region">{{ [addr.city, addr.province].filter(Boolean).join(', ') }}</p>
               </div>
               <div class="addr-actions">
-                <button class="btn-action" @click="editAddress(addr)" title="Sửa">✏️</button>
-                <button class="btn-action btn-danger" @click="deleteAddr(addr.id)" title="Xóa">🗑</button>
+                <button class="btn-action" @click="editAddress(addr)" title="Sửa"><Pencil :size="14" /></button>
+                <button class="btn-action btn-danger" @click="deleteAddr(addr.id)" title="Xóa"><Trash2 :size="14" /></button>
               </div>
             </div>
           </div>
@@ -222,10 +223,10 @@
             </div>
             <div class="form-actions">
               <button type="submit" class="btn-primary" :disabled="saving">
-                {{ saving ? 'Đang xử lý...' : '🔒 Đổi mật khẩu' }}
+                <Lock :size="14" v-if="!saving" /> {{ saving ? 'Đang xử lý...' : 'Đổi mật khẩu' }}
               </button>
-              <span class="save-msg success" v-if="pwMsg">✓ {{ pwMsg }}</span>
-              <span class="save-msg error" v-if="pwError">✕ {{ pwError }}</span>
+              <span class="save-msg success" v-if="pwMsg"><Check :size="14" /> {{ pwMsg }}</span>
+              <span class="save-msg error" v-if="pwError"><X :size="14" /> {{ pwError }}</span>
             </div>
           </form>
         </div>
@@ -238,6 +239,10 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
+import {
+  User, Package, MapPin, Lock, LogOut, Save, Check, X,
+  ShoppingBag, Plus, Pencil, Trash2
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const { customer, isLoggedIn, authFetch, updateProfile, changePassword, logout, fetchProfile } = useAuth()

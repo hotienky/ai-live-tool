@@ -27,11 +27,11 @@
       <!-- Chi tiết -->
       <div class="pricing-suggestion__details">
         <div class="pricing-suggestion__metric">
-          <span class="pricing-suggestion__metric-label">📊 Phản hồi giá:</span>
+          <span class="pricing-suggestion__metric-label">Phản hồi giá:</span>
           <span>{{ analysis.priceComments }}/{{ analysis.totalComments }} comments</span>
         </div>
         <div class="pricing-suggestion__metric">
-          <span class="pricing-suggestion__metric-label">🎯 Xu hướng:</span>
+          <span class="pricing-suggestion__metric-label">Xu hướng:</span>
           <span :style="{ color: trendColor }">{{ analysis.trend }}</span>
         </div>
       </div>
@@ -104,27 +104,27 @@ async function analyzePricing() {
 
     if (negativeCount > positiveCount && negativeCount > 2) {
       verdict = 'Giá cao — nên điều chỉnh'
-      icon = '⚠️'
+      icon = '!'
       advice = `Có ${negativeCount} phản hồi tiêu cực về giá. Gợi ý: giảm 5-10% hoặc thêm quà tặng/voucher để tăng tỷ lệ chốt.`
-      trend = '📉 Giảm giá'
+      trend = 'Giảm giá'
       confidence = Math.min(90, 50 + negativeCount * 10)
     } else if (positiveCount > negativeCount && buyCount > 3) {
       verdict = 'Giá hợp lý — giữ nguyên'
-      icon = '✅'
+      icon = '✓'
       advice = `${buyCount} người chốt đơn, ${positiveCount} phản hồi tích cực. Giá đang ở sweet spot!`
-      trend = '✨ Giữ nguyên'
+      trend = 'Giữ nguyên'
       confidence = Math.min(90, 50 + buyCount * 5)
     } else if (pricePct < 5) {
       verdict = 'Chưa đủ dữ liệu'
-      icon = '📊'
+      icon = '~'
       advice = 'Ít người hỏi giá. Thử nhắc giá/khuyến mãi trong live để thu thập phản hồi.'
-      trend = '⏳ Chờ thêm'
+      trend = 'Chờ thêm'
       confidence = 20
     } else {
       verdict = 'Có thể tăng nhẹ'
-      icon = '📈'
+      icon = '↑'
       advice = `Tỷ lệ chốt ${(ratio * 100).toFixed(0)}% với ít phàn nàn giá. Có thể thử tăng 5% và theo dõi.`
-      trend = '📈 Tăng nhẹ'
+      trend = 'Tăng nhẹ'
       confidence = Math.min(70, 40 + positiveCount * 8)
     }
 
@@ -144,7 +144,7 @@ async function analyzePricing() {
   } catch (err) {
     analysis.value = {
       verdict: 'Lỗi kết nối',
-      icon: '❌',
+      icon: '✗',
       advice: 'Không thể phân tích. Kiểm tra backend.',
       trend: '-',
       confidence: 0,

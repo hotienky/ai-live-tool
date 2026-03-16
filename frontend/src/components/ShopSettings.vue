@@ -191,7 +191,7 @@
 
       <!-- ═══ Tab: Keywords ═══ -->
       <div v-if="activeTab === 'keywords'" class="settings__panel">
-        <h3 class="settings__panel-title">🔑 Keywords Alert ({{ keywords.length }})</h3>
+        <h3 class="settings__panel-title"><KeyRound :size="14" /> Keywords Alert ({{ keywords.length }})</h3>
         <div class="settings__add-row">
           <input v-model="newKeyword.keyword" placeholder="Keyword" class="settings__input settings__input--flex" />
           <select v-model="newKeyword.alert_type" class="settings__input settings__input--sm">

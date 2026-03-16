@@ -193,7 +193,7 @@
 
         <!-- Order Items -->
         <div class="detail-section">
-          <h4>📋 Sản phẩm ({{ detailItems.length }})</h4>
+          <h4><ClipboardList :size="14" /> Sản phẩm ({{ detailItems.length }})</h4>
           <div class="detail-items" v-if="detailItems.length">
             <div class="detail-item" v-for="item in detailItems" :key="item.id">
               <div class="item-name">{{ item.name }}</div>
@@ -210,7 +210,7 @@
 
         <!-- Order Totals (S-Cart: ShopOrderTotal) -->
         <div class="detail-section" v-if="detailTotals.length">
-          <h4>💰 Chi tiết thanh toán</h4>
+          <h4><Coins :size="14" /> Chi tiết thanh toán</h4>
           <div class="totals-breakdown">
             <div class="totals-row" v-for="t in detailTotals" :key="t.id" :class="{ 'totals-row--total': t.code === 'total' }">
               <span>{{ t.title }}</span>
@@ -387,7 +387,7 @@ async function createOrder() {
     showCreateModal.value = false
     newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' }
     fetchOrders(); fetchStats()
-    showToast('✅ Tạo đơn thành công!', 'success')
+    showToast('Tạo đơn thành công!', 'success')
   } catch (err) { showToast('Lỗi tạo đơn: ' + err.message, 'error') }
 }
 
@@ -440,7 +440,7 @@ async function changeStatus(statusId, statusName) {
     const historyRes = await apiFetch(`/orders/${detailOrder.value.id}/history`)
     detailHistory.value = await historyRes.json()
     fetchOrders(); fetchStats()
-    showToast(`✅ Đã cập nhật: ${statusName}`, 'success')
+    showToast(`Đã cập nhật: ${statusName}`, 'success')
   } catch { showToast('Lỗi cập nhật trạng thái', 'error') }
 }
 
@@ -451,7 +451,7 @@ async function updatePayment(order, paymentStatus) {
       method: 'PUT',
       body: JSON.stringify({ paymentStatus })
     })
-    showToast(paymentStatus === 'paid' ? '✅ Đã xác nhận thanh toán' : '🔄 Đã hoàn tiền', 'success')
+    showToast(paymentStatus === 'paid' ? 'Đã xác nhận thanh toán' : 'Đã hoàn tiền', 'success')
     fetchOrders(); fetchStats()
   } catch { showToast('Lỗi cập nhật thanh toán', 'error') }
 }
@@ -500,7 +500,7 @@ function printInvoice(order) {
       <div class="row"><span class="label">Khách:</span><span>${order.customerName || 'Khách lẻ'}</span></div>
       ${order.customerPhone ? `<div class="row"><span class="label">SĐT:</span><span>${order.customerPhone}</span></div>` : ''}
       ${order.customerAddress ? `<div class="row"><span class="label">Địa chỉ:</span><span>${order.customerAddress}</span></div>` : ''}
-      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? '✅ Đã TT' : '⏳ Chưa TT'}</span></div>
+      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'}</span></div>
     </div>
     <table>
       <thead><tr><th>#</th><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>

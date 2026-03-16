@@ -3,7 +3,7 @@
     <div class="inv-header">
       <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Kho</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="🔍 Tìm tên, SKU, barcode..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" placeholder="Tìm tên, SKU, barcode..." @input="debouncedSearch" />
         <select v-model="filterCategory" class="filter-select">
           <option value="">Tất cả danh mục</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
@@ -180,7 +180,7 @@
             </div>
             <div style="display:flex;gap:8px;margin-top:8px">
               <button @click="addVariantRow" style="flex:1;padding:8px;border:1px dashed var(--glass-border);background:transparent;color:var(--color-text-muted);border-radius:8px;cursor:pointer;font-size:13px">+ Thêm biến thể</button>
-              <button @click="saveVariants" style="padding:8px 16px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">💾 Lưu</button>
+              <button @click="saveVariants" style="padding:8px 16px;background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">Lưu</button>
             </div>
           </div>
         </div>

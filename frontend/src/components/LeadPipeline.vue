@@ -166,7 +166,7 @@
               @click="copyLeadInfo"
               style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)"
             >
-              <Clipboard :size="14" /> 📋 Copy thông tin
+              <Clipboard :size="14" /> Copy thông tin
             </button>
           </div>
         </div>
@@ -370,7 +370,7 @@ function copyLeadInfo() {
     editNotes.value ? `Ghi chú: ${editNotes.value}` : '',
   ].filter(Boolean).join('\n')
   navigator.clipboard.writeText(info)
-  showToast('📋 Đã copy thông tin khách hàng!', 'success')
+  showToast('Đã copy thông tin khách hàng!', 'success')
 }
 
 async function fetchProducts() {

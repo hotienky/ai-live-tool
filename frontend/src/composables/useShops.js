@@ -18,7 +18,7 @@ export function useShops() {
       }
     } catch (err) {
       error.value = err.message
-      console.error('❌ fetchShops error:', err)
+      console.error('fetchShops error:', err)
     } finally {
       loading.value = false
     }

@@ -152,7 +152,7 @@ async function onDrop(targetIndex) {
   try {
     const updates = list.map((b, i) => updateBanner(b.id, { sort: i }))
     await Promise.all(updates)
-    showToast('✅ Đã sắp xếp lại', 'success')
+    showToast(''Đã sắp xếp lại', 'success')
     reload()
   } catch (e) {
     showToast('Lỗi sắp xếp: ' + e.message, 'error')
@@ -177,7 +177,7 @@ async function toggleStatus(b) {
   try {
     const newStatus = b.status === 1 ? 0 : 1
     await updateBanner(b.id, { status: newStatus })
-    showToast(newStatus === 1 ? '✅ Activated' : '⏸ Deactivated', 'success')
+    showToast(newStatus === 1 ? ''Activated' : 'Deactivated', 'success')
     reload()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
@@ -186,10 +186,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateBanner(editId.value, form.value)
-      showToast('✅ Đã cập nhật', 'success')
+      showToast(''Đã cập nhật', 'success')
     } else {
       await createBanner({ ...form.value })
-      showToast('✅ Đã tạo banner', 'success')
+      showToast(''Đã tạo banner', 'success')
     }
     showModal.value = false; reload()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }

@@ -83,7 +83,7 @@
           <Save :size="13" />
           {{ saving ? 'Đang lưu...' : 'Lưu thông tin' }}
         </button>
-        <span v-if="saveSuccess" class="customer-modal__save-ok">✅ Đã lưu!</span>
+        <span v-if="saveSuccess" class="customer-modal__save-ok"><Check :size="14" /> Đã lưu!</span>
       </div>
 
       <!-- Timeline -->
@@ -102,7 +102,7 @@
             </div>
             <p class="customer-modal__log-text">{{ log.commentText || log.comment_text }}</p>
             <p v-if="log.aiSummary || log.ai_summary" class="customer-modal__log-summary">
-              💡 {{ log.aiSummary || log.ai_summary }}
+              <Lightbulb :size="12" /> {{ log.aiSummary || log.ai_summary }}
             </p>
           </div>
           <p v-if="chatLogs.length === 0" class="customer-modal__empty">Chưa có bình luận nào</p>

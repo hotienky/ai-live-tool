@@ -14,7 +14,13 @@
       </div>
       <div class="notif-center__list">
         <div v-for="n in notifications" :key="n.id" class="notif-center__item" :class="{ 'notif-center__item--unread': !n.read }" @click="markRead(n)">
-          <span class="notif-center__icon">{{ getIcon(n.type) }}</span>
+          <span class="notif-center__icon">
+            <Flame v-if="n.type === 'hot_lead'" :size="16" />
+            <KeyRound v-else-if="n.type === 'keyword'" :size="16" />
+            <Radio v-else-if="n.type === 'session'" :size="16" />
+            <Dices v-else-if="n.type === 'draw'" :size="16" />
+            <Info v-else :size="16" />
+          </span>
           <div class="notif-center__body">
             <p class="notif-center__text">{{ n.message }}</p>
             <span class="notif-center__time">{{ timeAgo(n.timestamp) }}</span>
@@ -30,7 +36,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { Bell } from 'lucide-vue-next'
+import { Bell, Flame, KeyRound, Radio, Dices, Info } from 'lucide-vue-next'
 
 const isOpen = ref(false)
 const notifications = ref([])
@@ -55,10 +61,7 @@ function clearAll() {
   notifications.value = []
 }
 
-function getIcon(type) {
-  const map = { hot_lead: '🔥', keyword: '🔑', session: '📡', system: 'ℹ️', draw: '🎰' }
-  return map[type] || 'ℹ️'
-}
+
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
@@ -131,7 +134,7 @@ defineExpose({ addNotification })
 }
 .notif-center__item:hover { background: var(--color-bg-primary); }
 .notif-center__item--unread { background: rgba(255, 59, 92, 0.04); }
-.notif-center__icon { font-size: 18px; flex-shrink: 0; padding-top: 2px; }
+.notif-center__icon { font-size: 18px; flex-shrink: 0; padding-top: 2px; display: flex; color: var(--color-text-muted); }
 .notif-center__body { flex: 1; min-width: 0; }
 .notif-center__text { font-size: 13px; margin: 0; line-height: 1.4; }
 .notif-center__time { font-size: 11px; color: var(--color-text-muted); }

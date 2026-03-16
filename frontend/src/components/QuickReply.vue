@@ -1,10 +1,10 @@
 <template>
   <div class="quick-reply-panel" v-if="visible">
     <div class="panel-header">
-      <h3>⚡ Soạn tin nhắn</h3>
+      <h3>Soạn tin nhắn</h3>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
-    <p class="panel-hint">💡 Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách</p>
+    <p class="panel-hint">Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách</p>
 
     <!-- Comment being replied to -->
     <div class="reply-target" v-if="targetComment">
@@ -32,7 +32,7 @@
             🤖 AI Gợi ý
           </button>
           <button class="btn-copy btn-copy--primary" @click="copyReply">
-            📋 Copy tin nhắn
+            Copy tin nhắn
           </button>
           <button class="btn-copy" @click="copyPhone" v-if="detectedPhone">
             📞 Copy SĐT: {{ detectedPhone }}
@@ -43,7 +43,7 @@
 
     <!-- Quick templates -->
     <div class="templates">
-      <h4>📝 Mẫu nhanh</h4>
+      <h4>Mẫu nhanh</h4>
       <div class="template-list">
         <button
           v-for="(tpl, i) in templates"
@@ -79,12 +79,12 @@ const toast = ref('')
 const detectedPhone = ref('')
 
 const templates = [
-  { icon: '👋', name: 'Chào hỏi', text: 'Dạ cảm ơn {{name}} đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️' },
-  { icon: '💰', name: 'Báo giá', text: 'Dạ {{name}} inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁' },
-  { icon: '📦', name: 'Chốt đơn', text: 'Dạ em ghi nhận đơn cho {{name}} ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦' },
-  { icon: '🔄', name: 'Tư vấn', text: 'Dạ để em tư vấn chi tiết cho {{name}} nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶' },
-  { icon: '⏰', name: 'Hẹn lại', text: 'Dạ {{name}} ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️' },
-  { icon: '🎉', name: 'Khuyến mãi', text: 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉 {{name}} inbox mình nhé!' },
+  { icon: 'wave', name: 'Chào hỏi', text: 'Dạ cảm ơn {{name}} đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️' },
+  { icon: 'price', name: 'Báo giá', text: 'Dạ {{name}} inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁' },
+  { icon: 'order', name: 'Chốt đơn', text: 'Dạ em ghi nhận đơn cho {{name}} ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦' },
+  { icon: 'consult', name: 'Tư vấn', text: 'Dạ để em tư vấn chi tiết cho {{name}} nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶' },
+  { icon: 'remind', name: 'Hẹn lại', text: 'Dạ {{name}} ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️' },
+  { icon: 'promo', name: 'Khuyến mãi', text: 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉 {{name}} inbox mình nhé!' },
 ]
 
 function applyTemplate(tpl) {
@@ -130,7 +130,7 @@ async function generateAIReply() {
 
 function copyReply() {
   navigator.clipboard.writeText(replyText.value)
-  showToast('✅ Đã copy tin nhắn!')
+  showToast('Đã copy tin nhắn!')
 }
 
 function copyPhone() {

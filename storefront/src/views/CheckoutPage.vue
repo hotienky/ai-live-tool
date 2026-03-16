@@ -8,7 +8,7 @@
         <div class="step-line done"></div>
         <div class="step done"><span class="step-num">2</span><span class="step-label">Thanh toán</span></div>
         <div class="step-line done"></div>
-        <div class="step done current"><span class="step-num">✓</span><span class="step-label">Hoàn tất</span></div>
+        <div class="step done current"><span class="step-num"><Check :size="14" /></span><span class="step-label">Hoàn tất</span></div>
       </div>
 
       <div class="success-content">
@@ -355,7 +355,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  CreditCard, User, Truck, FileText, Package, ShoppingCart,
+  CreditCard, User, Truck, FileText, Package, ShoppingCart, Check,
   CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode,
   Tag, X, MapPin
 } from 'lucide-vue-next'

@@ -24,9 +24,9 @@ import { useToast } from '../composables/useToast.js'
 const { toasts, removeToast } = useToast()
 
 const icons = {
-  success: '✅',
-  error: '❌',
-  warning: '⚠️',
+  success: '✓',
+  error: '✗',
+  warning: '!',
   info: 'ℹ️',
 }
 </script>

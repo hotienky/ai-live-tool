@@ -30,7 +30,7 @@
             <td>{{ formatDate(c.createdAt) }}</td>
             <td class="actions-cell">
               <button class="btn-sm btn-edit" @click="openEdit(c)">Sửa</button>
-              <button class="btn-sm btn-addresses" @click="openAddresses(c)">📍</button>
+              <button class="btn-sm btn-addresses" @click="openAddresses(c)"><MapPin :size="12" /></button>
               <button class="btn-sm btn-del" @click="handleDelete(c)">×</button>
             </td>
           </tr>
@@ -68,7 +68,7 @@
     <!-- Addresses Modal -->
     <div class="modal-overlay" v-if="showAddressModal" @click.self="showAddressModal = false">
       <div class="modal modal--wide">
-        <h3>📍 Sổ địa chỉ: {{ addressCustomer?.firstName }} {{ addressCustomer?.lastName }}</h3>
+        <h3><MapPin :size="14" /> Sổ địa chỉ: {{ addressCustomer?.firstName }} {{ addressCustomer?.lastName }}</h3>
 
         <div class="address-list" v-if="addresses.length">
           <div class="address-card" v-for="a in addresses" :key="a.id">
@@ -154,10 +154,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateCustomer(editId.value, form.value)
-      showToast('✅ Đã cập nhật', 'success')
+      showToast(''Đã cập nhật', 'success')
     } else {
       await createCustomer({ ...form.value,  })
-      showToast('✅ Đã tạo KH', 'success')
+      showToast(''Đã tạo KH', 'success')
     }
     showModal.value = false
     fetchCustomers({  })
@@ -182,7 +182,7 @@ async function handleAddAddress() {
   await addAddress(addressCustomer.value.id, addrForm.value)
   addresses.value = await fetchAddressesApi(addressCustomer.value.id)
   addrForm.value = { firstName: '', lastName: '', phone: '', address1: '', district: '', city: '', province: '', postcode: '' }
-  showToast('✅ Đã thêm địa chỉ', 'success')
+  showToast(''Đã thêm địa chỉ', 'success')
 }
 
 async function handleDeleteAddress(addrId) {

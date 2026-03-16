@@ -18,7 +18,7 @@
           <span class="cm-sort">Sort: {{ p.sort }}</span>
         </div>
         <div class="cm-card__actions">
-          <button class="btn-sm btn-preview" @click="previewPage(p)">👁</button>
+          <button class="btn-sm btn-preview" @click="previewPage(p)">⊙</button>
           <button class="btn-sm btn-edit" @click="openEdit(p)">Sửa</button>
           <button class="btn-sm btn-del" @click="handleDelete(p)">×</button>
         </div>
@@ -53,8 +53,8 @@
 
         <!-- Tab switch: Edit / Preview -->
         <div class="cm-tabs">
-          <button :class="{ active: editTab === 'edit' }" @click="editTab = 'edit'">✏️ Chỉnh sửa</button>
-          <button :class="{ active: editTab === 'preview' }" @click="editTab = 'preview'">👁 Xem trước</button>
+          <button :class="{ active: editTab === 'edit' }" @click="editTab = 'edit'"><Pencil :size="12" /> Chỉnh sửa</button>
+          <button :class="{ active: editTab === 'preview' }" @click="editTab = 'preview'">Xem trước</button>
         </div>
 
         <div v-show="editTab === 'edit'">
@@ -134,7 +134,7 @@ async function toggleStatus(p) {
   try {
     const newStatus = p.status === 1 ? 0 : 1
     await updatePage(p.id, { status: newStatus })
-    showToast(newStatus === 1 ? '✅ Published' : '📝 Set to Draft', 'success')
+    showToast(newStatus === 1 ? 'Published' : 'Set to Draft', 'success')
     fetchPages({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
@@ -143,10 +143,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updatePage(editId.value, form.value)
-      showToast('✅ Đã cập nhật', 'success')
+      showToast('Đã cập nhật', 'success')
     } else {
       await createPage({ ...form.value,  })
-      showToast('✅ Đã tạo trang', 'success')
+      showToast('Đã tạo trang', 'success')
     }
     showModal.value = false
     fetchPages({  })

@@ -169,7 +169,7 @@ async function save() {
       method: 'POST',
       body: JSON.stringify({ items }),
     })
-    showToast('✅ Đã lưu cấu hình thanh toán', 'success')
+    showToast('Đã lưu cấu hình thanh toán', 'success')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
   }

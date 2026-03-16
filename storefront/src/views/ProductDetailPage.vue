@@ -170,7 +170,7 @@
 
         <!-- Review Form -->
         <div class="review-form-card" v-if="isLoggedIn">
-          <h3>{{ existingReview ? '✈️ Cập nhật đánh giá' : '✍️ Viết đánh giá' }}</h3>
+          <h3><template v-if="existingReview"><RefreshCw :size="14" /> Cập nhật đánh giá</template><template v-else><PenLine :size="14" /> Viết đánh giá</template></h3>
           <div class="review-stars-input">
             <button v-for="i in 5" :key="i" @click="reviewForm.rating = i" class="star-btn">
               <Star :size="24" :class="i <= reviewForm.rating ? 'star-filled' : 'star-empty'" />
@@ -183,11 +183,11 @@
           <p v-if="reviewMsg" class="review-msg" :class="reviewMsgType">{{ reviewMsg }}</p>
         </div>
         <div v-else class="review-login-hint">
-          <p>🔒 <router-link to="/auth">Đăng nhập</router-link> để viết đánh giá</p>
+          <p><Lock :size="14" /> <router-link to="/auth">Đăng nhập</router-link> để viết đánh giá</p>
         </div>
 
         <!-- Reviews List -->
-        <div v-if="reviewsLoading" class="reviews-loading">⏳ Đang tải đánh giá...</div>
+        <div v-if="reviewsLoading" class="reviews-loading"><Loader :size="14" class="spin" /> Đang tải đánh giá...</div>
         <div v-else-if="reviews.length" class="reviews-list">
           <div v-for="r in reviews" :key="r.id" class="review-card">
             <div class="review-header">
@@ -228,7 +228,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch, apiAuthPost } from '../api.js'
 import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
-  Heart, Link, FileText, ArrowLeft, Star
+  Heart, Link, FileText, ArrowLeft, Star, Lock, PenLine, RefreshCw, Loader
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'

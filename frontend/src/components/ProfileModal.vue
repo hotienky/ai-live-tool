@@ -2,7 +2,7 @@
   <div class="profile-overlay" @click.self="$emit('close')">
     <div class="profile-modal">
       <div class="profile-header">
-        <h3>👤 Hồ Sơ Cá Nhân</h3>
+        <h3><User :size="16" /> Hồ Sơ Cá Nhân</h3>
         <button class="close-btn" @click="$emit('close')">&times;</button>
       </div>
 
@@ -21,7 +21,7 @@
 
         <!-- Update Name -->
         <div class="profile-section">
-          <h4>📝 Đổi tên hiển thị</h4>
+          <h4><PenLine :size="14" /> Đổi tên hiển thị</h4>
           <div class="form-row">
             <input
               v-model="fullName"
@@ -36,7 +36,7 @@
 
         <!-- Change Password -->
         <div class="profile-section">
-          <h4>🔒 Đổi mật khẩu</h4>
+          <h4><Lock :size="14" /> Đổi mật khẩu</h4>
           <input
             v-model="currentPassword"
             type="password"
@@ -54,7 +54,7 @@
             @click="changePassword"
             :disabled="savingPw || !currentPassword || !newPassword"
           >
-            {{ savingPw ? '...' : '🔐 Đổi mật khẩu' }}
+            {{ savingPw ? '...' : 'Đổi mật khẩu' }}
           </button>
         </div>
 
@@ -69,6 +69,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { User, PenLine, Lock } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
@@ -100,7 +101,7 @@ async function updateProfile() {
     const data = await res.json()
     if (res.ok) {
       messageType.value = 'success'
-      message.value = '✅ Đã cập nhật tên'
+      message.value = 'Đã cập nhật tên'
       localStorage.setItem('auth_user', JSON.stringify(data))
       emit('updated', data)
     } else {
@@ -128,7 +129,7 @@ async function changePassword() {
     const data = await res.json()
     if (res.ok) {
       messageType.value = 'success'
-      message.value = '✅ ' + (data.message || 'Đổi mật khẩu thành công')
+      message.value = data.message || 'Đổi mật khẩu thành công'
       currentPassword.value = ''
       newPassword.value = ''
     } else {

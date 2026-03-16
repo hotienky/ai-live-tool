@@ -168,7 +168,7 @@ function handleActivate(t) {
 
 function handleDelete(t) {
   confirmModal.value = {
-    title: '⚠️ Xóa Tenant vĩnh viễn',
+    title: 'Xóa Tenant vĩnh viễn',
     message: `Hành động này sẽ xóa "${t.name}" và DROP database "${t.db_name}". Không thể hoàn tác!`,
     confirmText: 'Xóa vĩnh viễn',
     danger: true,

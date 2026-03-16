@@ -76,10 +76,10 @@ function onSelectShop(shop) {
 }
 
 function statusLabel(status) {
-  if (status === 'connected') return '🟢 Live'
+  if (status === 'connected') return '● Live'
   if (status === 'mock') return '🎭 Mock'
-  if (status === 'connecting') return '🟡 ...'
-  return '⚫ Off'
+  if (status === 'connecting') return '● ...'
+  return '● Off'
 }
 
 const dotClass = computed(() => {

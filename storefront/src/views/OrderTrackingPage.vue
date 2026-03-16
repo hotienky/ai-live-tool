@@ -158,7 +158,7 @@
 
           <!-- Shipment History Timeline -->
           <div v-if="shippingData.history?.length" class="ship-timeline">
-            <h4>📋 Lịch sử vận chuyển</h4>
+            <h4><ClipboardList :size="14" /> Lịch sử vận chuyển</h4>
             <div class="ship-timeline-list">
               <div v-for="(evt, i) in shippingData.history" :key="i" class="ship-evt">
                 <div class="ship-evt-dot" :class="{ first: i === 0 }"></div>
@@ -180,7 +180,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building, Truck
+  Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building, Truck, ClipboardList
 } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
 

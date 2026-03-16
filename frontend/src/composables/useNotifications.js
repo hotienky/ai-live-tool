@@ -43,7 +43,7 @@ export function useNotifications() {
     // Browser notification
     if (!notifEnabled.value || notifPermission.value !== 'granted') return
     try {
-      const n = new Notification(`🔥 HOT Lead: ${lead.nickname}`, {
+      const n = new Notification(`HOT Lead: ${lead.nickname}`, {
         body: lead.comment,
         icon: '/favicon.ico',
         tag: `hot-${lead.uniqueId}`,
@@ -56,7 +56,7 @@ export function useNotifications() {
   function notifyKeywordMatch(comment, keyword) {
     if (!notifEnabled.value || notifPermission.value !== 'granted') return
     try {
-      new Notification(`🔑 Keyword "${keyword}" detected`, {
+      new Notification(`Keyword "${keyword}" detected`, {
         body: `${comment.nickname}: ${comment.comment}`,
         tag: `kw-${keyword}-${Date.now()}`,
       })

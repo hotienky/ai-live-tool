@@ -2,7 +2,7 @@
   <section v-if="sales.length > 0" class="flash-sale">
     <div class="flash-sale__header">
       <div class="flash-sale__title">
-        <span class="flash-sale__icon">⚡</span>
+        <span class="flash-sale__icon"><Zap :size="24" /></span>
         <h2>Flash Sale</h2>
         <div class="flash-sale__timer" v-if="countdown">
           <span class="timer-block">{{ countdown.hours }}</span>
@@ -46,6 +46,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Zap } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
 
 const sales = ref([])
@@ -116,7 +117,7 @@ onUnmounted(() => clearInterval(timer))
 .flash-sale__title {
   display: flex; align-items: center; gap: 10px;
 }
-.flash-sale__icon { font-size: 24px; }
+.flash-sale__icon { font-size: 24px; color: #f97316; display: flex; }
 .flash-sale__title h2 {
   margin: 0; font-size: 22px; font-weight: 800;
   background: linear-gradient(135deg, #ef4444, #f97316);

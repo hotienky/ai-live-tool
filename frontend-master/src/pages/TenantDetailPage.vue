@@ -182,7 +182,7 @@ async function handleSaveSettings() {
   actionLoading.value = true
   try {
     await tenants.update(route.params.id, editForm.value)
-    editMsg.value = '✅ Đã lưu thành công'
+    editMsg.value = 'Đã lưu thành công'
     await load()
   } catch (err) {
     editMsg.value = err.message
@@ -236,7 +236,7 @@ const handleMigrate = () => doAction(() => tenants.migrate(route.params.id), 'Mi
 const handleSeed = () => doAction(() => tenants.seed(route.params.id), 'Seed hoàn tất')
 
 async function handleDelete() {
-  if (!confirm(`⚠️ Xóa vĩnh viễn "${tenant.value.name}" và DROP database "${tenant.value.db_name}"?`)) return
+  if (!confirm(`Xóa vĩnh viễn "${tenant.value.name}" và DROP database "${tenant.value.db_name}"?`)) return
   actionLoading.value = true
   try {
     await tenants.remove(route.params.id)
