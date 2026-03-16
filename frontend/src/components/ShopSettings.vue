@@ -385,6 +385,11 @@
       </div>
 
       <!-- ═══ Tab: System Config ═══ -->
+      <!-- Store Info -->
+      <div v-if="activeTab === 'store-info'" class="settings__panel">
+        <StoreInfoConfig />
+      </div>
+
       <div v-if="activeTab === 'system-config'" class="settings__panel">
         <SystemConfigPanel />
       </div>
@@ -471,6 +476,7 @@ import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
 import ShippingSettings from './ShippingSettings.vue'
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
+import StoreInfoConfig from './StoreInfoConfig.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -504,6 +510,7 @@ const tabPermissions = {
   'nav-links': 'settings.view',
   'appearance': 'settings.view',
   'storefront-layout': 'settings.view',
+  'store-info': 'settings.edit',
   'system-config': 'settings.view',
   'payment': 'settings.edit',
   'shipping': 'settings.edit',
@@ -541,7 +548,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -567,6 +574,7 @@ const tabs = [
 ]
 const allTabs = [
   ...tabs,
+  { key: 'store-info', label: 'Cửa hàng', icon: Store },
   { key: 'appearance', label: 'Giao diện', icon: Palette },
 ]
 const tabGroups = [
@@ -608,6 +616,7 @@ const tabGroups = [
   {
     label: 'Hệ thống',
     items: [
+      { key: 'store-info', label: 'Cửa hàng', icon: Store },
       { key: 'system-config', label: 'Cấu hình', icon: Cog },
       { key: 'payment', label: 'Thanh toán', icon: CreditCard },
       { key: 'shipping', label: 'Vận chuyển', icon: Truck },
@@ -626,13 +635,14 @@ const tabToRoute = {
   'keywords': 'live/keywords', 'replies': 'live/replies', 'moderation': 'live/moderation', 'connection': 'live/connection',
   'products': 'shop/products', 'categories': 'shop/categories', 'brands': 'shop/brands',
   'promotions': 'shop/promotions', 'banners': 'shop/banners', 'cms': 'shop/cms',
+  'store-info': 'shop/info',
   'nav-links': 'shop/nav', 'appearance': 'shop/appearance', 'system-config': 'shop/config', 'languages': 'shop/languages',
   'orders': 'orders', 'shop-customers': 'orders/customers',
 }
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 const ordersTabs = ['orders', 'shop-customers']
 
 const activeTabGroups = computed(() => {

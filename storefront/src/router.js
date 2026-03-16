@@ -8,6 +8,9 @@ import CheckoutPage from './views/CheckoutPage.vue'
 import AuthPage from './views/AuthPage.vue'
 import AccountPage from './views/AccountPage.vue'
 import OrderTrackingPage from './views/OrderTrackingPage.vue'
+import CategoriesPage from './views/CategoriesPage.vue'
+import BrandsPage from './views/BrandsPage.vue'
+import PromotionsPage from './views/PromotionsPage.vue'
 
 /**
  * Storefront Routes — Multi-Tenant Mode
@@ -25,6 +28,9 @@ const routes = [
   { path: '/account', name: 'account', component: AccountPage },
   { path: '/order-tracking', name: 'order-tracking', component: OrderTrackingPage },
   { path: '/search', name: 'search', component: ProductsPage },
+  { path: '/categories', name: 'categories', component: CategoriesPage },
+  { path: '/brands', name: 'brands', component: BrandsPage },
+  { path: '/promotions', name: 'promotions', component: PromotionsPage },
 ]
 
 const router = createRouter({
