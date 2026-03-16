@@ -11,6 +11,8 @@ class Order extends Model
         'customer_phone', 'customer_address', 'items', 'total_amount',
         'discount_amount', 'shipping_fee', 'coupon_code', 'status', 'payment_status',
         'payment_method', 'note', 'tracking_number', 'shop_id',
+        'shipping_provider', 'shipping_service', 'shipping_tracking',
+        'to_province_id', 'to_district_id', 'to_ward_code',
     ];
 
     protected $casts = [
@@ -18,6 +20,8 @@ class Order extends Model
         'total_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'shipping_fee' => 'decimal:2',
+        'to_province_id' => 'integer',
+        'to_district_id' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

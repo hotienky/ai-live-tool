@@ -18,13 +18,13 @@
           </label>
         </div>
         <div class="pay-settings__card-body" v-if="form.codEnabled">
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Tên hiển thị</label>
-            <input v-model="form.codName" class="pay-settings__input" />
+            <input v-model="form.codName" />
           </div>
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Mô tả</label>
-            <input v-model="form.codDescription" class="pay-settings__input" />
+            <input v-model="form.codDescription" />
           </div>
         </div>
       </div>
@@ -43,53 +43,53 @@
           </label>
         </div>
         <div class="pay-settings__card-body" v-if="form.bankEnabled">
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Tên hiển thị</label>
-            <input v-model="form.bankName" class="pay-settings__input" />
+            <input v-model="form.bankName" />
           </div>
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Mô tả</label>
-            <input v-model="form.bankDescription" class="pay-settings__input" />
+            <input v-model="form.bankDescription" />
           </div>
           <div class="pay-settings__divider"></div>
           <h4 class="pay-settings__section-title">Thông tin tài khoản</h4>
-          <div class="pay-settings__row">
-            <div class="pay-settings__field">
+          <div class="pay-settings__row form-row">
+            <div class="form-group">
               <label>Tên ngân hàng</label>
-              <input v-model="form.bankNameDisplay" class="pay-settings__input" placeholder="VD: Vietcombank" />
+              <input v-model="form.bankNameDisplay" placeholder="VD: Vietcombank" />
             </div>
-            <div class="pay-settings__field">
+            <div class="form-group">
               <label>Chi nhánh</label>
-              <input v-model="form.bankBranch" class="pay-settings__input" placeholder="VD: TP.HCM" />
+              <input v-model="form.bankBranch" placeholder="VD: TP.HCM" />
             </div>
           </div>
-          <div class="pay-settings__row">
-            <div class="pay-settings__field">
+          <div class="pay-settings__row form-row">
+            <div class="form-group">
               <label>Chủ tài khoản</label>
-              <input v-model="form.bankAccountName" class="pay-settings__input" placeholder="NGUYEN VAN A" />
+              <input v-model="form.bankAccountName" placeholder="NGUYEN VAN A" />
             </div>
-            <div class="pay-settings__field">
+            <div class="form-group">
               <label>Số tài khoản</label>
-              <input v-model="form.bankAccountNumber" class="pay-settings__input" placeholder="1234567890" />
+              <input v-model="form.bankAccountNumber" placeholder="1234567890" />
             </div>
           </div>
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Mẫu nội dung chuyển khoản</label>
-            <input v-model="form.bankNoteTemplate" class="pay-settings__input" placeholder="DH{order_id}" />
+            <input v-model="form.bankNoteTemplate" placeholder="DH{order_id}" />
             <span class="pay-settings__hint">Dùng <code>{order_id}</code> để tự động thay bằng mã đơn hàng</span>
           </div>
           <div class="pay-settings__divider"></div>
           <h4 class="pay-settings__section-title">QR Code (VietQR)</h4>
-          <div class="pay-settings__field">
+          <div class="form-group">
             <label>Mã BIN ngân hàng</label>
-            <input v-model="form.bankBin" class="pay-settings__input" placeholder="VD: 970436 (Vietcombank)" />
+            <input v-model="form.bankBin" placeholder="VD: 970436 (Vietcombank)" />
             <span class="pay-settings__hint">Tra cứu mã BIN tại <a href="https://www.vietqr.io/danh-sach-ngan-hang" target="_blank" style="color:var(--accent)">vietqr.io</a>. Ví dụ: Vietcombank = 970436, Techcombank = 970407, MBBank = 970422</span>
           </div>
         </div>
       </div>
 
       <!-- Save -->
-      <button class="pay-settings__save" @click="save" :disabled="saving">
+      <button class="btn-primary" @click="save" :disabled="saving" style="margin-top:8px">
         <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
       </button>
     </template>
@@ -209,51 +209,6 @@ async function save() {
   font-size: 13px; font-weight: 700; margin: 0 0 12px;
   color: var(--text-2); text-transform: uppercase; letter-spacing: .5px;
 }
-.pay-settings__row { display: flex; gap: 12px; }
-.pay-settings__row .pay-settings__field { flex: 1; }
-
-.pay-settings__field { margin-bottom: 12px; }
-.pay-settings__field label {
-  display: block; font-size: 12px; font-weight: 600;
-  color: var(--text-2); margin-bottom: 4px;
-}
-.pay-settings__input {
-  width: 100%; padding: 8px 12px;
-  background: var(--bg-1); border: 1px solid var(--border);
-  border-radius: 6px; color: var(--text-1); font-size: 13px;
-  outline: none; transition: border-color .2s; box-sizing: border-box;
-}
-.pay-settings__input:focus { border-color: var(--accent); }
-.pay-settings__hint {
-  display: block; font-size: 11px; color: var(--text-3); margin-top: 4px;
-}
-.pay-settings__hint code {
-  background: var(--bg-3, rgba(0,0,0,.1)); padding: 1px 4px; border-radius: 3px;
-  font-size: 11px;
-}
-
-/* Toggle Switch */
-.pay-settings__switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
-.pay-settings__switch input { opacity: 0; width: 0; height: 0; }
-.pay-settings__switch-slider {
-  position: absolute; cursor: pointer; inset: 0;
-  background: var(--border); border-radius: 24px; transition: .3s;
-}
-.pay-settings__switch-slider::before {
-  content: ''; position: absolute; height: 18px; width: 18px;
-  left: 3px; bottom: 3px; background: #fff;
-  border-radius: 50%; transition: .3s;
-}
-.pay-settings__switch input:checked + .pay-settings__switch-slider { background: var(--accent); }
-.pay-settings__switch input:checked + .pay-settings__switch-slider::before { transform: translateX(20px); }
-
-/* Save */
-.pay-settings__save {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 20px; border: none; border-radius: 8px;
-  background: var(--accent); color: #fff; font-weight: 700;
-  font-size: 13px; cursor: pointer; transition: all .2s;
-}
-.pay-settings__save:hover { opacity: .9; transform: translateY(-1px); }
-.pay-settings__save:disabled { opacity: .5; cursor: not-allowed; }
+.pay-settings__row { display: flex; gap: 0.5rem; }
+.pay-settings__row .form-group { flex: 1; }
 </style>

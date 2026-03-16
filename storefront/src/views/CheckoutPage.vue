@@ -174,10 +174,67 @@
                 <label>Email (nhận xác nhận đơn)</label>
                 <input v-model="form.customerEmail" type="email" placeholder="email@example.com" />
               </div>
+            </div>
+            <!-- Address Selector -->
+            <div class="form-row form-row--3col">
               <div class="form-group">
-                <label>Địa chỉ giao hàng *</label>
-                <input v-model="form.customerAddress" placeholder="123 Đường ABC, Phường X, Quận Y, TP.HCM" required />
+                <label>Tỉnh/Thành phố *</label>
+                <select @change="e => onProvinceChange(e.target.value)" :value="selectedProvince || ''">
+                  <option value="" disabled>{{ loadingProvinces ? 'Đang tải...' : 'Chọn tỉnh/thành' }}</option>
+                  <option v-for="p in provinces" :key="p.id" :value="p.id">{{ p.name }}</option>
+                </select>
               </div>
+              <div class="form-group">
+                <label>Quận/Huyện *</label>
+                <select @change="e => onDistrictChange(e.target.value)" :value="selectedDistrict || ''" :disabled="!selectedProvince">
+                  <option value="" disabled>{{ loadingDistricts ? 'Đang tải...' : 'Chọn quận/huyện' }}</option>
+                  <option v-for="d in districts" :key="d.id" :value="d.id">{{ d.name }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Phường/Xã</label>
+                <select @change="e => onWardChange(e.target.value)" :value="selectedWard || ''" :disabled="!selectedDistrict">
+                  <option value="" disabled>{{ loadingWards ? 'Đang tải...' : 'Chọn phường/xã' }}</option>
+                  <option v-for="w in wards" :key="w.id" :value="w.id">{{ w.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Địa chỉ chi tiết *</label>
+              <input v-model="form.customerAddress" placeholder="Số nhà, tên đường..." required />
+            </div>
+          </div>
+
+          <!-- Shipping Options -->
+          <div class="form-section shipping-section" v-if="selectedDistrict">
+            <h3><Truck :size="16" /> Đơn vị vận chuyển</h3>
+            <div v-if="loadingShipping" class="shipping-loading">
+              <span class="spinner"></span> Đang tính phí vận chuyển...
+            </div>
+            <div v-else-if="shippingError" class="shipping-error">
+              <AlertTriangle :size="14" /> {{ shippingError }}
+            </div>
+            <div v-else-if="shippingOptions.length > 0" class="shipping-options">
+              <label
+                v-for="opt in shippingOptions" :key="opt.provider + '_' + opt.service_code"
+                class="shipping-option"
+                :class="{ active: selectedShipping?.provider === opt.provider && selectedShipping?.service_code === opt.service_code }"
+              >
+                <input
+                  type="radio" name="shipping"
+                  :checked="selectedShipping?.provider === opt.provider && selectedShipping?.service_code === opt.service_code"
+                  @change="selectShipping(opt)"
+                />
+                <div class="shipping-option__info">
+                  <strong>{{ opt.provider_name }}</strong>
+                  <span class="shipping-option__service">{{ opt.service_name }}</span>
+                  <span class="shipping-option__time">{{ opt.estimated_days }}</span>
+                </div>
+                <span class="shipping-option__fee">{{ formatPrice(opt.fee) }}</span>
+              </label>
+            </div>
+            <div v-else class="shipping-empty">
+              <p>Vui lòng chọn đầy đủ địa chỉ để tính phí vận chuyển</p>
             </div>
           </div>
 
@@ -264,7 +321,11 @@
                 <span>Giảm giá ({{ couponCode.toUpperCase() }})</span>
                 <span>-{{ formatPrice(couponDiscount) }}</span>
               </div>
-              <div class="total-row"><span>Phí giao hàng</span><span class="free">Miễn phí</span></div>
+              <div class="total-row">
+                <span>Phí giao hàng</span>
+                <span v-if="shippingFee > 0">{{ formatPrice(shippingFee) }}</span>
+                <span v-else class="free">{{ selectedDistrict ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
+              </div>
               <div class="total-row total-row--grand">
                 <span>Tổng thanh toán</span>
                 <span>{{ formatPrice(finalTotal) }}</span>
@@ -290,10 +351,11 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   CreditCard, User, Truck, FileText, Package, ShoppingCart,
   CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode,
-  Tag, X
+  Tag, X, MapPin
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
+import { useShipping } from '../composables/useShipping.js'
 import { apiFetch, apiPost } from '../api.js'
 
 const route = useRoute()
@@ -316,14 +378,28 @@ const orderSuccess = ref(false)
 const orderData = ref({})
 const loadingOrder = ref(false)
 
-// Voucher/Coupon state
-const couponCode = ref('')
-const couponDiscount = ref(0)
-const couponApplied = ref(false)
-const couponError = ref('')
-const couponLoading = ref(false)
+// Voucher/Coupon state — shared with CartPage via composable
+import { useCoupon } from '../composables/useCoupon.js'
+const {
+  couponCode, couponDiscount, couponApplied, couponError, couponLoading,
+  applyCoupon: applyRaw, removeCoupon, revalidateCoupon,
+} = useCoupon()
 
-const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value))
+// Shipping
+const {
+  provinces, districts, wards,
+  loadingProvinces, loadingDistricts, loadingWards,
+  selectedProvince, selectedDistrict, selectedWard,
+  selectedProvinceName, selectedDistrictName, selectedWardName,
+  shippingOptions, selectedShipping, shippingFee,
+  loadingShipping, shippingError, fullAddress,
+  fetchProvinces, onProvinceChange, onDistrictChange, onWardChange,
+  calculateShipping, selectShipping,
+} = useShipping()
+
+const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value))
+
+function applyCoupon() { applyRaw(cartTotal.value) }
 
 const paymentMethodsList = ref([
   { code: 'cod', name: 'Thanh toán khi nhận hàng (COD)', description: 'Trả tiền mặt khi nhận hàng' },
@@ -331,12 +407,17 @@ const paymentMethodsList = ref([
 ])
 
 onMounted(async () => {
+  // Fetch address data from shipping API
+  fetchProvinces()
+
+  // Re-validate saved coupon on mount
+  revalidateCoupon(cartTotal.value)
+
   // Check if returning to a completed order (e.g. page reload)
   const orderId = route.query.order_id
   if (orderId) {
     loadingOrder.value = true
     try {
-      // Use authFetch if logged in (preserves auth context), else apiFetch for guest
       let data
       if (isLoggedIn.value) {
         data = await authFetch(`/orders/${orderId}`).catch(() => null)
@@ -358,7 +439,6 @@ onMounted(async () => {
     form.value.customerName = [c.first_name, c.last_name].filter(Boolean).join(' ') || form.value.customerName
     form.value.customerPhone = c.phone || form.value.customerPhone
     form.value.customerEmail = c.email || form.value.customerEmail
-    // Try to load saved default address
     try {
       const addrs = await authFetch('/addresses')
       const list = Array.isArray(addrs) ? addrs : []
@@ -371,7 +451,7 @@ onMounted(async () => {
     } catch (err) { console.warn('[Checkout] Address load failed:', err?.message || err) }
   }
 
-  // Load payment methods for the form
+  // Load payment methods
   try {
     const methods = await apiFetch('/payment-methods')
     if (Array.isArray(methods) && methods.length) {
@@ -409,47 +489,23 @@ const vietQrUrl = computed(() => {
   return `https://img.vietqr.io/image/${bin}-${acct}-compact2.png?amount=${amount}&addInfo=${note}&accountName=${encodeURIComponent(d.bank_info.account_name || '')}`
 })
 
-async function applyCoupon() {
-  if (!couponCode.value.trim()) return
-  couponLoading.value = true
-  couponError.value = ''
-  try {
-    const result = await apiPost('/coupon/validate', {
-      code: couponCode.value.trim(),
-      order_total: cartTotal.value,
-    })
-    if (result.valid) {
-      couponDiscount.value = result.discount
-      couponApplied.value = true
-      couponError.value = ''
-    } else {
-      couponError.value = result.message || 'Mã giảm giá không hợp lệ'
-      couponDiscount.value = 0
-      couponApplied.value = false
-    }
-  } catch (err) {
-    couponError.value = err.message || 'Không thể kiểm tra mã giảm giá'
-  }
-  couponLoading.value = false
-}
-
-function removeCoupon() {
-  couponCode.value = ''
-  couponDiscount.value = 0
-  couponApplied.value = false
-  couponError.value = ''
-}
-
 async function placeOrder() {
   if (!isValid.value) { error.value = 'Vui lòng điền đầy đủ thông tin'; return }
   submitting.value = true
   error.value = ''
   try {
+    // Build full address from selectors + detail
+    const addressParts = [form.value.customerAddress]
+    if (selectedWardName.value) addressParts.push(selectedWardName.value)
+    if (selectedDistrictName.value) addressParts.push(selectedDistrictName.value)
+    if (selectedProvinceName.value) addressParts.push(selectedProvinceName.value)
+    const fullAddr = addressParts.filter(Boolean).join(', ')
+
     const payload = {
       customer_name: form.value.customerName,
       customer_phone: form.value.customerPhone,
       customer_email: form.value.customerEmail || undefined,
-      customer_address: form.value.customerAddress,
+      customer_address: fullAddr,
       payment_method: form.value.paymentMethod,
       notes: form.value.notes,
       items: cartItems.value.map(i => ({
@@ -460,6 +516,13 @@ async function placeOrder() {
         qty: i.qty,
         sku: i.sku,
       })),
+      // Shipping
+      shipping_provider: selectedShipping.value?.provider || null,
+      shipping_service: selectedShipping.value?.service_code || null,
+      shipping_fee: shippingFee.value,
+      to_province_id: selectedProvince.value || null,
+      to_district_id: selectedDistrict.value || null,
+      to_ward_code: selectedWard.value || null,
     }
     // Include coupon if applied
     if (couponApplied.value && couponCode.value.trim()) {
@@ -469,6 +532,7 @@ async function placeOrder() {
     orderData.value = result
     orderSuccess.value = true
     clearCart()
+    removeCoupon() // Clear coupon after successful order
     // Persist order_id in URL so page reload restores success state
     router.replace({ query: { order_id: result.id } })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -516,6 +580,58 @@ async function placeOrder() {
   box-sizing: border-box;
 }
 .form-group input:focus, textarea:focus { border-color: var(--sf-accent); }
+
+/* Address selector (3-col row) */
+.form-row--3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.form-group select {
+  width: 100%; background: var(--sf-bg-secondary);
+  border: 1px solid var(--sf-border); color: var(--sf-text-primary);
+  padding: 12px 16px; border-radius: var(--sf-radius-sm); font-size: 14px;
+  font-family: inherit; outline: none; transition: border-color 0.2s;
+  box-sizing: border-box; cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.form-group select:focus { border-color: var(--sf-accent); }
+.form-group select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Shipping section */
+.shipping-loading {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--sf-text-muted); padding: 16px 0;
+}
+.shipping-error {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: #ef4444; padding: 12px;
+  background: rgba(239,68,68,0.06); border-radius: var(--sf-radius-sm);
+}
+.shipping-empty { padding: 16px 0; font-size: 14px; color: var(--sf-text-muted); }
+.shipping-options { display: flex; flex-direction: column; gap: 10px; }
+.shipping-option {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px; border-radius: var(--sf-radius-md);
+  border: 1px solid var(--sf-border); cursor: pointer;
+  transition: all 0.2s; background: var(--sf-bg-secondary);
+}
+.shipping-option:hover { border-color: var(--sf-accent); }
+.shipping-option.active {
+  border-color: var(--sf-accent); background: var(--sf-accent-glow);
+}
+.shipping-option input { display: none; }
+.shipping-option__info { display: flex; flex-direction: column; flex: 1; }
+.shipping-option__info strong { font-size: 14px; font-weight: 700; }
+.shipping-option__service { font-size: 13px; color: var(--sf-text-secondary); margin-top: 2px; }
+.shipping-option__time { font-size: 11px; color: var(--sf-text-muted); margin-top: 2px; }
+.shipping-option__fee {
+  font-size: 15px; font-weight: 800; color: var(--sf-accent-light);
+  white-space: nowrap;
+}
+.spinner {
+  width: 16px; height: 16px; border: 2px solid var(--sf-border);
+  border-top-color: var(--sf-accent); border-radius: 50%;
+  animation: spin 0.6s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Payment options */
 .payment-options { display: flex; flex-direction: column; gap: 10px; }

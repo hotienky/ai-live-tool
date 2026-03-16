@@ -10,6 +10,10 @@ class CreateDomainsTable extends Migration
 {
     public function up(): void
     {
+        if (Schema::connection('master')->hasTable('domains')) {
+            return;
+        }
+
         Schema::connection('master')->create('domains', function (Blueprint $table) {
             $table->increments('id');
             $table->string('domain', 255)->unique();

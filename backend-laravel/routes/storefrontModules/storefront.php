@@ -16,6 +16,13 @@ Route::get('/nav-links', [\App\Http\Controllers\Tenant\NavLinksController::class
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
 Route::post('/coupon/validate', [\App\Http\Controllers\Tenant\StorefrontController::class, 'validateCoupon']);
 Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontController::class, 'paymentMethods']);
+
+// Shipping
+Route::post('/shipping/calculate', [\App\Http\Controllers\Tenant\ShippingController::class, 'calculate']);
+Route::get('/shipping/providers', [\App\Http\Controllers\Tenant\ShippingController::class, 'providers']);
+Route::get('/shipping/provinces', [\App\Http\Controllers\Tenant\ShippingController::class, 'provinces']);
+Route::get('/shipping/districts/{provinceId}', [\App\Http\Controllers\Tenant\ShippingController::class, 'districts']);
+Route::get('/shipping/wards/{districtId}', [\App\Http\Controllers\Tenant\ShippingController::class, 'wards']);
 Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'orderDetail']);
 Route::get('/languages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'languages']);
 Route::get('/translations/{langCode}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'translations']);

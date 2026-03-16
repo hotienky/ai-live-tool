@@ -17,29 +17,40 @@ class CouponsController extends Controller
     public function index()
     {
         $coupons = $this->repo->query()->orderByDesc('created_at')->get();
-        // Map snake_case → camelCase for frontend
+        // Normalize column names → consistent camelCase JSON output
         $mapped = $coupons->map(function ($c) {
-            $c->minOrder = $c->min_order ?? $c->min_order_amount ?? 0;
-            $c->maxUses = $c->max_uses ?? null;
-            $c->usedCount = $c->used_count ?? 0;
-            $c->dateStart = $c->date_start ?? $c->start_date ?? null;
-            $c->dateEnd = $c->date_end ?? $c->end_date ?? null;
-            return $c;
+            return [
+                'id' => $c->id,
+                'code' => $c->code,
+                'type' => $c->type === 'percentage' ? 'percent' : ($c->type ?: 'percent'),
+                'value' => $c->value ?? 0,
+                'minOrder' => $c->min_order ?? $c->min_order_amount ?? 0,
+                'maxUses' => $c->max_uses ?? $c->usage_limit ?? null,
+                'usedCount' => $c->used_count ?? $c->times_used ?? 0,
+                'dateStart' => $c->date_start ?? $c->start_date ?? null,
+                'dateEnd' => $c->date_end ?? $c->end_date ?? $c->expires_at ?? null,
+                'created_at' => $c->created_at,
+                'updated_at' => $c->updated_at,
+            ];
         });
         return $this->successResponse($mapped);
     }
 
     private function mapCouponFields(Request $request): array
     {
+        $type = $request->input('type', 'percent');
+        // Map frontend "percent" → DB "percentage" if needed
         return [
             'code' => strtoupper($request->input('code', '')),
-            'type' => $request->input('type', 'percent'),
+            'type' => $type,
             'value' => $request->input('value', 0),
             'min_order' => $request->input('minOrder') ?? $request->input('min_order', 0),
+            'min_order_amount' => $request->input('minOrder') ?? $request->input('min_order_amount', 0),
             'max_uses' => $request->input('maxUses') ?? $request->input('max_uses'),
+            'usage_limit' => $request->input('maxUses') ?? $request->input('usage_limit'),
             'date_start' => $request->input('dateStart') ?: ($request->input('date_start') ?: null),
             'date_end' => $request->input('dateEnd') ?: ($request->input('date_end') ?: null),
-            'used_count' => 0,
+            'expires_at' => $request->input('dateEnd') ?: ($request->input('expires_at') ?: null),
         ];
     }
 
@@ -59,7 +70,6 @@ class CouponsController extends Controller
     {
         try {
             $data = $this->mapCouponFields($request);
-            unset($data['used_count']); // Don't reset used_count on update
             $this->repo->update($data, $id);
             return $this->successResponse($this->repo->findOne($id), 'Đã cập nhật');
         } catch (\Exception $e) {
@@ -82,4 +92,3 @@ class CouponsController extends Controller
         return $this->successResponse($result);
     }
 }
-

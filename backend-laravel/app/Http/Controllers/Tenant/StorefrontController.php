@@ -204,10 +204,17 @@ class StorefrontController extends Controller
                 'payment_method' => 'nullable|string',
                 'notes' => 'nullable|string',
                 'items' => 'required|array',
+                // Shipping fields
+                'shipping_provider' => 'nullable|string',
+                'shipping_service' => 'nullable|string',
+                'shipping_fee' => 'nullable|numeric',
+                'to_province_id' => 'nullable|integer',
+                'to_district_id' => 'nullable|integer',
+                'to_ward_code' => 'nullable|string',
             ]);
 
             $paymentMethod = $data['payment_method'] ?? 'cod';
-            $totalAmount = collect($data['items'])->reduce(
+            $subtotal = collect($data['items'])->reduce(
                 fn($sum, $i) => $sum + (floatval($i['price'] ?? 0) * intval($i['qty'] ?? 1)), 0
             );
 
@@ -215,15 +222,18 @@ class StorefrontController extends Controller
             $couponCode = $request->input('coupon_code');
             $discountAmount = 0;
             if ($couponCode) {
-                $couponResult = $this->couponRepo->validateCoupon($couponCode, $totalAmount);
+                $couponResult = $this->couponRepo->validateCoupon($couponCode, $subtotal);
                 if ($couponResult['valid']) {
-                    $discountAmount = min($couponResult['discount'], $totalAmount);
+                    $discountAmount = min($couponResult['discount'], $subtotal);
                     // Increment used_count
                     $coupon = $couponResult['coupon'];
                     $coupon->increment('used_count');
                 }
                 // Silently ignore invalid coupon at checkout (already validated on frontend)
             }
+
+            $shippingFee = floatval($data['shipping_fee'] ?? 0);
+            $totalAmount = $subtotal - $discountAmount + $shippingFee;
 
             $order = $this->orderRepo->store([
                 'customer_name' => $data['customer_name'],
@@ -234,9 +244,15 @@ class StorefrontController extends Controller
                 'payment_status' => $paymentMethod === 'bank' ? 'unpaid' : 'pending',
                 'notes' => $data['notes'] ?? null,
                 'items' => json_encode($data['items']),
-                'total_amount' => $totalAmount - $discountAmount,
+                'total_amount' => $totalAmount,
                 'discount_amount' => $discountAmount,
+                'shipping_fee' => $shippingFee,
                 'coupon_code' => $discountAmount > 0 ? $couponCode : null,
+                'shipping_provider' => $data['shipping_provider'] ?? null,
+                'shipping_service' => $data['shipping_service'] ?? null,
+                'to_province_id' => $data['to_province_id'] ?? null,
+                'to_district_id' => $data['to_district_id'] ?? null,
+                'to_ward_code' => $data['to_ward_code'] ?? null,
                 'status' => 'pending',
             ]);
 

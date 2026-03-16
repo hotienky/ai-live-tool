@@ -46,7 +46,17 @@ export function usePromotions(apiFetch) {
       const qs = new URLSearchParams(params).toString()
       const res = await apiFetch(`/coupons?${qs}`)
       const json = await res.json()
-      coupons.value = json.data || json
+      const raw = json.data || json
+      // Map snake_case from backend to camelCase for frontend (defensive)
+      coupons.value = (Array.isArray(raw) ? raw : []).map(c => ({
+        ...c,
+        minOrder: c.minOrder ?? c.min_order ?? c.min_order_amount ?? 0,
+        maxUses: c.maxUses ?? c.max_uses ?? c.usage_limit ?? null,
+        usedCount: c.usedCount ?? c.used_count ?? c.times_used ?? 0,
+        dateStart: c.dateStart ?? c.date_start ?? c.start_date ?? null,
+        dateEnd: c.dateEnd ?? c.date_end ?? c.end_date ?? c.expires_at ?? null,
+        type: c.type === 'percentage' ? 'percent' : (c.type || 'percent'),
+      }))
     } catch { coupons.value = [] }
     loading.value = false
   }

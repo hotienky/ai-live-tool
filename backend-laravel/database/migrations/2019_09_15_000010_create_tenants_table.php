@@ -14,6 +14,10 @@ class CreateTenantsTable extends Migration
      */
     public function up(): void
     {
+        if (Schema::connection('master')->hasTable('tenants')) {
+            return;
+        }
+
         Schema::connection('master')->create('tenants', function (Blueprint $table) {
             $table->string('id')->primary();
 

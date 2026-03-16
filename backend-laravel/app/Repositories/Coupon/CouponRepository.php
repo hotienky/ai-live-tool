@@ -21,21 +21,34 @@ class CouponRepository extends BaseEloquentRepository implements CouponRepositor
         $coupon = $this->findByCode($code);
 
         if (!$coupon) {
-            return ['valid' => false, 'message' => 'Coupon not found'];
+            return ['valid' => false, 'message' => 'Mã giảm giá không tồn tại'];
         }
 
-        if (isset($coupon->expires_at) && $coupon->expires_at < now()) {
-            return ['valid' => false, 'message' => 'Coupon has expired'];
+        // Check expiry — support both expires_at and date_end columns
+        $expiresAt = $coupon->expires_at ?? $coupon->date_end ?? null;
+        if ($expiresAt && $expiresAt < now()) {
+            return ['valid' => false, 'message' => 'Mã giảm giá đã hết hạn'];
         }
 
-        if (isset($coupon->min_order_amount) && $orderTotal < $coupon->min_order_amount) {
-            return ['valid' => false, 'message' => 'Order total does not meet minimum requirement'];
+        // Check min order — support both min_order_amount and min_order columns
+        $minOrder = $coupon->min_order_amount ?? $coupon->min_order ?? 0;
+        if ($minOrder > 0 && $orderTotal < $minOrder) {
+            return ['valid' => false, 'message' => "Đơn hàng tối thiểu " . number_format($minOrder) . "đ"];
         }
 
-        $discount = $coupon->type === 'percentage'
+        // Check usage limit — support both usage_limit and max_uses columns
+        $maxUses = $coupon->usage_limit ?? $coupon->max_uses ?? null;
+        $usedCount = $coupon->times_used ?? $coupon->used_count ?? 0;
+        if ($maxUses && $usedCount >= $maxUses) {
+            return ['valid' => false, 'message' => 'Mã giảm giá đã hết lượt sử dụng'];
+        }
+
+        // Calculate discount — support both 'percentage' and 'percent' type
+        $isPercent = in_array($coupon->type, ['percentage', 'percent']);
+        $discount = $isPercent
             ? $orderTotal * ($coupon->value / 100)
             : $coupon->value;
 
-        return ['valid' => true, 'discount' => $discount, 'coupon' => $coupon];
+        return ['valid' => true, 'discount' => round($discount), 'coupon' => $coupon];
     }
 }

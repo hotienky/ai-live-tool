@@ -96,7 +96,12 @@
       <!-- Shipping Tracking Section -->
       <div class="result-card shipping-card">
         <h3><Truck :size="16" /> Vận chuyển</h3>
-        <div v-if="shippingLoading" style="text-align:center;padding:20px;color:var(--sf-text-muted)">⏳ Đang tải...</div>
+        <div v-if="shippingLoading" class="shipping-skeleton">
+          <div v-for="i in 4" :key="i" class="shipping-skeleton-row">
+            <div class="skeleton" style="width:100px;height:14px;border-radius:6px"></div>
+            <div class="skeleton" :style="{ width: [130, 100, 80, 90][i-1] + 'px', height: '16px', borderRadius: '6px' }"></div>
+          </div>
+        </div>
         <div v-else-if="!shippingData || !shippingData.shipment">
           <div class="shipping-empty">
             <Package :size="32" />
@@ -352,6 +357,13 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
 .qr-hint { font-size: 11px; color: var(--sf-text-muted); margin-top: 8px; }
 /* Shipping Card */
 .shipping-card { grid-column: 1 / -1; }
+.shipping-skeleton { display: flex; flex-direction: column; gap: 12px; padding: 8px 0; }
+.shipping-skeleton-row { display: flex; justify-content: space-between; align-items: center; }
+.skeleton {
+  background: linear-gradient(90deg, var(--sf-bg-secondary, #f3f4f8) 25%, var(--sf-border, #e2e8f0) 50%, var(--sf-bg-secondary, #f3f4f8) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s ease infinite;
+}
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 .shipping-empty { text-align: center; padding: 24px; color: var(--sf-text-muted); }
 .shipping-empty p { margin: 8px 0 0; font-size: 14px; }
 .shipping-info { display: flex; flex-direction: column; gap: 10px; }

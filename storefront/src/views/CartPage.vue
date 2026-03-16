@@ -110,57 +110,28 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import {
   ShoppingCart, ShoppingBag, Package, Minus, Plus, Trash2, ArrowLeft, ArrowRight,
   X, AlertTriangle, CheckCircle
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
-import { apiPost } from '../api.js'
+import { useCoupon } from '../composables/useCoupon.js'
 
 const { cartItems, cartCount, cartTotal, updateQty, removeFromCart } = useCart()
+const {
+  couponCode, couponDiscount, couponApplied, couponError, couponLoading,
+  applyCoupon: applyRaw, removeCoupon, revalidateCoupon,
+} = useCoupon()
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
-// Voucher state
-const couponCode = ref('')
-const couponDiscount = ref(0)
-const couponApplied = ref(false)
-const couponError = ref('')
-const couponLoading = ref(false)
-
 const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value))
 
-async function applyCoupon() {
-  if (!couponCode.value.trim()) return
-  couponLoading.value = true
-  couponError.value = ''
-  try {
-    const result = await apiPost('/coupon/validate', {
-      code: couponCode.value.trim(),
-      order_total: cartTotal.value,
-    })
-    if (result.valid) {
-      couponDiscount.value = result.discount
-      couponApplied.value = true
-      couponError.value = ''
-    } else {
-      couponError.value = result.message || 'Mã giảm giá không hợp lệ'
-      couponDiscount.value = 0
-      couponApplied.value = false
-    }
-  } catch (err) {
-    couponError.value = err.message || 'Không thể kiểm tra mã giảm giá'
-  }
-  couponLoading.value = false
-}
+function applyCoupon() { applyRaw(cartTotal.value) }
 
-function removeCoupon() {
-  couponCode.value = ''
-  couponDiscount.value = 0
-  couponApplied.value = false
-  couponError.value = ''
-}
+// Re-validate saved coupon on mount (cart total may have changed)
+onMounted(() => { revalidateCoupon(cartTotal.value) })
 </script>
 
 <style scoped>

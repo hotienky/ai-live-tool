@@ -5,11 +5,20 @@
 
     <!-- Hero Banner -->
     <section class="home-hero container">
-      <BannerSlider :banners="banners" />
+      <div v-if="loading" class="banner-skeleton">
+        <div class="skeleton" style="width:100%;aspect-ratio:21/7;border-radius:16px"></div>
+      </div>
+      <BannerSlider v-else :banners="banners" />
     </section>
 
     <!-- Categories -->
-    <section class="home-section container" v-if="categories.length > 0">
+    <section class="home-section container" v-if="loading">
+      <div class="skeleton" style="height:22px;width:200px;margin-bottom:16px;border-radius:6px"></div>
+      <div style="display:flex;gap:14px">
+        <div v-for="i in 6" :key="i" class="skeleton" style="width:120px;height:100px;border-radius:12px;flex-shrink:0"></div>
+      </div>
+    </section>
+    <section class="home-section container" v-else-if="categories.length > 0">
       <h2 class="section-title">
         <Grid :size="22" class="section-title__accent" />
         Danh mục sản phẩm
@@ -152,6 +161,7 @@ onMounted(() => loadAll())
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
 .home-hero { padding-top: 24px; padding-bottom: 8px; }
+.banner-skeleton { border-radius: 16px; overflow: hidden; }
 
 .home-section { padding-top: 40px; }
 

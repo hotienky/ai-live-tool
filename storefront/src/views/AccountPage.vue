@@ -73,9 +73,24 @@
             <h2>Lịch sử đơn hàng</h2>
             <p class="tab-desc">Theo dõi và quản lý đơn hàng của bạn</p>
           </div>
-          <div v-if="ordersLoading" class="loading-state">
-            <div class="spinner"></div>
-            <p>Đang tải đơn hàng...</p>
+          <div v-if="ordersLoading" class="orders-skeleton">
+            <div v-for="i in 3" :key="i" class="order-card order-card--skeleton">
+              <div class="order-header">
+                <div style="display:flex;gap:10px;align-items:center">
+                  <div class="skeleton" style="width:60px;height:18px;border-radius:6px"></div>
+                  <div class="skeleton" style="width:90px;height:14px;border-radius:6px"></div>
+                </div>
+                <div class="skeleton" style="width:80px;height:24px;border-radius:20px"></div>
+              </div>
+              <div style="display:flex;gap:6px;margin-bottom:12px">
+                <div class="skeleton" style="width:120px;height:24px;border-radius:8px"></div>
+                <div class="skeleton" style="width:100px;height:24px;border-radius:8px"></div>
+              </div>
+              <div class="order-footer">
+                <div class="skeleton" style="width:70px;height:14px;border-radius:6px"></div>
+                <div class="skeleton" style="width:100px;height:20px;border-radius:6px"></div>
+              </div>
+            </div>
           </div>
           <div v-else-if="orders.length === 0" class="empty-state">
             <div class="empty-icon">📦</div>
@@ -148,9 +163,21 @@
           </form>
 
           <!-- Address List -->
-          <div v-if="addrLoading" class="loading-state">
-            <div class="spinner"></div>
-            <p>Đang tải...</p>
+          <div v-if="addrLoading" class="addr-skeleton">
+            <div v-for="i in 2" :key="i" class="addr-card addr-card--skeleton">
+              <div class="addr-info">
+                <div style="display:flex;gap:10px;margin-bottom:8px">
+                  <div class="skeleton" style="width:120px;height:16px;border-radius:6px"></div>
+                  <div class="skeleton" style="width:90px;height:16px;border-radius:6px"></div>
+                </div>
+                <div class="skeleton" style="width:80%;height:14px;border-radius:6px;margin-bottom:4px"></div>
+                <div class="skeleton" style="width:60%;height:12px;border-radius:6px"></div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <div class="skeleton" style="width:34px;height:34px;border-radius:8px"></div>
+                <div class="skeleton" style="width:34px;height:34px;border-radius:8px"></div>
+              </div>
+            </div>
           </div>
           <div v-else-if="addresses.length === 0 && !showAddrForm" class="empty-state">
             <div class="empty-icon">📍</div>
@@ -540,6 +567,19 @@ function formatPrice(p) { return Number(p || 0).toLocaleString('vi-VN') + 'đ' }
 .save-msg { font-size: 13px; font-weight: 500; }
 .save-msg.success { color: #16a34a; }
 .save-msg.error { color: #dc2626; }
+
+/* ─── Skeleton Loading ─── */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary, #f3f4f8) 25%, var(--color-border, #e2e8f0) 50%, var(--color-bg-secondary, #f3f4f8) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.orders-skeleton, .addr-skeleton { display: flex; flex-direction: column; gap: 14px; }
+.order-card--skeleton, .addr-card--skeleton { pointer-events: none; }
 
 /* ─── Loading & Empty ─── */
 .loading-state, .empty-state {
