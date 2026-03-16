@@ -193,10 +193,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateLink(editId.value, form.value)
-      showToast(''Đã cập nhật', 'success')
+      showToast('Đã cập nhật', 'success')
     } else {
       await createLink({ ...form.value })
-      showToast(''Đã tạo', 'success')
+      showToast('Đã tạo', 'success')
     }
     showModal.value = false; reload()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }

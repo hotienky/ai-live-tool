@@ -133,7 +133,7 @@ async function handleSavePromo() {
   if (!promoForm.value.productId) return showToast('Chọn sản phẩm', 'error')
   try {
     await savePromotion(promoForm.value)
-    showToast(''Đã lưu KM', 'success')
+    showToast('Đã lưu KM', 'success')
     promoForm.value = { productId: '', pricePromotion: 0, dateStart: '', dateEnd: '' }
     fetchPromotions({  })
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
@@ -151,10 +151,10 @@ async function handleSaveCoupon() {
   try {
     if (editCouponId.value) {
       await updateCoupon(editCouponId.value, couponForm.value)
-      showToast(''Đã cập nhật', 'success')
+      showToast('Đã cập nhật', 'success')
     } else {
       await createCoupon({ ...couponForm.value,  })
-      showToast(''Đã tạo mã', 'success')
+      showToast('Đã tạo mã', 'success')
     }
     editCouponId.value = null
     couponForm.value = { code: '', type: 'percent', value: 0, minOrder: 0, maxUses: null, dateStart: '', dateEnd: '' }

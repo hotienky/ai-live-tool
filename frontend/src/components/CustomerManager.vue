@@ -154,10 +154,10 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateCustomer(editId.value, form.value)
-      showToast(''Đã cập nhật', 'success')
+      showToast('Đã cập nhật', 'success')
     } else {
       await createCustomer({ ...form.value,  })
-      showToast(''Đã tạo KH', 'success')
+      showToast('Đã tạo KH', 'success')
     }
     showModal.value = false
     fetchCustomers({  })
@@ -182,7 +182,7 @@ async function handleAddAddress() {
   await addAddress(addressCustomer.value.id, addrForm.value)
   addresses.value = await fetchAddressesApi(addressCustomer.value.id)
   addrForm.value = { firstName: '', lastName: '', phone: '', address1: '', district: '', city: '', province: '', postcode: '' }
-  showToast(''Đã thêm địa chỉ', 'success')
+  showToast('Đã thêm địa chỉ', 'success')
 }
 
 async function handleDeleteAddress(addrId) {

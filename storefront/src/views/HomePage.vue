@@ -3,102 +3,152 @@
     <!-- SEO H1 (visually part of hero, but critical for heading hierarchy) -->
     <h1 class="sr-only">Cửa hàng trực tuyến — Sản phẩm chất lượng cao</h1>
 
-    <!-- Hero Banner -->
-    <section class="home-hero container">
-      <div v-if="loading" class="banner-skeleton">
-        <div class="skeleton" style="width:100%;aspect-ratio:21/7;border-radius:16px"></div>
-      </div>
-      <BannerSlider v-else :banners="banners" />
-    </section>
+    <!-- Dynamic sections rendered in configured order -->
+    <template v-for="section in activeSections" :key="section.type + '-' + section.order">
 
-    <!-- Categories -->
-    <section class="home-section container" v-if="loading">
-      <div class="skeleton" style="height:22px;width:200px;margin-bottom:16px;border-radius:6px"></div>
-      <div style="display:flex;gap:14px">
-        <div v-for="i in 6" :key="i" class="skeleton" style="width:120px;height:100px;border-radius:12px;flex-shrink:0"></div>
-      </div>
-    </section>
-    <section class="home-section container" v-else-if="categories.length > 0">
-      <h2 class="section-title">
-        <Grid :size="22" class="section-title__accent" />
-        Danh mục sản phẩm
-      </h2>
-      <CategoryGrid :categories="categories" />
-    </section>
-    <!-- Flash Sale -->
-    <div class="container">
-      <FlashSale />
-    </div>
-
-    <!-- Featured Products -->
-    <section class="home-section container">
-      <div class="home-section__header">
-        <h2 class="section-title">
-          <Sparkles :size="22" class="section-title__accent" />
-          Sản phẩm nổi bật
-        </h2>
-        <router-link :to="'/products'" class="home-section__viewall">
-          Xem tất cả <ArrowRight :size="14" />
-        </router-link>
-      </div>
-      <div v-if="loading" class="product-skeleton-grid">
-        <div v-for="i in 8" :key="i" class="product-skeleton">
-          <div class="skeleton" style="aspect-ratio:1"></div>
-          <div class="skeleton" style="height:14px;width:70%;margin-top:12px"></div>
-          <div class="skeleton" style="height:18px;width:40%;margin-top:8px"></div>
+      <!-- Banner -->
+      <section v-if="section.type === 'banner'" class="home-hero container">
+        <div v-if="loading" class="banner-skeleton">
+          <div class="skeleton" style="width:100%;aspect-ratio:21/7;border-radius:16px"></div>
         </div>
-      </div>
-      <div v-else-if="products.length > 0" class="product-grid">
-        <ProductCard v-for="p in products" :key="p.id" :product="p" />
-      </div>
-      <div v-else class="home-empty">
-        <Package :size="48" />
-        <p>Chưa có sản phẩm nào</p>
-      </div>
-    </section>
+        <BannerSlider v-else :banners="banners" />
+      </section>
 
-    <!-- New Arrivals -->
-    <section class="home-section container" v-if="newProducts.length > 0">
-      <div class="home-section__header">
+      <!-- Categories -->
+      <template v-if="section.type === 'categories'">
+        <section class="home-section container" v-if="loading">
+          <div class="skeleton" style="height:22px;width:200px;margin-bottom:16px;border-radius:6px"></div>
+          <div style="display:flex;gap:14px">
+            <div v-for="i in 6" :key="i" class="skeleton" style="width:120px;height:100px;border-radius:12px;flex-shrink:0"></div>
+          </div>
+        </section>
+        <section class="home-section container" v-else-if="categories.length > 0">
+          <h2 class="section-title">
+            <Grid :size="22" class="section-title__accent" />
+            Danh mục sản phẩm
+          </h2>
+          <CategoryGrid :categories="categories" />
+        </section>
+      </template>
+
+      <!-- Flash Sale -->
+      <div v-if="section.type === 'flash_sale'" class="container">
+        <FlashSale />
+      </div>
+
+      <!-- Featured Products -->
+      <section v-if="section.type === 'featured_products'" class="home-section container">
+        <div class="home-section__header">
+          <h2 class="section-title">
+            <Sparkles :size="22" class="section-title__accent" />
+            {{ section.params?.title || 'Sản phẩm nổi bật' }}
+          </h2>
+          <router-link :to="'/products'" class="home-section__viewall">
+            Xem tất cả <ArrowRight :size="14" />
+          </router-link>
+        </div>
+        <div v-if="loading" class="product-skeleton-grid">
+          <div v-for="i in (section.params?.count || 8)" :key="i" class="product-skeleton">
+            <div class="skeleton" style="aspect-ratio:1"></div>
+            <div class="skeleton" style="height:14px;width:70%;margin-top:12px"></div>
+            <div class="skeleton" style="height:18px;width:40%;margin-top:8px"></div>
+          </div>
+        </div>
+        <div v-else-if="products.length > 0" class="product-grid" :style="gridStyle(section.params?.columns)">
+          <ProductCard v-for="p in products.slice(0, section.params?.count || 8)" :key="p.id" :product="p" />
+        </div>
+        <div v-else class="home-empty">
+          <Package :size="48" />
+          <p>Chưa có sản phẩm nào</p>
+        </div>
+      </section>
+
+      <!-- New Arrivals -->
+      <section v-if="section.type === 'new_arrivals' && newProducts.length > 0" class="home-section container">
+        <div class="home-section__header">
+          <h2 class="section-title">
+            <Clock :size="22" class="section-title__accent" />
+            {{ section.params?.title || 'Hàng mới về' }}
+          </h2>
+        </div>
+        <div class="product-grid">
+          <ProductCard v-for="p in newProducts.slice(0, section.params?.count || 4)" :key="p.id" :product="p" />
+        </div>
+      </section>
+
+      <!-- CMS Pages -->
+      <section v-if="section.type === 'cms_pages' && pages.length > 0" class="home-section container">
         <h2 class="section-title">
-          <Clock :size="22" class="section-title__accent" />
-          Hàng mới về
+          <BookOpen :size="22" class="section-title__accent" />
+          Thông tin
         </h2>
-      </div>
-      <div class="product-grid">
-        <ProductCard v-for="p in newProducts" :key="p.id" :product="p" />
-      </div>
-    </section>
+        <div class="home-pages" :class="{ 'home-pages--list': section.params?.layout === 'list' }">
+          <router-link
+            v-for="pg in pages.slice(0, section.params?.maxPages || 6)"
+            :key="pg.id"
+            :to="`/page/${pg.alias || pg.id}`"
+            class="home-page-card"
+          >
+            <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="home-page-card__img" />
+            <div v-else class="home-page-card__img home-page-card__img--empty">
+              <FileText :size="28" />
+            </div>
+            <div class="home-page-card__info">
+              <h4>{{ pg.title }}</h4>
+              <span class="home-page-card__date">{{ formatDate(pg.created_at) }}</span>
+            </div>
+          </router-link>
+        </div>
+      </section>
 
-    <!-- CMS Pages -->
-    <section class="home-section container" v-if="pages.length > 0">
-      <h2 class="section-title">
-        <BookOpen :size="22" class="section-title__accent" />
-        Thông tin
-      </h2>
-      <div class="home-pages">
-        <router-link
-          v-for="pg in pages"
-          :key="pg.id"
-          :to="`/page/${pg.alias || pg.id}`"
-          class="home-page-card"
-        >
-          <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="home-page-card__img" />
-          <div v-else class="home-page-card__img home-page-card__img--empty">
-            <FileText :size="28" />
-          </div>
-          <div class="home-page-card__info">
-            <h4>{{ pg.title }}</h4>
-            <span class="home-page-card__date">{{ formatDate(pg.created_at) }}</span>
-          </div>
-        </router-link>
-      </div>
-    </section>
+      <!-- ═══ Custom Library Sections ═══ -->
+      <HomeSectionTestimonials
+        v-if="section.type === 'testimonials'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionFaq
+        v-if="section.type === 'faq'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionGallery
+        v-if="section.type === 'image_gallery'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionVideo
+        v-if="section.type === 'video_embed'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionTextBlock
+        v-if="section.type === 'text_block'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionNewsletter
+        v-if="section.type === 'newsletter'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionSocial
+        v-if="section.type === 'social_feed'"
+        :params="section.params"
+        :content="section.content"
+      />
+      <HomeSectionBrands
+        v-if="section.type === 'brands_slider'"
+        :params="section.params"
+        :content="section.content"
+      />
+
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, inject, onMounted } from 'vue'
 import { apiFetch } from '../api.js'
 import BannerSlider from '../components/BannerSlider.vue'
 import CategoryGrid from '../components/CategoryGrid.vue'
@@ -107,11 +157,19 @@ import FlashSale from '../components/FlashSale.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
 
+// Custom section components
+import HomeSectionTestimonials from '../components/sections/HomeSectionTestimonials.vue'
+import HomeSectionFaq from '../components/sections/HomeSectionFaq.vue'
+import HomeSectionGallery from '../components/sections/HomeSectionGallery.vue'
+import HomeSectionVideo from '../components/sections/HomeSectionVideo.vue'
+import HomeSectionTextBlock from '../components/sections/HomeSectionTextBlock.vue'
+import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.vue'
+import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
+import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
+
 const { setPageSeo } = useSeo()
 
-const props = defineProps({
-  
-})
+const layoutConfig = inject('layoutConfig', ref(null))
 
 const banners = ref([])
 const categories = ref([])
@@ -120,14 +178,35 @@ const newProducts = ref([])
 const pages = ref([])
 const loading = ref(true)
 
+const defaultSections = [
+  { type: 'banner', enabled: true, order: 0 },
+  { type: 'categories', enabled: true, order: 1 },
+  { type: 'flash_sale', enabled: true, order: 2 },
+  { type: 'featured_products', enabled: true, order: 3 },
+  { type: 'new_arrivals', enabled: true, order: 4 },
+  { type: 'cms_pages', enabled: true, order: 5 },
+]
+
+const activeSections = computed(() => {
+  const sections = layoutConfig.value?.sections || defaultSections
+  return sections
+    .filter(s => s.enabled)
+    .sort((a, b) => a.order - b.order)
+})
+
+function gridStyle(columns) {
+  if (!columns) return {}
+  return { gridTemplateColumns: `repeat(${columns}, 1fr)` }
+}
+
 async function loadAll() {
   loading.value = true
   try {
     const [bannersRes, catsRes, prodsRes, newRes, pagesRes] = await Promise.allSettled([
       apiFetch('/banners'),
       apiFetch('/categories'),
-      apiFetch('/products', { limit: 8, sort: 'created_at', order: 'desc' }),
-      apiFetch('/products', { limit: 4, sort: 'created_at', order: 'desc', page: 1 }),
+      apiFetch('/products', { limit: 16, sort: 'created_at', order: 'desc' }),
+      apiFetch('/products', { limit: 12, sort: 'created_at', order: 'desc', page: 1 }),
       apiFetch('/pages'),
     ])
     banners.value = bannersRes.status === 'fulfilled' ? bannersRes.value : []
@@ -135,12 +214,11 @@ async function loadAll() {
     const prodData = prodsRes.status === 'fulfilled' ? prodsRes.value : []
     products.value = Array.isArray(prodData) ? prodData : (prodData.data || [])
     const newData = newRes.status === 'fulfilled' ? newRes.value : []
-    newProducts.value = (Array.isArray(newData) ? newData : (newData.data || [])).slice(0, 4)
+    newProducts.value = Array.isArray(newData) ? newData : (newData.data || [])
     pages.value = pagesRes.status === 'fulfilled' ? pagesRes.value : []
   } catch { /* ignore */ }
   loading.value = false
 
-  // SEO — set page meta tags (C1)
   setPageSeo({
     title: 'Trang chủ — Cửa hàng trực tuyến',
     description: 'Khám phá các sản phẩm thời trang chất lượng cao, giá tốt nhất. Miễn phí giao hàng cho đơn từ 500K.',
@@ -168,7 +246,6 @@ onMounted(() => loadAll())
 .home-section__header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
 }
-
 .home-section__header .section-title { margin-bottom: 0; }
 
 .home-section__viewall {
@@ -176,7 +253,6 @@ onMounted(() => loadAll())
   font-size: 13px; font-weight: 700; color: var(--sf-accent-light);
   transition: all 0.2s; text-decoration: none;
 }
-
 .home-section__viewall:hover { color: #fff; gap: 10px; }
 
 /* Product grid */
@@ -202,6 +278,9 @@ onMounted(() => loadAll())
 /* CMS pages */
 .home-pages {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;
+}
+.home-pages--list {
+  grid-template-columns: 1fr;
 }
 
 .home-page-card {

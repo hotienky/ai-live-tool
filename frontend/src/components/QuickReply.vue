@@ -136,7 +136,7 @@ function copyReply() {
 function copyPhone() {
   if (detectedPhone.value) {
     navigator.clipboard.writeText(detectedPhone.value)
-    showToast('📞 Đã copy SĐT: ' + detectedPhone.value)
+    showToast('Đã copy SĐT: ' + detectedPhone.value)
   }
 }
 

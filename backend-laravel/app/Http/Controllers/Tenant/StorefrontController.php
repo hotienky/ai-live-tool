@@ -162,6 +162,37 @@ class StorefrontController extends Controller
         return $this->successResponse($theme);
     }
 
+    public function storefrontLayout()
+    {
+        $configs = $this->configRepo->getByGroup('storefront_layout');
+        $map = [];
+        foreach ($configs as $c) { $map[$c->key] = $c->value; }
+
+        // Default layout when nothing is configured
+        $defaultSections = [
+            ['type' => 'banner', 'enabled' => true, 'order' => 0],
+            ['type' => 'categories', 'enabled' => true, 'order' => 1],
+            ['type' => 'flash_sale', 'enabled' => true, 'order' => 2],
+            ['type' => 'featured_products', 'enabled' => true, 'order' => 3],
+            ['type' => 'new_arrivals', 'enabled' => true, 'order' => 4],
+            ['type' => 'cms_pages', 'enabled' => true, 'order' => 5],
+        ];
+        $defaultPages = [
+            'cart' => true,
+            'account' => true,
+            'auth' => true,
+            'order_tracking' => true,
+            'products' => true,
+        ];
+
+        return $this->successResponse([
+            'sections' => json_decode($map['layout_sections'] ?? 'null') ?: $defaultSections,
+            'pages' => json_decode($map['layout_pages'] ?? 'null') ?: $defaultPages,
+            'template' => $map['layout_template'] ?? 'full_store',
+            'customCss' => $map['layout_custom_css'] ?? '',
+        ]);
+    }
+
     public function paymentMethods()
     {
         $configs = $this->configRepo->getByGroup('payment');

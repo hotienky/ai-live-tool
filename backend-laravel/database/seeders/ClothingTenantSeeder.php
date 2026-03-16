@@ -378,17 +378,332 @@ class ClothingTenantSeeder extends Seeder
         }
 
         // ═══════════════════════════════
-        // CMS Pages
+        // CMS Pages (Rich Content)
         // ═══════════════════════════════
         echo "📝 Seeding CMS pages...\n";
         $pages = [
-            ['title' => 'Về chúng tôi', 'alias' => 'about', 'content' => '<h1>Fashion VN</h1><p>Thương hiệu thời trang Việt Nam với sứ mệnh mang đến sản phẩm chất lượng, giá hợp lý.</p>', 'sort' => 1, 'status' => 1],
-            ['title' => 'Chính sách đổi trả', 'alias' => 'return-policy', 'content' => '<h1>Chính Sách Đổi Trả</h1><p>Đổi trả miễn phí trong <strong>30 ngày</strong>.</p><ul><li>Còn nguyên tem mác</li><li>Chưa qua sử dụng</li><li>Có hóa đơn mua hàng</li></ul>', 'sort' => 2, 'status' => 1],
-            ['title' => 'Hướng dẫn chọn size', 'alias' => 'size-guide', 'content' => '<h1>Hướng Dẫn Chọn Size</h1><h2>Nam</h2><table><tr><th>Size</th><th>Chiều cao</th><th>Cân nặng</th></tr><tr><td>S</td><td>160-165cm</td><td>50-58kg</td></tr><tr><td>M</td><td>165-170cm</td><td>58-65kg</td></tr><tr><td>L</td><td>170-175cm</td><td>65-73kg</td></tr><tr><td>XL</td><td>175-182cm</td><td>73-82kg</td></tr></table>', 'sort' => 3, 'status' => 1],
+            [
+                'title' => 'Về chúng tôi',
+                'alias' => 'about',
+                'image' => '/storage/clothing/banners/new-collection.png',
+                'content' => <<<'HTML'
+<div class="cms-about">
+  <h1>Fashion VN — Thời Trang Việt Nam</h1>
+  <p class="lead">Được thành lập năm 2020, Fashion VN là thương hiệu thời trang uy tín hàng đầu Việt Nam, mang đến phong cách hiện đại, chất lượng quốc tế với mức giá hợp lý nhất.</p>
+
+  <h2>Tầm nhìn & Sứ mệnh</h2>
+  <p>Chúng tôi tin rằng thời trang không chỉ là quần áo — đó là cách bạn thể hiện bản thân. Sứ mệnh của Fashion VN là giúp mỗi người Việt Nam tự tin với phong cách riêng, bất kể ngân sách.</p>
+
+  <h2>Cam kết của chúng tôi</h2>
+  <ul>
+    <li><strong>Chất lượng đảm bảo:</strong> Mỗi sản phẩm đều trải qua quy trình kiểm soát chất lượng nghiêm ngặt 3 bước</li>
+    <li><strong>Giá cả minh bạch:</strong> Không giá ảo, không khuyến mãi ảo — giá bạn thấy là giá thực</li>
+    <li><strong>Giao hàng nhanh:</strong> Giao hàng toàn quốc 2-5 ngày. Miễn phí với đơn từ 500.000đ</li>
+    <li><strong>Đổi trả dễ dàng:</strong> 30 ngày đổi trả miễn phí, không cần lý do</li>
+    <li><strong>Bền vững:</strong> Cam kết sử dụng chất liệu thân thiện môi trường</li>
+  </ul>
+
+  <h2>Con số ấn tượng</h2>
+  <table>
+    <tr><td><strong>50.000+</strong></td><td>Khách hàng tin tưởng</td></tr>
+    <tr><td><strong>4.8/5</strong></td><td>Đánh giá trung bình</td></tr>
+    <tr><td><strong>200+</strong></td><td>Mẫu thiết kế mới mỗi tháng</td></tr>
+    <tr><td><strong>63</strong></td><td>Tỉnh thành giao hàng</td></tr>
+  </table>
+
+  <h2>Liên hệ hợp tác</h2>
+  <p>Email: <a href="mailto:partner@fashionvn.com">partner@fashionvn.com</a><br/>
+  Hotline: <a href="tel:1900636899">1900 636 899</a></p>
+</div>
+HTML,
+                'sort' => 1,
+                'status' => 1,
+            ],
+            [
+                'title' => 'Chính sách bảo mật',
+                'alias' => 'privacy-policy',
+                'image' => null,
+                'content' => <<<'HTML'
+<div class="cms-policy">
+  <h1>Chính Sách Bảo Mật</h1>
+  <p class="lead">Fashion VN cam kết bảo vệ quyền riêng tư của bạn. Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân.</p>
+
+  <h2>1. Thông tin chúng tôi thu thập</h2>
+  <ul>
+    <li><strong>Thông tin tài khoản:</strong> Họ tên, email, số điện thoại khi bạn đăng ký tài khoản</li>
+    <li><strong>Thông tin đặt hàng:</strong> Địa chỉ giao hàng, phương thức thanh toán</li>
+    <li><strong>Thông tin duyệt web:</strong> Cookie, IP address, thiết bị sử dụng</li>
+  </ul>
+
+  <h2>2. Mục đích sử dụng</h2>
+  <ul>
+    <li>Xử lý đơn hàng và giao hàng</li>
+    <li>Hỗ trợ khách hàng và giải quyết khiếu nại</li>
+    <li>Gửi thông tin khuyến mãi (nếu bạn đồng ý)</li>
+    <li>Cải thiện trải nghiệm mua sắm</li>
+  </ul>
+
+  <h2>3. Bảo mật thông tin</h2>
+  <p>Chúng tôi sử dụng mã hóa SSL/TLS cho mọi giao dịch. Thông tin thanh toán được xử lý qua cổng thanh toán bảo mật, chúng tôi <strong>không lưu trữ</strong> thông tin thẻ ngân hàng.</p>
+
+  <h2>4. Quyền của bạn</h2>
+  <ul>
+    <li>Quyền truy cập và chỉnh sửa thông tin cá nhân</li>
+    <li>Quyền yêu cầu xóa tài khoản</li>
+    <li>Quyền từ chối nhận email quảng cáo</li>
+  </ul>
+
+  <h2>5. Liên hệ</h2>
+  <p>Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật, vui lòng liên hệ:<br/>
+  Email: <a href="mailto:privacy@fashionvn.com">privacy@fashionvn.com</a><br/>
+  Hotline: <a href="tel:1900636899">1900 636 899</a></p>
+</div>
+HTML,
+                'sort' => 2,
+                'status' => 1,
+            ],
+            [
+                'title' => 'Chính sách đổi trả',
+                'alias' => 'return-policy',
+                'image' => null,
+                'content' => <<<'HTML'
+<div class="cms-policy">
+  <h1>Chính Sách Đổi Trả</h1>
+  <p class="lead">Fashion VN cam kết mang đến trải nghiệm mua sắm an tâm. Bạn có quyền đổi trả sản phẩm trong vòng <strong>30 ngày</strong> kể từ ngày nhận hàng.</p>
+
+  <h2>Điều kiện đổi trả</h2>
+  <ul>
+    <li>Sản phẩm còn nguyên tem, mác, bao bì</li>
+    <li>Chưa qua sử dụng, giặt ủi</li>
+    <li>Có hóa đơn hoặc mã đơn hàng</li>
+    <li>Không áp dụng cho sản phẩm giảm giá trên 50%</li>
+  </ul>
+
+  <h2>Quy trình đổi trả</h2>
+  <ol>
+    <li><strong>Bước 1:</strong> Liên hệ hotline <strong>1900 636 899</strong> hoặc email <a href="mailto:support@fashionvn.com">support@fashionvn.com</a></li>
+    <li><strong>Bước 2:</strong> Cung cấp mã đơn hàng và lý do đổi trả</li>
+    <li><strong>Bước 3:</strong> Gửi sản phẩm qua đường bưu điện (miễn phí)</li>
+    <li><strong>Bước 4:</strong> Nhận sản phẩm mới hoặc hoàn tiền trong 3-5 ngày làm việc</li>
+  </ol>
+
+  <h2>Trường hợp được hoàn tiền 100%</h2>
+  <ul>
+    <li>Sản phẩm bị lỗi do nhà sản xuất</li>
+    <li>Giao sai mẫu, sai size, sai màu</li>
+    <li>Sản phẩm bị hư hỏng trong quá trình vận chuyển</li>
+  </ul>
+
+  <h2>Phương thức hoàn tiền</h2>
+  <table>
+    <tr><th>Phương thức thanh toán</th><th>Hình thức hoàn</th><th>Thời gian</th></tr>
+    <tr><td>COD</td><td>Chuyển khoản ngân hàng</td><td>3-5 ngày</td></tr>
+    <tr><td>Chuyển khoản</td><td>Hoàn về tài khoản gốc</td><td>5-7 ngày</td></tr>
+    <tr><td>Ví MoMo/ZaloPay</td><td>Hoàn về ví</td><td>1-3 ngày</td></tr>
+  </table>
+</div>
+HTML,
+                'sort' => 3,
+                'status' => 1,
+            ],
+            [
+                'title' => 'Hướng dẫn chọn size',
+                'alias' => 'size-guide',
+                'image' => null,
+                'content' => <<<'HTML'
+<div class="cms-size-guide">
+  <h1>Hướng Dẫn Chọn Size</h1>
+  <p class="lead">Để chọn được size phù hợp, bạn hãy tham khảo bảng size dưới đây. Nếu bạn đang phân vân giữa 2 size, hãy chọn size lớn hơn.</p>
+
+  <h2>Bảng size Áo Nam</h2>
+  <table>
+    <tr><th>Size</th><th>Chiều cao (cm)</th><th>Cân nặng (kg)</th><th>Vai (cm)</th><th>Ngực (cm)</th></tr>
+    <tr><td><strong>S</strong></td><td>160 - 165</td><td>50 - 58</td><td>40 - 42</td><td>86 - 92</td></tr>
+    <tr><td><strong>M</strong></td><td>165 - 170</td><td>58 - 65</td><td>42 - 44</td><td>92 - 98</td></tr>
+    <tr><td><strong>L</strong></td><td>170 - 175</td><td>65 - 73</td><td>44 - 46</td><td>98 - 104</td></tr>
+    <tr><td><strong>XL</strong></td><td>175 - 182</td><td>73 - 82</td><td>46 - 48</td><td>104 - 110</td></tr>
+  </table>
+
+  <h2>Bảng size Áo Nữ</h2>
+  <table>
+    <tr><th>Size</th><th>Chiều cao (cm)</th><th>Cân nặng (kg)</th><th>Vai (cm)</th><th>Ngực (cm)</th></tr>
+    <tr><td><strong>S</strong></td><td>150 - 157</td><td>40 - 48</td><td>34 - 36</td><td>78 - 84</td></tr>
+    <tr><td><strong>M</strong></td><td>157 - 163</td><td>48 - 55</td><td>36 - 38</td><td>84 - 90</td></tr>
+    <tr><td><strong>L</strong></td><td>163 - 168</td><td>55 - 62</td><td>38 - 40</td><td>90 - 96</td></tr>
+  </table>
+
+  <h2>Bảng size Quần Jean Nam</h2>
+  <table>
+    <tr><th>Size</th><th>Eo (cm)</th><th>Mông (cm)</th><th>Chiều dài (cm)</th></tr>
+    <tr><td><strong>29</strong></td><td>72 - 76</td><td>88 - 92</td><td>96</td></tr>
+    <tr><td><strong>30</strong></td><td>76 - 80</td><td>92 - 96</td><td>98</td></tr>
+    <tr><td><strong>31</strong></td><td>80 - 84</td><td>96 - 100</td><td>100</td></tr>
+    <tr><td><strong>32</strong></td><td>84 - 88</td><td>100 - 104</td><td>102</td></tr>
+    <tr><td><strong>34</strong></td><td>88 - 92</td><td>104 - 108</td><td>104</td></tr>
+  </table>
+
+  <h2>Mẹo chọn size</h2>
+  <ul>
+    <li>Đo các số đo khi không mặc quần áo</li>
+    <li>Nếu vóc dáng nằm giữa 2 size, chọn size lớn hơn cho thoải mái</li>
+    <li>Áo hoodie/oversize nên chọn đúng size hoặc nhỏ hơn 1 size</li>
+    <li>Nếu chưa chắc chắn, liên hệ hotline để được tư vấn miễn phí</li>
+  </ul>
+</div>
+HTML,
+                'sort' => 4,
+                'status' => 1,
+            ],
+            [
+                'title' => 'Liên hệ',
+                'alias' => 'contact',
+                'image' => null,
+                'content' => <<<'HTML'
+<div class="cms-contact">
+  <h1>Liên Hệ Với Chúng Tôi</h1>
+  <p class="lead">Chúng tôi luôn sẵn sàng lắng nghe bạn. Đừng ngần ngại liên hệ qua bất kỳ kênh nào dưới đây!</p>
+
+  <div class="contact-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin:32px 0">
+    <div class="contact-card" style="padding:24px;border-radius:12px;background:rgba(124,58,237,0.05);border:1px solid rgba(124,58,237,0.1)">
+      <h3>Hỗ trợ khách hàng</h3>
+      <p><strong>Hotline:</strong> 1900 636 899<br/><em>(8:00 - 21:00, T2 - CN)</em></p>
+      <p><strong>Email:</strong> <a href="mailto:support@fashionvn.com">support@fashionvn.com</a></p>
+      <p><strong>Zalo:</strong> 0901 234 567</p>
+    </div>
+
+    <div class="contact-card" style="padding:24px;border-radius:12px;background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.1)">
+      <h3>Văn phòng chính</h3>
+      <p><strong>Địa chỉ:</strong> Tầng 15, Tòa nhà Landmark 81,<br/>720A Điện Biên Phủ, P.22, Q.Bình Thạnh, TP.HCM</p>
+      <p><strong>Giờ làm việc:</strong><br/>Thứ 2 - Thứ 6: 8:30 - 17:30<br/>Thứ 7: 9:00 - 12:00</p>
+    </div>
+
+    <div class="contact-card" style="padding:24px;border-radius:12px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.1)">
+      <h3>Hợp tác kinh doanh</h3>
+      <p><strong>Email:</strong> <a href="mailto:partner@fashionvn.com">partner@fashionvn.com</a></p>
+      <p><strong>Tel:</strong> 028 3636 8999</p>
+      <p>Nhượng quyền, đại lý, đối tác logistics</p>
+    </div>
+  </div>
+
+  <h2>Theo dõi chúng tôi</h2>
+  <p>
+    <a href="https://facebook.com/fashionvn" target="_blank">Facebook</a> •
+    <a href="https://instagram.com/fashionvn" target="_blank">Instagram</a> •
+    <a href="https://tiktok.com/@fashionvn" target="_blank">TikTok</a> •
+    <a href="https://youtube.com/@fashionvn" target="_blank">YouTube</a>
+  </p>
+</div>
+HTML,
+                'sort' => 5,
+                'status' => 1,
+            ],
         ];
         foreach ($pages as $p) {
             $p['created_at'] = $p['updated_at'] = now();
             $db->table('cms_pages')->insert($p);
+        }
+
+        // ═══════════════════════════════
+        // System Configs — Store Branding
+        // ═══════════════════════════════
+        echo "🏪 Seeding system configs (store branding)...\n";
+        $db->table('system_configs')->where('group_name', 'store')->delete();
+        $db->table('system_configs')->where('group_name', 'storefront_layout')->delete();
+
+        $storeConfigs = [
+            ['group_name' => 'store', 'key' => 'shop_name', 'value' => 'Fashion VN'],
+            ['group_name' => 'store', 'key' => 'shop_tagline', 'value' => 'Thời trang Việt — Phong cách quốc tế'],
+            ['group_name' => 'store', 'key' => 'description', 'value' => 'Fashion VN — Thương hiệu thời trang hàng đầu Việt Nam. Thiết kế hiện đại, chất liệu cao cấp, giá cả hợp lý. Miễn phí giao hàng cho đơn từ 500K.'],
+            ['group_name' => 'store', 'key' => 'logo', 'value' => '/storage/clothing/logo.png'],
+            ['group_name' => 'store', 'key' => 'favicon', 'value' => '/storage/clothing/favicon.ico'],
+            ['group_name' => 'store', 'key' => 'email', 'value' => 'support@fashionvn.com'],
+            ['group_name' => 'store', 'key' => 'phone', 'value' => '1900 636 899'],
+            ['group_name' => 'store', 'key' => 'address', 'value' => 'Tầng 15, Landmark 81, 720A Điện Biên Phủ, Bình Thạnh, TP.HCM'],
+            ['group_name' => 'store', 'key' => 'hotline', 'value' => '1900 636 899'],
+            ['group_name' => 'store', 'key' => 'zalo', 'value' => '0901234567'],
+            ['group_name' => 'store', 'key' => 'facebook', 'value' => 'https://facebook.com/fashionvn'],
+            ['group_name' => 'store', 'key' => 'instagram', 'value' => 'https://instagram.com/fashionvn'],
+            ['group_name' => 'store', 'key' => 'tiktok', 'value' => 'https://tiktok.com/@fashionvn'],
+            ['group_name' => 'store', 'key' => 'youtube', 'value' => 'https://youtube.com/@fashionvn'],
+            ['group_name' => 'store', 'key' => 'copyright', 'value' => '© 2026 Fashion VN. All rights reserved.'],
+            ['group_name' => 'store', 'key' => 'currency', 'value' => 'VND'],
+            ['group_name' => 'store', 'key' => 'currency_symbol', 'value' => '₫'],
+            ['group_name' => 'store', 'key' => 'free_shipping_threshold', 'value' => '500000'],
+            ['group_name' => 'store', 'key' => 'meta_title', 'value' => 'Fashion VN — Thời Trang Việt Nam Chất Lượng Cao'],
+            ['group_name' => 'store', 'key' => 'meta_description', 'value' => 'Mua sắm thời trang nam nữ online tại Fashion VN. Thiết kế Việt, chất lượng quốc tế. Miễn phí giao hàng toàn quốc.'],
+        ];
+
+        foreach ($storeConfigs as $sc) {
+            $sc['created_at'] = $sc['updated_at'] = now();
+            $db->table('system_configs')->insert($sc);
+        }
+
+        // ═══════════════════════════════
+        // System Configs — Storefront Layout
+        // ═══════════════════════════════
+        echo "🎨 Seeding storefront layout config...\n";
+        $layoutSections = json_encode([
+            ['type' => 'banner', 'enabled' => true, 'order' => 0, 'params' => ['autoplay' => true, 'interval' => 4000, 'height' => 'lg']],
+            ['type' => 'categories', 'enabled' => true, 'order' => 1, 'params' => ['columns' => 5, 'showDescription' => true]],
+            ['type' => 'flash_sale', 'enabled' => true, 'order' => 2, 'params' => ['showTimer' => true, 'showProgress' => true]],
+            ['type' => 'featured_products', 'enabled' => true, 'order' => 3, 'params' => ['title' => 'Sản phẩm bán chạy', 'count' => 8, 'columns' => 4]],
+            ['type' => 'testimonials', 'enabled' => true, 'order' => 4, 'params' => ['title' => 'Khách hàng nói gì', 'columns' => 3], 'content' => [
+                ['name' => 'Trần Minh', 'text' => 'Mua áo polo chất vải rất mềm, form đẹp. Sẽ mua tiếp!', 'rating' => 5],
+                ['name' => 'Ngọc Anh', 'text' => 'Váy đầm hoa nhí quá xinh, đúng size luôn. Giao nhanh 2 ngày.', 'rating' => 5],
+                ['name' => 'Hùng Nguyễn', 'text' => 'Jean slim fit co giãn tốt, mặc thoải mái cả ngày đi làm.', 'rating' => 4],
+            ]],
+            ['type' => 'new_arrivals', 'enabled' => true, 'order' => 5, 'params' => ['title' => 'Hàng mới về', 'count' => 4]],
+            ['type' => 'newsletter', 'enabled' => true, 'order' => 6, 'params' => ['title' => 'Nhận ưu đãi độc quyền'], 'content' => []],
+            ['type' => 'social_feed', 'enabled' => true, 'order' => 7, 'params' => ['title' => 'Kết nối với Fashion VN'], 'content' => [
+                ['platform' => 'facebook', 'label' => 'Facebook', 'url' => 'https://facebook.com/fashionvn'],
+                ['platform' => 'instagram', 'label' => 'Instagram', 'url' => 'https://instagram.com/fashionvn'],
+                ['platform' => 'tiktok', 'label' => 'TikTok', 'url' => 'https://tiktok.com/@fashionvn'],
+                ['platform' => 'youtube', 'label' => 'YouTube', 'url' => 'https://youtube.com/@fashionvn'],
+            ]],
+            ['type' => 'cms_pages', 'enabled' => true, 'order' => 8, 'params' => ['layout' => 'grid', 'maxPages' => 6]],
+        ]);
+        $layoutPages = json_encode([
+            'cart' => true, 'account' => true, 'auth' => true,
+            'order_tracking' => true, 'products' => true,
+        ]);
+
+        $layoutConfigs = [
+            ['group_name' => 'storefront_layout', 'key' => 'layout_sections', 'value' => $layoutSections],
+            ['group_name' => 'storefront_layout', 'key' => 'layout_pages', 'value' => $layoutPages],
+            ['group_name' => 'storefront_layout', 'key' => 'layout_template', 'value' => 'full_store'],
+            ['group_name' => 'storefront_layout', 'key' => 'layout_custom_css', 'value' => '/* Fashion VN Custom */
+.section-title { letter-spacing: -0.5px; }
+.cms-about .lead, .cms-policy .lead, .cms-contact .lead { font-size: 18px; color: var(--sf-text-secondary); line-height: 1.7; }
+.cms-about table, .cms-policy table, .cms-size-guide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.cms-about table td, .cms-about table th, .cms-policy table td, .cms-policy table th, .cms-size-guide table td, .cms-size-guide table th { padding: 10px 14px; border: 1px solid var(--sf-border); text-align: left; }
+.cms-about table th, .cms-policy table th, .cms-size-guide table th { background: var(--sf-bg-card); font-weight: 700; }'],
+        ];
+        foreach ($layoutConfigs as $lc) {
+            $lc['created_at'] = $lc['updated_at'] = now();
+            $db->table('system_configs')->insert($lc);
+        }
+
+        // ═══════════════════════════════
+        // Nav Links (Header + Footer)
+        // ═══════════════════════════════
+        echo "🔗 Seeding nav links...\n";
+        $db->table('nav_links')->delete();
+        $navLinks = [
+            // Header links
+            ['label' => 'Sản phẩm', 'url' => '/products', 'type' => 'header', 'sort' => 1, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Flash Sale', 'url' => '/#flash-sale', 'type' => 'header', 'sort' => 2, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Về chúng tôi', 'url' => '/page/about', 'type' => 'header', 'sort' => 3, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Liên hệ', 'url' => '/page/contact', 'type' => 'header', 'sort' => 4, 'status' => 1, 'parent_id' => null],
+            // Footer links
+            ['label' => 'Về chúng tôi', 'url' => '/page/about', 'type' => 'footer', 'sort' => 1, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Chính sách đổi trả', 'url' => '/page/return-policy', 'type' => 'footer', 'sort' => 2, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Chính sách bảo mật', 'url' => '/page/privacy-policy', 'type' => 'footer', 'sort' => 3, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Hướng dẫn chọn size', 'url' => '/page/size-guide', 'type' => 'footer', 'sort' => 4, 'status' => 1, 'parent_id' => null],
+            ['label' => 'Liên hệ', 'url' => '/page/contact', 'type' => 'footer', 'sort' => 5, 'status' => 1, 'parent_id' => null],
+        ];
+        foreach ($navLinks as $nl) {
+            $nl['created_at'] = $nl['updated_at'] = now();
+            $db->table('nav_links')->insert($nl);
         }
 
         // ═══════════════════════════════
@@ -458,11 +773,11 @@ class ClothingTenantSeeder extends Seeder
             ]);
         }
 
-        // Shop settings table doesn't exist in this schema — skipped
-
         echo "\n✅ ClothingTenantSeeder completed! 🎉\n";
         echo "   📂 5 categories | 🏷️ 4 brands | 👕 10 products | 🎨 {$totalVariants} variants\n";
-        echo "   🖼️ 3 banners | 📝 3 CMS pages | 🧑 4 customers | 🛒 5 orders\n";
+        echo "   🖼️ 3 banners | 📝 5 CMS pages | 🧑 4 customers | 🛒 5 orders\n";
+        echo "   🏪 20 store configs | 🎨 4 layout configs | 🔗 9 nav links\n";
         echo "\n   🔐 CMS Login: admin@fashionvn.com / password\n";
     }
 }
+

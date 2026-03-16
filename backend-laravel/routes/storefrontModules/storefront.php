@@ -27,6 +27,7 @@ Route::get('/orders/{id}', [\App\Http\Controllers\Tenant\StorefrontController::c
 Route::get('/languages', [\App\Http\Controllers\Tenant\StorefrontController::class, 'languages']);
 Route::get('/translations/{langCode}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'translations']);
 Route::get('/theme', [\App\Http\Controllers\Tenant\StorefrontController::class, 'theme']);
+Route::get('/storefront-layout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storefrontLayout']);
 Route::get('/featured-products', [\App\Http\Controllers\Tenant\StorefrontController::class, 'featuredProducts']);
 Route::get('/flash-sales', [\App\Http\Controllers\Tenant\StorefrontController::class, 'flashSales']);
 Route::get('/orders', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storefrontOrders'])

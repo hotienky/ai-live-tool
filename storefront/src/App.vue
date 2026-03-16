@@ -1,19 +1,19 @@
 <template>
   <div class="storefront-app">
-    <SiteHeader :storeName="storeInfo?.shop_name" />
-    <main class="storefront-main">
+    <SiteHeader v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
+    <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
     </main>
-    <SiteFooter :storeName="storeInfo?.shop_name" />
+    <SiteFooter v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, provide, onErrorCaptured } from 'vue'
+import { ref, computed, onMounted, watch, provide, onErrorCaptured } from 'vue'
 import { apiFetch } from './api.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
@@ -33,6 +33,12 @@ const { init: initI18n } = useI18n()
 const { setOrganizationSeo } = useSeo()
 
 const storeInfo = ref(null)
+const layoutConfig = ref(null)
+
+// Preview mode: read layout from URL query param
+const urlParams = new URLSearchParams(window.location.search)
+const previewParam = urlParams.get('preview_layout')
+const isPreviewMode = !!previewParam
 
 async function loadStoreInfo() {
   try {
@@ -49,16 +55,67 @@ async function loadStoreInfo() {
   } catch { /* ignore */ }
 }
 
+async function loadLayoutConfig() {
+  // In preview mode, read from URL param
+  if (isPreviewMode && previewParam) {
+    try {
+      const json = decodeURIComponent(escape(atob(previewParam)))
+      const parsed = JSON.parse(json)
+      layoutConfig.value = {
+        sections: parsed.sections || [],
+        pages: parsed.pages || {},
+        template: parsed.template || 'full_store',
+        customCss: parsed.customCss || '',
+      }
+      injectCustomCss(layoutConfig.value.customCss)
+      return
+    } catch { /* fall through to API */ }
+  }
+
+  try {
+    layoutConfig.value = await apiFetch('/storefront-layout')
+    if (layoutConfig.value?.customCss) {
+      injectCustomCss(layoutConfig.value.customCss)
+    }
+  } catch {
+    layoutConfig.value = {
+      sections: [
+        { type: 'banner', enabled: true, order: 0 },
+        { type: 'categories', enabled: true, order: 1 },
+        { type: 'flash_sale', enabled: true, order: 2 },
+        { type: 'featured_products', enabled: true, order: 3 },
+        { type: 'new_arrivals', enabled: true, order: 4 },
+        { type: 'cms_pages', enabled: true, order: 5 },
+      ],
+      pages: { cart: true, account: true, auth: true, order_tracking: true, products: true },
+      template: 'full_store',
+    }
+  }
+}
+
+// Inject custom CSS
+let customStyleEl = null
+function injectCustomCss(css) {
+  if (!css) return
+  if (customStyleEl) customStyleEl.remove()
+  customStyleEl = document.createElement('style')
+  customStyleEl.setAttribute('data-custom-layout', '')
+  customStyleEl.textContent = css
+  document.head.appendChild(customStyleEl)
+}
+
 onMounted(async () => {
   await Promise.all([
     loadStoreInfo(),
+    loadLayoutConfig(),
     initTheme(),
     initI18n(),
   ])
 })
 
-// Provide store info globally
+// Provide store info and layout config globally
 provide('storeInfo', storeInfo)
+provide('layoutConfig', layoutConfig)
 </script>
 
 <style scoped>
@@ -71,4 +128,8 @@ provide('storeInfo', storeInfo)
   flex: 1;
   padding-top: var(--sf-header-height);
 }
+.storefront-main--preview {
+  padding-top: 0;
+}
 </style>
+

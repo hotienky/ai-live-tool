@@ -324,6 +324,11 @@
         <CmsManager />
       </div>
 
+      <!-- ═══ Tab: Storefront Layout ═══ -->
+      <div v-if="activeTab === 'storefront-layout'" class="settings__panel">
+        <StorefrontLayoutBuilder />
+      </div>
+
       <!-- ═══ Tab: Banners ═══ -->
       <div v-if="activeTab === 'banners'" class="settings__panel">
         <BannerManager />
@@ -432,6 +437,7 @@ import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
 import ShippingSettings from './ShippingSettings.vue'
+import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useBrands } from '../composables/useBrands.js'
@@ -450,7 +456,7 @@ const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -511,6 +517,7 @@ const tabGroups = [
       { key: 'banners', label: 'Banner', icon: Video },
       { key: 'nav-links', label: 'Menu', icon: ClipboardList },
       { key: 'appearance', label: 'Theme', icon: Palette },
+      { key: 'storefront-layout', label: 'Bố cục Store', icon: LayoutList },
     ],
   },
   {
@@ -540,7 +547,7 @@ const tabToRoute = {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 const ordersTabs = ['orders', 'shop-customers']
 
 const activeTabGroups = computed(() => {

@@ -80,20 +80,22 @@
         </div>
 
         <!-- Cart -->
-        <router-link :to="'/cart'" class="site-header__cart-btn" active-class="active">
+        <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__cart-btn" active-class="active">
           <ShoppingCart :size="16" />
           <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
         </router-link>
 
         <!-- Auth -->
-        <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
-          <User :size="16" />
-          <span>{{ customer?.first_name || 'Tài khoản' }}</span>
-        </router-link>
-        <router-link v-else :to="'/auth'" class="site-header__auth-btn">
-          <User :size="16" />
-          <span>Đăng nhập</span>
-        </router-link>
+        <template v-if="pageEnabled.account || pageEnabled.auth">
+          <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
+            <User :size="16" />
+            <span>{{ customer?.first_name || 'Tài khoản' }}</span>
+          </router-link>
+          <router-link v-else :to="'/auth'" class="site-header__auth-btn">
+            <User :size="16" />
+            <span>Đăng nhập</span>
+          </router-link>
+        </template>
 
         <!-- Theme Toggle -->
         <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
@@ -121,16 +123,18 @@
           <component v-if="link.icon && iconMap[link.icon]" :is="iconMap[link.icon]" :size="16" />
           {{ link.name }}
         </router-link>
-        <router-link :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
+        <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
           <ShoppingCart :size="16" /> Giỏ hàng
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
-        <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <User :size="16" /> {{ customer?.first_name || 'Tài khoản' }}
-        </router-link>
-        <router-link v-else :to="'/auth'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <User :size="16" /> Đăng nhập
-        </router-link>
+        <template v-if="pageEnabled.account || pageEnabled.auth">
+          <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
+            <User :size="16" /> {{ customer?.first_name || 'Tài khoản' }}
+          </router-link>
+          <router-link v-else :to="'/auth'" class="site-header__mobile-link" @click="mobileMenu = false">
+            <User :size="16" /> Đăng nhập
+          </router-link>
+        </template>
         <div class="site-header__mobile-search">
           <Search :size="16" />
           <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch(); mobileMenu = false" />
@@ -141,7 +145,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import {
@@ -160,6 +164,9 @@ import { useCart } from '../composables/useCart.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const pageEnabled = computed(() => layoutConfig.value?.pages || { cart: true, account: true, auth: true, order_tracking: true, products: true })
 
 // Lucide icon map for dynamic rendering
 const iconMap = {
