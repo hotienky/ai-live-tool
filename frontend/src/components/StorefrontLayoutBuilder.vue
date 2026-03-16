@@ -273,7 +273,16 @@
           ></iframe>
           <div v-else class="preview-no-url">
             <AlertCircle :size="24" />
-            <p>Cấu hình URL storefront trong System Config để sử dụng Live Preview</p>
+            <p>Nhập URL storefront để sử dụng Live Preview</p>
+            <div class="preview-url-input">
+              <input
+                v-model="storefrontUrl"
+                type="url"
+                placeholder="https://store.fashionvn.com"
+                @keyup.enter="previewKey++"
+              />
+              <button class="btn-sm" @click="previewKey++" :disabled="!storefrontUrl">Xem</button>
+            </div>
           </div>
         </div>
       </div>
@@ -553,6 +562,7 @@ async function saveLayout() {
           { key: 'layout_pages', value: JSON.stringify(pages.value) },
           { key: 'layout_template', value: activeTemplate.value },
           { key: 'layout_custom_css', value: customCss.value },
+          { key: 'storefront_url', value: storefrontUrl.value },
         ],
       }),
     })
@@ -779,6 +789,11 @@ onMounted(loadLayout)
   padding: 40px 20px; color: var(--color-text-muted); text-align: center;
 }
 .preview-no-url p { font-size: 12px; }
+.preview-url-input { display: flex; gap: 6px; width: 100%; max-width: 320px; margin-top: 4px; }
+.preview-url-input input { flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-2); color: var(--text-1); font-size: 12px; }
+.preview-url-input input:focus { outline: none; border-color: var(--accent); }
+.preview-url-input .btn-sm { padding: 6px 14px; border-radius: 6px; border: none; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; }
+.preview-url-input .btn-sm:disabled { opacity: .4; cursor: not-allowed; }
 
 /* Library Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center; z-index: 1000; }

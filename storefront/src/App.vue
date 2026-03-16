@@ -43,13 +43,29 @@ const isPreviewMode = !!previewParam
 async function loadStoreInfo() {
   try {
     storeInfo.value = await apiFetch('/info')
-    if (storeInfo.value?.shop_name) {
-      document.title = `${storeInfo.value.shop_name} — Cửa hàng trực tuyến`
+    const info = storeInfo.value
+    if (info?.shop_name) {
+      document.title = info.meta_title || `${info.shop_name} — Cửa hàng trực tuyến`
+      // Favicon
+      if (info.favicon) {
+        let link = document.querySelector("link[rel*='icon']") || document.createElement('link')
+        link.type = 'image/x-icon'
+        link.rel = 'shortcut icon'
+        link.href = info.favicon
+        document.head.appendChild(link)
+      }
+      // Meta description
+      if (info.meta_description || info.description) {
+        let meta = document.querySelector('meta[name="description"]') || document.createElement('meta')
+        meta.name = 'description'
+        meta.content = info.meta_description || info.description
+        document.head.appendChild(meta)
+      }
       // C2: Organization JSON-LD
       setOrganizationSeo({
-        name: storeInfo.value.shop_name,
-        description: storeInfo.value.description || '',
-        logo: storeInfo.value.logo || '',
+        name: info.shop_name,
+        description: info.description || '',
+        logo: info.logo || '',
       })
     }
   } catch { /* ignore */ }

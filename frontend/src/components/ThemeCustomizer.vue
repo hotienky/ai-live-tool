@@ -103,6 +103,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 
 const { showToast } = useToast()
+const emit = defineEmits(['saved'])
 const saving = ref(false)
 
 const fonts = ['Inter', 'Roboto', 'Outfit', 'Plus Jakarta Sans']
@@ -174,6 +175,7 @@ async function saveTheme() {
       body: JSON.stringify(payload),
     })
     showToast('Đã lưu giao diện thành công!', 'success')
+    emit('saved')
   } catch (e) {
     showToast('Lỗi lưu giao diện', 'error')
   } finally {

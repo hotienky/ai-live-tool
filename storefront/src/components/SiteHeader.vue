@@ -3,7 +3,8 @@
     <div class="site-header__inner container">
       <!-- Logo -->
       <router-link :to="'/'" class="site-header__logo">
-        <Store :size="22" />
+        <img v-if="logoUrl" :src="logoUrl" :alt="storeName" class="site-header__logo-img" />
+        <Store v-else :size="22" />
         <span class="site-header__name">{{ storeName || 'Shop' }}</span>
       </router-link>
 
@@ -166,7 +167,9 @@ import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
 
 const layoutConfig = inject('layoutConfig', ref(null))
+const storeInfo = inject('storeInfo', ref(null))
 const pageEnabled = computed(() => layoutConfig.value?.pages || { cart: true, account: true, auth: true, order_tracking: true, products: true })
+const logoUrl = computed(() => storeInfo.value?.logo || '')
 
 // Lucide icon map for dynamic rendering
 const iconMap = {
@@ -292,6 +295,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 
 .site-header__logo svg {
   color: var(--sf-accent-light);
+}
+.site-header__logo-img {
+  width: 28px; height: 28px; border-radius: 6px; object-fit: contain;
 }
 
 .site-header__name {

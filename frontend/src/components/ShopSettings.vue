@@ -30,63 +30,108 @@
       <div class="settings__content">
 
         <!-- ═══ Tab: Appearance ═══ -->
-        <div v-if="activeTab === 'appearance'" class="settings__panel">
-          <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện</h3>
+        <div v-if="activeTab === 'appearance'" class="settings__panel appearance-split">
+          <!-- Left: Controls -->
+          <div class="appearance-split__controls">
+            <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện CMS</h3>
 
-          <!-- Theme Mode -->
-          <div class="settings__section">
-            <label class="settings__field-label">Chế độ</label>
-            <div class="theme-mode-selector">
-              <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-                <Sun :size="16" /> Sáng
-              </button>
-              <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-                <Moon :size="16" /> Tối
-              </button>
-              <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
-                <MonitorIcon :size="16" /> Hệ thống
-              </button>
+            <!-- Theme Mode -->
+            <div class="settings__section">
+              <label class="settings__field-label">Chế độ</label>
+              <div class="theme-mode-selector">
+                <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
+                  <Sun :size="16" /> Sáng
+                </button>
+                <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
+                  <Moon :size="16" /> Tối
+                </button>
+                <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
+                  <MonitorIcon :size="16" /> Hệ thống
+                </button>
+              </div>
+            </div>
+
+            <!-- Accent Color -->
+            <div class="settings__section">
+              <label class="settings__field-label">Màu nhấn</label>
+              <div class="accent-picker">
+                <button
+                  v-for="(preset, name) in accentPresets"
+                  :key="name"
+                  class="accent-swatch"
+                  :class="{ active: accentColor === name }"
+                  :style="{ '--swatch': preset.primary }"
+                  @click="setAccent(name)"
+                  :title="name"
+                >
+                  <span class="accent-swatch__dot"></span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Font Size -->
+            <div class="settings__section">
+              <label class="settings__field-label">Cỡ chữ</label>
+              <div class="font-size-selector">
+                <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
+                  <span style="font-size:12px">A</span> Nhỏ gọn
+                </button>
+                <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
+                  <span style="font-size:14px">A</span> Bình thường
+                </button>
+                <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
+                  <span style="font-size:16px">A</span> Thoải mái
+                </button>
+              </div>
+            </div>
+
+            <!-- Storefront Theme Customizer -->
+            <div style="margin-top: 24px">
+              <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Storefront</h3>
+              <ThemeCustomizer @saved="onThemeSaved" />
             </div>
           </div>
 
-          <!-- Accent Color -->
-          <div class="settings__section">
-            <label class="settings__field-label">Màu nhấn</label>
-            <div class="accent-picker">
-              <button
-                v-for="(preset, name) in accentPresets"
-                :key="name"
-                class="accent-swatch"
-                :class="{ active: accentColor === name }"
-                :style="{ '--swatch': preset.primary }"
-                @click="setAccent(name)"
-                :title="name"
-              >
-                <span class="accent-swatch__dot"></span>
+          <!-- Right: Live Preview -->
+          <div class="appearance-split__preview">
+            <div class="ap-header">
+              <h4 class="ap-title"><Eye :size="14" /> Xem trước</h4>
+              <div class="ap-device-btns">
+                <button :class="{ active: apDevice === 'desktop' }" @click="apDevice = 'desktop'" title="Desktop">
+                  <MonitorIcon :size="14" />
+                </button>
+                <button :class="{ active: apDevice === 'tablet' }" @click="apDevice = 'tablet'" title="Tablet">
+                  <Tablet :size="14" />
+                </button>
+                <button :class="{ active: apDevice === 'mobile' }" @click="apDevice = 'mobile'" title="Mobile">
+                  <Smartphone :size="14" />
+                </button>
+              </div>
+              <button class="ap-refresh" @click="apPreviewKey++" title="Làm mới">
+                <RotateCcw :size="13" />
               </button>
             </div>
-          </div>
-
-          <!-- Font Size -->
-          <div class="settings__section">
-            <label class="settings__field-label">Cỡ chữ</label>
-            <div class="font-size-selector">
-              <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
-                <span style="font-size:12px">A</span> Nhỏ gọn
-              </button>
-              <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
-                <span style="font-size:14px">A</span> Bình thường
-              </button>
-              <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
-                <span style="font-size:16px">A</span> Thoải mái
-              </button>
+            <div class="ap-iframe-wrap" :class="'ap-iframe-wrap--' + apDevice">
+              <iframe
+                v-if="apStorefrontUrl"
+                :src="apStorefrontUrl"
+                :key="apPreviewKey"
+                class="ap-iframe"
+              ></iframe>
+              <div v-else class="ap-no-url">
+                <AlertCircle :size="22" />
+                <p>Nhập URL storefront để xem trước</p>
+                <div class="ap-url-input">
+                  <input
+                    v-model="apUrlInput"
+                    type="url"
+                    placeholder="https://store.fashionvn.com"
+                    @keyup.enter="apStorefrontUrl = apUrlInput; apPreviewKey++"
+                  />
+                  <button @click="apStorefrontUrl = apUrlInput; apPreviewKey++" :disabled="!apUrlInput">Xem</button>
+                </div>
+              </div>
             </div>
-          </div>
-
-          <!-- Storefront Theme Customizer -->
-          <div style="margin-top: 24px">
-            <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Storefront</h3>
-            <ThemeCustomizer />
           </div>
         </div>
 
@@ -418,6 +463,7 @@ import {
   FolderTree, Award, Users, Tag,
   Cog, KeyRound, Globe, LayoutList,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
+  Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
 import PromotionManager from './PromotionManager.vue'
@@ -455,6 +501,32 @@ const props = defineProps({
 const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
+
+// ── Appearance Live Preview ──
+const apDevice = ref('desktop')
+const apPreviewKey = ref(0)
+const apStorefrontUrl = ref('')
+const apUrlInput = ref('')
+
+function onThemeSaved() {
+  apPreviewKey.value++
+}
+
+async function loadStorefrontUrl() {
+  try {
+    const res = await apiFetch('/system-config/group/storefront_layout')
+    const map = res?.data || res || {}
+    if (typeof map === 'object') {
+      for (const [k, v] of Object.entries(map)) {
+        if (k === 'storefront_url' && v) {
+          apStorefrontUrl.value = v
+          apUrlInput.value = v
+          return
+        }
+      }
+    }
+  } catch { /* ignore */ }
+}
 
 const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
@@ -822,6 +894,7 @@ async function saveModerationConfig() {
   }
 }
 onMounted(() => {
+  loadStorefrontUrl()
   if (props.currentShop) {
     // Load moderation config from shop data
     moderationConfig.value = {
@@ -1002,6 +1075,85 @@ defineExpose({ handleAutoReplyEvent })
 
 .settings__panel {
   background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); padding: 20px;
+}
+
+/* ═══ Appearance Split Layout ═══ */
+.appearance-split {
+  display: flex !important; gap: 20px; padding: 0 !important;
+  background: transparent !important; border: none !important;
+}
+.appearance-split__controls {
+  flex: 1; min-width: 0; max-height: calc(100vh - 140px); overflow-y: auto;
+  padding: 20px; background: var(--color-bg-secondary); border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+.appearance-split__preview {
+  width: 420px; flex-shrink: 0; display: flex; flex-direction: column;
+  background: var(--color-bg-secondary); border-radius: 12px;
+  border: 1px solid var(--color-border); overflow: hidden;
+}
+.ap-header {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+.ap-title {
+  font-size: 13px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 6px;
+  color: var(--color-text-primary); flex: 1;
+}
+.ap-device-btns {
+  display: flex; gap: 2px;
+}
+.ap-device-btns button {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 28px; border-radius: 6px; border: 1px solid transparent;
+  background: none; color: var(--color-text-muted); cursor: pointer; transition: all 0.15s;
+}
+.ap-device-btns button:hover { color: var(--color-text-primary); }
+.ap-device-btns button.active {
+  background: var(--color-accent-primary); color: #fff; border-color: var(--color-accent-primary);
+}
+.ap-refresh {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--color-border);
+  background: var(--color-bg-card-solid); color: var(--color-text-muted); cursor: pointer;
+  transition: all 0.2s;
+}
+.ap-refresh:hover { color: var(--color-text-primary); border-color: var(--color-text-muted); }
+.ap-iframe-wrap {
+  flex: 1; display: flex; justify-content: center; background: var(--color-bg-inset, #0006);
+  padding: 8px; overflow: hidden; transition: all 0.3s;
+}
+.ap-iframe-wrap--desktop .ap-iframe { width: 100%; }
+.ap-iframe-wrap--tablet .ap-iframe { width: 768px; max-width: 100%; }
+.ap-iframe-wrap--mobile .ap-iframe { width: 375px; max-width: 100%; }
+.ap-iframe {
+  border: none; border-radius: 8px; background: #fff;
+  height: calc(100vh - 200px); transition: width 0.3s;
+}
+.ap-no-url {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; padding: 40px 20px; color: var(--color-text-muted); text-align: center;
+  width: 100%;
+}
+.ap-no-url p { font-size: 12px; margin: 0; }
+.ap-url-input {
+  display: flex; gap: 6px; width: 100%; max-width: 300px; margin-top: 4px;
+}
+.ap-url-input input {
+  flex: 1; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--color-border);
+  background: var(--color-bg-card-solid); color: var(--color-text-primary); font-size: 12px;
+}
+.ap-url-input input:focus { outline: none; border-color: var(--color-accent-primary); }
+.ap-url-input button {
+  padding: 6px 14px; border-radius: 6px; border: none;
+  background: var(--color-accent-primary, #7c3aed); color: #fff;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.ap-url-input button:disabled { opacity: .4; cursor: not-allowed; }
+@media (max-width: 1024px) {
+  .appearance-split { flex-direction: column; }
+  .appearance-split__preview { width: 100%; }
+  .ap-iframe { height: 400px; }
 }
 .settings__panel-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
 .settings__field { margin-bottom: 14px; }

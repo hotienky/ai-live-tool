@@ -677,6 +677,7 @@ HTML,
 .cms-about table, .cms-policy table, .cms-size-guide table { width: 100%; border-collapse: collapse; margin: 16px 0; }
 .cms-about table td, .cms-about table th, .cms-policy table td, .cms-policy table th, .cms-size-guide table td, .cms-size-guide table th { padding: 10px 14px; border: 1px solid var(--sf-border); text-align: left; }
 .cms-about table th, .cms-policy table th, .cms-size-guide table th { background: var(--sf-bg-card); font-weight: 700; }'],
+            ['group_name' => 'storefront_layout', 'key' => 'storefront_url', 'value' => 'https://fashionvn.store'],
         ];
         foreach ($layoutConfigs as $lc) {
             $lc['created_at'] = $lc['updated_at'] = now();
