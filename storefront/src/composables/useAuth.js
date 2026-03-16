@@ -27,18 +27,28 @@ function clearSession() {
 }
 
 /**
+ * Unwrap API envelope: { type: "success", data: ... } → data
+ */
+function unwrap(json) {
+  if (json && typeof json === 'object' && 'data' in json && json.type) {
+    return json.data
+  }
+  return json
+}
+
+/**
  * Make authenticated API call with customer headers
  */
 async function authFetch(path, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
-    ...(customer.value ? { 'X-Customer-Id': String(customer.value.id) } : {}),
+    ...(token.value ? { 'Authorization': `Bearer ${token.value}` } : {}),
     ...options.headers,
   }
   const res = await fetch(`/api/shop/auth${path}`, { ...options, headers })
   const data = await res.json()
-  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`)
-  return data
+  if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`)
+  return unwrap(data)
 }
 
 export function useAuth() {
@@ -102,7 +112,7 @@ export function useAuth() {
   async function changePassword(currentPassword, newPassword) {
     return authFetch('/password', {
       method: 'PUT',
-      body: JSON.stringify({ currentPassword, newPassword }),
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
     })
   }
 
@@ -127,6 +137,7 @@ export function useAuth() {
     isLoggedIn,
     loading,
     error,
+    authFetch,
     login,
     register,
     forgotPassword,

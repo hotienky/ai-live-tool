@@ -19,11 +19,23 @@ class ShopAuthController extends Controller
     {
         try {
             $data = $request->validate([
-                'name' => 'required|string',
+                'name' => 'nullable|string',
+                'first_name' => 'nullable|string',
+                'last_name' => 'nullable|string',
+                'firstName' => 'nullable|string',
+                'lastName' => 'nullable|string',
                 'email' => 'required|email',
                 'password' => 'required|string|min:6',
                 'phone' => 'nullable|string',
             ]);
+
+            // Build name from firstName/lastName if name not provided
+            $firstName = $data['first_name'] ?? $data['firstName'] ?? '';
+            $lastName = $data['last_name'] ?? $data['lastName'] ?? '';
+            $name = $data['name'] ?? trim("$firstName $lastName");
+            if (empty($name)) {
+                return $this->validationErrorResponse(['name' => ['The name field is required.']]);
+            }
 
             $existing = $this->repo->findByEmail($data['email']);
             if ($existing) {
@@ -31,11 +43,12 @@ class ShopAuthController extends Controller
             }
 
             $customer = $this->repo->store([
-                'name' => $data['name'],
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'email' => $data['email'],
                 'password' => Hash::make($data['password']),
                 'phone' => $data['phone'] ?? null,
-                'is_active' => true,
+                'status' => 1,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -74,11 +87,30 @@ class ShopAuthController extends Controller
         return $this->successResponse($customer);
     }
 
+    public function myOrders(Request $request)
+    {
+        $customer = $request->attributes->get('shop_customer');
+        $orders = \Illuminate\Support\Facades\DB::table('orders')
+            ->where('customer_phone', $customer->phone)
+            ->orWhere('customer_email', $customer->email)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get();
+
+        // Load details for each order
+        foreach ($orders as &$order) {
+            $order->details = \Illuminate\Support\Facades\DB::table('order_details')
+                ->where('order_id', $order->id)->get();
+        }
+
+        return $this->successResponse($orders);
+    }
+
     public function updateProfile(Request $request)
     {
         try {
             $customer = $request->attributes->get('shop_customer');
-            $data = $request->only(['name', 'phone', 'avatar']);
+            $data = $request->only(['first_name', 'last_name', 'phone']);
             $this->repo->update(array_merge($data, ['updated_at' => now()]), $customer->id);
             return $this->successResponse($this->repo->findOne($customer->id), 'Profile updated');
         } catch (\Exception $e) {
@@ -130,6 +162,63 @@ class ShopAuthController extends Controller
                 'updated_at' => now(),
             ], $customer->id);
             return $this->successResponse(['temporary_password' => $newPassword], 'Password reset');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    // ─── Address Management ───
+
+    public function addresses(Request $request)
+    {
+        $customer = $request->attributes->get('shop_customer');
+        return $this->successResponse($this->repo->getAddresses($customer->id));
+    }
+
+    public function createAddress(Request $request)
+    {
+        try {
+            $customer = $request->attributes->get('shop_customer');
+            $data = $request->validate([
+                'first_name' => 'nullable|string',
+                'last_name' => 'nullable|string',
+                'phone' => 'nullable|string',
+                'address1' => 'required|string',
+                'address2' => 'nullable|string',
+                'city' => 'nullable|string',
+                'district' => 'nullable|string',
+                'province' => 'nullable|string',
+                'country' => 'nullable|string',
+                'postcode' => 'nullable|string',
+            ]);
+            $addr = $this->repo->createAddress($customer->id, $data);
+            return $this->successResponse($addr, 'Address created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function updateAddress(Request $request, $id)
+    {
+        try {
+            $customer = $request->attributes->get('shop_customer');
+            $data = $request->only(['first_name', 'last_name', 'phone', 'address1', 'address2', 'city', 'district', 'province', 'country', 'postcode']);
+            $data['updated_at'] = now();
+            $addr = $this->repo->updateAddress($customer->id, $id, $data);
+            return $this->successResponse($addr, 'Address updated');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function deleteAddress(Request $request, $id)
+    {
+        try {
+            $customer = $request->attributes->get('shop_customer');
+            $this->repo->deleteAddress($customer->id, $id);
+            return $this->successResponse(null, 'Address deleted');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }

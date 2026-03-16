@@ -87,11 +87,60 @@
           <div class="bank-row"><span>Nội dung CK</span><strong class="mono">{{ orderData.bank_info.note }}</strong></div>
           <div class="bank-row"><span>Số tiền</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong></div>
         </div>
-
-        <!-- QR Code -->
         <div class="qr-section" v-if="vietQrUrl">
           <img :src="vietQrUrl" alt="QR Code" class="qr-img" />
           <p class="qr-hint">Quét mã QR để chuyển khoản - số tiền & nội dung đã điền sẵn</p>
+        </div>
+      </div>
+
+      <!-- Shipping Tracking Section -->
+      <div class="result-card shipping-card">
+        <h3><Truck :size="16" /> Vận chuyển</h3>
+        <div v-if="shippingLoading" style="text-align:center;padding:20px;color:var(--sf-text-muted)">⏳ Đang tải...</div>
+        <div v-else-if="!shippingData || !shippingData.shipment">
+          <div class="shipping-empty">
+            <Package :size="32" />
+            <p>{{ shippingData?.message || 'Đơn hàng chưa được giao cho đơn vị vận chuyển' }}</p>
+          </div>
+        </div>
+        <div v-else>
+          <div class="shipping-info">
+            <div class="shipping-row">
+              <span>Đơn vị vận chuyển</span>
+              <strong>{{ carrierLabel(shippingData.carrier) }}</strong>
+            </div>
+            <div class="shipping-row" v-if="shippingData.tracking_code">
+              <span>Mã vận đơn</span>
+              <strong class="mono accent">{{ shippingData.tracking_code }}</strong>
+            </div>
+            <div class="shipping-row">
+              <span>Trạng thái</span>
+              <span class="badge" :class="'badge--ship-' + shippingData.status">{{ shipStatusLabel(shippingData.status) }}</span>
+            </div>
+            <div class="shipping-row" v-if="shippingData.shipping_fee > 0">
+              <span>Phí vận chuyển</span>
+              <strong>{{ formatPrice(shippingData.shipping_fee) }}</strong>
+            </div>
+            <div class="shipping-row" v-if="shippingData.delivered_at">
+              <span>Giao thành công</span>
+              <strong>{{ formatDate(shippingData.delivered_at) }}</strong>
+            </div>
+          </div>
+
+          <!-- Shipment History Timeline -->
+          <div v-if="shippingData.history?.length" class="ship-timeline">
+            <h4>📋 Lịch sử vận chuyển</h4>
+            <div class="ship-timeline-list">
+              <div v-for="(evt, i) in shippingData.history" :key="i" class="ship-evt">
+                <div class="ship-evt-dot" :class="{ first: i === 0 }"></div>
+                <div class="ship-evt-content">
+                  <strong>{{ evt.status || evt.event }}</strong>
+                  <span>{{ evt.description || evt.note || '' }}</span>
+                  <small>{{ formatDate(evt.created_at) }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -102,7 +151,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building
+  Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building, Truck
 } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
 
@@ -112,6 +161,8 @@ const orderId = ref(route.query.order_id || '')
 const searching = ref(false)
 const errorMsg = ref('')
 const orderData = ref(null)
+const shippingData = ref(null)
+const shippingLoading = ref(false)
 
 async function trackOrder() {
   searching.value = true
@@ -124,6 +175,8 @@ async function trackOrder() {
         errorMsg.value = 'Số điện thoại không khớp với đơn hàng này'
       } else {
         orderData.value = data
+        // Load shipping data
+        loadShipping(data.id)
       }
     } else {
       errorMsg.value = 'Không tìm thấy đơn hàng'
@@ -132,6 +185,14 @@ async function trackOrder() {
     errorMsg.value = 'Không tìm thấy đơn hàng. Vui lòng kiểm tra lại thông tin.'
   }
   searching.value = false
+}
+
+async function loadShipping(oid) {
+  shippingLoading.value = true
+  try {
+    shippingData.value = await apiFetch(`/shipment/${oid}`, { phone: phone.value })
+  } catch { shippingData.value = null }
+  shippingLoading.value = false
 }
 
 // Auto-search if query params present
@@ -176,6 +237,12 @@ const vietQrUrl = computed(() => {
   if (!d?.bank_info?.bank_bin || !d?.bank_info?.account_number) return ''
   return `https://img.vietqr.io/image/${d.bank_info.bank_bin}-${d.bank_info.account_number}-compact2.png?amount=${Math.round(Number(d.total_amount) || 0)}&addInfo=${encodeURIComponent(d.bank_info.note || '')}&accountName=${encodeURIComponent(d.bank_info.account_name || '')}`
 })
+
+const carrierMap = { manual: 'Tự giao', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post', jt: 'J&T Express', ninja_van: 'Ninja Van', best: 'BEST Express' }
+function carrierLabel(c) { return carrierMap[c] || c }
+
+const shipStatusMap = { draft: 'Chờ lấy hàng', picking: 'Đang lấy hàng', picked: 'Đã lấy hàng', delivering: 'Đang giao', delivered: 'Đã giao', returned: 'Hoàn hàng', cancelled: 'Đã hủy' }
+function shipStatusLabel(s) { return shipStatusMap[s] || s }
 </script>
 
 <style scoped>
@@ -282,6 +349,42 @@ const vietQrUrl = computed(() => {
 .qr-section { text-align: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--sf-border); }
 .qr-img { width: 220px; height: auto; border-radius: 12px; background: #fff; padding: 8px; border: 1px solid var(--sf-border); }
 .qr-hint { font-size: 11px; color: var(--sf-text-muted); margin-top: 8px; }
+/* Shipping Card */
+.shipping-card { grid-column: 1 / -1; }
+.shipping-empty { text-align: center; padding: 24px; color: var(--sf-text-muted); }
+.shipping-empty p { margin: 8px 0 0; font-size: 14px; }
+.shipping-info { display: flex; flex-direction: column; gap: 10px; }
+.shipping-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--sf-text-muted); }
+.shipping-row strong { color: var(--sf-text-primary); font-weight: 600; }
+
+.badge--ship-draft { background: #94a3b8; }
+.badge--ship-picking { background: #f59e0b; color: #78350f; }
+.badge--ship-picked { background: #3b82f6; }
+.badge--ship-delivering { background: #8b5cf6; }
+.badge--ship-delivered { background: #10b981; }
+.badge--ship-returned { background: #ef4444; }
+.badge--ship-cancelled { background: #6b7280; }
+
+.ship-timeline { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--sf-border); }
+.ship-timeline h4 { margin: 0 0 14px; font-size: 14px; }
+.ship-timeline-list { position: relative; padding-left: 24px; }
+.ship-evt { position: relative; padding-bottom: 16px; }
+.ship-evt:last-child { padding-bottom: 0; }
+.ship-evt::before {
+  content: ''; position: absolute; left: -18px; top: 8px; bottom: -8px;
+  width: 2px; background: var(--sf-border);
+}
+.ship-evt:last-child::before { display: none; }
+.ship-evt-dot {
+  position: absolute; left: -22px; top: 4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--sf-border); border: 2px solid var(--sf-bg-card);
+}
+.ship-evt-dot.first { background: var(--sf-accent); }
+.ship-evt-content { display: flex; flex-direction: column; gap: 2px; }
+.ship-evt-content strong { font-size: 13px; color: var(--sf-text-primary); }
+.ship-evt-content span { font-size: 12px; color: var(--sf-text-muted); }
+.ship-evt-content small { font-size: 11px; color: var(--sf-text-muted); opacity: 0.7; }
 
 @media (max-width: 640px) {
   .form-row { flex-direction: column; }

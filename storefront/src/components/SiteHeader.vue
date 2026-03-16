@@ -63,7 +63,7 @@
         <!-- Auth -->
         <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
           <User :size="16" />
-          <span>Tài khoản</span>
+          <span>{{ customer?.first_name || 'Tài khoản' }}</span>
         </router-link>
         <router-link v-else :to="'/auth'" class="site-header__auth-btn">
           <User :size="16" />
@@ -98,7 +98,7 @@
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
         <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <User :size="16" /> Tài khoản
+          <User :size="16" /> {{ customer?.first_name || 'Tài khoản' }}
         </router-link>
         <router-link v-else :to="'/auth'" class="site-header__mobile-link" @click="mobileMenu = false">
           <User :size="16" /> Đăng nhập
@@ -124,7 +124,7 @@ import { useAuth } from '../composables/useAuth.js'
 const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
 const { isDark, toggleTheme } = useTheme()
-const { isLoggedIn } = useAuth()
+const { isLoggedIn, customer } = useAuth()
 
 const langOpen = ref(false)
 async function switchLang(code) {

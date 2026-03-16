@@ -47,15 +47,30 @@ Route::middleware([TenantMiddleware::class])->prefix('shop/store/{storeId}')->gr
     Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
 });
 
-// ──── Shop Customer Auth (tenant-scoped, no admin auth) ────
+// ──── Shop Customer Auth (tenant-scoped) ────
 Route::middleware([TenantMiddleware::class])->prefix('shop/auth')->group(function () {
-    Route::post('/register', [\App\Http\Controllers\Shop\ShopAuthController::class, 'register']);
-    Route::post('/login', [\App\Http\Controllers\Shop\ShopAuthController::class, 'login']);
-    Route::get('/me', [\App\Http\Controllers\Shop\ShopAuthController::class, 'me']);
-    Route::put('/profile', [\App\Http\Controllers\Shop\ShopAuthController::class, 'updateProfile']);
-    Route::put('/password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'changePassword']);
-    Route::post('/forgot-password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'forgotPassword']);
-    Route::post('/reset-password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'resetPassword']);
+    // Public routes (rate limited)
+    Route::post('/register', [\App\Http\Controllers\Shop\ShopAuthController::class, 'register'])
+        ->middleware([\App\Http\Middleware\RateLimitShopAuth::class . ':register']);
+    Route::post('/login', [\App\Http\Controllers\Shop\ShopAuthController::class, 'login'])
+        ->middleware([\App\Http\Middleware\RateLimitShopAuth::class . ':login']);
+    Route::post('/forgot-password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'forgotPassword'])
+        ->middleware([\App\Http\Middleware\RateLimitShopAuth::class . ':reset']);
+    Route::post('/reset-password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'resetPassword'])
+        ->middleware([\App\Http\Middleware\RateLimitShopAuth::class . ':reset']);
+
+    // Protected routes (require customer token)
+    Route::middleware([\App\Http\Middleware\ShopCustomerAuth::class])->group(function () {
+        Route::get('/me', [\App\Http\Controllers\Shop\ShopAuthController::class, 'me']);
+        Route::get('/orders', [\App\Http\Controllers\Shop\ShopAuthController::class, 'myOrders']);
+        Route::put('/profile', [\App\Http\Controllers\Shop\ShopAuthController::class, 'updateProfile']);
+        Route::put('/password', [\App\Http\Controllers\Shop\ShopAuthController::class, 'changePassword']);
+        // Address management
+        Route::get('/addresses', [\App\Http\Controllers\Shop\ShopAuthController::class, 'addresses']);
+        Route::post('/addresses', [\App\Http\Controllers\Shop\ShopAuthController::class, 'createAddress']);
+        Route::put('/addresses/{id}', [\App\Http\Controllers\Shop\ShopAuthController::class, 'updateAddress']);
+        Route::delete('/addresses/{id}', [\App\Http\Controllers\Shop\ShopAuthController::class, 'deleteAddress']);
+    });
 });
 
 // ──── Tenant Auth (tenant-scoped) ────

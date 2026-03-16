@@ -153,6 +153,7 @@ class StorefrontController extends Controller
                 'customer_name' => 'required|string',
                 'customer_phone' => 'required|string',
                 'customer_address' => 'required|string',
+                'customer_email' => 'nullable|email',
                 'payment_method' => 'nullable|string',
                 'notes' => 'nullable|string',
                 'items' => 'required|array',
@@ -167,6 +168,7 @@ class StorefrontController extends Controller
                 'customer_name' => $data['customer_name'],
                 'customer_phone' => $data['customer_phone'],
                 'customer_address' => $data['customer_address'],
+                'customer_email' => $data['customer_email'] ?? null,
                 'payment_method' => $paymentMethod,
                 'payment_status' => $paymentMethod === 'bank' ? 'unpaid' : 'pending',
                 'notes' => $data['notes'] ?? null,
@@ -179,11 +181,12 @@ class StorefrontController extends Controller
 
             // Build response with bank info if bank transfer
             $response = $order->toArray();
+            $bankInfo = null;
             if ($paymentMethod === 'bank') {
                 $configs = $this->configRepo->getByGroup('payment');
                 $map = [];
                 foreach ($configs as $c) { $map[$c->key] = $c->value; }
-                $response['bank_info'] = [
+                $bankInfo = [
                     'account_name' => $map['payment_bank_account_name'] ?? '',
                     'account_number' => $map['payment_bank_account_number'] ?? '',
                     'bank_name' => $map['payment_bank_name_display'] ?? '',
@@ -191,6 +194,19 @@ class StorefrontController extends Controller
                     'branch' => $map['payment_bank_branch'] ?? '',
                     'note' => str_replace('{order_id}', $order->id, $map['payment_bank_note_template'] ?? ''),
                 ];
+                $response['bank_info'] = $bankInfo;
+            }
+
+            // Send order confirmation email
+            $email = $data['customer_email'] ?? null;
+            if ($email) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($email)->send(
+                        new \App\Mail\OrderConfirmationMail($response, $data['items'], $bankInfo)
+                    );
+                } catch (\Exception $mailErr) {
+                    \Illuminate\Support\Facades\Log::warning('Order email failed: ' . $mailErr->getMessage());
+                }
             }
 
             return $this->successResponse($response, 'Order created successfully', 201);
@@ -231,10 +247,133 @@ class StorefrontController extends Controller
         return $this->successResponse($this->flashSaleRepo->getActive());
     }
 
+    public function shipmentTracking(Request $request, $orderId)
+    {
+        $phone = $request->query('phone');
+        if (!$phone) {
+            return $this->errorResponse('Phone number is required', 400);
+        }
+
+        $order = $this->orderRepo->find($orderId);
+        if (!$order || $order->customer_phone !== $phone) {
+            return $this->notFoundResponse('Order not found');
+        }
+
+        $shipment = \Illuminate\Support\Facades\DB::table('shipments')
+            ->where('order_id', $orderId)->first();
+
+        if (!$shipment) {
+            return $this->successResponse([
+                'order_id' => $orderId,
+                'status' => 'pending',
+                'message' => 'Đơn hàng chưa được giao cho đơn vị vận chuyển',
+                'shipment' => null,
+                'history' => [],
+            ]);
+        }
+
+        $history = \Illuminate\Support\Facades\DB::table('shipment_history')
+            ->where('shipment_id', $shipment->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return $this->successResponse([
+            'order_id' => $orderId,
+            'status' => $shipment->status,
+            'carrier' => $shipment->carrier,
+            'tracking_code' => $shipment->tracking_code,
+            'carrier_order_code' => $shipment->carrier_order_code,
+            'receiver_name' => $shipment->receiver_name,
+            'receiver_phone' => $shipment->receiver_phone,
+            'receiver_address' => $shipment->receiver_address,
+            'shipping_fee' => $shipment->shipping_fee,
+            'delivered_at' => $shipment->delivered_at,
+            'shipment' => $shipment,
+            'history' => $history,
+        ]);
+    }
+
     public function storefrontOrders()
     {
         return $this->successResponse(
             $this->orderRepo->query()->orderByDesc('created_at')->limit(50)->get()
         );
+    }
+
+    public function productReviews($productId)
+    {
+        $reviews = \Illuminate\Support\Facades\DB::table('product_reviews')
+            ->where('product_id', $productId)
+            ->where('is_approved', true)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $avg = $reviews->avg('rating') ?? 0;
+        $count = $reviews->count();
+
+        return $this->successResponse([
+            'reviews' => $reviews,
+            'average_rating' => round($avg, 1),
+            'total_reviews' => $count,
+            'rating_distribution' => [
+                5 => $reviews->where('rating', 5)->count(),
+                4 => $reviews->where('rating', 4)->count(),
+                3 => $reviews->where('rating', 3)->count(),
+                2 => $reviews->where('rating', 2)->count(),
+                1 => $reviews->where('rating', 1)->count(),
+            ],
+        ]);
+    }
+
+    public function createReview(Request $request, $productId)
+    {
+        // Requires authentication via ShopCustomerAuth middleware
+        $customer = $request->attributes->get('shop_customer');
+        if (!$customer) {
+            return $this->errorResponse('Authentication required', 401);
+        }
+
+        try {
+            $data = $request->validate([
+                'rating' => 'required|integer|min:1|max:5',
+                'comment' => 'nullable|string|max:1000',
+            ]);
+
+            // Check if customer already reviewed this product
+            $existing = \Illuminate\Support\Facades\DB::table('product_reviews')
+                ->where('product_id', $productId)
+                ->where('customer_id', $customer->id)
+                ->first();
+
+            if ($existing) {
+                // Update existing review
+                \Illuminate\Support\Facades\DB::table('product_reviews')
+                    ->where('id', $existing->id)
+                    ->update([
+                        'rating' => $data['rating'],
+                        'comment' => $data['comment'] ?? null,
+                        'updated_at' => now(),
+                    ]);
+                $review = \Illuminate\Support\Facades\DB::table('product_reviews')
+                    ->where('id', $existing->id)->first();
+            } else {
+                $id = \Illuminate\Support\Facades\DB::table('product_reviews')->insertGetId([
+                    'product_id' => $productId,
+                    'customer_id' => $customer->id,
+                    'customer_name' => trim(($customer->first_name ?? '') . ' ' . ($customer->last_name ?? '')) ?: 'Khách hàng',
+                    'rating' => $data['rating'],
+                    'comment' => $data['comment'] ?? null,
+                    'is_approved' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $review = \Illuminate\Support\Facades\DB::table('product_reviews')
+                    ->where('id', $id)->first();
+            }
+
+            return $this->successResponse($review, 'Review submitted successfully', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
+        }
     }
 }

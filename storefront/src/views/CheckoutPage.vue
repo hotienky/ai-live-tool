@@ -165,9 +165,15 @@
                 <input v-model="form.customerPhone" placeholder="0901234567" required />
               </div>
             </div>
-            <div class="form-group">
-              <label>Địa chỉ giao hàng *</label>
-              <input v-model="form.customerAddress" placeholder="123 Đường ABC, Phường X, Quận Y, TP.HCM" required />
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email (nhận xác nhận đơn)</label>
+                <input v-model="form.customerEmail" type="email" placeholder="email@example.com" />
+              </div>
+              <div class="form-group">
+                <label>Địa chỉ giao hàng *</label>
+                <input v-model="form.customerAddress" placeholder="123 Đường ABC, Phường X, Quận Y, TP.HCM" required />
+              </div>
             </div>
           </div>
 
@@ -241,15 +247,18 @@ import {
   CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
+import { useAuth } from '../composables/useAuth.js'
 import { apiFetch, apiPost } from '../api.js'
 
 const route = useRoute()
 const router = useRouter()
 const { cartItems, cartCount, cartTotal, clearCart } = useCart()
+const { customer, isLoggedIn, authFetch } = useAuth()
 
 const form = ref({
   customerName: '',
   customerPhone: '',
+  customerEmail: '',
   customerAddress: '',
   paymentMethod: 'cod',
   notes: '',
@@ -278,6 +287,25 @@ onMounted(async () => {
       }
     } catch { /* order not found, show form */ }
     loadingOrder.value = false
+  }
+
+  // Auto-fill checkout form from logged-in customer
+  if (isLoggedIn.value && customer.value) {
+    const c = customer.value
+    form.value.customerName = [c.first_name, c.last_name].filter(Boolean).join(' ') || form.value.customerName
+    form.value.customerPhone = c.phone || form.value.customerPhone
+    form.value.customerEmail = c.email || form.value.customerEmail
+    // Try to load saved default address
+    try {
+      const addrs = await authFetch('/addresses')
+      const list = Array.isArray(addrs) ? addrs : []
+      const defaultAddr = list.find(a => a.is_default) || list[0]
+      if (defaultAddr) {
+        form.value.customerAddress = defaultAddr.address || ''
+        if (!form.value.customerName) form.value.customerName = defaultAddr.name || ''
+        if (!form.value.customerPhone) form.value.customerPhone = defaultAddr.phone || ''
+      }
+    } catch { /* no addresses */ }
   }
 
   // Load payment methods for the form
@@ -318,6 +346,7 @@ async function placeOrder() {
     const result = await apiPost('/checkout', {
       customer_name: form.value.customerName,
       customer_phone: form.value.customerPhone,
+      customer_email: form.value.customerEmail || undefined,
       customer_address: form.value.customerAddress,
       payment_method: form.value.paymentMethod,
       notes: form.value.notes,

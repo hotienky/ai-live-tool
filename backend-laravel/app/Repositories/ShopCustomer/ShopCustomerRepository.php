@@ -28,32 +28,32 @@ class ShopCustomerRepository extends BaseEloquentRepository implements ShopCusto
 
     public function getAddresses(int $customerId)
     {
-        return DB::table('shop_customer_addresses')
-            ->where('shop_customer_id', $customerId)->get();
+        return DB::table('customer_addresses')
+            ->where('customer_id', $customerId)->get();
     }
 
     public function createAddress(int $customerId, array $data)
     {
-        $data['shop_customer_id'] = $customerId;
+        $data['customer_id'] = $customerId;
         $data['created_at'] = now();
-        $id = DB::table('shop_customer_addresses')->insertGetId($data);
-        return DB::table('shop_customer_addresses')->where('id', $id)->first();
+        $id = DB::table('customer_addresses')->insertGetId($data);
+        return DB::table('customer_addresses')->where('id', $id)->first();
     }
 
     public function updateAddress(int $customerId, int $addressId, array $data)
     {
-        DB::table('shop_customer_addresses')
+        DB::table('customer_addresses')
             ->where('id', $addressId)
-            ->where('shop_customer_id', $customerId)
+            ->where('customer_id', $customerId)
             ->update($data);
-        return DB::table('shop_customer_addresses')->where('id', $addressId)->first();
+        return DB::table('customer_addresses')->where('id', $addressId)->first();
     }
 
     public function deleteAddress(int $customerId, int $addressId): void
     {
-        DB::table('shop_customer_addresses')
+        DB::table('customer_addresses')
             ->where('id', $addressId)
-            ->where('shop_customer_id', $customerId)
+            ->where('customer_id', $customerId)
             ->delete();
     }
 }

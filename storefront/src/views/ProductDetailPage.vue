@@ -140,6 +140,75 @@
         </h2>
         <div class="detail-desc-content" v-html="product.description"></div>
       </div>
+
+      <!-- Reviews Section -->
+      <div class="reviews-section" id="reviews">
+        <h2 class="section-title">
+          <Star :size="20" class="section-title__accent" />
+          Đánh giá sản phẩm
+          <span v-if="reviewStats.total_reviews" class="review-count">({{ reviewStats.total_reviews }})</span>
+        </h2>
+
+        <!-- Rating Summary -->
+        <div class="review-summary" v-if="reviewStats.total_reviews">
+          <div class="review-avg">
+            <span class="avg-number">{{ reviewStats.average_rating }}</span>
+            <div class="avg-stars">
+              <Star v-for="i in 5" :key="i" :size="18"
+                :class="i <= Math.round(reviewStats.average_rating) ? 'star-filled' : 'star-empty'" />
+            </div>
+            <span class="avg-count">{{ reviewStats.total_reviews }} đánh giá</span>
+          </div>
+          <div class="review-bars">
+            <div v-for="n in [5,4,3,2,1]" :key="n" class="bar-row">
+              <span class="bar-label">{{ n }} <Star :size="10" class="star-filled" /></span>
+              <div class="bar-track"><div class="bar-fill" :style="{width: barPct(n)}"></div></div>
+              <span class="bar-count">{{ reviewStats.rating_distribution?.[n] || 0 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review Form -->
+        <div class="review-form-card" v-if="isLoggedIn">
+          <h3>{{ existingReview ? '✈️ Cập nhật đánh giá' : '✍️ Viết đánh giá' }}</h3>
+          <div class="review-stars-input">
+            <button v-for="i in 5" :key="i" @click="reviewForm.rating = i" class="star-btn">
+              <Star :size="24" :class="i <= reviewForm.rating ? 'star-filled' : 'star-empty'" />
+            </button>
+          </div>
+          <textarea v-model="reviewForm.comment" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..." rows="3"></textarea>
+          <button class="btn btn--primary" @click="submitReview" :disabled="reviewSubmitting || !reviewForm.rating">
+            {{ reviewSubmitting ? 'Đang gửi...' : (existingReview ? 'Cập nhật' : 'Gửi đánh giá') }}
+          </button>
+          <p v-if="reviewMsg" class="review-msg" :class="reviewMsgType">{{ reviewMsg }}</p>
+        </div>
+        <div v-else class="review-login-hint">
+          <p>🔒 <router-link to="/auth">Đăng nhập</router-link> để viết đánh giá</p>
+        </div>
+
+        <!-- Reviews List -->
+        <div v-if="reviewsLoading" class="reviews-loading">⏳ Đang tải đánh giá...</div>
+        <div v-else-if="reviews.length" class="reviews-list">
+          <div v-for="r in reviews" :key="r.id" class="review-card">
+            <div class="review-header">
+              <div class="review-avatar">{{ (r.customer_name || 'K')[0] }}</div>
+              <div>
+                <strong>{{ r.customer_name || 'Khách hàng' }}</strong>
+                <div class="review-stars">
+                  <Star v-for="i in 5" :key="i" :size="12"
+                    :class="i <= r.rating ? 'star-filled' : 'star-empty'" />
+                </div>
+              </div>
+              <small class="review-date">{{ formatReviewDate(r.created_at) }}</small>
+            </div>
+            <p class="review-comment" v-if="r.comment">{{ r.comment }}</p>
+          </div>
+        </div>
+        <div v-else class="reviews-empty">
+          <Star :size="32" class="star-empty" />
+          <p>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+        </div>
+      </div>
     </div>
 
     <!-- Not Found -->
@@ -156,14 +225,16 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { apiFetch } from '../api.js'
+import { apiFetch, apiPost } from '../api.js'
 import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
-  Heart, Link, FileText, ArrowLeft
+  Heart, Link, FileText, ArrowLeft, Star
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
+import { useAuth } from '../composables/useAuth.js'
 
 const { addToCart } = useCart()
+const { isLoggedIn, token: authToken } = useAuth()
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -283,7 +354,7 @@ async function loadProduct() {
   loading.value = false
 }
 
-onMounted(() => loadProduct())
+onMounted(() => { loadProduct().then(() => loadReviews()) })
 watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loadProduct() })
 
 const addedToCart = ref(false)
@@ -294,6 +365,77 @@ function handleAddToCart() {
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
 }
+
+// ── Reviews ──
+const reviews = ref([])
+const reviewStats = ref({ average_rating: 0, total_reviews: 0, rating_distribution: {} })
+const reviewsLoading = ref(false)
+const reviewForm = ref({ rating: 0, comment: '' })
+const reviewSubmitting = ref(false)
+const reviewMsg = ref('')
+const reviewMsgType = ref('')
+const existingReview = ref(null)
+
+async function loadReviews() {
+  if (!product.value) return
+  reviewsLoading.value = true
+  try {
+    const data = await apiFetch(`/products/${product.value.id}/reviews`)
+    reviews.value = data.reviews || []
+    reviewStats.value = {
+      average_rating: data.average_rating || 0,
+      total_reviews: data.total_reviews || 0,
+      rating_distribution: data.rating_distribution || {},
+    }
+    // Check if current user has reviewed
+    if (isLoggedIn.value) {
+      // Detect from customer_id match is server-side; check by looking for existing
+      // For simplicity, we'll let the backend handle upsert
+    }
+  } catch { /* ignore */ }
+  reviewsLoading.value = false
+}
+
+async function submitReview() {
+  if (!product.value || !reviewForm.value.rating) return
+  reviewSubmitting.value = true
+  reviewMsg.value = ''
+  try {
+    const res = await fetch(`/api/storefront/products/${product.value.id}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authToken.value ? { 'Authorization': `Bearer ${authToken.value}` } : {}),
+      },
+      body: JSON.stringify({
+        rating: reviewForm.value.rating,
+        comment: reviewForm.value.comment,
+      }),
+    })
+    const json = await res.json()
+    if (!res.ok) throw new Error(json.message || `HTTP ${res.status}`)
+    reviewMsg.value = 'Đánh giá của bạn đã được gửi!'
+    reviewMsgType.value = 'success'
+    reviewForm.value = { rating: 0, comment: '' }
+    await loadReviews()
+  } catch (err) {
+    reviewMsg.value = 'Lỗi: ' + (err.message || 'Không thể gửi đánh giá')
+    reviewMsgType.value = 'error'
+  }
+  reviewSubmitting.value = false
+}
+
+function barPct(n) {
+  const total = reviewStats.value.total_reviews || 1
+  const count = reviewStats.value.rating_distribution?.[n] || 0
+  return Math.round((count / total) * 100) + '%'
+}
+
+function formatReviewDate(d) {
+  return d ? new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''
+}
+
+watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 </script>
 
 <style scoped>
@@ -456,6 +598,77 @@ function handleAddToCart() {
 .detail-404 h2 { font-size: 22px; color: var(--sf-text-primary); }
 .detail-404 a { text-decoration: none; }
 
+/* Reviews */
+.reviews-section {
+  margin-top: 32px; padding: 32px; border-radius: var(--sf-radius-lg);
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+}
+.review-count { font-weight: 400; font-size: 16px; color: var(--sf-text-muted); }
+
+.star-filled { color: #f59e0b; fill: #f59e0b; }
+.star-empty { color: var(--sf-border); }
+
+.review-summary {
+  display: flex; gap: 32px; margin-top: 20px; padding: 20px;
+  background: var(--sf-bg-secondary, #fafafa); border-radius: 12px;
+}
+.review-avg { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 100px; }
+.avg-number { font-size: 40px; font-weight: 900; color: var(--sf-text-primary); line-height: 1; }
+.avg-stars { display: flex; gap: 2px; }
+.avg-count { font-size: 12px; color: var(--sf-text-muted); }
+
+.review-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.bar-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.bar-label { display: flex; align-items: center; gap: 2px; width: 36px; color: var(--sf-text-muted); font-weight: 600; }
+.bar-track { flex: 1; height: 8px; background: var(--sf-border); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; background: #f59e0b; border-radius: 4px; transition: width 0.3s; }
+.bar-count { width: 24px; text-align: right; font-weight: 600; color: var(--sf-text-muted); }
+
+.review-form-card {
+  margin-top: 24px; padding: 20px; border-radius: 12px;
+  border: 1px solid var(--sf-border); background: var(--sf-bg-primary);
+}
+.review-form-card h3 { margin: 0 0 12px; font-size: 15px; }
+.review-stars-input { display: flex; gap: 4px; margin-bottom: 12px; }
+.star-btn { background: none; border: none; cursor: pointer; padding: 2px; transition: transform 0.15s; }
+.star-btn:hover { transform: scale(1.2); }
+.review-form-card textarea {
+  width: 100%; box-sizing: border-box; padding: 12px; border-radius: 10px;
+  border: 1px solid var(--sf-border); background: var(--sf-bg-secondary);
+  color: var(--sf-text-primary); font-size: 14px; resize: vertical;
+  outline: none; margin-bottom: 12px; font-family: inherit;
+}
+.review-form-card textarea:focus { border-color: var(--sf-accent); }
+.review-msg { margin-top: 8px; font-size: 13px; }
+.review-msg.success { color: #10b981; }
+.review-msg.error { color: #ef4444; }
+
+.review-login-hint {
+  margin-top: 20px; padding: 16px; text-align: center;
+  background: var(--sf-bg-secondary); border-radius: 10px;
+  font-size: 14px; color: var(--sf-text-muted);
+}
+.review-login-hint a { color: var(--sf-accent-light); font-weight: 700; }
+
+.reviews-loading { text-align: center; padding: 24px; color: var(--sf-text-muted); font-size: 14px; }
+.reviews-list { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+.review-card { padding: 16px; border-radius: 12px; border: 1px solid var(--sf-border); }
+.review-header { display: flex; align-items: center; gap: 10px; }
+.review-avatar {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--sf-accent), #a855f7);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+}
+.review-header strong { font-size: 14px; }
+.review-stars { display: flex; gap: 1px; margin-top: 2px; }
+.review-date { margin-left: auto; font-size: 11px; color: var(--sf-text-muted); }
+.review-comment { margin: 10px 0 0 46px; font-size: 14px; line-height: 1.6; color: var(--sf-text-secondary); }
+.reviews-empty {
+  text-align: center; padding: 32px; color: var(--sf-text-muted); margin-top: 20px;
+}
+.reviews-empty p { margin: 8px 0 0; font-size: 14px; }
+
 @media (max-width: 768px) {
   .detail-grid { grid-template-columns: 1fr; gap: 24px; }
   .detail-skeleton { grid-template-columns: 1fr; }
@@ -464,5 +677,6 @@ function handleAddToCart() {
   .btn--lg { width: 100%; justify-content: center; }
   .variant-options { gap: 6px; }
   .variant-option { padding: 6px 12px; font-size: 12px; }
+  .review-summary { flex-direction: column; gap: 16px; }
 }
 </style>
