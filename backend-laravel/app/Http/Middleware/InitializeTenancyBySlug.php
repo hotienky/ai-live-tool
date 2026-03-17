@@ -72,29 +72,45 @@ class InitializeTenancyBySlug
      */
     protected function resolveTenant(string $hostname, Request $request): ?array
     {
-        $parts = explode('.', $hostname);
-        $subdomain = $parts[0];
-
         // Central domains — no tenant
         $centralDomains = config('tenancy.central_domains', []);
         if (\in_array($hostname, $centralDomains, true)) {
             return null;
         }
 
+        $parts = explode('.', $hostname);
+        $subdomain = $parts[0];
+
         // Skip for master subdomain
         if ($subdomain === 'master') {
             return null;
         }
 
-        // 1. Try subdomain first (fashionvn.super.vn → "fashionvn")
-        if (!\in_array($subdomain, ['localhost', '127', '0'])) {
-            return ['slug' => $subdomain];
-        }
+        // Check if this is a known platform domain (*.super.vn, *.localhost, etc.)
+        $isPlatformDomain = str_ends_with($hostname, '.super.vn')
+            || str_ends_with($hostname, '.localhost')
+            || $hostname === 'localhost';
 
-        // 2. Custom domain lookup (www.fashionvn.com → tenant)
-        $customDomain = $this->resolveCustomDomain($hostname);
-        if ($customDomain) {
-            return $customDomain;
+        if ($isPlatformDomain) {
+            // Subdomain extraction for platform domains
+            if (!\in_array($subdomain, ['localhost', '127', '0'])) {
+                return ['slug' => $subdomain];
+            }
+        } else {
+            // Custom domain — lookup in domains table FIRST
+            $customDomain = $this->resolveCustomDomain($hostname);
+            if ($customDomain) {
+                return $customDomain;
+            }
+
+            // Fallback: try without www prefix
+            if ($subdomain === 'www' && count($parts) > 2) {
+                $bareHost = implode('.', array_slice($parts, 1));
+                $customDomain = $this->resolveCustomDomain($bareHost);
+                if ($customDomain) {
+                    return $customDomain;
+                }
+            }
         }
 
         // 3. Fallback: query param or header (for dev environments)

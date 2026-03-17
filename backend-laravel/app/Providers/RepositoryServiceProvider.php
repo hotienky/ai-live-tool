@@ -40,6 +40,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\SystemConfig\SystemConfigRepositoryInterface::class, \App\Repositories\SystemConfig\SystemConfigRepository::class);
         $this->app->bind(\App\Repositories\Redirect\RedirectRepositoryInterface::class, \App\Repositories\Redirect\RedirectRepository::class);
         $this->app->bind(\App\Repositories\Subscriber\SubscriberRepositoryInterface::class, \App\Repositories\Subscriber\SubscriberRepository::class);
+        $this->app->bind(\App\Repositories\Domain\DomainRepositoryInterface::class, \App\Repositories\Domain\DomainRepository::class);
     }
 
     public function boot(): void {}

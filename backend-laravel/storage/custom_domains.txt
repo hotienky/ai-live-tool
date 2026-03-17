@@ -1,0 +1,4 @@
+# === CUSTOM DOMAINS START ===
+127.0.0.1 fashionvn.com
+127.0.0.1 www.fashionvn.com
+# === CUSTOM DOMAINS END ===
