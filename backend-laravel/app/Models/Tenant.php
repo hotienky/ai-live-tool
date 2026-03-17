@@ -25,6 +25,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     /**
      * Custom columns on the tenants table (not stored in JSON `data`).
+     * Must list ALL real columns to prevent stancl from using `data` JSON column.
      */
     public static function getCustomColumns(): array
     {
@@ -35,6 +36,13 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'db_name',
             'status',
             'plan',
+            'owner_email',
+            'owner_name',
+            'custom_domain',
+            'logo',
+            'settings',
+            'features',
+            'expires_at',
         ];
     }
 

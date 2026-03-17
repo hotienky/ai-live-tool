@@ -52,6 +52,19 @@
         </div>
       </div>
 
+      <div>
+        <label class="mp-label">Nhóm tính năng</label>
+        <div class="flex gap-3">
+          <div v-for="f in featureGroups" :key="f.value"
+               @click="form.features = f.value"
+               class="flex-1 card p-3 cursor-pointer transition-all select-none"
+               :class="form.features === f.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
+            <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
+            <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
+          </div>
+        </div>
+      </div>
+
       <div class="pt-2 flex justify-end gap-3">
         <router-link to="/tenants" class="btn-ghost">Hủy</router-link>
         <button type="submit" :disabled="creating" class="btn-primary flex items-center gap-2">
@@ -79,12 +92,19 @@ const form = ref({
   ownerEmail: '',
   ownerName: '',
   plan: 'free',
+  features: 'all',
 })
 
 const plans = [
   { value: 'free', label: 'Free', desc: 'Cơ bản, giới hạn' },
   { value: 'pro', label: 'Pro', desc: 'Đầy đủ tính năng' },
   { value: 'enterprise', label: 'Enterprise', desc: 'Không giới hạn' },
+]
+
+const featureGroups = [
+  { value: 'livestream', label: 'Livestream', desc: 'Dashboard + Live' },
+  { value: 'store', label: 'Store', desc: 'Cửa hàng + Đơn hàng' },
+  { value: 'all', label: 'Dùng cả 2', desc: 'Đầy đủ tính năng' },
 ]
 
 async function handleCreate() {

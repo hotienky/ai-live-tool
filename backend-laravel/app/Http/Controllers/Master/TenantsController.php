@@ -29,13 +29,35 @@ class TenantsController extends Controller
 
     public function store(Request $request)
     {
-        $tenant = $this->repo->store($request->all());
+        $data = [
+            'name' => $request->input('name'),
+            'slug' => $request->input('slug'),
+            'plan' => $request->input('plan', 'free'),
+            'status' => 'active',
+            'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
+            'owner_name' => $request->input('ownerName', $request->input('owner_name')),
+            'features' => $request->input('features', 'all'),
+            'db_name' => 'tenant_' . $request->input('slug'),
+        ];
+        $tenant = $this->repo->store($data);
         return $this->successResponse($this->transformer->transform($tenant), 'Tenant created', 201);
     }
 
     public function update(Request $request, $id)
     {
-        $this->repo->update($request->all(), $id);
+        $data = array_filter([
+            'name' => $request->input('name'),
+            'plan' => $request->input('plan'),
+            'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
+            'owner_name' => $request->input('ownerName', $request->input('owner_name')),
+            'custom_domain' => $request->input('custom_domain'),
+            'logo' => $request->input('logo'),
+            'features' => $request->input('features'),
+        ], fn($v) => $v !== null);
+
+        if (!empty($data)) {
+            $this->repo->update($data, $id);
+        }
         return $this->successResponse($this->transformer->transform($this->repo->findOne($id)));
     }
 

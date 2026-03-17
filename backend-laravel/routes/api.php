@@ -26,6 +26,9 @@ Route::get('/health', fn () => response()->json([
     'timestamp' => now()->toISOString(),
 ]));
 
+// ──── Tenant Status Check (for Nginx auth_request) ────
+Route::get('/tenant-status', \App\Http\Controllers\TenantStatusController::class);
+
 // ════════════════════════════════════════════════════════════
 // ──── STOREFRONT PUBLIC API (tenant-scoped, no auth) ────
 // ════════════════════════════════════════════════════════════

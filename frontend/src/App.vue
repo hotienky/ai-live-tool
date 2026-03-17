@@ -318,7 +318,7 @@ import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useTheme } from './composables/useTheme.js'
-import { usePermissions } from './composables/usePermissions.js'
+import { usePermissions, fetchPermissionsIfEmpty } from './composables/usePermissions.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -345,6 +345,29 @@ function onProfileUpdated(user) {
   showProfile.value = false
 }
 
+// ── Tenant Feature Groups ──
+const tenantFeatures = ref(localStorage.getItem('tenant_features') || 'all')
+
+async function fetchTenantFeatures() {
+  try {
+    const res = await fetch('/api/tenant-status')
+    if (res.ok) {
+      const data = await res.json()
+      const features = data.features || 'all'
+      tenantFeatures.value = features
+      localStorage.setItem('tenant_features', features)
+    }
+  } catch (e) {
+    console.warn('[Features] Failed to fetch:', e.message)
+  }
+}
+
+// Fetch on mount
+onMounted(() => {
+  fetchTenantFeatures()
+  fetchPermissionsIfEmpty()
+})
+
 // ── Navigation ──
 const openDropdown = ref(null)
 let dropdownTimer = null
@@ -359,10 +382,11 @@ function onDropdownLeave() {
 }
 
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, // no permission = always visible
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, featureGroup: 'livestream' },
   {
     key: 'live-group', label: 'Live', icon: MonitorPlay,
-    permission: null, // live features always visible (handled by shop connection)
+    featureGroup: 'livestream',
+    permission: null,
     activeKeys: ['live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
     children: [
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
@@ -376,7 +400,8 @@ const navItems = [
   },
   {
     key: 'store-group', label: 'Cửa hàng', icon: Store,
-    permission: 'products.view', // group visible if user can see at least products
+    featureGroup: 'store',
+    permission: 'products.view',
     activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages'],
     children: [
       { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
@@ -394,6 +419,7 @@ const navItems = [
   },
   {
     key: 'orders-group', label: 'Đơn hàng', icon: Receipt,
+    featureGroup: 'store',
     permission: 'orders.view',
     activeKeys: ['orders', 'orders/customers'],
     children: [
@@ -404,10 +430,20 @@ const navItems = [
 
 ]
 
-// Filter nav items by user permissions
+// Check if item's featureGroup is enabled for this tenant
+function isFeatureEnabled(featureGroup) {
+  if (!featureGroup) return true // no featureGroup = always visible (e.g. Dashboard)
+  const tf = tenantFeatures.value
+  if (tf === 'all') return true
+  return tf === featureGroup
+}
+
+// Filter nav items by user permissions AND tenant feature groups
 const filteredNavItems = computed(() => {
   return navItems
     .map(item => {
+      // Filter by feature group first
+      if (!isFeatureEnabled(item.featureGroup)) return null
       // Item with no permission = always visible
       if (!item.permission && !item.children) return item
       // Group with children: filter children, hide group if none visible

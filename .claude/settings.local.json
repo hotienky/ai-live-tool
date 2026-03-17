@@ -27,7 +27,8 @@
       "Bash(TRUST_STORES=system mkcert \"*.super.vn\" \"super.vn\" \"*.cms.super.vn\")",
       "Bash(docker compose:*)",
       "Bash(docker exec:*)",
-      "Bash(xxd)"
+      "Bash(xxd)",
+      "Bash(php artisan:*)"
     ]
   }
 }

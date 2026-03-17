@@ -91,6 +91,18 @@
             </select>
           </div>
         </div>
+        <div class="mt-4">
+          <label class="mp-label">Nhóm tính năng</label>
+          <div class="flex gap-3">
+            <div v-for="f in featureGroups" :key="f.value"
+                 @click="editForm.features = f.value"
+                 class="flex-1 card p-3 cursor-pointer transition-all select-none text-center"
+                 :class="editForm.features === f.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
+              <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
+              <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
+            </div>
+          </div>
+        </div>
         <div class="flex items-center gap-3 mt-4">
           <button @click="handleSaveSettings" :disabled="actionLoading || !hasChanges" class="btn-primary text-sm flex items-center gap-2" :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }">
             <Save :size="16" /> Lưu thay đổi
@@ -212,7 +224,7 @@ const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
 
-const editForm = ref({ name: '', plan: '' })
+const editForm = ref({ name: '', plan: '', features: 'all' })
 const editMsg = ref('')
 const editError = ref(false)
 
@@ -220,6 +232,7 @@ const hasChanges = computed(() => {
   if (!tenant.value) return false
   return editForm.value.name !== tenant.value.name
     || editForm.value.plan !== tenant.value.plan
+    || editForm.value.features !== (tenant.value.features || 'all')
 })
 
 function syncEditForm() {
@@ -227,11 +240,18 @@ function syncEditForm() {
     editForm.value = {
       name: tenant.value.name || '',
       plan: tenant.value.plan || 'free',
+      features: tenant.value.features || 'all',
     }
   }
 }
 
 watch(tenant, syncEditForm)
+
+const featureGroups = [
+  { value: 'livestream', label: 'Livestream', desc: 'Dashboard + Live' },
+  { value: 'store', label: 'Store', desc: 'Cửa hàng + Đơn hàng' },
+  { value: 'all', label: 'Dùng cả 2', desc: 'Đầy đủ tính năng' },
+]
 
 function planBadgeClass(plan) {
   const base = 'px-2.5 py-0.5 rounded-full text-xs font-medium'

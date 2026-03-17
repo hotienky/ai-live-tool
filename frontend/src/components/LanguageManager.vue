@@ -139,7 +139,8 @@ async function loadLanguages() {
   loading.value = true
   try {
     const res = await apiFetch('/languages')
-    languages.value = Array.isArray(res) ? res : (res?.data || [])
+    const json = await res.json()
+    languages.value = Array.isArray(json) ? json : (json?.data || [])
   } catch (e) {
     console.error('Load languages error:', e)
   } finally {
@@ -150,12 +151,14 @@ async function loadLanguages() {
 async function addLanguage() {
   if (!newCode.value || !newName.value) return
   try {
-    const lang = await apiFetch('/languages', {
+    const res = await apiFetch('/languages', {
       method: 'POST',
       body: JSON.stringify({ code: newCode.value, name: newName.value, isDefault: newIsDefault.value }),
     })
-    if (lang) {
-      languages.value.push(lang)
+    const json = await res.json()
+    const lang = json?.data || json
+    if (lang && lang.id) {
+      await loadLanguages()
       newCode.value = ''
       newName.value = ''
       newIsDefault.value = false
@@ -169,13 +172,15 @@ async function addLanguage() {
 async function deleteLanguage(id) {
   if (!confirm('Xóa ngôn ngữ này?')) return
   try {
-    await apiFetch(`/languages/${id}`, { method: 'DELETE' })
-    languages.value = languages.value.filter(l => l.id !== id)
-    if (selectedLangId.value === id) {
-      selectedLangId.value = null
-      translations.value = []
+    const res = await apiFetch(`/languages/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      languages.value = languages.value.filter(l => l.id !== id)
+      if (selectedLangId.value === id) {
+        selectedLangId.value = null
+        translations.value = []
+      }
+      showToast('Đã xóa ngôn ngữ', 'success')
     }
-    showToast('Đã xóa ngôn ngữ', 'success')
   } catch (e) {
     showToast('Lỗi xóa', 'error')
   }
@@ -202,7 +207,9 @@ async function selectLanguage(lang) {
   selectedLangName.value = lang.name
   try {
     const res = await apiFetch(`/languages/${lang.id}/translations`)
-    translations.value = Array.isArray(res) ? res : (res?.data || [])
+    const json = await res.json()
+    const data = json?.data || json
+    translations.value = Array.isArray(data) ? data : []
     pendingTransChanges.value = {}
     hasTransChanges.value = false
   } catch (e) {
