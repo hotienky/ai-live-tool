@@ -1,7 +1,17 @@
 <template>
-  <div class="mp-layout">
+  <div class="mp-layout flex">
+    <!-- Mobile Overlay Backdrop -->
+    <div 
+      v-if="isSidebarOpen" 
+      class="fixed inset-0 bg-black/60 z-20 md:hidden backdrop-blur-sm transition-opacity"
+      @click="isSidebarOpen = false"
+    ></div>
+
     <!-- Sidebar -->
-    <aside class="mp-sidebar">
+    <aside 
+      class="mp-sidebar fixed inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out md:translate-x-0"
+      :class="isSidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
       <!-- Logo -->
       <div class="mp-sidebar__brand">
         <div class="mp-sidebar__logo-icon">
@@ -21,6 +31,7 @@
           :to="item.to"
           class="mp-sidebar__link"
           :class="{ 'mp-sidebar__link--active': $route.path === item.to }"
+          @click="isSidebarOpen = false"
         >
           <component :is="item.icon" :size="18" />
           {{ item.label }}
@@ -47,20 +58,38 @@
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="mp-main">
-      <router-view />
-    </main>
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-h-screen md:ml-64 w-full transition-all duration-300">
+      
+      <!-- Mobile Header -->
+      <header class="md:hidden flex items-center justify-between p-4 border-b border-[var(--mp-border)] bg-[var(--mp-bg-sidebar)] sticky top-0 z-10 backdrop-blur-md">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded bg-blue-600 flex items-center justify-center text-white">
+            <component :is="icons.Shield" :size="16" />
+          </div>
+          <span class="font-bold text-[var(--mp-text-primary)]">Master Panel</span>
+        </div>
+        <button @click="isSidebarOpen = true" class="p-2 -mr-2 text-[var(--mp-text-secondary)] hover:bg-[var(--mp-nav-hover-bg)] rounded-lg transition-colors">
+          <Menu :size="24" />
+        </button>
+      </header>
+
+      <!-- Main Router View -->
+      <main class="mp-main flex-1 relative overflow-x-hidden">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon, Users, KeyRound } from 'lucide-vue-next'
+import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon, Users, KeyRound, Menu } from 'lucide-vue-next'
 import { getStoredUser, logout } from '../services/api.js'
 
 const icons = { LayoutDashboard, Building2, Shield, LogOut, Users, KeyRound }
 const user = computed(() => getStoredUser())
+const isSidebarOpen = ref(false)
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -101,16 +130,12 @@ function handleLogout() {
 
 /* ── Sidebar ── */
 .mp-sidebar {
-  width: 256px;
-  position: fixed;
-  height: 100vh;
+  /* width, fixed, and transforms handled via Tailwind classes in template */
   display: flex;
   flex-direction: column;
   background: var(--mp-bg-sidebar);
-  backdrop-filter: blur(12px);
   border-right: 1px solid var(--mp-border);
-  z-index: 10;
-  transition: background 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
 }
 
 .mp-sidebar__brand {
@@ -266,8 +291,7 @@ function handleLogout() {
 
 /* ── Main ── */
 .mp-main {
-  flex: 1;
-  margin-left: 256px;
-  min-height: 100vh;
+  /* Layout logic shifted to Tailwind grid/flex in template */
+  width: 100%;
 }
 </style>

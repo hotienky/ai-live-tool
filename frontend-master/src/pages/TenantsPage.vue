@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
@@ -20,7 +20,8 @@
     <div class="card overflow-hidden">
       <div v-if="loading" class="p-8 text-center mp-text-muted">Đang tải...</div>
       <div v-else-if="list.length === 0" class="p-8 text-center mp-text-muted">Không tìm thấy tenant</div>
-      <table v-else class="w-full">
+      <div v-else class="overflow-x-auto w-full">
+        <table class="w-full min-w-[800px]">
         <thead>
           <tr class="mp-table-border">
             <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Tenant</th>
@@ -39,7 +40,7 @@
                 <p class="text-xs mp-text-muted">{{ t.slug }}.{{ baseDomain }}</p>
               </router-link>
             </td>
-            <td class="px-5 py-3 text-sm mp-text-secondary font-mono text-xs">{{ t.db_name }}</td>
+            <td class="px-5 py-3 mp-text-secondary font-mono text-xs">{{ t.db_name }}</td>
             <td class="px-5 py-3 text-sm mp-text-secondary">{{ t.owner_email }}</td>
             <td class="px-5 py-3">
               <span :class="statusClass(t.status)">{{ t.status }}</span>
@@ -69,7 +70,8 @@
             </td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
 
       <!-- Pagination -->
       <div v-if="lastPage > 1" class="px-5 py-3 mp-table-border-top flex items-center justify-between">

@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold mp-text-primary">Quản lý Users</h1>
@@ -17,7 +17,8 @@
 
     <!-- Table -->
     <div class="card overflow-hidden">
-      <table class="mp-table">
+      <div class="overflow-x-auto w-full">
+        <table class="mp-table min-w-[700px]">
         <thead>
           <tr>
             <th>Tên</th>
@@ -62,7 +63,8 @@
             </td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
 
     <!-- Pagination -->

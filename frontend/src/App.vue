@@ -217,6 +217,13 @@
       @openShopSelector="shopSelectorRef?.open()"
       @navigate="navigateTo"
     />
+
+    <!-- ═══ View: CMS Page Create/Edit ═══ -->
+    <CmsPageForm
+      v-if="activeView === 'shop/cms/create' || activeView === 'shop/cms/edit'"
+      :pageId="cmsEditPageId"
+      @navigate="navigateTo"
+    />
     <!-- Customer Detail Modal -->
     <CustomerDetail
       :visible="showCustomerDetail"
@@ -301,6 +308,7 @@ import LeadPipeline from './components/LeadPipeline.vue'
 import ReportPage from './components/ReportPage.vue'
 import LoginPage from './components/LoginPage.vue'
 import ShopSettings from './components/ShopSettings.vue'
+import CmsPageForm from './components/CmsPageForm.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
@@ -471,6 +479,7 @@ const routeToTab = {
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',
+  'shop/cms/create', 'shop/cms/edit',
   ...Object.keys(routeToTab),
 ]
 // ── Storefront Detection ──
@@ -505,6 +514,8 @@ function onAddToCart(data) {
 
 function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '')
+  // Match CMS edit with ID: shop/cms/edit/123
+  if (path.startsWith('shop/cms/edit/')) return 'shop/cms/edit'
   // Match multi-segment routes like shop/products, orders/customers etc
   if (validViews.includes(path)) return path
   // Try first segment
@@ -519,10 +530,27 @@ const settingsActiveTab = computed(() => routeToTab[activeView.value] || 'produc
 // Is the current view a settings-based page?
 const isSettingsView = computed(() => activeView.value in routeToTab)
 
+// CMS page edit ID (from URL: /shop/cms/edit/123)
+const cmsEditPageId = computed(() => {
+  const path = window.location.pathname.replace(/^\//, '')
+  const match = path.match(/^shop\/cms\/edit\/(\d+)/)
+  return match ? match[1] : null
+})
+
 function navigateTo(view) {
-  if (!validViews.includes(view)) view = 'live'
+  // Support CMS edit with ID: shop/cms/edit/123
+  const urlPath = view
+  if (!validViews.includes(view)) {
+    // Check if it matches view + ID pattern
+    const base = view.replace(/\/\d+$/, '')
+    if (validViews.includes(base)) {
+      view = base
+    } else {
+      view = 'live'
+    }
+  }
   activeView.value = view
-  history.pushState({ view }, '', '/' + view)
+  history.pushState({ view }, '', '/' + urlPath)
 }
 
 window.addEventListener('popstate', () => {

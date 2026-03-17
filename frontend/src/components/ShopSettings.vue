@@ -371,7 +371,7 @@
 
       <!-- ═══ Tab: CMS Pages ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
-        <CmsManager />
+        <CmsManager @navigate="$emit('navigate', $event)" />
       </div>
 
       <!-- ═══ Tab: Storefront Layout ═══ -->

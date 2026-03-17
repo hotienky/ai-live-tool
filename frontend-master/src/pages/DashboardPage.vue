@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 lg:p-8">
+  <div class="p-4 sm:p-6 lg:p-8">
     <!-- Header -->
     <div class="mb-8">
       <h1 class="mp-heading">Dashboard</h1>
@@ -21,8 +21,16 @@
       </div>
     </div>
 
+    <!-- Dashboard Chart -->
+    <DashboardChart 
+      :total="statsMap.total"
+      :active="statsMap.active"
+      :suspended="statsMap.suspended"
+      :pro="statsMap.pro"
+    />
+
     <!-- Recent Tenants Table -->
-    <div class="card">
+    <div class="card overflow-hidden">
       <div class="p-5 mp-table-border flex items-center justify-between">
         <h2 class="text-lg font-semibold mp-text-primary">Tenants gần đây</h2>
         <router-link to="/tenants" class="text-sm text-primary-400 hover:text-primary-300 transition-colors">
@@ -31,7 +39,8 @@
       </div>
       <div v-if="loading" class="p-8 text-center mp-text-muted">Đang tải...</div>
       <div v-else-if="recentTenants.length === 0" class="p-8 text-center mp-text-muted">Chưa có tenant nào</div>
-      <table v-else class="w-full">
+      <div v-else class="overflow-x-auto w-full">
+        <table class="w-full min-w-[600px]">
         <thead>
           <tr class="mp-table-border">
             <th class="text-left text-xs font-medium mp-text-muted uppercase tracking-wider px-5 py-3">Tenant</th>
@@ -57,7 +66,8 @@
             <td class="px-5 py-3 text-sm mp-text-muted">{{ formatDate(t.created_at) }}</td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
   </div>
 </template>
@@ -66,17 +76,28 @@
 import { ref, onMounted, computed } from 'vue'
 import { Building2, Users, Package, Activity } from 'lucide-vue-next'
 import { tenants } from '../services/api.js'
+import DashboardChart from '../components/DashboardChart.vue'
 
 const loading = ref(true)
 const allTenants = ref([])
 
+const statsMap = computed(() => {
+  const tenants = allTenants.value
+  return {
+    total: tenants.length,
+    active: tenants.filter(t => t.status === 'active').length,
+    suspended: tenants.filter(t => t.status === 'suspended').length,
+    pro: tenants.filter(t => t.plan === 'pro' || t.plan === 'enterprise').length
+  }
+})
+
 const recentTenants = computed(() => allTenants.value.slice(0, 5))
 
 const stats = computed(() => [
-  { label: 'Tổng Tenants', value: allTenants.value.length, icon: Building2, bgClass: 'bg-primary-600/15', iconClass: 'text-primary-400' },
-  { label: 'Đang hoạt động', value: allTenants.value.filter(t => t.status === 'active').length, icon: Activity, bgClass: 'bg-emerald-500/15', iconClass: 'text-emerald-400' },
-  { label: 'Tạm dừng', value: allTenants.value.filter(t => t.status === 'suspended').length, icon: Package, bgClass: 'bg-red-500/15', iconClass: 'text-red-400' },
-  { label: 'Gói Pro', value: allTenants.value.filter(t => t.plan === 'pro' || t.plan === 'enterprise').length, icon: Users, bgClass: 'bg-amber-500/15', iconClass: 'text-amber-400' },
+  { label: 'Tổng Tenants', value: statsMap.value.total, icon: Building2, bgClass: 'bg-primary-600/15', iconClass: 'text-primary-400' },
+  { label: 'Đang hoạt động', value: statsMap.value.active, icon: Activity, bgClass: 'bg-emerald-500/15', iconClass: 'text-emerald-400' },
+  { label: 'Tạm dừng', value: statsMap.value.suspended, icon: Package, bgClass: 'bg-red-500/15', iconClass: 'text-red-400' },
+  { label: 'Gói Pro', value: statsMap.value.pro, icon: Users, bgClass: 'bg-amber-500/15', iconClass: 'text-amber-400' },
 ])
 
 function statusClass(status) {
