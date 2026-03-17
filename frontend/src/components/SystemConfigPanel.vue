@@ -121,7 +121,8 @@ async function loadConfigs() {
   loading.value = true
   try {
     const res = await apiFetch(`/system-config/group/${activeGroup.value}`)
-    configs.value = Array.isArray(res) ? res : (res?.data || [])
+    const data = await res.json()  // [{id, key, group_name, value}, ...]
+    configs.value = Array.isArray(data) ? data : (data?.data || [])
     pendingChanges.value = {}
     hasChanges.value = false
   } catch (e) {
@@ -142,10 +143,13 @@ function updateConfig(key, value) {
 async function saveAll() {
   saving.value = true
   try {
-    await apiFetch(`/system-config/group/${activeGroup.value}`, {
+    // Backend updateGroup expects: {items: [{key, value}, ...]}
+    const items = Object.entries(pendingChanges.value).map(([key, value]) => ({ key, value: String(value ?? '') }))
+    const res = await apiFetch(`/system-config/group/${activeGroup.value}`, {
       method: 'PUT',
-      body: JSON.stringify({ configs: pendingChanges.value }),
+      body: JSON.stringify({ items }),
     })
+    if (!res.ok) throw new Error('Save failed')
     showToast('Đã lưu cấu hình', 'success')
     hasChanges.value = false
     pendingChanges.value = {}
@@ -159,10 +163,12 @@ async function saveAll() {
 async function addConfig() {
   if (!newKey.value) return
   try {
-    await apiFetch('/system-config', {
+    // Backend store expects: {items: [{key, value, group_name}]}
+    const res = await apiFetch('/system-config', {
       method: 'POST',
-      body: JSON.stringify({ key: newKey.value, value: newValue.value, group: activeGroup.value }),
+      body: JSON.stringify({ items: [{ key: newKey.value, value: newValue.value, group_name: activeGroup.value }] }),
     })
+    if (!res.ok) throw new Error('Add failed')
     showToast('Đã thêm cấu hình', 'success')
     newKey.value = ''
     newValue.value = ''

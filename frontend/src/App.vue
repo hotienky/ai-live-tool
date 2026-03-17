@@ -48,7 +48,7 @@
           <span>AI Live Tool</span>
         </div>
         <nav class="app-nav">
-          <template v-for="item in navItems" :key="item.key">
+          <template v-for="item in filteredNavItems" :key="item.key">
             <!-- Standalone tab (no dropdown) -->
             <button
               v-if="!item.children"
@@ -318,6 +318,7 @@ import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useTheme } from './composables/useTheme.js'
+import { usePermissions } from './composables/usePermissions.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -327,7 +328,7 @@ import {
   BellRing, BellOff,
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
   ShoppingBag, FolderTree, Award, Receipt, Tag,
-  Key, MessageCircle, Shield, Link, Image, BookOpen,
+  Key, MessageCircle, Shield, Link, Image, BookOpen, Zap,
   ClipboardList, Palette, Cog, Globe,
 } from 'lucide-vue-next'
 
@@ -335,6 +336,7 @@ import {
 const { isLoggedIn, currentUser, logout } = useAuth()
 const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
 const { theme, resolvedTheme, toggleTheme } = useTheme()
+const { can, isSuperAdmin } = usePermissions()
 
 function onLoginSuccess() {}
 function onLogout() { logout() }
@@ -357,9 +359,10 @@ function onDropdownLeave() {
 }
 
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, // no permission = always visible
   {
     key: 'live-group', label: 'Live', icon: MonitorPlay,
+    permission: null, // live features always visible (handled by shop connection)
     activeKeys: ['live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
     children: [
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
@@ -373,35 +376,57 @@ const navItems = [
   },
   {
     key: 'store-group', label: 'Cửa hàng', icon: Store,
-    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages'],
+    permission: 'products.view', // group visible if user can see at least products
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages'],
     children: [
-      { key: 'store-products', view: 'shop/products', label: 'Sản phẩm', icon: ShoppingBag },
-      { key: 'store-categories', view: 'shop/categories', label: 'Danh mục', icon: FolderTree },
-      { key: 'store-brands', view: 'shop/brands', label: 'Thương hiệu', icon: Award },
-      { key: 'store-promotions', view: 'shop/promotions', label: 'Khuyến mãi', icon: Tag },
-      { key: 'store-banners', view: 'shop/banners', label: 'Banner', icon: Image },
-      { key: 'store-cms', view: 'shop/cms', label: 'Trang CMS', icon: BookOpen },
-      { key: 'store-nav', view: 'shop/nav', label: 'Menu', icon: ClipboardList },
-      { key: 'store-appearance', view: 'shop/appearance', label: 'Giao diện', icon: Palette },
-      { key: 'store-config', view: 'shop/config', label: 'Cấu hình', icon: Cog },
-      { key: 'store-languages', view: 'shop/languages', label: 'Ngôn ngữ', icon: Globe },
+      { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
+      { key: 'store-categories',  view: 'shop/categories',  label: 'Danh mục',    icon: FolderTree,   permission: 'products.view' },
+      { key: 'store-brands',      view: 'shop/brands',      label: 'Thương hiệu',  icon: Award,        permission: 'products.view' },
+      { key: 'store-promotions',  view: 'shop/promotions',  label: 'Khuyến mãi',   icon: Tag,          permission: 'promotions.view' },
+      { key: 'store-flash-sales', view: 'shop/flash-sales', label: 'Flash Sale',   icon: Zap,          permission: 'promotions.view' },
+      { key: 'store-banners',     view: 'shop/banners',     label: 'Banner',       icon: Image,        permission: 'banners.view' },
+      { key: 'store-cms',         view: 'shop/cms',         label: 'Trang CMS',    icon: BookOpen,     permission: 'cms.view' },
+      { key: 'store-nav',         view: 'shop/nav',         label: 'Menu',         icon: ClipboardList,permission: 'settings.view' },
+      { key: 'store-appearance',  view: 'shop/appearance',  label: 'Giao diện',   icon: Palette,      permission: 'settings.view' },
+      { key: 'store-config',      view: 'shop/config',      label: 'Cấu hình',     icon: Cog,          permission: 'settings.edit' },
+      { key: 'store-languages',   view: 'shop/languages',   label: 'Ngôn ngữ',    icon: Globe,        permission: 'settings.edit' },
     ],
   },
   {
     key: 'orders-group', label: 'Đơn hàng', icon: Receipt,
+    permission: 'orders.view',
     activeKeys: ['orders', 'orders/customers'],
     children: [
-      { key: 'orders-list', view: 'orders', label: 'Đơn hàng', icon: Receipt },
-      { key: 'orders-customers', view: 'orders/customers', label: 'Khách hàng', icon: Users },
+      { key: 'orders-list',      view: 'orders',           label: 'Đơn hàng',     icon: Receipt, permission: 'orders.view' },
+      { key: 'orders-customers', view: 'orders/customers', label: 'Khách hàng',   icon: Users,   permission: 'customers.view' },
     ],
   },
+
 ]
+
+// Filter nav items by user permissions
+const filteredNavItems = computed(() => {
+  return navItems
+    .map(item => {
+      // Item with no permission = always visible
+      if (!item.permission && !item.children) return item
+      // Group with children: filter children, hide group if none visible
+      if (item.children) {
+        const visibleChildren = item.children.filter(c => !c.permission || can(c.permission))
+        if (visibleChildren.length === 0 && item.permission && !can(item.permission)) return null
+        return { ...item, children: visibleChildren }
+      }
+      // Top-level item with permission
+      return (!item.permission || can(item.permission)) ? item : null
+    })
+    .filter(Boolean)
+})
 
 // Route → settingsTab mapping
 const routeToTab = {
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
   'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
-  'shop/promotions': 'promotions', 'shop/banners': 'banners', 'shop/cms': 'cms',
+  'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
   'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
@@ -609,6 +634,20 @@ watch(currentShop, (shop) => {
 })
 
 onMounted(async () => {
+  // Bootstrap saved storefront accent color into CMS CSS vars on startup
+  try {
+    const { apiFetch: _apiFetch } = await import('./composables/useApi.js')
+    const res = await _apiFetch('/system-config/group/theme')
+    const rows = await res.json()  // [{id, key, group_name, value}, ...]
+    const accentRow = Array.isArray(rows) && rows.find(r => r.key === 'accent' || r.key === 'theme.accent')
+    const hex = accentRow?.value
+    if (hex && /^#[0-9a-fA-F]{3,6}$/.test(hex)) {
+      document.documentElement.style.setProperty('--accent', hex)
+      document.documentElement.style.setProperty('--color-accent-primary', hex)
+      document.documentElement.style.setProperty('--color-accent-glow', hex + '33')
+    }
+  } catch { /* use defaults */ }
+
   try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
   startTimelineCollection()
 })

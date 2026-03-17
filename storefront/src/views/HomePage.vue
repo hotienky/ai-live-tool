@@ -77,8 +77,8 @@
             {{ section.params?.title || 'Hàng mới về' }}
           </h2>
         </div>
-        <div class="product-grid">
-          <ProductCard v-for="p in newProducts.slice(0, section.params?.count || 4)" :key="p.id" :product="p" />
+        <div class="product-grid" :style="gridStyle(section.params?.columns)">
+          <ProductCard v-for="p in newProducts.slice(0, section.params?.count || 6)" :key="p.id" :product="p" />
         </div>
       </section>
 
@@ -159,6 +159,7 @@ import { apiFetch } from '../api.js'
 import BannerSlider from '../components/BannerSlider.vue'
 import CategoryGrid from '../components/CategoryGrid.vue'
 import ProductCard from '../components/ProductCard.vue'
+import ProductCarousel from '../components/ProductCarousel.vue'
 import FlashSale from '../components/FlashSale.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'

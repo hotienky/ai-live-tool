@@ -125,17 +125,17 @@ export function useTheme() {
   async function loadThemeConfig() {
     try {
       const config = await apiFetch('/theme')
+      // StorefrontController.theme() returns {accent, mode, font, radius, card_style}
+      // Keys are stored WITHOUT 'theme.' prefix in the DB under group_name='theme'
       if (config && typeof config === 'object') {
-        // Apply tenant settings
-        if (config['theme.accent']) state.accent = config['theme.accent']
-        if (config['theme.font']) state.font = config['theme.font']
-        if (config['theme.radius']) state.radius = config['theme.radius']
-        if (config['theme.card_style']) state.cardStyle = config['theme.card_style']
-        if (config['theme.mode']) {
-          state.tenantDefaultMode = config['theme.mode']
-          // Only use tenant default if user hasn't set preference
+        if (config['accent']) state.accent = config['accent']
+        if (config['font'])   state.font   = config['font']
+        if (config['radius']) state.radius  = config['radius']
+        if (config['card_style']) state.cardStyle = config['card_style']
+        if (config['mode']) {
+          state.tenantDefaultMode = config['mode']
           if (!localStorage.getItem(THEME_KEY)) {
-            state.mode = config['theme.mode']
+            state.mode = config['mode']
           }
         }
       }

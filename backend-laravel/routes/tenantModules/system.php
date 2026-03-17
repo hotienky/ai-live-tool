@@ -12,6 +12,7 @@ use App\Http\Controllers\Tenant\LanguagesController;
 use App\Http\Controllers\Tenant\CustomFieldsController;
 use App\Http\Controllers\Tenant\FlashSalesController;
 use App\Http\Controllers\Tenant\AuthController;
+use App\Http\Controllers\Tenant\UserController;
 
 // Dashboard (all authenticated users)
 Route::get('/dashboard', [DashboardController::class, 'overview']);
@@ -48,8 +49,14 @@ Route::post('/roles', [RolesController::class, 'store'])->middleware('permission
 Route::get('/roles/{id}', [RolesController::class, 'show'])->middleware('permission:system.roles');
 Route::put('/roles/{id}', [RolesController::class, 'update'])->middleware('permission:system.roles');
 Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->middleware('permission:system.roles');
-Route::get('/users', [RolesController::class, 'users'])->middleware('permission:system.users');
-Route::put('/users/{id}/role', [RolesController::class, 'assignRole'])->middleware('permission:system.users');
+// User Management (staff accounts for tenant CMS)
+Route::get('/users',                        [UserController::class, 'index'])       ->middleware('permission:system.users');
+Route::post('/users',                       [UserController::class, 'store'])       ->middleware('permission:system.users');
+Route::get('/users/{id}',                   [UserController::class, 'show'])        ->middleware('permission:system.users');
+Route::put('/users/{id}',                   [UserController::class, 'update'])      ->middleware('permission:system.users');
+Route::delete('/users/{id}',                [UserController::class, 'destroy'])     ->middleware('permission:system.users');
+Route::patch('/users/{id}/toggle-active',   [UserController::class, 'toggleActive'])->middleware('permission:system.users');
+Route::put('/users/{id}/role',              [UserController::class, 'update'])      ->middleware('permission:system.users'); // kept for backward compat
 
 // System Config
 Route::get('/system-config', [SystemConfigController::class, 'index'])->middleware('permission:settings.view');

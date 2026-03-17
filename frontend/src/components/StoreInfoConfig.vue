@@ -122,12 +122,13 @@ async function loadData() {
   loading.value = true
   try {
     const res = await apiFetch('/system-config/group/store')
-    const configs = Array.isArray(res) ? res : (res?.data || [])
-    
+    const configs = await res.json()  // [{id, key, group_name, value}, ...]
+    const rows = Array.isArray(configs) ? configs : (configs?.data || [])
+
     // Convert array of {key, value} to object
     const map = {}
-    configs.forEach(c => { map[c.key] = c.value })
-    
+    rows.forEach(c => { map[c.key] = c.value })
+
     // Assign to form
     Object.keys(form.value).forEach(k => {
       if (map[k] !== undefined) form.value[k] = map[k]
@@ -142,10 +143,13 @@ async function loadData() {
 async function save() {
   saving.value = true
   try {
-    await apiFetch('/system-config/group/store', {
+    // Backend updateGroup expects: {items: [{key, value}, ...]}
+    const items = Object.entries(form.value).map(([key, value]) => ({ key, value: String(value ?? '') }))
+    const res = await apiFetch('/system-config/group/store', {
       method: 'PUT',
-      body: JSON.stringify({ configs: form.value })
+      body: JSON.stringify({ items })
     })
+    if (!res.ok) throw new Error('Save failed')
     showToast('Đã lưu thông tin cửa hàng', 'success')
   } catch (e) {
     console.error('Failed to save store info:', e)

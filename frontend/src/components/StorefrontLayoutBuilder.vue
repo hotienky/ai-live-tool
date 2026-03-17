@@ -3,10 +3,37 @@
     <div class="layout-builder__header">
       <div style="display: flex; align-items: center; gap: 16px;">
         <h3><LayoutDashboard :size="16" /> Bố cục Storefront</h3>
-        <select v-model="activePageId" class="param-select" style="min-width: 200px" @change="loadLayout">
-          <option :value="null">[ Trang Chủ (Global) ]</option>
-          <option v-for="p in dynamicPages" :key="p.id" :value="p.id">Trang: {{ p.title }}</option>
-        </select>
+        <!-- Custom page picker dropdown -->
+        <div class="page-picker" tabindex="-1" @focusout="handlePickerFocusout">
+          <button class="page-picker__trigger" @click="pageDropdownOpen = !pageDropdownOpen">
+            <component :is="activePage.icon" :size="14" />
+            <span>{{ activePage.label }}</span>
+            <ChevronDown :size="12" :style="{ transform: pageDropdownOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }" />
+          </button>
+          <div v-if="pageDropdownOpen" class="page-picker__menu">
+            <!-- Homepage -->
+            <button class="page-picker__item" :class="{ active: activePageId === null }" @click="selectPage(null)">
+              <Home :size="14" /> Trang Chủ (Global)
+            </button>
+            <!-- System pages -->
+            <div class="page-picker__group">Trang hệ thống</div>
+            <button v-for="pg in builtinPageOptions" :key="pg.id"
+              class="page-picker__item" :class="{ active: activePageId === pg.id }"
+              @click="selectPage(pg.id)">
+              <component :is="pg.icon" :size="14" />
+              <span>{{ pg.label }}</span>
+            </button>
+            <!-- CMS dynamic pages -->
+            <template v-if="dynamicPages.length">
+              <div class="page-picker__group">Trang CMS động</div>
+              <button v-for="p in dynamicPages" :key="p.id"
+                class="page-picker__item" :class="{ active: activePageId === p.id }"
+                @click="selectPage(p.id)">
+                <FileText :size="14" /> {{ p.title }}
+              </button>
+            </template>
+          </div>
+        </div>
       </div>
       <div class="layout-builder__header-actions">
         <button v-if="undoStack.length" class="btn-undo" @click="undo" title="Hoàn tác">
@@ -48,10 +75,101 @@
           </div>
         </div>
 
-        <!-- Sections with Drag & Drop -->
+        <!-- Sections heading -->
         <div class="lb-section">
-          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activePageId ? 'Sections trong trang' : 'Sections trang chủ' }}</h4>
-          <div class="section-list">
+          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? 'Cấu hình trang' : (activePageId ? 'Sections trong trang' : 'Sections trang chủ') }}</h4>
+          <!-- Builtin page config panel: shown instead of sections list -->
+          <div v-if="activeBuiltinPage" class="builtin-page-config">
+            <!-- Products -->
+            <template v-if="activeBuiltinPage === 'products'">
+              <div class="param-row"><label>Sidebar</label>
+                <select v-model="pageConfigs.products.sidebarPosition" class="param-select">
+                  <option value="left">Bên trái</option>
+                  <option value="right">Bên phải</option>
+                  <option value="hidden">Ẩn</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Cột sản phẩm</label>
+                <input type="range" v-model.number="pageConfigs.products.gridColumns" min="2" max="5" class="param-range" />
+                <span class="param-value">{{ pageConfigs.products.gridColumns }}</span>
+              </div>
+              <div class="param-row"><label>SP / trang</label>
+                <select v-model.number="pageConfigs.products.itemsPerPage" class="param-select">
+                  <option :value="8">8</option>
+                  <option :value="12">12</option>
+                  <option :value="16">16</option>
+                  <option :value="24">24</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Filter danh mục</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.category" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Filter thương hiệu</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.brand" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Filter giá</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.products.showFilters.price" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </template>
+            <!-- Product Detail -->
+            <template v-else-if="activeBuiltinPage === 'productDetail'">
+              <div class="param-row"><label>Gallery</label>
+                <select v-model="pageConfigs.productDetail.galleryStyle" class="param-select">
+                  <option value="thumbnails">Thumbnail</option>
+                  <option value="grid">Grid</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Tỷ lệ layout</label>
+                <select v-model="pageConfigs.productDetail.layoutRatio" class="param-select">
+                  <option value="50-50">50 / 50</option>
+                  <option value="60-40">60 / 40</option>
+                  <option value="40-60">40 / 60</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Breadcrumb</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showBreadcrumb" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>SP liên quan</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showRelatedProducts" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row" v-if="pageConfigs.productDetail.showRelatedProducts"><label>Số SP liên quan</label>
+                <input type="range" v-model.number="pageConfigs.productDetail.relatedCount" min="4" max="8" class="param-range" />
+                <span class="param-value">{{ pageConfigs.productDetail.relatedCount }}</span>
+              </div>
+              <div class="param-row"><label>Đánh giá</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.productDetail.showReviews" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </template>
+            <!-- Other built-in pages: just show a note -->
+            <template v-else>
+              <div class="builtin-page-note">
+                <span>Trang này hiện không có cấu hình tuỳ chỉnh.<br/>Bật/tắt trang trong <strong>Trang Chủ (Global)</strong> → Trang sẵn có.</span>
+              </div>
+            </template>
+            <button class="btn-save" style="margin-top:16px;width:100%" @click="saveLayout" :disabled="saving">
+              <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
+            </button>
+          </div>
+          <!-- Normal section list (homepage or CMS dynamic page) -->
+          <div class="section-list" v-else>
             <div
               v-for="(section, idx) in sections"
               :key="section.type"
@@ -216,6 +334,26 @@
                         <option value="price_desc">Giá giảm</option>
                       </select>
                     </div>
+                    <!-- Carousel config -->
+                    <div class="param-row" style="margin-top:6px;border-top:1px solid var(--glass-border);padding-top:8px">
+                      <label>Slides/hàng</label>
+                      <select v-model.number="section.params.slidesPerView" class="param-select">
+                        <option :value="2">2 sản phẩm</option>
+                        <option :value="3">3 sản phẩm</option>
+                      </select>
+                    </div>
+                    <div class="param-row">
+                      <label>Auto-scroll</label>
+                      <label class="toggle-switch toggle-switch--sm" @click.stop>
+                        <input type="checkbox" v-model="section.params.autoplay" />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div class="param-row" v-if="section.params.autoplay !== false">
+                      <label>Tốc độ (giây)</label>
+                      <input type="range" v-model.number="section.params.autoplaySpeed" min="2000" max="8000" step="500" class="param-range" />
+                      <span class="param-value">{{ (section.params.autoplaySpeed || 4000) / 1000 }}s</span>
+                    </div>
                   </template>
 
                   <template v-if="section.type === 'new_arrivals'">
@@ -241,6 +379,26 @@
                         <option value="price_asc">Giá tăng</option>
                         <option value="price_desc">Giá giảm</option>
                       </select>
+                    </div>
+                    <!-- Carousel config -->
+                    <div class="param-row" style="margin-top:6px;border-top:1px solid var(--glass-border);padding-top:8px">
+                      <label>Slides/hàng (mobile)</label>
+                      <select v-model.number="section.params.slidesPerView" class="param-select">
+                        <option :value="2">2 sản phẩm</option>
+                        <option :value="3">3 sản phẩm</option>
+                      </select>
+                    </div>
+                    <div class="param-row">
+                      <label>Auto-scroll</label>
+                      <label class="toggle-switch toggle-switch--sm" @click.stop>
+                        <input type="checkbox" v-model="section.params.autoplay" />
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                    <div class="param-row" v-if="section.params.autoplay !== false">
+                      <label>Tốc độ (giây)</label>
+                      <input type="range" v-model.number="section.params.autoplaySpeed" min="2000" max="8000" step="500" class="param-range" />
+                      <span class="param-value">{{ (section.params.autoplaySpeed || 5000) / 1000 }}s</span>
                     </div>
                   </template>
 
@@ -799,7 +957,7 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit
+  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText
 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
@@ -820,6 +978,48 @@ const allCategories = ref([])
 
 const activePageId = ref(null)
 const dynamicPages = ref([])
+const pageDropdownOpen = ref(false)
+
+// Builtin page options with proper lucide icons
+const builtinPageOptions = [
+  { id: '__products',       label: 'Trang sản phẩm',    icon: ShoppingBag },
+  { id: '__productDetail',  label: 'Chi tiết sản phẩm', icon: Package },
+  { id: '__wishlist',       label: 'Yêu thích',          icon: Heart },
+  { id: '__cart',           label: 'Giỏ hàng',           icon: ShoppingCart },
+  { id: '__account',        label: 'Tài khoản',           icon: User },
+  { id: '__auth',           label: 'Đăng nhập',           icon: Lock },
+  { id: '__order_tracking', label: 'Tra cứu đơn',        icon: Truck },
+]
+
+// Computed: current active page display (icon + label)
+const activePage = computed(() => {
+  if (activePageId.value === null) return { icon: Home, label: 'Trang Chủ (Global)' }
+  const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
+  if (builtin) return builtin
+  const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
+  if (dyn) return { icon: FileText, label: dyn.title }
+  return { icon: Home, label: 'Trang Chủ (Global)' }
+})
+
+// Extracts 'products'/'productDetail'/etc from '__products'/'__productDetail'
+// Returns null if not a builtin __key selection
+const activeBuiltinPage = computed(() => {
+  if (typeof activePageId.value === 'string' && activePageId.value.startsWith('__')) {
+    return activePageId.value.slice(2) // strip the '__'
+  }
+  return null
+})
+
+function selectPage(id) {
+  activePageId.value = id
+  pageDropdownOpen.value = false
+  loadLayout()
+}
+function handlePickerFocusout(e) {
+  // Close dropdown when focus leaves the container entirely
+  const next = e.relatedTarget
+  if (!e.currentTarget.contains(next)) pageDropdownOpen.value = false
+}
 
 // Undo stack
 const undoStack = ref([])
@@ -943,8 +1143,8 @@ const defaultParams = {
   banner: { autoplay: true, interval: 4000, height: 'md' },
   categories: { columns: 6, showDescription: false, layoutStyle: 'grid', showCount: false, selectedCategoryIds: [] },
   flash_sale: { showTimer: true, showProgress: true, count: 8, columns: 4 },
-  featured_products: { title: 'Sản phẩm nổi bật', count: 8, columns: 4, filterCategory: '', sortOrder: 'newest' },
-  new_arrivals: { title: 'Hàng mới về', count: 4, columns: 4, sortOrder: 'newest' },
+  featured_products: { title: 'Sản phẩm nổi bật', count: 8, columns: 4, filterCategory: '', sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 4000 },
+  new_arrivals: { title: 'Hàng mới về', count: 6, columns: 4, sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 5000 },
   cms_pages: { layout: 'grid', maxPages: 6 },
   testimonials: { title: 'Khách hàng nói gì', columns: 3 },
   faq: { title: 'Câu hỏi thường gặp' },
@@ -1066,6 +1266,9 @@ function ensureParams(sections) {
 
 async function loadLayout() {
   try {
+    // Skip load for builtin __key pages — they use shared pageConfigs
+    if (activeBuiltinPage.value) return
+
     if (activePageId.value) {
       const res = await apiFetch(`/cms-pages/${activePageId.value}`)
       const data = await res.json()
@@ -1229,6 +1432,53 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .lb-section__title {
   font-size: 13px; font-weight: 700; color: var(--color-text-secondary);
   margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
+}
+
+/* Builtin page config panel */
+.builtin-page-config {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.builtin-page-note {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 10px; padding: 16px; font-size: 13px;
+  color: var(--color-text-muted); line-height: 1.7; text-align: center;
+}
+
+/* Custom page picker dropdown */
+.page-picker {
+  position: relative; outline: none;
+}
+.page-picker__trigger {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 12px; border-radius: 10px;
+  border: 1px solid var(--glass-border); background: var(--glass-bg);
+  color: var(--color-text-primary); font-size: 13px; font-weight: 600;
+  cursor: pointer; min-width: 210px; transition: all 0.2s;
+}
+.page-picker__trigger:hover { border-color: #7c3aed; }
+.page-picker__trigger span { flex: 1; text-align: left; }
+.page-picker__menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 9999;
+  background: var(--color-bg-primary, #1a1a2e);
+  border: 1px solid var(--glass-border); border-radius: 12px;
+  padding: 6px; min-width: 240px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  max-height: 320px; overflow-y: auto;
+}
+.page-picker__group {
+  padding: 8px 10px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  color: var(--color-text-muted); text-transform: uppercase;
+}
+.page-picker__item {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 10px; border: none; border-radius: 8px;
+  background: transparent; color: var(--color-text-primary);
+  font-size: 13px; font-weight: 500; cursor: pointer; text-align: left;
+  transition: all 0.15s;
+}
+.page-picker__item:hover { background: var(--glass-bg); color: #a78bfa; }
+.page-picker__item.active {
+  background: rgba(124, 58, 237, 0.12); color: #a78bfa; font-weight: 700;
 }
 
 /* Templates */

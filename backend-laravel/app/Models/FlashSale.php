@@ -7,17 +7,20 @@ class FlashSale extends Model
     protected $table = 'flash_sales';
 
     protected $fillable = [
-        'name', 'start_time', 'end_time', 'is_active',
-        'discount_type', 'discount_value', 'products',
+        'name', 'start_date', 'end_date', 'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
-        'products' => 'array',
-        'discount_value' => 'decimal:2',
+        'is_active'  => 'boolean',
+        'start_date' => 'datetime',
+        'end_date'   => 'datetime',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(FlashSaleItem::class, 'flash_sale_id')
+                    ->with('product:id,name,image_url,slug');
+    }
 
     /* Scopes */
     public function scopeActive($query)
@@ -28,21 +31,20 @@ class FlashSale extends Model
     public function scopeRunning($query)
     {
         return $query->active()
-                     ->where('start_time', '<=', now())
-                     ->where('end_time', '>=', now());
+                     ->where('start_date', '<=', now())
+                     ->where('end_date', '>=', now());
     }
 
     public function scopeUpcoming($query)
     {
         return $query->active()
-                     ->where('start_time', '>', now());
+                     ->where('start_date', '>', now());
     }
 
-    /* Helpers */
     public function isRunning(): bool
     {
         return $this->is_active
-            && $this->start_time <= now()
-            && $this->end_time >= now();
+            && $this->start_date <= now()
+            && $this->end_date >= now();
     }
 }

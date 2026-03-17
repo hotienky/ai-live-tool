@@ -9,6 +9,7 @@
       </router-view>
     </main>
     <SiteFooter v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
+    <SfToastContainer />
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import { ref, computed, onMounted, watch, provide, onErrorCaptured } from 'vue'
 import { apiFetch } from './api.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
+import SfToastContainer from './components/SfToastContainer.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
 

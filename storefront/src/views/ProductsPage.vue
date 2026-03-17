@@ -111,7 +111,7 @@
         </transition>
 
         <!-- Loading -->
-        <div v-if="loading" class="product-skeleton-grid" :style="gridStyle">
+        <div v-if="loading" class="product-skeleton-grid" :class="'grid-cols--' + pageConfig.gridColumns">
           <div v-for="i in 12" :key="i" class="product-skeleton">
             <div class="skeleton" style="aspect-ratio:1"></div>
             <div class="skeleton" style="height:14px;width:70%;margin-top:12px"></div>
@@ -120,7 +120,7 @@
         </div>
 
         <!-- Products Grid -->
-        <div v-else-if="products.length > 0" class="product-grid" :style="gridStyle">
+        <div v-else-if="products.length > 0" class="product-grid" :class="'grid-cols--' + pageConfig.gridColumns">
           <ProductCard v-for="p in products" :key="p.id" :product="p" />
         </div>
 
@@ -229,12 +229,6 @@ const pageTitle = computed(() => {
   return 'Tất cả sản phẩm'
 })
 
-const gridStyle = computed(() => {
-  const cols = pageConfig.value.gridColumns
-  // Map column count to minmax value for responsive grid
-  const minWidth = { 2: '300px', 3: '260px', 4: '220px', 5: '180px' }[cols] || '220px'
-  return { gridTemplateColumns: `repeat(auto-fill, minmax(${minWidth}, 1fr))` }
-})
 
 const visiblePages = computed(() => {
   const pages = []
@@ -425,17 +419,17 @@ onMounted(async () => { await loadFilters(); await reload() })
 .products-main__search input::placeholder { color: var(--sf-text-muted); }
 
 /* Product grid */
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-}
-
+.product-grid,
 .product-skeleton-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
+/* Grid column overrides from config */
+.grid-cols--2 { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.grid-cols--3 { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.grid-cols--4 { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.grid-cols--5 { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 
 .product-skeleton {
   padding: 16px;
@@ -510,6 +504,22 @@ onMounted(async () => { await loadFilters(); await reload() })
   .products-layout { grid-template-columns: 1fr; }
   .products-sidebar { display: none; }
   .mobile-filter-btn { display: flex; }
-  .product-grid, .product-skeleton-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  /* Force 2 columns on mobile — override all grid-cols-- classes */
+  .product-grid, .product-skeleton-grid,
+  .product-grid.grid-cols--2, .product-grid.grid-cols--3,
+  .product-grid.grid-cols--4, .product-grid.grid-cols--5,
+  .product-skeleton-grid.grid-cols--2, .product-skeleton-grid.grid-cols--3,
+  .product-skeleton-grid.grid-cols--4, .product-skeleton-grid.grid-cols--5 {
+    grid-template-columns: repeat(2, 1fr); gap: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  /* Very small screens: still 2 columns but tighter */
+  .product-grid, .product-skeleton-grid,
+  .product-grid[class*="grid-cols--"],
+  .product-skeleton-grid[class*="grid-cols--"] {
+    grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
 }
 </style>

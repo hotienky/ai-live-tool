@@ -22,8 +22,9 @@ class SystemConfigRepository implements SystemConfigRepositoryInterface
         foreach ($items as $item) {
             $group = $item['group_name'] ?? $item['group'] ?? 'general';
             DB::table('system_configs')->updateOrInsert(
+                // Match on COMPOSITE unique key (key + group_name)
                 ['key' => $item['key'], 'group_name' => $group],
-                ['value' => $item['value'], 'updated_at' => now()]
+                ['value' => $item['value'], 'type' => $item['type'] ?? 'string', 'updated_at' => now()]
             );
         }
     }
@@ -32,8 +33,9 @@ class SystemConfigRepository implements SystemConfigRepositoryInterface
     {
         foreach ($items as $item) {
             DB::table('system_configs')->updateOrInsert(
+                // Match on COMPOSITE unique key (key + group_name)
                 ['key' => $item['key'], 'group_name' => $group],
-                ['value' => $item['value'], 'updated_at' => now()]
+                ['value' => $item['value'], 'type' => $item['type'] ?? 'string', 'updated_at' => now()]
             );
         }
     }

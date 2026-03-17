@@ -12,6 +12,7 @@ import CategoriesPage from './views/CategoriesPage.vue'
 import BrandsPage from './views/BrandsPage.vue'
 import PromotionsPage from './views/PromotionsPage.vue'
 import UrlResolverPage from './views/UrlResolverPage.vue'
+import WishlistPage from './views/WishlistPage.vue'
 
 /**
  * Storefront Routes — Multi-Tenant Mode
@@ -32,6 +33,7 @@ const routes = [
   { path: '/categories', name: 'categories', component: CategoriesPage },
   { path: '/brands', name: 'brands', component: BrandsPage },
   { path: '/promotions', name: 'promotions', component: PromotionsPage },
+  { path: '/wishlist', name: 'wishlist', component: WishlistPage },
   
   // Catch-all URL Resolver (WordPress / Shopify-like logic)
   { path: '/:slug(.*)*', name: 'url-resolver', component: UrlResolverPage },

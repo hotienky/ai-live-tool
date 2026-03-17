@@ -48,3 +48,10 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\Tenant\SitemapController::clas
 // Robots.txt
 Route::get('/robots.txt', [\App\Http\Controllers\Tenant\RobotsTxtController::class, 'index']);
 
+// Wishlist (requires customer auth)
+Route::middleware([\App\Http\Middleware\ShopCustomerAuth::class])->group(function () {
+    Route::get('/wishlist', [\App\Http\Controllers\Tenant\WishlistController::class, 'index']);
+    Route::post('/wishlist/{productId}', [\App\Http\Controllers\Tenant\WishlistController::class, 'add']);
+    Route::delete('/wishlist/{productId}', [\App\Http\Controllers\Tenant\WishlistController::class, 'remove']);
+    Route::delete('/wishlist', [\App\Http\Controllers\Tenant\WishlistController::class, 'clear']);
+});

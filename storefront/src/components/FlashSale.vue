@@ -19,7 +19,7 @@
       <router-link
         v-for="item in displayItems"
         :key="item.id"
-        :to="`/product/${item.product_id}`"
+        :to="`/product/${item.slug || item.product_id}`"
         class="flash-item"
       >
         <div class="flash-item__image">

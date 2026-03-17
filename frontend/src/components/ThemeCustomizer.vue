@@ -97,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { Palette, Sparkles, PaintBucket, Type, LayoutGrid, Moon, Sun, Save, RotateCcw } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
@@ -151,29 +151,48 @@ function resetToDefault() {
   applyPreset(presets[0])
 }
 
+// Apply hex accent to CSS vars immediately (CMS admin panel + preview)
+function applyAccentToCss(hexColor) {
+  if (!hexColor || !/^#[0-9a-fA-F]{3,6}$/.test(hexColor)) return
+  const root = document.documentElement
+  root.style.setProperty('--accent', hexColor)
+  root.style.setProperty('--color-accent-primary', hexColor)
+  // Derive a lighter glow
+  root.style.setProperty('--color-accent-glow', hexColor + '33')
+}
+
 async function loadTheme() {
   try {
-    const data = await apiFetch('/system-config/group/theme')
-    if (data && typeof data === 'object') {
-      for (const [key, value] of Object.entries(data)) {
-        const k = key.replace('theme.', '')
-        if (k in form.value) form.value[k] = value
-      }
+    const res = await apiFetch('/system-config/group/theme')
+    const rows = await res.json()   // returns [{id, key, group_name, value}, ...]
+    if (Array.isArray(rows)) {
+      rows.forEach(row => {
+        // DB stores key as 'accent', 'mode', etc. (no 'theme.' prefix)
+        const k = row.key?.replace('theme.', '')
+        if (k && k in form.value) form.value[k] = row.value
+      })
     }
-  } catch { /* defaults */ }
+    // Apply saved accent to CMS CSS vars immediately on load
+    applyAccentToCss(form.value.accent)
+  } catch { /* use defaults */ }
 }
 
 async function saveTheme() {
   saving.value = true
   try {
-    const payload = {}
-    for (const [k, v] of Object.entries(form.value)) {
-      payload[`theme.${k}`] = String(v)
-    }
-    await apiFetch('/system-config/group/theme', {
+    // Backend updateGroup expects: { items: [{key, value}, ...] }
+    // Keys are stored WITHOUT 'theme.' prefix under group_name='theme'
+    const items = Object.entries(form.value).map(([k, v]) => ({
+      key: k,   // e.g. 'accent', 'mode', 'font', 'radius', 'card_style', 'preset'
+      value: String(v),
+    }))
+    const res = await apiFetch('/system-config/group/theme', {
       method: 'PUT',
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ items }),
     })
+    if (!res.ok) throw new Error('Save failed')
+    // Apply new accent to CSS vars immediately after save
+    applyAccentToCss(form.value.accent)
     showToast('Đã lưu giao diện thành công!', 'success')
     emit('saved')
   } catch (e) {
@@ -184,6 +203,9 @@ async function saveTheme() {
 }
 
 onMounted(loadTheme)
+
+// Live preview: apply accent color in real-time as user changes the picker
+watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 </script>
 
 <style scoped>

@@ -364,6 +364,11 @@
         <PromotionManager />
       </div>
 
+      <!-- ═══ Tab: Flash Sales ═══ -->
+      <div v-if="activeTab === 'flash-sales'" class="settings__panel">
+        <FlashSaleManager />
+      </div>
+
       <!-- ═══ Tab: CMS Pages ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
         <CmsManager />
@@ -451,13 +456,14 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag,
+  FolderTree, Award, Users, Tag, Zap,
   Cog, KeyRound, Globe, LayoutList,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
 import PromotionManager from './PromotionManager.vue'
+import FlashSaleManager from './FlashSaleManager.vue'
 import CmsManager from './CmsManager.vue'
 import BannerManager from './BannerManager.vue'
 import NavLinkManager from './NavLinkManager.vue'
@@ -505,6 +511,7 @@ const tabPermissions = {
   'orders': 'orders.view',
   'shop-customers': 'customers.view',
   'promotions': 'promotions.view',
+  'flash-sales': 'promotions.view',
   'cms': 'cms.view',
   'banners': 'banners.view',
   'nav-links': 'settings.view',
@@ -548,7 +555,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -601,6 +608,7 @@ const tabGroups = [
       { key: 'moderation', label: 'Moderation', icon: Shield },
       { key: 'shop-customers', label: 'Khách hàng', icon: Users },
       { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
+      { key: 'flash-sales', label: 'Flash Sale', icon: Zap },
     ],
   },
   {
@@ -644,7 +652,7 @@ const tabToRoute = {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'promotions', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'promotions', 'flash-sales', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 const ordersTabs = ['orders', 'shop-customers']
 
 const activeTabGroups = computed(() => {

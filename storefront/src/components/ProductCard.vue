@@ -168,4 +168,19 @@ function formatPrice(v) {
 
 .in-stock { color: #10b981; }
 .out-stock { color: #ef4444; }
+
+@media (max-width: 768px) {
+  .product-card { border-radius: 10px; }
+  .product-card:hover { transform: none; }
+  .product-card__image { aspect-ratio: 1; }
+  .product-card__body { padding: 10px 10px 12px; }
+  .product-card__cat { font-size: 10px; }
+  .product-card__name { font-size: 13px; margin: 3px 0 6px; -webkit-line-clamp: 2; }
+  .product-card__prices { gap: 4px; flex-wrap: wrap; }
+  .product-card__prices .price--original { font-size: 11px; }
+  .product-card__prices .price--sale,
+  .product-card__prices .price--current { font-size: 14px; }
+  .product-card__stock { font-size: 10px; margin-top: 4px; }
+  .product-card__badge { top: 8px; right: 8px; padding: 3px 8px; font-size: 10px; border-radius: 6px; }
+}
 </style>

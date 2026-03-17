@@ -1,5 +1,11 @@
 <template>
   <div class="detail-page container">
+    <!-- Mobile back button (hidden on desktop, shown on mobile) -->
+    <button class="mobile-back-btn" @click="$router.back()">
+      <ArrowLeft :size="16" />
+      <span>Quay lại</span>
+    </button>
+
     <!-- Breadcrumb -->
     <nav v-if="detailConfig.showBreadcrumb" class="breadcrumb">
       <router-link :to="'/'">Trang chủ</router-link>
@@ -24,7 +30,7 @@
 
     <!-- Product Detail -->
     <div v-else-if="product" class="detail-content">
-      <div class="detail-grid" :style="layoutRatioStyle">
+      <div class="detail-grid" :class="'ratio--' + detailConfig.layoutRatio">
         <!-- Image Gallery -->
         <div class="detail-gallery" :class="'gallery--' + detailConfig.galleryStyle">
           <div class="detail-main-img">
@@ -117,8 +123,13 @@
               <ShoppingCart :size="18" />
               Thêm vào giỏ hàng
             </button>
-            <button class="btn btn--outline">
-              <Heart :size="18" />
+            <button
+              class="btn btn--outline wl-btn"
+              :class="{ 'wl-btn--active': isLiked(product.id) }"
+              @click="toggleWishlist(product)"
+              :title="isLiked(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'"
+            >
+              <Heart :size="18" :fill="isLiked(product.id) ? 'currentColor' : 'none'" />
             </button>
           </div>
 
@@ -244,22 +255,21 @@ import {
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useSeo } from '../composables/useSeo.js'
+import { useWishlist } from '../composables/useWishlist.js'
+import { useToast } from '../composables/useToast.js'
 import ProductCard from '../components/ProductCard.vue'
 
 const { addToCart } = useCart()
 const { isLoggedIn, token: authToken } = useAuth()
 const { setProductSeo, setBreadcrumbs } = useSeo()
+const { isLiked, toggleWishlist } = useWishlist()
+const { showToast } = useToast()
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const detailConfig = computed(() => {
   const defaults = { galleryStyle: 'thumbnails', layoutRatio: '50-50', showBreadcrumb: true, showRelatedProducts: true, relatedCount: 6, showReviews: true }
   const dc = layoutConfig.value?.pageConfigs?.productDetail
   return dc ? { ...defaults, ...dc } : defaults
-})
-
-const layoutRatioStyle = computed(() => {
-  const map = { '50-50': '1fr 1fr', '60-40': '3fr 2fr', '40-60': '2fr 3fr' }
-  return { gridTemplateColumns: map[detailConfig.value.layoutRatio] || '1fr 1fr' }
 })
 
 const props = defineProps({
@@ -407,6 +417,8 @@ function handleAddToCart() {
   addToCart(product.value, qty.value, v)
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
+  const name = v ? `${product.value.name} — ${v.name}` : product.value.name
+  showToast(` ✓ Đã thêm "${name}" vào giỏ hàng`, 'success')
 }
 
 // ── Related Products ──
@@ -507,12 +519,19 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 .breadcrumb a:hover { color: var(--sf-accent-light); }
 .breadcrumb span { color: var(--sf-text-primary); font-weight: 600; }
 
+/* Mobile back button — hidden on desktop */
+.mobile-back-btn {
+  display: none;
+}
+
 /* Skeleton */
 .detail-skeleton { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
 .detail-skeleton__info { display: flex; flex-direction: column; }
 
 /* Grid */
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+.detail-grid.ratio--60-40 { grid-template-columns: 3fr 2fr; }
+.detail-grid.ratio--40-60 { grid-template-columns: 2fr 3fr; }
 
 /* Gallery */
 .detail-gallery { display: flex; flex-direction: column; gap: 12px; }
@@ -645,7 +664,40 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
   background: var(--sf-bg-card); border: 1px solid var(--sf-border);
 }
 .detail-desc-content { font-size: 15px; line-height: 1.8; color: var(--sf-text-secondary); margin-top: 16px; }
-.detail-desc-content :deep(img) { border-radius: var(--sf-radius-md); margin: 16px 0; }
+.detail-desc-content :deep(img) { border-radius: var(--sf-radius-md); margin: 16px 0; max-width: 100%; height: auto; }
+.detail-desc-content :deep(h1),
+.detail-desc-content :deep(h2),
+.detail-desc-content :deep(h3) {
+  color: var(--sf-text-primary); font-weight: 800; margin: 20px 0 8px; line-height: 1.3;
+}
+.detail-desc-content :deep(h1) { font-size: 22px; }
+.detail-desc-content :deep(h2) { font-size: 18px; }
+.detail-desc-content :deep(h3) { font-size: 16px; }
+.detail-desc-content :deep(p) { margin: 0 0 12px; }
+.detail-desc-content :deep(ul),
+.detail-desc-content :deep(ol) {
+  margin: 8px 0 16px; padding-left: 20px;
+}
+.detail-desc-content :deep(li) { margin-bottom: 6px; }
+.detail-desc-content :deep(strong) { color: var(--sf-text-primary); font-weight: 700; }
+.detail-desc-content :deep(a) { color: var(--sf-accent-light); text-decoration: underline; }
+.detail-desc-content :deep(blockquote) {
+  margin: 12px 0; padding: 12px 16px;
+  border-left: 3px solid var(--sf-accent-light);
+  background: var(--sf-bg-secondary, rgba(0,0,0,0.02));
+  border-radius: 0 var(--sf-radius-sm) var(--sf-radius-sm) 0;
+  font-style: italic;
+}
+.detail-desc-content :deep(table) {
+  width: 100%; border-collapse: collapse; margin: 12px 0;
+}
+.detail-desc-content :deep(th),
+.detail-desc-content :deep(td) {
+  padding: 8px 12px; border: 1px solid var(--sf-border); text-align: left; font-size: 14px;
+}
+.detail-desc-content :deep(th) {
+  background: var(--sf-bg-secondary, rgba(0,0,0,0.03)); font-weight: 700; color: var(--sf-text-primary);
+}
 
 /* 404 */
 .detail-404 {
@@ -747,15 +799,159 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
   gap: 16px; margin-top: 20px;
 }
 
+/* ── Tablet (≤1024px) ─────────────────────────────────── */
+@media (max-width: 1024px) {
+  .detail-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .detail-name { font-size: 26px; }
+  .btn--lg { padding: 12px 24px; font-size: 14px; }
+  .related-grid { grid-template-columns: repeat(3, 1fr); }
+  .detail-description { padding: 24px; }
+  .reviews-section { padding: 24px; }
+  .related-section { padding: 24px; }
+}
+
+/* ── Mobile (≤768px) ──────────────────────────────────── */
 @media (max-width: 768px) {
-  .detail-grid { grid-template-columns: 1fr; gap: 24px; }
+  .detail-page { padding-top: 12px; padding-bottom: 40px; }
+
+  /* Mobile back button */
+  .mobile-back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: none; cursor: pointer;
+    color: var(--sf-accent-light); font-size: 14px; font-weight: 600;
+    padding: 0; margin-bottom: 14px;
+    transition: opacity 0.2s;
+  }
+  .mobile-back-btn:hover { opacity: 0.75; }
+
+  /* Stack gallery above info — override all ratio classes */
+  .detail-grid,
+  .detail-grid.ratio--60-40,
+  .detail-grid.ratio--40-60 {
+    grid-template-columns: 1fr; gap: 16px; margin-bottom: 20px;
+  }
   .detail-skeleton { grid-template-columns: 1fr; }
-  .detail-name { font-size: 22px; }
-  .detail-actions { flex-direction: column; }
-  .btn--lg { width: 100%; justify-content: center; }
-  .variant-options { gap: 6px; }
-  .variant-option { padding: 6px 12px; font-size: 12px; }
+
+  /* Gallery — compact on mobile */
+  .detail-gallery { position: relative; }
+  .detail-main-img {
+    border-radius: 12px; aspect-ratio: 4/5; max-height: 44vh;
+  }
+  .detail-main-img img { object-fit: cover; }
+  .detail-thumbs {
+    display: flex; flex-direction: row; overflow-x: auto;
+    gap: 6px; padding: 4px 0;
+    scrollbar-width: none;
+  }
+  .detail-thumbs::-webkit-scrollbar { display: none; }
+  .detail-thumb { width: 52px; height: 52px; flex-shrink: 0; border-radius: 8px; }
+
+  /* Info section — tighter spacing */
+  .detail-info { gap: 10px; }
+
+  /* Typography */
+  .detail-name { font-size: 20px; line-height: 1.3; }
+  .detail-brand { font-size: 11px; }
+
+  /* Price — compact */
+  .detail-prices { padding: 8px 0; gap: 8px; }
+  .detail-prices .price--original { font-size: 14px !important; }
+  .detail-prices .price--sale,
+  .detail-prices .price--current { font-size: 22px !important; }
+  .detail-save { font-size: 11px; padding: 3px 8px; }
+
+  /* Variant options — wrap, smaller */
+  .variant-selector { padding: 10px 0; }
+  .variant-options { flex-wrap: wrap; gap: 6px; }
+  .variant-option { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+  .variant-option__img { width: 24px; height: 24px; }
+
+  /* Meta — inline compact */
+  .detail-metas { gap: 12px; padding: 10px 0; flex-direction: row; }
+  .detail-meta__label { font-size: 10px; }
+  .detail-meta__value { font-size: 13px; }
+
+  /* Qty — compact */
+  .detail-qty { padding: 10px 0; gap: 10px; }
+  .detail-qty label { font-size: 12px; }
+  .detail-qty__ctrl button { width: 34px; height: 34px; }
+  .detail-qty__ctrl input { width: 44px; font-size: 14px; }
+
+  /* Actions — row */
+  .detail-actions { gap: 8px; padding-top: 4px; }
+  .btn--lg { flex: 1; padding: 12px 14px; font-size: 13px; justify-content: center; }
+
+  /* Share */
+  .detail-share { font-size: 12px; }
+
+  /* Description */
+  .detail-description { padding: 16px; margin-top: 4px; }
+  .detail-desc-content { font-size: 14px; line-height: 1.7; }
+  .detail-desc-content :deep(h1) { font-size: 18px; }
+  .detail-desc-content :deep(h2) { font-size: 16px; }
+  .detail-desc-content :deep(h3) { font-size: 15px; }
+  .detail-desc-content :deep(ul),
+  .detail-desc-content :deep(ol) { padding-left: 16px; }
+  .detail-desc-content :deep(th),
+  .detail-desc-content :deep(td) { padding: 6px 8px; font-size: 13px; }
+
+  /* Reviews */
+  .reviews-section { padding: 20px; }
   .review-summary { flex-direction: column; gap: 16px; }
-  .related-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .review-comment { margin-left: 0; }
+  .review-form-card textarea { min-height: 100px; }
+
+  /* Related */
+  .related-section { padding: 20px; }
+  .related-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 14px; }
+
+  /* Badge */
+  .detail-badge { top: 10px; left: 10px; right: auto; padding: 5px 12px; font-size: 13px; font-weight: 800; }
+
+  /* 404 state */
+  .detail-404 { padding: 60px 20px; }
+}
+
+/* ── Small Mobile (≤480px) ────────────────────────────── */
+@media (max-width: 480px) {
+  .detail-page { padding-top: 8px; }
+  .breadcrumb { font-size: 11px; gap: 4px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; margin-bottom: 16px; }
+  .breadcrumb::-webkit-scrollbar { display: none; }
+
+  .detail-main-img { max-height: 40vh; border-radius: 10px; aspect-ratio: 4/5; }
+  .detail-thumb { width: 46px; height: 46px; }
+
+  .detail-name { font-size: 18px; }
+  .detail-prices .price--sale,
+  .detail-prices .price--current { font-size: 20px !important; }
+
+  /* Variant — 2-column grid when many items */
+  .variant-options { gap: 5px; }
+  .variant-option { padding: 5px 10px; font-size: 11px; }
+
+  /* Meta — stack on very small */
+  .detail-metas { flex-direction: column; gap: 6px; }
+
+  /* Actions stack vertical */
+  .detail-actions { flex-direction: column; gap: 8px; }
+  .btn--lg { width: 100%; padding: 11px 14px; }
+  .wl-btn { width: 100%; justify-content: center; }
+
+  /* Sections padding */
+  .detail-description { padding: 16px; }
+  .reviews-section { padding: 16px; }
+  .related-section { padding: 16px; }
+  .related-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .review-form-card { padding: 14px; }
+  .review-summary { padding: 14px; }
+  .avg-number { font-size: 32px; }
+}
+/* Wishlist heart button */
+.wl-btn { color: var(--sf-text-muted); transition: all 0.25s; }
+.wl-btn:hover { color: #ef4444; border-color: rgba(239,68,68,0.4); }
+.wl-btn--active {
+  color: #ef4444;
+  border-color: rgba(239,68,68,0.5);
+  background: rgba(239,68,68,0.06);
 }
 </style>
