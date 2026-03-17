@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Master panel auth middleware — validates Bearer token against master_access_tokens.
+ * Loads user role and permissions for RBAC.
  */
 class MasterAuth
 {
@@ -33,7 +34,7 @@ class MasterAuth
 
         $user = DB::connection('master')
             ->table('master_users')
-            ->select('id', 'email', 'name', 'role')
+            ->select('id', 'email', 'name', 'role_id', 'is_active')
             ->where('id', $tokenRecord->user_id)
             ->first();
 
@@ -41,7 +42,27 @@ class MasterAuth
             return response()->json(['error' => 'User not found'], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json(['error' => 'Account is disabled'], 403);
+        }
+
+        // Load role and permissions
+        $role = null;
+        $permissions = [];
+        if ($user->role_id) {
+            $role = DB::connection('master')
+                ->table('master_roles')
+                ->where('id', $user->role_id)
+                ->first();
+            if ($role) {
+                $permissions = json_decode($role->permissions, true) ?: [];
+                $user->role = $role->name;
+                $user->role_display_name = $role->display_name;
+            }
+        }
+
         $request->attributes->set('masterUser', $user);
+        $request->attributes->set('masterPermissions', $permissions);
 
         return $next($request);
     }

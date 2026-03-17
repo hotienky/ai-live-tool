@@ -103,4 +103,6 @@ Route::prefix('master/auth')->group(function () {
 
 Route::prefix('master')->middleware(\App\Http\Middleware\MasterAuth::class)->group(function () {
     require __DIR__ . '/masterModules/tenants.php';
+    require __DIR__ . '/masterModules/roles.php';
+    require __DIR__ . '/masterModules/users.php';
 });

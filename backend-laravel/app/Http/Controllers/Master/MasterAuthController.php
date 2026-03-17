@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Repositories\MasterUser\MasterUserRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class MasterAuthController extends Controller
@@ -27,6 +28,10 @@ class MasterAuthController extends Controller
             return $this->errorResponse('Invalid credentials', 401);
         }
 
+        if (!$user->is_active) {
+            return $this->errorResponse('Account is disabled', 403);
+        }
+
         // Handle both bcrypt (Laravel) and scrypt (AdonisJS legacy) password hashes
         $passwordValid = false;
         try {
@@ -46,20 +51,50 @@ class MasterAuthController extends Controller
 
         $token = $this->repo->createAccessToken($user->id);
 
+        // Load role + permissions
+        $role = null;
+        $permissions = [];
+        if ($user->role_id) {
+            $role = DB::connection('master')
+                ->table('master_roles')
+                ->where('id', $user->role_id)
+                ->first();
+            if ($role) {
+                $permissions = json_decode($role->permissions, true) ?: [];
+            }
+        }
+
         return $this->successResponse([
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
                 'name' => $user->name,
-                'role' => $user->role,
+                'role' => $role ? [
+                    'id' => $role->id,
+                    'name' => $role->name,
+                    'display_name' => $role->display_name,
+                ] : null,
             ],
+            'permissions' => $permissions,
             'token' => $token,
         ]);
     }
 
     public function me(Request $request)
     {
-        return $this->successResponse($request->attributes->get('masterUser'));
+        $user = $request->attributes->get('masterUser');
+        $permissions = $request->attributes->get('masterPermissions', []);
+
+        return $this->successResponse([
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => isset($user->role) ? [
+                'name' => $user->role,
+                'display_name' => $user->role_display_name ?? $user->role,
+            ] : null,
+            'permissions' => $permissions,
+        ]);
     }
 
     public function logout()

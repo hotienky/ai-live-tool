@@ -36,6 +36,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Notification\NotificationRepositoryInterface::class, \App\Repositories\Notification\NotificationRepository::class);
         $this->app->bind(\App\Repositories\Tenant\TenantRepositoryInterface::class, \App\Repositories\Tenant\TenantRepository::class);
         $this->app->bind(\App\Repositories\MasterUser\MasterUserRepositoryInterface::class, \App\Repositories\MasterUser\MasterUserRepository::class);
+        $this->app->bind(\App\Repositories\MasterRole\MasterRoleRepositoryInterface::class, \App\Repositories\MasterRole\MasterRoleRepository::class);
         $this->app->bind(\App\Repositories\Dashboard\DashboardRepositoryInterface::class, \App\Repositories\Dashboard\DashboardRepository::class);
         $this->app->bind(\App\Repositories\SystemConfig\SystemConfigRepositoryInterface::class, \App\Repositories\SystemConfig\SystemConfigRepository::class);
         $this->app->bind(\App\Repositories\Redirect\RedirectRepositoryInterface::class, \App\Repositories\Redirect\RedirectRepository::class);

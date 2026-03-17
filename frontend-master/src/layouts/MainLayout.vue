@@ -56,15 +56,17 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon } from 'lucide-vue-next'
+import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon, Users, KeyRound } from 'lucide-vue-next'
 import { getStoredUser, logout } from '../services/api.js'
 
-const icons = { LayoutDashboard, Building2, Shield, LogOut }
+const icons = { LayoutDashboard, Building2, Shield, LogOut, Users, KeyRound }
 const user = computed(() => getStoredUser())
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/tenants', label: 'Tenants', icon: Building2 },
+  { to: '/users', label: 'Users', icon: Users },
+  { to: '/roles', label: 'Roles', icon: KeyRound },
 ]
 
 const isDark = ref(true)

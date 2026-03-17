@@ -10,4 +10,11 @@ class MasterUser extends Model
     protected $table = 'master_users';
     protected $guarded = ['id'];
     protected $hidden = ['password'];
+
+    protected $searchable = ['name', 'email'];
+
+    public function role()
+    {
+        return $this->belongsTo(MasterRole::class, 'role_id');
+    }
 }

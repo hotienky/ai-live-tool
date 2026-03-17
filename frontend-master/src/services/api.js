@@ -44,6 +44,7 @@ export async function login(email, password) {
   const payload = res.data || res
   localStorage.setItem('master_token', payload.token)
   localStorage.setItem('master_user', JSON.stringify(payload.user))
+  localStorage.setItem('master_permissions', JSON.stringify(payload.permissions || []))
   return payload
 }
 
@@ -55,6 +56,7 @@ export function logout() {
   request('POST', '/auth/logout').catch(() => {})
   localStorage.removeItem('master_token')
   localStorage.removeItem('master_user')
+  localStorage.removeItem('master_permissions')
   window.location.href = '/login'
 }
 
@@ -64,6 +66,25 @@ export function getStoredUser() {
   } catch {
     return null
   }
+}
+
+export function getStoredPermissions() {
+  try {
+    return JSON.parse(localStorage.getItem('master_permissions') || '[]')
+  } catch {
+    return []
+  }
+}
+
+export function can(permission) {
+  const perms = getStoredPermissions()
+  if (perms.includes('*')) return true
+  if (perms.includes(permission)) return true
+  // Wildcard match: 'tenants.*' matches 'tenants.view'
+  const parts = permission.split('.')
+  if (perms.includes(`${parts[0]}.*`)) return true
+  if (perms.includes(`*.${parts[1]}`)) return true
+  return false
 }
 
 // ──── Tenants ────
@@ -86,3 +107,21 @@ export const domains = {
   add: (tenantId, data) => api.post(`/tenants/${tenantId}/domains`, data),
   remove: (tenantId, domainId) => api.del(`/tenants/${tenantId}/domains/${domainId}`),
 }
+
+// ──── Users ────
+export const users = {
+  list: (page = 1, search = '') =>
+    api.get(`/users?page=${page}${search ? `&search=${encodeURIComponent(search)}` : ''}`),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  remove: (id) => api.del(`/users/${id}`),
+}
+
+// ──── Roles ────
+export const roles = {
+  list: () => api.get('/roles'),
+  create: (data) => api.post('/roles', data),
+  update: (id, data) => api.put(`/roles/${id}`, data),
+  remove: (id) => api.del(`/roles/${id}`),
+}
+
