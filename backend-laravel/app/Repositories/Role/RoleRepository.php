@@ -13,11 +13,18 @@ class RoleRepository extends BaseEloquentRepository implements RoleRepositoryInt
         $role = $this->find($id);
         if (!$role) return null;
 
-        $role->permissions = DB::table('role_permissions')
+        // Preserve the roles.permissions JSON column (e.g. ["*"])
+        $role->raw_permissions = $role->permissions;
+
+        // Load related permission objects from pivot
+        $permList = DB::table('role_permissions')
             ->join('permissions', 'permissions.id', '=', 'role_permissions.permission_id')
             ->where('role_permissions.role_id', $id)
             ->select('permissions.*')
             ->get();
+
+        $role->permission_list = $permList;
+        $role->permission_names = $permList->pluck('name')->toArray();
 
         return $role;
     }

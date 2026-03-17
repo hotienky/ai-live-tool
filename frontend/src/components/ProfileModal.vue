@@ -1,67 +1,85 @@
 <template>
   <div class="profile-overlay" @click.self="$emit('close')">
     <div class="profile-modal">
-      <div class="profile-header">
-        <h3><User :size="16" /> Hồ Sơ Cá Nhân</h3>
-        <button class="close-btn" @click="$emit('close')">&times;</button>
+      <!-- Header -->
+      <div class="pm-header">
+        <h3><UserCircle :size="18" /> Hồ Sơ Cá Nhân</h3>
+        <button class="pm-close" @click="$emit('close')"><X :size="18" /></button>
       </div>
 
-      <div class="profile-body">
-        <!-- User Info -->
-        <div class="profile-section">
-          <div class="profile-avatar">
+      <div class="pm-body">
+        <!-- User Card -->
+        <div class="pm-card">
+          <div class="pm-avatar" :style="avatarStyle">
             {{ initials }}
           </div>
-          <div class="profile-info">
-            <span class="profile-name">{{ currentUser?.fullName || currentUser?.email }}</span>
-            <span class="profile-email">{{ currentUser?.email }}</span>
-            <span class="profile-role">{{ currentUser?.role || 'user' }}</span>
+          <div class="pm-user-info">
+            <span class="pm-user-name">{{ displayName }}</span>
+            <span class="pm-user-email">{{ currentUser?.email }}</span>
+            <span class="pm-user-role" v-if="roleName">
+              <Shield :size="12" /> {{ roleName }}
+            </span>
           </div>
         </div>
 
         <!-- Update Name -->
-        <div class="profile-section">
+        <div class="pm-section">
           <h4><PenLine :size="14" /> Đổi tên hiển thị</h4>
-          <div class="form-row">
-            <input
-              v-model="fullName"
-              placeholder="Tên của bạn"
-              class="profile-input"
-            />
-            <button class="btn-save" @click="updateProfile" :disabled="saving">
-              {{ saving ? '...' : 'Lưu' }}
+          <div class="pm-field-row">
+            <div class="pm-input-wrap">
+              <input
+                v-model="fullName"
+                placeholder="Nhập tên hiển thị..."
+                class="pm-input"
+                @keyup.enter="updateProfile"
+              />
+            </div>
+            <button class="pm-btn pm-btn--primary" @click="updateProfile" :disabled="saving || !fullName.trim()">
+              <Check :size="14" />
+              {{ saving ? 'Đang lưu...' : 'Lưu' }}
             </button>
           </div>
         </div>
 
         <!-- Change Password -->
-        <div class="profile-section">
+        <div class="pm-section">
           <h4><Lock :size="14" /> Đổi mật khẩu</h4>
-          <input
-            v-model="currentPassword"
-            type="password"
-            placeholder="Mật khẩu hiện tại"
-            class="profile-input"
-          />
-          <input
-            v-model="newPassword"
-            type="password"
-            placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
-            class="profile-input"
-          />
+          <div class="pm-input-wrap">
+            <Lock :size="14" class="pm-input-icon" />
+            <input
+              v-model="currentPassword"
+              type="password"
+              placeholder="Mật khẩu hiện tại"
+              class="pm-input pm-input--icon"
+            />
+          </div>
+          <div class="pm-input-wrap">
+            <KeyRound :size="14" class="pm-input-icon" />
+            <input
+              v-model="newPassword"
+              type="password"
+              placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
+              class="pm-input pm-input--icon"
+              @keyup.enter="changePassword"
+            />
+          </div>
           <button
-            class="btn-save btn-password"
+            class="pm-btn pm-btn--secondary pm-btn--full"
             @click="changePassword"
-            :disabled="savingPw || !currentPassword || !newPassword"
+            :disabled="savingPw || !currentPassword || !newPassword || newPassword.length < 6"
           >
-            {{ savingPw ? '...' : 'Đổi mật khẩu' }}
+            <RefreshCw :size="14" />
+            {{ savingPw ? 'Đang đổi...' : 'Đổi mật khẩu' }}
           </button>
         </div>
 
-        <!-- Error/Success -->
-        <div v-if="message" class="profile-message" :class="messageType">
-          {{ message }}
-        </div>
+        <!-- Feedback Message -->
+        <Transition name="pm-msg">
+          <div v-if="message" class="pm-message" :class="'pm-message--' + messageType">
+            <component :is="messageType === 'success' ? CheckCircle2 : AlertCircle" :size="14" />
+            {{ message }}
+          </div>
+        </Transition>
       </div>
     </div>
   </div>
@@ -69,7 +87,10 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { User, PenLine, Lock } from 'lucide-vue-next'
+import {
+  UserCircle, X, PenLine, Lock, KeyRound, Check,
+  RefreshCw, Shield, CheckCircle2, AlertCircle
+} from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
 const props = defineProps({
@@ -77,7 +98,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'updated'])
 
-const fullName = ref(props.currentUser?.fullName || '')
+const fullName = ref(props.currentUser?.full_name || props.currentUser?.fullName || '')
 const currentPassword = ref('')
 const newPassword = ref('')
 const saving = ref(false)
@@ -85,146 +106,290 @@ const savingPw = ref(false)
 const message = ref('')
 const messageType = ref('success')
 
+const displayName = computed(() =>
+  props.currentUser?.full_name || props.currentUser?.fullName || props.currentUser?.email || 'User'
+)
+
+const roleName = computed(() => {
+  const role = props.currentUser?.role
+  if (!role) return ''
+  if (typeof role === 'string') return role
+  return role?.display_name || role?.name || ''
+})
+
 const initials = computed(() => {
-  const name = props.currentUser?.fullName || props.currentUser?.email || '?'
+  const name = displayName.value
+  const parts = name.split(/[\s@]+/)
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
   return name.slice(0, 2).toUpperCase()
 })
 
+const avatarStyle = computed(() => {
+  const colors = [
+    ['#6366f1', '#8b5cf6'], ['#ec4899', '#f43f5e'], ['#f59e0b', '#ef4444'],
+    ['#10b981', '#14b8a6'], ['#3b82f6', '#6366f1'], ['#8b5cf6', '#ec4899'],
+  ]
+  const hash = (props.currentUser?.email || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)
+  const [from, to] = colors[hash % colors.length]
+  return { background: `linear-gradient(135deg, ${from}, ${to})` }
+})
+
+let msgTimeout = null
+function showMsg(text, type = 'success') {
+  message.value = text
+  messageType.value = type
+  if (msgTimeout) clearTimeout(msgTimeout)
+  msgTimeout = setTimeout(() => { message.value = '' }, 4000)
+}
+
 async function updateProfile() {
+  if (!fullName.value.trim()) return
   saving.value = true
-  message.value = ''
   try {
     const res = await apiFetch('/auth/profile', {
       method: 'PUT',
-      body: JSON.stringify({ fullName: fullName.value }),
+      body: JSON.stringify({ full_name: fullName.value.trim() }),
     })
     const data = await res.json()
     if (res.ok) {
-      messageType.value = 'success'
-      message.value = 'Đã cập nhật tên'
-      localStorage.setItem('auth_user', JSON.stringify(data))
-      emit('updated', data)
+      showMsg('Đã cập nhật tên thành công')
+      // Update localStorage with new user data
+      const stored = JSON.parse(localStorage.getItem('auth_user') || '{}')
+      stored.full_name = fullName.value.trim()
+      stored.fullName = fullName.value.trim()
+      localStorage.setItem('auth_user', JSON.stringify(stored))
+      emit('updated', { ...stored, ...data })
     } else {
-      messageType.value = 'error'
-      message.value = data.error || 'Lỗi cập nhật'
+      showMsg(data?.message || data?.error || 'Lỗi cập nhật', 'error')
     }
   } catch (e) {
-    messageType.value = 'error'
-    message.value = 'Lỗi kết nối: ' + e.message
+    showMsg('Lỗi kết nối: ' + e.message, 'error')
   }
   saving.value = false
 }
 
 async function changePassword() {
+  if (!currentPassword.value || newPassword.value.length < 6) return
   savingPw.value = true
-  message.value = ''
   try {
-    const res = await apiFetch('/auth/password', {
+    const res = await apiFetch('/auth/change-password', {
       method: 'PUT',
       body: JSON.stringify({
-        currentPassword: currentPassword.value,
-        newPassword: newPassword.value,
+        current_password: currentPassword.value,
+        new_password: newPassword.value,
       }),
     })
     const data = await res.json()
     if (res.ok) {
-      messageType.value = 'success'
-      message.value = data.message || 'Đổi mật khẩu thành công'
+      showMsg('Đổi mật khẩu thành công')
       currentPassword.value = ''
       newPassword.value = ''
     } else {
-      messageType.value = 'error'
-      message.value = data.error || 'Lỗi đổi mật khẩu'
+      showMsg(data?.message || data?.error || 'Lỗi đổi mật khẩu', 'error')
     }
   } catch (e) {
-    messageType.value = 'error'
-    message.value = 'Lỗi kết nối: ' + e.message
+    showMsg('Lỗi kết nối: ' + e.message, 'error')
   }
   savingPw.value = false
 }
 </script>
 
 <style scoped>
+/* ── Overlay ── */
 .profile-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6); display: flex; align-items: center;
-  justify-content: center; z-index: 10000;
-  animation: fadeIn 0.2s ease;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.profile-modal {
-  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
-  border-radius: 16px; width: 420px; max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  animation: scaleIn 0.25s ease;
-}
-@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.profile-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 24px 0; margin-bottom: 8px;
-}
-.profile-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
-.close-btn {
-  background: none; border: none; color: var(--color-text-muted); font-size: 22px;
-  cursor: pointer; padding: 4px 8px;
-}
-.close-btn:hover { color: var(--color-text-primary); }
-
-.profile-body { padding: 12px 24px 24px; }
-
-.profile-section {
-  margin-bottom: 20px; padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
-}
-.profile-section:last-child { border-bottom: none; margin-bottom: 0; }
-.profile-section h4 { margin: 0 0 10px 0; font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
-
-.profile-avatar {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: linear-gradient(135deg, #ff3b5c, #ff8c42);
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px; font-weight: 800; color: #fff;
+  z-index: 10000;
+  animation: pmFadeIn 0.2s ease;
 }
-.profile-section:first-child {
+@keyframes pmFadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+/* ── Modal ── */
+.profile-modal {
+  background: var(--bg-1, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 16px;
+  width: 440px; max-width: 92vw;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
+  animation: pmSlideUp 0.3s ease;
+  overflow: hidden;
+}
+@keyframes pmSlideUp {
+  from { transform: translateY(20px); opacity: 0 }
+  to { transform: translateY(0); opacity: 1 }
+}
+
+/* ── Header ── */
+.pm-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.pm-header h3 {
+  margin: 0; font-size: 16px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text-1, #111);
+}
+.pm-close {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: var(--bg-2, #f9fafb);
+  color: var(--text-3, #9ca3af);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s;
+}
+.pm-close:hover {
+  background: #fee2e2; color: #ef4444;
+  border-color: #fecaca;
+}
+
+/* ── Body ── */
+.pm-body { padding: 20px 24px 24px; }
+
+/* ── User Card ── */
+.pm-card {
   display: flex; align-items: center; gap: 16px;
+  padding: 16px;
+  background: var(--bg-2, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  margin-bottom: 20px;
 }
-.profile-info { display: flex; flex-direction: column; gap: 2px; }
-.profile-name { font-size: 16px; font-weight: 700; }
-.profile-email { font-size: 12px; color: var(--color-text-muted); }
-.profile-role {
-  font-size: 11px; color: #818cf8; text-transform: uppercase;
-  font-weight: 700; letter-spacing: 0.5px;
+.pm-avatar {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.pm-user-info {
+  display: flex; flex-direction: column; gap: 2px;
+  min-width: 0;
+}
+.pm-user-name {
+  font-size: 15px; font-weight: 700;
+  color: var(--text-1, #111);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pm-user-email {
+  font-size: 12px; color: var(--text-3, #9ca3af);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pm-user-role {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+  color: var(--accent, #6366f1);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 2px 8px; border-radius: 6px;
+  width: fit-content; margin-top: 2px;
+  text-transform: capitalize;
 }
 
-.form-row { display: flex; gap: 8px; }
+/* ── Sections ── */
+.pm-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.pm-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.pm-section h4 {
+  margin: 0 0 12px;
+  font-size: 13px; font-weight: 600;
+  color: var(--text-2, #6b7280);
+  display: flex; align-items: center; gap: 6px;
+}
 
-.profile-input {
-  width: 100%; padding: 10px 14px; border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg-card); color: var(--color-text-primary);
-  font-size: 13px; outline: none; box-sizing: border-box;
+/* ── Inputs ── */
+.pm-input-wrap {
+  position: relative;
   margin-bottom: 8px;
+  flex: 1;
 }
-.profile-input:focus { border-color: #ff3b5c; }
-.profile-input::placeholder { color: var(--color-text-muted); }
+.pm-input-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--text-3, #9ca3af);
+  pointer-events: none;
+}
+.pm-input {
+  width: 100%; padding: 10px 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  background: var(--bg-1, #fff);
+  color: var(--text-1, #111);
+  font-size: 13px; outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.pm-input--icon { padding-left: 36px; }
+.pm-input:focus {
+  border-color: var(--accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+.pm-input::placeholder { color: var(--text-3, #9ca3af); }
 
-.btn-save {
-  padding: 8px 20px; border-radius: 8px; border: none;
-  background: linear-gradient(135deg, #ff3b5c, #ff8c42);
-  color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
-  white-space: nowrap;
+/* ── Field Row ── */
+.pm-field-row {
+  display: flex; gap: 8px; align-items: flex-start;
+}
+
+/* ── Buttons ── */
+.pm-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
-.btn-save:hover { transform: scale(1.02); }
-.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
-.btn-password { width: 100%; margin-top: 4px; }
+.pm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.profile-message {
-  padding: 10px 14px; border-radius: 8px; font-size: 13px;
-  margin-top: 8px; text-align: center;
+.pm-btn--primary {
+  background: var(--accent, #6366f1);
+  color: #fff;
 }
-.profile-message.success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
-.profile-message.error { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.pm-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.pm-btn--secondary {
+  background: var(--bg-2, #f9fafb);
+  color: var(--text-1, #111);
+  border: 1px solid var(--border, #e5e7eb);
+}
+.pm-btn--secondary:hover:not(:disabled) {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  border-color: var(--accent, #6366f1);
+}
+
+.pm-btn--full { width: 100%; margin-top: 4px; }
+
+/* ── Message ── */
+.pm-message {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  margin-top: 16px;
+}
+.pm-message--success {
+  background: rgba(16, 185, 129, 0.08);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.pm-message--error {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ── Transitions ── */
+.pm-msg-enter-active { animation: pmSlideDown 0.3s ease; }
+.pm-msg-leave-active { animation: pmSlideDown 0.2s ease reverse; }
+@keyframes pmSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>

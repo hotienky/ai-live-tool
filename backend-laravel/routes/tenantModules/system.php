@@ -23,6 +23,7 @@ Route::get('/dashboard/top-customers', [DashboardController::class, 'topCustomer
 Route::get('/dashboard/order-stats', [DashboardController::class, 'orderStats']);
 
 // Profile (own user)
+Route::get('/auth/me', [AuthController::class, 'me']);
 Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
 Route::put('/auth/change-password', [AuthController::class, 'changePassword']);
 

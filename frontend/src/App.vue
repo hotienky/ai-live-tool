@@ -658,6 +658,12 @@ onMounted(async () => {
     }
   } catch { /* use defaults */ }
 
+  // Auto-fetch permissions if logged in but localStorage is empty (e.g. older login that didn't return permissions)
+  try {
+    const { fetchPermissionsIfEmpty } = await import('./composables/usePermissions.js')
+    await fetchPermissionsIfEmpty()
+  } catch { /* non-critical */ }
+
   try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
   startTimelineCollection()
 })

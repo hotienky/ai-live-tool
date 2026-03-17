@@ -33,6 +33,31 @@ export function clearPermissions() {
   localStorage.removeItem('user_role')
 }
 
+/**
+ * Auto-fetch permissions from /api/auth/me if user is logged in but has empty permissions.
+ * This handles cases where the login response didn't include permissions (e.g. older backend version).
+ */
+let _fetchingPermissions = false
+export async function fetchPermissionsIfEmpty() {
+  const token = localStorage.getItem('auth_token')
+  if (!token || token === 'undefined' || token === 'null') return
+  if (userPermissions.value && userPermissions.value.length > 0) return
+  if (_fetchingPermissions) return
+  _fetchingPermissions = true
+  try {
+    const { apiFetch } = await import('./useApi.js')
+    const res = await apiFetch('/auth/me')
+    const data = await res.json()
+    if (data && Array.isArray(data.permissions)) {
+      setPermissions(data.permissions, data.user?.role || null)
+    }
+  } catch (e) {
+    console.warn('[Permissions] Failed to auto-fetch:', e.message)
+  } finally {
+    _fetchingPermissions = false
+  }
+}
+
 export function usePermissions() {
   const permissions = computed(() => userPermissions.value)
   const role = computed(() => userRole.value)

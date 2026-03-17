@@ -144,13 +144,14 @@ class AuthController extends Controller
                 'display_name' => $roleData->display_name,
             ];
 
-            // Check for wildcard permissions in JSON column
-            $jsonPerms = json_decode($roleData->permissions ?? '[]', true);
+            // Check for wildcard permissions in JSON column (raw, not overwritten)
+            $rawPerms = $roleData->raw_permissions ?? $roleData->permissions ?? '[]';
+            $jsonPerms = is_string($rawPerms) ? json_decode($rawPerms, true) : [];
             if (is_array($jsonPerms) && in_array('*', $jsonPerms)) {
                 return ['role' => $role, 'permissions' => ['*']];
             }
 
-            // Get permissions from pivot table
+            // Get permissions from pivot table (populated by findWithPermissions)
             $perms = $roleData->permission_names ?? [];
             return ['role' => $role, 'permissions' => $perms];
         } catch (\Exception $e) {
