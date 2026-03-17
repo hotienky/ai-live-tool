@@ -5,13 +5,14 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\User\UserRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     public function __construct(private UserRepositoryInterface $userRepo) {}
 
@@ -87,6 +88,7 @@ class AuthController extends Controller
 
             $token = $this->userRepo->createAccessToken($user->id);
             $this->userRepo->update(['last_login_at' => now()], $user->id);
+            $this->logActivity('user.login', 'user', $user->id, ['email' => $user->email]);
 
             unset($user->password);
 

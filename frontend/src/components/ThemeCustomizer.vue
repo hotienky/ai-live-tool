@@ -155,10 +155,28 @@ function resetToDefault() {
 function applyAccentToCss(hexColor) {
   if (!hexColor || !/^#[0-9a-fA-F]{3,6}$/.test(hexColor)) return
   const root = document.documentElement
+  // Parse hex to RGB
+  let hex = hexColor.replace('#', '')
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
+  const r = parseInt(hex.substring(0,2), 16)
+  const g = parseInt(hex.substring(2,4), 16)
+  const b = parseInt(hex.substring(4,6), 16)
+  // Derive darker shade (20% darker)
+  const darken = (v) => Math.max(0, Math.round(v * 0.8))
+  const dr = darken(r), dg = darken(g), db = darken(b)
+  const darkHex = `#${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')}`
+  // Derive lighter shade (30% lighter toward white)
+  const lighten = (v) => Math.min(255, Math.round(v + (255 - v) * 0.3))
+  const lr = lighten(r), lg = lighten(g), lb = lighten(b)
+  const lightHex = `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`
+
   root.style.setProperty('--accent', hexColor)
   root.style.setProperty('--color-accent-primary', hexColor)
-  // Derive a lighter glow
-  root.style.setProperty('--color-accent-glow', hexColor + '33')
+  root.style.setProperty('--color-accent-glow', `rgba(${r},${g},${b},0.2)`)
+  root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${hexColor}, ${darkHex})`)
+  root.style.setProperty('--accent-light', lightHex)
+  root.style.setProperty('--accent-shadow', `0 4px 15px rgba(${r},${g},${b},0.25)`)
+  root.style.setProperty('--accent-rgb', `${r},${g},${b}`)
 }
 
 async function loadTheme() {
@@ -247,7 +265,7 @@ watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 .tc-preset:hover { border-color: var(--color-text-muted); }
 .tc-preset.active {
   border-color: var(--color-accent-primary);
-  background: rgba(124,58,237,0.06);
+  background: var(--color-accent-glow);
 }
 .tc-preset__preview {
   width: 100%; height: 40px; border-radius: 8px;
@@ -283,7 +301,7 @@ watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 }
 
 /* Range */
-.tc-range { flex: 1; max-width: 200px; accent-color: var(--color-accent-primary, #7c3aed); }
+.tc-range { flex: 1; max-width: 200px; accent-color: var(--color-accent-primary); }
 
 /* Button group */
 .tc-btn-group { display: flex; gap: 6px; }
@@ -298,7 +316,7 @@ watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 .tc-btn-option:hover { border-color: var(--color-text-muted); }
 .tc-btn-option.active {
   border-color: var(--color-accent-primary);
-  background: rgba(124,58,237,0.1);
+  background: var(--color-accent-glow);
   color: var(--color-accent-primary);
 }
 
@@ -310,8 +328,8 @@ watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 .tc-save {
   display: flex; align-items: center; gap: 6px;
   padding: 12px 28px; border-radius: 10px; font-size: 13px; font-weight: 700;
-  background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; border: none;
-  cursor: pointer; box-shadow: 0 4px 16px rgba(124,58,237,0.3); transition: all 0.2s;
+  background: var(--accent-gradient); color: #fff; border: none;
+  cursor: pointer; box-shadow: var(--accent-shadow); transition: all 0.2s;
 }
 .tc-save:hover { transform: translateY(-1px); }
 .tc-save:disabled { opacity: 0.6; cursor: wait; }

@@ -67,7 +67,7 @@ const icons = {
 .toast--success { border-left-color: #10b981; }
 .toast--error   { border-left-color: #ef4444; }
 .toast--warning { border-left-color: #f59e0b; }
-.toast--info    { border-left-color: #7c3aed; }
+.toast--info    { border-left-color: var(--color-accent-primary); }
 
 .toast-icon {
   font-size: 15px;
@@ -78,7 +78,7 @@ const icons = {
 .toast--success .toast-icon { color: #10b981; }
 .toast--error   .toast-icon { color: #ef4444; }
 .toast--warning .toast-icon { color: #f59e0b; }
-.toast--info    .toast-icon { color: #a78bfa; }
+.toast--info    .toast-icon { color: var(--accent-light); }
 
 .toast-msg {
   flex: 1;

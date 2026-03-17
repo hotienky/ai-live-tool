@@ -629,7 +629,7 @@ const sections = [
     rgba(124, 58, 237, 0.08),
     rgba(236, 72, 153, 0.06)
   );
-  border: 1px solid rgba(124, 58, 237, 0.15);
+  border: 1px solid var(--color-accent-primary);
   border-radius: 20px;
   margin-bottom: 28px;
 }
@@ -692,9 +692,9 @@ const sections = [
   transition: all 0.2s;
 }
 .guide-toc__item:hover {
-  border-color: rgba(124, 58, 237, 0.3);
+  border-color: var(--color-accent-primary);
   color: var(--color-text-primary);
-  background: rgba(124, 58, 237, 0.06);
+  background: var(--color-accent-glow);
 }
 
 /* ── Workflow ── */
@@ -704,7 +704,7 @@ const sections = [
     rgba(124, 58, 237, 0.05),
     rgba(236, 72, 153, 0.03)
   );
-  border: 1px solid rgba(124, 58, 237, 0.12);
+  border: 1px solid var(--color-accent-primary);
 }
 .guide-workflow {
   display: flex;
@@ -724,7 +724,7 @@ const sections = [
   transition: all 0.2s;
 }
 .guide-workflow__step:hover {
-  border-color: rgba(124, 58, 237, 0.3);
+  border-color: var(--color-accent-primary);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -732,8 +732,8 @@ const sections = [
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: rgba(124, 58, 237, 0.1);
-  color: #a78bfa;
+  background: var(--color-accent-glow);
+  color: var(--accent-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -785,16 +785,16 @@ const sections = [
   gap: 4px;
   padding: 6px 14px;
   border-radius: 8px;
-  border: 1px solid rgba(124, 58, 237, 0.3);
-  background: rgba(124, 58, 237, 0.08);
-  color: #a78bfa;
+  border: 1px solid var(--color-accent-primary);
+  background: var(--color-accent-glow);
+  color: var(--accent-light);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
 }
 .guide-section__nav-btn:hover {
-  background: rgba(124, 58, 237, 0.15);
+  background: var(--color-accent-glow);
   transform: translateY(-1px);
 }
 .guide-section__desc {
@@ -846,7 +846,7 @@ const sections = [
   transition: all 0.2s;
 }
 .guide-gallery__item:hover {
-  border-color: rgba(124, 58, 237, 0.3);
+  border-color: var(--color-accent-primary);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }

@@ -3,10 +3,11 @@ namespace App\Actions\Product;
 
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 
 class BaseAction
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     protected ProductRepositoryInterface $productRepository;
 

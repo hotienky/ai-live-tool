@@ -167,7 +167,7 @@ watch(() => props.rowId, async () => {
 .trans-label { font-size: 14px; font-weight: 700; }
 .trans-badge {
   font-size: 11px; padding: 2px 8px; border-radius: 6px;
-  background: rgba(124,58,237,0.12); color: var(--color-accent-primary);
+  background: var(--color-accent-glow); color: var(--color-accent-primary);
   font-weight: 700;
 }
 
@@ -186,7 +186,7 @@ watch(() => props.rowId, async () => {
 .trans-tab.active {
   color: var(--color-accent-primary);
   border-color: var(--color-accent-primary);
-  background: rgba(124,58,237,0.06);
+  background: var(--color-accent-glow);
 }
 .tab-icon { font-size: 16px; }
 .tab-default { color: #f59e0b; font-size: 8px; }

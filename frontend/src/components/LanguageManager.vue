@@ -285,7 +285,7 @@ onMounted(() => loadLanguages())
   cursor:pointer; transition:all 0.2s;
 }
 .lang-item:hover { border-color:var(--color-border-hover); }
-.lang-item--active { border-color:var(--color-accent-primary); background:rgba(124,58,237,0.06); }
+.lang-item--active { border-color:var(--color-accent-primary); background: var(--color-accent-glow); }
 
 .lang-item__info { display:flex; align-items:center; gap:10px; flex:1; }
 .lang-item__code {

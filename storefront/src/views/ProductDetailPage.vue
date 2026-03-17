@@ -562,7 +562,7 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
   padding: 0; transition: all 0.2s;
 }
 .detail-thumb:hover { border-color: var(--sf-accent); opacity: 0.85; }
-.detail-thumb.active { border-color: var(--sf-accent-light); box-shadow: 0 0 0 2px rgba(124,58,237,0.3); }
+.detail-thumb.active { border-color: var(--sf-accent-light); box-shadow: 0 0 0 2px var(--sf-accent-glow); }
 .detail-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
 /* Info */
@@ -601,7 +601,7 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 .variant-option:hover { border-color: var(--sf-accent); }
 .variant-option.active {
   border-color: var(--sf-accent-light);
-  background: rgba(124, 58, 237, 0.08);
+  background: var(--sf-accent-glow);
   color: var(--sf-accent-light);
 }
 .variant-option__img {

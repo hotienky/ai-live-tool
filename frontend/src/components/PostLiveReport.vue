@@ -206,7 +206,7 @@ function barStyle(value) {
   justify-content: center;
 }
 
-.icon-blue { background: rgba(124, 58, 237, 0.12); color: #a78bfa; }
+.icon-blue { background: var(--color-accent-glow); color: var(--accent-light); }
 .icon-purple { background: rgba(155, 89, 182, 0.12); color: #c084fc; }
 .icon-green { background: var(--color-success-glow); color: var(--color-success); }
 .icon-orange { background: var(--color-accent-warm-glow); color: var(--color-accent-warm); }
@@ -283,7 +283,7 @@ function barStyle(value) {
   color: var(--color-text-muted);
 }
 
-.conversion strong { color: var(--accent-light, #a78bfa); }
+.conversion strong { color: var(--accent-light); }
 
 .section { margin-bottom: 20px; }
 

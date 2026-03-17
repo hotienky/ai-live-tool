@@ -43,6 +43,7 @@ class StoreAction extends BaseAction
             $data['is_featured'] = $data['is_featured'] ?? false;
 
             $product = $this->productRepository->store($data);
+            $this->logActivity('product.created', 'product', $product->id, ['name' => $data['name'], 'sku' => $data['sku']]);
 
             return $this->successResponse($product, 'Product created successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

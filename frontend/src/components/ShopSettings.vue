@@ -61,7 +61,7 @@
                   class="accent-swatch"
                   :class="{ active: accentColor === name }"
                   :style="{ '--swatch': preset.primary }"
-                  @click="setAccent(name)"
+                  @click="onAccentPreset(name)"
                   :title="name"
                 >
                   <span class="accent-swatch__dot"></span>
@@ -502,6 +502,37 @@ const emit = defineEmits(['openShopSelector', 'navigate'])
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 const { can, canAny, isSuperAdmin } = usePermissions()
+
+// Sync "Màu nhấn" preset with ThemeCustomizer accent
+async function onAccentPreset(name) {
+  setAccent(name) // Update CMS local theme
+  const preset = accentPresets[name]
+  if (!preset) return
+  const hex = preset.primary
+  // Apply CSS vars immediately
+  const root = document.documentElement
+  let h = hex.replace('#', '')
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]
+  const r = parseInt(h.substring(0,2), 16), g = parseInt(h.substring(2,4), 16), b = parseInt(h.substring(4,6), 16)
+  const darken = (v) => Math.max(0, Math.round(v * 0.8))
+  const lighten = (v) => Math.min(255, Math.round(v + (255 - v) * 0.3))
+  const dr = darken(r), dg = darken(g), db = darken(b)
+  const lr = lighten(r), lg = lighten(g), lb = lighten(b)
+  root.style.setProperty('--accent', hex)
+  root.style.setProperty('--color-accent-primary', hex)
+  root.style.setProperty('--color-accent-glow', `rgba(${r},${g},${b},0.2)`)
+  root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${hex}, #${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')})`)
+  root.style.setProperty('--accent-light', `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`)
+  root.style.setProperty('--accent-shadow', `0 4px 15px rgba(${r},${g},${b},0.25)`)
+  root.style.setProperty('--accent-rgb', `${r},${g},${b}`)
+  // Save to DB (for storefront sync) — fire and forget
+  try {
+    await apiFetch('/system-config/group/theme', {
+      method: 'PUT',
+      body: JSON.stringify({ items: [{ key: 'accent', value: hex }] }),
+    })
+  } catch { /* silent */ }
+}
 
 // ── Tab → Permission mapping ──
 const tabPermissions = {
@@ -1017,10 +1048,10 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__empty-icon {
   width: 80px; height: 80px; border-radius: 20px;
-  background: linear-gradient(135deg, var(--color-accent, #7c3aed) 0%, #a78bfa 100%);
+  background: var(--accent-gradient);
   display: flex; align-items: center; justify-content: center;
   color: white; margin-bottom: 8px;
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.25);
+  box-shadow: var(--accent-shadow);
 }
 .settings__empty-title {
   font-size: 18px; font-weight: 700; color: var(--color-text-primary); margin: 0;
@@ -1032,18 +1063,18 @@ defineExpose({ handleAutoReplyEvent })
 .settings__empty-cta {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 24px; border-radius: 10px; border: none;
-  background: linear-gradient(135deg, var(--color-accent, #7c3aed), #a78bfa);
+  background: var(--accent-gradient);
   color: white; font-size: 14px; font-weight: 600;
   cursor: pointer; margin-top: 8px;
-  transition: all 0.2s; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: all 0.2s; box-shadow: var(--accent-shadow);
 }
 .settings__empty-cta:hover {
-  transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+  transform: translateY(-1px); box-shadow: var(--accent-shadow);
 }
 .settings__empty-hint {
   font-size: 12px; color: var(--color-text-muted); margin-top: 4px;
 }
-.settings__empty-hint strong { color: var(--color-accent, #7c3aed); }
+.settings__empty-hint strong { color: var(--color-accent-primary); }
 .settings__tab-lock { opacity: 0.5; margin-left: -2px; }
 
 /* ── Sidebar Layout ── */
@@ -1098,7 +1129,7 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__sidebar-item--active {
   color: var(--color-accent-primary);
-  background: rgba(124, 58, 237, 0.10);
+  background: var(--color-accent-glow);
   font-weight: 600;
 }
 .settings__sidebar-item--active svg {
@@ -1188,7 +1219,7 @@ defineExpose({ handleAutoReplyEvent })
 .ap-url-input input:focus { outline: none; border-color: var(--color-accent-primary); }
 .ap-url-input button {
   padding: 6px 14px; border-radius: 6px; border: none;
-  background: var(--color-accent-primary, #7c3aed); color: #fff;
+  background: var(--color-accent-primary); color: #fff;
   font-size: 12px; font-weight: 600; cursor: pointer;
 }
 .ap-url-input button:disabled { opacity: .4; cursor: not-allowed; }
@@ -1205,7 +1236,7 @@ defineExpose({ handleAutoReplyEvent })
   background: var(--color-bg-primary); color: var(--color-text-primary);
   font-size: 13px; outline: none; box-sizing: border-box; width: 100%;
 }
-.settings__input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+.settings__input:focus { border-color: var(--color-accent-primary); box-shadow: 0 0 0 3px var(--color-accent-glow); }
 .settings__input--flex { flex: 1; }
 .settings__input--sm { width: 120px; flex: none; }
 .settings__textarea {
@@ -1213,23 +1244,23 @@ defineExpose({ handleAutoReplyEvent })
   background: var(--color-bg-primary); color: var(--color-text-primary); font-size: 13px;
   font-family: inherit; outline: none; resize: vertical; box-sizing: border-box;
 }
-.settings__textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+.settings__textarea:focus { border-color: var(--color-accent-primary); box-shadow: 0 0 0 3px var(--color-accent-glow); }
 .settings__color-picker { width: 36px; height: 36px; border: none; border-radius: 6px; cursor: pointer; }
 .settings__add-row { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
 .settings__add-btn {
   display: flex; align-items: center; gap: 4px; padding: 8px 14px; border-radius: 8px;
-  border: none; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
+  border: none; background: var(--accent-gradient); color: white;
   font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  transition: all 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.25);
+  transition: all 0.2s; box-shadow: var(--accent-shadow);
 }
-.settings__add-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(124,58,237,0.35); }
+.settings__add-btn:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .settings__save-btn {
   display: flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px;
-  border: none; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white;
+  border: none; background: var(--accent-gradient); color: white;
   font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 12px;
-  transition: all 0.2s; box-shadow: 0 4px 15px rgba(124,58,237,0.25);
+  transition: all 0.2s; box-shadow: var(--accent-shadow);
 }
-.settings__save-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.35); }
+.settings__save-btn:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .settings__list { display: flex; flex-direction: column; gap: 6px; }
 .settings__list-item {
   display: flex; align-items: center; gap: 8px; padding: 8px 12px;
@@ -1401,7 +1432,7 @@ defineExpose({ handleAutoReplyEvent })
 }
 .accent-swatch.active {
   border-color: var(--swatch);
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.15), 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 0 0 3px var(--color-accent-glow), 0 4px 12px rgba(0,0,0,0.15);
 }
 .accent-swatch.active .accent-swatch__dot {
   transform: scale(1.15);

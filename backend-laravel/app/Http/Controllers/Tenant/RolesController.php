@@ -5,11 +5,12 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\Role\RoleRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 
 class RolesController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     public function __construct(private RoleRepositoryInterface $repo) {}
 
@@ -33,6 +34,7 @@ class RolesController extends Controller
             if ($request->has('permissions')) {
                 $this->repo->syncPermissions($role->id, $request->input('permissions', []));
             }
+            $this->logActivity('role.created', 'role', $role->id, ['name' => $data['name']]);
             return $this->successResponse($this->repo->findWithPermissions($role->id), 'Role created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -45,11 +47,13 @@ class RolesController extends Controller
         if ($request->has('permissions')) {
             $this->repo->syncPermissions($id, $request->input('permissions', []));
         }
+        $this->logActivity('role.updated', 'role', $id);
         return $this->successResponse($this->repo->findWithPermissions($id), 'Role updated');
     }
 
     public function destroy($id)
     {
+        $this->logActivity('role.deleted', 'role', $id);
         $this->repo->deleteWithRelations($id);
         return $this->successResponse(null, 'Role deleted');
     }

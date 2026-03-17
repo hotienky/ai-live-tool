@@ -320,7 +320,7 @@ watch(() => props.slug, () => loadPage())
 .home-pages--list .home-page-card { flex-direction: row; align-items: center; padding: 16px; gap: 16px; }
 .home-page-card__img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
 .home-pages--list .home-page-card__img { width: 120px; aspect-ratio: 4/3; border-radius: 8px; }
-.home-page-card__img--empty { display: flex; align-items: center; justify-content: center; background: rgba(124, 58, 237, 0.05); color: var(--sf-accent); }
+.home-page-card__img--empty { display: flex; align-items: center; justify-content: center; background: var(--sf-accent-glow); color: var(--sf-accent); }
 .home-page-card__info { padding: 16px; flex: 1; }
 .home-page-card__info h4 { margin: 0 0 8px; font-size: 16px; font-weight: 700; color: var(--sf-text-primary); }
 .home-page-card__date { font-size: 12px; color: var(--sf-text-muted); }

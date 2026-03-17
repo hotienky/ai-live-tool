@@ -11,6 +11,7 @@ class DestroyAction extends BaseAction
                 return $this->notFoundResponse('Product not found');
             }
 
+            $this->logActivity('product.deleted', 'product', $id, ['name' => $product->name ?? null]);
             $this->productRepository->delete($id);
             return $this->successResponse(null, 'Product deleted successfully');
         } catch (\Exception $e) {

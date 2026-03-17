@@ -4,14 +4,23 @@
       <h3><Activity :size="18" /> Lịch sử hoạt động</h3>
       <select v-model="filterAction" class="action-filter" @change="loadLogs">
         <option value="">Tất cả</option>
-        <option value="session.started">Bắt đầu live</option>
-        <option value="session.ended">Kết thúc live</option>
-        <option value="lead.status_changed">Thay đổi lead</option>
+        <option value="user.login">Đăng nhập</option>
         <option value="order.created">Tạo đơn</option>
-        <option value="product.stock_deducted">Trừ kho</option>
-        <option value="product.stock_low">Cảnh báo tồn kho</option>
-        <option value="webhook.created">Tạo webhook</option>
+        <option value="order.updated">Cập nhật đơn</option>
+        <option value="order.deleted">Xóa đơn</option>
+        <option value="product.created">Thêm sản phẩm</option>
+        <option value="product.updated">Cập nhật sản phẩm</option>
+        <option value="product.deleted">Xóa sản phẩm</option>
+        <option value="user.created">Tạo người dùng</option>
+        <option value="user.updated">Cập nhật người dùng</option>
+        <option value="user.deleted">Xóa người dùng</option>
+        <option value="cms.created">Tạo trang CMS</option>
+        <option value="cms.published">Xuất bản trang</option>
+        <option value="category.created">Tạo danh mục</option>
+        <option value="banner.created">Tạo banner</option>
         <option value="settings.updated">Cập nhật cài đặt</option>
+        <option value="role.created">Tạo vai trò</option>
+        <option value="webhook.created">Tạo webhook</option>
       </select>
     </div>
 
@@ -31,10 +40,11 @@
         </div>
         <div class="activity-content">
           <div class="activity-text">{{ formatAction(log.action) }}</div>
-          <div class="activity-detail" v-if="log.details">
-            {{ formatDetails(log.action, log.details) }}
+          <div class="activity-detail" v-if="log.details || log.data">
+            {{ formatDetails(log.action, log.details || log.data) }}
           </div>
           <div class="activity-meta">
+            <span v-if="log.user_name" class="activity-user">{{ log.user_name }}</span>
             <Clock :size="12" />
             {{ formatTime(log.createdAt || log.created_at) }}
           </div>
@@ -60,7 +70,8 @@ import { apiFetch } from '../composables/useApi.js'
 import {
   Activity, Clock, Loader2, ClipboardList,
   Radio, Power, UserCheck, ShoppingCart, Package, Webhook, Settings,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight,
+  LogIn, UserPlus, UserMinus, FileText, Image, FolderTree, Shield
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -77,10 +88,17 @@ async function loadLogs(page = 1) {
   try {
     const params = new URLSearchParams({ page: String(page), limit: '30' })
     if (filterAction.value) params.set('action', filterAction.value)
-    const res = await apiFetch(`/api/activity-logs?${params}`)
-    if (res && res.data) {
-      logs.value = res.data
-      meta.value = res.meta || { page: 1, lastPage: 1 }
+    const res = await apiFetch(`/activity-logs?${params}`)
+    const json = await res.json()
+    if (json) {
+      // json is auto-unwrapped: { data: [...], meta: {...} }
+      if (json.data && Array.isArray(json.data)) {
+        logs.value = json.data
+        meta.value = json.meta || { page: 1, lastPage: 1 }
+      } else if (Array.isArray(json)) {
+        logs.value = json
+        meta.value = { page: 1, lastPage: 1 }
+      }
     }
   } catch (e) {
     console.error('Activity log error:', e)
@@ -94,6 +112,7 @@ function changePage(page) {
 }
 
 const actionLabels = {
+  'user.login': 'Đăng nhập hệ thống',
   'session.started': 'Bắt đầu phiên live',
   'session.ended': 'Kết thúc phiên live',
   'lead.status_changed': 'Thay đổi trạng thái lead',
@@ -103,9 +122,27 @@ const actionLabels = {
   'order.deleted': 'Xóa đơn hàng',
   'product.created': 'Thêm sản phẩm',
   'product.updated': 'Cập nhật sản phẩm',
+  'product.deleted': 'Xóa sản phẩm',
   'product.stock_low': 'Cảnh báo tồn kho thấp',
   'product.stock_deducted': 'Trừ tồn kho',
+  'user.created': 'Tạo người dùng mới',
+  'user.updated': 'Cập nhật người dùng',
+  'user.deleted': 'Xóa người dùng',
+  'cms.created': 'Tạo trang CMS',
+  'cms.updated': 'Cập nhật trang CMS',
+  'cms.deleted': 'Xóa trang CMS',
+  'cms.published': 'Xuất bản trang CMS',
+  'banner.created': 'Tạo banner',
+  'banner.updated': 'Cập nhật banner',
+  'banner.deleted': 'Xóa banner',
+  'category.created': 'Tạo danh mục',
+  'category.updated': 'Cập nhật danh mục',
+  'category.deleted': 'Xóa danh mục',
+  'role.created': 'Tạo vai trò',
+  'role.updated': 'Cập nhật vai trò',
+  'role.deleted': 'Xóa vai trò',
   'webhook.created': 'Tạo webhook mới',
+  'webhook.updated': 'Cập nhật webhook',
   'webhook.deleted': 'Xóa webhook',
   'settings.updated': 'Cập nhật cài đặt',
 }
@@ -122,19 +159,47 @@ function formatDetails(action, details) {
   if (action === 'product.stock_deducted') return `Số lượng: ${details.quantity}, Còn lại: ${details.remaining}`
   if (action === 'session.ended') return `Comments: ${details.totalComments}, Hot: ${details.hotLeads}`
   if (action === 'lead.status_changed') return `${details.from} → ${details.to}`
+  if (details.name) return details.name
+  if (details.title) return details.title
+  if (details.email) return details.email
+  if (details.order_number) return `#${details.order_number}`
+  if (details.group) return `Nhóm: ${details.group}`
   return ''
 }
 
 const iconMap = {
+  'user.login': LogIn,
   'session.started': Radio,
   'session.ended': Power,
   'lead.status_changed': UserCheck,
   'lead.created': UserCheck,
   'order.created': ShoppingCart,
   'order.updated': ShoppingCart,
+  'order.deleted': ShoppingCart,
+  'product.created': Package,
+  'product.updated': Package,
+  'product.deleted': Package,
   'product.stock_deducted': Package,
   'product.stock_low': Package,
+  'user.created': UserPlus,
+  'user.updated': UserCheck,
+  'user.deleted': UserMinus,
+  'cms.created': FileText,
+  'cms.updated': FileText,
+  'cms.deleted': FileText,
+  'cms.published': FileText,
+  'banner.created': Image,
+  'banner.updated': Image,
+  'banner.deleted': Image,
+  'category.created': FolderTree,
+  'category.updated': FolderTree,
+  'category.deleted': FolderTree,
+  'role.created': Shield,
+  'role.updated': Shield,
+  'role.deleted': Shield,
   'webhook.created': Webhook,
+  'webhook.updated': Webhook,
+  'webhook.deleted': Webhook,
   'settings.updated': Settings,
 }
 
@@ -147,6 +212,13 @@ function getIconClass(action) {
   if (action.startsWith('lead.')) return 'icon-lead'
   if (action.startsWith('order.')) return 'icon-order'
   if (action.startsWith('product.')) return 'icon-product'
+  if (action.startsWith('user.')) return 'icon-user'
+  if (action.startsWith('cms.')) return 'icon-cms'
+  if (action.startsWith('banner.')) return 'icon-banner'
+  if (action.startsWith('category.')) return 'icon-category'
+  if (action.startsWith('role.')) return 'icon-role'
+  if (action.startsWith('webhook.')) return 'icon-webhook'
+  if (action.startsWith('settings.')) return 'icon-settings'
   return 'icon-default'
 }
 
@@ -250,10 +322,17 @@ onMounted(() => loadLogs())
   flex-shrink: 0;
 }
 
-.icon-session { background: rgba(124, 58, 237, 0.12); color: #a78bfa; }
+.icon-session { background: var(--color-accent-glow); color: var(--accent-light); }
 .icon-lead { background: var(--color-success-glow); color: var(--color-success); }
 .icon-order { background: var(--color-accent-warm-glow); color: var(--color-accent-warm); }
 .icon-product { background: rgba(155, 89, 182, 0.12); color: #c084fc; }
+.icon-user { background: rgba(59, 130, 246, 0.12); color: #60a5fa; }
+.icon-cms { background: rgba(16, 185, 129, 0.12); color: #34d399; }
+.icon-banner { background: rgba(245, 158, 11, 0.12); color: #fbbf24; }
+.icon-category { background: rgba(99, 102, 241, 0.12); color: #818cf8; }
+.icon-role { background: rgba(236, 72, 153, 0.12); color: #f472b6; }
+.icon-webhook { background: rgba(20, 184, 166, 0.12); color: #2dd4bf; }
+.icon-settings { background: rgba(107, 114, 128, 0.12); color: #9ca3af; }
 .icon-default { background: rgba(107, 114, 128, 0.12); color: var(--color-accent-cold); }
 
 .activity-content {
@@ -280,6 +359,15 @@ onMounted(() => loadLogs())
   font-size: 11px;
   color: var(--color-text-muted);
   margin-top: 4px;
+}
+
+.activity-user {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-right: 6px;
+  padding: 1px 6px;
+  background: rgba(107, 114, 128, 0.08);
+  border-radius: 4px;
 }
 
 .pagination {

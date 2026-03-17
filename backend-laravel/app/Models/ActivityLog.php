@@ -8,4 +8,16 @@ class ActivityLog extends Model
 {
     protected $guarded = ['id'];
     protected $table = 'activity_logs';
+
+    public $timestamps = false;
+
+    protected $casts = [
+        'data'       => 'array',
+        'created_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

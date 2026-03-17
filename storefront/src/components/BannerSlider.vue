@@ -177,7 +177,7 @@ onBeforeUnmount(() => stopAuto())
 }
 
 .banner-slider:hover .banner-slider__arrow { opacity: 1; }
-.banner-slider__arrow:hover { background: rgba(124, 58, 237, 0.6); border-color: var(--sf-accent-light); }
+.banner-slider__arrow:hover { background: var(--sf-accent-glow); border-color: var(--sf-accent-light); }
 .banner-slider__arrow--prev { left: 16px; }
 .banner-slider__arrow--next { right: 16px; }
 

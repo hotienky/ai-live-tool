@@ -71,7 +71,7 @@
               <input type="checkbox" v-model="form.is_dynamic" style="width: auto;" />
               Sử dụng Storefront Layout Builder (Kéo thả section)
             </label>
-            <div v-if="form.is_dynamic" style="padding: 12px; background: rgba(124, 58, 237, 0.1); border-radius: 6px; color: var(--accent); font-size: 0.85rem;">
+            <div v-if="form.is_dynamic" style="padding: 12px; background: var(--color-accent-glow); border-radius: 6px; color: var(--accent); font-size: 0.85rem;">
               Trang này sẽ được thiết kế bằng Layout Builder. Hãy lưu lại và chuyển sang tab "Bố cục Store" để thiết kế kéo thả.
             </div>
             <div v-else>

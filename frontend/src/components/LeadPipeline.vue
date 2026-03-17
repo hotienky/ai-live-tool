@@ -432,9 +432,9 @@ onMounted(loadData)
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 .pipeline__column--drag-over {
-  border-color: var(--color-primary, #7c3aed);
+  border-color: var(--color-accent-primary);
   box-shadow: 0 0 20px rgba(124, 58, 237, 0.2), inset 0 0 30px rgba(124, 58, 237, 0.04);
-  background: rgba(124, 58, 237, 0.03);
+  background: var(--color-accent-glow);
 }
 .pipeline__col-header {
   display: flex; align-items: center; gap: 8px;
@@ -512,9 +512,9 @@ onMounted(loadData)
 }
 .pipeline__empty-icon { opacity: 0.5; }
 .pipeline__empty--active {
-  border-color: var(--color-primary, #7c3aed);
-  background: rgba(124, 58, 237, 0.06);
-  color: var(--color-primary, #7c3aed);
+  border-color: var(--color-accent-primary);
+  background: var(--color-accent-glow);
+  color: var(--color-accent-primary);
   font-style: normal; font-weight: 600;
 }
 
@@ -551,12 +551,12 @@ onMounted(loadData)
 }
 .pipeline__modal-avatar {
   width: 48px; height: 48px; border-radius: 50%;
-  background: rgba(124,58,237,0.1); display: flex; align-items: center; justify-content: center;
-  color: #a78bfa;
+  background: var(--color-accent-glow); display: flex; align-items: center; justify-content: center;
+  color: var(--accent-light);
 }
 .pipeline__modal-uid { font-size: 13px; color: var(--color-text-muted); }
 .pipeline__modal-link {
-  font-size: 12px; color: #a78bfa;
+  font-size: 12px; color: var(--accent-light);
   display: flex; align-items: center; gap: 4px; text-decoration: none; margin-top: 4px;
   transition: color 0.2s;
 }
@@ -577,17 +577,17 @@ onMounted(loadData)
   font-family: inherit; transition: border-color 0.2s;
 }
 .pipeline__modal-select:focus, .pipeline__modal-input:focus, .pipeline__modal-textarea:focus {
-  border-color: #7c3aed;
+  border-color: var(--color-accent-primary);
 }
 .pipeline__modal-save {
   width: 100%; padding: 12px; border-radius: 10px; border: none;
-  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  background: var(--accent-gradient);
   color: white; font-weight: 700; font-size: 14px;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
   margin-top: 18px; transition: all 0.25s;
-  box-shadow: 0 4px 15px rgba(124,58,237,0.2);
+  box-shadow: var(--accent-shadow);
 }
-.pipeline__modal-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.3); }
+.pipeline__modal-save:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .pipeline__modal-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* CRM Product Picker */
@@ -638,7 +638,7 @@ onMounted(loadData)
   border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 600;
   display: flex; align-items: center; justify-content: center; gap: 4px;
 }
-.pipeline__add-prod:hover { border-color: #7c3aed; color: #a78bfa; }
+.pipeline__add-prod:hover { border-color: var(--color-accent-primary); color: var(--accent-light); }
 .pipeline__order-total {
   display: flex; justify-content: space-between; align-items: center;
   padding: 10px 12px; border-radius: 8px; margin-top: 8px;

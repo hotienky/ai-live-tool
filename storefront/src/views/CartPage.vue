@@ -254,7 +254,7 @@ onMounted(() => { revalidateCoupon(cartTotal.value) })
   border: none; border-radius: 6px; font-weight: 700; font-size: 13px;
   cursor: pointer; transition: background 0.2s;
 }
-.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent-dark, #6d28d9); }
+.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent); }
 .voucher-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .voucher-remove-btn {
   padding: 8px 10px; border: 1px solid var(--sf-border);

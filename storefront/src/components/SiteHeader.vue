@@ -545,7 +545,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   transition: all 0.2s;
 }
 .site-header__cart-btn:hover {
-  color: var(--sf-accent, #7c3aed);
+  color: var(--sf-accent);
   background: var(--sf-accent-glow);
 }
 .site-header__cart-btn.active {
@@ -589,7 +589,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s;
 }
 .lang-switcher__item:hover { background: var(--sf-bg-card-hover); color: var(--sf-text-primary); }
-.lang-switcher__item.active { color: var(--sf-accent, #a78bfa); font-weight: 700; }
+.lang-switcher__item.active { color: var(--sf-accent-light); font-weight: 700; }
 .lang-icon { font-size: 16px; }
 
 /* Auth Button */
@@ -606,9 +606,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   white-space: nowrap;
 }
 .site-header__auth-btn:hover {
-  border-color: var(--sf-accent, #7c3aed);
-  color: var(--sf-accent, #7c3aed);
-  background: rgba(124, 58, 237, 0.06);
+  border-color: var(--sf-accent);
+  color: var(--sf-accent);
+  background: var(--sf-accent-glow);
 }
 
 /* Theme Toggle */

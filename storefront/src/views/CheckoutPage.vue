@@ -746,7 +746,7 @@ async function placeOrder() {
 }
 .step.done .step-num {
   background: var(--sf-accent); color: #fff;
-  border-color: var(--sf-accent); box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+  border-color: var(--sf-accent); box-shadow: var(--sf-shadow-accent);
 }
 .step.current .step-num {
   background: #10b981; border-color: #10b981;
@@ -833,7 +833,7 @@ async function placeOrder() {
 .info-value--accent { font-size: 18px; font-weight: 900; color: var(--sf-accent-light); }
 
 /* Bank Card */
-.bank-card { border-color: rgba(124, 58, 237, 0.3); }
+.bank-card { border-color: var(--sf-accent); }
 .bank-warning {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 10px 14px; border-radius: 8px;
@@ -862,7 +862,7 @@ async function placeOrder() {
 .copy-btn {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px; border-radius: 6px;
-  background: var(--sf-accent-glow); border: 1px solid rgba(124, 58, 237, 0.2);
+  background: var(--sf-accent-glow); border: 1px solid var(--sf-accent);
   color: var(--sf-accent-light); cursor: pointer; transition: all 0.2s;
   flex-shrink: 0;
 }
@@ -917,7 +917,7 @@ async function placeOrder() {
 
 /* Success Actions */
 /* Voucher */
-.voucher-section { background: linear-gradient(135deg, rgba(124,58,237,0.03), rgba(168,85,247,0.06)); }
+.voucher-section { background: var(--sf-accent-glow); }
 .voucher-input-row {
   display: flex; gap: 8px; align-items: center;
 }
@@ -935,7 +935,7 @@ async function placeOrder() {
   border: none; border-radius: 8px; font-weight: 700;
   cursor: pointer; transition: background 0.2s;
 }
-.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent-dark, #6d28d9); }
+.voucher-apply-btn:hover:not(:disabled) { background: var(--sf-accent); }
 .voucher-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .voucher-remove-btn {
   white-space: nowrap; display: flex; align-items: center; gap: 4px;

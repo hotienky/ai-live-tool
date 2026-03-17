@@ -138,7 +138,7 @@ onUnmounted(() => clearInterval(timer))
 }
 .timer-sep { color: #ef4444; font-weight: 800; font-size: 16px; }
 .flash-sale__more {
-  font-size: 13px; font-weight: 600; color: var(--sf-accent, #7c3aed);
+  font-size: 13px; font-weight: 600; color: var(--sf-accent);
   text-decoration: none;
 }
 .flash-sale__more:hover { text-decoration: underline; }

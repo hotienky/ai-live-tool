@@ -118,7 +118,7 @@ function addToCartFromWishlist(item) {
   display: flex; align-items: center; gap: 10px;
   font-size: 24px; font-weight: 800; margin: 0;
 }
-.wl-title__icon { color: var(--color-accent, #7c3aed); }
+.wl-title__icon { color: var(--sf-accent); }
 .wl-count { font-size: 16px; color: var(--color-text-muted); font-weight: 400; }
 
 .wl-clear-btn {
@@ -186,13 +186,13 @@ function addToCartFromWishlist(item) {
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 1.4;
 }
-.wl-card__name:hover { color: var(--color-accent, #7c3aed); }
+.wl-card__name:hover { color: var(--sf-accent); }
 
 .wl-card__prices { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .price--original--sm {
   font-size: 12px; color: var(--color-text-muted); text-decoration: line-through;
 }
-.price--current { font-size: 16px; font-weight: 700; color: var(--color-accent, #7c3aed); }
+.price--current { font-size: 16px; font-weight: 700; color: var(--sf-accent); }
 .price--sale { font-size: 16px; font-weight: 700; color: #ef4444; }
 
 .wl-card__add {

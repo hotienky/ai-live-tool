@@ -60,7 +60,7 @@ const { toasts, removeToast } = useToast()
 /* Colored backgrounds per type */
 .sf-toast--success { background: linear-gradient(135deg, #059669, #10b981); }
 .sf-toast--error   { background: linear-gradient(135deg, #dc2626, #ef4444); }
-.sf-toast--info    { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+.sf-toast--info    { background: var(--sf-accent-gradient); }
 .sf-toast--warning { background: linear-gradient(135deg, #d97706, #f59e0b); }
 
 .sf-toast__icon { flex-shrink: 0; }

@@ -203,9 +203,9 @@ watch(() => props.productId, () => { qty.value = 1; loadProduct() })
 }
 .sp-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .sp-btn--cart { background: var(--color-bg-card); border: 2px solid var(--color-accent-primary); color: var(--color-accent-primary); }
-.sp-btn--cart:hover:not(:disabled) { background: rgba(124,58,237,0.1); }
+.sp-btn--cart:hover:not(:disabled) { background: var(--color-accent-glow); }
 .sp-btn--buy { background: var(--color-accent-primary); color: #fff; }
-.sp-btn--buy:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,0.3); }
+.sp-btn--buy:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 
 .sp-desc h3 { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
 .sp-desc-content { font-size: 14px; line-height: 1.7; color: var(--color-text-secondary); }

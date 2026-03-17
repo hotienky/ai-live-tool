@@ -210,7 +210,7 @@ onMounted(() => loadConfigs())
 .config-group-btn.active {
   border-color: var(--color-accent-primary);
   color: var(--color-accent-primary);
-  background: rgba(124, 58, 237, 0.1);
+  background: var(--color-accent-glow);
 }
 
 .config-list { display: flex; flex-direction: column; gap: 8px; }

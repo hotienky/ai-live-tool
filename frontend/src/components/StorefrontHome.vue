@@ -228,7 +228,7 @@ watch(() => props.storeId, async () => {
   width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--color-border);
   background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s;
 }
-.sf-header__btn:hover { color: var(--color-accent-primary); border-color: var(--color-accent-primary); background: rgba(124,58,237,0.08); }
+.sf-header__btn:hover { color: var(--color-accent-primary); border-color: var(--color-accent-primary); background: var(--color-accent-glow); }
 .sf-cart-count {
   position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
   border-radius: 9px; background: var(--color-accent-hot); color: #fff;
@@ -269,7 +269,7 @@ watch(() => props.storeId, async () => {
   color: var(--color-text-secondary); font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.25s; white-space: nowrap; flex-shrink: 0;
 }
-.sf-cat-card:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); background: rgba(124,58,237,0.06); }
+.sf-cat-card:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); background: var(--color-accent-glow); }
 .sf-cat-card.active { border-color: var(--color-accent-primary); color: #fff; background: var(--color-accent-primary); }
 
 /* ── Products Grid ── */

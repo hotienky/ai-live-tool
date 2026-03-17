@@ -109,7 +109,7 @@ async function onSubmit() {
   position: absolute;
   width: 400px; height: 400px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%);
+  background: radial-gradient(circle, var(--color-accent-glow), transparent 70%);
   bottom: -80px; right: -80px;
   animation: float2 15s ease-in-out infinite;
 }

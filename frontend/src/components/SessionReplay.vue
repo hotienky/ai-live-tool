@@ -222,7 +222,7 @@ loadSessions()
   color: var(--color-text-primary); font-size: 13px; cursor: pointer;
   transition: all 0.2s; outline: none;
 }
-.session-replay__select:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
+.session-replay__select:focus { border-color: var(--color-accent-primary); box-shadow: 0 0 0 3px var(--color-accent-glow); }
 
 /* Empty State */
 .session-replay__empty {
@@ -234,8 +234,8 @@ loadSessions()
 }
 .session-replay__empty-icon-wrap {
   width: 72px; height: 72px; border-radius: 50%;
-  background: rgba(124,58,237,0.08); display: flex;
-  align-items: center; justify-content: center; color: #a78bfa;
+  background: var(--color-accent-glow); display: flex;
+  align-items: center; justify-content: center; color: var(--accent-light);
   animation: floatIcon 3s ease-in-out infinite;
   margin-bottom: 4px;
 }
@@ -327,7 +327,7 @@ loadSessions()
   font-size: 13px; align-items: baseline;
   transition: all 0.15s;
 }
-.session-replay__log:hover { background: rgba(124,58,237,0.06); }
+.session-replay__log:hover { background: var(--color-accent-glow); }
 .session-replay__log-time {
   flex-shrink: 0; font-size: 11px; color: var(--color-text-muted);
   font-family: 'SF Mono', 'Fira Code', monospace; min-width: 60px;
@@ -363,7 +363,7 @@ loadSessions()
   transition: all 0.2s;
 }
 .session-replay__export:hover {
-  border-color: rgba(124,58,237,0.4); color: #a78bfa;
+  border-color: var(--color-accent-primary); color: var(--accent-light);
   transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 

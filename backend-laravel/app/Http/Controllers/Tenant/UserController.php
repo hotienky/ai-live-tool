@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,7 @@ use Illuminate\Validation\ValidationException;
  */
 class UserController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     /** List all tenant users with their current role */
     public function index()
@@ -71,6 +72,7 @@ class UserController extends Controller
                 ->select('users.*', 'roles.name as role_name', 'roles.display_name as role_display_name')
                 ->first();
 
+            $this->logActivity('user.created', 'user', $userId, ['name' => $data['name'], 'email' => $data['email']]);
             return $this->successResponse($user, 'Đã tạo người dùng', 201);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
@@ -113,6 +115,7 @@ class UserController extends Controller
 
             $data['updated_at'] = now();
             DB::table('users')->where('id', $id)->update($data);
+            $this->logActivity('user.updated', 'user', $id, array_diff_key($data, ['password' => 1, 'updated_at' => 1]));
 
             // Sync role in user_roles pivot
             if (array_key_exists('role_id', $data)) {
@@ -156,6 +159,7 @@ class UserController extends Controller
             return $this->errorResponse('Không thể xóa tài khoản đang đăng nhập', 403);
         }
 
+        $this->logActivity('user.deleted', 'user', $id);
         DB::table('user_roles')->where('user_id', $id)->delete();
         DB::table('users')->where('id', $id)->delete();
 

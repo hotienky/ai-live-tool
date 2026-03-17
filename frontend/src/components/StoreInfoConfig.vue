@@ -212,7 +212,7 @@ onMounted(() => loadData())
 .swp-input:focus {
   outline: none;
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
 }
 
 .swp-input::placeholder { color: var(--color-text-muted); }

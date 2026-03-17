@@ -47,7 +47,7 @@ defineProps({
 
 .category-card:hover {
   border-color: var(--sf-accent);
-  background: rgba(124, 58, 237, 0.06);
+  background: var(--sf-accent-glow);
   transform: translateY(-2px);
   box-shadow: var(--sf-shadow-sm);
 }

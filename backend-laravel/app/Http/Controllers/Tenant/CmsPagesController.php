@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\CmsPage\CmsPageRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class CmsPagesController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     public function __construct(private CmsPageRepositoryInterface $repo) {}
 
@@ -51,6 +52,7 @@ class CmsPagesController extends Controller
             $data['alias'] = $data['alias'] ?? $data['slug'];
             $data['status'] = $data['status'] ?? 'draft';
             $page = $this->repo->store($data);
+            $this->logActivity('cms.created', 'cms_page', $page->id, ['title' => $data['title']]);
             return $this->successResponse($page, 'Page created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422);
@@ -80,6 +82,7 @@ class CmsPagesController extends Controller
             $page = $this->repo->find($id);
             if (!$page) return $this->notFoundResponse('Page not found');
             $this->repo->update($data, $id);
+            $this->logActivity('cms.updated', 'cms_page', $id, ['title' => $data['title'] ?? null]);
             return $this->successResponse($this->repo->find($id), 'Page updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -91,6 +94,7 @@ class CmsPagesController extends Controller
         try {
             $page = $this->repo->find($id);
             if (!$page) return $this->notFoundResponse('Page not found');
+            $this->logActivity('cms.deleted', 'cms_page', $id, ['title' => $page->title ?? null]);
             $this->repo->delete($id);
             return $this->successResponse(null, 'Page deleted');
         } catch (\Exception $e) {
@@ -105,6 +109,7 @@ class CmsPagesController extends Controller
             $page = $this->repo->find($id);
             if (!$page) return $this->notFoundResponse('Page not found');
             $this->repo->update(['status' => 'published', 'published_at' => now(), 'is_active' => true], $id);
+            $this->logActivity('cms.published', 'cms_page', $id, ['title' => $page->title ?? null]);
             return $this->successResponse($this->repo->find($id), 'Page published');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

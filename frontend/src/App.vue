@@ -642,9 +642,19 @@ onMounted(async () => {
     const accentRow = Array.isArray(rows) && rows.find(r => r.key === 'accent' || r.key === 'theme.accent')
     const hex = accentRow?.value
     if (hex && /^#[0-9a-fA-F]{3,6}$/.test(hex)) {
-      document.documentElement.style.setProperty('--accent', hex)
-      document.documentElement.style.setProperty('--color-accent-primary', hex)
-      document.documentElement.style.setProperty('--color-accent-glow', hex + '33')
+      let h = hex.replace('#', '')
+      if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]
+      const r = parseInt(h.substring(0,2), 16), g = parseInt(h.substring(2,4), 16), b = parseInt(h.substring(4,6), 16)
+      const dr = Math.max(0, Math.round(r*0.8)), dg = Math.max(0, Math.round(g*0.8)), db = Math.max(0, Math.round(b*0.8))
+      const lr = Math.min(255, Math.round(r+(255-r)*0.3)), lg = Math.min(255, Math.round(g+(255-g)*0.3)), lb = Math.min(255, Math.round(b+(255-b)*0.3))
+      const root = document.documentElement
+      root.style.setProperty('--accent', hex)
+      root.style.setProperty('--color-accent-primary', hex)
+      root.style.setProperty('--color-accent-glow', `rgba(${r},${g},${b},0.2)`)
+      root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${hex}, #${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')})`)
+      root.style.setProperty('--accent-light', `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`)
+      root.style.setProperty('--accent-shadow', `0 4px 15px rgba(${r},${g},${b},0.25)`)
+      root.style.setProperty('--accent-rgb', `${r},${g},${b}`)
     }
   } catch { /* use defaults */ }
 
@@ -818,9 +828,9 @@ const statusText = computed(() => {
 }
 .app-nav__tab--active {
   color: var(--color-accent-primary);
-  background: rgba(124,58,237,0.12);
+  background: var(--color-accent-glow);
   font-weight: 700;
-  box-shadow: 0 0 12px rgba(124,58,237,0.15);
+  box-shadow: 0 0 12px var(--color-accent-glow);
 }
 
 /* Dropdown nav */
@@ -876,7 +886,7 @@ const statusText = computed(() => {
 }
 .app-nav__menu-item--active {
   color: var(--color-accent-primary);
-  background: rgba(124,58,237,0.1);
+  background: var(--color-accent-glow);
   font-weight: 600;
 }
 

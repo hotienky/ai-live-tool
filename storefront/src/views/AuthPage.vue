@@ -141,9 +141,9 @@ async function onForgot() {
   transition: all 0.2s;
 }
 .auth-tabs button.active {
-  background: var(--color-accent, #7c3aed);
+  background: var(--sf-accent);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(124,58,237,0.25);
+  box-shadow: var(--sf-shadow-accent);
 }
 .auth-form {
   display: flex;
@@ -175,8 +175,8 @@ async function onForgot() {
   box-sizing: border-box;
 }
 .field input:focus {
-  border-color: var(--color-accent, #7c3aed);
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.08);
+  border-color: var(--sf-accent);
+  box-shadow: 0 0 0 3px var(--sf-accent-glow);
 }
 .auth-error {
   background: #fef2f2;
@@ -198,7 +198,7 @@ async function onForgot() {
   padding: 12px;
   border: none;
   border-radius: 8px;
-  background: var(--color-accent, #7c3aed);
+  background: var(--sf-accent);
   color: #fff;
   font-size: 15px;
   font-weight: 700;
@@ -215,7 +215,7 @@ async function onForgot() {
 }
 .auth-link {
   text-align: center;
-  color: var(--color-accent, #7c3aed);
+  color: var(--sf-accent);
   font-size: 13px;
   cursor: pointer;
   margin: 0;

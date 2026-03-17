@@ -132,7 +132,7 @@ onMounted(() => {
 }
 
 .promo-card__header {
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  background: var(--sf-accent-glow);
   padding: 24px 20px;
   border-bottom: 1px solid var(--sf-border);
   position: relative;

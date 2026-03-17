@@ -131,7 +131,7 @@ onUnmounted(() => { if (pollInterval) clearInterval(pollInterval) })
   font-weight: 700; font-size: 14px;
 }
 .notif-dropdown__mark-all {
-  background: none; border: none; color: var(--color-primary, #7c3aed); cursor: pointer;
+  background: none; border: none; color: var(--color-accent-primary); cursor: pointer;
   font-size: 12px; font-weight: 600;
 }
 .notif-dropdown__mark-all:hover { text-decoration: underline; }
@@ -143,7 +143,7 @@ onUnmounted(() => { if (pollInterval) clearInterval(pollInterval) })
   transition: background 0.2s;
 }
 .notif-item:hover { background: var(--color-bg-primary, rgba(255,255,255,0.03)); }
-.notif-item--unread { background: rgba(124, 58, 237, 0.08); }
+.notif-item--unread { background: var(--color-accent-glow); }
 .notif-item__icon { font-size: 20px; flex-shrink: 0; padding-top: 2px; }
 .notif-item__content { flex: 1; min-width: 0; }
 .notif-item__title { font-size: 13px; font-weight: 600; line-height: 1.3; }

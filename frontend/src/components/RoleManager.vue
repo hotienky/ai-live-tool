@@ -442,7 +442,7 @@ onMounted(async () => {
 .role-mgr__role-item.active { background: var(--color-accent-primary); color: #fff; border-color: var(--color-accent-primary); }
 .role-mgr__badge {
   margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 6px;
-  border-radius: 4px; background: rgba(124,58,237,0.15); color: var(--color-accent-primary);
+  border-radius: 4px; background: var(--color-accent-glow); color: var(--color-accent-primary);
 }
 .role-mgr__role-item.active .role-mgr__badge { background: rgba(255,255,255,0.2); color: #fff; }
 .role-mgr__add-btn {
@@ -466,7 +466,7 @@ onMounted(async () => {
 .role-mgr__actions { display: flex; gap: 6px; margin-left: auto; }
 .role-mgr__save-btn {
   display: flex; align-items: center; gap: 5px; padding: 8px 18px; border-radius: 8px; border: none;
-  background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
+  background: var(--accent-gradient); color: #fff;
   font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
 }
 .role-mgr__save-btn:hover { transform: translateY(-1px); }
@@ -485,7 +485,7 @@ onMounted(async () => {
 .role-mgr__perms { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px; }
 .role-mgr__perm-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; padding: 2px 0; }
 .role-mgr__perm-item input { accent-color: var(--color-accent-primary); }
-.role-mgr__note { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: rgba(124,58,237,0.06); color: var(--color-text-muted); font-size: 12px; }
+.role-mgr__note { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: var(--color-accent-glow); color: var(--color-text-muted); font-size: 12px; }
 .role-mgr__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--color-text-muted); }
 .role-mgr__empty p { font-size: 13px; }
 
@@ -500,8 +500,8 @@ onMounted(async () => {
 .user-mgr__search:focus { outline: none; border-color: var(--color-accent-primary); }
 .user-mgr__add-btn {
   display: flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 8px; border: none;
-  background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff;
-  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+  background: var(--accent-gradient); color: #fff;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; box-shadow: var(--accent-shadow);
   transition: all 0.2s;
 }
 .user-mgr__add-btn:hover { transform: translateY(-1px); }
@@ -519,14 +519,14 @@ onMounted(async () => {
 .user-mgr__name-cell { display: flex; align-items: center; gap: 10px; }
 .user-mgr__avatar {
   width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-  background: var(--accent-gradient, linear-gradient(135deg,#7c3aed,#a855f7));
+  background: var(--accent-gradient, var(--accent-gradient));
   color: #fff; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700;
 }
 .user-mgr__email { color: var(--color-text-muted); font-size: 12px; }
 .user-mgr__role-badge {
   display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px;
-  background: rgba(124,58,237,0.1); color: var(--color-accent-primary);
+  background: var(--color-accent-glow); color: var(--color-accent-primary);
   font-size: 11px; font-weight: 700;
 }
 .user-mgr__no-role { color: var(--color-text-muted); font-size: 12px; font-style: italic; }
@@ -603,7 +603,7 @@ onMounted(async () => {
 }
 .btn-save {
   display: flex; align-items: center; gap: 6px; padding: 9px 24px; border-radius: 8px; border: none;
-  background: linear-gradient(135deg, #7c3aed, #a855f7); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
+  background: var(--accent-gradient); color: #fff; font-size: 13px; font-weight: 700; cursor: pointer;
   transition: all 0.2s;
 }
 .btn-save:disabled { opacity: 0.6; cursor: wait; }

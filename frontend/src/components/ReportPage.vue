@@ -280,7 +280,7 @@ onMounted(loadAll)
   font-size: 13px; outline: none; cursor: pointer;
   transition: border-color 0.2s;
 }
-.report__select:focus { border-color: #7c3aed; }
+.report__select:focus { border-color: var(--color-accent-primary); }
 .report__refresh {
   background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 8px;
   padding: 8px; cursor: pointer; color: var(--color-text-secondary); transition: all 0.2s;
@@ -433,7 +433,7 @@ onMounted(loadAll)
   color: var(--color-text-secondary); cursor: default;
   transition: color 0.2s; padding: 2px 6px;
 }
-.report__keyword:hover { color: #a78bfa; }
+.report__keyword:hover { color: var(--accent-light); }
 .report__keyword sup {
   font-size: 9px; color: var(--color-text-muted); margin-left: 1px;
 }

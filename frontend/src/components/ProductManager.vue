@@ -696,7 +696,7 @@ onMounted(() => {
   padding: 4px 12px; border-radius: 6px; border: 1px dashed var(--color-accent-primary);
   background: transparent; color: var(--color-accent-primary); font-size: 12px; font-weight: 600; cursor: pointer;
 }
-.btn-add-variant:hover { background: rgba(124,58,237,0.08); }
+.btn-add-variant:hover { background: var(--color-accent-glow); }
 .variant-list { display: flex; flex-direction: column; gap: 10px; }
 .variant-card {
   padding: 12px; border-radius: 10px; background: var(--color-bg-primary);
@@ -709,7 +709,7 @@ onMounted(() => {
 /* Variant sale toggle */
 .variant-sale-toggle {
   padding: 10px 14px; border-radius: 8px; margin-bottom: 12px;
-  background: rgba(124, 58, 237, 0.06); border: 1px solid rgba(124, 58, 237, 0.15);
+  background: var(--color-accent-glow); border: 1px solid var(--color-accent-primary);
 }
 .toggle-label {
   display: flex; align-items: center; gap: 8px; font-size: 13px;

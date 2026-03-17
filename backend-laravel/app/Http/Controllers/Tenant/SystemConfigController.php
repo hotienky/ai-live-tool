@@ -5,11 +5,12 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\SystemConfig\SystemConfigRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 
 class SystemConfigController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     public function __construct(private SystemConfigRepositoryInterface $repo) {}
 
@@ -24,6 +25,7 @@ class SystemConfigController extends Controller
         try {
             $items = $request->input('items', []);
             $this->repo->upsertItems($items);
+            $this->logActivity('settings.updated', 'system_config', null, ['count' => count($items)]);
             return $this->successResponse(null, 'Config saved');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -40,6 +42,7 @@ class SystemConfigController extends Controller
         try {
             $items = $request->input('items', []);
             $this->repo->updateGroup($group, $items);
+            $this->logActivity('settings.updated', 'system_config', null, ['group' => $group]);
             return $this->successResponse(null, 'Config updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

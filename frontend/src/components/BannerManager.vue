@@ -239,8 +239,8 @@ async function handleDelete(b) {
 .bm-drag-over {
   border: 2px dashed var(--accent) !important;
   transform: scale(1.02);
-  box-shadow: 0 0 0 4px rgba(124, 58, 237, .12);
-  background: rgba(124, 58, 237, .03);
+  box-shadow: 0 0 0 4px var(--color-accent-glow);
+  background: var(--color-accent-glow);
 }
 
 /* Drag Handle */

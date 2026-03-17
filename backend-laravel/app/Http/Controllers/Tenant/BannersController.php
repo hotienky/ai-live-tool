@@ -6,11 +6,12 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\Banner\BannerRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 
 class BannersController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, LogsActivity;
 
     public function __construct(private BannerRepositoryInterface $repo) {}
 
@@ -38,6 +39,7 @@ class BannersController extends Controller
                 'is_active' => 'nullable|boolean',
             ]);
             $banner = $this->repo->store($data);
+            $this->logActivity('banner.created', 'banner', $banner->id, ['title' => $data['title']]);
             return $this->successResponse($banner, 'Banner created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422);
@@ -52,6 +54,7 @@ class BannersController extends Controller
             $banner = $this->repo->find($id);
             if (!$banner) return $this->notFoundResponse('Banner not found');
             $this->repo->update($request->all(), $id);
+            $this->logActivity('banner.updated', 'banner', $id);
             return $this->successResponse($this->repo->find($id), 'Banner updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -63,6 +66,7 @@ class BannersController extends Controller
         try {
             $banner = $this->repo->find($id);
             if (!$banner) return $this->notFoundResponse('Banner not found');
+            $this->logActivity('banner.deleted', 'banner', $id, ['title' => $banner->title ?? null]);
             $this->repo->delete($id);
             return $this->successResponse(null, 'Banner deleted');
         } catch (\Exception $e) {

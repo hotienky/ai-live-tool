@@ -48,6 +48,7 @@ class UpdateAction extends BaseAction
 
             $this->productRepository->update($data, $id);
             $product = $this->productRepository->find($id);
+            $this->logActivity('product.updated', 'product', $id, ['name' => $product->name ?? null]);
 
             return $this->successResponse($product, 'Product updated successfully');
         } catch (\Exception $e) {

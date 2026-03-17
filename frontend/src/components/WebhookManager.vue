@@ -218,7 +218,7 @@ onMounted(() => loadWebhooks())
 
 .wh-add-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+  box-shadow: var(--accent-shadow);
 }
 
 .wh-add-btn:disabled {
@@ -304,8 +304,8 @@ onMounted(() => loadWebhooks())
 }
 
 .webhook-events {
-  background: rgba(124, 58, 237, 0.12);
-  color: var(--accent-light, #a78bfa);
+  background: var(--color-accent-glow);
+  color: var(--accent-light);
   padding: 2px 10px;
   border-radius: 20px;
   font-size: 11px;
@@ -365,7 +365,7 @@ onMounted(() => loadWebhooks())
 }
 
 .toggle-switch input:checked + .toggle-slider {
-  background: var(--color-accent-primary, #7c3aed);
+  background: var(--color-accent-primary);
 }
 
 .toggle-switch input:checked + .toggle-slider::before {

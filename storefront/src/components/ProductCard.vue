@@ -71,7 +71,7 @@ function formatPrice(v) {
 .product-card:hover {
   transform: translateY(-6px);
   border-color: var(--sf-accent);
-  box-shadow: var(--sf-shadow-lg), 0 0 40px rgba(124, 58, 237, 0.08);
+  box-shadow: var(--sf-shadow-lg), 0 0 40px var(--sf-accent-glow);
 }
 
 .product-card__image {
@@ -120,7 +120,7 @@ function formatPrice(v) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(124, 58, 237, 0.25);
+  background: var(--sf-accent-glow);
   opacity: 0;
   transition: opacity 0.3s;
   color: #fff;

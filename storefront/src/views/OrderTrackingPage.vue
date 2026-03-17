@@ -298,10 +298,10 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
   background: var(--sf-bg-secondary, #fafafa); color: var(--sf-text-primary, #333);
   box-sizing: border-box;
 }
-.form-group input:focus { border-color: var(--sf-accent, #7c3aed); box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
+.form-group input:focus { border-color: var(--sf-accent); box-shadow: 0 0 0 3px var(--sf-accent-glow); }
 
 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 10px; font-weight: 700; font-size: 15px; cursor: pointer; text-decoration: none; transition: all .2s; }
-.btn--primary { background: var(--sf-accent, #7c3aed); color: #fff; }
+.btn--primary { background: var(--sf-accent); color: #fff; }
 .btn--primary:hover:not(:disabled) { opacity: .9; }
 .btn--primary:disabled { opacity: .5; cursor: not-allowed; }
 .btn--block { width: 100%; }
@@ -345,7 +345,7 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
 }
 .timeline-line.done { background: #10b981; }
 
-@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(124,58,237,.4); } 50% { box-shadow: 0 0 0 8px rgba(124,58,237,0); } }
+@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 var(--sf-accent-glow); } 50% { box-shadow: 0 0 0 8px transparent; } }
 
 /* Result Grid */
 .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
@@ -359,7 +359,7 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
 .info-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--sf-text-muted); }
 .info-row strong { color: var(--sf-text-primary); font-weight: 600; }
 .total-row { display: flex; justify-content: space-between; font-size: 15px; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--sf-border); }
-.accent { color: var(--sf-accent, #7c3aed) !important; font-weight: 800 !important; }
+.accent { color: var(--sf-accent) !important; font-weight: 800 !important; }
 .mono { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 1px; }
 
 .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: #fff; }
@@ -391,7 +391,7 @@ function shipStatusLabel(s) { return shipStatusMap[s] || s }
 }
 
 /* Bank Card */
-.bank-card { border-color: rgba(124,58,237,.2); }
+.bank-card { border-color: var(--sf-accent); }
 .bank-rows { display: flex; flex-direction: column; gap: 8px; }
 .bank-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--sf-text-muted); }
 .bank-row strong { color: var(--sf-text-primary); }
