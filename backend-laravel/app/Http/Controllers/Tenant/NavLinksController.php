@@ -20,7 +20,7 @@ class NavLinksController extends Controller
         // Transform to frontend format and nest children under collections
         $mapped = $all->map(fn($link) => [
             'id' => $link->id,
-            'name' => $link->title ?? $link->label ?? '',
+            'name' => $link->title ?? '',
             'url' => $link->url ?? '#',
             'group' => $link->group ?? 'menu',
             'type' => $link->type ?? 'single',
@@ -51,7 +51,6 @@ class NavLinksController extends Controller
 
             $data = [
                 'title' => $title,
-                'label' => $title, // alias
                 'url' => $request->input('url', '#'),
                 'group' => $request->input('group', 'menu'),
                 'type' => $request->input('type', 'single'),
@@ -77,7 +76,7 @@ class NavLinksController extends Controller
 
             // Map frontend field names to DB columns
             $data = $request->all();
-            if (isset($data['name'])) { $data['title'] = $data['name']; $data['label'] = $data['name']; unset($data['name']); }
+            if (isset($data['name'])) { $data['title'] = $data['name']; unset($data['name']); }
             if (isset($data['sort'])) { $data['sort_order'] = $data['sort']; unset($data['sort']); }
             if (array_key_exists('collectionId', $data)) { $data['parent_id'] = $data['collectionId']; unset($data['collectionId']); }
 
@@ -116,8 +115,8 @@ class NavLinksController extends Controller
         return $this->successResponse($links->map(function ($link) {
             return [
                 'id' => $link->id,
-                'name' => $link->title ?? $link->label ?? '',
-                'label' => $link->title ?? $link->label ?? '',
+                'name' => $link->title ?? '',
+                'label' => $link->title ?? '',
                 'url' => $link->url,
                 'group' => $link->group ?? 'menu',
                 'type' => $link->type ?? 'single',

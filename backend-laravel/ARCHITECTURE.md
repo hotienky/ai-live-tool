@@ -1,499 +1,213 @@
-# Architecture Standards — ReadComment Backend Laravel
+# Backend Architecture Convention
 
-> Based on the vsecure-api reference architecture. All new features MUST follow this pattern.
+## Layered Architecture Pattern
+
+Mọi chức năng CRUD / API phải tuân thủ luồng xử lý sau:
+
+```
+Route → Controller → Action → Repository → Pipeline (nếu cần filter/sort) → Response
+```
+
+### Nguyên tắc cốt lõi
+
+1. **Controller** = Thin wrapper. Chỉ nhận request, delegate cho Action, trả response.
+2. **Action** = Business logic. Validation, transform data, gọi repository, side-effects (log, event, notification).
+3. **Repository** = Database layer. Query, insert, update, delete. Không chứa business logic.
+4. **Pipeline** = Query filter/sort. Xử lý `?search=`, `?sort_by=`, `?status=` qua chain of filters.
+5. **KHÔNG BAO GIỜ** dùng `DB::table()` hoặc `Model::where()` trực tiếp trong Controller.
 
 ---
 
-## Request Flow
-
-```
-Route → Controller → Action → Repository → Database
-                       ↓
-                  Transformer → JSON Response
-```
-
-### Layer Responsibilities
-
-| Layer | Responsibility | Rules |
-|---|---|---|
-| **Route** | URL mapping → Controller method | NO inline closures. NO business logic. Split by module files. |
-| **Controller** | Thin. Delegates to Action | NO `DB::` calls. NO business logic. Only receives request + DI resolves Action → calls `$action()`. |
-| **Action** | Business logic container | Validation, authorization, orchestration. Uses Repositories for data. Uses Transformers for output. Uses `DB::beginTransaction()` for complex ops. |
-| **Repository** | Data access layer | ALL database interaction goes here. Extends `BaseEloquentRepository`. Uses Pipeline for filtering/search. |
-| **Pipeline** | Query filtering | Composes QueryBuilder Filter pipes. Each filter = one concern (search, status, date range, etc.) |
-| **Transformer** | Response shaping | Maps Model → API response array. Extends `BaseTransformer`. Keeps controllers and actions clean. |
-| **Service** | External integrations | Third-party APIs, file uploads, notifications. Injected into Actions. |
-
----
-
-## Directory Structure
+## File Structure
 
 ```
 app/
 ├── Actions/
-│   ├── Tenant/              # Tenant-scoped actions
-│   │   ├── Product/
-│   │   │   ├── BaseAction.php
-│   │   │   ├── IndexAction.php
-│   │   │   ├── StoreAction.php
-│   │   │   ├── ShowAction.php
-│   │   │   └── UpdateAction.php
-│   │   ├── Order/
-│   │   └── ...
-│   └── Master/              # Master panel actions
-│       ├── Tenant/
-│       └── Auth/
-├── Http/
-│   ├── Controllers/
-│   │   ├── Tenant/          # Tenant-scoped controllers
-│   │   │   ├── ProductsController.php
-│   │   │   ├── OrdersController.php
-│   │   │   └── ...
-│   │   ├── Master/          # Master panel controllers
-│   │   │   ├── AuthController.php
-│   │   │   └── TenantsController.php
-│   │   ├── Storefront/      # Public storefront controllers
-│   │   └── Controller.php
-│   ├── Middleware/
-│   └── Requests/            # Form Request validation classes
-├── Models/
+│   └── {Entity}/
+│       ├── BaseAction.php          # Inject repo + traits (ApiResponse, LogsActivity)
+│       ├── IndexAction.php         # List with pagination + filters
+│       ├── ShowAction.php          # Get single record
+│       ├── StoreAction.php         # Validate + create
+│       ├── UpdateAction.php        # Validate + update
+│       └── DestroyAction.php       # Delete
+│
+├── Http/Controllers/
+│   └── {Context}/
+│       └── {Entity}Controller.php  # THIN — only delegates to Actions
+│
 ├── Pipelines/
-│   ├── AbstractFilterPipeline.php
-│   ├── ProductFilterPipeline.php
-│   └── ...
-├── QueryBuilder/
-│   ├── Filter.php           # Abstract filter base
-│   ├── Sort.php             # Abstract sort base
-│   ├── Product/
-│   │   ├── Search.php
-│   │   ├── Status.php
-│   │   └── Category.php
-│   └── ...
+│   ├── QueryPipeline.php           # Base pipeline runner
+│   └── Filters/
+│       ├── SearchFilter.php        # ?search=keyword
+│       ├── SortFilter.php          # ?sort_by=name&sort_dir=asc
+│       ├── StatusFilter.php        # ?status=active
+│       └── DateRangeFilter.php     # ?from=...&to=...
+│
 ├── Repositories/
 │   ├── BaseRepoInterface.php
 │   ├── BaseEloquentRepository.php
-│   ├── Product/
-│   │   ├── ProductRepositoryInterface.php
-│   │   └── ProductRepository.php
-│   └── ...
-├── Services/
-├── Traits/
-│   ├── ApiResponse.php
-│   └── HandlesValidation.php
-└── Transformers/
-    ├── BaseTransformer.php
-    ├── ProductTransformer.php
-    └── ...
-
-routes/
-├── api.php                  # Main entry — imports module files
-├── tenantModules/           # Tenant-scoped route files
-│   ├── products.php
-│   ├── orders.php
-│   ├── customers.php
-│   └── ...
-└── masterModules/           # Master panel route files
-    ├── auth.php
-    ├── tenants.php
-    └── ...
+│   └── {Entity}/
+│       ├── {Entity}RepositoryInterface.php
+│       └── {Entity}Repository.php
+│
+└── Providers/
+    └── RepositoryServiceProvider.php  # Interface → Impl bindings
 ```
 
 ---
 
-## Route Organization
+## Code Standards
 
-### `routes/api.php` — Main entry point
-
-```php
-Route::get('/health', fn () => ...);
-
-// Storefront (public, tenant-scoped)
-Route::middleware([TenantMiddleware::class])
-    ->prefix('storefront')
-    ->group(function () {
-        foreach (glob(__DIR__ . '/storefrontModules/*.php') as $file) {
-            require $file;
-        }
-    });
-
-// Tenant Admin (authenticated, tenant-scoped)
-Route::middleware([TenantMiddleware::class, TokenAuth::class])
-    ->group(function () {
-        foreach (glob(__DIR__ . '/tenantModules/*.php') as $file) {
-            require $file;
-        }
-    });
-
-// Master Panel (authenticated)
-Route::prefix('master')
-    ->group(function () {
-        foreach (glob(__DIR__ . '/masterModules/*.php') as $file) {
-            require $file;
-        }
-    });
-```
-
-### Module file example: `routes/tenantModules/products.php`
+### Controller (THIN — max ~30 lines)
 
 ```php
-<?php
-use App\Http\Controllers\Tenant\ProductsController;
-
-Route::prefix('products')->group(function () {
-    Route::get('/', [ProductsController::class, 'index']);
-    Route::post('/', [ProductsController::class, 'store']);
-    Route::get('/{product}', [ProductsController::class, 'show']);
-    Route::put('/{product}', [ProductsController::class, 'update']);
-    Route::delete('/{product}', [ProductsController::class, 'destroy']);
-});
-```
-
----
-
-## Controller Pattern
-
-Controllers are **thin**. Each method receives the Request + the Action (via DI), then delegates.
-
-```php
-<?php
-
-namespace App\Http\Controllers\Tenant;
-
-use App\Actions\Tenant\Product\IndexAction;
-use App\Actions\Tenant\Product\StoreAction;
-use App\Actions\Tenant\Product\ShowAction;
-use App\Actions\Tenant\Product\UpdateAction;
-use App\Actions\Tenant\Product\DestroyAction;
-use App\Http\Controllers\Controller;
-use App\Models\Product;
-use Illuminate\Http\Request;
-
-class ProductsController extends Controller
+class BannersController extends Controller
 {
-    public function index(IndexAction $action)
-    {
-        return $action();
-    }
-
-    public function store(Request $request, StoreAction $action)
-    {
-        return $action($request);
-    }
-
-    public function show(Product $product, ShowAction $action)
-    {
-        return $action($product);
-    }
-
-    public function update(Request $request, Product $product, UpdateAction $action)
-    {
-        return $action($request, $product);
-    }
-
-    public function destroy(Product $product, DestroyAction $action)
-    {
-        return $action($product);
-    }
+    public function index(IndexAction $action) { return $action(); }
+    public function show($id, ShowAction $action) { return $action($id); }
+    public function store(Request $request, StoreAction $action) { return $action($request); }
+    public function update(Request $request, $id, UpdateAction $action) { return $action($request, $id); }
+    public function destroy($id, DestroyAction $action) { return $action($id); }
 }
 ```
 
----
-
-## Action Pattern
-
-Actions contain business logic and are invoked via `__invoke()`.
-
-### BaseAction (shared per module)
+### Action (Business Logic)
 
 ```php
-<?php
+namespace App\Actions\Banner;
 
-namespace App\Actions\Tenant\Product;
-
-use App\Repositories\Product\ProductRepositoryInterface;
-use App\Transformers\ProductTransformer;
+use App\Repositories\Banner\BannerRepositoryInterface;
 use App\Traits\ApiResponse;
-
-class BaseAction
-{
-    use ApiResponse;
-
-    protected $productRepository;
-    protected $productTransformer;
-
-    public function __construct(
-        ProductRepositoryInterface $productRepository,
-        ProductTransformer $productTransformer
-    ) {
-        $this->productRepository = $productRepository;
-        $this->productTransformer = $productTransformer;
-    }
-}
-```
-
-### IndexAction
-
-```php
-<?php
-
-namespace App\Actions\Tenant\Product;
-
-class IndexAction extends BaseAction
-{
-    public function __invoke()
-    {
-        $filters = request()->all();
-        $products = $this->productRepository->index($filters);
-        $products['items'] = $this->productTransformer
-            ->transformCollection(collect($products['items']));
-        return $this->successResponse($products, 'Products retrieved');
-    }
-}
-```
-
-### StoreAction (with validation + transaction)
-
-```php
-<?php
-
-namespace App\Actions\Tenant\Product;
-
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator;
 
-class StoreAction extends BaseAction
+class StoreAction
 {
+    use ApiResponse, LogsActivity;
+
+    public function __construct(private BannerRepositoryInterface $repo) {}
+
     public function __invoke(Request $request)
     {
         try {
-            DB::beginTransaction();
-
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'price' => 'required|numeric|min:0',
-                // ...rules
+            $data = $request->validate([
+                'title' => 'required|string|max:255',
+                'image_url' => 'required|string',
+                // ...
             ]);
 
-            if ($validator->fails()) {
-                return $this->errorResponse('Validation failed', 422,
-                    $validator->errors()->toArray());
-            }
+            $banner = $this->repo->store($data);
+            $this->logActivity('banner.created', 'banner', $banner->id, ['title' => $data['title']]);
 
-            $product = $this->productRepository->store($request->only([
-                'name', 'price', 'sku', ...
-            ]));
-
-            DB::commit();
-            return $this->successResponse(
-                $this->productTransformer->transform($product),
-                'Product created', 201
-            );
+            return $this->successResponse($banner, 'Banner created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->validationErrorResponse($e->errors());
         } catch (\Exception $e) {
-            DB::rollBack();
-            return $this->errorResponse($e->getMessage(), 500);
+            return $this->errorResponse($e->getMessage());
         }
     }
 }
 ```
 
----
-
-## Repository Pattern
-
-### Interface (extends BaseRepoInterface)
+### Action with Pipeline (for listing with filters)
 
 ```php
-<?php
-
-namespace App\Repositories\Product;
-
-use App\Repositories\BaseRepoInterface;
-
-interface ProductRepositoryInterface extends BaseRepoInterface
+class IndexAction
 {
-    public function index($filters = null);
-    public function findWithDetails($id);
-    public function findBySlugOrId($identifier);
+    use ApiResponse;
+
+    public function __construct(
+        private BannerRepositoryInterface $repo,
+        private QueryPipeline $pipeline,
+    ) {}
+
+    public function __invoke()
+    {
+        $query = $this->repo->query();
+
+        // Apply filters from request (?search=, ?status=, ?sort_by=)
+        $query = $this->pipeline
+            ->through([
+                SearchFilter::class,    // filters ?search=
+                StatusFilter::class,    // filters ?is_active=
+                SortFilter::class,      // sorts by ?sort_by=&sort_dir=
+            ])
+            ->process($query);
+
+        return $this->successResponse(
+            $this->repo->paginate($query)
+        );
+    }
 }
 ```
 
-### Implementation (extends BaseEloquentRepository)
+### Repository (Database Only)
 
 ```php
-<?php
-
-namespace App\Repositories\Product;
-
-use App\Models\Product;
-use App\Repositories\BaseEloquentRepository;
-use App\Pipelines\ProductFilterPipeline;
-
-class ProductRepository extends BaseEloquentRepository
-    implements ProductRepositoryInterface
+// Interface
+interface BannerRepositoryInterface extends BaseRepoInterface
 {
-    public function __construct(Product $model)
+    public function findActive(): Collection;
+    public function findByPosition(string $position): Collection;
+}
+
+// Implementation
+class BannerRepository extends BaseEloquentRepository implements BannerRepositoryInterface
+{
+    public function __construct(Banner $model)
     {
         parent::__construct($model);
     }
 
-    public function index($filters = null)
+    public function findActive(): Collection
     {
-        $filters = $filters ?? request()->all();
-        $query = $this->query()->with(['category', 'brand']);
-        $query = ProductFilterPipeline::run($query, $filters);
-        return $this->paginate($query, $filters['per_page'] ?? 15);
+        return $this->model->where('is_active', true)->orderBy('sort_order')->get();
     }
 
-    public function findWithDetails($id)
+    public function findByPosition(string $position): Collection
     {
-        return $this->query()->with(['category', 'brand', 'variants'])->find($id);
-    }
-
-    public function findBySlugOrId($identifier)
-    {
-        return $this->query()
-            ->where('id', $identifier)
-            ->orWhere('slug', $identifier)
-            ->first();
+        return $this->model->where('position', $position)->where('is_active', true)->get();
     }
 }
 ```
 
----
-
-## Pipeline + QueryBuilder Pattern
-
-### FilterPipeline
+### Pipeline Filter
 
 ```php
-<?php
+namespace App\Pipelines\Filters;
 
-namespace App\Pipelines;
-
-class ProductFilterPipeline extends AbstractFilterPipeline
+class SearchFilter
 {
-    protected $pipes = [
-        \App\QueryBuilder\Product\Search::class,
-        \App\QueryBuilder\Product\Category::class,
-        \App\QueryBuilder\Product\Status::class,
-        \App\QueryBuilder\Product\PriceRange::class,
-    ];
-
-    public static function run($builder, array $context)
+    public function handle($query, \Closure $next)
     {
-        return app(static::class)->with($context)->send($builder)->thenReturn();
-    }
-}
-```
-
-### QueryBuilder Filter Pipe
-
-```php
-<?php
-
-namespace App\QueryBuilder\Product;
-
-use App\QueryBuilder\Filter;
-
-class Search extends Filter
-{
-    protected function applyFilters($builder, $context)
-    {
-        return $builder->where(function ($q) use ($context) {
-            $q->where('name', 'like', '%' . $this->value($context) . '%')
-              ->orWhere('sku', 'like', '%' . $this->value($context) . '%');
-        });
+        $search = request('search');
+        if ($search) {
+            // Each entity can define $searchable columns
+            $searchable = $query->getModel()->searchable ?? ['name'];
+            $query->where(function ($q) use ($search, $searchable) {
+                foreach ($searchable as $col) {
+                    $q->orWhere($col, 'ilike', "%{$search}%");
+                }
+            });
+        }
+        return $next($query);
     }
 }
 ```
 
 ---
 
-## Transformer Pattern
+## Checklist cho mỗi chức năng mới
 
-```php
-<?php
-
-namespace App\Transformers;
-
-use App\Models\Product;
-
-class ProductTransformer extends BaseTransformer
-{
-    public function transform($item): array
-    {
-        return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'slug' => $item->slug,
-            'price' => $item->price,
-            'sku' => $item->sku,
-            'category' => $item->category?->name,
-            'brand' => $item->brand?->name,
-            'is_active' => $item->is_active,
-            'created_at' => $item->created_at?->format('Y-m-d H:i:s'),
-        ];
-    }
-}
-```
-
----
-
-## Key Rules
-
-### ❌ NEVER do this
-
-```php
-// Controller with DB:: calls
-public function index() {
-    return response()->json(DB::table('products')->get());
-}
-
-// Inline closures in routes
-Route::get('/products', fn () => response()->json(DB::table('products')->get()));
-
-// Business logic in controllers
-public function store(Request $request) {
-    $data = $request->validate([...]);
-    $product = Product::create($data);
-    return response()->json($product);
-}
-```
-
-### ✅ ALWAYS do this
-
-```php
-// Thin controller → Action
-public function index(IndexAction $action) {
-    return $action();
-}
-
-// Action uses Repository + Transformer
-public function __invoke() {
-    $data = $this->productRepository->index(request()->all());
-    $data['items'] = $this->transformer->transformCollection(collect($data['items']));
-    return $this->successResponse($data);
-}
-
-// Repository handles all DB interaction
-public function index($filters = null) {
-    $query = $this->query()->with(['category']);
-    $query = ProductFilterPipeline::run($query, $filters ?? []);
-    return $this->paginate($query);
-}
-```
-
----
-
-## Checklist for Adding a New Feature
-
-1. **Model** — Create Eloquent model in `app/Models/`
-2. **Repository** — Create Interface + Implementation in `app/Repositories/Module/`
-3. **Register** — Bind in `app/Providers/RepositoryServiceProvider.php`
-4. **Transformer** — Create in `app/Transformers/` (if API output needed)
-5. **Pipeline** — Create FilterPipeline + QueryBuilder pipes (if listing with filters)
-6. **Actions** — Create BaseAction + individual actions in `app/Actions/{Tenant|Master}/Module/`
-7. **Controller** — Create thin controller in `app/Http/Controllers/{Tenant|Master}/`
-8. **Route** — Add route file in `routes/{tenantModules|masterModules}/`
-9. **Test** — Verify endpoint works end-to-end
+- [ ] Model tại `app/Models/{Entity}.php`
+- [ ] Migration tại `database/migrations/`
+- [ ] Repository Interface: `app/Repositories/{Entity}/{Entity}RepositoryInterface.php`
+- [ ] Repository Implementation: `app/Repositories/{Entity}/{Entity}Repository.php`
+- [ ] Đăng ký binding trong `RepositoryServiceProvider`
+- [ ] Base Action: `app/Actions/{Entity}/BaseAction.php`
+- [ ] Actions: Index, Show, Store, Update, Destroy
+- [ ] Controller (thin): `app/Http/Controllers/{Context}/{Entity}Controller.php`
+- [ ] Route tại `routes/tenant.php` hoặc tương ứng
+- [ ] **KHÔNG** dùng `DB::table()` trong Controller hoặc Action
+- [ ] **KHÔNG** viết query logic trong Controller
+- [ ] List API phải dùng Pipeline cho filter/sort

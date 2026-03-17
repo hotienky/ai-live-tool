@@ -13,7 +13,21 @@
       "Bash(sudo kill 1132)",
       "Bash(php artisan route:list)",
       "Bash(ls -la /Users/hotienky/datas/App/read-comment/*.md)",
-      "Bash(xargs basename -a)"
+      "Bash(xargs basename -a)",
+      "Bash(ping -c 1 master.super.vn)",
+      "Bash(brew services:*)",
+      "Bash(brew install:*)",
+      "Read(//opt/homebrew/etc/**)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(sudo brew:*)",
+      "Bash(mkcert --version)",
+      "Bash(mkcert -install)",
+      "Bash(mkdir -p /Users/hotienky/datas/App/read-comment/nginx/certs)",
+      "Bash(mkcert \"*.super.vn\" \"super.vn\" \"*.cms.super.vn\")",
+      "Bash(TRUST_STORES=system mkcert \"*.super.vn\" \"super.vn\" \"*.cms.super.vn\")",
+      "Bash(docker compose:*)",
+      "Bash(docker exec:*)",
+      "Bash(xxd)"
     ]
   }
 }

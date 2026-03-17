@@ -193,7 +193,15 @@ class StorefrontController extends Controller
             'productDetail' => ['galleryStyle' => 'thumbnails', 'layoutRatio' => '50-50', 'showBreadcrumb' => true, 'showRelatedProducts' => true, 'relatedCount' => 6, 'showReviews' => true],
         ];
         $defaultHeaderConfig = ['logoPosition' => 'left', 'maxNavLinks' => 5, 'showSearch' => true, 'sticky' => true, 'showThemeToggle' => true];
-        $defaultFooterConfig = ['columns' => 3, 'showContact' => true, 'showLinks' => true, 'showPaymentIcons' => false, 'copyrightText' => ''];
+        $defaultFooterConfig = [
+            'columns' => [
+                ['title' => 'Về chúng tôi', 'type' => 'links', 'links' => []],
+                ['title' => 'Hỗ trợ', 'type' => 'links', 'links' => []],
+                ['title' => 'Liên hệ', 'type' => 'contact', 'items' => []],
+            ],
+            'social' => [], 'paymentMethods' => ['cod', 'bank'],
+            'badges' => [], 'legalText' => '', 'copyrightText' => '', 'bgColor' => '',
+        ];
 
         return $this->successResponse([
             'sections' => json_decode($map['layout_sections'] ?? 'null') ?: $defaultSections,

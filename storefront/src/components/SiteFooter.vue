@@ -1,115 +1,117 @@
 <template>
-  <footer class="site-footer">
+  <footer class="site-footer" :style="footerStyle">
     <div class="site-footer__inner container">
-      <!-- Top Row: Multi-Column Grid -->
-      <div class="site-footer__top" :style="{ '--footer-cols': footerCfg.columns }">
 
-        <!-- Column 1: Brand + Description -->
-        <div class="site-footer__brand-col">
-          <div class="site-footer__brand">
-            <img v-if="info?.logo" :src="info.logo" :alt="info.shop_name" class="site-footer__logo-img" />
-            <Store v-else :size="20" class="site-footer__logo-icon" />
-            <strong class="site-footer__name">{{ info?.shop_name || storeName || 'Shop' }}</strong>
-          </div>
-          <p v-if="info?.shop_tagline || info?.description" class="site-footer__desc">
-            {{ info?.description || info?.shop_tagline }}
-          </p>
-          <!-- Social Links -->
-          <div class="site-footer__social" v-if="socialLinks.length">
-            <a
-              v-for="s in socialLinks"
-              :key="s.key"
-              :href="s.url"
-              target="_blank"
-              :title="s.label"
-              class="site-footer__social-link"
-              :class="'site-footer__social-link--' + s.key"
-            >
-              <component :is="s.icon" :size="16" />
-            </a>
-          </div>
+      <!-- Dynamic Columns -->
+      <div class="site-footer__grid" :style="{ '--cols': totalCols }">
+        <div v-for="(col, ci) in (cfg.columns || [])" :key="ci" class="site-footer__col">
+
+          <h4 v-if="col.title" class="site-footer__col-title">{{ col.title }}</h4>
+
+          <!-- Links Column -->
+          <template v-if="col.type === 'links'">
+            <ul class="sf-link-list">
+              <li v-for="(link, li) in (col.links || [])" :key="li">
+                <router-link v-if="link.url?.startsWith('/')" :to="link.url" class="sf-link">
+                  {{ link.label }}
+                </router-link>
+                <a v-else :href="link.url" target="_blank" class="sf-link">{{ link.label }}</a>
+              </li>
+            </ul>
+          </template>
+
+          <!-- Contact Column -->
+          <template v-if="col.type === 'contact'">
+            <ul class="sf-contact-list">
+              <li v-for="(item, ii) in (col.items || [])" :key="ii" class="sf-contact-item">
+                <component :is="contactIcon(item.icon)" :size="14" class="sf-contact-icon" />
+                <div>
+                  <strong v-if="item.label" class="sf-contact-label">{{ item.label }}</strong>
+                  <span v-if="item.icon === 'phone' && item.value">
+                    <a :href="'tel:' + item.value.replace(/\s/g, '')">{{ item.value }}</a>
+                  </span>
+                  <span v-else-if="item.icon === 'email' && item.value">
+                    <a :href="'mailto:' + item.value">{{ item.value }}</a>
+                  </span>
+                  <span v-else>{{ item.value }}</span>
+                </div>
+              </li>
+            </ul>
+          </template>
+
+          <!-- Text Column -->
+          <template v-if="col.type === 'text'">
+            <div class="sf-text-content" v-html="col.content"></div>
+          </template>
         </div>
 
-        <!-- Column 2: Contact -->
-        <div class="site-footer__col" v-if="footerCfg.showContact && hasContact">
-          <h4 class="site-footer__col-title">Liên hệ</h4>
-          <ul class="site-footer__contact-list">
-            <li v-if="info.phone" class="site-footer__contact-item">
-              <Phone :size="14" />
-              <a :href="'tel:' + info.phone.replace(/\s/g, '')">{{ info.phone }}</a>
-            </li>
-            <li v-if="info.email" class="site-footer__contact-item">
-              <Mail :size="14" />
-              <a :href="'mailto:' + info.email">{{ info.email }}</a>
-            </li>
-            <li v-if="info.address" class="site-footer__contact-item">
-              <MapPin :size="14" />
-              <span>{{ info.address }}</span>
-            </li>
-            <li v-if="info.working_hours" class="site-footer__contact-item">
-              <Clock :size="14" />
-              <span>{{ info.working_hours }}</span>
-            </li>
-          </ul>
-        </div>
+        <!-- Social + Payment + Badges (last column or separate section) -->
+        <div class="site-footer__col site-footer__col--extras" v-if="hasSocialOrBadges">
+          <template v-if="cfg.social?.length">
+            <h4 class="site-footer__col-title">Theo dõi chúng tôi</h4>
+            <div class="sf-social-row">
+              <a
+                v-for="s in cfg.social"
+                :key="s.platform"
+                :href="s.url"
+                target="_blank"
+                :title="platformLabel(s.platform)"
+                class="sf-social-link"
+                :class="'sf-social-link--' + s.platform"
+              >
+                <component :is="platformIcon(s.platform)" :size="18" />
+              </a>
+            </div>
+          </template>
 
-        <!-- Column 3: Footer Nav Links -->
-        <div class="site-footer__col" v-if="footerCfg.showLinks && footerLinks.length">
-          <h4 class="site-footer__col-title">Liên kết</h4>
-          <ul class="site-footer__link-list">
-            <li v-for="link in footerLinks" :key="link.id">
-              <router-link :to="link.url" class="site-footer__link">
-                <ChevronRight :size="12" />
-                {{ link.label || link.name }}
-              </router-link>
-            </li>
-          </ul>
-        </div>
+          <template v-if="cfg.badges?.length">
+            <h4 class="site-footer__col-title sf-mt">Chứng nhận</h4>
+            <div class="sf-badges-row">
+              <a
+                v-for="b in cfg.badges"
+                :key="b.label"
+                :href="b.url || '#'"
+                :target="b.url ? '_blank' : undefined"
+                class="sf-badge"
+              >
+                <img v-if="b.imageUrl" :src="b.imageUrl" :alt="b.label" class="sf-badge-img" />
+                <span v-else>{{ b.label }}</span>
+              </a>
+            </div>
+          </template>
 
-        <!-- Column 4: Policies (if configured) -->
-        <div class="site-footer__col" v-if="footerCfg.showPolicies && policyLinks.length">
-          <h4 class="site-footer__col-title">Chính sách</h4>
-          <ul class="site-footer__link-list">
-            <li v-for="link in policyLinks" :key="link.id">
-              <router-link :to="link.url" class="site-footer__link">
-                <ChevronRight :size="12" />
-                {{ link.label || link.name }}
-              </router-link>
-            </li>
-          </ul>
+          <template v-if="activePayments.length">
+            <h4 class="site-footer__col-title sf-mt">Hỗ trợ thanh toán</h4>
+            <div class="sf-payments-row">
+              <span v-for="pm in activePayments" :key="pm.code" class="sf-payment-badge">
+                {{ pm.label }}
+              </span>
+            </div>
+          </template>
         </div>
       </div>
 
-      <!-- Payment Icons -->
-      <div class="site-footer__payments" v-if="footerCfg.showPaymentIcons">
-        <span class="site-footer__payments-label">Phương thức thanh toán</span>
-        <div class="site-footer__payments-icons">
-          <span v-for="pm in paymentMethods" :key="pm.code" class="site-footer__payment-badge" :title="pm.name">
-            {{ pm.label }}
-          </span>
-        </div>
+      <!-- Legal / Company Info -->
+      <div class="site-footer__legal" v-if="cfg.legalText">
+        <div class="sf-legal-text" v-html="nl2br(cfg.legalText)"></div>
       </div>
 
-      <!-- Bottom Bar: Copyright -->
+      <!-- Copyright -->
       <div class="site-footer__bottom">
         <p class="site-footer__copy">
-          {{ footerCfg.copyrightText || info?.copyright || `© ${year} ${info?.shop_name || storeName || 'Shop'}. All rights reserved.` }}
+          {{ cfg.copyrightText || `© ${year} ${info?.shop_name || storeName || 'Shop'}. All rights reserved.` }}
         </p>
-        <div class="site-footer__bottom-links">
-          <router-link to="/page/chinh-sach-bao-mat" v-if="footerCfg.showPolicies">Chính sách bảo mật</router-link>
-          <router-link to="/page/dieu-khoan-su-dung" v-if="footerCfg.showPolicies">Điều khoản sử dụng</router-link>
-        </div>
       </div>
     </div>
   </footer>
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted } from 'vue'
-import { apiFetch } from '../api.js'
+import { ref, computed, inject } from 'vue'
 import {
-  Store, Phone, Mail, MapPin, Clock, ChevronRight,
-  Facebook, Instagram, Youtube, Twitter, MessageCircle, Globe
+  Phone, Mail, MapPin, Clock, MessageCircle,
+  Facebook, Instagram, Youtube, Twitter, Globe,
+  ShoppingBag, ExternalLink
 } from 'lucide-vue-next'
 
 defineProps({ storeName: { type: String, default: '' } })
@@ -119,212 +121,271 @@ const layoutConfig = inject('layoutConfig', ref(null))
 const info = computed(() => storeInfo.value || {})
 const year = new Date().getFullYear()
 
-const footerCfg = computed(() => {
+const cfg = computed(() => {
   const defaults = {
-    columns: 3,
-    showContact: true,
-    showLinks: true,
-    showPolicies: true,
-    showPaymentIcons: false,
+    columns: [],
+    social: [],
+    paymentMethods: [],
+    badges: [],
+    legalText: '',
     copyrightText: '',
+    bgColor: '',
   }
   const fc = layoutConfig.value?.footerConfig
-  return fc ? { ...defaults, ...fc } : defaults
+  if (!fc) return defaults
+  // Backward compat: old format had columns as a number
+  if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
+    // Auto-build columns from storeInfo
+    const i = info.value
+    const cols = []
+    // About column
+    cols.push({ title: i.shop_name || 'Shop', type: 'text', content: i.description || i.shop_tagline || '' })
+    // Contact column
+    const contactItems = []
+    if (i.phone) contactItems.push({ icon: 'phone', label: 'Hotline', value: i.phone })
+    if (i.email) contactItems.push({ icon: 'email', label: 'Email', value: i.email })
+    if (i.address) contactItems.push({ icon: 'address', label: 'Địa chỉ', value: i.address })
+    if (i.working_hours) contactItems.push({ icon: 'clock', label: 'Giờ làm việc', value: i.working_hours })
+    if (contactItems.length) cols.push({ title: 'Liên hệ', type: 'contact', items: contactItems })
+    // Social from storeInfo
+    const social = []
+    if (i.facebook) social.push({ platform: 'facebook', url: i.facebook })
+    if (i.instagram) social.push({ platform: 'instagram', url: i.instagram })
+    if (i.youtube) social.push({ platform: 'youtube', url: i.youtube })
+    if (i.tiktok) social.push({ platform: 'tiktok', url: i.tiktok })
+    if (i.zalo) social.push({ platform: 'zalo', url: `https://zalo.me/${i.zalo}` })
+    return {
+      ...defaults,
+      columns: cols,
+      social,
+      copyrightText: fc.copyrightText || i.copyright || '',
+      paymentMethods: fc.showPaymentIcons ? ['cod', 'bank', 'momo', 'vnpay'] : [],
+    }
+  }
+  return { ...defaults, ...fc }
 })
 
-const hasContact = computed(() => {
-  const i = info.value
-  return i?.phone || i?.email || i?.address || i?.working_hours
+const isDarkBg = computed(() => {
+  const bg = cfg.value.bgColor
+  if (!bg) return false
+  // Parse hex color and check luminance
+  const hex = bg.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 128
 })
 
-const footerLinks = ref([])
-const policyLinks = ref([])
-
-const socialLinks = computed(() => {
-  const i = info.value
-  if (!i) return []
-  const links = []
-  if (i.facebook) links.push({ key: 'fb', url: i.facebook, label: 'Facebook', icon: Facebook })
-  if (i.instagram) links.push({ key: 'ig', url: i.instagram, label: 'Instagram', icon: Instagram })
-  if (i.youtube) links.push({ key: 'yt', url: i.youtube, label: 'YouTube', icon: Youtube })
-  if (i.tiktok) links.push({ key: 'tt', url: i.tiktok, label: 'TikTok', icon: MessageCircle })
-  if (i.zalo) links.push({ key: 'zl', url: `https://zalo.me/${i.zalo}`, label: 'Zalo', icon: MessageCircle })
-  return links
+const footerStyle = computed(() => {
+  const bg = cfg.value.bgColor
+  if (!bg) return {}
+  const style = { background: bg }
+  if (isDarkBg.value) {
+    style['--sf-text-primary'] = '#fff'
+    style['--sf-text-secondary'] = 'rgba(255,255,255,0.8)'
+    style['--sf-text-muted'] = 'rgba(255,255,255,0.5)'
+    style['--sf-border'] = 'rgba(255,255,255,0.15)'
+    style['--sf-bg-card'] = 'rgba(255,255,255,0.1)'
+    style['--sf-accent-light'] = '#60a5fa'
+  }
+  return style
 })
 
-const paymentMethods = computed(() => {
-  return [
-    { code: 'cod', name: 'Thanh toán khi nhận hàng', label: 'COD' },
-    { code: 'bank', name: 'Chuyển khoản ngân hàng', label: 'Bank' },
-    { code: 'momo', name: 'Ví MoMo', label: 'MoMo' },
-    { code: 'vnpay', name: 'VNPay', label: 'VNPay' },
-  ]
+const totalCols = computed(() => {
+  const dataCols = cfg.value.columns?.length || 0
+  const hasExtras = hasSocialOrBadges.value
+  return Math.max(dataCols + (hasExtras ? 1 : 0), 1)
 })
 
-onMounted(async () => {
-  try {
-    const res = await apiFetch('/nav-links')
-    const allLinks = Array.isArray(res) ? res : (res?.data || [])
-    const activeLinks = allLinks.filter(l => l.status === 1).sort((a, b) => a.sort - b.sort)
-    footerLinks.value = activeLinks.filter(l => l.type === 'footer')
-    policyLinks.value = activeLinks.filter(l => l.type === 'policy')
-  } catch { /* ignore */ }
-})
+const hasSocialOrBadges = computed(() =>
+  cfg.value.social?.length || cfg.value.badges?.length || activePayments.value.length
+)
+
+const allPaymentMap = {
+  cod: 'COD',
+  bank: 'Bank',
+  visa: 'VISA',
+  mastercard: 'Mastercard',
+  jcb: 'JCB',
+  momo: 'MoMo',
+  zalopay: 'ZaloPay',
+  vnpay: 'VNPay',
+  napas: 'Napas',
+  applepay: 'Apple Pay',
+}
+
+const activePayments = computed(() =>
+  (cfg.value.paymentMethods || []).map(code => ({ code, label: allPaymentMap[code] || code }))
+)
+
+function contactIcon(type) {
+  const map = { phone: Phone, email: Mail, address: MapPin, clock: Clock, text: MessageCircle }
+  return map[type] || MessageCircle
+}
+
+function platformIcon(platform) {
+  const map = {
+    facebook: Facebook, instagram: Instagram, youtube: Youtube,
+    twitter: Twitter, tiktok: MessageCircle, zalo: MessageCircle,
+    shopee: ShoppingBag, lazada: ExternalLink,
+  }
+  return map[platform] || Globe
+}
+
+function platformLabel(platform) {
+  const map = {
+    facebook: 'Facebook', instagram: 'Instagram', youtube: 'YouTube',
+    twitter: 'Twitter/X', tiktok: 'TikTok', zalo: 'Zalo',
+    shopee: 'Shopee', lazada: 'Lazada',
+  }
+  return map[platform] || platform
+}
+
+function nl2br(text) {
+  return (text || '').replace(/\n/g, '<br>')
+}
 </script>
 
 <style scoped>
 .site-footer {
   margin-top: auto;
-  border-top: 1px solid var(--sf-border);
   background: var(--sf-bg-secondary);
+  border-top: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary);
 }
-
 .site-footer__inner {
-  padding: 40px 24px 24px;
+  padding: 40px 24px 20px;
 }
 
-/* ── Top Grid ── */
-.site-footer__top {
+/* ── Grid ── */
+.site-footer__grid {
   display: grid;
-  grid-template-columns: 1.5fr repeat(calc(var(--footer-cols, 3) - 1), 1fr);
+  grid-template-columns: repeat(var(--cols, 3), 1fr);
   gap: 32px;
   padding-bottom: 24px;
-  border-bottom: 1px solid var(--sf-border);
 }
 
-/* ── Brand Column ── */
-.site-footer__brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.site-footer__logo-img {
-  width: 36px; height: 36px; border-radius: 8px; object-fit: contain;
-  flex-shrink: 0;
-}
-.site-footer__logo-icon {
-  color: var(--sf-accent-light); flex-shrink: 0;
-}
-.site-footer__name {
-  font-size: 16px; font-weight: 700; color: var(--sf-text-primary);
-}
-.site-footer__desc {
-  font-size: 13px; color: var(--sf-text-muted); line-height: 1.6;
-  margin: 0 0 16px; max-width: 320px;
-}
-
-/* ── Social Links (in brand column) ── */
-.site-footer__social {
-  display: flex; gap: 8px; margin-top: 4px;
-}
-.site-footer__social-link {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 8px;
-  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
-  color: var(--sf-text-secondary); transition: all 0.25s; text-decoration: none;
-}
-.site-footer__social-link:hover {
-  border-color: var(--sf-accent); color: var(--sf-accent-light);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-.site-footer__social-link--fb:hover { color: #1877f2; border-color: #1877f2; }
-.site-footer__social-link--ig:hover { color: #e1306c; border-color: #e1306c; }
-.site-footer__social-link--yt:hover { color: #ff0000; border-color: #ff0000; }
-.site-footer__social-link--tt:hover { color: #010101; border-color: #010101; }
-
-/* ── Column shared ── */
+/* ── Column Title ── */
 .site-footer__col-title {
-  font-size: 13px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.5px; color: var(--sf-text-primary);
-  margin: 0 0 14px; padding-bottom: 8px;
-  border-bottom: 2px solid var(--sf-accent-light);
-  display: inline-block;
+  font-size: 15px; font-weight: 700;
+  color: var(--sf-text-primary);
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
+.sf-mt { margin-top: 20px; }
 
-/* ── Contact List ── */
-.site-footer__contact-list {
-  list-style: none; padding: 0; margin: 0;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.site-footer__contact-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 13px; color: var(--sf-text-secondary); line-height: 1.5;
-}
-.site-footer__contact-item svg {
-  color: var(--sf-accent-light); flex-shrink: 0; margin-top: 2px;
-}
-.site-footer__contact-item a {
-  color: var(--sf-text-secondary); text-decoration: none; transition: color 0.2s;
-}
-.site-footer__contact-item a:hover { color: var(--sf-accent-light); }
-
-/* ── Link List ── */
-.site-footer__link-list {
+/* ── Links ── */
+.sf-link-list {
   list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 8px;
 }
-.site-footer__link {
+.sf-link {
   font-size: 13px; color: var(--sf-text-secondary);
   text-decoration: none; transition: all 0.2s;
-  display: flex; align-items: center; gap: 4px;
+  display: inline-block;
 }
-.site-footer__link svg {
-  color: var(--sf-accent-light); opacity: 0; transition: all 0.2s;
-  transform: translateX(-4px);
-}
-.site-footer__link:hover {
+.sf-link:hover {
   color: var(--sf-accent-light);
   padding-left: 4px;
 }
-.site-footer__link:hover svg {
-  opacity: 1; transform: translateX(0);
+
+/* ── Contact ── */
+.sf-contact-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.sf-contact-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 13px; line-height: 1.5;
+}
+.sf-contact-icon {
+  color: var(--sf-accent-light); flex-shrink: 0; margin-top: 2px;
+}
+.sf-contact-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--sf-text-primary); margin-bottom: 2px;
+}
+.sf-contact-item a {
+  color: var(--sf-text-secondary); text-decoration: none; transition: color 0.2s;
+}
+.sf-contact-item a:hover { color: var(--sf-accent-light); }
+
+/* ── Text Content ── */
+.sf-text-content {
+  font-size: 13px; line-height: 1.6; color: var(--sf-text-secondary);
 }
 
-/* ── Payment Icons ── */
-.site-footer__payments {
-  display: flex; align-items: center; gap: 12px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--sf-border);
-  flex-wrap: wrap;
+/* ── Social ── */
+.sf-social-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
 }
-.site-footer__payments-label {
-  font-size: 12px; color: var(--sf-text-muted); font-weight: 500;
+.sf-social-link {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  color: var(--sf-text-secondary); transition: all 0.25s; text-decoration: none;
 }
-.site-footer__payments-icons {
+.sf-social-link:hover {
+  transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.sf-social-link--facebook:hover { background: #1877f2; color: #fff; border-color: #1877f2; }
+.sf-social-link--instagram:hover { background: #e1306c; color: #fff; border-color: #e1306c; }
+.sf-social-link--youtube:hover { background: #ff0000; color: #fff; border-color: #ff0000; }
+.sf-social-link--tiktok:hover { background: #010101; color: #fff; border-color: #010101; }
+.sf-social-link--zalo:hover { background: #0068ff; color: #fff; border-color: #0068ff; }
+.sf-social-link--twitter:hover { background: #1da1f2; color: #fff; border-color: #1da1f2; }
+.sf-social-link--shopee:hover { background: #ee4d2d; color: #fff; border-color: #ee4d2d; }
+.sf-social-link--lazada:hover { background: #0f146d; color: #fff; border-color: #0f146d; }
+
+/* ── Badges ── */
+.sf-badges-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.sf-badge {
+  display: inline-flex; text-decoration: none;
+}
+.sf-badge-img {
+  height: 28px; width: auto; border-radius: 4px;
+  object-fit: contain;
+}
+
+/* ── Payments ── */
+.sf-payments-row {
   display: flex; gap: 6px; flex-wrap: wrap;
 }
-.site-footer__payment-badge {
-  font-size: 11px; font-weight: 600;
-  padding: 4px 10px; border-radius: 4px;
+.sf-payment-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 6px 12px; border-radius: 6px;
   background: var(--sf-bg-card); border: 1px solid var(--sf-border);
   color: var(--sf-text-secondary);
   letter-spacing: 0.3px;
 }
 
-/* ── Bottom Bar ── */
+/* ── Legal ── */
+.site-footer__legal {
+  border-top: 1px solid var(--sf-border);
+  padding: 16px 0 8px;
+}
+.sf-legal-text {
+  font-size: 12px; color: var(--sf-text-muted); line-height: 1.7;
+  text-align: center;
+}
+
+/* ── Copyright ── */
 .site-footer__bottom {
-  display: flex; align-items: center; justify-content: space-between;
-  padding-top: 16px; flex-wrap: wrap; gap: 12px;
+  border-top: 1px solid var(--sf-border);
+  padding-top: 12px; text-align: center;
 }
 .site-footer__copy {
   font-size: 12px; color: var(--sf-text-muted); margin: 0;
 }
-.site-footer__bottom-links {
-  display: flex; gap: 16px;
-}
-.site-footer__bottom-links a {
-  font-size: 12px; color: var(--sf-text-muted);
-  text-decoration: none; transition: color 0.2s;
-}
-.site-footer__bottom-links a:hover { color: var(--sf-accent-light); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .site-footer__top { grid-template-columns: 1fr !important; gap: 24px; }
-  .site-footer__bottom { flex-direction: column; text-align: center; }
-  .site-footer__bottom-links { justify-content: center; }
-  .site-footer__payments { justify-content: center; }
+  .site-footer__grid { grid-template-columns: 1fr !important; gap: 24px; }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .site-footer__grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
 </style>
