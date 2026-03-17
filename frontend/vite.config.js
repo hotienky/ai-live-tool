@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [vue()],
   appType: 'spa',
   server: {
-    allowedHosts: ['.super.vn', '.localhost'],
+    allowedHosts: true,
     proxy: {
       '/api': 'http://localhost:3000',
       '/socket.io': {

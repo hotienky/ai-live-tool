@@ -20,6 +20,8 @@ return [
         'master.localhost',
         'localhost',
         '127.0.0.1',
+        'super.vn',
+        'master.super.vn',
         env('CENTRAL_DOMAIN', 'cms.localhost'),
     ],
 

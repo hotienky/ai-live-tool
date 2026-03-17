@@ -79,3 +79,10 @@ export const tenants = {
   migrate: (id) => api.post(`/tenants/${id}/migrate`),
   seed: (id) => api.post(`/tenants/${id}/seed`),
 }
+
+// ──── Domains ────
+export const domains = {
+  list: (tenantId) => api.get(`/tenants/${tenantId}/domains`),
+  add: (tenantId, data) => api.post(`/tenants/${tenantId}/domains`, data),
+  remove: (tenantId, domainId) => api.del(`/tenants/${tenantId}/domains/${domainId}`),
+}

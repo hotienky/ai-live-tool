@@ -75,7 +75,7 @@
         <h3 class="mp-section-title flex items-center gap-2">
           <Settings :size="16" class="text-primary-400" /> Cài đặt Tenant
         </h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="mp-label">Tên Tenant</label>
             <input v-model="editForm.name" type="text" class="input w-full" />
@@ -90,10 +90,6 @@
               <option value="enterprise">Enterprise</option>
             </select>
           </div>
-          <div>
-            <label class="mp-label">Custom Domain</label>
-            <input v-model="editForm.custom_domain" type="text" class="input w-full" placeholder="ví dụ: shop.example.com" />
-          </div>
         </div>
         <div class="flex items-center gap-3 mt-4">
           <button @click="handleSaveSettings" :disabled="actionLoading || !hasChanges" class="btn-primary text-sm flex items-center gap-2" :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }">
@@ -101,6 +97,77 @@
           </button>
           <span v-if="editMsg" class="text-sm" :class="editError ? 'text-red-400' : 'text-emerald-400'">{{ editMsg }}</span>
         </div>
+      </div>
+
+      <!-- Domain Management -->
+      <div class="card p-5 mb-6">
+        <h3 class="mp-section-title flex items-center gap-2">
+          <Globe :size="16" class="text-primary-400" /> Quản lý Domain
+        </h3>
+        <p class="text-xs mp-text-muted mb-4">Gán tên miền riêng cho storefront hoặc CMS của tenant</p>
+
+        <!-- Add Domain Form -->
+        <div class="flex gap-2 mb-4">
+          <input
+            v-model="newDomain"
+            type="text"
+            class="input flex-1"
+            placeholder="Nhập domain (vd: www.fashionvn.com)"
+            @keyup.enter="handleAddDomain"
+          />
+          <select v-model="newDomainType" class="input" style="width: 140px">
+            <option value="storefront">Storefront</option>
+            <option value="cms">CMS</option>
+          </select>
+          <button
+            @click="handleAddDomain"
+            :disabled="!newDomain.trim() || domainLoading"
+            class="btn-primary text-sm flex items-center gap-1 whitespace-nowrap"
+            :class="{ 'opacity-50 cursor-not-allowed': !newDomain.trim() }"
+          >
+            <Plus :size="14" /> Thêm
+          </button>
+        </div>
+
+        <!-- Domain List -->
+        <div v-if="domainList.length > 0" class="space-y-2">
+          <div
+            v-for="d in domainList"
+            :key="d.id"
+            class="flex items-center justify-between p-3 rounded-lg"
+            style="background: var(--mp-bg-input); border: 1px solid var(--mp-border)"
+          >
+            <div class="flex items-center gap-3">
+              <Globe :size="14" class="mp-text-muted" />
+              <div>
+                <span class="text-sm font-medium mp-text-primary">{{ d.domain }}</span>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase"
+                    :class="d.type === 'cms'
+                      ? 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
+                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'"
+                  >{{ d.type }}</span>
+                  <span v-if="d.is_primary" class="text-[10px] text-amber-400">★ Primary</span>
+                </div>
+              </div>
+            </div>
+            <button
+              @click="handleRemoveDomain(d)"
+              :disabled="domainLoading"
+              class="btn-icon text-red-400 hover:bg-red-500/10 hover:border-red-500/30 text-xs"
+              title="Xóa domain"
+            >
+              <Trash2 :size="14" />
+            </button>
+          </div>
+        </div>
+        <div v-else class="text-center py-6 rounded-lg" style="background: var(--mp-bg-input); border: 1px dashed var(--mp-border)">
+          <Globe :size="24" class="mx-auto mb-2 mp-text-muted opacity-40" />
+          <p class="text-xs mp-text-muted">Chưa có domain nào được gán</p>
+          <p class="text-[11px] mp-text-muted mt-1">Subdomain mặc định: <strong class="mp-text-secondary">{{ tenant?.slug }}.super.vn</strong></p>
+        </div>
+
+        <p v-if="domainMsg" class="mt-3 text-sm" :class="domainError ? 'text-red-400' : 'text-emerald-400'">{{ domainMsg }}</p>
       </div>
 
       <!-- Actions -->
@@ -134,8 +201,8 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save } from 'lucide-vue-next'
-import { tenants } from '../services/api.js'
+import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save, Globe, Plus } from 'lucide-vue-next'
+import { tenants, domains } from '../services/api.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -145,7 +212,7 @@ const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
 
-const editForm = ref({ name: '', plan: '', custom_domain: '' })
+const editForm = ref({ name: '', plan: '' })
 const editMsg = ref('')
 const editError = ref(false)
 
@@ -153,7 +220,6 @@ const hasChanges = computed(() => {
   if (!tenant.value) return false
   return editForm.value.name !== tenant.value.name
     || editForm.value.plan !== tenant.value.plan
-    || editForm.value.custom_domain !== (tenant.value.custom_domain || '')
 })
 
 function syncEditForm() {
@@ -161,7 +227,6 @@ function syncEditForm() {
     editForm.value = {
       name: tenant.value.name || '',
       plan: tenant.value.plan || 'free',
-      custom_domain: tenant.value.custom_domain || '',
     }
   }
 }
@@ -207,10 +272,64 @@ async function load() {
   loading.value = true
   try {
     tenant.value = await tenants.get(route.params.id)
+    await loadDomains()
   } catch {
     tenant.value = null
   } finally {
     loading.value = false
+  }
+}
+
+// ──── Domain Management ────
+const domainList = ref([])
+const newDomain = ref('')
+const newDomainType = ref('storefront')
+const domainLoading = ref(false)
+const domainMsg = ref('')
+const domainError = ref(false)
+
+async function loadDomains() {
+  try {
+    const data = await domains.list(route.params.id)
+    domainList.value = Array.isArray(data) ? data : []
+  } catch { domainList.value = [] }
+}
+
+async function handleAddDomain() {
+  if (!newDomain.value.trim()) return
+  domainLoading.value = true
+  domainMsg.value = ''
+  domainError.value = false
+  try {
+    await domains.add(route.params.id, {
+      domain: newDomain.value.trim(),
+      type: newDomainType.value,
+    })
+    domainMsg.value = `Đã thêm domain ${newDomain.value}`
+    newDomain.value = ''
+    await loadDomains()
+  } catch (err) {
+    domainMsg.value = err.message
+    domainError.value = true
+  } finally {
+    domainLoading.value = false
+  }
+}
+
+async function handleRemoveDomain(d) {
+  if (!confirm(`Xóa domain "${d.domain}"?`)) return
+  domainLoading.value = true
+  domainMsg.value = ''
+  domainError.value = false
+  try {
+    await domains.remove(route.params.id, d.id)
+    domainMsg.value = `Đã xóa domain ${d.domain}`
+    await loadDomains()
+  } catch (err) {
+    domainMsg.value = err.message
+    domainError.value = true
+  } finally {
+    domainLoading.value = false
   }
 }
 

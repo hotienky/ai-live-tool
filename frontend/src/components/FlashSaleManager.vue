@@ -121,6 +121,8 @@
                   class="product-search__input"
                   placeholder="Tìm sản phẩm để thêm vào Flash Sale..."
                   @input="searchProducts"
+                  @focus="loadInitialProducts"
+                  @click="loadInitialProducts"
                 />
                 <div v-if="searchResults.length > 0" class="product-search__dropdown">
                   <div
@@ -307,9 +309,22 @@ function closeModal() {
   productSearch.value = ''
 }
 
+async function loadInitialProducts() {
+  if (searchResults.value.length > 0) return
+  try {
+    const res = await apiFetch('/products?limit=8')
+    const data = await res.json()
+    searchResults.value = Array.isArray(data) ? data : (data?.data || [])
+  } catch { searchResults.value = [] }
+}
+
 async function searchProducts() {
   clearTimeout(searchTimer)
-  if (!productSearch.value.trim()) { searchResults.value = []; return }
+  if (!productSearch.value.trim()) {
+    // Show initial products when search is cleared
+    loadInitialProducts()
+    return
+  }
   searchTimer = setTimeout(async () => {
     try {
       const q = encodeURIComponent(productSearch.value)
@@ -332,8 +347,9 @@ function addProduct(p) {
     sale_price: Math.round(p.price * 0.8),
     stock_limit: 0,
   })
+  // Remove added product from dropdown, keep dropdown open
+  searchResults.value = searchResults.value.filter(sr => sr.id !== p.id)
   productSearch.value = ''
-  searchResults.value = []
 }
 
 function removeProduct(i) { form.value.items.splice(i, 1) }
@@ -539,7 +555,7 @@ onMounted(load)
 }
 .modal {
   background: var(--bg-1); border: 1px solid var(--border); border-radius: 14px;
-  width: 680px; max-width: calc(100vw - 32px); max-height: 90vh;
+  width: 680px; max-width: calc(100vw - 32px); min-height: 70vh; max-height: 90vh;
   overflow: hidden; display: flex; flex-direction: column;
   box-shadow: 0 20px 50px rgba(0,0,0,.25);
 }

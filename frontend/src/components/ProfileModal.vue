@@ -48,20 +48,26 @@
             <Lock :size="14" class="pm-input-icon" />
             <input
               v-model="currentPassword"
-              type="password"
+              :type="showCurrentPw ? 'text' : 'password'"
               placeholder="Mật khẩu hiện tại"
-              class="pm-input pm-input--icon"
+              class="pm-input pm-input--icon pm-input--eye"
             />
+            <button type="button" class="pm-eye-btn" @click="showCurrentPw = !showCurrentPw" tabindex="-1">
+              <component :is="showCurrentPw ? EyeOff : Eye" :size="14" />
+            </button>
           </div>
           <div class="pm-input-wrap">
             <KeyRound :size="14" class="pm-input-icon" />
             <input
               v-model="newPassword"
-              type="password"
+              :type="showNewPw ? 'text' : 'password'"
               placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
-              class="pm-input pm-input--icon"
+              class="pm-input pm-input--icon pm-input--eye"
               @keyup.enter="changePassword"
             />
+            <button type="button" class="pm-eye-btn" @click="showNewPw = !showNewPw" tabindex="-1">
+              <component :is="showNewPw ? EyeOff : Eye" :size="14" />
+            </button>
           </div>
           <button
             class="pm-btn pm-btn--secondary pm-btn--full"
@@ -89,7 +95,7 @@
 import { ref, computed } from 'vue'
 import {
   UserCircle, X, PenLine, Lock, KeyRound, Check,
-  RefreshCw, Shield, CheckCircle2, AlertCircle
+  RefreshCw, Shield, CheckCircle2, AlertCircle, Eye, EyeOff
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
@@ -102,6 +108,8 @@ const fullName = ref(props.currentUser?.full_name || props.currentUser?.fullName
 const currentPassword = ref('')
 const newPassword = ref('')
 const saving = ref(false)
+const showCurrentPw = ref(false)
+const showNewPw = ref(false)
 const savingPw = ref(false)
 const message = ref('')
 const messageType = ref('success')
@@ -327,6 +335,20 @@ async function changePassword() {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 .pm-input::placeholder { color: var(--text-3, #9ca3af); }
+.pm-input--eye { padding-right: 38px; }
+
+/* ── Eye Toggle ── */
+.pm-eye-btn {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; padding: 4px 6px;
+  color: var(--text-3, #9ca3af); cursor: pointer;
+  border-radius: 6px; display: flex; align-items: center;
+  transition: color 0.15s, background 0.15s;
+}
+.pm-eye-btn:hover {
+  color: var(--text-1, #111);
+  background: var(--bg-2, #f3f4f6);
+}
 
 /* ── Field Row ── */
 .pm-field-row {
