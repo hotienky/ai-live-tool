@@ -819,6 +819,7 @@
         <!-- Footer Config -->
         <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
+          <p class="lb-section__desc">Thông tin hiển thị ở footer được cấu hình tại <strong>Thông tin cửa hàng</strong></p>
           <div class="param-row">
             <label>Số cột</label>
             <input type="range" v-model.number="footerConfig.columns" min="2" max="4" class="param-range" />
@@ -835,6 +836,13 @@
             <label>Hiện links</label>
             <label class="toggle-switch toggle-switch--sm" @click.stop>
               <input type="checkbox" v-model="footerConfig.showLinks" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="param-row">
+            <label>Hiện chính sách</label>
+            <label class="toggle-switch toggle-switch--sm" @click.stop>
+              <input type="checkbox" v-model="footerConfig.showPolicies" />
               <span class="toggle-slider"></span>
             </label>
           </div>
@@ -1040,7 +1048,7 @@ function undo() {
 
 // Header / Footer config
 const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
-const defaultFooterConfig = { columns: 3, showContact: true, showLinks: true, showPaymentIcons: false, copyrightText: '' }
+const defaultFooterConfig = { columns: 3, showContact: true, showLinks: true, showPolicies: true, showPaymentIcons: false, copyrightText: '' }
 const headerConfig = ref({ ...defaultHeaderConfig })
 const footerConfig = ref({ ...defaultFooterConfig })
 

@@ -38,6 +38,8 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\MasterUser\MasterUserRepositoryInterface::class, \App\Repositories\MasterUser\MasterUserRepository::class);
         $this->app->bind(\App\Repositories\Dashboard\DashboardRepositoryInterface::class, \App\Repositories\Dashboard\DashboardRepository::class);
         $this->app->bind(\App\Repositories\SystemConfig\SystemConfigRepositoryInterface::class, \App\Repositories\SystemConfig\SystemConfigRepository::class);
+        $this->app->bind(\App\Repositories\Redirect\RedirectRepositoryInterface::class, \App\Repositories\Redirect\RedirectRepository::class);
+        $this->app->bind(\App\Repositories\Subscriber\SubscriberRepositoryInterface::class, \App\Repositories\Subscriber\SubscriberRepository::class);
     }
 
     public function boot(): void {}

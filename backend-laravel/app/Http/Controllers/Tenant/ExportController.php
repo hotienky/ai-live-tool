@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
-
 use App\Traits\ApiResponse;
 use App\Repositories\Lead\LeadRepositoryInterface;
 use App\Repositories\Customer\CustomerRepositoryInterface;
+use App\Repositories\Order\OrderRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class ExportController extends Controller
@@ -16,6 +16,7 @@ class ExportController extends Controller
     public function __construct(
         private LeadRepositoryInterface $leadRepo,
         private CustomerRepositoryInterface $customerRepo,
+        private OrderRepositoryInterface $orderRepo,
     ) {}
 
     public function leads()
@@ -25,7 +26,7 @@ class ExportController extends Controller
 
     public function comments()
     {
-        // chat_logs doesn't have a dedicated repository — using DB as read-only export
+        // chat_logs is a read-only export — no dedicated model needed
         return $this->successResponse(DB::table('chat_logs')->orderByDesc('created_at')->limit(500)->get());
     }
 
@@ -39,7 +40,7 @@ class ExportController extends Controller
         try {
             $leads = $this->leadRepo->all();
             $customers = $this->customerRepo->all();
-            $orders = DB::table('orders')->get();
+            $orders = $this->orderRepo->query()->get();
 
             return $this->successResponse([
                 'generated_at' => now()->toISOString(),

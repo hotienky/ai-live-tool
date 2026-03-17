@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Repositories\Subscriber\SubscriberRepositoryInterface;
 use App\Traits\ApiResponse;
-use App\Models\Subscriber;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class NewsletterController extends Controller
 {
     use ApiResponse;
+
+    public function __construct(private SubscriberRepositoryInterface $repo) {}
 
     public function subscribe(Request $request)
     {
@@ -20,33 +21,14 @@ class NewsletterController extends Controller
         ]);
 
         try {
-            $existing = DB::table('subscribers')->where('email', $data['email'])->first();
+            $result = $this->repo->subscribe($data);
 
-            if ($existing) {
-                if ($existing->is_active) {
-                    return $this->successResponse(null, 'Bạn đã đăng ký nhận tin rồi!');
-                }
-                // Re-subscribe
-                DB::table('subscribers')->where('id', $existing->id)->update([
-                    'is_active' => true,
-                    'unsubscribed_at' => null,
-                    'subscribed_at' => now(),
-                    'updated_at' => now(),
-                ]);
-                return $this->successResponse(null, 'Đăng ký nhận tin thành công!');
+            if (is_array($result) && ($result['already_subscribed'] ?? false)) {
+                return $this->successResponse(null, 'Bạn đã đăng ký nhận tin rồi!');
             }
 
-            DB::table('subscribers')->insert([
-                'email' => $data['email'],
-                'name' => $data['name'] ?? null,
-                'source' => 'newsletter',
-                'is_active' => true,
-                'subscribed_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            return $this->successResponse(null, 'Đăng ký nhận tin thành công!', 201);
+            $code = is_array($result) && ($result['resubscribed'] ?? false) ? 200 : 201;
+            return $this->successResponse(null, 'Đăng ký nhận tin thành công!', $code);
         } catch (\Exception $e) {
             return $this->errorResponse('Không thể đăng ký. Vui lòng thử lại.');
         }
@@ -55,22 +37,13 @@ class NewsletterController extends Controller
     public function unsubscribe(Request $request)
     {
         $data = $request->validate(['email' => 'required|email']);
-
-        DB::table('subscribers')->where('email', $data['email'])->update([
-            'is_active' => false,
-            'unsubscribed_at' => now(),
-            'updated_at' => now(),
-        ]);
-
+        $this->repo->unsubscribe($data['email']);
         return $this->successResponse(null, 'Đã hủy đăng ký nhận tin.');
     }
 
     public function index()
     {
-        $subscribers = DB::table('subscribers')
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
-
+        $subscribers = $this->repo->query()->orderBy('created_at', 'desc')->paginate(50);
         return $this->successResponse($subscribers);
     }
 }

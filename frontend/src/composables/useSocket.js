@@ -164,6 +164,11 @@ export function useSocket() {
   function joinShop(shopId) {
     currentShopId.value = shopId
 
+    // Lazy connect: establish socket connection on first joinShop call
+    if (!socket.value) {
+      connect()
+    }
+
     // Clear data khi chuyển shop
     leads.value = []
     allComments.value = []
@@ -188,8 +193,9 @@ export function useSocket() {
     }
   }
 
+  // Lazy connect: only connect when user actually uses Live features
   onMounted(() => {
-    connect()
+    // Don't auto-connect — connect() will be called by joinShop() on demand
   })
 
   onUnmounted(() => {

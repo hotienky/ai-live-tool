@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
-use App\Http\Middleware\ShopCustomerAuth;
-use App\Models\Product;
+use App\Repositories\Product\ProductRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +12,10 @@ class WishlistController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(private ProductRepositoryInterface $productRepo) {}
+
     /**
      * GET /api/storefront/wishlist
-     * Returns the logged-in customer's wishlist items with product details.
      */
     public function index(Request $request)
     {
@@ -29,7 +29,8 @@ class WishlistController extends Controller
             ->orderByDesc('id')
             ->pluck('product_id');
 
-        $products = Product::whereIn('id', $productIds)
+        $products = $this->productRepo->query()
+            ->whereIn('id', $productIds)
             ->get()
             ->map(fn($p) => [
                 'id'              => $p->id,
@@ -47,7 +48,6 @@ class WishlistController extends Controller
 
     /**
      * POST /api/storefront/wishlist/{productId}
-     * Add a product to wishlist.
      */
     public function add(Request $request, int $productId)
     {
@@ -66,7 +66,6 @@ class WishlistController extends Controller
 
     /**
      * DELETE /api/storefront/wishlist/{productId}
-     * Remove a product from wishlist.
      */
     public function remove(Request $request, int $productId)
     {
@@ -85,7 +84,6 @@ class WishlistController extends Controller
 
     /**
      * DELETE /api/storefront/wishlist
-     * Clear all wishlist items for the customer.
      */
     public function clear(Request $request)
     {

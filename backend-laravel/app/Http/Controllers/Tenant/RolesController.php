@@ -1,77 +1,26 @@
 <?php
 
 namespace App\Http\Controllers\Tenant;
-use App\Http\Controllers\Controller;
 
-use App\Repositories\Role\RoleRepositoryInterface;
-use App\Traits\ApiResponse;
-use App\Traits\LogsActivity;
+use App\Http\Controllers\Controller;
+use App\Actions\Role\IndexAction;
+use App\Actions\Role\ShowAction;
+use App\Actions\Role\StoreAction;
+use App\Actions\Role\UpdateAction;
+use App\Actions\Role\DestroyAction;
+use App\Actions\Role\PermissionsAction;
+use App\Actions\Role\UsersAction;
+use App\Actions\Role\AssignRoleAction;
 use Illuminate\Http\Request;
 
 class RolesController extends Controller
 {
-    use ApiResponse, LogsActivity;
-
-    public function __construct(private RoleRepositoryInterface $repo) {}
-
-    public function index()
-    {
-        return $this->successResponse($this->repo->all());
-    }
-
-    public function show($id)
-    {
-        $role = $this->repo->findWithPermissions($id);
-        if (!$role) return $this->notFoundResponse('Role not found');
-        return $this->successResponse($role);
-    }
-
-    public function store(Request $request)
-    {
-        try {
-            $data = $request->validate(['name' => 'required|string', 'display_name' => 'nullable|string', 'description' => 'nullable|string']);
-            $role = $this->repo->store($data);
-            if ($request->has('permissions')) {
-                $this->repo->syncPermissions($role->id, $request->input('permissions', []));
-            }
-            $this->logActivity('role.created', 'role', $role->id, ['name' => $data['name']]);
-            return $this->successResponse($this->repo->findWithPermissions($role->id), 'Role created', 201);
-        } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
-        }
-    }
-
-    public function update(Request $request, $id)
-    {
-        $this->repo->update($request->only(['name', 'display_name', 'description']), $id);
-        if ($request->has('permissions')) {
-            $this->repo->syncPermissions($id, $request->input('permissions', []));
-        }
-        $this->logActivity('role.updated', 'role', $id);
-        return $this->successResponse($this->repo->findWithPermissions($id), 'Role updated');
-    }
-
-    public function destroy($id)
-    {
-        $this->logActivity('role.deleted', 'role', $id);
-        $this->repo->deleteWithRelations($id);
-        return $this->successResponse(null, 'Role deleted');
-    }
-
-    public function permissions()
-    {
-        return $this->successResponse($this->repo->getAllPermissions());
-    }
-
-    public function users()
-    {
-        return $this->successResponse($this->repo->getUsers());
-    }
-
-    public function assignRole(Request $request, $id)
-    {
-        $data = $request->validate(['role_id' => 'required|integer']);
-        $this->repo->assignRoleToUser($id, $data['role_id']);
-        return $this->successResponse(null, 'Role assigned');
-    }
+    public function index(IndexAction $action) { return $action(); }
+    public function show($id, ShowAction $action) { return $action($id); }
+    public function store(Request $request, StoreAction $action) { return $action($request); }
+    public function update(Request $request, $id, UpdateAction $action) { return $action($request, $id); }
+    public function destroy($id, DestroyAction $action) { return $action($id); }
+    public function permissions(PermissionsAction $action) { return $action(); }
+    public function users(UsersAction $action) { return $action(); }
+    public function assignRole(Request $request, $id, AssignRoleAction $action) { return $action($request, $id); }
 }

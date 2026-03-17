@@ -239,7 +239,8 @@ async function load() {
   loading.value = true
   try {
     const res = await apiFetch('/flash-sales')
-    sales.value = Array.isArray(res) ? res : (res.data || [])
+    const data = await res.json()
+    sales.value = Array.isArray(data) ? data : (data?.data || [])
   } catch { sales.value = [] }
   loading.value = false
 }
@@ -311,8 +312,10 @@ async function searchProducts() {
   if (!productSearch.value.trim()) { searchResults.value = []; return }
   searchTimer = setTimeout(async () => {
     try {
-      const res = await apiFetch('/products', { search: productSearch.value, limit: 8 })
-      searchResults.value = Array.isArray(res) ? res : (res.data || [])
+      const q = encodeURIComponent(productSearch.value)
+      const res = await apiFetch(`/products?search=${q}&limit=8`)
+      const data = await res.json()
+      searchResults.value = Array.isArray(data) ? data : (data?.data || [])
     } catch { searchResults.value = [] }
   }, 300)
 }
@@ -353,13 +356,18 @@ async function save() {
         stock_limit: i.stock_limit || 0,
       }))
     }
-    if (editing.value) {
-      await apiFetch(`/flash-sales/${editing.value.id}`, null, 'PUT', payload)
-      showToast('Đã cập nhật Flash Sale', 'success')
-    } else {
-      await apiFetch('/flash-sales', null, 'POST', payload)
-      showToast('Đã tạo Flash Sale mới', 'success')
+    const fetchOpts = {
+      method: editing.value ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     }
+    const url = editing.value ? `/flash-sales/${editing.value.id}` : '/flash-sales'
+    const res = await apiFetch(url, fetchOpts)
+    if (!res.ok) {
+      const err = await res.json().catch(() => null)
+      throw new Error(err?.message || 'Có lỗi xảy ra')
+    }
+    showToast(editing.value ? 'Đã cập nhật Flash Sale' : 'Đã tạo Flash Sale mới', 'success')
     closeModal()
     await load()
   } catch (e) {
@@ -370,7 +378,11 @@ async function save() {
 
 async function toggleActive(sale) {
   try {
-    await apiFetch(`/flash-sales/${sale.id}`, null, 'PUT', { ...sale, is_active: !sale.is_active })
+    await apiFetch(`/flash-sales/${sale.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...sale, is_active: !sale.is_active }),
+    })
     sale.is_active = !sale.is_active
     showToast(sale.is_active ? 'Đã bật Flash Sale' : 'Đã tắt Flash Sale', 'success')
   } catch { showToast('Có lỗi xảy ra', 'error') }
@@ -380,7 +392,7 @@ function confirmDelete(sale) { deleteTarget.value = sale }
 
 async function deleteSale() {
   try {
-    await apiFetch(`/flash-sales/${deleteTarget.value.id}`, null, 'DELETE')
+    await apiFetch(`/flash-sales/${deleteTarget.value.id}`, { method: 'DELETE' })
     showToast('Đã xóa Flash Sale', 'success')
     deleteTarget.value = null
     await load()

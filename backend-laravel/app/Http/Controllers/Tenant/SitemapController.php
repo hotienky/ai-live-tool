@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Repositories\Category\CategoryRepositoryInterface;
+use App\Repositories\CmsPage\CmsPageRepositoryInterface;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 
 class SitemapController extends Controller
 {
     public function __construct(
         private ProductRepositoryInterface $productRepo,
         private CategoryRepositoryInterface $categoryRepo,
+        private CmsPageRepositoryInterface $cmsPageRepo,
     ) {}
 
     public function index()
@@ -59,7 +60,7 @@ class SitemapController extends Controller
 
         // CMS Pages
         try {
-            $pages = DB::table('cms_pages')
+            $pages = $this->cmsPageRepo->query()
                 ->select('alias', 'updated_at')
                 ->orderByDesc('updated_at')
                 ->get();

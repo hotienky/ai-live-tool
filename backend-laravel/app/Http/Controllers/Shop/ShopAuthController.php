@@ -90,17 +90,17 @@ class ShopAuthController extends Controller
     public function myOrders(Request $request)
     {
         $customer = $request->attributes->get('shop_customer');
-        $orders = \Illuminate\Support\Facades\DB::table('orders')
+        $orderRepo = app(\App\Repositories\Order\OrderRepositoryInterface::class);
+
+        $orders = $orderRepo->query()
             ->where('customer_phone', $customer->phone)
             ->orWhere('customer_email', $customer->email)
             ->orderByDesc('created_at')
             ->limit(50)
             ->get();
 
-        // Load details for each order
         foreach ($orders as &$order) {
-            $order->details = \Illuminate\Support\Facades\DB::table('order_details')
-                ->where('order_id', $order->id)->get();
+            $order->details = $orderRepo->getDetails($order->id);
         }
 
         return $this->successResponse($orders);

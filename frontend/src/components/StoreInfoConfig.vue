@@ -22,6 +22,11 @@
             <small class="si-help">Mô tả ngắn về ngành nghề hoặc slogan của bạn để tự động thích ứng với trang web.</small>
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
+            <label class="settings__field-label">Mô tả cửa hàng</label>
+            <textarea v-model="form.description" class="swp-input" rows="3" placeholder="VD: Chuyên cung cấp quần áo thời trang chất lượng cao với mức giá hợp lý..."></textarea>
+            <small class="si-help">Mô tả ngắn về cửa hàng, hiển thị ở Footer và SEO meta.</small>
+          </div>
+          <div class="settings__section" style="grid-column: 1 / -1;">
             <label class="settings__field-label">Logo URL</label>
             <div class="si-logo-row">
               <img v-if="form.logo" :src="form.logo" class="si-logo-preview" alt="Logo preview" />
@@ -48,6 +53,10 @@
           <div class="settings__section" style="grid-column: 1 / -1;">
             <label class="settings__field-label">Địa chỉ</label>
             <input v-model="form.address" type="text" class="swp-input" placeholder="VD: 123 Đường A, Quận B, TP. C" />
+          </div>
+          <div class="settings__section">
+            <label class="settings__field-label">Giờ làm việc</label>
+            <input v-model="form.working_hours" type="text" class="swp-input" placeholder="VD: 8:00 - 21:00 (T2 - CN)" />
           </div>
         </div>
       </div>
@@ -106,10 +115,12 @@ const saving = ref(false)
 const form = ref({
   shop_name: '',
   shop_tagline: '',
+  description: '',
   logo: '',
   phone: '',
   email: '',
   address: '',
+  working_hours: '',
   facebook: '',
   instagram: '',
   tiktok: '',

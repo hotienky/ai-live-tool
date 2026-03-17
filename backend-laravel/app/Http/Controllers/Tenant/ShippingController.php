@@ -12,10 +12,15 @@ class ShippingController extends Controller
 {
     use ApiResponse;
 
+    public function __construct(
+        private \App\Repositories\SystemConfig\SystemConfigRepositoryInterface $configRepo,
+    ) {}
+
     private function manager(): ShippingManager
     {
-        $configs = \App\Models\SystemConfig::where('key', 'like', 'shipping_%')->get()->toArray();
-        return new ShippingManager($configs);
+        $configs = $this->configRepo->getByGroup('shipping');
+        $configArray = $configs->map(fn($c) => ['key' => $c->key, 'value' => $c->value])->toArray();
+        return new ShippingManager($configArray);
     }
 
     /**
@@ -127,7 +132,8 @@ class ShippingController extends Controller
             return $this->successResponse([]);
         }
 
-        $apiKey = \App\Models\SystemConfig::where('key', 'shipping_vietmap_api_key')->value('value');
+        $shippingConfigs = $this->configRepo->getByGroup('shipping');
+        $apiKey = $shippingConfigs->firstWhere('key', 'shipping_vietmap_api_key')?->value;
         if (!$apiKey) {
             return $this->successResponse([]);
         }

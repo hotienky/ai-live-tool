@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
 use App\Repositories\User\UserRepositoryInterface;
+use App\Repositories\Role\RoleRepositoryInterface;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
@@ -14,7 +15,10 @@ class AuthController extends Controller
 {
     use ApiResponse, LogsActivity;
 
-    public function __construct(private UserRepositoryInterface $userRepo) {}
+    public function __construct(
+        private UserRepositoryInterface $userRepo,
+        private RoleRepositoryInterface $roleRepo,
+    ) {}
 
     public function register(Request $request)
     {
@@ -119,44 +123,36 @@ class AuthController extends Controller
     private function loadUserRbac(int $userId): array
     {
         try {
-            $role = DB::table('roles')
-                ->join('user_roles', 'user_roles.role_id', '=', 'roles.id')
-                ->where('user_roles.user_id', $userId)
-                ->select('roles.id', 'roles.name', 'roles.display_name', 'roles.permissions as role_permissions_json')
-                ->first();
-
-            if (!$role) {
+            // Try to get role from user_roles pivot first, then from users.role_id
+            $roleId = DB::table('user_roles')->where('user_id', $userId)->value('role_id');
+            if (!$roleId) {
                 $roleId = DB::table('users')->where('id', $userId)->value('role_id');
-                if ($roleId) {
-                    $role = DB::table('roles')
-                        ->where('id', $roleId)
-                        ->select('id', 'name', 'display_name', 'permissions as role_permissions_json')
-                        ->first();
-                }
             }
 
-            if (!$role) {
+            if (!$roleId) {
                 return ['role' => null, 'permissions' => []];
             }
 
-            $jsonPerms = json_decode($role->role_permissions_json ?? '[]', true);
-            if (is_array($jsonPerms) && in_array('*', $jsonPerms)) {
-                return [
-                    'role' => (object) ['id' => $role->id, 'name' => $role->name, 'display_name' => $role->display_name],
-                    'permissions' => ['*'],
-                ];
+            $roleData = $this->roleRepo->findWithPermissions($roleId);
+            if (!$roleData) {
+                return ['role' => null, 'permissions' => []];
             }
 
-            $perms = DB::table('role_permissions')
-                ->join('permissions', 'permissions.id', '=', 'role_permissions.permission_id')
-                ->where('role_permissions.role_id', $role->id)
-                ->pluck('permissions.name')
-                ->unique()->values()->toArray();
-
-            return [
-                'role' => (object) ['id' => $role->id, 'name' => $role->name, 'display_name' => $role->display_name],
-                'permissions' => $perms,
+            $role = (object) [
+                'id' => $roleData->id,
+                'name' => $roleData->name,
+                'display_name' => $roleData->display_name,
             ];
+
+            // Check for wildcard permissions in JSON column
+            $jsonPerms = json_decode($roleData->permissions ?? '[]', true);
+            if (is_array($jsonPerms) && in_array('*', $jsonPerms)) {
+                return ['role' => $role, 'permissions' => ['*']];
+            }
+
+            // Get permissions from pivot table
+            $perms = $roleData->permission_names ?? [];
+            return ['role' => $role, 'permissions' => $perms];
         } catch (\Exception $e) {
             // RBAC tables may not exist yet — degrade gracefully
             return ['role' => null, 'permissions' => ['*']];
