@@ -425,7 +425,7 @@
       </div>
 
       <!-- ═══ Tab: Activity Logs ═══ -->
-      <div v-if="activeTab === 'activity-logs'" class="settings__panel">
+      <div v-if="activeTab === 'activity-logs'" class="settings__panel settings__panel--fullheight">
         <ActivityLog />
       </div>
 
@@ -1148,6 +1148,9 @@ defineExpose({ handleAutoReplyEvent })
 
 .settings__panel {
   background: var(--color-bg-secondary); border-radius: 12px; border: 1px solid var(--color-border); padding: 20px;
+}
+.settings__panel--fullheight {
+  flex: 1; display: flex; flex-direction: column; min-height: 0;
 }
 
 /* ═══ Appearance Split Layout ═══ */

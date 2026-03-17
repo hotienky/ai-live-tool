@@ -763,6 +763,8 @@ const statusText = computed(() => {
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   transition: background 0.3s ease;
+  position: relative;
+  z-index: 100;
 }
 
 .connection-lost {

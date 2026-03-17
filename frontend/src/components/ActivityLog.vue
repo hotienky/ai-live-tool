@@ -239,6 +239,9 @@ onMounted(() => loadLogs())
 <style scoped>
 .activity-log {
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .activity-header {
@@ -295,7 +298,8 @@ onMounted(() => loadLogs())
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 420px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
