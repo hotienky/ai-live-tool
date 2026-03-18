@@ -414,8 +414,15 @@ async function loadProduct() {
 onMounted(() => {
   loadProduct().then(() => { loadReviews(); loadRelated() })
   // Load tenant tax config
-  fetch(`${window.location.protocol}//${window.location.hostname.replace('www.', '').replace(/^(?!api\.)/, 'api.')}/api/storefront/tax/config`)
-    .then(r => r.json()).then(d => { if (d?.data) taxConfig.value = d.data }).catch(() => {})
+  apiFetch('/tax/config').then(d => {
+    if (d) {
+      taxConfig.value = {
+        enabled: d.enabled === true || d.enabled === 'true',
+        display_mode: d.display_mode || 'exclusive',
+        label: d.label || 'VAT',
+      }
+    }
+  }).catch(() => {})
 })
 watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loadProduct() })
 

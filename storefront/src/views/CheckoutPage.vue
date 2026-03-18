@@ -333,7 +333,7 @@
                 <span v-else class="free">{{ selectedProvince ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
               </div>
               <div v-if="taxEnabled && taxAmount > 0" class="total-row">
-                <span>{{ taxLabel }} <span v-if="taxDetails.length" style="font-size:11px;opacity:0.7">({{ taxDetails.map(d => d.name).join(', ') }})</span></span>
+                <span>{{ taxLabel }} <span v-if="taxDetails.length" style="font-size:11px;opacity:0.7">({{ taxDetails.map(d => d.name).join(', ') }})</span><span v-if="taxInclusive" style="font-size:11px;opacity:0.7;margin-left:4px">(đã gồm trong giá)</span></span>
                 <span>{{ formatPrice(taxAmount) }}</span>
               </div>
               <div class="total-row total-row--grand">
@@ -424,8 +424,13 @@ const taxEnabled = ref(false)
 const taxLabel = ref('VAT')
 const taxAmount = ref(0)
 const taxDetails = ref([])
+const taxInclusive = ref(false)
 
-const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value + taxAmount.value))
+// When tax is inclusive (đã gồm trong giá), don't add tax to total — it's informational only
+const finalTotal = computed(() => {
+  const tax = taxInclusive.value ? 0 : taxAmount.value
+  return Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value + tax)
+})
 
 function applyCoupon() { applyRaw(cartTotal.value) }
 
@@ -452,6 +457,7 @@ async function previewTax() {
     })
     taxAmount.value = result?.tax_amount || 0
     taxDetails.value = result?.tax_details || []
+    if (result?.price_includes_tax !== undefined) taxInclusive.value = !!result.price_includes_tax
   } catch {
     taxAmount.value = 0
     taxDetails.value = []
@@ -472,10 +478,11 @@ onMounted(async () => {
 
   // Load tax config
   try {
-    const taxConfigData = await apiFetch('/tax/config')
-    if (taxConfigData?.data) {
-      taxEnabled.value = taxConfigData.data.enabled === 'true'
-      taxLabel.value = taxConfigData.data.label || 'VAT'
+    const taxCfg = await apiFetch('/tax/config')
+    if (taxCfg) {
+      taxEnabled.value = taxCfg.enabled === true || taxCfg.enabled === 'true'
+      taxLabel.value = taxCfg.label || 'VAT'
+      taxInclusive.value = taxCfg.price_includes_tax === true || taxCfg.price_includes_tax === 'true'
     }
   } catch { /* tax not available — skip */ }
 
