@@ -1,12 +1,26 @@
 <?php
 namespace App\Actions\Storefront;
 
+use App\Services\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class CheckoutAction extends BaseAction
 {
+    protected TaxService $taxService;
+
+    public function __construct(
+        \App\Repositories\Order\OrderRepositoryInterface $orderRepo,
+        \App\Repositories\Product\ProductRepositoryInterface $productRepo,
+        \App\Repositories\SystemConfig\SystemConfigRepositoryInterface $configRepo,
+        \App\Repositories\Coupon\CouponRepositoryInterface $couponRepo,
+        TaxService $taxService,
+    ) {
+        parent::__construct($orderRepo, $productRepo, $configRepo, $couponRepo);
+        $this->taxService = $taxService;
+    }
+
     public function __invoke(Request $request)
     {
         try {
@@ -42,8 +56,13 @@ class CheckoutAction extends BaseAction
                 }
             }
 
+            // Tax calculation
+            $provinceId = $data['to_province_id'] ?? null;
+            $taxResult = $this->taxService->calculateCartTax($data['items'], $provinceId);
+            $taxAmount = $taxResult['total'];
+
             $shippingFee = floatval($data['shipping_fee'] ?? 0);
-            $totalAmount = $subtotal - $discountAmount + $shippingFee;
+            $totalAmount = $subtotal - $discountAmount + $shippingFee + $taxAmount;
 
             $order = $this->orderRepo->store([
                 'customer_name' => $data['customer_name'],
@@ -54,9 +73,12 @@ class CheckoutAction extends BaseAction
                 'payment_status' => $paymentMethod === 'bank' ? 'unpaid' : 'pending',
                 'notes' => $data['notes'] ?? null,
                 'items' => json_encode($data['items']),
+                'subtotal' => $subtotal,
                 'total_amount' => $totalAmount,
                 'discount_amount' => $discountAmount,
                 'shipping_fee' => $shippingFee,
+                'tax_amount' => $taxAmount,
+                'tax_details' => json_encode($taxResult['details']),
                 'coupon_code' => $discountAmount > 0 ? $couponCode : null,
                 'shipping_provider' => $data['shipping_provider'] ?? null,
                 'shipping_service' => $data['shipping_service'] ?? null,

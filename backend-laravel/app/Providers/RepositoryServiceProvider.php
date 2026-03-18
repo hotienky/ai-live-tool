@@ -42,6 +42,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(\App\Repositories\Redirect\RedirectRepositoryInterface::class, \App\Repositories\Redirect\RedirectRepository::class);
         $this->app->bind(\App\Repositories\Subscriber\SubscriberRepositoryInterface::class, \App\Repositories\Subscriber\SubscriberRepository::class);
         $this->app->bind(\App\Repositories\Domain\DomainRepositoryInterface::class, \App\Repositories\Domain\DomainRepository::class);
+        $this->app->bind(\App\Repositories\Tax\TaxRateRepositoryInterface::class, \App\Repositories\Tax\TaxRateRepository::class);
     }
 
     public function boot(): void {}

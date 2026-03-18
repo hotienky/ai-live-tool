@@ -6,6 +6,9 @@ use App\Http\Controllers\Tenant\CartController;
 use App\Http\Controllers\Tenant\PromotionsController;
 use App\Http\Controllers\Tenant\ShopCustomersController;
 use App\Http\Controllers\Tenant\CouponsController;
+use App\Http\Controllers\Tenant\TaxController;
+use App\Http\Controllers\Tenant\AccountingController;
+use App\Http\Controllers\Tenant\InvoiceController;
 
 // Orders
 Route::get('/orders', [OrdersController::class, 'index'])->middleware('permission:orders.view');
@@ -50,3 +53,38 @@ Route::post('/coupons', [CouponsController::class, 'store'])->middleware('permis
 Route::put('/coupons/{id}', [CouponsController::class, 'update'])->middleware('permission:promotions.edit');
 Route::delete('/coupons/{id}', [CouponsController::class, 'destroy'])->middleware('permission:promotions.delete');
 Route::post('/coupons/validate', [CouponsController::class, 'validate'])->middleware('permission:promotions.view');
+
+// Tax Rates
+Route::get('/tax-rates', [TaxController::class, 'index'])->middleware('permission:settings.view');
+Route::post('/tax-rates', [TaxController::class, 'store'])->middleware('permission:settings.manage');
+Route::get('/tax-rates/{id}', [TaxController::class, 'show'])->middleware('permission:settings.view');
+Route::put('/tax-rates/{id}', [TaxController::class, 'update'])->middleware('permission:settings.manage');
+Route::delete('/tax-rates/{id}', [TaxController::class, 'destroy'])->middleware('permission:settings.manage');
+Route::get('/tax-config', [TaxController::class, 'getConfig'])->middleware('permission:settings.view');
+Route::put('/tax-config', [TaxController::class, 'updateConfig'])->middleware('permission:settings.manage');
+Route::post('/tax-preview', [TaxController::class, 'preview']); // Storefront use — no auth needed
+
+// Accounting
+Route::get('/accounting/summary', [AccountingController::class, 'summary'])->middleware('permission:orders.view');
+Route::get('/accounting/monthly', [AccountingController::class, 'monthly'])->middleware('permission:orders.view');
+Route::get('/accounting/tax-report', [AccountingController::class, 'taxReport'])->middleware('permission:orders.view');
+Route::get('/accounting/entries', [AccountingController::class, 'index'])->middleware('permission:orders.view');
+Route::post('/accounting/entries', [AccountingController::class, 'store'])->middleware('permission:settings.manage');
+Route::put('/accounting/entries/{id}', [AccountingController::class, 'update'])->middleware('permission:settings.manage');
+Route::delete('/accounting/entries/{id}', [AccountingController::class, 'destroy'])->middleware('permission:settings.manage');
+
+// Invoices
+Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('permission:orders.view');
+Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:orders.edit');
+Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/invoices/{id}/status', [InvoiceController::class, 'updateStatus'])->middleware('permission:orders.edit');
+Route::post('/invoices/from-order/{orderId}', [InvoiceController::class, 'createFromOrder'])->middleware('permission:orders.edit');
+Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy'])->middleware('permission:orders.edit');
+Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'exportPdf'])->middleware('permission:orders.view');
+
+// Export CSV
+Route::get('/accounting/export-entries', [AccountingController::class, 'exportEntries'])->middleware('permission:orders.view');
+Route::get('/accounting/export-tax-report', [AccountingController::class, 'exportTaxReport'])->middleware('permission:orders.view');
+Route::get('/accounting/config', [AccountingController::class, 'getConfig'])->middleware('permission:settings.view');
+Route::put('/accounting/config', [AccountingController::class, 'updateConfig'])->middleware('permission:settings.manage');
+

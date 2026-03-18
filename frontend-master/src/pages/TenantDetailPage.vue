@@ -92,15 +92,17 @@
           </div>
         </div>
         <div class="mt-4">
-          <label class="mp-label">Nhóm tính năng</label>
+          <label class="mp-label">Tính năng sử dụng</label>
           <div class="flex gap-3">
-            <div v-for="f in featureGroups" :key="f.value"
-                 @click="editForm.features = f.value"
-                 class="flex-1 card p-3 cursor-pointer transition-all select-none text-center"
-                 :class="editForm.features === f.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
-              <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
-              <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
-            </div>
+            <label v-for="f in featureOptions" :key="f.value"
+                 class="flex-1 card p-3 cursor-pointer transition-all select-none flex items-center gap-3"
+                 :class="selectedEditFeatures.includes(f.value) ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
+              <input type="checkbox" :value="f.value" v-model="selectedEditFeatures" class="mp-checkbox" />
+              <div>
+                <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
+                <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
+              </div>
+            </label>
           </div>
         </div>
         <div class="flex items-center gap-3 mt-4">
@@ -247,11 +249,24 @@ function syncEditForm() {
 
 watch(tenant, syncEditForm)
 
-const featureGroups = [
-  { value: 'livestream', label: 'Livestream', desc: 'Dashboard + Live' },
-  { value: 'store', label: 'Store', desc: 'Cửa hàng + Đơn hàng' },
-  { value: 'all', label: 'Dùng cả 2', desc: 'Đầy đủ tính năng' },
+const featureOptions = [
+  { value: 'livestream', label: 'Live', desc: 'Dashboard, Live Monitor, CRM' },
+  { value: 'store', label: 'Store', desc: 'Cửa hàng, Đơn hàng, Kế toán' },
 ]
+
+const selectedEditFeatures = computed({
+  get() {
+    const f = editForm.value.features
+    if (f === 'all') return ['livestream', 'store']
+    if (f === 'livestream') return ['livestream']
+    if (f === 'store') return ['store']
+    return ['livestream', 'store']
+  },
+  set(arr) {
+    if (arr.length === 2 || arr.length === 0) editForm.value.features = 'all'
+    else editForm.value.features = arr[0]
+  },
+})
 
 function planBadgeClass(plan) {
   const base = 'px-2.5 py-0.5 rounded-full text-xs font-medium'
@@ -399,4 +414,7 @@ onMounted(load)
 .mp-section-title { font-size: 0.75rem; font-weight: 600; color: var(--mp-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
 .mp-label { display: block; font-size: 0.75rem; color: var(--mp-text-muted); margin-bottom: 6px; }
 .mp-stat-card { background: var(--mp-bg-input); }
+.mp-checkbox {
+  width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; flex-shrink: 0;
+}
 </style>

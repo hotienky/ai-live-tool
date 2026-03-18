@@ -174,9 +174,34 @@
             <span class="info-label">Trạng thái:</span>
             <span class="status-badge" :class="detailOrder?.status">{{ detailOrder?.status }}</span>
           </div>
-          <div class="info-row">
-            <span class="info-label">Tổng tiền:</span>
-            <span class="detail-amount">{{ formatCurrency(detailOrder?.totalAmount) }}</span>
+
+          <!-- Price Breakdown -->
+          <div class="detail-breakdown">
+            <div class="breakdown-row" v-if="detailOrder?.subtotal">
+              <span>Tạm tính:</span>
+              <span>{{ formatCurrency(detailOrder.subtotal) }}</span>
+            </div>
+            <div class="breakdown-row" v-if="detailOrder?.discountAmount > 0">
+              <span>Giảm giá:</span>
+              <span class="discount-amount">-{{ formatCurrency(detailOrder.discountAmount) }}</span>
+            </div>
+            <div class="breakdown-row" v-if="detailOrder?.shippingFee > 0">
+              <span>Phí vận chuyển:</span>
+              <span>{{ formatCurrency(detailOrder.shippingFee) }}</span>
+            </div>
+            <div class="breakdown-row" v-if="detailOrder?.taxAmount > 0">
+              <span>
+                Thuế
+                <template v-if="parsedTaxDetails.length">
+                  <span class="tax-detail-names">({{ parsedTaxDetails.map(d => d.name).join(', ') }})</span>
+                </template>
+              </span>
+              <span class="tax-amount-value">{{ formatCurrency(detailOrder.taxAmount) }}</span>
+            </div>
+            <div class="breakdown-row breakdown-row--total">
+              <span>Tổng thanh toán:</span>
+              <span class="detail-amount">{{ formatCurrency(detailOrder?.totalAmount) }}</span>
+            </div>
           </div>
         </div>
 
@@ -293,6 +318,14 @@ const detailOrder = ref(null)
 const detailItems = ref([])
 const detailTotals = ref([])
 const detailHistory = ref([])
+
+const parsedTaxDetails = computed(() => {
+  if (!detailOrder.value) return []
+  const td = detailOrder.value.taxDetails
+  if (!td) return []
+  if (typeof td === 'string') try { return JSON.parse(td) } catch { return [] }
+  return Array.isArray(td) ? td : []
+})
 
 onMounted(() => { fetchOrders(); fetchStats(); fetchProducts(); fetchStatuses() })
 watch(filterStatus, () => fetchOrders())
@@ -516,6 +549,10 @@ function printInvoice(order) {
       <tbody>${itemsHtml || '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>'}</tbody>
     </table>
     <div class="total-section">
+      ${order.subtotal ? `<div class="total-row"><span>Tạm tính:</span><span>${Number(order.subtotal || 0).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.discountAmount > 0 ? `<div class="total-row"><span>Giảm giá:</span><span style="color:#16a34a">-${Number(order.discountAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.shippingFee > 0 ? `<div class="total-row"><span>Phí giao hàng:</span><span>${Number(order.shippingFee).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.taxAmount > 0 ? `<div class="total-row"><span>Thuế:</span><span>${Number(order.taxAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
       <div class="total-row grand"><span>TỔNG CỘNG:</span><span>${Number(order.totalAmount || 0).toLocaleString('vi-VN')}đ</span></div>
     </div>
     ${order.notes ? `<div style="margin-top:8px;font-size:11px"><strong>Ghi chú:</strong> ${order.notes}</div>` : ''}
@@ -791,6 +828,24 @@ tr:hover { background: var(--color-accent-glow); }
 .item-sku { background: var(--color-accent-glow); color: var(--accent-light); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 .item-total { font-weight: 800; color: #34d399; font-size: 13px; min-width: 80px; text-align: right; }
 .empty-text { font-size: 13px; color: var(--color-text-muted); text-align: center; margin: 10px 0; }
+
+/* Tax/Price Breakdown */
+.detail-breakdown {
+  margin-top: 12px; padding-top: 12px;
+  border-top: 1px dashed var(--color-border);
+}
+.breakdown-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; font-size: 13px; color: var(--color-text-secondary);
+}
+.breakdown-row--total {
+  margin-top: 8px; padding-top: 10px;
+  border-top: 1px solid var(--color-border);
+  font-weight: 800; font-size: 15px; color: var(--color-text-primary);
+}
+.discount-amount { color: #16a34a; font-weight: 600; }
+.tax-amount-value { color: #8b5cf6; font-weight: 600; }
+.tax-detail-names { font-size: 11px; color: var(--color-text-muted); }
 
 /* Status badges  */
 .status-badge.processing { background: rgba(139,92,246,0.1); color: #c4b5fd; }

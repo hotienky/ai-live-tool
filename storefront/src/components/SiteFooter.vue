@@ -118,6 +118,7 @@ defineProps({ storeName: { type: String, default: '' } })
 
 const storeInfo = inject('storeInfo', ref(null))
 const layoutConfig = inject('layoutConfig', ref(null))
+const providedFooterConfig = inject('footerConfig', ref({}))
 const info = computed(() => storeInfo.value || {})
 const year = new Date().getFullYear()
 
@@ -131,7 +132,10 @@ const cfg = computed(() => {
     copyrightText: '',
     bgColor: '',
   }
-  const fc = layoutConfig.value?.footerConfig
+  // Use provided footerConfig from App.vue (via site-config) or fallback to layoutConfig
+  const fc = providedFooterConfig.value && Object.keys(providedFooterConfig.value).length > 0
+    ? providedFooterConfig.value
+    : layoutConfig.value?.footerConfig
   if (!fc) return defaults
   // Backward compat: old format had columns as a number
   if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {

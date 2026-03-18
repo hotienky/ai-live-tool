@@ -1,6 +1,6 @@
 <template>
   <div class="account-page">
-    <div class="account-container">
+    <div class="account-container" :class="{ 'account-container--right': accountConfig.sidebarPosition === 'right' }">
       <!-- Sidebar -->
       <aside class="account-sidebar">
         <div class="account-avatar">
@@ -14,14 +14,14 @@
           <button :class="{ active: tab === 'profile' }" @click="tab = 'profile'">
             <span class="nav-icon"><User :size="16" /></span> Thông tin cá nhân
           </button>
-          <button :class="{ active: tab === 'orders' }" @click="tab = 'orders'; loadOrders()">
+          <button v-if="accountConfig.showOrders" :class="{ active: tab === 'orders' }" @click="tab = 'orders'; loadOrders()">
             <span class="nav-icon"><Package :size="16" /></span> Đơn hàng
             <span v-if="orders.length" class="nav-badge">{{ orders.length }}</span>
           </button>
-          <button :class="{ active: tab === 'addresses' }" @click="tab = 'addresses'; loadAddresses()">
+          <button v-if="accountConfig.showAddresses" :class="{ active: tab === 'addresses' }" @click="tab = 'addresses'; loadAddresses()">
             <span class="nav-icon"><MapPin :size="16" /></span> Địa chỉ giao hàng
           </button>
-          <button :class="{ active: tab === 'password' }" @click="tab = 'password'">
+          <button v-if="accountConfig.showPasswordChange" :class="{ active: tab === 'password' }" @click="tab = 'password'">
             <span class="nav-icon"><Lock :size="16" /></span> Đổi mật khẩu
           </button>
           <div class="nav-divider"></div>
@@ -236,7 +236,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 import {
@@ -246,6 +246,13 @@ import {
 
 const router = useRouter()
 const { customer, isLoggedIn, authFetch, updateProfile, changePassword, logout, fetchProfile } = useAuth()
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const accountConfig = computed(() => {
+  const defaults = { showOrders: true, showAddresses: true, showPasswordChange: true, sidebarPosition: 'left' }
+  const ac = layoutConfig.value?.pageConfigs?.account
+  return ac ? { ...defaults, ...ac } : defaults
+})
 
 const tab = ref('profile')
 const saving = ref(false)
@@ -421,6 +428,9 @@ function formatPrice(p) { return Number(p || 0).toLocaleString('vi-VN') + 'đ' }
 .account-container {
   display: flex;
   gap: 32px;
+}
+.account-container--right {
+  flex-direction: row-reverse;
 }
 
 /* ─── Sidebar ─── */

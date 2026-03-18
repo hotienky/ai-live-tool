@@ -125,10 +125,9 @@ class OrderConfirmationMail extends Mailable
                         <tbody>{$itemsHtml}</tbody>
                     </table>
 
-                    <!-- Total -->
+                    <!-- Totals Breakdown -->
                     <div style="text-align:right;padding:16px;background:#fafafa;border-radius:10px">
-                        <span style="font-size:14px;color:#666">Tổng thanh toán: </span>
-                        <span style="font-size:22px;font-weight:800;color:#7c3aed">{$total}đ</span>
+                        {$this->buildTotalsHtml()}
                     </div>
 
                     {$bankSection}
@@ -143,5 +142,50 @@ class OrderConfirmationMail extends Mailable
         </body>
         </html>
         HTML;
+    }
+
+    private function buildTotalsHtml(): string
+    {
+        $order = $this->order;
+        $html = '';
+
+        // Subtotal
+        $subtotal = $order['subtotal'] ?? null;
+        if ($subtotal) {
+            $html .= '<div style="margin-bottom:6px"><span style="font-size:14px;color:#666">Tạm tính: </span><span style="font-size:14px;font-weight:600">' . number_format($subtotal, 0, ',', '.') . 'đ</span></div>';
+        }
+
+        // Discount
+        $discount = $order['discount_amount'] ?? 0;
+        if ($discount > 0) {
+            $html .= '<div style="margin-bottom:6px"><span style="font-size:14px;color:#666">Giảm giá: </span><span style="font-size:14px;font-weight:600;color:#16a34a">-' . number_format($discount, 0, ',', '.') . 'đ</span></div>';
+        }
+
+        // Shipping
+        $shipping = $order['shipping_fee'] ?? 0;
+        if ($shipping > 0) {
+            $html .= '<div style="margin-bottom:6px"><span style="font-size:14px;color:#666">Phí giao hàng: </span><span style="font-size:14px;font-weight:600">' . number_format($shipping, 0, ',', '.') . 'đ</span></div>';
+        }
+
+        // Tax
+        $tax = $order['tax_amount'] ?? 0;
+        if ($tax > 0) {
+            $taxLabel = 'Thuế';
+            $taxDetails = $order['tax_details'] ?? [];
+            if (is_string($taxDetails)) {
+                $taxDetails = json_decode($taxDetails, true) ?: [];
+            }
+            if (!empty($taxDetails)) {
+                $names = array_column($taxDetails, 'name');
+                $taxLabel .= ' (' . implode(', ', $names) . ')';
+            }
+            $html .= '<div style="margin-bottom:6px"><span style="font-size:14px;color:#666">' . $taxLabel . ': </span><span style="font-size:14px;font-weight:600;color:#7c3aed">' . number_format($tax, 0, ',', '.') . 'đ</span></div>';
+        }
+
+        // Grand total
+        $total = number_format($order['total_amount'] ?? 0, 0, ',', '.');
+        $html .= '<div style="margin-top:8px;padding-top:10px;border-top:1px solid #e5e7eb"><span style="font-size:14px;color:#666">Tổng thanh toán: </span><span style="font-size:22px;font-weight:800;color:#7c3aed">' . $total . 'đ</span></div>';
+
+        return $html;
     }
 }

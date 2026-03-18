@@ -168,6 +168,8 @@ import { useAuth } from '../composables/useAuth.js'
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const storeInfo = inject('storeInfo', ref(null))
+const providedNavLinks = inject('navLinks', ref([]))
+const providedHeaderConfig = inject('headerConfig', ref({}))
 const pageEnabled = computed(() => layoutConfig.value?.pages || { cart: true, account: true, auth: true, order_tracking: true, products: true })
 const logoUrl = computed(() => storeInfo.value?.logo || '')
 
@@ -192,7 +194,10 @@ const { isLoggedIn, customer } = useAuth()
 
 const headerCfg = computed(() => {
   const defaults = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
-  const hc = layoutConfig.value?.headerConfig
+  // Use provided headerConfig from App.vue (via site-config) or fallback to layoutConfig
+  const hc = providedHeaderConfig.value && Object.keys(providedHeaderConfig.value).length > 0
+    ? providedHeaderConfig.value
+    : layoutConfig.value?.headerConfig
   return hc ? { ...defaults, ...hc } : defaults
 })
 
@@ -213,7 +218,7 @@ const searchQuery = ref('')
 const searchFocused = ref(false)
 const mobileMenu = ref(false)
 
-// Dynamic nav links from API
+// Dynamic nav links — use provided from site-config or fetch as fallback
 const navLinks = ref([])
 
 // Fallback links if API returns empty
@@ -227,7 +232,8 @@ const moreOpen = ref(false)
 const moreDropdownRef = ref(null)
 
 const menuLinks = computed(() => {
-  const links = navLinks.value.length > 0 ? navLinks.value : fallbackLinks
+  // Prefer provided navLinks from site-config, fallback to locally fetched navLinks
+  const links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks)
   return links
     .filter(l => l.is_active !== false)
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))

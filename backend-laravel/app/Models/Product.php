@@ -14,7 +14,7 @@ class Product extends Model
         'promotion_start', 'promotion_end',
         'stock', 'category_id', 'brand_id',
         'images', 'image_url', 'keywords', 'variants',
-        'is_active', 'is_featured', 'weight', 'sort_order',
+        'is_active', 'is_featured', 'weight', 'sort_order', 'tax_class',
         'meta_title', 'meta_description', 'meta_keywords',
     ];
 

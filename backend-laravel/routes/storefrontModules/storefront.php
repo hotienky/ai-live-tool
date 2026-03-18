@@ -13,10 +13,16 @@ Route::get('/pages', [\App\Http\Controllers\Tenant\StorefrontController::class, 
 Route::get('/pages/{slug}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'pageDetail']);
 Route::get('/resolve-url', [\App\Http\Controllers\Tenant\StorefrontController::class, 'resolveUrl']);
 Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
+Route::get('/site-config', [\App\Http\Controllers\Tenant\StorefrontController::class, 'siteConfig']);
+Route::get('/search', [\App\Http\Controllers\Tenant\StorefrontController::class, 'searchProducts']);
 Route::get('/nav-links', [\App\Http\Controllers\Tenant\NavLinksController::class, 'flat']);
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
 Route::post('/coupon/validate', [\App\Http\Controllers\Tenant\StorefrontController::class, 'validateCoupon']);
 Route::get('/payment-methods', [\App\Http\Controllers\Tenant\StorefrontController::class, 'paymentMethods']);
+
+// Tax
+Route::post('/tax/preview', [\App\Http\Controllers\Tenant\TaxController::class, 'preview']);
+Route::get('/tax/config', [\App\Http\Controllers\Tenant\TaxController::class, 'getConfig']);
 
 // Shipping
 Route::post('/shipping/calculate', [\App\Http\Controllers\Tenant\ShippingController::class, 'calculate']);

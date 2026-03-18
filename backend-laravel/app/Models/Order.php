@@ -9,6 +9,7 @@ class Order extends Model
     protected $fillable = [
         'order_number', 'customer_id', 'customer_name', 'customer_email',
         'customer_phone', 'customer_address', 'items', 'total_amount',
+        'subtotal', 'tax_amount', 'tax_details',
         'discount_amount', 'shipping_fee', 'coupon_code', 'status', 'payment_status',
         'payment_method', 'note', 'tracking_number', 'shop_id',
         'shipping_provider', 'shipping_service', 'shipping_tracking',
@@ -18,6 +19,9 @@ class Order extends Model
     protected $casts = [
         'items' => 'array',
         'total_amount' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'tax_details' => 'array',
         'discount_amount' => 'decimal:2',
         'shipping_fee' => 'decimal:2',
         'to_province_id' => 'integer',

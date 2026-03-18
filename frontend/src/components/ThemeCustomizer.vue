@@ -17,21 +17,58 @@
           @click="applyPreset(preset)"
         >
           <div class="tc-preset__preview" :style="presetPreviewStyle(preset)">
-            <div class="tc-preset__dot" :style="{ background: preset.accent }"></div>
+            <div class="tc-preset__dot" :style="{ background: preset.dark.accent }"></div>
           </div>
           <span class="tc-preset__name">{{ preset.name }}</span>
         </button>
       </div>
     </section>
 
-    <!-- Colors -->
+    <!-- Per-mode Colors -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><PaintBucket :size="14" /> Màu sắc</h4>
-      <div class="tc-row">
-        <label class="tc-label">Màu chính (Accent)</label>
-        <div class="tc-color-group">
-          <input type="color" v-model="form.accent" class="tc-color" />
-          <input type="text" v-model="form.accent" class="tc-color-text" maxlength="7" />
+      <h4 class="tc-section__title"><PaintBucket :size="14" /> Màu sắc theo chế độ</h4>
+
+      <!-- Mode tabs -->
+      <div class="tc-mode-tabs">
+        <button
+          class="tc-mode-tab"
+          :class="{ active: colorTab === 'dark' }"
+          @click="colorTab = 'dark'"
+        ><Moon :size="13" /> Chế độ Tối</button>
+        <button
+          class="tc-mode-tab"
+          :class="{ active: colorTab === 'light' }"
+          @click="colorTab = 'light'"
+        ><Sun :size="13" /> Chế độ Sáng</button>
+      </div>
+
+      <!-- Dark mode colors -->
+      <div v-if="colorTab === 'dark'" class="tc-color-panel">
+        <div class="tc-row">
+          <label class="tc-label">Màu nhấn (Dark)</label>
+          <div class="tc-color-group">
+            <input type="color" v-model="form.dark.accent" class="tc-color" />
+            <input type="text" v-model="form.dark.accent" class="tc-color-text" maxlength="7" />
+          </div>
+        </div>
+        <div class="tc-color-preview" :style="{ background: '#0a0a0f' }">
+          <div class="tc-color-preview__swatch" :style="{ background: form.dark.accent }"></div>
+          <span class="tc-color-preview__label" style="color: #f0f0f5">Xem trước nền tối</span>
+        </div>
+      </div>
+
+      <!-- Light mode colors -->
+      <div v-if="colorTab === 'light'" class="tc-color-panel">
+        <div class="tc-row">
+          <label class="tc-label">Màu nhấn (Light)</label>
+          <div class="tc-color-group">
+            <input type="color" v-model="form.light.accent" class="tc-color" />
+            <input type="text" v-model="form.light.accent" class="tc-color-text" maxlength="7" />
+          </div>
+        </div>
+        <div class="tc-color-preview" :style="{ background: '#f8f9fc' }">
+          <div class="tc-color-preview__swatch" :style="{ background: form.light.accent }"></div>
+          <span class="tc-color-preview__label" style="color: #1a1a2e">Xem trước nền sáng</span>
         </div>
       </div>
     </section>
@@ -67,7 +104,7 @@
       </div>
     </section>
 
-    <!-- Mode -->
+    <!-- Default Mode -->
     <section class="tc-section">
       <h4 class="tc-section__title"><Moon :size="14" /> Chế độ mặc định</h4>
       <div class="tc-btn-group tc-btn-group--wide">
@@ -105,6 +142,7 @@ import { useToast } from '../composables/useToast.js'
 const { showToast } = useToast()
 const emit = defineEmits(['saved'])
 const saving = ref(false)
+const colorTab = ref('dark')
 
 const fonts = ['Inter', 'Roboto', 'Outfit', 'Plus Jakarta Sans']
 const cardStyles = [
@@ -114,36 +152,54 @@ const cardStyles = [
 ]
 
 const presets = [
-  { key: 'modern_dark', name: 'Modern Dark', mode: 'dark', accent: '#7c3aed', font: 'Inter', radius: '12', card_style: 'glass', bg: '#0a0a0f' },
-  { key: 'clean_light', name: 'Clean Light', mode: 'light', accent: '#3b82f6', font: 'Inter', radius: '10', card_style: 'solid', bg: '#f8f9fc' },
-  { key: 'warm', name: 'Warm', mode: 'light', accent: '#f59e0b', font: 'Plus Jakarta Sans', radius: '14', card_style: 'solid', bg: '#f8f9fc' },
-  { key: 'ocean', name: 'Ocean', mode: 'dark', accent: '#06b6d4', font: 'Outfit', radius: '16', card_style: 'glass', bg: '#0a0a0f' },
+  {
+    key: 'modern_dark', name: 'Modern Dark', mode: 'dark', font: 'Inter', radius: '12', card_style: 'glass', bg: '#0a0a0f',
+    dark: { accent: '#7c3aed' },
+    light: { accent: '#6d28d9' },
+  },
+  {
+    key: 'clean_light', name: 'Clean Light', mode: 'light', font: 'Inter', radius: '10', card_style: 'solid', bg: '#f8f9fc',
+    dark: { accent: '#3b82f6' },
+    light: { accent: '#2563eb' },
+  },
+  {
+    key: 'warm', name: 'Warm', mode: 'light', font: 'Plus Jakarta Sans', radius: '14', card_style: 'solid', bg: '#f8f9fc',
+    dark: { accent: '#f59e0b' },
+    light: { accent: '#d97706' },
+  },
+  {
+    key: 'ocean', name: 'Ocean', mode: 'dark', font: 'Outfit', radius: '16', card_style: 'glass', bg: '#0a0a0f',
+    dark: { accent: '#06b6d4' },
+    light: { accent: '#0891b2' },
+  },
 ]
 
 const form = ref({
   mode: 'dark',
-  accent: '#7c3aed',
   font: 'Inter',
   radius: '12',
   card_style: 'glass',
   preset: 'modern_dark',
+  dark: { accent: '#7c3aed' },
+  light: { accent: '#6d28d9' },
 })
 
 function presetPreviewStyle(p) {
   return {
     background: p.bg,
-    border: `2px solid ${p.accent}33`,
+    border: `2px solid ${p.dark.accent}33`,
   }
 }
 
 function applyPreset(preset) {
   form.value = {
     mode: preset.mode,
-    accent: preset.accent,
     font: preset.font,
     radius: preset.radius,
     card_style: preset.card_style,
     preset: preset.key,
+    dark: { ...preset.dark },
+    light: { ...preset.light },
   }
 }
 
@@ -151,66 +207,81 @@ function resetToDefault() {
   applyPreset(presets[0])
 }
 
-// Apply hex accent to CSS vars immediately (CMS admin panel + preview)
-function applyAccentToCss(hexColor) {
+// Apply accent to CMS admin CSS vars for live preview
+// NOTE: This is intentionally scoped — we do NOT set --color-accent-primary
+// because that belongs to the CMS admin "Màu nhấn" system.
+// We only set --sf-accent vars for the StorefrontHome preview inside the admin.
+function applyStorefrontPreviewVars(hexColor) {
   if (!hexColor || !/^#[0-9a-fA-F]{3,6}$/.test(hexColor)) return
   const root = document.documentElement
-  // Parse hex to RGB
   let hex = hexColor.replace('#', '')
   if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2]
   const r = parseInt(hex.substring(0,2), 16)
   const g = parseInt(hex.substring(2,4), 16)
   const b = parseInt(hex.substring(4,6), 16)
-  // Derive darker shade (20% darker)
-  const darken = (v) => Math.max(0, Math.round(v * 0.8))
-  const dr = darken(r), dg = darken(g), db = darken(b)
-  const darkHex = `#${dr.toString(16).padStart(2,'0')}${dg.toString(16).padStart(2,'0')}${db.toString(16).padStart(2,'0')}`
-  // Derive lighter shade (30% lighter toward white)
   const lighten = (v) => Math.min(255, Math.round(v + (255 - v) * 0.3))
   const lr = lighten(r), lg = lighten(g), lb = lighten(b)
   const lightHex = `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`
 
-  root.style.setProperty('--accent', hexColor)
-  root.style.setProperty('--color-accent-primary', hexColor)
-  root.style.setProperty('--color-accent-glow', `rgba(${r},${g},${b},0.2)`)
-  root.style.setProperty('--accent-gradient', `linear-gradient(135deg, ${hexColor}, ${darkHex})`)
-  root.style.setProperty('--accent-light', lightHex)
-  root.style.setProperty('--accent-shadow', `0 4px 15px rgba(${r},${g},${b},0.25)`)
-  root.style.setProperty('--accent-rgb', `${r},${g},${b}`)
+  // Only set --sf-* vars (storefront namespace) — NOT --color-accent-primary
+  root.style.setProperty('--sf-accent', hexColor)
+  root.style.setProperty('--sf-accent-light', lightHex)
+  root.style.setProperty('--sf-accent-glow', `rgba(${r},${g},${b},0.15)`)
+  root.style.setProperty('--sf-accent-gradient', `linear-gradient(135deg, ${hexColor}, ${lightHex})`)
 }
 
 async function loadTheme() {
   try {
     const res = await apiFetch('/system-config/group/theme')
-    const rows = await res.json()   // returns [{id, key, group_name, value}, ...]
+    const rows = await res.json()
     if (Array.isArray(rows)) {
+      const map = {}
       rows.forEach(row => {
-        // DB stores key as 'accent', 'mode', etc. (no 'theme.' prefix)
         const k = row.key?.replace('theme.', '')
-        if (k && k in form.value) form.value[k] = row.value
+        if (k) map[k] = row.value
       })
+      // Load simple fields
+      if (map.mode) form.value.mode = map.mode
+      if (map.font) form.value.font = map.font
+      if (map.radius) form.value.radius = map.radius
+      if (map.card_style) form.value.card_style = map.card_style
+      if (map.preset) form.value.preset = map.preset
+
+      // Load per-mode colors (new format)
+      if (map.dark_accent) {
+        form.value.dark.accent = map.dark_accent
+      } else if (map.accent) {
+        form.value.dark.accent = map.accent
+      }
+      if (map.light_accent) {
+        form.value.light.accent = map.light_accent
+      } else if (map.accent) {
+        form.value.light.accent = map.accent
+      }
     }
-    // Apply saved accent to CMS CSS vars immediately on load
-    applyAccentToCss(form.value.accent)
   } catch { /* use defaults */ }
 }
 
 async function saveTheme() {
   saving.value = true
   try {
-    // Backend updateGroup expects: { items: [{key, value}, ...] }
-    // Keys are stored WITHOUT 'theme.' prefix under group_name='theme'
-    const items = Object.entries(form.value).map(([k, v]) => ({
-      key: k,   // e.g. 'accent', 'mode', 'font', 'radius', 'card_style', 'preset'
-      value: String(v),
-    }))
+    const items = [
+      { key: 'mode', value: form.value.mode },
+      { key: 'font', value: form.value.font },
+      { key: 'radius', value: String(form.value.radius) },
+      { key: 'card_style', value: form.value.card_style },
+      { key: 'preset', value: form.value.preset || '' },
+      // Per-mode accents
+      { key: 'dark_accent', value: form.value.dark.accent },
+      { key: 'light_accent', value: form.value.light.accent },
+      // Backward compat: keep "accent" as the default mode's accent
+      { key: 'accent', value: form.value.mode === 'light' ? form.value.light.accent : form.value.dark.accent },
+    ]
     const res = await apiFetch('/system-config/group/theme', {
       method: 'PUT',
       body: JSON.stringify({ items }),
     })
     if (!res.ok) throw new Error('Save failed')
-    // Apply new accent to CSS vars immediately after save
-    applyAccentToCss(form.value.accent)
     showToast('Đã lưu giao diện thành công!', 'success')
     emit('saved')
   } catch (e) {
@@ -222,8 +293,7 @@ async function saveTheme() {
 
 onMounted(loadTheme)
 
-// Live preview: apply accent color in real-time as user changes the picker
-watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
+// No watchers that change admin CSS — storefront colors are isolated from admin panel
 </script>
 
 <style scoped>
@@ -273,6 +343,40 @@ watch(() => form.value.accent, (hex) => applyAccentToCss(hex))
 }
 .tc-preset__dot { width: 16px; height: 16px; border-radius: 50%; }
 .tc-preset__name { font-size: 11px; font-weight: 700; }
+
+/* Mode Tabs */
+.tc-mode-tabs {
+  display: flex; gap: 4px; margin-bottom: 16px;
+  background: var(--glass-bg); border-radius: 10px; padding: 4px;
+}
+.tc-mode-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border: none; border-radius: 8px;
+  background: transparent; color: var(--color-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.tc-mode-tab:hover { background: var(--color-bg-card-solid); }
+.tc-mode-tab.active {
+  background: var(--color-accent-primary); color: #fff;
+  box-shadow: var(--accent-shadow);
+}
+
+/* Color panel */
+.tc-color-panel { animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.tc-color-preview {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; border-radius: 10px; margin-top: 12px;
+  border: 1px solid var(--color-border);
+}
+.tc-color-preview__swatch {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.tc-color-preview__label {
+  font-size: 13px; font-weight: 600;
+}
 
 /* Form rows */
 .tc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }

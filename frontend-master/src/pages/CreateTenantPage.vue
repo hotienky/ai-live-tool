@@ -53,15 +53,17 @@
       </div>
 
       <div>
-        <label class="mp-label">Nhóm tính năng</label>
+        <label class="mp-label">Tính năng sử dụng</label>
         <div class="flex gap-3">
-          <div v-for="f in featureGroups" :key="f.value"
-               @click="form.features = f.value"
-               class="flex-1 card p-3 cursor-pointer transition-all select-none"
-               :class="form.features === f.value ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
-            <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
-            <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
-          </div>
+          <label v-for="f in featureOptions" :key="f.value"
+               class="flex-1 card p-3 cursor-pointer transition-all select-none flex items-center gap-3"
+               :class="selectedFeatures.includes(f.value) ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
+            <input type="checkbox" :value="f.value" v-model="selectedFeatures" class="mp-checkbox" />
+            <div>
+              <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
+              <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
+            </div>
+          </label>
         </div>
       </div>
 
@@ -77,7 +79,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader2 } from 'lucide-vue-next'
 import { tenants } from '../services/api.js'
@@ -101,11 +103,24 @@ const plans = [
   { value: 'enterprise', label: 'Enterprise', desc: 'Không giới hạn' },
 ]
 
-const featureGroups = [
-  { value: 'livestream', label: 'Livestream', desc: 'Dashboard + Live' },
-  { value: 'store', label: 'Store', desc: 'Cửa hàng + Đơn hàng' },
-  { value: 'all', label: 'Dùng cả 2', desc: 'Đầy đủ tính năng' },
+const featureOptions = [
+  { value: 'livestream', label: 'Live', desc: 'Dashboard, Live Monitor, CRM' },
+  { value: 'store', label: 'Store', desc: 'Cửa hàng, Đơn hàng, Kế toán' },
 ]
+
+const selectedFeatures = computed({
+  get() {
+    const f = form.value.features
+    if (f === 'all') return ['livestream', 'store']
+    if (f === 'livestream') return ['livestream']
+    if (f === 'store') return ['store']
+    return ['livestream', 'store']
+  },
+  set(arr) {
+    if (arr.length === 2 || arr.length === 0) form.value.features = 'all'
+    else form.value.features = arr[0]
+  },
+})
 
 async function handleCreate() {
   error.value = ''
@@ -136,5 +151,8 @@ async function handleCreate() {
   color: var(--mp-text-muted);
   font-size: 0.875rem;
   white-space: nowrap;
+}
+.mp-checkbox {
+  width: 18px; height: 18px; accent-color: #3b82f6; cursor: pointer; flex-shrink: 0;
 }
 </style>

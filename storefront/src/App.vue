@@ -36,44 +36,16 @@ const { setOrganizationSeo } = useSeo()
 
 const storeInfo = ref(null)
 const layoutConfig = ref(null)
+const headerConfig = ref({})
+const footerConfig = ref({})
+const navLinks = ref([])
 
 // Preview mode: read layout from URL query param
 const urlParams = new URLSearchParams(window.location.search)
 const previewParam = urlParams.get('preview_layout')
 const isPreviewMode = !!previewParam
 
-async function loadStoreInfo() {
-  try {
-    storeInfo.value = await apiFetch('/info')
-    const info = storeInfo.value
-    if (info?.shop_name) {
-      document.title = info.meta_title || `${info.shop_name} — Cửa hàng trực tuyến`
-      // Favicon
-      if (info.favicon) {
-        let link = document.querySelector("link[rel*='icon']") || document.createElement('link')
-        link.type = 'image/x-icon'
-        link.rel = 'shortcut icon'
-        link.href = info.favicon
-        document.head.appendChild(link)
-      }
-      // Meta description
-      if (info.meta_description || info.description) {
-        let meta = document.querySelector('meta[name="description"]') || document.createElement('meta')
-        meta.name = 'description'
-        meta.content = info.meta_description || info.description
-        document.head.appendChild(meta)
-      }
-      // C2: Organization JSON-LD
-      setOrganizationSeo({
-        name: info.shop_name,
-        description: info.description || '',
-        logo: info.logo || '',
-      })
-    }
-  } catch { /* ignore */ }
-}
-
-async function loadLayoutConfig() {
+async function loadSiteConfig() {
   // In preview mode, read from URL param
   if (isPreviewMode && previewParam) {
     try {
@@ -82,18 +54,64 @@ async function loadLayoutConfig() {
       layoutConfig.value = {
         sections: parsed.sections || [],
         pages: parsed.pages || {},
+        pageConfigs: parsed.pageConfigs || {},
         template: parsed.template || 'full_store',
         customCss: parsed.customCss || '',
       }
+      headerConfig.value = parsed.headerConfig || {}
+      footerConfig.value = parsed.footerConfig || {}
       injectCustomCss(layoutConfig.value.customCss)
       return
     } catch { /* fall through to API */ }
   }
 
   try {
-    layoutConfig.value = await apiFetch('/storefront-layout')
+    // Use /site-config mega endpoint — single call for everything
+    const config = await apiFetch('/site-config')
+    storeInfo.value = config.store || {}
+    layoutConfig.value = config.layout || {
+      sections: [
+        { type: 'banner', enabled: true, order: 0 },
+        { type: 'categories', enabled: true, order: 1 },
+        { type: 'flash_sale', enabled: true, order: 2 },
+        { type: 'featured_products', enabled: true, order: 3 },
+        { type: 'new_arrivals', enabled: true, order: 4 },
+        { type: 'cms_pages', enabled: true, order: 5 },
+      ],
+      pages: { cart: true, account: true, auth: true, order_tracking: true, products: true },
+      template: 'full_store',
+    }
+    headerConfig.value = config.layout?.headerConfig || {}
+    footerConfig.value = config.layout?.footerConfig || {}
+    navLinks.value = config.navLinks || []
+
+    // Inject custom CSS from layout config
     if (layoutConfig.value?.customCss) {
       injectCustomCss(layoutConfig.value.customCss)
+    }
+
+    // Set SEO from store info
+    const info = storeInfo.value
+    if (info?.shop_name) {
+      document.title = info.meta_title || `${info.shop_name} — Cửa hàng trực tuyến`
+      if (info.favicon) {
+        let link = document.querySelector("link[rel*='icon']") || document.createElement('link')
+        link.type = 'image/x-icon'
+        link.rel = 'shortcut icon'
+        link.href = info.favicon
+        document.head.appendChild(link)
+      }
+      if (info.meta_description || info.description) {
+        let meta = document.querySelector('meta[name="description"]') || document.createElement('meta')
+        meta.name = 'description'
+        meta.content = info.meta_description || info.description
+        document.head.appendChild(meta)
+      }
+      setOrganizationSeo({
+        name: info.shop_name,
+        description: info.description || '',
+        logo: info.logo || '',
+      })
     }
   } catch {
     layoutConfig.value = {
@@ -124,16 +142,18 @@ function injectCustomCss(css) {
 
 onMounted(async () => {
   await Promise.all([
-    loadStoreInfo(),
-    loadLayoutConfig(),
+    loadSiteConfig(),
     initTheme(),
     initI18n(),
   ])
 })
 
-// Provide store info and layout config globally
+// Provide store info, layout config, header/footer config globally
 provide('storeInfo', storeInfo)
 provide('layoutConfig', layoutConfig)
+provide('headerConfig', headerConfig)
+provide('footerConfig', footerConfig)
+provide('navLinks', navLinks)
 </script>
 
 <style scoped>

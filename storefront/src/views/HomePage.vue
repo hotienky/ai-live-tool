@@ -328,8 +328,16 @@ onMounted(() => loadAll())
 }
 .home-empty p { font-size: 15px; font-weight: 600; }
 
+/* Tablet */
+@media (max-width: 1024px) {
+  .product-grid, .product-skeleton-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .home-pages { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+}
+/* Mobile */
 @media (max-width: 768px) {
   .product-grid, .product-skeleton-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .home-pages { grid-template-columns: 1fr; }
+  .home-section { padding-top: 24px; }
+  .home-section__header { margin-bottom: 16px; }
 }
 </style>

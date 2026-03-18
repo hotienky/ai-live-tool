@@ -449,6 +449,16 @@
         <ShippingSettings />
       </div>
 
+      <!-- ═══ Tab: Tax Management ═══ -->
+      <div v-if="activeTab === 'tax'" class="settings__panel">
+        <TaxManagement />
+      </div>
+
+      <!-- ═══ Tab: Accounting Dashboard ═══ -->
+      <div v-if="activeTab === 'accounting'" class="settings__panel">
+        <AccountingDashboard />
+      </div>
+
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
   </div>
@@ -462,7 +472,7 @@ import {
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
   FolderTree, Award, Users, Tag, Zap,
-  Cog, KeyRound, Globe, LayoutList,
+  Cog, KeyRound, Globe, LayoutList, DollarSign,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
 } from 'lucide-vue-next'
@@ -487,6 +497,8 @@ import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
 import ShippingSettings from './ShippingSettings.vue'
+import TaxManagement from './TaxManagement.vue'
+import AccountingDashboard from './AccountingDashboard.vue'
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
 import StoreInfoConfig from './StoreInfoConfig.vue'
 import { apiFetch } from '../composables/useApi.js'
@@ -511,13 +523,15 @@ const emit = defineEmits(['openShopSelector', 'navigate'])
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 const { can, canAny, isSuperAdmin } = usePermissions()
 
-// Sync "Màu nhấn" preset with ThemeCustomizer accent
+// Sync "Màu nhấn" preset with CMS admin panel UI only
+// NOTE: This does NOT affect storefront colors. Storefront accents are configured
+// separately in ThemeCustomizer (per dark/light mode) and saved as dark_accent/light_accent
 async function onAccentPreset(name) {
   setAccent(name) // Update CMS local theme
   const preset = accentPresets[name]
   if (!preset) return
   const hex = preset.primary
-  // Apply CSS vars immediately
+  // Apply CSS vars immediately (CMS admin only)
   const root = document.documentElement
   let h = hex.replace('#', '')
   if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]
@@ -533,13 +547,6 @@ async function onAccentPreset(name) {
   root.style.setProperty('--accent-light', `#${lr.toString(16).padStart(2,'0')}${lg.toString(16).padStart(2,'0')}${lb.toString(16).padStart(2,'0')}`)
   root.style.setProperty('--accent-shadow', `0 4px 15px rgba(${r},${g},${b},0.25)`)
   root.style.setProperty('--accent-rgb', `${r},${g},${b}`)
-  // Save to DB (for storefront sync) — fire and forget
-  try {
-    await apiFetch('/system-config/group/theme', {
-      method: 'PUT',
-      body: JSON.stringify({ items: [{ key: 'accent', value: hex }] }),
-    })
-  } catch { /* silent */ }
 }
 
 // ── Tab → Permission mapping ──
@@ -594,7 +601,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
@@ -625,27 +632,27 @@ const allTabs = [
 ]
 const tabGroups = [
   {
-    label: 'Kết nối',
-    items: [
-      { key: 'connection', label: 'Nền tảng', icon: Link },
-    ],
-  },
-  {
-    label: 'Sản phẩm & Kho',
+    label: 'Sản phẩm',
     items: [
       { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
       { key: 'categories', label: 'Danh mục', icon: FolderTree },
       { key: 'brands', label: 'Thương hiệu', icon: Award },
-      { key: 'orders', label: 'Đơn hàng', icon: Receipt },
     ],
   },
   {
-    label: 'Tương tác',
+    label: 'Bán hàng',
     items: [
-      { key: 'keywords', label: 'Keywords', icon: Key },
-      { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
-      { key: 'moderation', label: 'Moderation', icon: Shield },
+      { key: 'orders', label: 'Đơn hàng', icon: Receipt },
       { key: 'shop-customers', label: 'Khách hàng', icon: Users },
+      { key: 'accounting', label: 'Kế toán', icon: DollarSign },
+      { key: 'payment', label: 'Thanh toán', icon: CreditCard },
+      { key: 'shipping', label: 'Vận chuyển', icon: Truck },
+      { key: 'tax', label: 'Thuế', icon: Receipt },
+    ],
+  },
+  {
+    label: 'Marketing',
+    items: [
       { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
       { key: 'flash-sales', label: 'Flash Sale', icon: Zap },
     ],
@@ -661,15 +668,18 @@ const tabGroups = [
     ],
   },
   {
+    label: 'Cửa hàng',
+    items: [
+      { key: 'store-info', label: 'Thông tin', icon: Store },
+      { key: 'system-config', label: 'Cấu hình', icon: Cog },
+      { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
+    ],
+  },
+  {
     label: 'Hệ thống',
     items: [
-      { key: 'store-info', label: 'Cửa hàng', icon: Store },
-      { key: 'system-config', label: 'Cấu hình', icon: Cog },
-      { key: 'payment', label: 'Thanh toán', icon: CreditCard },
-      { key: 'shipping', label: 'Vận chuyển', icon: Truck },
       { key: 'api-keys', label: 'API Keys', icon: KeyRound },
       { key: 'webhooks', label: 'Webhooks', icon: Webhook },
-      { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
       { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
       { key: 'activity-logs', label: 'Nhật ký', icon: ScrollText },
       { key: 'roles', label: 'Phân quyền', icon: ShieldCheck },
@@ -679,33 +689,39 @@ const tabGroups = [
 
 // ── Tab → Route mapping for sidebar navigation ──
 const tabToRoute = {
-  'keywords': 'live/keywords', 'replies': 'live/replies', 'moderation': 'live/moderation', 'connection': 'live/connection',
+  // Live
+  'connection': 'live/connection', 'keywords': 'live/keywords', 'replies': 'live/replies', 'moderation': 'live/moderation',
+  // Sản phẩm
   'products': 'shop/products', 'categories': 'shop/categories', 'brands': 'shop/brands',
-  'promotions': 'shop/promotions', 'banners': 'shop/banners', 'cms': 'shop/cms',
-  'nav-links': 'shop/nav', 'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
-  'store-info': 'shop/info', 'system-config': 'shop/config', 'payment': 'shop/payment', 'shipping': 'shop/shipping',
-  'api-keys': 'system/api-keys', 'webhooks': 'system/webhooks', 'languages': 'shop/languages', 'custom-fields': 'shop/custom-fields',
+  // Bán hàng
+  'orders': 'orders', 'shop-customers': 'orders/customers', 'accounting': 'orders/accounting',
+  'payment': 'shop/payment', 'shipping': 'shop/shipping', 'tax': 'shop/tax',
+  // Marketing
+  'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
+  // Giao diện
+  'cms': 'shop/cms', 'banners': 'shop/banners', 'nav-links': 'shop/nav',
+  'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
+  // Cửa hàng
+  'store-info': 'shop/info', 'system-config': 'shop/config', 'languages': 'shop/languages',
+  // Hệ thống
+  'api-keys': 'system/api-keys', 'webhooks': 'system/webhooks', 'custom-fields': 'shop/custom-fields',
   'activity-logs': 'system/logs', 'roles': 'system/roles',
-  'orders': 'orders', 'shop-customers': 'orders/customers',
 }
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'promotions', 'flash-sales', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
-const ordersTabs = ['orders', 'shop-customers']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
   let allowedTabs
   if (liveTabs.includes(tab)) allowedTabs = liveTabs
-  else if (ordersTabs.includes(tab)) allowedTabs = ordersTabs
   else allowedTabs = shopTabs
   return tabGroups
     .map(g => ({
       ...g,
       items: g.items.filter(i => {
         if (!allowedTabs.includes(i.key)) return false
-        // Filter by permission (if no mapping, allow)
         const requiredPerm = tabPermissions[i.key]
         if (!requiredPerm) return true
         return can(requiredPerm)
@@ -717,7 +733,6 @@ const activeTabGroups = computed(() => {
 const sectionTitle = computed(() => {
   const tab = activeTab.value
   if (liveTabs.includes(tab)) return 'Cài đặt Live'
-  if (ordersTabs.includes(tab)) return 'Đơn hàng'
   return 'Cửa hàng'
 })
 

@@ -3,7 +3,7 @@
     <!-- Success State -->
     <div v-if="orderSuccess" class="checkout-success">
       <!-- Progress Steps -->
-      <div class="success-steps">
+      <div class="success-steps" v-if="checkoutConfig.showSteps">
         <div class="step done"><span class="step-num">1</span><span class="step-label">Giỏ hàng</span></div>
         <div class="step-line done"></div>
         <div class="step done"><span class="step-num">2</span><span class="step-label">Thanh toán</span></div>
@@ -154,7 +154,7 @@
         <p>Giỏ hàng trống. <router-link to="/products">Thêm sản phẩm</router-link></p>
       </div>
 
-      <div v-else class="checkout-grid">
+      <div v-else class="checkout-grid" :class="{ 'checkout-grid--single': checkoutConfig.layout === 'single-column' }">
         <!-- Form -->
         <div class="checkout-form">
           <div class="form-section">
@@ -245,7 +245,7 @@
           </div>
 
           <!-- Voucher / Coupon -->
-          <div class="form-section voucher-section">
+          <div class="form-section voucher-section" v-if="checkoutConfig.showCoupon">
             <h3><Tag :size="16" /> Mã giảm giá</h3>
             <div class="voucher-input-row">
               <input
@@ -297,7 +297,7 @@
             </div>
           </div>
 
-          <div class="form-section">
+          <div class="form-section" v-if="checkoutConfig.showNotes">
             <h3><FileText :size="16" /> Ghi chú</h3>
             <textarea v-model="form.notes" rows="3" placeholder="Ghi chú thêm cho đơn hàng (không bắt buộc)"></textarea>
           </div>
@@ -332,6 +332,10 @@
                 <span v-if="shippingFee > 0">{{ formatPrice(shippingFee) }}</span>
                 <span v-else class="free">{{ selectedProvince ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
               </div>
+              <div v-if="taxEnabled && taxAmount > 0" class="total-row">
+                <span>{{ taxLabel }} <span v-if="taxDetails.length" style="font-size:11px;opacity:0.7">({{ taxDetails.map(d => d.name).join(', ') }})</span></span>
+                <span>{{ formatPrice(taxAmount) }}</span>
+              </div>
               <div class="total-row total-row--grand">
                 <span>Tổng thanh toán</span>
                 <span>{{ formatPrice(finalTotal) }}</span>
@@ -352,7 +356,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   CreditCard, User, Truck, FileText, Package, ShoppingCart, Check,
@@ -363,6 +367,13 @@ import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useShipping } from '../composables/useShipping.js'
 import { apiFetch, apiPost } from '../api.js'
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const checkoutConfig = computed(() => {
+  const defaults = { showCoupon: true, showNotes: true, showSteps: true, layout: 'two-column' }
+  const cc = layoutConfig.value?.pageConfigs?.checkout
+  return cc ? { ...defaults, ...cc } : defaults
+})
 
 const route = useRoute()
 const router = useRouter()
@@ -409,7 +420,12 @@ function handleSelectSuggestion(s) {
   selectSuggestion(s, form)
 }
 
-const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value))
+const taxEnabled = ref(false)
+const taxLabel = ref('VAT')
+const taxAmount = ref(0)
+const taxDetails = ref([])
+
+const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value + shippingFee.value + taxAmount.value))
 
 function applyCoupon() { applyRaw(cartTotal.value) }
 
@@ -418,12 +434,55 @@ const paymentMethodsList = ref([
   { code: 'bank', name: 'Chuyển khoản ngân hàng', description: 'Thanh toán qua tài khoản ngân hàng' },
 ])
 
+async function previewTax() {
+  if (!taxEnabled.value || cartItems.value.length === 0) {
+    taxAmount.value = 0
+    taxDetails.value = []
+    return
+  }
+  try {
+    const result = await apiPost('/tax/preview', {
+      items: cartItems.value.map(i => ({
+        product_id: i.productId,
+        price: i.price,
+        qty: i.qty,
+        category_id: i.categoryId || null,
+      })),
+      province_id: selectedProvince.value ? parseInt(selectedProvince.value) : null,
+    })
+    taxAmount.value = result?.tax_amount || 0
+    taxDetails.value = result?.tax_details || []
+  } catch {
+    taxAmount.value = 0
+    taxDetails.value = []
+  }
+}
+
+// Auto-update tax when cart or province changes
+watch([cartTotal, selectedProvince], () => {
+  if (taxEnabled.value) previewTax()
+})
+
 onMounted(async () => {
   // Fetch address data
   fetchProvinces()
 
   // Re-validate saved coupon on mount
   revalidateCoupon(cartTotal.value)
+
+  // Load tax config
+  try {
+    const taxConfigData = await apiFetch('/tax/config')
+    if (taxConfigData?.data) {
+      taxEnabled.value = taxConfigData.data.enabled === 'true'
+      taxLabel.value = taxConfigData.data.label || 'VAT'
+    }
+  } catch { /* tax not available — skip */ }
+
+  // Initial tax preview
+  if (taxEnabled.value && cartItems.value.length > 0) {
+    await previewTax()
+  }
 
   // Check if returning to a completed order (e.g. page reload)
   const orderId = route.query.order_id
@@ -538,6 +597,10 @@ async function placeOrder() {
     if (couponApplied.value && couponCode.value.trim()) {
       payload.coupon_code = couponCode.value.trim()
     }
+    // Include province for tax calculation
+    if (selectedProvince.value) {
+      payload.to_province_id = selectedProvince.value
+    }
     const result = await apiPost('/checkout', payload)
     orderData.value = result
     orderSuccess.value = true
@@ -564,6 +627,7 @@ async function placeOrder() {
 .checkout-empty a { color: var(--sf-accent-light); }
 
 .checkout-grid { display: grid; grid-template-columns: 1fr 400px; gap: 28px; align-items: start; }
+.checkout-grid--single { grid-template-columns: 1fr; max-width: 700px; margin: 0 auto; }
 
 /* Form */
 .checkout-form { display: flex; flex-direction: column; gap: 24px; }

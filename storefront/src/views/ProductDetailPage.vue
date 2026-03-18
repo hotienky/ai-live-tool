@@ -70,6 +70,9 @@
             <span v-if="displayOnSale" class="detail-save">
               Tiết kiệm {{ formatPrice(displayPrice - displayPromoPrice) }}
             </span>
+            <span v-if="taxConfig.enabled" class="detail-tax-label">
+              {{ taxConfig.display_mode === 'inclusive' ? ('Đã gồm ' + (taxConfig.label || 'VAT')) : ('+ ' + (taxConfig.label || 'VAT')) }}
+            </span>
           </div>
 
           <!-- Variant Selector -->
@@ -281,6 +284,7 @@ const loading = ref(true)
 const qty = ref(1)
 const activeImage = ref(null)
 const selectedVariant = ref(null)
+const taxConfig = ref({ enabled: false, display_mode: 'exclusive', label: 'Thuế' })
 
 // Parse variants from product data (prefer variants_list from API, fallback to variants jsonb)
 const variants = computed(() => {
@@ -407,7 +411,12 @@ async function loadProduct() {
   loading.value = false
 }
 
-onMounted(() => { loadProduct().then(() => { loadReviews(); loadRelated() }) })
+onMounted(() => {
+  loadProduct().then(() => { loadReviews(); loadRelated() })
+  // Load tenant tax config
+  fetch(`${window.location.protocol}//${window.location.hostname.replace('www.', '').replace(/^(?!api\.)/, 'api.')}/api/storefront/tax/config`)
+    .then(r => r.json()).then(d => { if (d?.data) taxConfig.value = d.data }).catch(() => {})
+})
 watch(() => props.slug, () => { qty.value = 1; selectedVariant.value = null; loadProduct() })
 
 const addedToCart = ref(false)
@@ -574,8 +583,12 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 .detail-name { font-size: 30px; font-weight: 900; line-height: 1.2; margin: 0; }
 
 .detail-prices {
-  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-  padding: 16px 0; border-bottom: 1px solid var(--sf-border);
+  padding: 12px 0 10px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 12px;
+}
+.detail-tax-label {
+  font-size: 11px; font-weight: 700; color: var(--accent-primary, #7c3aed);
+  background: rgba(124, 58, 237, 0.08); padding: 2px 8px; border-radius: 4px;
+  letter-spacing: 0.3px;
 }
 .detail-save {
   font-size: 12px; font-weight: 700; color: #10b981;

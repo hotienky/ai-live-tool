@@ -384,13 +384,13 @@ function onDropdownLeave() {
 }
 
 const navItems = [
-  { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, featureGroup: 'livestream' },
   {
     key: 'live-group', label: 'Live', icon: MonitorPlay,
     featureGroup: 'livestream',
     permission: null,
-    activeKeys: ['live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
+    activeKeys: ['dashboard', 'live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
     children: [
+      { key: 'dashboard', view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
       { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
       { key: 'reports', view: 'reports', label: 'Báo cáo', icon: BarChart2 },
@@ -404,11 +404,13 @@ const navItems = [
     key: 'store-group', label: 'Cửa hàng', icon: Store,
     featureGroup: 'store',
     permission: 'products.view',
-    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages'],
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax'],
     children: [
       { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
       { key: 'store-categories',  view: 'shop/categories',  label: 'Danh mục',    icon: FolderTree,   permission: 'products.view' },
       { key: 'store-brands',      view: 'shop/brands',      label: 'Thương hiệu',  icon: Award,        permission: 'products.view' },
+      { key: 'orders-list',       view: 'orders',           label: 'Đơn hàng',     icon: Receipt,      permission: 'orders.view' },
+      { key: 'orders-customers',  view: 'orders/customers', label: 'Khách hàng',   icon: Users,        permission: 'customers.view' },
       { key: 'store-promotions',  view: 'shop/promotions',  label: 'Khuyến mãi',   icon: Tag,          permission: 'promotions.view' },
       { key: 'store-flash-sales', view: 'shop/flash-sales', label: 'Flash Sale',   icon: Zap,          permission: 'promotions.view' },
       { key: 'store-banners',     view: 'shop/banners',     label: 'Banner',       icon: Image,        permission: 'banners.view' },
@@ -417,16 +419,6 @@ const navItems = [
       { key: 'store-appearance',  view: 'shop/appearance',  label: 'Giao diện',   icon: Palette,      permission: 'settings.view' },
       { key: 'store-config',      view: 'shop/config',      label: 'Cấu hình',     icon: Cog,          permission: 'settings.edit' },
       { key: 'store-languages',   view: 'shop/languages',   label: 'Ngôn ngữ',    icon: Globe,        permission: 'settings.edit' },
-    ],
-  },
-  {
-    key: 'orders-group', label: 'Đơn hàng', icon: Receipt,
-    featureGroup: 'store',
-    permission: 'orders.view',
-    activeKeys: ['orders', 'orders/customers'],
-    children: [
-      { key: 'orders-list',      view: 'orders',           label: 'Đơn hàng',     icon: Receipt, permission: 'orders.view' },
-      { key: 'orders-customers', view: 'orders/customers', label: 'Khách hàng',   icon: Users,   permission: 'customers.view' },
     ],
   },
 
@@ -470,7 +462,8 @@ const routeToTab = {
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
-  'orders': 'orders', 'orders/customers': 'shop-customers',
+  'orders': 'orders', 'orders/customers': 'shop-customers', 'orders/accounting': 'accounting',
+  'shop/tax': 'tax',
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',

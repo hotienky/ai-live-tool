@@ -158,6 +158,79 @@
                 </label>
               </div>
             </template>
+            <!-- Checkout -->
+            <template v-else-if="activeBuiltinPage === 'checkout'">
+              <div class="param-row"><label>Layout</label>
+                <select v-model="pageConfigs.checkout.layout" class="param-select">
+                  <option value="two-column">2 cột (Form + Tóm tắt)</option>
+                  <option value="single-column">1 cột</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Mã giảm giá</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.checkout.showCoupon" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Ghi chú đơn hàng</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.checkout.showNotes" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Thanh tiến trình</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.checkout.showSteps" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </template>
+            <!-- Auth -->
+            <template v-else-if="activeBuiltinPage === 'auth'">
+              <div class="param-row"><label>Cho phép đăng ký</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.auth.allowRegister" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Quên mật khẩu</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.auth.allowForgotPassword" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Chiều rộng card (px)</label>
+                <input type="range" v-model.number="pageConfigs.auth.cardMaxWidth" min="360" max="600" step="20" class="param-range" />
+                <span class="param-value">{{ pageConfigs.auth.cardMaxWidth }}px</span>
+              </div>
+            </template>
+            <!-- Account -->
+            <template v-else-if="activeBuiltinPage === 'account'">
+              <div class="param-row"><label>Sidebar</label>
+                <select v-model="pageConfigs.account.sidebarPosition" class="param-select">
+                  <option value="left">Bên trái</option>
+                  <option value="right">Bên phải</option>
+                </select>
+              </div>
+              <div class="param-row"><label>Tab đơn hàng</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.account.showOrders" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Tab địa chỉ</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.account.showAddresses" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div class="param-row"><label>Tab đổi mật khẩu</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="pageConfigs.account.showPasswordChange" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </template>
             <!-- Other built-in pages: just show a note -->
             <template v-else>
               <div class="builtin-page-note">
@@ -643,8 +716,8 @@
             </div>
           </div>
 
-          <!-- Add Section Button (Phase 3 hook) -->
-          <button class="btn-add-section" @click="showLibrary = true">
+          <!-- Add Section Button (only for homepage and CMS dynamic pages, not builtin pages) -->
+          <button class="btn-add-section" @click="showLibrary = true" v-show="!activeBuiltinPage">
             <Plus :size="14" /> Thêm section
           </button>
         </div>
@@ -1004,11 +1077,60 @@
             </div>
           </div>
           <div class="pv-body">
-            <template v-for="section in activeSections" :key="section.type">
-              <div class="pv-section" :class="'pv-section--' + section.type">
-                <div class="pv-section__label">{{ sectionMeta[section.type]?.label || section.type }}</div>
-                <div class="pv-section__visual" :style="{ height: sectionMeta[section.type]?.pvHeight || '30px' }"></div>
+            <!-- Built-in page preview -->
+            <template v-if="activeBuiltinPage === 'products'">
+              <div class="pv-page-layout" :class="'pv-page-layout--sidebar-' + (pageConfigs.products?.sidebarPosition || 'left')">
+                <div class="pv-sidebar" v-if="pageConfigs.products?.sidebarPosition !== 'hidden'">
+                  <div class="pv-sidebar__label">Sidebar</div>
+                  <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.category"></div>
+                  <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.brand"></div>
+                  <div class="pv-sidebar__block pv-sidebar__block--sm" v-if="pageConfigs.products?.showFilters?.price"></div>
+                </div>
+                <div class="pv-product-grid">
+                  <div class="pv-product-grid__label">Sản phẩm ({{ pageConfigs.products?.gridColumns || 4 }} cột)</div>
+                  <div class="pv-product-grid__items" :style="{ gridTemplateColumns: `repeat(${pageConfigs.products?.gridColumns || 4}, 1fr)` }">
+                    <div v-for="n in (pageConfigs.products?.itemsPerPage || 12)" :key="n" class="pv-product-item"></div>
+                  </div>
+                </div>
               </div>
+            </template>
+            <template v-else-if="activeBuiltinPage === 'productDetail'">
+              <div class="pv-page-layout pv-page-layout--detail" :style="{ gridTemplateColumns: (pageConfigs.productDetail?.layoutRatio || '50-50').replace('-', 'fr ') + 'fr' }">
+                <div class="pv-detail-gallery">
+                  <div class="pv-detail-gallery__main"></div>
+                  <div class="pv-detail-gallery__thumbs" v-if="pageConfigs.productDetail?.galleryStyle === 'thumbnails'">
+                    <div v-for="n in 4" :key="n" class="pv-thumb"></div>
+                  </div>
+                </div>
+                <div class="pv-detail-info">
+                  <div class="pv-detail-info__title"></div>
+                  <div class="pv-detail-info__price"></div>
+                  <div class="pv-detail-info__btn"></div>
+                </div>
+              </div>
+              <div class="pv-section pv-section--related" v-if="pageConfigs.productDetail?.showRelatedProducts">
+                <div class="pv-section__label">SP liên quan ({{ pageConfigs.productDetail?.relatedCount || 6 }})</div>
+                <div class="pv-section__visual" style="height:40px"></div>
+              </div>
+              <div class="pv-section pv-section--reviews" v-if="pageConfigs.productDetail?.showReviews">
+                <div class="pv-section__label">Đánh giá</div>
+                <div class="pv-section__visual" style="height:30px"></div>
+              </div>
+            </template>
+            <template v-else-if="activeBuiltinPage">
+              <div class="pv-section">
+                <div class="pv-section__label">{{ builtinPageOptions.find(p => p.id === activePageId)?.label || activeBuiltinPage }}</div>
+                <div class="pv-section__visual" style="height:80px"></div>
+              </div>
+            </template>
+            <!-- Homepage sections preview -->
+            <template v-else>
+              <template v-for="section in activeSections" :key="section.type">
+                <div class="pv-section" :class="'pv-section--' + section.type">
+                  <div class="pv-section__label">{{ sectionMeta[section.type]?.label || section.type }}</div>
+                  <div class="pv-section__visual" :style="{ height: sectionMeta[section.type]?.pvHeight || '30px' }"></div>
+                </div>
+              </template>
             </template>
           </div>
           <div class="pv-footer"></div>
@@ -1073,7 +1195,7 @@ import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
   Eye, ShoppingBag, ShoppingCart, User, Truck, FileStack, Plus, X, Code,
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
-  Monitor, Tablet, Smartphone, AlertCircle, Layers,
+  Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
   Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText
 } from 'lucide-vue-next'
@@ -1102,10 +1224,11 @@ const pageDropdownOpen = ref(false)
 const builtinPageOptions = [
   { id: '__products',       label: 'Trang sản phẩm',    icon: ShoppingBag },
   { id: '__productDetail',  label: 'Chi tiết sản phẩm', icon: Package },
+  { id: '__checkout',       label: 'Thanh toán',          icon: CreditCard },
+  { id: '__auth',           label: 'Đăng nhập / Đăng ký', icon: Lock },
+  { id: '__account',        label: 'Tài khoản',           icon: User },
   { id: '__wishlist',       label: 'Yêu thích',          icon: Heart },
   { id: '__cart',           label: 'Giỏ hàng',           icon: ShoppingCart },
-  { id: '__account',        label: 'Tài khoản',           icon: User },
-  { id: '__auth',           label: 'Đăng nhập',           icon: Lock },
   { id: '__order_tracking', label: 'Tra cứu đơn',        icon: Truck },
 ]
 
@@ -1208,6 +1331,24 @@ const defaultPageConfigs = {
     showRelatedProducts: true,
     relatedCount: 6,
     showReviews: true,
+  },
+  checkout: {
+    showCoupon: true,
+    showNotes: true,
+    showSteps: true,
+    layout: 'two-column',
+  },
+  auth: {
+    allowRegister: true,
+    allowForgotPassword: true,
+    showSocialLogin: false,
+    cardMaxWidth: 440,
+  },
+  account: {
+    showOrders: true,
+    showAddresses: true,
+    showPasswordChange: true,
+    sidebarPosition: 'left',
   },
 }
 const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
@@ -1453,6 +1594,9 @@ async function loadLayout() {
       pageConfigs.value = {
         products: { ...defaultPageConfigs.products, ...parsedPC.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(parsedPC.products?.showFilters || {}) } },
         productDetail: { ...defaultPageConfigs.productDetail, ...parsedPC.productDetail },
+        checkout: { ...defaultPageConfigs.checkout, ...parsedPC.checkout },
+        auth: { ...defaultPageConfigs.auth, ...parsedPC.auth },
+        account: { ...defaultPageConfigs.account, ...parsedPC.account },
       }
     }
     const parsedHC = map.layout_header_config ? JSON.parse(map.layout_header_config) : null
@@ -1491,7 +1635,8 @@ async function loadLayout() {
 async function saveLayout() {
   saving.value = true
   try {
-    if (activePageId.value) {
+    // CMS dynamic page (numeric ID) — save layout_data to CMS page
+    if (activePageId.value && !activeBuiltinPage.value) {
       await apiFetch(`/cms-pages/${activePageId.value}`, {
         method: 'PUT',
         body: JSON.stringify({ layout_data: sections.value }),
@@ -1500,6 +1645,9 @@ async function saveLayout() {
       saving.value = false
       return
     }
+
+    // Built-in pages (__products, __productDetail) and Homepage
+    // All share the same system-config storefront_layout group
 
     await apiFetch('/system-config/group/storefront_layout', {
       method: 'PUT',
@@ -1526,7 +1674,8 @@ async function saveLayout() {
 async function saveDraft() {
   saving.value = true
   try {
-    if (activePageId.value) {
+    // CMS dynamic page (numeric ID)
+    if (activePageId.value && !activeBuiltinPage.value) {
       await apiFetch(`/cms-pages/${activePageId.value}`, {
         method: 'PUT',
         body: JSON.stringify({ layout_data: sections.value }),
@@ -1536,6 +1685,7 @@ async function saveDraft() {
       return
     }
 
+    // Built-in pages and Homepage — save to system-config
     await apiFetch('/system-config/group/storefront_layout', {
       method: 'PUT',
       body: JSON.stringify({
@@ -1901,6 +2051,32 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .pv-section--testimonials .pv-section__visual { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15)); opacity: 0.6; }
 .pv-section--faq .pv-section__visual { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.15)); opacity: 0.6; }
 .pv-footer { padding: 6px; border-top: 1px solid var(--glass-border); background: var(--glass-bg); height: 16px; }
+
+/* Page-specific preview: Products page */
+.pv-page-layout { display: grid; grid-template-columns: 80px 1fr; gap: 8px; min-height: 120px; }
+.pv-page-layout--sidebar-right { grid-template-columns: 1fr 80px; }
+.pv-page-layout--sidebar-right .pv-sidebar { order: 2; }
+.pv-page-layout--sidebar-right .pv-product-grid { order: 1; }
+.pv-page-layout--sidebar-hidden { grid-template-columns: 1fr; }
+.pv-sidebar { border-radius: 6px; padding: 6px; border: 1px dashed var(--glass-border); background: var(--glass-bg); }
+.pv-sidebar__label { font-size: 8px; color: var(--color-text-muted); font-weight: 700; margin-bottom: 4px; }
+.pv-sidebar__block { height: 18px; border-radius: 3px; background: var(--color-border); opacity: 0.3; margin-bottom: 4px; }
+.pv-sidebar__block--sm { height: 12px; }
+.pv-product-grid { border-radius: 6px; padding: 6px; border: 1px dashed var(--glass-border); background: var(--glass-bg); }
+.pv-product-grid__label { font-size: 8px; color: var(--color-text-muted); font-weight: 700; margin-bottom: 4px; }
+.pv-product-grid__items { display: grid; gap: 4px; }
+.pv-product-item { aspect-ratio: 1; border-radius: 4px; background: linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.12)); }
+
+/* Page-specific preview: Product Detail */
+.pv-page-layout--detail { display: grid; gap: 8px; min-height: 100px; }
+.pv-detail-gallery { border-radius: 6px; padding: 6px; border: 1px dashed var(--glass-border); background: var(--glass-bg); }
+.pv-detail-gallery__main { height: 60px; border-radius: 4px; background: linear-gradient(135deg, var(--color-accent-glow), rgba(236,72,153,0.15)); margin-bottom: 4px; }
+.pv-detail-gallery__thumbs { display: flex; gap: 3px; }
+.pv-thumb { width: 16px; height: 16px; border-radius: 3px; background: var(--color-border); opacity: 0.3; }
+.pv-detail-info { border-radius: 6px; padding: 8px; border: 1px dashed var(--glass-border); background: var(--glass-bg); display: flex; flex-direction: column; gap: 6px; }
+.pv-detail-info__title { height: 10px; width: 70%; border-radius: 3px; background: var(--color-border); opacity: 0.4; }
+.pv-detail-info__price { height: 10px; width: 40%; border-radius: 3px; background: linear-gradient(90deg, rgba(52,211,153,0.3), rgba(16,185,129,0.3)); }
+.pv-detail-info__btn { height: 14px; width: 60%; border-radius: 4px; background: var(--color-accent-glow); opacity: 0.6; }
 
 /* Live preview */
 .preview-live {

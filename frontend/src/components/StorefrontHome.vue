@@ -1,14 +1,23 @@
 <template>
-  <div class="sf">
+  <div class="sf" :style="customCssVars">
     <!-- Header -->
-    <header class="sf-header">
+    <header class="sf-header" :class="{ 'sf-header--sticky': headerConfig.sticky !== false }">
+      <button class="sf-hamburger" @click="mobileMenuOpen = !mobileMenuOpen">
+        <Menu :size="20" />
+      </button>
       <div class="sf-header__left">
         <Store :size="20" class="sf-header__logo-icon" />
         <span class="sf-header__name">{{ storeInfo?.shop_name || 'Shop' }}</span>
       </div>
-      <div class="sf-header__search">
+      <!-- Desktop Nav -->
+      <nav class="sf-nav sf-nav--desktop" v-if="navLinks.length > 0">
+        <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-nav__link">
+          {{ link.name }}
+        </a>
+      </nav>
+      <div class="sf-header__search" v-if="headerConfig.showSearch !== false">
         <Search :size="16" />
-        <input v-model="search" type="text" placeholder="Tìm sản phẩm..." class="sf-search-input" @keyup.enter="loadProducts" />
+        <input v-model="search" type="text" placeholder="Tìm sản phẩm..." class="sf-search-input" @keyup.enter="doSearch" />
       </div>
       <div class="sf-header__right">
         <button class="sf-header__btn" @click="$emit('navigate', 'cart')">
@@ -21,94 +30,136 @@
       </div>
     </header>
 
-    <!-- Banner Slider -->
-    <section class="sf-banners" v-if="banners.length > 0">
-      <div class="sf-banner-track" :style="{ transform: `translateX(-${bannerIdx * 100}%)` }">
-        <div v-for="b in banners" :key="b.id" class="sf-banner-slide">
-          <img v-if="b.image_url || b.image" :src="b.image_url || b.image" :alt="b.title" class="sf-banner-img" />
-          <div class="sf-banner-overlay">
-            <h2 class="sf-banner-title">{{ b.title }}</h2>
-            <p class="sf-banner-desc" v-if="b.description">{{ b.description }}</p>
+    <!-- Mobile Nav Drawer -->
+    <transition name="sf-drawer">
+      <div class="sf-mobile-overlay" v-if="mobileMenuOpen" @click="mobileMenuOpen = false">
+        <nav class="sf-mobile-nav" @click.stop>
+          <div class="sf-mobile-nav__header">
+            <Store :size="18" class="sf-header__logo-icon" />
+            <span class="sf-header__name">{{ storeInfo?.shop_name || 'Shop' }}</span>
+            <button class="sf-mobile-nav__close" @click="mobileMenuOpen = false"><X :size="18" /></button>
           </div>
-        </div>
+          <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-mobile-nav__link" @click="mobileMenuOpen = false">
+            {{ link.name }}
+          </a>
+          <div class="sf-mobile-nav__divider"></div>
+          <a class="sf-mobile-nav__link" href="#" @click.prevent="$emit('navigate', 'cart'); mobileMenuOpen = false">
+            <ShoppingCart :size="16" /> Giỏ hàng
+          </a>
+          <a class="sf-mobile-nav__link" href="#" @click.prevent="$emit('navigate', 'account'); mobileMenuOpen = false">
+            <User :size="16" /> Tài khoản
+          </a>
+        </nav>
       </div>
-      <div class="sf-banner-dots">
-        <button v-for="(_, i) in banners" :key="i" class="sf-dot" :class="{ active: bannerIdx === i }" @click="bannerIdx = i" />
-      </div>
-    </section>
+    </transition>
 
-    <!-- Categories -->
-    <section class="sf-section" v-if="categories.length > 0">
-      <h3 class="sf-section__title"><Grid :size="16" /> Danh mục</h3>
-      <div class="sf-categories">
-        <button v-for="cat in categories" :key="cat.id" class="sf-cat-card" :class="{ active: selectedCat === cat.id }"
-          @click="selectedCat = selectedCat === cat.id ? null : cat.id; loadProducts()">
-          <FolderOpen :size="20" />
-          <span>{{ cat.name }}</span>
-        </button>
-      </div>
-    </section>
+    <!-- Loading State -->
+    <div class="sf-loading" v-if="loading">
+      <Loader2 :size="32" class="spin" />
+      <p>Đang tải...</p>
+    </div>
 
-    <!-- Products Grid -->
-    <section class="sf-section">
-      <h3 class="sf-section__title"><ShoppingBag :size="16" /> Sản phẩm
-        <span class="sf-count" v-if="totalProducts">({{ totalProducts }})</span>
-      </h3>
-      <div class="sf-products" v-if="products.length > 0">
-        <div v-for="p in products" :key="p.id" class="sf-product-card" @click="$emit('viewProduct', p.id)">
-          <div class="sf-product-img-wrap">
-            <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" class="sf-product-img" />
-            <Package v-else :size="40" class="sf-product-placeholder" />
-            <span class="sf-promo-badge" v-if="isOnPromotion(p)">
-              -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
-            </span>
-          </div>
-          <div class="sf-product-info">
-            <h4 class="sf-product-name">{{ p.name }}</h4>
-            <div class="sf-product-prices">
-              <span class="sf-price" :class="{ 'sf-price--old': isOnPromotion(p) }">{{ formatPrice(p.price) }}</span>
-              <span class="sf-price sf-price--promo" v-if="isOnPromotion(p)">{{ formatPrice(p.promotion_price) }}</span>
-            </div>
-            <span class="sf-product-cat" v-if="p.category">{{ p.category }}</span>
-          </div>
-        </div>
-      </div>
-      <p v-else class="sf-empty">Không có sản phẩm nào</p>
+    <!-- Dynamic Section Renderer -->
+    <template v-else>
+      <template v-for="section in enabledSections" :key="section.type">
+        <!-- Banner -->
+        <SfBannerSection
+          v-if="section.type === 'banner'"
+          :banners="sectionData.banners"
+          :config="section.params || {}"
+        />
 
-      <!-- Pagination -->
-      <div class="sf-pagination" v-if="totalPages > 1">
-        <button class="sf-page-btn" :disabled="page <= 1" @click="page--; loadProducts()">
-          <ChevronLeft :size="16" />
-        </button>
-        <span class="sf-page-info">{{ page }} / {{ totalPages }}</span>
-        <button class="sf-page-btn" :disabled="page >= totalPages" @click="page++; loadProducts()">
-          <ChevronRight :size="16" />
-        </button>
-      </div>
-    </section>
+        <!-- Categories -->
+        <SfCategoriesSection
+          v-if="section.type === 'categories'"
+          :categories="sectionData.categories"
+          :config="section.params || {}"
+          @select="onCategorySelect"
+        />
 
-    <!-- CMS Pages Links -->
-    <section class="sf-section" v-if="pages.length > 0">
-      <h3 class="sf-section__title"><FileText :size="16" /> Trang thông tin</h3>
-      <div class="sf-pages">
-        <button v-for="pg in pages" :key="pg.id" class="sf-page-link" @click="$emit('viewPage', pg.id)">
-          <FileText :size="14" />
-          {{ pg.title }}
-        </button>
-      </div>
-    </section>
+        <!-- Flash Sale -->
+        <SfFlashSaleSection
+          v-if="section.type === 'flash_sale'"
+          :products="sectionData.flashSaleProducts"
+          :end-time="sectionData.flashSaleEndTime"
+          :config="section.params || {}"
+          @viewProduct="(id) => $emit('viewProduct', id)"
+        />
+
+        <!-- Featured Products -->
+        <SfProductGridSection
+          v-if="section.type === 'featured_products'"
+          :products="sectionData.featuredProducts"
+          :title="section.params?.title || 'Sản phẩm nổi bật'"
+          :config="section.params || {}"
+          @viewProduct="(id) => $emit('viewProduct', id)"
+        />
+
+        <!-- New Arrivals -->
+        <SfProductGridSection
+          v-if="section.type === 'new_arrivals'"
+          :products="sectionData.newArrivals"
+          :title="section.params?.title || 'Hàng mới về'"
+          :config="section.params || {}"
+          @viewProduct="(id) => $emit('viewProduct', id)"
+        />
+
+        <!-- CMS Pages -->
+        <SfCmsPagesSection
+          v-if="section.type === 'cms_pages'"
+          :pages="sectionData.pages"
+          :config="section.params || {}"
+          @viewPage="(id) => $emit('viewPage', id)"
+        />
+
+        <!-- Content-driven sections: testimonials, faq, gallery, video, text, newsletter, brands, social -->
+        <SfContentSection
+          v-if="contentSectionTypes.includes(section.type)"
+          :type="section.type"
+          :content="section.content || []"
+          :config="section.params || {}"
+          :brands="sectionData.brands"
+        />
+      </template>
+    </template>
 
     <!-- Footer -->
     <footer class="sf-footer">
-      <p>© {{ new Date().getFullYear() }} {{ storeInfo?.shop_name || 'Shop' }}. Powered by KAC company</p>
+      <div class="sf-footer__columns" v-if="footerConfig.columns?.length">
+        <div v-for="(col, i) in footerConfig.columns" :key="i" class="sf-footer__col">
+          <h5>{{ col.title }}</h5>
+          <template v-if="col.type === 'links'">
+            <a v-for="(link, j) in (col.links || [])" :key="j" :href="link.url" class="sf-footer__link">{{ link.label }}</a>
+          </template>
+          <template v-if="col.type === 'contact'">
+            <p v-for="(item, j) in (col.items || [])" :key="j" class="sf-footer__contact">{{ item }}</p>
+          </template>
+        </div>
+      </div>
+      <div class="sf-footer__bottom">
+        <p>{{ footerConfig.copyrightText || `© ${new Date().getFullYear()} ${storeInfo?.shop_name || 'Shop'}. Powered by KAC company` }}</p>
+      </div>
     </footer>
+
+    <!-- Custom CSS injection -->
+    <component :is="'style'" v-if="customCss">{{ customCss }}</component>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { Store, Search, ShoppingCart, User, Grid, FolderOpen, ShoppingBag, Package, FileText, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from 'vue'
+import { Store, Search, ShoppingCart, User, Loader2, Menu, X } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
+
+// Section components
+import SfBannerSection from './storefront/SfBannerSection.vue'
+import SfCategoriesSection from './storefront/SfCategoriesSection.vue'
+import SfProductGridSection from './storefront/SfProductGridSection.vue'
+import SfFlashSaleSection from './storefront/SfFlashSaleSection.vue'
+import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
+import SfContentSection from './storefront/SfContentSection.vue'
+
+const contentSectionTypes = ['testimonials', 'faq', 'image_gallery', 'video_embed', 'text_block', 'newsletter', 'brands_slider', 'social_feed']
 
 const props = defineProps({
   storeId: { type: [String, Number], required: true },
@@ -116,222 +167,241 @@ const props = defineProps({
 })
 const emit = defineEmits(['viewProduct', 'viewPage', 'navigate'])
 
+// State
+const loading = ref(true)
 const storeInfo = ref(null)
-const banners = ref([])
-const categories = ref([])
-const products = ref([])
-const pages = ref([])
 const search = ref('')
-const selectedCat = ref(null)
-const page = ref(1)
-const totalProducts = ref(0)
-const totalPages = ref(1)
-const bannerIdx = ref(0)
+const mobileMenuOpen = ref(false)
 
-let bannerTimer = null
+// Layout config from API
+const sections = ref([])
+const headerConfig = ref({})
+const footerConfig = ref({})
+const customCss = ref('')
+const navLinks = ref([])
 
+// Section data fetched from API
+const sectionData = ref({
+  banners: [],
+  categories: [],
+  flashSaleProducts: [],
+  flashSaleEndTime: null,
+  featuredProducts: [],
+  newArrivals: [],
+  pages: [],
+  brands: [],
+})
+
+// Computed
+const enabledSections = computed(() =>
+  sections.value
+    .filter(s => s.enabled !== false)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+)
+
+const visibleNavLinks = computed(() => {
+  const max = headerConfig.value.maxNavLinks || 5
+  return navLinks.value.filter(l => l.is_active !== false).slice(0, max)
+})
+
+const customCssVars = computed(() => {
+  // Let the backend theme config override CSS variables
+  return {}
+})
+
+// API helpers
 async function sfApiFetch(path) {
-  const res = await fetch(`${API_BASE}/storefront${path}`, {
-    headers: { 'Accept': 'application/json' },
-  })
+  const res = await fetch(`${API_BASE}/storefront${path}`, { headers: { 'Accept': 'application/json' } })
   const json = await res.json()
-  // Unwrap API envelope
   if (json && typeof json === 'object' && 'data' in json && json.type) return json.data
   return json
 }
 
-async function loadStoreInfo() {
-  try { storeInfo.value = await sfApiFetch('/info') } catch { /* ignore */ }
-}
-
-async function loadBanners() {
-  try { banners.value = await sfApiFetch('/banners') } catch { banners.value = [] }
-}
-
-async function loadCategories() {
-  try { categories.value = await sfApiFetch('/categories') } catch { categories.value = [] }
-}
-
-async function loadProducts() {
+// Bootstrap: fetch site-config + section data in parallel
+async function bootstrap() {
+  loading.value = true
   try {
-    const params = new URLSearchParams()
-    params.set('page', page.value)
-    params.set('limit', '12')
-    if (search.value) params.set('search', search.value)
-    if (selectedCat.value) params.set('category', selectedCat.value)
-    const data = await sfApiFetch(`/products?${params}`)
-    products.value = Array.isArray(data) ? data : (data.data || data)
-    totalProducts.value = data.meta?.total || products.value.length
-    totalPages.value = data.meta?.lastPage || data.meta?.last_page || 1
-  } catch { products.value = [] }
-}
+    // 1) Fetch mega config
+    const config = await sfApiFetch('/site-config')
+    storeInfo.value = config.store || {}
+    sections.value = config.layout?.sections || []
+    headerConfig.value = config.layout?.headerConfig || {}
+    footerConfig.value = config.layout?.footerConfig || {}
+    customCss.value = config.layout?.customCss || ''
+    navLinks.value = config.navLinks || []
 
-async function loadPages() {
-  try { pages.value = await sfApiFetch('/pages') } catch { pages.value = [] }
-}
+    // Store categories from config (saves an extra API call)
+    sectionData.value.categories = config.categories || []
 
-function isOnPromotion(p) {
-  if (!p.promotion_price || p.promotion_price >= p.price) return false
-  const now = Date.now()
-  if (p.promotion_start && new Date(p.promotion_start).getTime() > now) return false
-  if (p.promotion_end && new Date(p.promotion_end).getTime() < now) return false
-  return true
-}
+    // 2) Fetch section-specific data in parallel based on enabled sections
+    const enabled = new Set(enabledSections.value.map(s => s.type))
+    const fetches = []
 
-function formatPrice(v) {
-  return Number(v || 0).toLocaleString('vi-VN') + 'đ'
-}
-
-function startBannerAuto() {
-  if (bannerTimer) clearInterval(bannerTimer)
-  bannerTimer = setInterval(() => {
-    if (banners.value.length > 1) {
-      bannerIdx.value = (bannerIdx.value + 1) % banners.value.length
+    if (enabled.has('banner')) {
+      fetches.push(sfApiFetch('/banners').then(d => { sectionData.value.banners = Array.isArray(d) ? d : [] }).catch(() => {}))
     }
-  }, 5000)
+    if (enabled.has('flash_sale')) {
+      fetches.push(sfApiFetch('/flash-sales/active').then(d => {
+        if (d && d.products) {
+          sectionData.value.flashSaleProducts = d.products
+          sectionData.value.flashSaleEndTime = d.end_time || null
+        } else if (Array.isArray(d)) {
+          sectionData.value.flashSaleProducts = d
+        }
+      }).catch(() => {}))
+    }
+    if (enabled.has('featured_products')) {
+      fetches.push(sfApiFetch('/featured-products').then(d => { sectionData.value.featuredProducts = Array.isArray(d) ? d : [] }).catch(() => {}))
+    }
+    if (enabled.has('new_arrivals')) {
+      const count = enabledSections.value.find(s => s.type === 'new_arrivals')?.params?.count || 8
+      fetches.push(sfApiFetch(`/products?per_page=${count}&sort_by=newest`).then(d => {
+        sectionData.value.newArrivals = Array.isArray(d) ? d : (d?.data || [])
+      }).catch(() => {}))
+    }
+    if (enabled.has('cms_pages')) {
+      fetches.push(sfApiFetch('/pages').then(d => { sectionData.value.pages = Array.isArray(d) ? d : [] }).catch(() => {}))
+    }
+    if (enabled.has('brands_slider')) {
+      fetches.push(sfApiFetch('/brands').then(d => { sectionData.value.brands = Array.isArray(d) ? d : [] }).catch(() => {}))
+    }
+
+    await Promise.all(fetches)
+  } catch (e) {
+    console.error('[Storefront] Bootstrap failed:', e)
+  }
+  loading.value = false
 }
 
-onMounted(async () => {
-  await Promise.all([loadStoreInfo(), loadBanners(), loadCategories(), loadProducts(), loadPages()])
-  startBannerAuto()
-})
+function onCategorySelect(cat) {
+  // Navigate to category view
+  emit('navigate', 'category', cat.id)
+}
 
-watch(() => props.storeId, async () => {
-  page.value = 1; search.value = ''; selectedCat.value = null
-  await Promise.all([loadStoreInfo(), loadBanners(), loadCategories(), loadProducts(), loadPages()])
-})
+function doSearch() {
+  if (search.value.trim()) {
+    emit('navigate', 'search', search.value.trim())
+  }
+}
+
+onMounted(bootstrap)
+watch(() => props.storeId, bootstrap)
 </script>
 
 <style scoped>
-.sf { min-height: 100vh; background: var(--color-bg-primary); color: var(--color-text-primary); }
+.sf { min-height: 100vh; background: var(--color-bg-primary, #f5f6fa); color: var(--color-text-primary, #18181b); }
+
+/* ── Loading ── */
+.sf-loading {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 60vh; gap: 12px; color: var(--color-text-muted, #6b6b7b);
+}
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Header ── */
 .sf-header {
   display: flex; align-items: center; gap: 16px; padding: 12px 24px;
-  background: var(--color-header-bg); backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 50;
+  background: var(--color-header-bg, rgba(255,255,255,0.97)); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-border, rgba(0,0,0,0.1)); z-index: 50;
 }
-.sf-header__left { display: flex; align-items: center; gap: 8px; }
-.sf-header__logo-icon { color: var(--color-accent-primary); }
-.sf-header__name { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--color-accent-primary), #ff8c42); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.sf-header--sticky { position: sticky; top: 0; }
+.sf-header__left { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.sf-header__logo-icon { color: var(--sf-accent, #7c3aed); }
+.sf-header__name { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, var(--sf-accent, #7c3aed), #ff8c42); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* Hamburger — hidden on desktop */
+.sf-hamburger {
+  display: none; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+  background: transparent; color: var(--color-text-secondary, #3f3f46); cursor: pointer;
+}
+
+.sf-nav--desktop { display: flex; gap: 4px; flex: 1; justify-content: center; }
+.sf-nav__link {
+  padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  color: var(--color-text-secondary, #3f3f46); text-decoration: none; transition: all 0.2s;
+}
+.sf-nav__link:hover { color: var(--sf-accent, #7c3aed); background: var(--color-accent-glow, rgba(124,58,237,0.08)); }
+
 .sf-header__search {
-  flex: 1; max-width: 480px; margin: 0 auto; display: flex; align-items: center; gap: 8px;
-  padding: 8px 16px; border-radius: 12px; background: var(--color-bg-card);
-  border: 1px solid var(--color-border); transition: border-color 0.2s;
+  flex: 1; max-width: 360px; display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border-radius: 12px; background: var(--color-bg-card, #fff);
+  border: 1px solid var(--color-border, rgba(0,0,0,0.1)); transition: border-color 0.2s;
 }
-.sf-header__search:focus-within { border-color: var(--color-accent-primary); }
-.sf-header__search svg { color: var(--color-text-muted); flex-shrink: 0; }
-.sf-search-input { flex: 1; border: none; background: transparent; color: var(--color-text-primary); font-size: 14px; outline: none; }
-.sf-header__right { display: flex; align-items: center; gap: 8px; }
+.sf-header__search:focus-within { border-color: var(--sf-accent, #7c3aed); }
+.sf-header__search svg { color: var(--color-text-muted, #6b6b7b); flex-shrink: 0; }
+.sf-search-input { flex: 1; border: none; background: transparent; color: var(--color-text-primary, #18181b); font-size: 14px; outline: none; }
+.sf-header__right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .sf-header__btn {
   position: relative; display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--color-border);
-  background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s;
+  width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+  background: transparent; color: var(--color-text-secondary, #3f3f46); cursor: pointer; transition: all 0.2s;
 }
-.sf-header__btn:hover { color: var(--color-accent-primary); border-color: var(--color-accent-primary); background: var(--color-accent-glow); }
+.sf-header__btn:hover { color: var(--sf-accent, #7c3aed); border-color: var(--sf-accent, #7c3aed); }
 .sf-cart-count {
   position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px;
-  border-radius: 9px; background: var(--color-accent-hot); color: #fff;
+  border-radius: 9px; background: var(--color-accent-hot, #ef4444); color: #fff;
   font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
 
-/* ── Banners ── */
-.sf-banners {
-  position: relative; overflow: hidden; border-radius: 16px; margin: 20px 24px;
-  aspect-ratio: 21/9; background: var(--color-bg-card);
+/* ── Mobile Nav Drawer ── */
+.sf-mobile-overlay {
+  position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px);
 }
-.sf-banner-track { display: flex; transition: transform 0.6s cubic-bezier(.4,0,.2,1); height: 100%; }
-.sf-banner-slide { min-width: 100%; position: relative; }
-.sf-banner-img { width: 100%; height: 100%; object-fit: cover; }
-.sf-banner-overlay {
-  position: absolute; bottom: 0; left: 0; right: 0; padding: 24px 32px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+.sf-mobile-nav {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-width: 80vw;
+  background: var(--color-header-bg, #fff); box-shadow: 4px 0 24px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; overflow-y: auto;
 }
-.sf-banner-title { font-size: 24px; font-weight: 800; color: #fff; margin: 0 0 4px; }
-.sf-banner-desc { font-size: 14px; color: rgba(255,255,255,0.85); margin: 0; }
-.sf-banner-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; }
-.sf-dot {
-  width: 10px; height: 10px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.6);
-  background: transparent; cursor: pointer; transition: all 0.2s;
+.sf-mobile-nav__header {
+  display: flex; align-items: center; gap: 8px; padding: 16px 18px; border-bottom: 1px solid var(--color-border, rgba(0,0,0,0.1));
 }
-.sf-dot.active { background: #fff; border-color: #fff; transform: scale(1.2); }
+.sf-mobile-nav__close {
+  margin-left: auto; background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px;
+}
+.sf-mobile-nav__link {
+  display: flex; align-items: center; gap: 10px; padding: 14px 18px; font-size: 14px; font-weight: 600;
+  color: var(--color-text-secondary, #3f3f46); text-decoration: none; transition: all 0.2s;
+}
+.sf-mobile-nav__link:hover { background: var(--color-accent-glow, rgba(124,58,237,0.06)); color: var(--sf-accent, #7c3aed); }
+.sf-mobile-nav__divider { height: 1px; background: var(--color-border, rgba(0,0,0,0.1)); margin: 4px 18px; }
 
-/* ── Sections ── */
-.sf-section { padding: 24px; }
-.sf-section__title { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; margin: 0 0 16px; color: var(--color-text-primary); }
-.sf-count { font-size: 14px; font-weight: 500; color: var(--color-text-muted); }
-
-/* ── Categories ── */
-.sf-categories { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
-.sf-cat-card {
-  display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px;
-  background: var(--color-bg-card); border: 1px solid var(--color-border);
-  color: var(--color-text-secondary); font-size: 13px; font-weight: 600;
-  cursor: pointer; transition: all 0.25s; white-space: nowrap; flex-shrink: 0;
-}
-.sf-cat-card:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); background: var(--color-accent-glow); }
-.sf-cat-card.active { border-color: var(--color-accent-primary); color: #fff; background: var(--color-accent-primary); }
-
-/* ── Products Grid ── */
-.sf-products {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-}
-.sf-product-card {
-  border-radius: 14px; overflow: hidden; background: var(--color-bg-card);
-  border: 1px solid var(--color-border); cursor: pointer; transition: all 0.3s;
-}
-.sf-product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.15); border-color: var(--color-accent-primary); }
-.sf-product-img-wrap { position: relative; aspect-ratio: 1; overflow: hidden; background: var(--color-bg-card-hover); display: flex; align-items: center; justify-content: center; }
-.sf-product-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s; }
-.sf-product-card:hover .sf-product-img { transform: scale(1.05); }
-.sf-product-placeholder { color: var(--color-text-muted); }
-.sf-promo-badge {
-  position: absolute; top: 8px; right: 8px; padding: 4px 10px; border-radius: 8px;
-  background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;
-  font-size: 12px; font-weight: 700;
-}
-.sf-product-info { padding: 12px 14px; }
-.sf-product-name { font-size: 14px; font-weight: 600; margin: 0 0 6px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.sf-product-prices { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-.sf-price { font-size: 15px; font-weight: 700; color: var(--color-accent-primary); }
-.sf-price--old { text-decoration: line-through; color: var(--color-text-muted); font-size: 12px; font-weight: 500; }
-.sf-price--promo { color: var(--color-accent-hot); }
-.sf-product-cat { font-size: 11px; color: var(--color-text-muted); }
-
-/* ── Pagination ── */
-.sf-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 24px; }
-.sf-page-btn {
-  display: flex; align-items: center; justify-content: center; width: 36px; height: 36px;
-  border-radius: 10px; border: 1px solid var(--color-border); background: var(--color-bg-card);
-  color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s;
-}
-.sf-page-btn:hover:not(:disabled) { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
-.sf-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.sf-page-info { font-size: 14px; font-weight: 600; color: var(--color-text-secondary); }
-
-/* ── Pages ── */
-.sf-pages { display: flex; flex-wrap: wrap; gap: 8px; }
-.sf-page-link {
-  display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px;
-  background: var(--color-bg-card); border: 1px solid var(--color-border);
-  color: var(--color-text-secondary); font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 0.2s;
-}
-.sf-page-link:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
+/* Drawer transition */
+.sf-drawer-enter-active, .sf-drawer-leave-active { transition: opacity 0.25s; }
+.sf-drawer-enter-active .sf-mobile-nav, .sf-drawer-leave-active .sf-mobile-nav { transition: transform 0.3s cubic-bezier(.4,0,.2,1); }
+.sf-drawer-enter-from, .sf-drawer-leave-to { opacity: 0; }
+.sf-drawer-enter-from .sf-mobile-nav, .sf-drawer-leave-to .sf-mobile-nav { transform: translateX(-100%); }
 
 /* ── Footer ── */
 .sf-footer {
-  text-align: center; padding: 24px; font-size: 12px; color: var(--color-text-muted);
-  border-top: 1px solid var(--color-border); margin-top: 40px;
+  border-top: 1px solid var(--color-border, rgba(0,0,0,0.1)); margin-top: 40px; padding: 40px 24px 24px;
+  background: var(--color-bg-secondary, #fff);
+}
+.sf-footer__columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 32px; margin-bottom: 24px; }
+.sf-footer__col h5 { font-size: 14px; font-weight: 700; margin: 0 0 12px; }
+.sf-footer__link { display: block; font-size: 13px; color: var(--color-text-muted, #6b6b7b); text-decoration: none; padding: 3px 0; transition: color 0.2s; }
+.sf-footer__link:hover { color: var(--sf-accent, #7c3aed); }
+.sf-footer__contact { font-size: 13px; color: var(--color-text-muted, #6b6b7b); margin: 3px 0; }
+.sf-footer__bottom { text-align: center; font-size: 12px; color: var(--color-text-muted, #6b6b7b); padding-top: 16px; border-top: 1px solid var(--color-border, rgba(0,0,0,0.1)); }
+
+/* ── Tablet (769px - 1024px) ── */
+@media (max-width: 1024px) {
+  .sf-header { padding: 12px 18px; gap: 12px; }
+  .sf-header__search { max-width: 280px; }
+  .sf-nav--desktop { gap: 2px; }
+  .sf-nav__link { padding: 6px 10px; font-size: 12px; }
+  .sf-footer__columns { gap: 24px; }
 }
 
-.sf-empty { text-align: center; padding: 40px; color: var(--color-text-muted); font-size: 14px; }
-
+/* ── Mobile (≤768px) ── */
 @media (max-width: 768px) {
+  .sf-hamburger { display: flex; }
   .sf-header { padding: 10px 16px; gap: 10px; }
-  .sf-banners { margin: 12px 16px; }
-  .sf-section { padding: 16px; }
-  .sf-products { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .sf-nav--desktop { display: none; }
+  .sf-header__search { max-width: 100%; flex: 1; }
+  .sf-header__name { font-size: 16px; }
+  .sf-footer { padding: 24px 16px 16px; }
+  .sf-footer__columns { grid-template-columns: 1fr 1fr; gap: 20px; }
 }
 </style>

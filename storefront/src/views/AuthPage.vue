@@ -1,10 +1,10 @@
 <template>
   <div class="auth-page">
-    <div class="auth-card">
+    <div class="auth-card" :style="{ maxWidth: authConfig.cardMaxWidth + 'px' }">
       <!-- Tab switch -->
       <div class="auth-tabs">
         <button :class="{ active: mode === 'login' }" @click="mode = 'login'">Đăng nhập</button>
-        <button :class="{ active: mode === 'register' }" @click="mode = 'register'">Đăng ký</button>
+        <button v-if="authConfig.allowRegister" :class="{ active: mode === 'register' }" @click="mode = 'register'">Đăng ký</button>
       </div>
 
       <!-- Login Form -->
@@ -21,7 +21,7 @@
         <button type="submit" class="auth-submit" :disabled="loading">
           {{ loading ? 'Đang xử lý...' : 'Đăng nhập' }}
         </button>
-        <p class="auth-link" @click="mode = 'forgot'">Quên mật khẩu?</p>
+        <p v-if="authConfig.allowForgotPassword" class="auth-link" @click="mode = 'forgot'">Quên mật khẩu?</p>
       </form>
 
       <!-- Register Form -->
@@ -73,12 +73,19 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 
 const router = useRouter()
 const { login, register, forgotPassword, loading, error } = useAuth()
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const authConfig = computed(() => {
+  const defaults = { allowRegister: true, allowForgotPassword: true, showSocialLogin: false, cardMaxWidth: 440 }
+  const ac = layoutConfig.value?.pageConfigs?.auth
+  return ac ? { ...defaults, ...ac } : defaults
+})
 
 const mode = ref('login')
 const loginForm = reactive({ email: '', password: '' })

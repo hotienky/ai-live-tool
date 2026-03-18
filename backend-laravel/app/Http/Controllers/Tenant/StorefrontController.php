@@ -18,6 +18,7 @@ use App\Actions\Storefront\OrderDetailAction;
 use App\Actions\Storefront\ShipmentTrackingAction;
 use App\Actions\Storefront\ProductReviewsAction;
 use App\Actions\Storefront\CreateReviewAction;
+use App\Repositories\NavLink\NavLinkRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 
@@ -36,6 +37,7 @@ class StorefrontController extends Controller
         private OrderRepositoryInterface $orderRepo,
         private SystemConfigRepositoryInterface $configRepo,
         private CouponRepositoryInterface $couponRepo,
+        private NavLinkRepositoryInterface $navLinkRepo,
     ) {}
 
     public function products(Request $request)
@@ -100,6 +102,117 @@ class StorefrontController extends Controller
     public function banners() { return $this->successResponse($this->bannerRepo->manyBy('status', 1)); }
     public function pages() { return $this->successResponse($this->cmsPageRepo->all()); }
     public function flashSales() { return $this->successResponse($this->flashSaleRepo->getActive()); }
+
+    /**
+     * Mega endpoint: returns all site configuration in one request.
+     * Used by Headless frontends to bootstrap in a single API call.
+     */
+    public function siteConfig()
+    {
+        // Store info
+        $storeConfigs = $this->configRepo->getByGroup('store');
+        $storeInfo = [];
+        foreach ($storeConfigs as $c) { $storeInfo[$c->key] = $c->value; }
+
+        // Theme
+        $themeConfigs = $this->configRepo->getByGroup('theme');
+        $theme = [];
+        foreach ($themeConfigs as $c) { $theme[$c->key] = $c->value; }
+
+        // Layout
+        $layoutConfigs = $this->configRepo->getByGroup('storefront_layout');
+        $layoutMap = [];
+        foreach ($layoutConfigs as $c) { $layoutMap[$c->key] = $c->value; }
+
+        // Nav links (nested)
+        $navLinks = $this->navLinkRepo->all();
+        $mappedLinks = $navLinks->map(fn($link) => [
+            'id' => $link->id,
+            'name' => $link->title ?? '',
+            'url' => $link->url ?? '#',
+            'group' => $link->group ?? 'menu',
+            'type' => $link->type ?? 'single',
+            'sort' => $link->sort_order ?? 0,
+            'parent_id' => $link->parent_id,
+            'target' => $link->target ?? '_self',
+            'icon' => $link->icon ?? '',
+            'is_active' => $link->is_active ?? true,
+        ]);
+        $parentLinks = $mappedLinks->whereNull('parent_id')->values();
+        $nestedLinks = $parentLinks->map(function ($p) use ($mappedLinks) {
+            $p['children'] = $mappedLinks->where('parent_id', $p['id'])->values()->all();
+            return $p;
+        });
+
+        // Categories (flat)
+        $categories = $this->categoryRepo->getCategories();
+
+        // Default layout values
+        $defaultSections = [
+            ['type' => 'banner', 'enabled' => true, 'order' => 0],
+            ['type' => 'categories', 'enabled' => true, 'order' => 1],
+            ['type' => 'flash_sale', 'enabled' => true, 'order' => 2],
+            ['type' => 'featured_products', 'enabled' => true, 'order' => 3],
+            ['type' => 'new_arrivals', 'enabled' => true, 'order' => 4],
+            ['type' => 'cms_pages', 'enabled' => true, 'order' => 5],
+        ];
+        $defaultHeaderConfig = ['logoPosition' => 'left', 'maxNavLinks' => 5, 'showSearch' => true, 'sticky' => true, 'showThemeToggle' => true];
+        $defaultFooterConfig = [
+            'columns' => [
+                ['title' => 'Về chúng tôi', 'type' => 'links', 'links' => []],
+                ['title' => 'Hỗ trợ', 'type' => 'links', 'links' => []],
+                ['title' => 'Liên hệ', 'type' => 'contact', 'items' => []],
+            ],
+            'social' => [], 'paymentMethods' => ['cod', 'bank'],
+            'badges' => [], 'legalText' => '', 'copyrightText' => '', 'bgColor' => '',
+        ];
+
+        return $this->successResponse([
+            'store' => $storeInfo,
+            'theme' => $theme,
+            'layout' => [
+                'sections' => json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections,
+                'pages' => json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],
+                'pageConfigs' => json_decode($layoutMap['layout_page_configs'] ?? 'null', true) ?: [],
+                'template' => $layoutMap['layout_template'] ?? 'full_store',
+                'customCss' => $layoutMap['layout_custom_css'] ?? '',
+                'headerConfig' => json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
+                'footerConfig' => json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
+            ],
+            'navLinks' => $nestedLinks->values(),
+            'categories' => $categories,
+        ]);
+    }
+
+    /**
+     * Full-text search across products.
+     */
+    public function searchProducts(Request $request)
+    {
+        $q = trim($request->input('q', ''));
+        if (strlen($q) < 2) return $this->successResponse(['data' => [], 'meta' => ['total' => 0]]);
+
+        $perPage = min((int) $request->input('per_page', 20), 100);
+        $paginated = $this->productRepo->query()
+            ->where('is_active', true)
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                      ->orWhere('description', 'like', "%{$q}%")
+                      ->orWhere('sku', 'like', "%{$q}%")
+                      ->orWhere('keywords', 'like', "%{$q}%");
+            })
+            ->paginate($perPage);
+
+        return $this->successResponse([
+            'data' => $paginated->items(),
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ],
+        ]);
+    }
 
     public function pageDetail($slug)
     {
@@ -191,6 +304,9 @@ class StorefrontController extends Controller
         $defaultPageConfigs = [
             'products' => ['sidebarPosition' => 'left', 'gridColumns' => 4, 'itemsPerPage' => 12, 'showFilters' => ['category' => true, 'brand' => true, 'price' => true]],
             'productDetail' => ['galleryStyle' => 'thumbnails', 'layoutRatio' => '50-50', 'showBreadcrumb' => true, 'showRelatedProducts' => true, 'relatedCount' => 6, 'showReviews' => true],
+            'checkout' => ['showCoupon' => true, 'showNotes' => true, 'showSteps' => true, 'layout' => 'two-column'],
+            'auth' => ['allowRegister' => true, 'allowForgotPassword' => true, 'showSocialLogin' => false, 'cardMaxWidth' => 440],
+            'account' => ['showOrders' => true, 'showAddresses' => true, 'showPasswordChange' => true, 'sidebarPosition' => 'left'],
         ];
         $defaultHeaderConfig = ['logoPosition' => 'left', 'maxNavLinks' => 5, 'showSearch' => true, 'sticky' => true, 'showThemeToggle' => true];
         $defaultFooterConfig = [

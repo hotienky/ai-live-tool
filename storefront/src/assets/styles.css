@@ -49,7 +49,7 @@
   --sf-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.1);
 }
 
-/* ── Shared (both modes) — overridable by tenant ── */
+/* ── Accent Colors (fallback defaults — overridden by useTheme.js from CMS config) ── */
 :root {
   --sf-accent: #7c3aed;
   --sf-accent-light: #a78bfa;

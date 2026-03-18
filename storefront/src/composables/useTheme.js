@@ -3,7 +3,8 @@ import { apiFetch } from '../api.js'
 
 /**
  * useTheme — Storefront theme composable
- * Loads theme config from CMS, applies CSS variables, toggles light/dark mode
+ * Loads theme config from CMS, applies CSS variables, toggles light/dark mode.
+ * Supports separate accent colors for light/dark modes.
  */
 
 const THEME_KEY = 'sf_theme_mode'
@@ -12,31 +13,35 @@ const THEME_KEY = 'sf_theme_mode'
 const PRESETS = {
   modern_dark: {
     mode: 'dark',
-    accent: '#7c3aed',
     font: 'Inter',
     radius: '12',
     cardStyle: 'glass',
+    dark: { accent: '#7c3aed' },
+    light: { accent: '#6d28d9' },
   },
   clean_light: {
     mode: 'light',
-    accent: '#3b82f6',
     font: 'Inter',
     radius: '10',
     cardStyle: 'solid',
+    dark: { accent: '#3b82f6' },
+    light: { accent: '#2563eb' },
   },
   warm: {
     mode: 'light',
-    accent: '#f59e0b',
     font: 'Plus Jakarta Sans',
     radius: '14',
     cardStyle: 'solid',
+    dark: { accent: '#f59e0b' },
+    light: { accent: '#d97706' },
   },
   ocean: {
     mode: 'dark',
-    accent: '#06b6d4',
     font: 'Outfit',
     radius: '16',
     cardStyle: 'glass',
+    dark: { accent: '#06b6d4' },
+    light: { accent: '#0891b2' },
   },
 }
 
@@ -56,20 +61,23 @@ function deriveColors(hex) {
 
 const state = reactive({
   mode: localStorage.getItem(THEME_KEY) || 'dark',
-  accent: '#7c3aed',
   font: 'Inter',
   radius: '12',
   cardStyle: 'glass',
   loaded: false,
   tenantDefaultMode: 'dark',
+  // Per-mode accent colors
+  dark: { accent: '#7c3aed' },
+  light: { accent: '#6d28d9' },
 })
 
 function applyTheme() {
   const root = document.documentElement
   root.setAttribute('data-theme', state.mode)
 
-  // Accent colors
-  const colors = deriveColors(state.accent)
+  // Get accent for current mode
+  const currentAccent = state.mode === 'light' ? state.light.accent : state.dark.accent
+  const colors = deriveColors(currentAccent)
   root.style.setProperty('--sf-accent', colors.accent)
   root.style.setProperty('--sf-accent-light', colors.accentLight)
   root.style.setProperty('--sf-accent-glow', colors.accentGlow)
@@ -125,10 +133,13 @@ export function useTheme() {
   async function loadThemeConfig() {
     try {
       const config = await apiFetch('/theme')
-      // StorefrontController.theme() returns {accent, mode, font, radius, card_style}
-      // Keys are stored WITHOUT 'theme.' prefix in the DB under group_name='theme'
       if (config && typeof config === 'object') {
-        if (config['accent']) state.accent = config['accent']
+        // Per-mode accents (new format)
+        if (config['dark_accent']) state.dark.accent = config['dark_accent']
+        else if (config['accent']) state.dark.accent = config['accent'] // backward compat
+        if (config['light_accent']) state.light.accent = config['light_accent']
+        else if (config['accent']) state.light.accent = config['accent'] // backward compat
+
         if (config['font'])   state.font   = config['font']
         if (config['radius']) state.radius  = config['radius']
         if (config['card_style']) state.cardStyle = config['card_style']
@@ -155,7 +166,7 @@ export function useTheme() {
   return {
     isDark, themeMode, toggleTheme, setMode, init,
     loadThemeConfig,
-    accent: computed(() => state.accent),
+    accent: computed(() => state.mode === 'light' ? state.light.accent : state.dark.accent),
     font: computed(() => state.font),
   }
 }
