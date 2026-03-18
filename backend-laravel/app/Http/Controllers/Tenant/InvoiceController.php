@@ -26,7 +26,7 @@ class InvoiceController extends Controller
 
         if ($status = $request->input('status')) $query->where('status', $status);
         if ($from = $request->input('from')) $query->where('created_at', '>=', $from);
-        if ($to = $request->input('to')) $query->where('created_at', '<=', $to);
+        if ($to = $request->input('to')) $query->where('created_at', '<=', $to . ' 23:59:59');
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")

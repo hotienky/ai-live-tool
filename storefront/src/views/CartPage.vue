@@ -49,10 +49,6 @@
             <span>Tạm tính ({{ cartCount }} sản phẩm)</span>
             <span>{{ formatPrice(cartTotal) }}</span>
           </div>
-          <div class="summary-row">
-            <span>Phí vận chuyển</span>
-            <span class="free">Miễn phí</span>
-          </div>
 
           <!-- Voucher -->
           <div class="cart-voucher">

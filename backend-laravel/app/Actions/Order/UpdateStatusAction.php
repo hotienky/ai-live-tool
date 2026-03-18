@@ -25,7 +25,7 @@ class UpdateStatusAction extends BaseAction
 
             // Auto-generate accounting entries on status change
             $status = $data['status'];
-            if ($status === 'delivered') {
+            if (in_array($status, ['delivered', 'completed'])) {
                 $this->accountingService->onOrderDelivered($order);
             } elseif (in_array($status, ['returned', 'refunded'])) {
                 $this->accountingService->onOrderReturned($order);
