@@ -371,7 +371,12 @@
 
       <!-- ═══ Tab: CMS Pages ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
-        <CmsManager @navigate="$emit('navigate', $event)" />
+        <CmsPageForm
+          v-if="activeView === 'shop/cms/create' || activeView === 'shop/cms/edit'"
+          :pageId="cmsEditPageId"
+          @navigate="$emit('navigate', $event)"
+        />
+        <CmsManager v-else @navigate="$emit('navigate', $event)" />
       </div>
 
       <!-- ═══ Tab: Storefront Layout ═══ -->
@@ -465,6 +470,7 @@ import CustomerManager from './CustomerManager.vue'
 import PromotionManager from './PromotionManager.vue'
 import FlashSaleManager from './FlashSaleManager.vue'
 import CmsManager from './CmsManager.vue'
+import CmsPageForm from './CmsPageForm.vue'
 import BannerManager from './BannerManager.vue'
 import NavLinkManager from './NavLinkManager.vue'
 import ProductManager from './ProductManager.vue'
@@ -496,6 +502,8 @@ const { showToast } = useToast()
 const props = defineProps({
   currentShop: { type: Object, default: null },
   initialTab: { type: String, default: '' },
+  activeView: { type: String, default: '' },
+  cmsEditPageId: { type: String, default: null },
 })
 
 const emit = defineEmits(['openShopSelector', 'navigate'])

@@ -214,14 +214,9 @@
       v-if="isSettingsView"
       :currentShop="currentShop"
       :initialTab="settingsActiveTab"
+      :activeView="activeView"
+      :cmsEditPageId="cmsEditPageId"
       @openShopSelector="shopSelectorRef?.open()"
-      @navigate="navigateTo"
-    />
-
-    <!-- ═══ View: CMS Page Create/Edit ═══ -->
-    <CmsPageForm
-      v-if="activeView === 'shop/cms/create' || activeView === 'shop/cms/edit'"
-      :pageId="cmsEditPageId"
       @navigate="navigateTo"
     />
     <!-- Customer Detail Modal -->
@@ -308,7 +303,6 @@ import LeadPipeline from './components/LeadPipeline.vue'
 import ReportPage from './components/ReportPage.vue'
 import LoginPage from './components/LoginPage.vue'
 import ShopSettings from './components/ShopSettings.vue'
-import CmsPageForm from './components/CmsPageForm.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
@@ -471,6 +465,7 @@ const routeToTab = {
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
   'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
   'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
+  'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
   'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
@@ -531,15 +526,20 @@ const settingsActiveTab = computed(() => routeToTab[activeView.value] || 'produc
 const isSettingsView = computed(() => activeView.value in routeToTab)
 
 // CMS page edit ID (from URL: /shop/cms/edit/123)
-const cmsEditPageId = computed(() => {
-  const path = window.location.pathname.replace(/^\//, '')
-  const match = path.match(/^shop\/cms\/edit\/(\d+)/)
-  return match ? match[1] : null
-})
+const cmsEditPageId = ref(null)
 
+function extractCmsId(pathStr) {
+  const match = pathStr.replace(/^\//, '').match(/^shop\/cms\/edit\/(\d+)/)
+  return match ? match[1] : null
+}
+cmsEditPageId.value = extractCmsId(window.location.pathname)
 function navigateTo(view) {
   // Support CMS edit with ID: shop/cms/edit/123
   const urlPath = view
+  
+  // Track dynamic params
+  cmsEditPageId.value = extractCmsId(urlPath)
+  
   if (!validViews.includes(view)) {
     // Check if it matches view + ID pattern
     const base = view.replace(/\/\d+$/, '')
@@ -563,6 +563,7 @@ window.addEventListener('popstate', () => {
   } else {
     isStorefront.value = false
     activeView.value = viewFromPath()
+    cmsEditPageId.value = extractCmsId(window.location.pathname)
   }
 })
 

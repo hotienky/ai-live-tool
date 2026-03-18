@@ -22,12 +22,7 @@
     </div>
 
     <!-- Dashboard Chart -->
-    <DashboardChart 
-      :total="statsMap.total"
-      :active="statsMap.active"
-      :suspended="statsMap.suspended"
-      :pro="statsMap.pro"
-    />
+    <DashboardChart :tenants="allTenants" />
 
     <!-- Recent Tenants Table -->
     <div class="card overflow-hidden">
