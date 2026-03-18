@@ -359,24 +359,19 @@
         <CustomerManager />
       </div>
 
-      <!-- ═══ Tab: Promotions + Coupons ═══ -->
+      <!-- ═══ Tab: Promotions (Plugin) ═══ -->
       <div v-if="activeTab === 'promotions'" class="settings__panel">
-        <PromotionManager />
+        <PluginRenderer moduleId="marketing" tabKey="promotions" />
       </div>
 
-      <!-- ═══ Tab: Flash Sales ═══ -->
+      <!-- ═══ Tab: Flash Sales (Plugin) ═══ -->
       <div v-if="activeTab === 'flash-sales'" class="settings__panel">
-        <FlashSaleManager />
+        <PluginRenderer moduleId="marketing" tabKey="flash-sales" />
       </div>
 
-      <!-- ═══ Tab: CMS Pages ═══ -->
+      <!-- ═══ Tab: CMS Pages (Plugin) ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
-        <CmsPageForm
-          v-if="activeView === 'shop/cms/create' || activeView === 'shop/cms/edit'"
-          :pageId="cmsEditPageId"
-          @navigate="$emit('navigate', $event)"
-        />
-        <CmsManager v-else @navigate="$emit('navigate', $event)" />
+        <PluginRenderer moduleId="cms" tabKey="cms" />
       </div>
 
       <!-- ═══ Tab: Storefront Layout ═══ -->
@@ -451,42 +446,44 @@
         <ShippingSettings />
       </div>
 
-      <!-- ═══ Tab: Tax Management ═══ -->
+      <!-- ═══ Tab: Tax (Plugin) ═══ -->
       <div v-if="activeTab === 'tax'" class="settings__panel">
-        <TaxManagement @navigate-to-accounting="navigateTab('accounting')" />
+        <PluginRenderer moduleId="tax" tabKey="tax" />
       </div>
 
-      <!-- ═══ Tab: Accounting Dashboard ═══ -->
+      <!-- ═══ Tab: Accounting (Plugin) ═══ -->
       <div v-if="activeTab === 'accounting'" class="settings__panel">
-        <AccountingDashboard
-          @navigate-to-tax="navigateTab('tax')"
-          @navigate-to-order="(orderId) => { navigateTab('orders'); }"
-        />
+        <PluginRenderer moduleId="accounting" tabKey="accounting" />
       </div>
 
-      <!-- ═══ Tab: Stock Receipts ═══ -->
+      <!-- ═══ Tab: Stock Receipts (Plugin) ═══ -->
       <div v-if="activeTab === 'stock-receipts'" class="settings__panel">
-        <StockReceiptManager />
+        <PluginRenderer moduleId="warehouse" tabKey="stock-receipts" />
       </div>
 
-      <!-- ═══ Tab: Suppliers ═══ -->
+      <!-- ═══ Tab: Suppliers (Plugin) ═══ -->
       <div v-if="activeTab === 'suppliers'" class="settings__panel">
-        <SupplierManager />
+        <PluginRenderer moduleId="warehouse" tabKey="suppliers" />
       </div>
 
-      <!-- ═══ Tab: Payment Vouchers ═══ -->
+      <!-- ═══ Tab: Payment Vouchers (Plugin) ═══ -->
       <div v-if="activeTab === 'payment-vouchers'" class="settings__panel">
-        <PaymentVoucherManager />
+        <PluginRenderer moduleId="accounting" tabKey="payment-vouchers" />
       </div>
 
-      <!-- ═══ Tab: Purchase Orders ═══ -->
+      <!-- ═══ Tab: Purchase Orders (Plugin) ═══ -->
       <div v-if="activeTab === 'purchase-orders'" class="settings__panel">
-        <PurchaseOrderManager />
+        <PluginRenderer moduleId="warehouse" tabKey="purchase-orders" />
       </div>
 
-      <!-- ═══ Tab: Inventory Reports ═══ -->
+      <!-- ═══ Tab: Inventory Reports (Plugin) ═══ -->
       <div v-if="activeTab === 'inventory-reports'" class="settings__panel">
-        <InventoryReportPanel />
+        <PluginRenderer moduleId="warehouse" tabKey="inventory-reports" />
+      </div>
+
+      <!-- ═══ Tab: Modules ═══ -->
+      <div v-if="activeTab === 'modules'" class="settings__panel">
+        <ModuleManager @modulesChanged="onModulesChanged" />
       </div>
 
       </div><!-- /settings__content -->
@@ -501,23 +498,17 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag, Zap, BarChart2,
+  FolderTree, Award, Users, Tag, Zap, BarChart2, Puzzle,
   Cog, KeyRound, Globe, LayoutList, DollarSign, Briefcase, Wallet,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
-import PromotionManager from './PromotionManager.vue'
-import FlashSaleManager from './FlashSaleManager.vue'
-import CmsManager from './CmsManager.vue'
-import CmsPageForm from './CmsPageForm.vue'
+// Module components removed — loaded dynamically via PluginRenderer
 import BannerManager from './BannerManager.vue'
 import NavLinkManager from './NavLinkManager.vue'
-import StockReceiptManager from './StockReceiptManager.vue'
-import SupplierManager from './SupplierManager.vue'
-import PaymentVoucherManager from './PaymentVoucherManager.vue'
-import PurchaseOrderManager from './PurchaseOrderManager.vue'
-import InventoryReportPanel from './InventoryReportPanel.vue'
+import ModuleManager from './ModuleManager.vue'
+import PluginRenderer from './PluginRenderer.vue'
 import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
@@ -533,8 +524,7 @@ import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
 import ShippingSettings from './ShippingSettings.vue'
-import TaxManagement from './TaxManagement.vue'
-import AccountingDashboard from './AccountingDashboard.vue'
+// TaxManagement + AccountingDashboard removed — loaded via plugin bundles
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
 import StoreInfoConfig from './StoreInfoConfig.vue'
 import { apiFetch } from '../composables/useApi.js'
@@ -637,7 +627,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
 const activeTab = useUrlParam('tab', 'connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -753,6 +743,7 @@ const tabGroups = [
       { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
       { key: 'activity-logs', label: 'Nhật ký', icon: ScrollText },
       { key: 'roles', label: 'Phân quyền', icon: ShieldCheck },
+      { key: 'modules', label: 'Modules', icon: Puzzle },
     ],
   },
 ]
@@ -776,12 +767,47 @@ const tabToRoute = {
   'store-info': 'shop/info', 'system-config': 'shop/config', 'languages': 'shop/languages',
   // Hệ thống
   'api-keys': 'system/api-keys', 'webhooks': 'system/webhooks', 'custom-fields': 'shop/custom-fields',
-  'activity-logs': 'system/logs', 'roles': 'system/roles',
+  'activity-logs': 'system/logs', 'roles': 'system/roles', 'modules': 'system/modules',
+}
+
+// ── Installed Modules state ──
+const installedModules = ref([])
+async function fetchInstalledModules() {
+  try {
+    const res = await apiFetch('/modules/sidebar')
+    const data = await res.json()
+    installedModules.value = data?.installed || []
+  } catch (e) {
+    // If modules table doesn't exist yet, show all
+    installedModules.value = []
+  }
+}
+onMounted(fetchInstalledModules)
+
+// Module tabs that require specific module to be installed
+const moduleTabMap = {
+  'stock-receipts': 'warehouse', 'suppliers': 'warehouse',
+  'purchase-orders': 'warehouse', 'inventory-reports': 'warehouse',
+  'accounting': 'accounting', 'payment-vouchers': 'accounting',
+  'promotions': 'marketing', 'flash-sales': 'marketing',
+  'tax': 'tax',
+  'cms': 'cms',
+}
+
+function onModulesChanged(newInstalled) {
+  installedModules.value = newInstalled
+}
+
+// Check if a tab should use PluginRenderer (dynamic) vs static component
+function isPluginTab(tabKey) {
+  const moduleId = moduleTabMap[tabKey]
+  if (!moduleId) return false
+  return installedModules.value.includes(moduleId)
 }
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
@@ -793,6 +819,9 @@ const activeTabGroups = computed(() => {
       ...g,
       items: g.items.filter(i => {
         if (!allowedTabs.includes(i.key)) return false
+        // Check module requirement — hide tab if required module is not installed
+        const requiredModule = moduleTabMap[i.key]
+        if (requiredModule && !installedModules.value.includes(requiredModule)) return false
         const requiredPerm = tabPermissions[i.key]
         if (!requiredPerm) return true
         return can(requiredPerm)

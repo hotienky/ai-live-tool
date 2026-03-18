@@ -1,0 +1,20 @@
+{
+  "id": "marketing",
+  "name": "Marketing & Khuyến mãi",
+  "description": "Chương trình khuyến mãi, Flash Sale, mã giảm giá",
+  "version": "1.0.0",
+  "icon": "Tag",
+  "category": "marketing",
+  "requires": [],
+  "controllers": ["PromotionsController", "FlashSalesController", "CouponsController"],
+  "models": ["Promotion", "FlashSale", "FlashSaleItem", "Coupon"],
+  "routes_file": "marketing.php",
+  "permissions": ["promotions.view", "promotions.edit"],
+  "sidebar": {
+    "group": "Marketing",
+    "items": [
+      { "key": "promotions", "label": "Khuyến mãi", "icon": "Tag", "route": "shop/promotions" },
+      { "key": "flash-sales", "label": "Flash Sale", "icon": "Zap", "route": "shop/flash-sales" }
+    ]
+  }
+}

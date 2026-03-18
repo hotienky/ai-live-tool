@@ -1,0 +1,19 @@
+{
+  "id": "cms",
+  "name": "Trang CMS",
+  "description": "Tạo và quản lý trang nội dung tùy chỉnh",
+  "version": "1.0.0",
+  "icon": "BookOpen",
+  "category": "content",
+  "requires": [],
+  "controllers": ["CmsPagesController"],
+  "models": ["CmsPage"],
+  "routes_file": "cms.php",
+  "permissions": ["cms.view", "cms.edit"],
+  "sidebar": {
+    "group": "Giao diện",
+    "items": [
+      { "key": "cms", "label": "Trang CMS", "icon": "BookOpen", "route": "shop/cms" }
+    ]
+  }
+}

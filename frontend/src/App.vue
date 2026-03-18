@@ -321,6 +321,7 @@ import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useTheme } from './composables/useTheme.js'
 import { usePermissions, fetchPermissionsIfEmpty } from './composables/usePermissions.js'
+import { usePluginLoader } from './composables/usePluginLoader.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -331,7 +332,7 @@ import {
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
   ShoppingBag, FolderTree, Award, Receipt, Tag,
   Key, MessageCircle, Shield, Link, Image, BookOpen, Zap,
-  ClipboardList, Palette, Cog, Globe, LayoutList,
+  ClipboardList, Palette, Cog, Globe, LayoutList, Truck, FormInput,
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -364,10 +365,35 @@ async function fetchTenantFeatures() {
   }
 }
 
+// ── Installed Modules ──
+const installedModules = ref(JSON.parse(localStorage.getItem('installed_modules') || '[]'))
+
+async function fetchInstalledModules() {
+  try {
+    const res = await apiFetch('/modules/sidebar')
+    const data = await res.json()
+    const ids = data?.installed || []
+    installedModules.value = ids
+    localStorage.setItem('installed_modules', JSON.stringify(ids))
+  } catch (e) {
+    console.warn('[Modules] Failed to fetch:', e.message)
+  }
+}
+
+function isModuleInstalled(moduleId) {
+  if (!moduleId) return true // no moduleId = always visible
+  return installedModules.value.includes(moduleId)
+}
+
 // Fetch on mount
 onMounted(() => {
   fetchTenantFeatures()
   fetchPermissionsIfEmpty()
+  fetchInstalledModules()
+
+  // Initialize plugin bridge for dynamic module bundles
+  const { initBridge } = usePluginLoader()
+  initBridge()
 })
 
 // ── Navigation ──
@@ -404,21 +430,24 @@ const navItems = [
     key: 'store-group', label: 'Cửa hàng', icon: Store,
     featureGroup: 'store',
     permission: 'products.view',
-    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/appearance', 'shop/layout', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax', 'warehouse/stock-receipts', 'warehouse/suppliers', 'warehouse/payment-vouchers', 'warehouse/purchase-orders', 'warehouse/inventory-reports'],
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/appearance', 'shop/layout', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax', 'shop/custom-fields', 'warehouse/stock-receipts', 'warehouse/suppliers', 'warehouse/payment-vouchers', 'warehouse/purchase-orders', 'warehouse/inventory-reports', 'system/modules', 'system/api-keys', 'system/webhooks', 'system/logs'],
     children: [
       { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
       { key: 'store-categories',  view: 'shop/categories',  label: 'Danh mục',    icon: FolderTree,   permission: 'products.view' },
       { key: 'store-brands',      view: 'shop/brands',      label: 'Thương hiệu',  icon: Award,        permission: 'products.view' },
       { key: 'orders-list',       view: 'orders',           label: 'Đơn hàng',     icon: Receipt,      permission: 'orders.view' },
       { key: 'orders-customers',  view: 'orders/customers', label: 'Khách hàng',   icon: Users,        permission: 'customers.view' },
-      { key: 'store-promotions',  view: 'shop/promotions',  label: 'Khuyến mãi',   icon: Tag,          permission: 'promotions.view' },
-      { key: 'store-flash-sales', view: 'shop/flash-sales', label: 'Flash Sale',   icon: Zap,          permission: 'promotions.view' },
-      { key: 'store-banners',     view: 'shop/banners',     label: 'Banner',       icon: Image,        permission: 'banners.view' },
-      { key: 'store-cms',         view: 'shop/cms',         label: 'Trang CMS',    icon: BookOpen,     permission: 'cms.view' },
+      { key: 'store-promotions',  view: 'shop/promotions',  label: 'Khuyến mãi',   icon: Tag,          permission: 'promotions.view', moduleId: 'marketing' },
+      { key: 'store-flash-sales', view: 'shop/flash-sales', label: 'Flash Sale',   icon: Zap,          permission: 'promotions.view', moduleId: 'flash-sales' },
+      { key: 'store-banners',     view: 'shop/banners',     label: 'Banner',       icon: Image,        permission: 'banners.view', moduleId: 'banners' },
+      { key: 'store-cms',         view: 'shop/cms',         label: 'Trang CMS',    icon: BookOpen,     permission: 'cms.view', moduleId: 'cms' },
+      { key: 'store-shipping',    view: 'shop/shipping',    label: 'Vận chuyển',   icon: Truck,        permission: 'settings.view', moduleId: 'shipping' },
+      { key: 'store-tax',         view: 'shop/tax',         label: 'Thuế',          icon: Receipt,      permission: 'settings.view', moduleId: 'tax' },
+      { key: 'store-custom-fields', view: 'shop/custom-fields', label: 'Trường tùy chỉnh', icon: FormInput, permission: 'settings.edit', moduleId: 'custom-fields' },
+      { key: 'store-languages',   view: 'shop/languages',   label: 'Ngôn ngữ',    icon: Globe,        permission: 'settings.edit', moduleId: 'languages' },
       { key: 'store-appearance',  view: 'shop/appearance',  label: 'Giao diện',    icon: Palette,      permission: 'settings.view' },
       { key: 'store-layout',      view: 'shop/layout',      label: 'Bố cục',       icon: LayoutList,   permission: 'settings.view' },
       { key: 'store-config',      view: 'shop/config',      label: 'Cấu hình',     icon: Cog,          permission: 'settings.edit' },
-      { key: 'store-languages',   view: 'shop/languages',   label: 'Ngôn ngữ',    icon: Globe,        permission: 'settings.edit' },
     ],
   },
 
@@ -432,7 +461,7 @@ function isFeatureEnabled(featureGroup) {
   return tf === featureGroup
 }
 
-// Filter nav items by user permissions AND tenant feature groups
+// Filter nav items by user permissions AND tenant feature groups AND installed modules
 const filteredNavItems = computed(() => {
   return navItems
     .map(item => {
@@ -442,7 +471,11 @@ const filteredNavItems = computed(() => {
       if (!item.permission && !item.children) return item
       // Group with children: filter children, hide group if none visible
       if (item.children) {
-        const visibleChildren = item.children.filter(c => !c.permission || can(c.permission))
+        const visibleChildren = item.children.filter(c => {
+          if (c.permission && !can(c.permission)) return false
+          if (c.moduleId && !isModuleInstalled(c.moduleId)) return false
+          return true
+        })
         if (visibleChildren.length === 0 && item.permission && !can(item.permission)) return null
         return { ...item, children: visibleChildren }
       }
@@ -465,6 +498,7 @@ const routeToTab = {
   'orders': 'orders', 'orders/customers': 'shop-customers', 'orders/accounting': 'accounting',
   'shop/tax': 'tax', 'orders/detail': 'order-detail',
   'warehouse/stock-receipts': 'stock-receipts', 'warehouse/suppliers': 'suppliers', 'warehouse/payment-vouchers': 'payment-vouchers', 'warehouse/purchase-orders': 'purchase-orders', 'warehouse/inventory-reports': 'inventory-reports',
+  'system/modules': 'modules',
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',

@@ -125,3 +125,14 @@ export const roles = {
   remove: (id) => api.del(`/roles/${id}`),
 }
 
+// ──── Modules ────
+export const modules = {
+  list: () => api.get('/modules'),
+  create: (data) => api.post('/modules', data),
+  update: (id, data) => api.put(`/modules/${id}`, data),
+  remove: (id) => api.del(`/modules/${id}`),
+  toggle: (id) => request('PATCH', `${BASE}/modules/${id}/toggle`),
+  pendingRequests: () => api.get('/modules/requests'),
+  approve: (id) => request('PATCH', `${BASE}/modules/requests/${id}/approve`),
+  reject: (id, reason) => request('PATCH', `${BASE}/modules/requests/${id}/reject`, { reason }),
+}

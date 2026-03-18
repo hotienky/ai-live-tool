@@ -1,0 +1,20 @@
+{
+  "id": "tax",
+  "name": "Quản lý Thuế",
+  "description": "Quản lý thuế suất, tính thuế tự động, báo cáo thuế",
+  "version": "1.0.0",
+  "icon": "Receipt",
+  "category": "finance",
+  "requires": [],
+  "controllers": ["TaxController"],
+  "services": ["TaxService"],
+  "models": ["TaxRate"],
+  "routes_file": "tax.php",
+  "permissions": ["settings.manage"],
+  "sidebar": {
+    "group": "Bán hàng",
+    "items": [
+      { "key": "tax", "label": "Thuế", "icon": "Receipt", "route": "shop/tax" }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "newsletter",
+  "name": "Newsletter",
+  "description": "Quản lý subscriber và gửi email marketing",
+  "version": "1.0.0",
+  "icon": "Mail",
+  "category": "marketing",
+  "requires": [],
+  "controllers": ["NewsletterController"],
+  "models": ["Subscriber"],
+  "routes_file": "newsletter.php",
+  "permissions": ["settings.manage"],
+  "sidebar": {
+    "group": "Marketing",
+    "items": [
+      { "key": "newsletter", "label": "Newsletter", "icon": "Mail", "route": "shop/newsletter" }
+    ]
+  }
+}

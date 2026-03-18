@@ -1,0 +1,21 @@
+{
+  "id": "accounting",
+  "name": "Kế toán & Tài chính",
+  "description": "Bút toán, sổ cái, P&L, bảng cân đối, phiếu thu chi",
+  "version": "1.0.0",
+  "icon": "DollarSign",
+  "category": "finance",
+  "requires": [],
+  "controllers": ["AccountingController", "PaymentVoucherController"],
+  "services": ["AccountingService"],
+  "models": ["AccountingEntry", "PaymentVoucher"],
+  "routes_file": "accounting.php",
+  "permissions": ["orders.view", "orders.edit"],
+  "sidebar": {
+    "group": "Bán hàng",
+    "items": [
+      { "key": "accounting", "label": "Kế toán", "icon": "DollarSign", "route": "orders/accounting" },
+      { "key": "payment-vouchers", "label": "Thu/Chi", "icon": "Wallet", "route": "warehouse/payment-vouchers" }
+    ]
+  }
+}

@@ -21,6 +21,7 @@ const routes = [
       { path: 'tenants/:id', name: 'TenantDetail', component: () => import('./pages/TenantDetailPage.vue') },
       { path: 'users', name: 'Users', component: () => import('./pages/UsersPage.vue') },
       { path: 'roles', name: 'Roles', component: () => import('./pages/RolesPage.vue') },
+      { path: 'modules', name: 'Modules', component: () => import('./pages/ModulesPage.vue') },
     ],
   },
 ]

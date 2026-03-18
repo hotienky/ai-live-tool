@@ -13,6 +13,16 @@ use App\Http\Controllers\Tenant\CustomFieldsController;
 use App\Http\Controllers\Tenant\FlashSalesController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\UserController;
+use App\Http\Controllers\Tenant\ModuleController;
+
+// Modules (plugin system)
+Route::get('/modules', [ModuleController::class, 'index']);
+Route::get('/modules/sidebar', [ModuleController::class, 'sidebar']);
+Route::post('/modules/install', [ModuleController::class, 'install'])->middleware('permission:settings.edit');
+Route::post('/modules/uninstall', [ModuleController::class, 'uninstall'])->middleware('permission:settings.edit');
+Route::post('/modules/request', [ModuleController::class, 'request'])->middleware('permission:settings.edit');
+Route::get('/modules/{moduleId}/{file}', [ModuleController::class, 'serveBundle'])
+    ->where('file', 'bundle\.js|style\.css');
 
 // Dashboard (all authenticated users)
 Route::get('/dashboard', [DashboardController::class, 'overview']);

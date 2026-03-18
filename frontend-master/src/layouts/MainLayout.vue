@@ -84,10 +84,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon, Users, KeyRound, Menu } from 'lucide-vue-next'
+import { LayoutDashboard, Building2, Shield, LogOut, Sun, Moon, Users, KeyRound, Menu, Puzzle } from 'lucide-vue-next'
 import { getStoredUser, logout } from '../services/api.js'
 
-const icons = { LayoutDashboard, Building2, Shield, LogOut, Users, KeyRound }
+const icons = { LayoutDashboard, Building2, Shield, LogOut, Users, KeyRound, Puzzle }
 const user = computed(() => getStoredUser())
 const isSidebarOpen = ref(false)
 
@@ -96,6 +96,7 @@ const navItems = [
   { to: '/tenants', label: 'Tenants', icon: Building2 },
   { to: '/users', label: 'Users', icon: Users },
   { to: '/roles', label: 'Roles', icon: KeyRound },
+  { to: '/modules', label: 'Modules', icon: Puzzle },
 ]
 
 const isDark = ref(true)
