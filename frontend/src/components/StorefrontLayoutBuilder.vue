@@ -889,6 +889,104 @@
           </div>
         </div>
 
+        <!-- Header Navigation Links -->
+        <div class="lb-section lb-section--header-links" v-show="!activePageId">
+          <h4 class="lb-section__title"><Link :size="14" /> Menu điều hướng Header</h4>
+          <p class="lb-section__hint">Quản lý các liên kết hiển thị trên thanh điều hướng chính.</p>
+          <div class="header-links-list">
+            <div v-for="(link, idx) in navLinks" :key="link.id" class="hl-item">
+              <span class="hl-item__order">{{ idx + 1 }}</span>
+              <div class="hl-item__info">
+                <span class="hl-item__name">{{ link.name }}</span>
+                <span class="hl-item__url">{{ link.url || '#' }}</span>
+              </div>
+              <span v-if="link.type === 'collection'" class="hl-badge">Dropdown</span>
+              <button class="btn-edit-hl" @click="openEditNavLink(link)" title="Sửa"><Pencil :size="12" /></button>
+              <button class="btn-remove-item" @click="deleteNavLink(link)" title="Xóa"><Trash2 :size="12" /></button>
+            </div>
+            <div v-if="!navLinks.length" class="hl-empty">Chưa có link nào. Thêm link bên dưới.</div>
+          </div>
+          <button class="btn-add-item" style="margin-top:8px" @click="openCreateNavLink">
+            <Plus :size="12" /> Thêm link Header
+          </button>
+        </div>
+
+        <!-- Nav Link Modal -->
+        <Teleport to="body">
+          <div v-if="showNavLinkModal" class="hl-modal-overlay" @click.self="showNavLinkModal = false">
+            <div class="hl-modal">
+              <div class="hl-modal__header">
+                <h3>{{ navLinkEditing ? 'Chỉnh sửa liên kết' : 'Thêm liên kết' }}</h3>
+                <button @click="showNavLinkModal = false"><X :size="16" /></button>
+              </div>
+              <div class="hl-modal__body">
+                <div class="hl-form-group">
+                  <label>Tên hiển thị <span style="color:#ef4444">*</span></label>
+                  <input v-model="navLinkForm.name" placeholder="VD: Trang chủ, Sản phẩm..." />
+                </div>
+                <div class="hl-form-group">
+                  <label>Đường dẫn</label>
+                  <div class="page-selector">
+                    <select v-model="pageSelectMode" class="page-selector__mode">
+                      <option value="builtin">Trang có sẵn</option>
+                      <option value="cms">Trang CMS</option>
+                      <option value="custom">Nhập tùy chỉnh</option>
+                    </select>
+                    <select v-if="pageSelectMode === 'builtin'" v-model="navLinkForm.url" class="page-selector__select">
+                      <option value="/">🏠 Trang chủ</option>
+                      <option value="/products">🛍️ Sản phẩm</option>
+                      <option value="/categories">📂 Danh mục</option>
+                      <option value="/brands">🏷️ Thương hiệu</option>
+                      <option value="/cart">🛒 Giỏ hàng</option>
+                      <option value="/promotions">🎁 Khuyến mãi</option>
+                      <option value="/wishlist">❤️ Yêu thích</option>
+                      <option value="/order-tracking">📦 Theo dõi đơn hàng</option>
+                      <option value="/account">👤 Tài khoản</option>
+                      <option value="/auth">🔐 Đăng nhập</option>
+                    </select>
+                    <select v-else-if="pageSelectMode === 'cms'" v-model="navLinkForm.url" class="page-selector__select">
+                      <option value="" disabled>— Chọn trang CMS —</option>
+                      <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">📄 {{ cp.title }}</option>
+                    </select>
+                    <input v-else v-model="navLinkForm.url" class="page-selector__input" placeholder="/custom-url hoặc https://..." />
+                  </div>
+                </div>
+                <div class="hl-form-row">
+                  <div class="hl-form-group">
+                    <label>Kiểu</label>
+                    <select v-model="navLinkForm.type">
+                      <option value="single">Link đơn</option>
+                      <option value="collection">Dropdown</option>
+                    </select>
+                  </div>
+                  <div class="hl-form-group">
+                    <label>Mở trong</label>
+                    <select v-model="navLinkForm.target">
+                      <option value="_self">Cùng tab</option>
+                      <option value="_blank">Tab mới ↗</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="hl-form-group" v-if="navLinkForm.type === 'single'">
+                  <label>Thuộc dropdown</label>
+                  <select v-model="navLinkForm.collectionId">
+                    <option :value="null">— Không —</option>
+                    <option v-for="cl in collectionNavLinks" :key="cl.id" :value="cl.id">{{ cl.name }}</option>
+                  </select>
+                </div>
+                <div class="hl-form-group">
+                  <label>Thứ tự</label>
+                  <input type="number" v-model.number="navLinkForm.sort" />
+                </div>
+              </div>
+              <div class="hl-modal__footer">
+                <button class="btn-cancel-hl" @click="showNavLinkModal = false">Hủy</button>
+                <button class="btn-save-hl" @click="saveNavLink"><Save :size="14" /> {{ navLinkEditing ? 'Cập nhật' : 'Tạo' }}</button>
+              </div>
+            </div>
+          </div>
+        </Teleport>
+
         <!-- Footer Builder -->
         <div class="lb-section lb-section--footer" v-show="!activePageId">
           <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
@@ -928,8 +1026,8 @@
               <div class="param-row">
                 <label>Loại nội dung</label>
                 <select v-model="col.type" class="param-select">
-                  <option value="links">🔗 Links (danh sách liên kết)</option>
-                  <option value="contact">📞 Liên hệ / Hotline</option>
+                  <option value="links">🔗 Links</option>
+                  <option value="contact">📞 Liên hệ</option>
                   <option value="text">📝 Nội dung tự do</option>
                 </select>
               </div>
@@ -944,12 +1042,32 @@
                 >
                   <GripVertical :size="10" class="footer-link-row__grip" />
                   <input v-model="link.label" class="param-input" placeholder="Nhãn" />
-                  <input v-model="link.url" class="param-input" placeholder="/page/gioi-thieu" />
+                  <!-- Smart page selector for footer link URL -->
+                  <select v-model="link.urlMode" class="param-select param-select--sm" style="max-width:90px">
+                    <option value="builtin">Có sẵn</option>
+                    <option value="cms">CMS</option>
+                    <option value="custom">Tùy chỉnh</option>
+                  </select>
+                  <select v-if="link.urlMode === 'builtin'" v-model="link.url" class="param-input" style="flex:1">
+                    <option value="/">Trang chủ</option>
+                    <option value="/products">Sản phẩm</option>
+                    <option value="/categories">Danh mục</option>
+                    <option value="/brands">Thương hiệu</option>
+                    <option value="/promotions">Khuyến mãi</option>
+                    <option value="/wishlist">Yêu thích</option>
+                    <option value="/order-tracking">Theo dõi đơn</option>
+                    <option value="/account">Tài khoản</option>
+                  </select>
+                  <select v-else-if="link.urlMode === 'cms'" v-model="link.url" class="param-input" style="flex:1">
+                    <option value="" disabled>Chọn CMS page</option>
+                    <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">{{ cp.title }}</option>
+                  </select>
+                  <input v-else v-model="link.url" class="param-input" placeholder="/page/..." style="flex:1" />
                   <button class="btn-remove-item" @click="col.links.splice(li, 1)" title="Xóa">
                     <X :size="10" />
                   </button>
                 </div>
-                <button class="btn-add-item" @click="col.links.push({ label: '', url: '' })">
+                <button class="btn-add-item" @click="col.links.push({ label: '', url: '', urlMode: 'custom' })">
                   <Plus :size="12" /> Thêm link
                 </button>
               </template>
@@ -1086,7 +1204,6 @@
             </div>
           </div>
         </div>
-
         <!-- Custom CSS -->
         <div class="lb-section">
           <h4 class="lb-section__title"><Code :size="14" /> CSS tùy chỉnh</h4>
@@ -1265,8 +1382,10 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText
+  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil
 } from 'lucide-vue-next'
+import { useNavLinks } from '../composables/useNavLinks.js'
+import { useCmsPages } from '../composables/useCmsPages.js'
 
 const { showToast } = useToast()
 
@@ -1829,7 +1948,58 @@ async function loadDynamicPages() {
   } catch (e) {}
 }
 
-onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
+// ── Header Nav Links ──
+const { links: navLinksRaw, fetchLinks: fetchNavLinks, createLink: createNavLink, updateLink: updateNavLink, deleteLink: deleteNavLinkApi } = useNavLinks(apiFetch)
+const navLinks = computed(() => (navLinksRaw.value || []).filter(l => l.group === 'menu' || !l.group).sort((a, b) => (a.sort || 0) - (b.sort || 0)))
+const collectionNavLinks = computed(() => (navLinksRaw.value || []).filter(l => l.type === 'collection'))
+
+const showNavLinkModal = ref(false)
+const navLinkEditing = ref(null)
+const navLinkForm = ref({ name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: 0, group: 'menu' })
+const pageSelectMode = ref('builtin')
+
+// CMS pages for page selector
+const { pages: cmsPageListRaw, fetchPages: fetchCmsPageList } = useCmsPages(apiFetch)
+const cmsPageList = computed(() => (cmsPageListRaw.value || []).filter(p => p.status === 'published' || p.is_published))
+
+function openCreateNavLink() {
+  navLinkEditing.value = null
+  navLinkForm.value = { name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: navLinks.value.length, group: 'menu' }
+  pageSelectMode.value = 'builtin'
+  showNavLinkModal.value = true
+}
+function openEditNavLink(link) {
+  navLinkEditing.value = link.id
+  navLinkForm.value = { name: link.name, url: link.url || '', type: link.type, target: link.target || '_self', collectionId: link.collectionId || null, sort: link.sort || 0, group: 'menu' }
+  // Detect page select mode from URL
+  const builtinUrls = ['/', '/products', '/categories', '/brands', '/cart', '/promotions', '/wishlist', '/order-tracking', '/account', '/auth']
+  if (builtinUrls.includes(link.url)) pageSelectMode.value = 'builtin'
+  else if (link.url?.startsWith('/page/')) pageSelectMode.value = 'cms'
+  else pageSelectMode.value = 'custom'
+  showNavLinkModal.value = true
+}
+async function saveNavLink() {
+  if (!navLinkForm.value.name) { showToast('Nhập tên link', 'error'); return }
+  try {
+    if (navLinkEditing.value) {
+      await updateNavLink(navLinkEditing.value, navLinkForm.value)
+      showToast('Đã cập nhật', 'success')
+    } else {
+      await createNavLink(navLinkForm.value)
+      showToast('Đã tạo link', 'success')
+    }
+    showNavLinkModal.value = false
+    fetchNavLinks()
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+}
+async function deleteNavLink(link) {
+  if (!confirm(`Xóa link "${link.name}"?`)) return
+  await deleteNavLinkApi(link.id)
+  fetchNavLinks()
+  showToast('Đã xóa', 'success')
+}
+
+onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLinks(); fetchCmsPageList() })
 </script>
 
 <style scoped>
@@ -2312,4 +2482,43 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .lb-section__desc {
   font-size: 12px; color: var(--color-text-muted); margin: 0 0 12px;
 }
+/* Header Links */
+.header-links-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+.hl-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 8px; border: 1px solid var(--color-border); background: var(--glass-bg); transition: all 0.15s;
+}
+.hl-item:hover { border-color: var(--color-accent-primary); }
+.hl-item__order { width: 20px; height: 20px; border-radius: 5px; background: var(--color-bg-card-solid); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; color: var(--color-text-muted); flex-shrink: 0; }
+.hl-item__info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.hl-item__name { font-size: 12px; font-weight: 700; color: var(--color-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hl-item__url { font-size: 10px; color: var(--color-text-muted); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hl-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; background: rgba(245,158,11,0.12); color: #f59e0b; text-transform: uppercase; flex-shrink: 0; }
+.btn-edit-hl { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--color-border); border-radius: 5px; background: none; color: var(--color-text-muted); cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
+.btn-edit-hl:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
+.hl-empty { text-align: center; padding: 16px; font-size: 12px; color: var(--color-text-muted); }
+/* Page Selector */
+.page-selector { display: flex; gap: 6px; }
+.page-selector__mode { flex-shrink: 0; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg-card-solid); color: var(--color-text-primary); font-size: 11px; cursor: pointer; font-weight: 600; }
+.page-selector__select, .page-selector__input { flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-bg-card-solid); color: var(--color-text-primary); font-size: 12px; }
+.page-selector__select:focus, .page-selector__input:focus { outline: none; border-color: var(--color-accent-primary); }
+/* Nav Link Modal */
+.hl-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.hl-modal { background: var(--color-bg-card-solid); border: 1px solid var(--color-border); border-radius: 14px; width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); animation: hlSlideUp 0.2s ease; }
+@keyframes hlSlideUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+.hl-modal__header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 0; }
+.hl-modal__header h3 { font-size: 15px; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.hl-modal__header button { background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: 4px; border-radius: 6px; }
+.hl-modal__header button:hover { background: var(--color-bg-card-hover); }
+.hl-modal__body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.hl-modal__footer { display: flex; gap: 8px; justify-content: flex-end; padding: 0 20px 16px; }
+.hl-form-group { display: flex; flex-direction: column; gap: 4px; }
+.hl-form-group label { font-size: 11px; font-weight: 600; color: var(--color-text-secondary); }
+.hl-form-group input, .hl-form-group select { width: 100%; padding: 8px 10px; border-radius: 7px; border: 1px solid var(--color-border); background: var(--color-bg-secondary); color: var(--color-text-primary); font-size: 12px; box-sizing: border-box; }
+.hl-form-group input:focus, .hl-form-group select:focus { outline: none; border-color: var(--color-accent-primary); }
+.hl-form-row { display: flex; gap: 10px; }
+.hl-form-row .hl-form-group { flex: 1; }
+.btn-cancel-hl { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--color-border); background: none; color: var(--color-text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; }
+.btn-save-hl { display: flex; align-items: center; gap: 5px; padding: 8px 20px; border-radius: 7px; border: none; background: var(--accent-gradient, var(--accent)); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: var(--accent-shadow); }
+.btn-save-hl:hover { transform: translateY(-1px); }
 </style>

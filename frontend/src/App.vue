@@ -331,7 +331,7 @@ import {
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
   ShoppingBag, FolderTree, Award, Receipt, Tag,
   Key, MessageCircle, Shield, Link, Image, BookOpen, Zap,
-  ClipboardList, Palette, Cog, Globe,
+  ClipboardList, Palette, Cog, Globe, LayoutList,
 } from 'lucide-vue-next'
 
 // ── Auth ──
@@ -404,7 +404,7 @@ const navItems = [
     key: 'store-group', label: 'Cửa hàng', icon: Store,
     featureGroup: 'store',
     permission: 'products.view',
-    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/nav', 'shop/appearance', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax'],
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/appearance', 'shop/layout', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax'],
     children: [
       { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
       { key: 'store-categories',  view: 'shop/categories',  label: 'Danh mục',    icon: FolderTree,   permission: 'products.view' },
@@ -415,8 +415,8 @@ const navItems = [
       { key: 'store-flash-sales', view: 'shop/flash-sales', label: 'Flash Sale',   icon: Zap,          permission: 'promotions.view' },
       { key: 'store-banners',     view: 'shop/banners',     label: 'Banner',       icon: Image,        permission: 'banners.view' },
       { key: 'store-cms',         view: 'shop/cms',         label: 'Trang CMS',    icon: BookOpen,     permission: 'cms.view' },
-      { key: 'store-nav',         view: 'shop/nav',         label: 'Menu',         icon: ClipboardList,permission: 'settings.view' },
-      { key: 'store-appearance',  view: 'shop/appearance',  label: 'Giao diện',   icon: Palette,      permission: 'settings.view' },
+      { key: 'store-appearance',  view: 'shop/appearance',  label: 'Giao diện',    icon: Palette,      permission: 'settings.view' },
+      { key: 'store-layout',      view: 'shop/layout',      label: 'Bố cục',       icon: LayoutList,   permission: 'settings.view' },
       { key: 'store-config',      view: 'shop/config',      label: 'Cấu hình',     icon: Cog,          permission: 'settings.edit' },
       { key: 'store-languages',   view: 'shop/languages',   label: 'Ngôn ngữ',    icon: Globe,        permission: 'settings.edit' },
     ],
@@ -458,7 +458,7 @@ const routeToTab = {
   'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
   'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
   'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
-  'shop/nav': 'nav-links', 'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
+  'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
   'system/logs': 'activity-logs', 'system/roles': 'roles',

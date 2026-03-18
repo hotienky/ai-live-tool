@@ -389,10 +389,7 @@
         <BannerManager />
       </div>
 
-      <!-- ═══ Tab: Nav Links ═══ -->
-      <div v-if="activeTab === 'nav-links'" class="settings__panel">
-        <NavLinkManager />
-      </div>
+
 
       <!-- ═══ Tab: System Config ═══ -->
       <!-- Store Info -->
@@ -569,7 +566,7 @@ const tabPermissions = {
   'flash-sales': 'promotions.view',
   'cms': 'cms.view',
   'banners': 'banners.view',
-  'nav-links': 'settings.view',
+
   'appearance': 'settings.view',
   'storefront-layout': 'settings.view',
   'store-info': 'settings.edit',
@@ -610,7 +607,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -656,7 +653,7 @@ const tabs = [
   { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
   { key: 'cms', label: 'Trang CMS', icon: BookOpen },
   { key: 'banners', label: 'Banner', icon: Video },
-  { key: 'nav-links', label: 'Menu', icon: ClipboardList },
+
 ]
 const allTabs = [
   ...tabs,
@@ -695,7 +692,7 @@ const tabGroups = [
     items: [
       { key: 'cms', label: 'Trang CMS', icon: BookOpen },
       { key: 'banners', label: 'Banner', icon: Video },
-      { key: 'nav-links', label: 'Menu', icon: ClipboardList },
+
       { key: 'appearance', label: 'Theme', icon: Palette },
       { key: 'storefront-layout', label: 'Bố cục Cửa Hàng', icon: LayoutList },
     ],
@@ -732,7 +729,7 @@ const tabToRoute = {
   // Marketing
   'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
   // Giao diện
-  'cms': 'shop/cms', 'banners': 'shop/banners', 'nav-links': 'shop/nav',
+  'cms': 'shop/cms', 'banners': 'shop/banners',
   'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
   // Cửa hàng
   'store-info': 'shop/info', 'system-config': 'shop/config', 'languages': 'shop/languages',
@@ -743,7 +740,7 @@ const tabToRoute = {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'nav-links', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
