@@ -241,480 +241,12 @@
               <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
             </button>
           </div>
-          <!-- Normal section list (homepage or CMS dynamic page) -->
-          <div class="section-list" v-else>
-            <div
-              v-for="(section, idx) in sections"
-              :key="section.type"
-              class="section-item-wrap"
-            >
-              <div
-                class="section-item"
-                :class="{
-                  disabled: !section.enabled,
-                  dragging: dragIndex === idx,
-                  'drag-over': dragOverIndex === idx && dragIndex !== idx,
-                  expanded: expandedSection === section.type,
-                }"
-                draggable="true"
-                @dragstart="onDragStart($event, idx)"
-                @dragend="onDragEnd"
-                @dragover.prevent="onDragOver($event, idx)"
-                @dragenter.prevent="onDragEnter(idx)"
-                @dragleave="onDragLeave(idx)"
-                @drop.prevent="onDrop(idx)"
-              >
-                <div class="section-item__left">
-                  <div class="section-item__drag-handle">
-                    <GripVertical :size="14" />
-                  </div>
-                  <component :is="sectionMeta[section.type]?.icon" :size="14" />
-                  <span>{{ sectionMeta[section.type]?.label || section.type }}</span>
-                </div>
-                <div class="section-item__right">
-                  <button
-                    class="btn-params"
-                    @click.stop="toggleExpand(section.type)"
-                    title="Tùy chỉnh"
-                  ><Settings2 :size="13" /></button>
-                  <label class="toggle-switch" @click.stop>
-                    <input type="checkbox" v-model="section.enabled" />
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Expanded Section Parameters -->
-              <transition name="expand">
-                <div v-if="expandedSection === section.type" class="section-params">
-                  <template v-if="section.type === 'banner'">
-                    <div class="param-row">
-                      <label>Tự chuyển</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.autoplay" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row" v-if="section.params.autoplay">
-                      <label>Interval (ms)</label>
-                      <input type="number" v-model.number="section.params.interval" min="1000" max="10000" step="500" class="param-input" />
-                    </div>
-                    <div class="param-row">
-                      <label>Chiều cao</label>
-                      <select v-model="section.params.height" class="param-select">
-                        <option value="sm">Nhỏ</option>
-                        <option value="md">Vừa</option>
-                        <option value="lg">Lớn</option>
-                      </select>
-                    </div>
-                  </template>
-
-                  <template v-if="section.type === 'categories'">
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="3" max="8" class="param-range" />
-                      <span class="param-value">{{ section.params.columns }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Hiện mô tả</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.showDescription" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row">
-                      <label>Bố cục</label>
-                      <select v-model="section.params.layoutStyle" class="param-select">
-                        <option value="grid">Lưới</option>
-                        <option value="carousel">Carousel</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Hiện số SP</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.showCount" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="content-editor" v-if="allCategories.length">
-                      <label class="content-editor__label">Chọn danh mục hiển thị</label>
-                      <div v-for="cat in allCategories" :key="cat.id" class="param-row">
-                        <label style="font-size:12px">{{ cat.name }}</label>
-                        <label class="toggle-switch toggle-switch--sm" @click.stop>
-                          <input type="checkbox" :checked="(section.params.selectedCategoryIds || []).includes(cat.id)" @change="toggleCategoryId(section, cat.id)" />
-                          <span class="toggle-slider"></span>
-                        </label>
-                      </div>
-                      <small style="color:#888;font-size:11px">Bỏ chọn tất cả = hiện tất cả</small>
-                    </div>
-                  </template>
-
-                  <template v-if="section.type === 'flash_sale'">
-                    <div class="param-row">
-                      <label>Hiện đếm ngược</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.showTimer" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row">
-                      <label>Hiện thanh tiến độ</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.showProgress" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row">
-                      <label>Số SP</label>
-                      <input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" />
-                      <span class="param-value">{{ section.params.count || 8 }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
-                      <span class="param-value">{{ section.params.columns || 4 }}</span>
-                    </div>
-                  </template>
-
-                  <template v-if="section.type === 'featured_products'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Sản phẩm nổi bật" />
-                    </div>
-                    <div class="param-row">
-                      <label>Số lượng</label>
-                      <input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" />
-                      <span class="param-value">{{ section.params.count }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
-                      <span class="param-value">{{ section.params.columns }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Lọc danh mục</label>
-                      <select v-model="section.params.filterCategory" class="param-select">
-                        <option value="">Tất cả</option>
-                        <option v-for="c in allCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Sắp xếp</label>
-                      <select v-model="section.params.sortOrder" class="param-select">
-                        <option value="newest">Mới nhất</option>
-                        <option value="bestselling">Bán chạy</option>
-                        <option value="price_asc">Giá tăng</option>
-                        <option value="price_desc">Giá giảm</option>
-                      </select>
-                    </div>
-                    <!-- Carousel config -->
-                    <div class="param-row" style="margin-top:6px;border-top:1px solid var(--glass-border);padding-top:8px">
-                      <label>Slides/hàng</label>
-                      <select v-model.number="section.params.slidesPerView" class="param-select">
-                        <option :value="2">2 sản phẩm</option>
-                        <option :value="3">3 sản phẩm</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Auto-scroll</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.autoplay" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row" v-if="section.params.autoplay !== false">
-                      <label>Tốc độ (giây)</label>
-                      <input type="range" v-model.number="section.params.autoplaySpeed" min="2000" max="8000" step="500" class="param-range" />
-                      <span class="param-value">{{ (section.params.autoplaySpeed || 4000) / 1000 }}s</span>
-                    </div>
-                  </template>
-
-                  <template v-if="section.type === 'new_arrivals'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Hàng mới về" />
-                    </div>
-                    <div class="param-row">
-                      <label>Số lượng</label>
-                      <input type="range" v-model.number="section.params.count" min="4" max="12" class="param-range" />
-                      <span class="param-value">{{ section.params.count }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
-                      <span class="param-value">{{ section.params.columns || 4 }}</span>
-                    </div>
-                    <div class="param-row">
-                      <label>Sắp xếp</label>
-                      <select v-model="section.params.sortOrder" class="param-select">
-                        <option value="newest">Mới nhất</option>
-                        <option value="bestselling">Bán chạy</option>
-                        <option value="price_asc">Giá tăng</option>
-                        <option value="price_desc">Giá giảm</option>
-                      </select>
-                    </div>
-                    <!-- Carousel config -->
-                    <div class="param-row" style="margin-top:6px;border-top:1px solid var(--glass-border);padding-top:8px">
-                      <label>Slides/hàng (mobile)</label>
-                      <select v-model.number="section.params.slidesPerView" class="param-select">
-                        <option :value="2">2 sản phẩm</option>
-                        <option :value="3">3 sản phẩm</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Auto-scroll</label>
-                      <label class="toggle-switch toggle-switch--sm" @click.stop>
-                        <input type="checkbox" v-model="section.params.autoplay" />
-                        <span class="toggle-slider"></span>
-                      </label>
-                    </div>
-                    <div class="param-row" v-if="section.params.autoplay !== false">
-                      <label>Tốc độ (giây)</label>
-                      <input type="range" v-model.number="section.params.autoplaySpeed" min="2000" max="8000" step="500" class="param-range" />
-                      <span class="param-value">{{ (section.params.autoplaySpeed || 5000) / 1000 }}s</span>
-                    </div>
-                  </template>
-
-                  <template v-if="section.type === 'cms_pages'">
-                    <div class="param-row">
-                      <label>Bố cục</label>
-                      <select v-model="section.params.layout" class="param-select">
-                        <option value="grid">Lưới</option>
-                        <option value="list">Danh sách</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Tối đa</label>
-                      <input type="range" v-model.number="section.params.maxPages" min="3" max="12" class="param-range" />
-                      <span class="param-value">{{ section.params.maxPages }}</span>
-                    </div>
-                  </template>
-
-                  <!-- Video Embed -->
-                  <template v-if="section.type === 'video_embed'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Video" />
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Danh sách video</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL video (YouTube, TikTok...)" />
-                          <input type="text" v-model="item.caption" class="param-input param-input--wide" placeholder="Chú thích (tùy chọn)" />
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })">
-                        <Plus :size="12" /> Thêm video
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- Testimonials -->
-                  <template v-if="section.type === 'testimonials'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Khách hàng nói gì" />
-                    </div>
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="2" max="4" class="param-range" />
-                      <span class="param-value">{{ section.params.columns }}</span>
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Danh sách đánh giá</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên khách hàng" />
-                          <textarea v-model="item.text" class="param-input param-input--wide content-textarea" placeholder="Nội dung đánh giá" rows="2"></textarea>
-                          <div class="content-item__row">
-                            <select v-model.number="item.rating" class="param-select">
-                              <option :value="5">5 sao</option>
-                              <option :value="4">4 sao</option>
-                              <option :value="3">3 sao</option>
-                              <option :value="2">2 sao</option>
-                              <option :value="1">1 sao</option>
-                            </select>
-                            <input type="url" v-model="item.avatar" class="param-input param-input--wide" placeholder="URL avatar (tùy chọn)" />
-                          </div>
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { name: '', text: '', rating: 5, avatar: '' })">
-                        <Plus :size="12" /> Thêm đánh giá
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- FAQ -->
-                  <template v-if="section.type === 'faq'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Câu hỏi thường gặp" />
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Danh sách câu hỏi</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <input type="text" v-model="item.question" class="param-input param-input--wide" placeholder="Câu hỏi" />
-                          <textarea v-model="item.answer" class="param-input param-input--wide content-textarea" placeholder="Trả lời" rows="2"></textarea>
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { question: '', answer: '' })">
-                        <Plus :size="12" /> Thêm câu hỏi
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- Image Gallery -->
-                  <template v-if="section.type === 'image_gallery'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Thư viện ảnh" />
-                    </div>
-                    <div class="param-row">
-                      <label>Số cột</label>
-                      <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" />
-                      <span class="param-value">{{ section.params.columns }}</span>
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Danh sách ảnh</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL ảnh" />
-                          <input type="text" v-model="item.caption" class="param-input param-input--wide" placeholder="Chú thích (tùy chọn)" />
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })">
-                        <Plus :size="12" /> Thêm ảnh
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- Text Block -->
-                  <template v-if="section.type === 'text_block'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Tiêu đề khối văn bản" />
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Nội dung HTML</label>
-                      <textarea
-                        :value="typeof section.content === 'string' ? section.content : ''"
-                        @input="section.content = $event.target.value"
-                        class="param-input param-input--wide content-html-editor"
-                        rows="6"
-                        placeholder="<h2>Tiêu đề</h2>&#10;<p>Nội dung văn bản...</p>"
-                        spellcheck="false"
-                      ></textarea>
-                    </div>
-                  </template>
-
-                  <!-- Newsletter -->
-                  <template v-if="section.type === 'newsletter'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Đăng ký nhận tin" />
-                    </div>
-                    <div class="param-row">
-                      <label>Phụ đề</label>
-                      <input type="text" v-model="section.params.subtitle" class="param-input param-input--wide" placeholder="Nhận thông tin khuyến mãi..." />
-                    </div>
-                    <div class="param-row">
-                      <label>Nút bấm</label>
-                      <input type="text" v-model="section.params.buttonText" class="param-input param-input--wide" placeholder="Đăng ký" />
-                    </div>
-                  </template>
-
-                  <!-- Social Feed -->
-                  <template v-if="section.type === 'social_feed'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Theo dõi chúng tôi" />
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Liên kết mạng xã hội</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <div class="content-item__row">
-                            <select v-model="item.platform" class="param-select">
-                              <option value="facebook">Facebook</option>
-                              <option value="instagram">Instagram</option>
-                              <option value="youtube">YouTube</option>
-                              <option value="tiktok">TikTok</option>
-                              <option value="zalo">Zalo</option>
-                              <option value="twitter">Twitter/X</option>
-                            </select>
-                            <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL trang mạng xã hội" />
-                          </div>
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { platform: 'facebook', url: '', label: '' })">
-                        <Plus :size="12" /> Thêm liên kết
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- Brands Slider -->
-                  <template v-if="section.type === 'brands_slider'">
-                    <div class="param-row">
-                      <label>Tiêu đề</label>
-                      <input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Thương hiệu" />
-                    </div>
-                    <div class="content-editor">
-                      <label class="content-editor__label">Danh sách thương hiệu</label>
-                      <div v-for="(item, i) in section.content" :key="i" class="content-item">
-                        <div class="content-item__fields">
-                          <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên thương hiệu" />
-                          <div class="content-item__row">
-                            <input type="url" v-model="item.logo" class="param-input param-input--wide" placeholder="URL logo" />
-                            <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL website (tùy chọn)" />
-                          </div>
-                        </div>
-                        <button class="btn-remove-item" @click="removeContentItem(section, i)" title="Xóa"><Trash2 :size="12" /></button>
-                      </div>
-                      <button class="btn-add-item" @click="addContentItem(section, { name: '', logo: '', url: '' })">
-                        <Plus :size="12" /> Thêm thương hiệu
-                      </button>
-                    </div>
-                  </template>
-
-                  <!-- Section Style Config (all sections) -->
-                  <div class="section-style-divider"></div>
-                  <details class="section-style-details">
-                    <summary>🎨 Style & Advanced</summary>
-                    <div class="param-row">
-                      <label>Nền</label>
-                      <input type="color" v-model="section.params.sectionBgColor" class="param-color" />
-                      <button v-if="section.params.sectionBgColor" class="btn-clear-color" @click="section.params.sectionBgColor = ''" title="Xóa"><X :size="10" /></button>
-                    </div>
-                    <div class="param-row">
-                      <label>Padding</label>
-                      <select v-model="section.params.sectionPadding" class="param-select">
-                        <option value="">Mặc định</option>
-                        <option value="sm">Nhỏ (16px)</option>
-                        <option value="md">Vừa (32px)</option>
-                        <option value="lg">Lớn (48px)</option>
-                        <option value="xl">Rất lớn (64px)</option>
-                      </select>
-                    </div>
-                    <div class="param-row">
-                      <label>Anchor ID</label>
-                      <input type="text" v-model="section.params.anchorId" class="param-input" placeholder="vd: flash-sale" />
-                    </div>
-                    <div class="param-row">
-                      <label>CSS Class</label>
-                      <input type="text" v-model="section.params.cssClass" class="param-input" placeholder="custom-class" />
-                    </div>
-                  </details>
-                </div>
-              </transition>
-            </div>
-          </div>
+          <!-- Section List (sub-component) -->
+          <LayoutSectionManager
+            v-model:sections="sections"
+            :section-meta="sectionMeta"
+            :all-categories="allCategories"
+          />
 
           <!-- Add Section Button (only for homepage and CMS dynamic pages, not builtin pages) -->
           <button class="btn-add-section" @click="showLibrary = true" v-show="!activeBuiltinPage">
@@ -740,470 +272,27 @@
           </div>
         </div>
 
-        <!-- Page Configs -->
-        <div class="lb-section" v-show="!activePageId">
-          <h4 class="lb-section__title"><Settings2 :size="14" /> Cấu hình trang</h4>
+        <!-- Page Configs (sub-component) -->
+        <LayoutPageConfigs
+          :page-configs="pageConfigs"
+          :active-page-id="activePageId"
+          @update:page-configs="v => pageConfigs = v"
+        />
 
-          <!-- Products Page Config -->
-          <div class="page-config" :class="{ expanded: expandedPageConfig === 'products' }">
-            <div class="page-config__header" @click="expandedPageConfig = expandedPageConfig === 'products' ? null : 'products'">
-              <ShoppingBag :size="14" />
-              <span>Trang sản phẩm</span>
-              <ChevronDown :size="12" class="page-config__chevron" />
-            </div>
-            <div v-if="expandedPageConfig === 'products'" class="page-config__body">
-              <div class="param-row">
-                <label>Sidebar</label>
-                <select v-model="pageConfigs.products.sidebarPosition" class="param-select">
-                  <option value="left">Bên trái</option>
-                  <option value="right">Bên phải</option>
-                  <option value="hidden">Ẩn</option>
-                </select>
-              </div>
-              <div class="param-row">
-                <label>Cột sản phẩm</label>
-                <input type="range" v-model.number="pageConfigs.products.gridColumns" min="2" max="5" class="param-range" />
-                <span class="param-value">{{ pageConfigs.products.gridColumns }}</span>
-              </div>
-              <div class="param-row">
-                <label>SP mỗi trang</label>
-                <select v-model.number="pageConfigs.products.itemsPerPage" class="param-select">
-                  <option :value="8">8</option>
-                  <option :value="12">12</option>
-                  <option :value="16">16</option>
-                  <option :value="24">24</option>
-                </select>
-              </div>
-              <div class="param-row">
-                <label>Filter danh mục</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.products.showFilters.category" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="param-row">
-                <label>Filter thương hiệu</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.products.showFilters.brand" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="param-row">
-                <label>Filter giá</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.products.showFilters.price" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
+        <!-- Header Config (sub-component) -->
+        <LayoutHeaderConfig
+          :header-config="headerConfig"
+          :active-page-id="activePageId"
+          @update:header-config="v => headerConfig = v"
+        />
 
-          <!-- Product Detail Config -->
-          <div class="page-config" :class="{ expanded: expandedPageConfig === 'productDetail' }">
-            <div class="page-config__header" @click="expandedPageConfig = expandedPageConfig === 'productDetail' ? null : 'productDetail'">
-              <Package :size="14" />
-              <span>Chi tiết sản phẩm</span>
-              <ChevronDown :size="12" class="page-config__chevron" />
-            </div>
-            <div v-if="expandedPageConfig === 'productDetail'" class="page-config__body">
-              <div class="param-row">
-                <label>Gallery</label>
-                <select v-model="pageConfigs.productDetail.galleryStyle" class="param-select">
-                  <option value="thumbnails">Thumbnail</option>
-                  <option value="grid">Grid</option>
-                </select>
-              </div>
-              <div class="param-row">
-                <label>Tỷ lệ layout</label>
-                <select v-model="pageConfigs.productDetail.layoutRatio" class="param-select">
-                  <option value="50-50">50 / 50</option>
-                  <option value="60-40">60 / 40</option>
-                  <option value="40-60">40 / 60</option>
-                </select>
-              </div>
-              <div class="param-row">
-                <label>Breadcrumb</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.productDetail.showBreadcrumb" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="param-row">
-                <label>SP liên quan</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.productDetail.showRelatedProducts" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-              <div class="param-row" v-if="pageConfigs.productDetail.showRelatedProducts">
-                <label>Số SP liên quan</label>
-                <input type="range" v-model.number="pageConfigs.productDetail.relatedCount" min="4" max="8" class="param-range" />
-                <span class="param-value">{{ pageConfigs.productDetail.relatedCount }}</span>
-              </div>
-              <div class="param-row">
-                <label>Đánh giá</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="pageConfigs.productDetail.showReviews" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+        <!-- Footer Config (sub-component) -->
+        <LayoutFooterConfig
+          :footer-config="footerConfig"
+          :active-page-id="activePageId"
+          @update:footer-config="v => footerConfig = v"
+        />
 
-        <!-- Header Config -->
-        <div class="lb-section" v-show="!activePageId">
-          <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Header</h4>
-          <div class="param-row">
-            <label>Vị trí logo</label>
-            <select v-model="headerConfig.logoPosition" class="param-select">
-              <option value="left">Trái</option>
-              <option value="center">Giữa</option>
-            </select>
-          </div>
-          <div class="param-row">
-            <label>Max nav links</label>
-            <input type="range" v-model.number="headerConfig.maxNavLinks" min="3" max="10" class="param-range" />
-            <span class="param-value">{{ headerConfig.maxNavLinks }}</span>
-          </div>
-          <div class="param-row">
-            <label>Hiện Search</label>
-            <label class="toggle-switch toggle-switch--sm" @click.stop>
-              <input type="checkbox" v-model="headerConfig.showSearch" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="param-row">
-            <label>Sticky</label>
-            <label class="toggle-switch toggle-switch--sm" @click.stop>
-              <input type="checkbox" v-model="headerConfig.sticky" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="param-row">
-            <label>Theme toggle</label>
-            <label class="toggle-switch toggle-switch--sm" @click.stop>
-              <input type="checkbox" v-model="headerConfig.showThemeToggle" />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Header Navigation Links -->
-        <div class="lb-section lb-section--header-links" v-show="!activePageId">
-          <h4 class="lb-section__title"><Link :size="14" /> Menu điều hướng Header</h4>
-          <p class="lb-section__hint">Quản lý các liên kết hiển thị trên thanh điều hướng chính.</p>
-          <div class="header-links-list">
-            <div v-for="(link, idx) in navLinks" :key="link.id" class="hl-item">
-              <span class="hl-item__order">{{ idx + 1 }}</span>
-              <div class="hl-item__info">
-                <span class="hl-item__name">{{ link.name }}</span>
-                <span class="hl-item__url">{{ link.url || '#' }}</span>
-              </div>
-              <span v-if="link.type === 'collection'" class="hl-badge">Dropdown</span>
-              <button class="btn-edit-hl" @click="openEditNavLink(link)" title="Sửa"><Pencil :size="12" /></button>
-              <button class="btn-remove-item" @click="deleteNavLink(link)" title="Xóa"><Trash2 :size="12" /></button>
-            </div>
-            <div v-if="!navLinks.length" class="hl-empty">Chưa có link nào. Thêm link bên dưới.</div>
-          </div>
-          <button class="btn-add-item" style="margin-top:8px" @click="openCreateNavLink">
-            <Plus :size="12" /> Thêm link Header
-          </button>
-        </div>
-
-        <!-- Nav Link Modal -->
-        <Teleport to="body">
-          <div v-if="showNavLinkModal" class="hl-modal-overlay" @click.self="showNavLinkModal = false">
-            <div class="hl-modal">
-              <div class="hl-modal__header">
-                <h3>{{ navLinkEditing ? 'Chỉnh sửa liên kết' : 'Thêm liên kết' }}</h3>
-                <button @click="showNavLinkModal = false"><X :size="16" /></button>
-              </div>
-              <div class="hl-modal__body">
-                <div class="hl-form-group">
-                  <label>Tên hiển thị <span style="color:#ef4444">*</span></label>
-                  <input v-model="navLinkForm.name" placeholder="VD: Trang chủ, Sản phẩm..." />
-                </div>
-                <div class="hl-form-group">
-                  <label>Đường dẫn</label>
-                  <div class="page-selector">
-                    <select v-model="pageSelectMode" class="page-selector__mode">
-                      <option value="builtin">Trang có sẵn</option>
-                      <option value="cms">Trang CMS</option>
-                      <option value="custom">Nhập tùy chỉnh</option>
-                    </select>
-                    <select v-if="pageSelectMode === 'builtin'" v-model="navLinkForm.url" class="page-selector__select">
-                      <option value="/">🏠 Trang chủ</option>
-                      <option value="/products">🛍️ Sản phẩm</option>
-                      <option value="/categories">📂 Danh mục</option>
-                      <option value="/brands">🏷️ Thương hiệu</option>
-                      <option value="/cart">🛒 Giỏ hàng</option>
-                      <option value="/promotions">🎁 Khuyến mãi</option>
-                      <option value="/wishlist">❤️ Yêu thích</option>
-                      <option value="/order-tracking">📦 Theo dõi đơn hàng</option>
-                      <option value="/account">👤 Tài khoản</option>
-                      <option value="/auth">🔐 Đăng nhập</option>
-                    </select>
-                    <select v-else-if="pageSelectMode === 'cms'" v-model="navLinkForm.url" class="page-selector__select">
-                      <option value="" disabled>— Chọn trang CMS —</option>
-                      <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">📄 {{ cp.title }}</option>
-                    </select>
-                    <input v-else v-model="navLinkForm.url" class="page-selector__input" placeholder="/custom-url hoặc https://..." />
-                  </div>
-                </div>
-                <div class="hl-form-row">
-                  <div class="hl-form-group">
-                    <label>Kiểu</label>
-                    <select v-model="navLinkForm.type">
-                      <option value="single">Link đơn</option>
-                      <option value="collection">Dropdown</option>
-                    </select>
-                  </div>
-                  <div class="hl-form-group">
-                    <label>Mở trong</label>
-                    <select v-model="navLinkForm.target">
-                      <option value="_self">Cùng tab</option>
-                      <option value="_blank">Tab mới ↗</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="hl-form-group" v-if="navLinkForm.type === 'single'">
-                  <label>Thuộc dropdown</label>
-                  <select v-model="navLinkForm.collectionId">
-                    <option :value="null">— Không —</option>
-                    <option v-for="cl in collectionNavLinks" :key="cl.id" :value="cl.id">{{ cl.name }}</option>
-                  </select>
-                </div>
-                <div class="hl-form-group">
-                  <label>Thứ tự</label>
-                  <input type="number" v-model.number="navLinkForm.sort" />
-                </div>
-              </div>
-              <div class="hl-modal__footer">
-                <button class="btn-cancel-hl" @click="showNavLinkModal = false">Hủy</button>
-                <button class="btn-save-hl" @click="saveNavLink"><Save :size="14" /> {{ navLinkEditing ? 'Cập nhật' : 'Tạo' }}</button>
-              </div>
-            </div>
-          </div>
-        </Teleport>
-
-        <!-- Footer Builder -->
-        <div class="lb-section lb-section--footer" v-show="!activePageId">
-          <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
-          <p class="lb-section__hint">Kéo thả để sắp xếp thứ tự các cột. Footer hiển thị ở cuối trang storefront.</p>
-
-          <!-- Footer Columns -->
-          <div class="footer-builder">
-            <div
-              v-for="(col, ci) in footerConfig.columns"
-              :key="'fc-' + ci"
-              class="footer-col-card"
-              :class="{ 'footer-col-card--dragging': footerDragIdx === ci, 'footer-col-card--drag-over': footerDragOverIdx === ci && footerDragIdx !== ci }"
-              draggable="true"
-              @dragstart="onFooterDragStart($event, ci)"
-              @dragend="onFooterDragEnd"
-              @dragover.prevent="onFooterDragOver($event, ci)"
-              @dragenter.prevent="footerDragOverIdx = ci"
-              @dragleave="footerDragOverIdx = -1"
-              @drop.prevent="onFooterDrop(ci)"
-            >
-              <div class="footer-col-card__header">
-                <div class="footer-col-card__label">
-                  <GripVertical :size="12" class="footer-col-card__grip" />
-                  <span class="footer-col-card__num">Cột {{ ci + 1 }}</span>
-                </div>
-                <button class="btn-remove-item" @click="removeFooterCol(ci)" title="Xóa cột">
-                  <Trash2 :size="12" />
-                </button>
-              </div>
-              <input
-                v-model="col.title"
-                class="param-input param-input--wide"
-                :placeholder="'Tiêu đề cột ' + (ci + 1) + ' (VD: ' + (['Về chúng tôi', 'Hỗ trợ', 'Liên hệ', 'Chính sách'][ci] || 'Thêm') + ')'"
-              />
-
-              <!-- Column Type -->
-              <div class="param-row">
-                <label>Loại nội dung</label>
-                <select v-model="col.type" class="param-select">
-                  <option value="links">🔗 Links</option>
-                  <option value="contact">📞 Liên hệ</option>
-                  <option value="text">📝 Nội dung tự do</option>
-                </select>
-              </div>
-
-              <!-- Links Type -->
-              <template v-if="col.type === 'links'">
-                <div v-for="(link, li) in col.links" :key="li" class="footer-link-row"
-                  draggable="true"
-                  @dragstart.stop="footerItemDrag = { ci, li }; $event.dataTransfer.effectAllowed = 'move'"
-                  @dragover.prevent.stop
-                  @drop.prevent.stop="onFooterItemDrop(ci, li)"
-                >
-                  <GripVertical :size="10" class="footer-link-row__grip" />
-                  <input v-model="link.label" class="param-input" placeholder="Nhãn" />
-                  <!-- Smart page selector for footer link URL -->
-                  <select v-model="link.urlMode" class="param-select param-select--sm" style="max-width:90px">
-                    <option value="builtin">Có sẵn</option>
-                    <option value="cms">CMS</option>
-                    <option value="custom">Tùy chỉnh</option>
-                  </select>
-                  <select v-if="link.urlMode === 'builtin'" v-model="link.url" class="param-input" style="flex:1">
-                    <option value="/">Trang chủ</option>
-                    <option value="/products">Sản phẩm</option>
-                    <option value="/categories">Danh mục</option>
-                    <option value="/brands">Thương hiệu</option>
-                    <option value="/promotions">Khuyến mãi</option>
-                    <option value="/wishlist">Yêu thích</option>
-                    <option value="/order-tracking">Theo dõi đơn</option>
-                    <option value="/account">Tài khoản</option>
-                  </select>
-                  <select v-else-if="link.urlMode === 'cms'" v-model="link.url" class="param-input" style="flex:1">
-                    <option value="" disabled>Chọn CMS page</option>
-                    <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">{{ cp.title }}</option>
-                  </select>
-                  <input v-else v-model="link.url" class="param-input" placeholder="/page/..." style="flex:1" />
-                  <button class="btn-remove-item" @click="col.links.splice(li, 1)" title="Xóa">
-                    <X :size="10" />
-                  </button>
-                </div>
-                <button class="btn-add-item" @click="col.links.push({ label: '', url: '', urlMode: 'custom' })">
-                  <Plus :size="12" /> Thêm link
-                </button>
-              </template>
-
-              <!-- Contact Type -->
-              <template v-if="col.type === 'contact'">
-                <div v-for="(item, ii) in col.items" :key="ii" class="footer-link-row"
-                  draggable="true"
-                  @dragstart.stop="footerItemDrag = { ci, ii }; $event.dataTransfer.effectAllowed = 'move'"
-                  @dragover.prevent.stop
-                  @drop.prevent.stop="onFooterContactDrop(ci, ii)"
-                >
-                  <GripVertical :size="10" class="footer-link-row__grip" />
-                  <select v-model="item.icon" class="param-select param-select--sm">
-                    <option value="phone">📞 SĐT</option>
-                    <option value="email">📧 Email</option>
-                    <option value="address">📍 Địa chỉ</option>
-                    <option value="clock">🕐 Giờ</option>
-                    <option value="text">💬 Ghi chú</option>
-                  </select>
-                  <input v-model="item.label" class="param-input" placeholder="Nhãn" />
-                  <input v-model="item.value" class="param-input" placeholder="Giá trị" />
-                  <button class="btn-remove-item" @click="col.items.splice(ii, 1)" title="Xóa">
-                    <X :size="10" />
-                  </button>
-                </div>
-                <button class="btn-add-item" @click="col.items.push({ icon: 'phone', label: '', value: '' })">
-                  <Plus :size="12" /> Thêm dòng
-                </button>
-              </template>
-
-              <!-- Text Type -->
-              <template v-if="col.type === 'text'">
-                <textarea
-                  v-model="col.content"
-                  class="param-input param-input--wide footer-textarea"
-                  rows="4"
-                  placeholder="Nội dung HTML tùy ý..."
-                ></textarea>
-              </template>
-            </div>
-
-            <button class="btn-add-section footer-add-col" @click="addFooterCol">
-              <Plus :size="14" /> Thêm cột (hiện có {{ footerConfig.columns.length }} cột)
-            </button>
-          </div>
-
-          <!-- Social Links -->
-          <details class="footer-extra-section" open>
-            <summary>🌐 Mạng xã hội</summary>
-            <div v-for="(s, si) in footerConfig.social" :key="si" class="footer-link-row">
-              <select v-model="s.platform" class="param-select param-select--sm">
-                <option value="facebook">Facebook</option>
-                <option value="instagram">Instagram</option>
-                <option value="youtube">YouTube</option>
-                <option value="tiktok">TikTok</option>
-                <option value="zalo">Zalo</option>
-                <option value="twitter">Twitter/X</option>
-                <option value="shopee">Shopee</option>
-                <option value="lazada">Lazada</option>
-              </select>
-              <input v-model="s.url" class="param-input param-input--wide" placeholder="URL" />
-              <button class="btn-remove-item" @click="footerConfig.social.splice(si, 1)"><X :size="10" /></button>
-            </div>
-            <button class="btn-add-item" @click="footerConfig.social.push({ platform: 'facebook', url: '' })">
-              <Plus :size="12" /> Thêm
-            </button>
-          </details>
-
-          <!-- Payment Methods -->
-          <details class="footer-extra-section">
-            <summary>💳 Phương thức thanh toán</summary>
-            <div class="footer-badges-grid">
-              <label v-for="pm in allPaymentMethods" :key="pm.code" class="footer-badge-check">
-                <input type="checkbox" :value="pm.code" v-model="footerConfig.paymentMethods" />
-                <span>{{ pm.label }}</span>
-              </label>
-            </div>
-          </details>
-
-          <!-- Certification Badges -->
-          <details class="footer-extra-section">
-            <summary>🏅 Chứng nhận / Badge</summary>
-            <div v-for="(b, bi) in footerConfig.badges" :key="bi" class="footer-link-row">
-              <input v-model="b.label" class="param-input" placeholder="Tên (VD: DMCA)" />
-              <input v-model="b.imageUrl" class="param-input param-input--wide" placeholder="URL hình ảnh" />
-              <input v-model="b.url" class="param-input" placeholder="Link (tùy chọn)" />
-              <button class="btn-remove-item" @click="footerConfig.badges.splice(bi, 1)"><X :size="10" /></button>
-            </div>
-            <button class="btn-add-item" @click="footerConfig.badges.push({ label: '', imageUrl: '', url: '' })">
-              <Plus :size="12" /> Thêm badge
-            </button>
-          </details>
-
-          <!-- Bottom Info -->
-          <details class="footer-extra-section">
-            <summary>📋 Thông tin pháp lý (dòng cuối)</summary>
-            <textarea
-              v-model="footerConfig.legalText"
-              class="param-input param-input--wide footer-textarea"
-              rows="3"
-              placeholder="VD: Công Ty TNHH ABC&#10;Trụ sở: 123 Đường A, Quận B, TP.HCM&#10;MST: 0123456789"
-            ></textarea>
-            <div class="param-row" style="margin-top:8px">
-              <label>Copyright</label>
-              <input type="text" v-model="footerConfig.copyrightText" class="param-input param-input--wide" placeholder="© 2026 Shop Name" />
-            </div>
-          </details>
-
-          <!-- Footer Colors -->
-          <div class="footer-colors" style="margin-top:12px">
-            <div class="footer-color-row">
-              <div class="footer-color-item">
-                <label>🎨 Nền</label>
-                <div class="footer-color-pick">
-                  <input type="color" v-model="footerConfig.bgColor" class="param-color" />
-                  <button v-if="footerConfig.bgColor" class="btn-clear-color" @click="footerConfig.bgColor = ''" title="Xóa"><X :size="10" /></button>
-                </div>
-              </div>
-              <div class="footer-color-item">
-                <label>📝 Tiêu đề</label>
-                <div class="footer-color-pick">
-                  <input type="color" v-model="footerConfig.headingColor" class="param-color" />
-                  <button v-if="footerConfig.headingColor" class="btn-clear-color" @click="footerConfig.headingColor = ''" title="Xóa"><X :size="10" /></button>
-                </div>
-              </div>
-              <div class="footer-color-item">
-                <label>✏️ Chữ</label>
-                <div class="footer-color-pick">
-                  <input type="color" v-model="footerConfig.textColor" class="param-color" />
-                  <button v-if="footerConfig.textColor" class="btn-clear-color" @click="footerConfig.textColor = ''" title="Xóa"><X :size="10" /></button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
         <!-- Custom CSS -->
         <div class="lb-section">
           <h4 class="lb-section__title"><Code :size="14" /> CSS tùy chỉnh</h4>
@@ -1217,133 +306,23 @@
         </div>
       </div>
 
-      <!-- Right: Preview -->
-      <div class="layout-builder__preview">
-        <div class="preview-toolbar">
-          <h4 class="lb-section__title"><Eye :size="14" /> Xem trước</h4>
-          <div class="preview-responsive" v-if="previewMode === 'live'">
-            <button :class="{ active: previewWidth === '100%' }" @click="previewWidth = '100%'" title="Desktop"><Monitor :size="12" /></button>
-            <button :class="{ active: previewWidth === '768px' }" @click="previewWidth = '768px'" title="Tablet"><Tablet :size="12" /></button>
-            <button :class="{ active: previewWidth === '375px' }" @click="previewWidth = '375px'" title="Mobile"><Smartphone :size="12" /></button>
-          </div>
-        </div>
-
-        <!-- Wireframe Preview -->
-        <div v-if="previewMode === 'wireframe'" class="preview-frame">
-          <div class="pv-header">
-            <div class="pv-logo"></div>
-            <div class="pv-nav">
-              <span v-if="pages.products" class="pv-nav-item"></span>
-              <span v-if="pages.cart" class="pv-nav-item pv-nav-item--sm"></span>
-              <span v-if="pages.account" class="pv-nav-item pv-nav-item--sm"></span>
-            </div>
-          </div>
-          <div class="pv-body">
-            <!-- Built-in page preview -->
-            <template v-if="activeBuiltinPage === 'products'">
-              <div class="pv-page-layout" :class="'pv-page-layout--sidebar-' + (pageConfigs.products?.sidebarPosition || 'left')">
-                <div class="pv-sidebar" v-if="pageConfigs.products?.sidebarPosition !== 'hidden'">
-                  <div class="pv-sidebar__label">Sidebar</div>
-                  <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.category"></div>
-                  <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.brand"></div>
-                  <div class="pv-sidebar__block pv-sidebar__block--sm" v-if="pageConfigs.products?.showFilters?.price"></div>
-                </div>
-                <div class="pv-product-grid">
-                  <div class="pv-product-grid__label">Sản phẩm ({{ pageConfigs.products?.gridColumns || 4 }} cột)</div>
-                  <div class="pv-product-grid__items" :style="{ gridTemplateColumns: `repeat(${pageConfigs.products?.gridColumns || 4}, 1fr)` }">
-                    <div v-for="n in (pageConfigs.products?.itemsPerPage || 12)" :key="n" class="pv-product-item"></div>
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-else-if="activeBuiltinPage === 'productDetail'">
-              <div class="pv-page-layout pv-page-layout--detail" :style="{ gridTemplateColumns: (pageConfigs.productDetail?.layoutRatio || '50-50').replace('-', 'fr ') + 'fr' }">
-                <div class="pv-detail-gallery">
-                  <div class="pv-detail-gallery__main"></div>
-                  <div class="pv-detail-gallery__thumbs" v-if="pageConfigs.productDetail?.galleryStyle === 'thumbnails'">
-                    <div v-for="n in 4" :key="n" class="pv-thumb"></div>
-                  </div>
-                </div>
-                <div class="pv-detail-info">
-                  <div class="pv-detail-info__title"></div>
-                  <div class="pv-detail-info__price"></div>
-                  <div class="pv-detail-info__btn"></div>
-                </div>
-              </div>
-              <div class="pv-section pv-section--related" v-if="pageConfigs.productDetail?.showRelatedProducts">
-                <div class="pv-section__label">SP liên quan ({{ pageConfigs.productDetail?.relatedCount || 6 }})</div>
-                <div class="pv-section__visual" style="height:40px"></div>
-              </div>
-              <div class="pv-section pv-section--reviews" v-if="pageConfigs.productDetail?.showReviews">
-                <div class="pv-section__label">Đánh giá</div>
-                <div class="pv-section__visual" style="height:30px"></div>
-              </div>
-            </template>
-            <template v-else-if="activeBuiltinPage">
-              <div class="pv-section">
-                <div class="pv-section__label">{{ builtinPageOptions.find(p => p.id === activePageId)?.label || activeBuiltinPage }}</div>
-                <div class="pv-section__visual" style="height:80px"></div>
-              </div>
-            </template>
-            <!-- Homepage sections preview -->
-            <template v-else>
-              <template v-for="section in activeSections" :key="section.type">
-                <div class="pv-section" :class="'pv-section--' + section.type">
-                  <div class="pv-section__label">{{ sectionMeta[section.type]?.label || section.type }}</div>
-                  <div class="pv-section__visual" :style="{ height: sectionMeta[section.type]?.pvHeight || '30px' }"></div>
-                </div>
-              </template>
-            </template>
-          </div>
-          <!-- Footer Preview -->
-          <div class="pv-footer" :style="footerPreviewStyle">
-            <div class="pv-footer__cols">
-              <div v-for="(col, ci) in footerConfig.columns" :key="ci" class="pv-footer__col">
-                <div class="pv-footer__col-title" :style="footerConfig.headingColor ? { color: footerConfig.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
-                <template v-if="col.type === 'links'">
-                  <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ link.label || '—' }}</div>
-                </template>
-                <template v-else-if="col.type === 'contact'">
-                  <div v-for="(item, ii) in col.items" :key="ii" class="pv-footer__contact" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">
-                    <span>{{ { phone:'📞', email:'📧', address:'📍', clock:'🕐', text:'💬' }[item.icon] || '•' }}</span>
-                    {{ item.value || item.label || '—' }}
-                  </div>
-                </template>
-                <template v-else>
-                  <div class="pv-footer__text" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ col.content ? '(HTML)' : '—' }}</div>
-                </template>
-              </div>
-            </div>
-            <div v-if="footerConfig.social?.length" class="pv-footer__social">
-              <span v-for="s in footerConfig.social" :key="s.platform" class="pv-footer__social-icon">{{ { facebook:'f', instagram:'ig', youtube:'yt', tiktok:'tt', zalo:'z', twitter:'x' }[s.platform] || '?' }}</span>
-            </div>
-            <div v-if="footerConfig.copyrightText" class="pv-footer__copyright" :style="footerConfig.textColor ? { color: footerConfig.textColor, opacity: 0.6 } : {}">{{ footerConfig.copyrightText }}</div>
-          </div>
-        </div>
-
-        <!-- Live Preview (iframe) -->
-        <div v-else class="preview-live" :style="{ maxWidth: previewWidth }">
-          <iframe
-            v-if="storefrontUrl"
-            :src="livePreviewUrl"
-            class="preview-iframe"
-            :key="previewKey"
-          ></iframe>
-          <div v-else class="preview-no-url">
-            <AlertCircle :size="24" />
-            <p>Nhập URL storefront để sử dụng Live Preview</p>
-            <div class="preview-url-input">
-              <input
-                v-model="storefrontUrl"
-                type="url"
-                placeholder="https://store.fashionvn.com"
-                @keyup.enter="previewKey++"
-              />
-              <button class="btn-sm" @click="previewKey++" :disabled="!storefrontUrl">Xem</button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Right: Preview (sub-component) -->
+      <LayoutPreviewPanel
+        :preview-mode="previewMode"
+        v-model:preview-width="previewWidth"
+        :preview-key="previewKey"
+        v-model:storefront-url="storefrontUrl"
+        :live-preview-url="livePreviewUrl"
+        :pages="pages"
+        :active-builtin-page="activeBuiltinPage"
+        :active-page-id="activePageId"
+        :builtin-page-options="builtinPageOptions"
+        :active-sections="activeSections"
+        :section-meta="sectionMeta"
+        :page-configs="pageConfigs"
+        :footer-config="footerConfig"
+        @refresh-live="previewKey++"
+      />
     </div>
 
     <!-- Section Library Modal (Phase 3) -->
@@ -1375,6 +354,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
+import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
+import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
+import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
+import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import { useToast } from '../composables/useToast.js'
 import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
@@ -2002,7 +986,7 @@ async function deleteNavLink(link) {
 onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLinks(); fetchCmsPageList() })
 </script>
 
-<style scoped>
+<style>
 .layout-builder__header {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
 }
@@ -2105,17 +1089,32 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .template-card__desc { font-size: 10px; color: var(--color-text-muted); text-align: center; }
 
 /* Section list with drag-and-drop */
-.section-list { display: flex; flex-direction: column; gap: 4px; }
-.section-item-wrap { display: flex; flex-direction: column; }
+.section-list {
+  display: flex; flex-direction: column; gap: 6px;
+  counter-reset: section-counter;
+  padding: 4px 0;
+}
+.section-item-wrap {
+  display: flex; flex-direction: column;
+  counter-increment: section-counter;
+}
 .section-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 12px; border-radius: 10px;
+  padding: 10px 14px; border-radius: 10px;
   border: 1px solid var(--glass-border); background: var(--glass-bg);
   transition: all 0.25s cubic-bezier(.4, 0, .2, 1);
   cursor: grab;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+.section-item:not(.disabled) {
+  border-left-color: var(--color-accent-primary);
 }
 .section-item:active { cursor: grabbing; }
-.section-item.disabled { opacity: 0.4; }
+.section-item.disabled {
+  opacity: 0.45;
+  border-left-color: var(--color-text-muted);
+}
 .section-item.dragging {
   opacity: 0.3; transform: scale(0.96); border-color: var(--color-accent-primary);
   box-shadow: 0 8px 24px rgba(0,0,0,0.12);
@@ -2125,15 +1124,32 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   box-shadow: 0 0 0 4px var(--color-accent-glow);
   background: var(--color-accent-glow);
 }
-.section-item.expanded { border-color: var(--color-accent-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.section-item.expanded {
+  border-color: var(--color-accent-primary);
+  border-left-color: var(--color-accent-primary);
+  border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+  background: var(--color-accent-glow);
+}
 .section-item__left {
   display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600;
 }
+.section-item__left::before {
+  content: counter(section-counter);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 6px;
+  background: var(--color-accent-glow, rgba(99,102,241,0.12));
+  color: var(--color-accent-primary, #6366f1);
+  font-size: 10px; font-weight: 800;
+  flex-shrink: 0;
+}
+.section-item.disabled .section-item__left::before {
+  background: rgba(128,128,128,0.1); color: var(--color-text-muted);
+}
 .section-item__drag-handle {
-  color: var(--color-text-muted); opacity: 0.4; transition: opacity 0.2s; cursor: grab;
+  color: var(--color-text-muted); opacity: 0.3; transition: opacity 0.2s; cursor: grab;
 }
 .section-item:hover .section-item__drag-handle { opacity: 1; }
-.section-item__right { display: flex; align-items: center; gap: 6px; }
+.section-item__right { display: flex; align-items: center; gap: 8px; }
 .btn-params {
   display: flex; align-items: center; justify-content: center;
   width: 26px; height: 26px; border-radius: 6px;
