@@ -6,6 +6,7 @@ use App\Models\AccountingEntry;
 use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\SystemConfig;
+use Carbon\Carbon;
 
 class AccountingService
 {
@@ -175,7 +176,7 @@ class AccountingService
         $months = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $monthly = $entries->filter(fn($e) => (int) $e->entry_date->format('n') === $m);
+            $monthly = $entries->filter(fn($e) => (int) Carbon::parse($e->entry_date)->format('n') === $m);
             $months[] = [
                 'month' => $m,
                 'revenue' => round($monthly->where('type', 'revenue')->sum('amount'), 2),
@@ -196,7 +197,7 @@ class AccountingService
         $report = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $monthly = $entries->filter(fn($e) => (int) $e->entry_date->format('n') === $m);
+            $monthly = $entries->filter(fn($e) => (int) Carbon::parse($e->entry_date)->format('n') === $m);
             $revenue = $monthly->where('type', 'revenue');
             $adjustments = $monthly->where('type', 'adjustment');
 
@@ -212,5 +213,129 @@ class AccountingService
         }
 
         return $report;
+    }
+
+    /**
+     * Profit & Loss report — group by category within a period
+     */
+    public function getProfitLossReport(?string $from = null, ?string $to = null): array
+    {
+        $query = AccountingEntry::query();
+        if ($from) $query->where('entry_date', '>=', $from);
+        if ($to) $query->where('entry_date', '<=', $to);
+        $entries = $query->get();
+
+        $revenueItems = $entries->where('type', 'revenue');
+        $expenseItems = $entries->where('type', 'expense');
+        $adjustmentItems = $entries->where('type', 'adjustment');
+
+        // Group revenue by category
+        $revenueByCategory = [];
+        foreach ($revenueItems->groupBy('category') as $cat => $items) {
+            $revenueByCategory[] = [
+                'category' => $cat,
+                'amount' => round($items->sum('amount'), 2),
+                'count' => $items->count(),
+            ];
+        }
+
+        // Group expenses by category
+        $expenseByCategory = [];
+        foreach ($expenseItems->groupBy('category') as $cat => $items) {
+            $expenseByCategory[] = [
+                'category' => $cat,
+                'amount' => round($items->sum('amount'), 2),
+                'count' => $items->count(),
+            ];
+        }
+
+        $totalRevenue = round($revenueItems->sum('amount'), 2);
+        $totalExpenses = round($expenseItems->sum('amount'), 2);
+        $totalAdjustments = round($adjustmentItems->sum('amount'), 2);
+        $totalTax = round($revenueItems->sum('tax_amount') + $adjustmentItems->sum('tax_amount'), 2);
+        $grossProfit = round($totalRevenue + $totalAdjustments, 2);
+        $netProfit = round($grossProfit - $totalExpenses, 2);
+
+        return [
+            'period' => ['from' => $from, 'to' => $to],
+            'revenue' => [
+                'total' => $totalRevenue,
+                'by_category' => $revenueByCategory,
+            ],
+            'expenses' => [
+                'total' => $totalExpenses,
+                'by_category' => $expenseByCategory,
+            ],
+            'adjustments' => $totalAdjustments,
+            'tax_payable' => $totalTax,
+            'gross_profit' => $grossProfit,
+            'net_profit' => $netProfit,
+            'margin' => $totalRevenue > 0 ? round(($netProfit / $totalRevenue) * 100, 2) : 0,
+        ];
+    }
+
+    /**
+     * Balance Sheet — simplified for e-commerce
+     * Assets = total revenue collected (cash on hand)
+     * Liabilities = tax payable + pending refunds
+     * Equity = net profit retained
+     */
+    public function getBalanceSheet(?string $asOf = null): array
+    {
+        $date = $asOf ?? now()->toDateString();
+        $entries = AccountingEntry::where('entry_date', '<=', $date)->get();
+
+        // Assets
+        $totalRevenue = round($entries->where('type', 'revenue')->sum('amount'), 2);
+        $totalExpenses = round($entries->where('type', 'expense')->sum('amount'), 2);
+        $totalAdjustments = round($entries->where('type', 'adjustment')->sum('amount'), 2);
+        $cashOnHand = round($totalRevenue + $totalAdjustments - $totalExpenses, 2);
+
+        // Receivables (invoices issued but not paid)
+        $receivables = round(
+            Invoice::where('status', 'issued')
+                ->where('created_at', '<=', $date)
+                ->sum('total_amount'),
+            2
+        );
+
+        // Liabilities
+        $taxCollected = round($entries->where('type', 'revenue')->sum('tax_amount'), 2);
+        $taxRefunded = round($entries->where('type', 'adjustment')->sum('tax_amount'), 2);
+        $taxPayable = round($taxCollected + $taxRefunded, 2);
+
+        // Overdue invoices
+        $overdueAmount = round(
+            Invoice::where('status', 'issued')
+                ->where('due_date', '<', $date)
+                ->sum('total_amount'),
+            2
+        );
+
+        $totalAssets = round($cashOnHand + $receivables, 2);
+        $totalLiabilities = $taxPayable;
+        $equity = round($totalAssets - $totalLiabilities, 2);
+
+        return [
+            'as_of' => $date,
+            'assets' => [
+                'cash_on_hand' => $cashOnHand,
+                'accounts_receivable' => $receivables,
+                'total' => $totalAssets,
+            ],
+            'liabilities' => [
+                'tax_payable' => $taxPayable,
+                'overdue_invoices' => $overdueAmount,
+                'total' => $totalLiabilities,
+            ],
+            'equity' => $equity,
+            'summary' => [
+                'total_revenue' => $totalRevenue,
+                'total_expenses' => $totalExpenses,
+                'total_adjustments' => $totalAdjustments,
+                'invoice_count' => Invoice::where('created_at', '<=', $date)->count(),
+                'paid_invoice_count' => Invoice::where('status', 'paid')->where('created_at', '<=', $date)->count(),
+            ],
+        ];
     }
 }

@@ -48,6 +48,26 @@
         </div>
       </div>
 
+      <!-- Tax Status Info -->
+      <div v-if="taxConfig.enabled" class="acc-tax-info">
+        <div class="acc-tax-info__left">
+          <span class="acc-badge acc-badge--paid">Thuế đang bật</span>
+          <span class="acc-tax-info__label">{{ taxConfig.label || 'VAT' }}</span>
+          <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">Giá đã gồm thuế</span>
+        </div>
+        <div class="acc-tax-info__rates">
+          <span v-for="r in activeTaxRates" :key="r.id" class="acc-badge acc-badge--issued">
+            {{ r.name }}: {{ r.rate }}%
+          </span>
+        </div>
+      </div>
+      <div v-else class="acc-tax-info">
+        <span class="acc-badge acc-badge--cancelled">Thuế chưa bật</span>
+        <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
+          Bật cấu hình thuế →
+        </button>
+      </div>
+
       <!-- Monthly Chart (simple bar visualization) -->
       <div class="acc-section">
         <h4 class="acc-section__title"><BarChart2 :size="14" /> Biểu đồ theo tháng</h4>
@@ -75,6 +95,7 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><Receipt :size="14" /> Báo cáo thuế năm {{ taxYear }}</h4>
           <div class="acc-section__actions">
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" title="Xuất Excel"><Download :size="12" /> Excel</button>
             <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--sm" @click="taxYear--; loadTaxReport()">←</button>
             <span>{{ taxYear }}</span>
@@ -125,6 +146,8 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><BookOpen :size="14" /> Sổ thu chi</h4>
           <div style="display:flex;gap:6px">
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('entries')" title="Xuất Excel"><Download :size="12" /> Excel</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất tổng hợp"><Download :size="12" /> Tổng hợp</button>
             <button class="acc-btn acc-btn--sm" @click="exportEntriesCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--primary acc-btn--sm" @click="openEntryForm()">
               <Plus :size="13" /> Thêm bút toán
@@ -150,6 +173,7 @@
               <th>Mô tả</th>
               <th>Số tiền</th>
               <th>Thuế</th>
+              <th>Tham chiếu</th>
               <th></th>
             </tr>
           </thead>
@@ -167,6 +191,13 @@
                 {{ formatPrice(Math.abs(e.amount)) }}
               </td>
               <td>{{ e.tax_amount > 0 ? formatPrice(e.tax_amount) : '—' }}</td>
+              <td>
+                <a v-if="e.reference_type === 'order'" href="#" class="acc-ref-link" @click.prevent="$emit('navigate-to-order', e.reference_id)">
+                  ĐH #{{ e.reference_id }}
+                </a>
+                <span v-else-if="e.reference_type">{{ e.reference_type }}#{{ e.reference_id }}</span>
+                <span v-else>—</span>
+              </td>
               <td class="acc-cell--actions">
                 <button v-if="!e.reference_type" class="acc-action-btn acc-action-btn--danger" @click="deleteEntry(e)" title="Xoá"><Trash2 :size="13" /></button>
               </td>
@@ -208,12 +239,107 @@
               </td>
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="acc-cell--actions">
-                <button class="acc-action-btn" @click="openInvoicePdf(inv.id)" title="Xem/Tải PDF"><Download :size="13" /></button>
+                <button class="acc-action-btn" @click="previewInvoiceId = inv.id; showInvoicePreview = true" title="Xem hoá đơn"><Eye :size="13" /></button>
+                <button class="acc-action-btn" @click="openInvoicePdf(inv.id)" title="Tải PDF"><Download :size="13" /></button>
               </td>
             </tr>
           </tbody>
         </table>
         <div v-else class="acc-empty">Chưa có hoá đơn nào.</div>
+      </div>
+    </template>
+
+    <!-- ═══ Tab: Lãi Lỗ (P&L) ═══ -->
+    <template v-if="activeTab === 'pnl'">
+      <div class="acc-section">
+        <div class="acc-section__header">
+          <h4 class="acc-section__title"><TrendingUp :size="14" /> Báo cáo lãi lỗ</h4>
+          <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất Excel"><Download :size="12" /> Excel</button>
+        </div>
+        <div v-if="pnlData" class="acc-pnl">
+          <!-- Revenue -->
+          <div class="acc-pnl__section">
+            <h5 class="acc-pnl__title acc-pnl__title--green">DOANH THU</h5>
+            <div v-for="cat in pnlData.revenue?.by_category" :key="cat.category" class="acc-pnl__row">
+              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} bút toán)</small></span>
+              <span class="acc-cell--green">{{ formatPrice(cat.amount) }}</span>
+            </div>
+            <div class="acc-pnl__subtotal">
+              <span>Tổng doanh thu</span>
+              <span>{{ formatPrice(pnlData.revenue?.total) }}</span>
+            </div>
+          </div>
+
+          <!-- Expenses -->
+          <div class="acc-pnl__section">
+            <h5 class="acc-pnl__title acc-pnl__title--red">CHI PHÍ</h5>
+            <div v-for="cat in pnlData.expenses?.by_category" :key="cat.category" class="acc-pnl__row">
+              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} bút toán)</small></span>
+              <span class="acc-cell--red">{{ formatPrice(cat.amount) }}</span>
+            </div>
+            <div class="acc-pnl__subtotal">
+              <span>Tổng chi phí</span>
+              <span>{{ formatPrice(pnlData.expenses?.total) }}</span>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="acc-pnl__section acc-pnl__section--summary">
+            <div class="acc-pnl__row"><span>Điều chỉnh (hoàn trả)</span><span>{{ formatPrice(pnlData.adjustments) }}</span></div>
+            <div class="acc-pnl__row"><span>Thuế phải nộp</span><span class="acc-cell--purple">{{ formatPrice(pnlData.tax_payable) }}</span></div>
+            <div class="acc-pnl__subtotal acc-pnl__subtotal--big">
+              <span>Lợi nhuận gộp</span>
+              <span :class="pnlData.gross_profit >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(pnlData.gross_profit) }}</span>
+            </div>
+            <div class="acc-pnl__subtotal acc-pnl__subtotal--big">
+              <span>Lợi nhuận ròng</span>
+              <span :class="pnlData.net_profit >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(pnlData.net_profit) }}</span>
+            </div>
+            <div class="acc-pnl__row">
+              <span>Biên lợi nhuận</span>
+              <span :class="pnlData.margin >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ pnlData.margin }}%</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="acc-empty">Đang tải...</div>
+      </div>
+    </template>
+
+    <!-- ═══ Tab: Cân Đối ═══ -->
+    <template v-if="activeTab === 'balance'">
+      <div class="acc-section">
+        <div class="acc-section__header">
+          <h4 class="acc-section__title"><DollarSign :size="14" /> Bảng cân đối kế toán</h4>
+          <div class="acc-section__actions">
+            <span class="acc-balance-date">Tại ngày: {{ formatDate(balanceData?.as_of) }}</span>
+          </div>
+        </div>
+        <div v-if="balanceData" class="acc-balance">
+          <div class="acc-balance__group">
+            <h5 class="acc-balance__title acc-balance__title--blue">TÀI SẢN</h5>
+            <div class="acc-balance__row"><span>Tiền mặt</span><span>{{ formatPrice(balanceData.assets?.cash_on_hand) }}</span></div>
+            <div class="acc-balance__row"><span>Phải thu (HĐ chưa TT)</span><span>{{ formatPrice(balanceData.assets?.accounts_receivable) }}</span></div>
+            <div class="acc-balance__total"><span>Tổng tài sản</span><span>{{ formatPrice(balanceData.assets?.total) }}</span></div>
+          </div>
+          <div class="acc-balance__group">
+            <h5 class="acc-balance__title acc-balance__title--red">NỢ PHẢI TRẢ</h5>
+            <div class="acc-balance__row"><span>Thuế phải nộp</span><span>{{ formatPrice(balanceData.liabilities?.tax_payable) }}</span></div>
+            <div class="acc-balance__row"><span>HĐ quá hạn</span><span>{{ formatPrice(balanceData.liabilities?.overdue_invoices) }}</span></div>
+            <div class="acc-balance__total"><span>Tổng nợ</span><span>{{ formatPrice(balanceData.liabilities?.total) }}</span></div>
+          </div>
+          <div class="acc-balance__group">
+            <h5 class="acc-balance__title acc-balance__title--green">VỐN CHỦ SỞ HỮU</h5>
+            <div class="acc-balance__total acc-balance__total--big">
+              <span>Vốn chủ sở hữu</span>
+              <span :class="balanceData.equity >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(balanceData.equity) }}</span>
+            </div>
+          </div>
+          <div class="acc-balance__info">
+            <span>Tổng HĐ: {{ balanceData.summary?.invoice_count || 0 }}</span>
+            <span>Đã TT: {{ balanceData.summary?.paid_invoice_count || 0 }}</span>
+          </div>
+        </div>
+        <div v-else class="acc-empty">Đang tải...</div>
       </div>
     </template>
 
@@ -262,13 +388,35 @@
             </div>
           </div>
 
-          <!-- Tax Label -->
+          <!-- Tax Integration -->
           <div class="acc-settings-group">
-            <h5 class="acc-settings-group__title">Thuế</h5>
-            <div class="acc-form-row" style="max-width:320px">
-              <label>Nhãn thuế hiển thị</label>
-              <input type="text" v-model="accConfig.tax_label" class="acc-input" placeholder="VAT" />
-              <span class="acc-form-hint">Hiển trên storefront: "+ VAT", "Đã gồm VAT"</span>
+            <div class="acc-settings-group__header">
+              <h5 class="acc-settings-group__title">Cấu hình thuế GTGT</h5>
+              <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
+                <Settings :size="12" /> Quản lý thuế →
+              </button>
+            </div>
+            <div v-if="taxConfig.enabled" class="acc-tax-status">
+              <div class="acc-tax-status__row">
+                <span class="acc-badge acc-badge--paid">Bật</span>
+                <span>Nhãn: <strong>{{ taxConfig.label || 'VAT' }}</strong></span>
+                <span>Hiển thị: <strong>{{ taxConfig.display_mode === 'inclusive' ? 'Giá đã gồm thuế' : taxConfig.display_mode === 'exclusive' ? 'Giá + thuế riêng' : 'Cả hai' }}</strong></span>
+                <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">Giá gồm thuế</span>
+              </div>
+              <div v-if="activeTaxRates.length" class="acc-tax-status__rates">
+                <span class="acc-form-hint">Thuế suất đang áp dụng:</span>
+                <div class="acc-tax-rates-list">
+                  <div v-for="r in activeTaxRates" :key="r.id" class="acc-tax-rate-chip">
+                    <span class="acc-tax-rate-chip__pct">{{ r.rate }}%</span>
+                    <span class="acc-tax-rate-chip__name">{{ r.name }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="acc-form-hint" style="margin-top:8px">Chưa có thuế suất nào. <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">Thêm thuế suất →</a></div>
+            </div>
+            <div v-else class="acc-tax-status">
+              <span class="acc-badge acc-badge--cancelled">Thuế chưa bật</span>
+              <span class="acc-form-hint" style="margin-left:8px">Bật thuế trong trang <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">Quản lý thuế</a> để tích hợp với kế toán.</span>
             </div>
           </div>
 
@@ -382,6 +530,14 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Invoice Preview Modal -->
+    <InvoicePreviewModal
+      :show="showInvoicePreview"
+      :invoiceId="previewInvoiceId"
+      @close="showInvoicePreview = false"
+      @updated="loadInvoices"
+    />
   </div>
 </template>
 
@@ -389,11 +545,13 @@
 import { ref, onMounted } from 'vue'
 import {
   TrendingUp, TrendingDown, DollarSign, Receipt, BarChart2,
-  BookOpen, FileText, Plus, Trash2, Save, X, Download, Settings,
+  BookOpen, FileText, Plus, Trash2, Save, X, Download, Settings, Flag, Eye,
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import InvoicePreviewModal from './InvoicePreviewModal.vue'
 import { useToast } from '../composables/useToast.js'
 
+const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()
 
 const tabs = [
@@ -401,6 +559,8 @@ const tabs = [
   { key: 'tax', label: 'Báo cáo thuế', icon: Receipt },
   { key: 'entries', label: 'Sổ thu chi', icon: BookOpen },
   { key: 'invoices', label: 'Hoá đơn', icon: FileText },
+  { key: 'pnl', label: 'Lãi lỗ', icon: TrendingUp },
+  { key: 'balance', label: 'Cân đối', icon: DollarSign },
   { key: 'settings', label: 'Cài đặt', icon: Settings },
 ]
 const activeTab = ref('overview')
@@ -421,6 +581,12 @@ const showEntryForm = ref(false)
 const savingEntry = ref(false)
 const entryForm = ref({ type: 'expense', category: 'other', amount: 0, tax_amount: 0, description: '', entry_date: new Date().toISOString().slice(0, 10) })
 
+// New data: P&L, Balance Sheet, Invoice Preview
+const pnlData = ref(null)
+const balanceData = ref(null)
+const showInvoicePreview = ref(false)
+const previewInvoiceId = ref(null)
+
 // Config
 const accConfig = ref({
   auto_email: 'true',
@@ -437,6 +603,10 @@ const accConfig = ref({
 })
 const customCategories = ref([])
 const savingConfig = ref(false)
+
+// Tax integration data
+const taxConfig = ref({ enabled: false, price_includes_tax: false, display_mode: 'exclusive', label: 'VAT' })
+const activeTaxRates = ref([])
 
 function formatPrice(v) {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
@@ -506,8 +676,31 @@ async function loadInvoices() {
   invoices.value = data?.items || []
 }
 
+async function loadPnl() {
+  const params = new URLSearchParams()
+  if (dateFrom.value) params.set('from', dateFrom.value)
+  if (dateTo.value) params.set('to', dateTo.value)
+  const data = await fetchJSON(`/accounting/profit-loss?${params}`)
+  pnlData.value = data || {
+    revenue: { total: 0, by_category: [] },
+    expenses: { total: 0, by_category: [] },
+    adjustments: 0, tax_payable: 0, gross_profit: 0, net_profit: 0, margin: 0,
+  }
+}
+
+async function loadBalance() {
+  const data = await fetchJSON(`/accounting/balance-sheet?as_of=${dateTo.value}`)
+  balanceData.value = data || {
+    as_of: dateTo.value,
+    assets: { cash_on_hand: 0, accounts_receivable: 0, total: 0 },
+    liabilities: { tax_payable: 0, overdue_invoices: 0, total: 0 },
+    equity: 0,
+    summary: { invoice_count: 0, paid_invoice_count: 0 },
+  }
+}
+
 async function loadAll() {
-  await Promise.all([loadSummary(), loadMonthly(), loadTaxReport(), loadEntries(), loadInvoices()])
+  await Promise.all([loadSummary(), loadMonthly(), loadTaxReport(), loadEntries(), loadInvoices(), loadTaxConfig(), loadPnl(), loadBalance()])
 }
 
 function openEntryForm() {
@@ -569,6 +762,23 @@ function openInvoicePdf(id) {
   window.open(`${base}/invoices/${id}/pdf`, '_blank')
 }
 
+function exportExcel(type) {
+  const base = getApiBaseUrl()
+  const params = new URLSearchParams()
+  if (dateFrom.value) params.set('from', dateFrom.value)
+  if (dateTo.value) params.set('to', dateTo.value)
+  if (type === 'tax') {
+    params.set('year', taxYear.value)
+    window.open(`${base}/accounting/export-tax-excel?${params}`, '_blank')
+  } else if (type === 'entries') {
+    if (entryFilter.value.type) params.set('type', entryFilter.value.type)
+    window.open(`${base}/accounting/export-entries-excel?${params}`, '_blank')
+  } else {
+    params.set('year', taxYear.value)
+    window.open(`${base}/accounting/export-combined?${params}`, '_blank')
+  }
+}
+
 onMounted(loadAll)
 
 // Config functions
@@ -604,6 +814,28 @@ async function saveConfig() {
 }
 
 loadConfig()
+
+async function loadTaxConfig() {
+  try {
+    const res = await apiFetch('/tax-config')
+    const raw = await res.json()
+    const d = raw?.enabled !== undefined ? raw : raw?.data
+    if (d) {
+      taxConfig.value.enabled = d.enabled === true || d.enabled === 'true'
+      taxConfig.value.price_includes_tax = d.price_includes_tax === true || d.price_includes_tax === 'true'
+      taxConfig.value.display_mode = d.display_mode || 'exclusive'
+      taxConfig.value.label = d.label || 'VAT'
+    }
+  } catch { /* fallback */ }
+  if (taxConfig.value.enabled) {
+    try {
+      const res = await apiFetch('/tax-rates')
+      const raw = await res.json()
+      const rates = Array.isArray(raw) ? raw : raw?.data || []
+      activeTaxRates.value = rates.filter(r => r.is_active)
+    } catch { activeTaxRates.value = [] }
+  }
+}
 </script>
 
 <style scoped>
@@ -831,5 +1063,113 @@ loadConfig()
   display: flex; gap: 8px; align-items: center; margin-bottom: 6px;
 }
 
+/* ═══ Tax Integration ═══ */
+.acc-tax-info {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  padding: 12px 16px; margin-bottom: 20px; border-radius: 10px;
+  background: var(--color-bg-elevated); border: 1px solid var(--glass-border);
+  font-size: 13px;
+}
+.acc-tax-info__left { display: flex; align-items: center; gap: 8px; }
+.acc-tax-info__label { font-weight: 700; color: var(--color-text-primary); }
+.acc-tax-info__rates { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.acc-settings-group__header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.acc-settings-group__header .acc-settings-group__title { margin: 0; }
+
+.acc-tax-status { margin-top: 4px; }
+.acc-tax-status__row {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  font-size: 13px; color: var(--color-text-secondary);
+}
+.acc-tax-status__rates { margin-top: 12px; }
+.acc-tax-rates-list {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;
+}
+.acc-tax-rate-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  font-size: 12px; transition: border-color 0.2s;
+}
+.acc-tax-rate-chip:hover { border-color: var(--color-accent-primary); }
+.acc-tax-rate-chip__pct {
+  font-weight: 800; font-size: 14px; color: var(--color-accent-primary);
+}
+.acc-tax-rate-chip__name {
+  color: var(--color-text-muted); font-weight: 600;
+}
+
+/* ═══ P&L Report ═══ */
+.acc-pnl { display: flex; flex-direction: column; gap: 16px; }
+.acc-pnl__section {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 16px; transition: border-color .2s;
+}
+.acc-pnl__section:hover { border-color: var(--color-accent-primary); }
+.acc-pnl__section--summary { background: rgba(139,92,246,.06); border-color: rgba(139,92,246,.2); }
+.acc-pnl__title {
+  font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);
+}
+.acc-pnl__title--green { color: #4ade80; }
+.acc-pnl__title--red { color: #f87171; }
+.acc-pnl__row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; font-size: 13px; color: var(--color-text-secondary);
+}
+.acc-pnl__row small { color: var(--color-text-muted); font-size: 11px; }
+.acc-pnl__subtotal {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0 0; margin-top: 6px; border-top: 1px solid var(--glass-border);
+  font-size: 14px; font-weight: 700; color: var(--color-text-primary);
+}
+.acc-pnl__subtotal--big { font-size: 16px; }
+
+/* ═══ Balance Sheet ═══ */
+.acc-balance { display: flex; flex-direction: column; gap: 16px; }
+.acc-balance__group {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 12px; padding: 16px; transition: border-color .2s;
+}
+.acc-balance__group:hover { border-color: var(--color-accent-primary); }
+.acc-balance__title {
+  font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);
+}
+.acc-balance__title--blue { color: #60a5fa; }
+.acc-balance__title--red { color: #f87171; }
+.acc-balance__title--green { color: #4ade80; }
+.acc-balance__row {
+  display: flex; justify-content: space-between; padding: 5px 0;
+  font-size: 13px; color: var(--color-text-secondary);
+}
+.acc-balance__total {
+  display: flex; justify-content: space-between;
+  padding: 8px 0 0; margin-top: 6px; border-top: 1px solid var(--glass-border);
+  font-size: 14px; font-weight: 700; color: var(--color-text-primary);
+}
+.acc-balance__total--big { font-size: 18px; }
+.acc-balance__info {
+  display: flex; gap: 16px; padding: 10px 16px;
+  background: var(--glass-bg); border-radius: 10px;
+  font-size: 12px; color: var(--color-text-muted);
+}
+.acc-balance-date { font-size: 12px; color: var(--color-text-muted); }
+
+/* Reference link */
+.acc-ref-link {
+  color: var(--color-accent-primary); text-decoration: none; font-weight: 600;
+  cursor: pointer; transition: color .2s;
+}
+.acc-ref-link:hover { color: #60a5fa; text-decoration: underline; }
+
+/* Purple accent */
+.acc-cell--purple { color: #a78bfa; }
+
 </style>
+
 

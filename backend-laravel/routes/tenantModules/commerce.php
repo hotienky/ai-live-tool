@@ -68,6 +68,8 @@ Route::post('/tax-preview', [TaxController::class, 'preview']); // Storefront us
 Route::get('/accounting/summary', [AccountingController::class, 'summary'])->middleware('permission:orders.view');
 Route::get('/accounting/monthly', [AccountingController::class, 'monthly'])->middleware('permission:orders.view');
 Route::get('/accounting/tax-report', [AccountingController::class, 'taxReport'])->middleware('permission:orders.view');
+Route::get('/accounting/profit-loss', [AccountingController::class, 'profitLoss'])->middleware('permission:orders.view');
+Route::get('/accounting/balance-sheet', [AccountingController::class, 'balanceSheet'])->middleware('permission:orders.view');
 Route::get('/accounting/entries', [AccountingController::class, 'index'])->middleware('permission:orders.view');
 Route::post('/accounting/entries', [AccountingController::class, 'store'])->middleware('permission:settings.manage');
 Route::put('/accounting/entries/{id}', [AccountingController::class, 'update'])->middleware('permission:settings.manage');
@@ -77,14 +79,20 @@ Route::delete('/accounting/entries/{id}', [AccountingController::class, 'destroy
 Route::get('/invoices', [InvoiceController::class, 'index'])->middleware('permission:orders.view');
 Route::post('/invoices', [InvoiceController::class, 'store'])->middleware('permission:orders.edit');
 Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->middleware('permission:orders.view');
+Route::get('/invoices/{id}/preview', [InvoiceController::class, 'preview'])->middleware('permission:orders.view');
 Route::put('/invoices/{id}/status', [InvoiceController::class, 'updateStatus'])->middleware('permission:orders.edit');
+Route::post('/invoices/{id}/send-email', [InvoiceController::class, 'sendEmail'])->middleware('permission:orders.edit');
 Route::post('/invoices/from-order/{orderId}', [InvoiceController::class, 'createFromOrder'])->middleware('permission:orders.edit');
 Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy'])->middleware('permission:orders.edit');
 Route::get('/invoices/{id}/pdf', [InvoiceController::class, 'exportPdf'])->middleware('permission:orders.view');
 
-// Export CSV
+// Export CSV & Excel
 Route::get('/accounting/export-entries', [AccountingController::class, 'exportEntries'])->middleware('permission:orders.view');
 Route::get('/accounting/export-tax-report', [AccountingController::class, 'exportTaxReport'])->middleware('permission:orders.view');
+Route::get('/accounting/export-entries-excel', [AccountingController::class, 'exportEntriesExcel'])->middleware('permission:orders.view');
+Route::get('/accounting/export-tax-excel', [AccountingController::class, 'exportTaxReportExcel'])->middleware('permission:orders.view');
+Route::get('/accounting/export-combined', [AccountingController::class, 'exportCombinedExcel'])->middleware('permission:orders.view');
 Route::get('/accounting/config', [AccountingController::class, 'getConfig'])->middleware('permission:settings.view');
 Route::put('/accounting/config', [AccountingController::class, 'updateConfig'])->middleware('permission:settings.manage');
+
 

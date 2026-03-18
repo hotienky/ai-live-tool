@@ -162,7 +162,7 @@
     <div class="modal-overlay" v-if="showDetailModal" @click.self="showDetailModal = false">
       <div class="modal modal--detail">
         <div class="detail-header">
-          <h3><Package :size="16" style="vertical-align:middle" /> Chi tiết đơn #{{ detailOrder?.id?.slice(0,8) }}</h3>
+          <h3><Package :size="16" style="vertical-align:middle" /> Chi tiết đơn #{{ String(detailOrder?.id || '').slice(0,8) }}</h3>
           <button class="btn-close" @click="showDetailModal = false">&times;</button>
         </div>
 
@@ -278,7 +278,7 @@ const props = defineProps({
   // tenant-scoped
   prefillOrder: { type: Object, default: null },
 })
-const emit = defineEmits(['create-shipment'])
+const emit = defineEmits(['create-shipment', 'view-order'])
 
 const orders = ref([])
 const products = ref([])
@@ -452,22 +452,7 @@ async function updateStatus(order, statusId) {
 }
 
 async function openDetail(order) {
-  detailOrder.value = order
-  showDetailModal.value = true
-  try {
-    const [detailsRes, totalsRes, historyRes] = await Promise.all([
-      apiFetch(`/orders/${order.id}/details`),
-      apiFetch(`/orders/${order.id}/totals`),
-      apiFetch(`/orders/${order.id}/history`),
-    ])
-    detailItems.value = await detailsRes.json()
-    detailTotals.value = await totalsRes.json()
-    detailHistory.value = await historyRes.json()
-  } catch {
-    detailItems.value = Array.isArray(order.items) ? order.items : []
-    detailTotals.value = []
-    detailHistory.value = []
-  }
+  emit('view-order', order.id)
 }
 
 async function changeStatus(statusId, statusName) {

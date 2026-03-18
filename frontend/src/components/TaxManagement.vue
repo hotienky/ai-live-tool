@@ -4,6 +4,9 @@
     <section class="tax-section">
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Settings :size="14" /> Cài đặt thuế</h4>
+        <button class="tax-btn tax-btn--primary tax-btn--sm" @click="saveConfig" :disabled="savingConfig">
+          <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
+        </button>
       </div>
 
       <div class="tax-config">
@@ -47,10 +50,26 @@
             </select>
           </div>
         </template>
+      </div>
+    </section>
 
-        <button class="tax-btn tax-btn--primary" @click="saveConfig" :disabled="savingConfig">
-          <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
+    <!-- Vietnam 2026 Quick Apply -->
+    <section v-if="config.enabled && !rates.length" class="tax-section tax-section--vn">
+      <div class="tax-section__header">
+        <h4 class="tax-section__title"><Flag :size="14" /> Thuế suất Việt Nam 2026</h4>
+      </div>
+      <div class="tax-vn-apply">
+        <p class="tax-vn-apply__desc">Áp dụng nhanh 4 mức thuế GTGT theo quy định Việt Nam hiện hành:</p>
+        <div class="tax-vn-rates">
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">0%</span><span>Xuất khẩu</span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">5%</span><span>Thiết yếu</span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct tax-vn-rate__pct--highlight">8%</span><span>Giảm thuế <small>(đến 31/12/2026)</small></span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">10%</span><span>Tiêu chuẩn</span></div>
+        </div>
+        <button class="tax-btn tax-btn--primary" @click="applyVN2026Rates" :disabled="applyingVN">
+          <Flag :size="13" /> {{ applyingVN ? 'Đang tạo...' : 'Áp dụng thuế suất VN 2026' }}
         </button>
+        <p class="tax-vn-legal">Theo Luật Thuế GTGT 2024 (hiệu lực 01/07/2025) &amp; Nghị định 174/2025/NĐ-CP</p>
       </div>
     </section>
 
@@ -58,9 +77,14 @@
     <section v-if="config.enabled" class="tax-section">
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Percent :size="14" /> Danh sách thuế suất</h4>
-        <button class="tax-btn tax-btn--sm" @click="openForm(null)">
-          <Plus :size="13" /> Thêm thuế suất
-        </button>
+        <div style="display:flex;gap:6px">
+          <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" title="Thêm các mức thuế VN 2026 còn thiếu">
+            <Flag :size="12" /> VN 2026
+          </button>
+          <button class="tax-btn tax-btn--sm" @click="openForm(null)">
+            <Plus :size="13" /> Thêm thuế suất
+          </button>
+        </div>
       </div>
 
       <div v-if="loading" class="tax-loading">Đang tải...</div>
@@ -107,7 +131,20 @@
 
       <div v-else class="tax-empty">
         <Percent :size="28" />
-        <p>Chưa có thuế suất nào. Bấm "Thêm thuế suất" để bắt đầu.</p>
+        <p>Chưa có thuế suất nào. Bấm "Thêm thuế suất" hoặc "Áp dụng thuế suất VN 2026".</p>
+      </div>
+    </section>
+
+    <!-- Cross-navigation to Accounting -->
+    <section v-if="config.enabled" class="tax-section">
+      <div class="tax-section__header">
+        <h4 class="tax-section__title"><Receipt :size="14" /> Báo cáo thuế</h4>
+        <button class="tax-btn tax-btn--sm" @click="emit('navigate-to-accounting')">
+          <BarChart2 :size="13" /> Xem báo cáo kế toán →
+        </button>
+      </div>
+      <div class="tax-config">
+        <p class="tax-vn-legal">Xem báo cáo thuế thu, thuế hoàn, và thuế phải nộp theo tháng trong phần Kế toán.</p>
       </div>
     </section>
 
@@ -198,15 +235,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Settings, Percent, Plus, Pencil, Trash2, Save, X } from 'lucide-vue-next'
+import { Settings, Percent, Plus, Pencil, Trash2, Save, X, Flag, Receipt, BarChart2 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 
+const emit = defineEmits(['navigate-to-accounting'])
 const { showToast } = useToast()
 
 const loading = ref(false)
 const savingConfig = ref(false)
 const savingRate = ref(false)
+const applyingVN = ref(false)
 const showForm = ref(false)
 const editingRate = ref(null)
 const rates = ref([])
@@ -237,13 +276,15 @@ function formatCurrency(v) {
 async function loadConfig() {
   try {
     const res = await apiFetch('/tax-config')
-    const data = await res.json()
-    if (data?.data) {
-      config.value.enabled = data.data.enabled === 'true'
-      config.value.price_includes_tax = data.data.price_includes_tax === 'true'
-      config.value.display_mode = data.data.display_mode || 'exclusive'
-      config.value.label = data.data.label || 'VAT'
-      config.value.rounding = data.data.rounding || 'round'
+    const raw = await res.json()
+    // apiFetch.json() auto-unwraps {type, data} envelope → raw might be the config directly
+    const d = raw?.enabled !== undefined ? raw : raw?.data
+    if (d) {
+      config.value.enabled = d.enabled === true || d.enabled === 'true'
+      config.value.price_includes_tax = d.price_includes_tax === true || d.price_includes_tax === 'true'
+      config.value.display_mode = d.display_mode || 'exclusive'
+      config.value.label = d.label || 'VAT'
+      config.value.rounding = d.rounding || 'round'
     }
   } catch { /* use defaults */ }
 }
@@ -340,6 +381,35 @@ async function deleteRate(rate) {
   }
 }
 
+const VN_2026_RATES = [
+  { name: 'GTGT 0% — Xuất khẩu', code: 'vat_0_export', rate: 0, type: 'percentage', scope: 'global', is_active: true, priority: 0 },
+  { name: 'GTGT 5% — Thiết yếu', code: 'vat_5_essential', rate: 5, type: 'percentage', scope: 'global', is_active: true, priority: 1 },
+  { name: 'GTGT 8% — Giảm thuế (NĐ 174/2025)', code: 'vat_8_reduced', rate: 8, type: 'percentage', scope: 'global', is_active: true, priority: 2 },
+  { name: 'GTGT 10% — Tiêu chuẩn', code: 'vat_10_standard', rate: 10, type: 'percentage', scope: 'global', is_active: true, priority: 3 },
+]
+
+async function applyVN2026Rates() {
+  applyingVN.value = true
+  let created = 0
+  const existingCodes = rates.value.map(r => r.code)
+  try {
+    for (const rate of VN_2026_RATES) {
+      if (existingCodes.includes(rate.code)) continue
+      const res = await apiFetch('/tax-rates', { method: 'POST', body: JSON.stringify(rate) })
+      if (res.ok) created++
+    }
+    if (created > 0) {
+      showToast(`Đã tạo ${created} thuế suất VN 2026`, 'success')
+      await loadRates()
+    } else {
+      showToast('Tất cả thuế suất VN 2026 đã tồn tại', 'info')
+    }
+  } catch {
+    showToast('Lỗi tạo thuế suất', 'error')
+  }
+  applyingVN.value = false
+}
+
 onMounted(async () => {
   await loadConfig()
   if (config.value.enabled) await loadRates()
@@ -350,8 +420,7 @@ onMounted(async () => {
 .tax-management { display: flex; flex-direction: column; gap: 20px; }
 
 .tax-section {
-  background: var(--color-bg-card-solid);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
   border-radius: 14px;
   overflow: hidden;
 }
@@ -370,7 +439,7 @@ onMounted(async () => {
 }
 
 /* Config */
-.tax-config { padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+.tax-config { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
 
 .tax-row {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -381,10 +450,10 @@ onMounted(async () => {
 }
 
 .tax-input, .tax-select {
-  padding: 8px 12px; border-radius: 8px;
-  background: var(--glass-bg); border: 1px solid var(--color-border);
+  padding: 10px 14px; border-radius: 10px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
   color: var(--color-text-primary); font-size: 13px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s; outline: none;
 }
 .tax-input:focus, .tax-select:focus { border-color: var(--color-accent-primary); outline: none; }
 .tax-input--sm { max-width: 120px; }
@@ -406,28 +475,29 @@ onMounted(async () => {
 .tax-switch input:checked + .tax-switch__slider::before { transform: translateX(20px); }
 
 /* Table */
-.tax-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tax-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
 .tax-table th {
-  text-align: left; padding: 10px 16px; font-weight: 600; font-size: 12px;
+  text-align: left; padding: 12px 16px; font-weight: 700; font-size: 11px;
   color: var(--color-text-muted); border-bottom: 1px solid var(--color-border);
   text-transform: uppercase; letter-spacing: 0.5px;
+  background: var(--color-bg-elevated);
 }
 .tax-table td { padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
 .tax-table tbody tr { transition: background 0.15s; }
-.tax-table tbody tr:hover { background: var(--glass-bg); }
+.tax-table tbody tr:hover { background: var(--color-bg-elevated); }
 .tax-cell--name { font-weight: 600; color: var(--color-text-primary); }
 .tax-cell--actions { display: flex; gap: 6px; }
 
 /* Badges */
 .tax-badge {
-  display: inline-flex; padding: 3px 10px; border-radius: 6px;
-  font-size: 11px; font-weight: 700;
+  display: inline-flex; padding: 3px 10px; border-radius: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.2px;
 }
 .tax-badge--rate { background: var(--color-accent-glow); color: var(--color-accent-primary); }
-.tax-badge--global { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.tax-badge--category { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.tax-badge--product { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.tax-badge--region { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.tax-badge--global { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.tax-badge--category { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.tax-badge--product { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.tax-badge--region { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
 
 .tax-status { font-size: 12px; font-weight: 600; }
 .tax-status.active { color: #10b981; }
@@ -435,11 +505,11 @@ onMounted(async () => {
 /* Buttons */
 .tax-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
-  background: var(--glass-bg); border: 1px solid var(--color-border);
-  color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s;
+  padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--color-text-secondary); cursor: pointer; transition: all 0.25s;
 }
-.tax-btn:hover { border-color: var(--color-text-muted); }
+.tax-btn:hover { border-color: var(--color-border-hover); transform: translateY(-1px); }
 .tax-btn--primary {
   background: var(--accent-gradient); color: #fff; border: none;
   box-shadow: var(--accent-shadow);
@@ -450,12 +520,13 @@ onMounted(async () => {
 
 .tax-action-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 30px; height: 30px; border-radius: 6px; border: none;
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 1px solid var(--glass-border);
   background: var(--glass-bg); color: var(--color-text-muted);
   cursor: pointer; transition: all 0.2s;
 }
-.tax-action-btn:hover { background: var(--color-accent-glow); color: var(--color-accent-primary); }
-.tax-action-btn--danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.tax-action-btn:hover { background: var(--color-bg-elevated); color: var(--color-accent-primary); }
+.tax-action-btn--danger:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
 
 /* Empty & Loading */
 .tax-empty, .tax-loading {
@@ -471,7 +542,7 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: center;
 }
 .tax-modal {
-  background: var(--color-bg-primary); border: 1px solid var(--color-border);
+  background: var(--color-bg-primary); border: 1px solid var(--glass-border);
   border-radius: 16px; width: 560px; max-width: 90vw; max-height: 85vh;
   overflow-y: auto; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
 }
@@ -479,7 +550,7 @@ onMounted(async () => {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 24px; border-bottom: 1px solid var(--color-border);
 }
-.tax-modal__header h4 { margin: 0; font-size: 16px; font-weight: 700; color: var(--color-text-primary); }
+.tax-modal__header h4 { margin: 0; font-size: 16px; font-weight: 800; color: var(--color-text-primary); }
 .tax-modal__close {
   background: none; border: none; color: var(--color-text-muted);
   cursor: pointer; padding: 4px;
@@ -507,5 +578,33 @@ onMounted(async () => {
 @media (max-width: 640px) {
   .tax-form-grid { grid-template-columns: 1fr; }
   .tax-row { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+
+/* VN 2026 Quick Apply */
+.tax-section--vn { border-color: rgba(245, 158, 11, 0.3); }
+.tax-vn-apply { padding: 20px 24px; }
+.tax-vn-apply__desc { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 14px; }
+.tax-vn-rates {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+  margin-bottom: 16px;
+}
+.tax-vn-rate {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 8px; border-radius: 10px;
+  background: var(--color-bg-elevated); border: 1px solid var(--color-border);
+  font-size: 12px; color: var(--color-text-muted); font-weight: 600;
+  transition: border-color 0.2s;
+}
+.tax-vn-rate:hover { border-color: var(--color-accent-primary); }
+.tax-vn-rate__pct {
+  font-size: 22px; font-weight: 800; color: var(--color-text-primary);
+}
+.tax-vn-rate__pct--highlight { color: #f59e0b; }
+.tax-vn-legal {
+  font-size: 11px; color: var(--color-text-muted); margin-top: 12px;
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .tax-vn-rates { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

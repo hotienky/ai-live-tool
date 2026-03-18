@@ -421,7 +421,12 @@
 
       <!-- ═══ Tab: Orders ═══ -->
       <div v-if="activeTab === 'orders'" class="settings__panel">
-        <OrderManagement />
+        <OrderManagement @view-order="viewOrderDetail" />
+      </div>
+
+      <!-- ═══ Tab: Order Detail ═══ -->
+      <div v-if="activeTab === 'order-detail'" class="settings__panel">
+        <OrderDetailPage :orderId="orderDetailId" @back="goBackToOrders" />
       </div>
 
       <!-- ═══ Tab: Webhooks ═══ -->
@@ -451,12 +456,15 @@
 
       <!-- ═══ Tab: Tax Management ═══ -->
       <div v-if="activeTab === 'tax'" class="settings__panel">
-        <TaxManagement />
+        <TaxManagement @navigate-to-accounting="navigateTab('accounting')" />
       </div>
 
       <!-- ═══ Tab: Accounting Dashboard ═══ -->
       <div v-if="activeTab === 'accounting'" class="settings__panel">
-        <AccountingDashboard />
+        <AccountingDashboard
+          @navigate-to-tax="navigateTab('tax')"
+          @navigate-to-order="(orderId) => { navigateTab('orders'); }"
+        />
       </div>
 
       </div><!-- /settings__content -->
@@ -492,6 +500,7 @@ import ApiKeyManager from './ApiKeyManager.vue'
 import LanguageManager from './LanguageManager.vue'
 import CustomFieldManager from './CustomFieldManager.vue'
 import OrderManagement from './OrderManagement.vue'
+import OrderDetailPage from './OrderDetailPage.vue'
 import WebhookManager from './WebhookManager.vue'
 import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
@@ -601,8 +610,32 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'nav-links', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
 const activeTab = useUrlParam('tab', 'connection')
+// Order detail
+const orderDetailId = ref(null)
+function extractOrderId() {
+  const m = window.location.pathname.match(/orders\/detail\/(\d+)/)
+  return m ? m[1] : null
+}
+orderDetailId.value = extractOrderId()
+function viewOrderDetail(orderId) {
+  orderDetailId.value = orderId
+  history.pushState({}, '', `/orders/detail/${orderId}`)
+  activeTab.value = 'order-detail'
+}
+function goBackToOrders() {
+  history.pushState({}, '', '/orders')
+  activeTab.value = 'orders'
+}
+function navigateTab(tabKey) {
+  activeTab.value = tabKey
+  const route = tabToRoute[tabKey]
+  if (route) {
+    history.pushState({}, '', route)
+    emit('navigate', route)
+  }
+}
 // Validate tab value from URL
 if (!validTabKeys.includes(activeTab.value)) activeTab.value = 'connection'
 // Sync with parent initialTab prop

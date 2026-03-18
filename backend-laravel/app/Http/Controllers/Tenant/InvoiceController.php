@@ -58,6 +58,44 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Preview invoice with full seller info (for frontend modal)
+     */
+    public function preview($id)
+    {
+        $invoice = Invoice::findOrFail($id);
+        $storeInfo = $this->getSellerInfo();
+
+        return $this->successResponse([
+            'invoice' => $invoice,
+            'seller' => $storeInfo,
+        ]);
+    }
+
+    /**
+     * Send invoice email to customer
+     */
+    public function sendEmail($id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        if (!$invoice->customer_email) {
+            return $this->errorResponse('Khách hàng chưa có email', 422);
+        }
+
+        try {
+            $config = $this->accountingService->getAccountingConfig();
+            $mail = new \App\Mail\InvoiceMail($invoice);
+            $mail->footerText = $config['footer_text'] ?? 'Cảm ơn quý khách!';
+            \Illuminate\Support\Facades\Mail::to($invoice->customer_email)->send($mail);
+
+            $this->logActivity('invoice.email_sent', 'invoice', $id, ['to' => $invoice->customer_email]);
+            return $this->successResponse(null, 'Đã gửi email hoá đơn');
+        } catch (\Exception $e) {
+            return $this->errorResponse('Gửi email thất bại: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Create invoice manually
      */
     public function store(Request $request)
@@ -164,5 +202,29 @@ class InvoiceController extends Controller
 
         // Fallback: return HTML (user can print from browser)
         return response($html)->header('Content-Type', 'text/html');
+    }
+
+    /**
+     * Get seller info from accounting config
+     */
+    private function getSellerInfo(): array
+    {
+        $storeInfo = [];
+        try {
+            $configs = \App\Models\SystemConfig::where('group', 'accounting')
+                ->whereIn('key', ['seller_name', 'seller_phone', 'seller_email', 'seller_address', 'seller_tax_id'])
+                ->get();
+            foreach ($configs as $c) {
+                $key = str_replace('seller_', '', $c->key);
+                $storeInfo[$key] = $c->value;
+            }
+            if (!empty($storeInfo)) {
+                $storeInfo['name'] = $storeInfo['name'] ?? '';
+                $storeInfo['phone'] = $storeInfo['phone'] ?? '';
+                $storeInfo['email'] = $storeInfo['email'] ?? '';
+                $storeInfo['address'] = $storeInfo['address'] ?? '';
+            }
+        } catch (\Exception $e) { /* silent */ }
+        return $storeInfo;
     }
 }

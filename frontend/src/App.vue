@@ -463,7 +463,7 @@ const routeToTab = {
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'orders': 'orders', 'orders/customers': 'shop-customers', 'orders/accounting': 'accounting',
-  'shop/tax': 'tax',
+  'shop/tax': 'tax', 'orders/detail': 'order-detail',
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',
@@ -504,6 +504,8 @@ function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '')
   // Match CMS edit with ID: shop/cms/edit/123
   if (path.startsWith('shop/cms/edit/')) return 'shop/cms/edit'
+  // Match order detail: orders/detail/123
+  if (path.startsWith('orders/detail/')) return 'orders/detail'
   // Match multi-segment routes like shop/products, orders/customers etc
   if (validViews.includes(path)) return path
   // Try first segment
