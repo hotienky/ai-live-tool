@@ -2,7 +2,7 @@
   <div class="layout-builder">
     <div class="layout-builder__header">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <h3><LayoutDashboard :size="16" /> Bố cục Storefront</h3>
+        <h3><LayoutDashboard :size="16" /> Bố cục Cửa Hàng</h3>
         <!-- Custom page picker dropdown -->
         <div class="page-picker" tabindex="-1" @focusout="handlePickerFocusout">
           <button class="page-picker__trigger" @click="pageDropdownOpen = !pageDropdownOpen">
@@ -892,38 +892,57 @@
         <!-- Footer Builder -->
         <div class="lb-section lb-section--footer" v-show="!activePageId">
           <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
+          <p class="lb-section__hint">Kéo thả để sắp xếp thứ tự các cột. Footer hiển thị ở cuối trang storefront.</p>
 
           <!-- Footer Columns -->
           <div class="footer-builder">
             <div
               v-for="(col, ci) in footerConfig.columns"
-              :key="ci"
+              :key="'fc-' + ci"
               class="footer-col-card"
+              :class="{ 'footer-col-card--dragging': footerDragIdx === ci, 'footer-col-card--drag-over': footerDragOverIdx === ci && footerDragIdx !== ci }"
+              draggable="true"
+              @dragstart="onFooterDragStart($event, ci)"
+              @dragend="onFooterDragEnd"
+              @dragover.prevent="onFooterDragOver($event, ci)"
+              @dragenter.prevent="footerDragOverIdx = ci"
+              @dragleave="footerDragOverIdx = -1"
+              @drop.prevent="onFooterDrop(ci)"
             >
               <div class="footer-col-card__header">
-                <input
-                  v-model="col.title"
-                  class="param-input param-input--wide"
-                  placeholder="Tiêu đề cột"
-                />
+                <div class="footer-col-card__label">
+                  <GripVertical :size="12" class="footer-col-card__grip" />
+                  <span class="footer-col-card__num">Cột {{ ci + 1 }}</span>
+                </div>
                 <button class="btn-remove-item" @click="removeFooterCol(ci)" title="Xóa cột">
                   <Trash2 :size="12" />
                 </button>
               </div>
+              <input
+                v-model="col.title"
+                class="param-input param-input--wide"
+                :placeholder="'Tiêu đề cột ' + (ci + 1) + ' (VD: ' + (['Về chúng tôi', 'Hỗ trợ', 'Liên hệ', 'Chính sách'][ci] || 'Thêm') + ')'"
+              />
 
               <!-- Column Type -->
               <div class="param-row">
-                <label>Loại</label>
+                <label>Loại nội dung</label>
                 <select v-model="col.type" class="param-select">
-                  <option value="links">Links</option>
-                  <option value="contact">Liên hệ / Hotline</option>
-                  <option value="text">Nội dung tự do</option>
+                  <option value="links">🔗 Links (danh sách liên kết)</option>
+                  <option value="contact">📞 Liên hệ / Hotline</option>
+                  <option value="text">📝 Nội dung tự do</option>
                 </select>
               </div>
 
               <!-- Links Type -->
               <template v-if="col.type === 'links'">
-                <div v-for="(link, li) in col.links" :key="li" class="footer-link-row">
+                <div v-for="(link, li) in col.links" :key="li" class="footer-link-row"
+                  draggable="true"
+                  @dragstart.stop="footerItemDrag = { ci, li }; $event.dataTransfer.effectAllowed = 'move'"
+                  @dragover.prevent.stop
+                  @drop.prevent.stop="onFooterItemDrop(ci, li)"
+                >
+                  <GripVertical :size="10" class="footer-link-row__grip" />
                   <input v-model="link.label" class="param-input" placeholder="Nhãn" />
                   <input v-model="link.url" class="param-input" placeholder="/page/gioi-thieu" />
                   <button class="btn-remove-item" @click="col.links.splice(li, 1)" title="Xóa">
@@ -937,7 +956,13 @@
 
               <!-- Contact Type -->
               <template v-if="col.type === 'contact'">
-                <div v-for="(item, ii) in col.items" :key="ii" class="footer-link-row">
+                <div v-for="(item, ii) in col.items" :key="ii" class="footer-link-row"
+                  draggable="true"
+                  @dragstart.stop="footerItemDrag = { ci, ii }; $event.dataTransfer.effectAllowed = 'move'"
+                  @dragover.prevent.stop
+                  @drop.prevent.stop="onFooterContactDrop(ci, ii)"
+                >
+                  <GripVertical :size="10" class="footer-link-row__grip" />
                   <select v-model="item.icon" class="param-select param-select--sm">
                     <option value="phone">📞 SĐT</option>
                     <option value="email">📧 Email</option>
@@ -968,7 +993,7 @@
             </div>
 
             <button class="btn-add-section footer-add-col" @click="addFooterCol">
-              <Plus :size="14" /> Thêm cột
+              <Plus :size="14" /> Thêm cột (hiện có {{ footerConfig.columns.length }} cột)
             </button>
           </div>
 
@@ -1034,11 +1059,31 @@
             </div>
           </details>
 
-          <!-- Background Color -->
-          <div class="param-row" style="margin-top:12px">
-            <label>Màu nền</label>
-            <input type="color" v-model="footerConfig.bgColor" class="param-color" />
-            <button v-if="footerConfig.bgColor" class="btn-clear-color" @click="footerConfig.bgColor = ''" title="Xóa"><X :size="10" /></button>
+          <!-- Footer Colors -->
+          <div class="footer-colors" style="margin-top:12px">
+            <div class="footer-color-row">
+              <div class="footer-color-item">
+                <label>🎨 Nền</label>
+                <div class="footer-color-pick">
+                  <input type="color" v-model="footerConfig.bgColor" class="param-color" />
+                  <button v-if="footerConfig.bgColor" class="btn-clear-color" @click="footerConfig.bgColor = ''" title="Xóa"><X :size="10" /></button>
+                </div>
+              </div>
+              <div class="footer-color-item">
+                <label>📝 Tiêu đề</label>
+                <div class="footer-color-pick">
+                  <input type="color" v-model="footerConfig.headingColor" class="param-color" />
+                  <button v-if="footerConfig.headingColor" class="btn-clear-color" @click="footerConfig.headingColor = ''" title="Xóa"><X :size="10" /></button>
+                </div>
+              </div>
+              <div class="footer-color-item">
+                <label>✏️ Chữ</label>
+                <div class="footer-color-pick">
+                  <input type="color" v-model="footerConfig.textColor" class="param-color" />
+                  <button v-if="footerConfig.textColor" class="btn-clear-color" @click="footerConfig.textColor = ''" title="Xóa"><X :size="10" /></button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1133,7 +1178,30 @@
               </template>
             </template>
           </div>
-          <div class="pv-footer"></div>
+          <!-- Footer Preview -->
+          <div class="pv-footer" :style="footerPreviewStyle">
+            <div class="pv-footer__cols">
+              <div v-for="(col, ci) in footerConfig.columns" :key="ci" class="pv-footer__col">
+                <div class="pv-footer__col-title" :style="footerConfig.headingColor ? { color: footerConfig.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
+                <template v-if="col.type === 'links'">
+                  <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ link.label || '—' }}</div>
+                </template>
+                <template v-else-if="col.type === 'contact'">
+                  <div v-for="(item, ii) in col.items" :key="ii" class="pv-footer__contact" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">
+                    <span>{{ { phone:'📞', email:'📧', address:'📍', clock:'🕐', text:'💬' }[item.icon] || '•' }}</span>
+                    {{ item.value || item.label || '—' }}
+                  </div>
+                </template>
+                <template v-else>
+                  <div class="pv-footer__text" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ col.content ? '(HTML)' : '—' }}</div>
+                </template>
+              </div>
+            </div>
+            <div v-if="footerConfig.social?.length" class="pv-footer__social">
+              <span v-for="s in footerConfig.social" :key="s.platform" class="pv-footer__social-icon">{{ { facebook:'f', instagram:'ig', youtube:'yt', tiktok:'tt', zalo:'z', twitter:'x' }[s.platform] || '?' }}</span>
+            </div>
+            <div v-if="footerConfig.copyrightText" class="pv-footer__copyright" :style="footerConfig.textColor ? { color: footerConfig.textColor, opacity: 0.6 } : {}">{{ footerConfig.copyrightText }}</div>
+          </div>
         </div>
 
         <!-- Live Preview (iframe) -->
@@ -1294,8 +1362,16 @@ const defaultFooterConfig = {
   legalText: '',
   copyrightText: '',
   bgColor: '',
+  textColor: '',
+  headingColor: '',
 }
 const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
+
+const footerPreviewStyle = computed(() => {
+  const s = {}
+  if (footerConfig.value.bgColor) s.background = footerConfig.value.bgColor
+  return s
+})
 
 const allPaymentMethods = [
   { code: 'cod', label: 'COD' },
@@ -1315,6 +1391,47 @@ function addFooterCol() {
 }
 function removeFooterCol(idx) {
   footerConfig.value.columns.splice(idx, 1)
+}
+
+// Footer column drag-drop
+const footerDragIdx = ref(-1)
+const footerDragOverIdx = ref(-1)
+const footerItemDrag = ref(null)
+
+function onFooterDragStart(e, idx) {
+  footerDragIdx.value = idx
+  e.dataTransfer.effectAllowed = 'move'
+}
+function onFooterDragEnd() {
+  footerDragIdx.value = -1
+  footerDragOverIdx.value = -1
+}
+function onFooterDragOver(e, idx) {
+  footerDragOverIdx.value = idx
+}
+function onFooterDrop(idx) {
+  const from = footerDragIdx.value
+  if (from < 0 || from === idx) { onFooterDragEnd(); return }
+  const cols = footerConfig.value.columns
+  const [moved] = cols.splice(from, 1)
+  cols.splice(idx, 0, moved)
+  onFooterDragEnd()
+}
+function onFooterItemDrop(ci, targetLi) {
+  const src = footerItemDrag.value
+  if (!src || src.ci !== ci || src.li === targetLi) { footerItemDrag.value = null; return }
+  const arr = footerConfig.value.columns[ci].links
+  const [moved] = arr.splice(src.li, 1)
+  arr.splice(targetLi, 0, moved)
+  footerItemDrag.value = null
+}
+function onFooterContactDrop(ci, targetIi) {
+  const src = footerItemDrag.value
+  if (!src || src.ci !== ci || src.ii === targetIi) { footerItemDrag.value = null; return }
+  const arr = footerConfig.value.columns[ci].items
+  const [moved] = arr.splice(src.ii, 1)
+  arr.splice(targetIi, 0, moved)
+  footerItemDrag.value = null
 }
 
 const defaultPageConfigs = {
@@ -1664,7 +1781,7 @@ async function saveLayout() {
         ],
       }),
     })
-    showToast('Đã xuất bản bố cục storefront', 'success')
+    showToast('Đã xuất bản bố cục Cửa Hàng', 'success')
   } catch (e) {
     showToast('Lỗi lưu: ' + e.message, 'error')
   }
@@ -1742,13 +1859,20 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .btn-save:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.layout-builder__body { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+.layout-builder__body { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
 
 .lb-section { margin-bottom: 24px; }
 .lb-section__title {
   font-size: 13px; font-weight: 700; color: var(--color-text-secondary);
   margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
 }
+.lb-section__hint { font-size: 11px; color: var(--color-text-muted); margin: -8px 0 12px; line-height: 1.4; }
+
+/* Footer color pickers */
+.footer-color-row { display: flex; gap: 12px; }
+.footer-color-item { flex: 1; }
+.footer-color-item label { display: block; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.footer-color-pick { display: flex; align-items: center; gap: 6px; }
 
 /* Builtin page config panel */
 .builtin-page-config {
@@ -2016,7 +2140,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .css-editor:focus { outline: none; border-color: var(--color-accent-primary); box-shadow: 0 0 0 3px var(--color-accent-glow); }
 
 /* Preview */
-.layout-builder__preview { position: sticky; top: 10px; align-self: flex-start; }
+.layout-builder__preview { align-self: flex-start; }
 .preview-toolbar {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
 }
@@ -2050,7 +2174,16 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories() })
 .pv-section--featured_products .pv-section__visual { background: linear-gradient(135deg, rgba(52, 211, 153, 0.15), rgba(16, 185, 129, 0.15)); opacity: 0.6; }
 .pv-section--testimonials .pv-section__visual { background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15)); opacity: 0.6; }
 .pv-section--faq .pv-section__visual { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.15)); opacity: 0.6; }
-.pv-footer { padding: 6px; border-top: 1px solid var(--glass-border); background: var(--glass-bg); height: 16px; }
+.pv-footer { padding: 20px 16px 14px; border-top: 2px solid var(--glass-border); background: #1e293b; border-radius: 0 0 10px 10px; }
+.pv-footer__cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 16px; margin-bottom: 12px; }
+.pv-footer__col-title { font-size: 11px; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+.pv-footer__link, .pv-footer__contact, .pv-footer__text { font-size: 10px; color: #94a3b8; line-height: 1.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pv-footer__link:hover { color: #e2e8f0; }
+.pv-footer__contact { display: flex; align-items: center; gap: 4px; }
+.pv-footer__contact span { font-size: 10px; }
+.pv-footer__social { display: flex; gap: 6px; justify-content: center; margin: 10px 0 6px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); }
+.pv-footer__social-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--color-accent-primary, var(--accent)); color: #fff; font-size: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; text-transform: uppercase; }
+.pv-footer__copyright { font-size: 9px; text-align: center; color: #64748b; margin-top: 6px; }
 
 /* Page-specific preview: Products page */
 .pv-page-layout { display: grid; grid-template-columns: 80px 1fr; gap: 8px; min-height: 120px; }

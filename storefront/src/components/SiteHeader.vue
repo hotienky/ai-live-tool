@@ -296,7 +296,7 @@ const menuLinks = computed(() => {
   // Prefer provided navLinks from site-config, fallback to locally fetched navLinks
   const links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks)
   return links
-    .filter(l => l.is_active !== false)
+    .filter(l => l.is_active !== false && l.group !== 'footer')
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))
 })
 

@@ -264,10 +264,11 @@ async function selectRole(role) {
     const res = await apiFetch(`/roles/${role.id}`)
     const data = await res.json()
     const detail = data?.data || data
+    const perms = detail.permission_list || detail.permissions || []
     editForm.value = {
       name: detail.name || '',
       display_name: detail.display_name || '',
-      permissionIds: (detail.permissions || []).map(p => p.id),
+      permissionIds: perms.map(p => typeof p === 'object' ? p.id : p),
     }
   } catch (e) { console.error('selectRole error:', e) }
 }
@@ -284,14 +285,22 @@ async function saveRole() {
     const payload = { name: editForm.value.name, display_name: editForm.value.display_name, permissions: editForm.value.permissionIds }
     if (isCreating.value) {
       const res = await apiFetch('/roles', { method: 'POST', body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error('Create failed')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.message || 'Không thể tạo role')
+      }
       showToast('Tạo role thành công!', 'success')
     } else {
       const res = await apiFetch(`/roles/${selectedRole.value.id}`, { method: 'PUT', body: JSON.stringify(payload) })
-      if (!res.ok) throw new Error('Update failed')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        const msg = err?.errors ? Object.values(err.errors).flat().join(', ') : (err?.message || 'Không thể cập nhật role')
+        throw new Error(msg)
+      }
       showToast('Cập nhật role thành công!', 'success')
     }
     await loadRoles()
+    if (selectedRole.value) await selectRole(selectedRole.value)
     isCreating.value = false
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
   finally { saving.value = false }

@@ -19,6 +19,12 @@
         <option value="category.created">Tạo danh mục</option>
         <option value="banner.created">Tạo banner</option>
         <option value="settings.updated">Cập nhật cài đặt</option>
+        <option value="tax_config.updated">Cập nhật thuế</option>
+        <option value="tax_rate.created">Tạo thuế suất</option>
+        <option value="theme.updated">Cập nhật giao diện</option>
+        <option value="shipping.updated">Cập nhật vận chuyển</option>
+        <option value="payment.updated">Cập nhật thanh toán</option>
+        <option value="promotion.created">Tạo khuyến mãi</option>
         <option value="role.created">Tạo vai trò</option>
         <option value="webhook.created">Tạo webhook</option>
       </select>
@@ -145,6 +151,28 @@ const actionLabels = {
   'webhook.updated': 'Cập nhật webhook',
   'webhook.deleted': 'Xóa webhook',
   'settings.updated': 'Cập nhật cài đặt',
+  'tax_config.updated': 'Cập nhật cấu hình thuế',
+  'tax_rate.created': 'Tạo thuế suất mới',
+  'tax_rate.updated': 'Cập nhật thuế suất',
+  'tax_rate.deleted': 'Xóa thuế suất',
+  'theme.updated': 'Cập nhật giao diện',
+  'layout.updated': 'Cập nhật bố cục',
+  'layout.published': 'Xuất bản bố cục',
+  'nav_link.created': 'Tạo liên kết menu',
+  'nav_link.updated': 'Cập nhật liên kết menu',
+  'nav_link.deleted': 'Xóa liên kết menu',
+  'shipping.updated': 'Cập nhật vận chuyển',
+  'payment.updated': 'Cập nhật thanh toán',
+  'promotion.created': 'Tạo khuyến mãi',
+  'promotion.updated': 'Cập nhật khuyến mãi',
+  'promotion.deleted': 'Xóa khuyến mãi',
+  'flash_sale.created': 'Tạo Flash Sale',
+  'flash_sale.updated': 'Cập nhật Flash Sale',
+  'flash_sale.deleted': 'Xóa Flash Sale',
+  'coupon.created': 'Tạo mã giảm giá',
+  'coupon.used': 'Sử dụng mã giảm giá',
+  'store_info.updated': 'Cập nhật thông tin cửa hàng',
+  'system_config.updated': 'Cập nhật cấu hình hệ thống',
 }
 
 function formatAction(action) {
@@ -159,11 +187,16 @@ function formatDetails(action, details) {
   if (action === 'product.stock_deducted') return `Số lượng: ${details.quantity}, Còn lại: ${details.remaining}`
   if (action === 'session.ended') return `Comments: ${details.totalComments}, Hot: ${details.hotLeads}`
   if (action === 'lead.status_changed') return `${details.from} → ${details.to}`
+  if (action === 'tax_config.updated') return details.tax_enabled !== undefined ? `Thuế: ${details.tax_enabled ? 'Bật' : 'Tắt'}` : 'Cập nhật cấu hình thuế'
+  if (action === 'tax_rate.created' || action === 'tax_rate.updated') return details.rate ? `${details.name || 'Thuế'}: ${details.rate}%` : (details.name || '')
+  if (action === 'theme.updated') return details.preset || details.accent || ''
+  if (action === 'layout.updated' || action === 'layout.published') return details.page || ''
   if (details.name) return details.name
   if (details.title) return details.title
   if (details.email) return details.email
   if (details.order_number) return `#${details.order_number}`
   if (details.group) return `Nhóm: ${details.group}`
+  if (details.rate) return `${details.rate}%`
   return ''
 }
 
@@ -201,6 +234,23 @@ const iconMap = {
   'webhook.updated': Webhook,
   'webhook.deleted': Webhook,
   'settings.updated': Settings,
+  'tax_config.updated': Settings,
+  'tax_rate.created': Settings,
+  'tax_rate.updated': Settings,
+  'tax_rate.deleted': Settings,
+  'theme.updated': Settings,
+  'layout.updated': Settings,
+  'layout.published': Settings,
+  'nav_link.created': Settings,
+  'nav_link.updated': Settings,
+  'nav_link.deleted': Settings,
+  'shipping.updated': Package,
+  'payment.updated': ShoppingCart,
+  'promotion.created': ShoppingCart,
+  'promotion.updated': ShoppingCart,
+  'flash_sale.created': ShoppingCart,
+  'store_info.updated': Settings,
+  'system_config.updated': Settings,
 }
 
 function getIcon(action) {
@@ -218,7 +268,8 @@ function getIconClass(action) {
   if (action.startsWith('category.')) return 'icon-category'
   if (action.startsWith('role.')) return 'icon-role'
   if (action.startsWith('webhook.')) return 'icon-webhook'
-  if (action.startsWith('settings.')) return 'icon-settings'
+  if (action.startsWith('settings.') || action.startsWith('tax') || action.startsWith('theme') || action.startsWith('layout') || action.startsWith('nav_link') || action.startsWith('shipping') || action.startsWith('payment') || action.startsWith('store_info') || action.startsWith('system_config')) return 'icon-settings'
+  if (action.startsWith('promotion') || action.startsWith('flash_sale') || action.startsWith('coupon')) return 'icon-order'
   return 'icon-default'
 }
 

@@ -38,7 +38,7 @@
             </label>
 
             <div v-if="form.is_dynamic" class="info-box">
-              Trang này sẽ được thiết kế bằng Layout Builder. Hãy lưu lại và chuyển sang tab "Bố cục Store" để thiết kế kéo thả.
+              Trang này sẽ được thiết kế bằng Layout Builder. Hãy lưu lại và chuyển sang tab "Bố cục Cửa Hàng" để thiết kế kéo thả.
             </div>
 
             <div v-else class="form-group" style="margin-top: 12px;">

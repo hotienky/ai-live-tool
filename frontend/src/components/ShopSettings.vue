@@ -87,7 +87,7 @@
 
             <!-- Storefront Theme Customizer -->
             <div style="margin-top: 24px">
-              <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Storefront</h3>
+              <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Cửa Hàng</h3>
               <ThemeCustomizer @saved="onThemeSaved" />
             </div>
           </div>
@@ -697,7 +697,7 @@ const tabGroups = [
       { key: 'banners', label: 'Banner', icon: Video },
       { key: 'nav-links', label: 'Menu', icon: ClipboardList },
       { key: 'appearance', label: 'Theme', icon: Palette },
-      { key: 'storefront-layout', label: 'Bố cục Store', icon: LayoutList },
+      { key: 'storefront-layout', label: 'Bố cục Cửa Hàng', icon: LayoutList },
     ],
   },
   {
