@@ -95,4 +95,53 @@ Route::get('/accounting/export-combined', [AccountingController::class, 'exportC
 Route::get('/accounting/config', [AccountingController::class, 'getConfig'])->middleware('permission:settings.view');
 Route::put('/accounting/config', [AccountingController::class, 'updateConfig'])->middleware('permission:settings.manage');
 
+// Stock Receipts (Phiếu nhập/xuất kho)
+use App\Http\Controllers\Tenant\StockReceiptController;
+Route::get('/stock-receipts', [StockReceiptController::class, 'index'])->middleware('permission:orders.view');
+Route::get('/stock-receipts/stats', [StockReceiptController::class, 'stats'])->middleware('permission:orders.view');
+Route::post('/stock-receipts', [StockReceiptController::class, 'store'])->middleware('permission:orders.edit');
+Route::get('/stock-receipts/{id}', [StockReceiptController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/stock-receipts/{id}', [StockReceiptController::class, 'update'])->middleware('permission:orders.edit');
+Route::post('/stock-receipts/{id}/confirm', [StockReceiptController::class, 'confirm'])->middleware('permission:orders.edit');
+Route::post('/stock-receipts/{id}/cancel', [StockReceiptController::class, 'cancel'])->middleware('permission:orders.edit');
+Route::delete('/stock-receipts/{id}', [StockReceiptController::class, 'destroy'])->middleware('permission:orders.edit');
 
+// Suppliers (Nhà cung cấp)
+use App\Http\Controllers\Tenant\SupplierController;
+Route::get('/suppliers', [SupplierController::class, 'index'])->middleware('permission:orders.view');
+Route::post('/suppliers', [SupplierController::class, 'store'])->middleware('permission:settings.manage');
+Route::get('/suppliers/debt-report', [SupplierController::class, 'debtReport'])->middleware('permission:orders.view');
+Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/suppliers/{id}', [SupplierController::class, 'update'])->middleware('permission:settings.manage');
+Route::delete('/suppliers/{id}', [SupplierController::class, 'destroy'])->middleware('permission:settings.manage');
+
+// Payment Vouchers (Phiếu thu/chi)
+use App\Http\Controllers\Tenant\PaymentVoucherController;
+Route::get('/payment-vouchers', [PaymentVoucherController::class, 'index'])->middleware('permission:orders.view');
+Route::get('/payment-vouchers/stats', [PaymentVoucherController::class, 'stats'])->middleware('permission:orders.view');
+Route::post('/payment-vouchers', [PaymentVoucherController::class, 'store'])->middleware('permission:orders.edit');
+Route::get('/payment-vouchers/{id}', [PaymentVoucherController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/payment-vouchers/{id}', [PaymentVoucherController::class, 'update'])->middleware('permission:orders.edit');
+Route::post('/payment-vouchers/{id}/confirm', [PaymentVoucherController::class, 'confirm'])->middleware('permission:orders.edit');
+Route::post('/payment-vouchers/{id}/cancel', [PaymentVoucherController::class, 'cancel'])->middleware('permission:orders.edit');
+Route::delete('/payment-vouchers/{id}', [PaymentVoucherController::class, 'destroy'])->middleware('permission:orders.edit');
+
+// Purchase Orders (Đơn mua hàng)
+use App\Http\Controllers\Tenant\PurchaseOrderController;
+Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->middleware('permission:orders.view');
+Route::get('/purchase-orders/stats', [PurchaseOrderController::class, 'stats'])->middleware('permission:orders.view');
+Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->middleware('permission:orders.edit');
+Route::get('/purchase-orders/{id}', [PurchaseOrderController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/purchase-orders/{id}', [PurchaseOrderController::class, 'update'])->middleware('permission:orders.edit');
+Route::post('/purchase-orders/{id}/send', [PurchaseOrderController::class, 'send'])->middleware('permission:orders.edit');
+Route::post('/purchase-orders/{id}/receive', [PurchaseOrderController::class, 'receive'])->middleware('permission:orders.edit');
+Route::post('/purchase-orders/{id}/cancel', [PurchaseOrderController::class, 'cancel'])->middleware('permission:orders.edit');
+Route::delete('/purchase-orders/{id}', [PurchaseOrderController::class, 'destroy'])->middleware('permission:orders.edit');
+
+// Inventory Reports (Báo cáo kho)
+use App\Http\Controllers\Tenant\InventoryReportController;
+Route::get('/inventory/stock-report', [InventoryReportController::class, 'stockReport'])->middleware('permission:products.view');
+Route::get('/inventory/movement-report', [InventoryReportController::class, 'movementReport'])->middleware('permission:products.view');
+Route::get('/inventory/cogs-report', [InventoryReportController::class, 'cogsReport'])->middleware('permission:orders.view');
+Route::get('/inventory/low-stock-alerts', [InventoryReportController::class, 'lowStockAlerts'])->middleware('permission:products.view');
+Route::get('/inventory/export-csv', [InventoryReportController::class, 'exportCsv'])->middleware('permission:products.view');

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AccountingEntry;
 use App\Models\Invoice;
 use App\Models\Order;
+use App\Models\StockReceipt;
 use App\Models\SystemConfig;
 use Carbon\Carbon;
 
@@ -15,6 +16,15 @@ class AccountingService
      */
     public function onOrderDelivered(Order $order): void
     {
+        // Prevent duplicate entries (e.g. delivered → completed)
+        if (AccountingEntry::where('reference_type', 'order')
+            ->where('reference_id', $order->id)
+            ->where('category', 'order_revenue')
+            ->exists()
+        ) {
+            return;
+        }
+
         // Revenue entry
         AccountingEntry::create([
             'type' => 'revenue',
@@ -39,6 +49,23 @@ class AccountingService
                 'entry_date' => now()->toDateString(),
             ]);
         }
+
+        // COGS entry — calculate cost of goods sold
+        $cogs = $this->calculateCOGS($order);
+        if ($cogs > 0) {
+            AccountingEntry::create([
+                'type' => 'expense',
+                'category' => 'cogs',
+                'amount' => $cogs,
+                'description' => "Đơn hàng #{$order->id} - Giá vốn hàng bán",
+                'reference_type' => 'order',
+                'reference_id' => $order->id,
+                'entry_date' => now()->toDateString(),
+            ]);
+        }
+
+        // Auto-create export stock receipt (phiếu xuất kho) to deduct stock
+        $this->createExportReceiptFromOrder($order);
 
         // Auto-generate invoice
         $config = $this->getAccountingConfig();
@@ -72,6 +99,46 @@ class AccountingService
             'reference_id' => $order->id,
             'entry_date' => now()->toDateString(),
         ]);
+
+        // Cancel COGS entry for this order
+        AccountingEntry::where('reference_type', 'order')
+            ->where('reference_id', $order->id)
+            ->where('category', 'cogs')
+            ->delete();
+
+        // Cancel the auto-created export stock receipt and restore stock
+        $exportReceipt = StockReceipt::where('reference_type', 'order')
+            ->where('reference_id', $order->id)
+            ->where('type', 'export')
+            ->where('status', 'confirmed')
+            ->first();
+
+        if ($exportReceipt) {
+            // Restore stock for each item
+            $items = $exportReceipt->items;
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $product = \App\Models\Product::find($item['product_id']);
+                    if (!$product) continue;
+
+                    $oldStock = $product->stock;
+                    $product->stock += $item['qty'];
+                    $product->save();
+
+                    \Illuminate\Support\Facades\DB::table('stock_histories')->insert([
+                        'product_id' => $product->id,
+                        'action' => 'add',
+                        'quantity_change' => $item['qty'],
+                        'stock_before' => $oldStock,
+                        'stock_after' => $product->stock,
+                        'reason' => "Hoàn trả đơn hàng #{$order->id}",
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+            $exportReceipt->update(['status' => 'cancelled']);
+        }
 
         // Cancel the invoice if exists
         Invoice::where('order_id', $order->id)
@@ -159,7 +226,10 @@ class AccountingService
         return [
             'revenue' => round($revenue, 2),
             'expenses' => round($expenses, 2),
+            'cogs' => round($entries->where('type', 'expense')->where('category', 'cogs')->sum('amount'), 2),
+            'operating_expenses' => round($entries->where('type', 'expense')->where('category', '!=', 'cogs')->sum('amount'), 2),
             'adjustments' => round($adjustments, 2),
+            'gross_profit' => round($revenue - $entries->where('type', 'expense')->where('category', 'cogs')->sum('amount'), 2),
             'profit' => round($revenue + $adjustments - $expenses, 2),
             'tax_collected' => round($taxCollected, 2),
             'tax_refunded' => round(abs($taxRefunded), 2),
@@ -337,5 +407,97 @@ class AccountingService
                 'paid_invoice_count' => Invoice::where('status', 'paid')->where('created_at', '<=', $date)->count(),
             ],
         ];
+    }
+
+    /**
+     * Calculate COGS for an order based on product cost_price
+     */
+    public function calculateCOGS(Order $order): float
+    {
+        $items = $order->items;
+        if (!is_array($items)) return 0;
+
+        $cogs = 0;
+        foreach ($items as $item) {
+            $productId = $item['product_id'] ?? null;
+            $qty = $item['quantity'] ?? $item['qty'] ?? 0;
+            if (!$productId || $qty <= 0) continue;
+
+            $product = \App\Models\Product::find($productId);
+            if ($product && $product->cost_price > 0) {
+                $cogs += $product->cost_price * $qty;
+            }
+        }
+
+        return round($cogs, 2);
+    }
+
+    /**
+     * Auto-create a confirmed export stock receipt when order is delivered
+     * This deducts stock for each product in the order
+     */
+    public function createExportReceiptFromOrder(Order $order): ?StockReceipt
+    {
+        $orderItems = $order->items;
+        if (!is_array($orderItems) || empty($orderItems)) return null;
+
+        $receiptItems = [];
+        foreach ($orderItems as $item) {
+            $productId = $item['product_id'] ?? null;
+            $qty = $item['quantity'] ?? $item['qty'] ?? 0;
+            if (!$productId || $qty <= 0) continue;
+
+            $product = \App\Models\Product::find($productId);
+            if (!$product) continue;
+
+            $receiptItems[] = [
+                'product_id' => $productId,
+                'product_name' => $item['product_name'] ?? $item['name'] ?? $product->name,
+                'variant_id' => $item['variant_id'] ?? null,
+                'sku' => $item['sku'] ?? $product->sku ?? '',
+                'qty' => $qty,
+                'unit_price' => $product->cost_price ?? $item['price'] ?? 0,
+                'total' => $qty * ($product->cost_price ?? $item['price'] ?? 0),
+            ];
+
+            // Deduct stock immediately
+            $oldStock = $product->stock;
+            $product->stock = max(0, $product->stock - $qty);
+            $product->save();
+
+            // Record stock history
+            \Illuminate\Support\Facades\DB::table('stock_histories')->insert([
+                'product_id' => $product->id,
+                'action' => 'deduct',
+                'quantity_change' => -$qty,
+                'stock_before' => $oldStock,
+                'stock_after' => $product->stock,
+                'reason' => "Xuất kho đơn hàng #{$order->id}",
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        if (empty($receiptItems)) return null;
+
+        $totalAmount = array_sum(array_column($receiptItems, 'total'));
+
+        // Create an already-confirmed export receipt
+        $receipt = StockReceipt::create([
+            'receipt_number' => StockReceipt::generateNumber('export'),
+            'type' => 'export',
+            'supplier_id' => null,
+            'items' => $receiptItems,
+            'total_amount' => $totalAmount,
+            'tax_amount' => 0,
+            'discount_amount' => 0,
+            'status' => 'confirmed',
+            'notes' => "Tự động xuất kho từ đơn hàng #{$order->id}",
+            'reference_type' => 'order',
+            'reference_id' => $order->id,
+            'confirmed_at' => now(),
+        ]);
+
+        return $receipt;
     }
 }

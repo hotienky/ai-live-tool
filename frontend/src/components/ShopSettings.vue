@@ -464,6 +464,31 @@
         />
       </div>
 
+      <!-- ═══ Tab: Stock Receipts ═══ -->
+      <div v-if="activeTab === 'stock-receipts'" class="settings__panel">
+        <StockReceiptManager />
+      </div>
+
+      <!-- ═══ Tab: Suppliers ═══ -->
+      <div v-if="activeTab === 'suppliers'" class="settings__panel">
+        <SupplierManager />
+      </div>
+
+      <!-- ═══ Tab: Payment Vouchers ═══ -->
+      <div v-if="activeTab === 'payment-vouchers'" class="settings__panel">
+        <PaymentVoucherManager />
+      </div>
+
+      <!-- ═══ Tab: Purchase Orders ═══ -->
+      <div v-if="activeTab === 'purchase-orders'" class="settings__panel">
+        <PurchaseOrderManager />
+      </div>
+
+      <!-- ═══ Tab: Inventory Reports ═══ -->
+      <div v-if="activeTab === 'inventory-reports'" class="settings__panel">
+        <InventoryReportPanel />
+      </div>
+
       </div><!-- /settings__content -->
     </div><!-- /settings__layout -->
   </div>
@@ -476,8 +501,8 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag, Zap,
-  Cog, KeyRound, Globe, LayoutList, DollarSign,
+  FolderTree, Award, Users, Tag, Zap, BarChart2,
+  Cog, KeyRound, Globe, LayoutList, DollarSign, Briefcase, Wallet,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
 } from 'lucide-vue-next'
@@ -488,6 +513,11 @@ import CmsManager from './CmsManager.vue'
 import CmsPageForm from './CmsPageForm.vue'
 import BannerManager from './BannerManager.vue'
 import NavLinkManager from './NavLinkManager.vue'
+import StockReceiptManager from './StockReceiptManager.vue'
+import SupplierManager from './SupplierManager.vue'
+import PaymentVoucherManager from './PaymentVoucherManager.vue'
+import PurchaseOrderManager from './PurchaseOrderManager.vue'
+import InventoryReportPanel from './InventoryReportPanel.vue'
 import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
@@ -607,7 +637,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports']
 const activeTab = useUrlParam('tab', 'connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -681,6 +711,16 @@ const tabGroups = [
     ],
   },
   {
+    label: 'Kho & Tài chính',
+    items: [
+      { key: 'stock-receipts', label: 'Phiếu kho', icon: ClipboardList },
+      { key: 'suppliers', label: 'Nhà cung cấp', icon: Briefcase },
+      { key: 'payment-vouchers', label: 'Thu/Chi', icon: Wallet },
+      { key: 'purchase-orders', label: 'Đơn mua hàng', icon: ShoppingCart },
+      { key: 'inventory-reports', label: 'Báo cáo kho', icon: BarChart2 },
+    ],
+  },
+  {
     label: 'Marketing',
     items: [
       { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
@@ -725,6 +765,7 @@ const tabToRoute = {
   'products': 'shop/products', 'categories': 'shop/categories', 'brands': 'shop/brands',
   // Bán hàng
   'orders': 'orders', 'shop-customers': 'orders/customers', 'accounting': 'orders/accounting',
+  'stock-receipts': 'warehouse/stock-receipts', 'suppliers': 'warehouse/suppliers', 'payment-vouchers': 'warehouse/payment-vouchers', 'purchase-orders': 'warehouse/purchase-orders', 'inventory-reports': 'warehouse/inventory-reports',
   'payment': 'shop/payment', 'shipping': 'shop/shipping', 'tax': 'shop/tax',
   // Marketing
   'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
@@ -740,7 +781,7 @@ const tabToRoute = {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value

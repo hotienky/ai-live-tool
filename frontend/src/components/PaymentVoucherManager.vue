@@ -1,0 +1,333 @@
+<template>
+  <div class="pv-mgr">
+    <div class="pv-header">
+      <h2><Wallet :size="20" style="vertical-align:middle" /> Phiếu Thu / Chi</h2>
+      <div class="header-actions">
+        <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, đối tác..." @input="debouncedSearch" />
+        <select v-model="filterType" class="filter-select">
+          <option value="">Tất cả</option>
+          <option value="receipt">Phiếu thu</option>
+          <option value="payment">Phiếu chi</option>
+        </select>
+        <button class="btn-primary" @click="openCreate('receipt')"><Plus :size="14" /> Phiếu thu</button>
+        <button class="btn-secondary" @click="openCreate('payment')"><Minus :size="14" /> Phiếu chi</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="pv-stats">
+      <div class="stat-card income">
+        <div class="stat-icon"><ArrowDownToLine :size="20" /></div>
+        <div class="stat-value">{{ formatCurrency(pvStats.total_receipts || 0) }}</div>
+        <div class="stat-label">Tổng thu ({{ pvStats.receipt_count || 0 }} phiếu)</div>
+      </div>
+      <div class="stat-card expense">
+        <div class="stat-icon stat-icon--red"><ArrowUpFromLine :size="20" /></div>
+        <div class="stat-value">{{ formatCurrency(pvStats.total_payments || 0) }}</div>
+        <div class="stat-label">Tổng chi ({{ pvStats.payment_count || 0 }} phiếu)</div>
+      </div>
+      <div class="stat-card net">
+        <div class="stat-icon stat-icon--blue"><Scale :size="20" /></div>
+        <div class="stat-value" :class="netAmount >= 0 ? 'positive' : 'negative'">{{ formatCurrency(netAmount) }}</div>
+        <div class="stat-label">Chênh lệch</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon--warn"><FileText :size="20" /></div>
+        <div class="stat-value">{{ pvStats.pending_drafts || 0 }}</div>
+        <div class="stat-label">Phiếu nháp</div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="pv-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Mã phiếu</th><th>Loại</th><th>Đối tác</th><th>Danh mục</th>
+            <th>Số tiền</th><th>PT thanh toán</th><th>Trạng thái</th><th>Ngày</th><th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="v in vouchers" :key="v.id">
+            <td class="mono">{{ v.voucher_number }}</td>
+            <td><span class="type-badge" :class="v.type">{{ v.type === 'receipt' ? 'Thu' : 'Chi' }}</span></td>
+            <td>{{ v.counterparty || '—' }}</td>
+            <td>{{ v.category }}</td>
+            <td class="amount" :class="v.type === 'receipt' ? 'positive' : 'negative'">
+              {{ v.type === 'receipt' ? '+' : '-' }}{{ formatCurrency(v.amount) }}
+            </td>
+            <td>{{ paymentMethodLabel(v.payment_method) }}</td>
+            <td><span class="status-badge" :class="v.status">{{ statusLabel(v.status) }}</span></td>
+            <td class="date">{{ formatDate(v.voucher_date) }}</td>
+            <td>
+              <div class="action-btns">
+                <button v-if="v.status === 'draft'" @click="confirmVoucher(v)" title="Xác nhận" class="btn-confirm"><Check :size="14" /></button>
+                <button v-if="v.status !== 'cancelled'" @click="cancelVoucher(v)" title="Hủy" class="btn-danger"><X :size="14" /></button>
+                <button v-if="v.status === 'draft'" @click="deleteVoucher(v)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="vouchers.length === 0">
+            <td colspan="9" class="empty"><div class="empty-state"><Wallet :size="40" class="empty-state__icon" /><p class="empty-state__title">Chưa có phiếu thu/chi</p></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" v-if="pagination.last_page > 1">
+      <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage <= 1" class="page-btn"><ChevronLeft :size="14" /></button>
+      <span class="page-info">{{ currentPage }} / {{ pagination.last_page }}</span>
+      <button @click="currentPage = Math.min(pagination.last_page, currentPage + 1)" :disabled="currentPage >= pagination.last_page" class="page-btn"><ChevronRight :size="14" /></button>
+    </div>
+
+    <!-- Create Modal -->
+    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+      <div class="modal">
+        <h3><Wallet :size="16" style="vertical-align:middle" /> {{ form.type === 'receipt' ? 'Phiếu Thu' : 'Phiếu Chi' }}</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Loại</label>
+            <select v-model="form.type">
+              <option value="receipt">Phiếu thu</option>
+              <option value="payment">Phiếu chi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ngày</label>
+            <input type="date" v-model="form.voucher_date" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số tiền *</label>
+            <input type="number" v-model.number="form.amount" min="0" />
+          </div>
+          <div class="form-group">
+            <label>Danh mục *</label>
+            <select v-model="form.category">
+              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>PT thanh toán</label>
+            <select v-model="form.payment_method">
+              <option value="cash">Tiền mặt</option>
+              <option value="bank">Chuyển khoản</option>
+              <option value="wallet">Ví điện tử</option>
+              <option value="other">Khác</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Đối tác</label>
+            <input v-model="form.counterparty" placeholder="Tên đối tác/KH..." />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Mô tả</label>
+          <textarea v-model="form.description" rows="2" placeholder="Chi tiết..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-create" @click="save">Tạo phiếu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { apiFetch } from '../composables/useApi.js'
+import { useToast } from '../composables/useToast.js'
+import {
+  Wallet, Plus, Minus, Check, X, Trash2,
+  ArrowDownToLine, ArrowUpFromLine, Scale, FileText,
+  ChevronLeft, ChevronRight
+} from 'lucide-vue-next'
+const { showToast } = useToast()
+
+const vouchers = ref([])
+const pagination = ref({ total: 0, per_page: 20, current_page: 1, last_page: 1 })
+const pvStats = ref({})
+const searchTerm = ref('')
+const filterType = ref('')
+const currentPage = ref(1)
+const showModal = ref(false)
+
+const categories = [
+  'Tiền hàng', 'Vận chuyển', 'Marketing', 'Lương', 'Thuê mặt bằng',
+  'Điện nước', 'Dụng cụ', 'Sửa chữa', 'Hoàn trả', 'Khác',
+]
+
+const form = ref({
+  type: 'receipt', amount: 0, category: 'Tiền hàng',
+  description: '', payment_method: 'cash', counterparty: '',
+  voucher_date: new Date().toISOString().split('T')[0],
+})
+
+const netAmount = computed(() => (pvStats.value.total_receipts || 0) - (pvStats.value.total_payments || 0))
+
+function statusLabel(s) { return { draft: 'Nháp', confirmed: 'Đã xác nhận', cancelled: 'Đã hủy' }[s] || s }
+function paymentMethodLabel(m) { return { cash: 'Tiền mặt', bank: 'CK', wallet: 'Ví', other: 'Khác' }[m] || m }
+
+onMounted(() => { fetchVouchers(); fetchStats() })
+watch([filterType, currentPage], fetchVouchers)
+
+let timer = null
+function debouncedSearch() {
+  clearTimeout(timer)
+  timer = setTimeout(() => { currentPage.value = 1; fetchVouchers() }, 300)
+}
+
+async function fetchVouchers() {
+  try {
+    let url = `/payment-vouchers?page=${currentPage.value}&per_page=20`
+    if (filterType.value) url += `&type=${filterType.value}`
+    if (searchTerm.value) url += `&search=${searchTerm.value}`
+    const res = await apiFetch(url)
+    const data = await res.json()
+    vouchers.value = data.data?.items || data.items || []
+    pagination.value = data.data?.pagination || data.pagination || pagination.value
+  } catch { vouchers.value = [] }
+}
+
+async function fetchStats() {
+  try {
+    const res = await apiFetch('/payment-vouchers/stats')
+    const data = await res.json()
+    pvStats.value = data.data || data
+  } catch { /* silent */ }
+}
+
+function openCreate(type) {
+  form.value = {
+    type, amount: 0, category: 'Tiền hàng',
+    description: '', payment_method: 'cash', counterparty: '',
+    voucher_date: new Date().toISOString().split('T')[0],
+  }
+  showModal.value = true
+}
+
+async function save() {
+  if (!form.value.amount) return showToast('Vui lòng nhập số tiền', 'error')
+  try {
+    await apiFetch('/payment-vouchers', { method: 'POST', body: JSON.stringify(form.value) })
+    showToast('Đã tạo phiếu', 'success')
+    showModal.value = false
+    fetchVouchers()
+    fetchStats()
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+}
+
+async function confirmVoucher(v) {
+  if (!confirm(`Xác nhận phiếu ${v.voucher_number}?`)) return
+  try {
+    await apiFetch(`/payment-vouchers/${v.id}/confirm`, { method: 'POST' })
+    showToast('Đã xác nhận — Bút toán đã tạo', 'success')
+    fetchVouchers(); fetchStats()
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+}
+
+async function cancelVoucher(v) {
+  if (!confirm(`Hủy phiếu ${v.voucher_number}?`)) return
+  try {
+    await apiFetch(`/payment-vouchers/${v.id}/cancel`, { method: 'POST' })
+    showToast('Đã hủy', 'success')
+    fetchVouchers(); fetchStats()
+  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+}
+
+async function deleteVoucher(v) {
+  if (!confirm(`Xóa phiếu ${v.voucher_number}?`)) return
+  try {
+    await apiFetch(`/payment-vouchers/${v.id}`, { method: 'DELETE' })
+    showToast('Đã xóa', 'success')
+    fetchVouchers(); fetchStats()
+  } catch { showToast('Lỗi xóa', 'error') }
+}
+
+function formatCurrency(v) {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
+}
+function formatDate(d) {
+  if (!d) return '—'
+  return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+</script>
+
+<style scoped>
+.pv-mgr { padding: 24px; overflow-y: auto; height: 100%; }
+.pv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.pv-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px; min-width: 180px; outline: none; }
+.filter-select { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none; }
+.filter-select option { background: var(--color-bg-card-solid); color: var(--color-text-primary); }
+.btn-primary { background: var(--accent-gradient); color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--accent-shadow); }
+.btn-secondary { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-secondary); padding: 10px 14px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; }
+
+.pv-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 20px; text-align: center; transition: all 0.3s; }
+.stat-card:hover { transform: translateY(-2px); border-color: var(--color-border-hover); }
+.stat-card.income .stat-value { color: #34d399; }
+.stat-card.expense .stat-value { color: #f87171; }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; background: rgba(52,211,153,0.12); color: #34d399; }
+.stat-icon--red { background: rgba(248,113,113,0.12); color: #f87171; }
+.stat-icon--blue { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.stat-icon--warn { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.stat-value { font-size: 22px; font-weight: 800; color: var(--color-text-primary); }
+.stat-value.positive { color: #34d399; }
+.stat-value.negative { color: #f87171; }
+.stat-label { font-size: 11px; color: var(--color-text-muted); margin-top: 6px; font-weight: 600; }
+
+.pv-table { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+thead { background: var(--color-bg-elevated); }
+th { padding: 12px 14px; text-align: left; color: var(--color-text-muted); font-weight: 700; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--color-border); }
+td { padding: 12px 14px; border-bottom: 1px solid var(--color-border); color: var(--color-text-primary); }
+tr:hover { background: var(--color-accent-glow); }
+.mono { font-family: monospace; font-weight: 700; font-size: 12px; }
+.amount { font-weight: 700; }
+.amount.positive { color: #34d399; }
+.amount.negative { color: #f87171; }
+.date { font-size: 12px; color: var(--color-text-muted); }
+
+.type-badge { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.type-badge.receipt { background: rgba(52,211,153,0.1); color: #34d399; }
+.type-badge.payment { background: rgba(248,113,113,0.1); color: #f87171; }
+.status-badge { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.status-badge.draft { background: rgba(251,191,36,0.1); color: #fbbf24; }
+.status-badge.confirmed { background: rgba(52,211,153,0.1); color: #34d399; }
+.status-badge.cancelled { background: rgba(248,113,113,0.1); color: #f87171; }
+
+.action-btns { display: flex; gap: 4px; }
+.action-btns button { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px; }
+.action-btns button:hover { opacity: 1; color: var(--color-text-primary); background: var(--color-accent-glow); }
+.action-btns .btn-confirm:hover { color: #34d399; }
+.action-btns .btn-danger:hover { color: #f87171; }
+.empty { text-align: center; padding: 40px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.empty-state__icon { color: var(--color-text-muted); opacity: 0.4; }
+.empty-state__title { font-size: 15px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
+.page-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); border-radius: 8px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-info { font-size: 13px; color: var(--color-text-secondary); font-weight: 600; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+.modal { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 16px; padding: 28px; width: 520px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.modal h3 { margin: 0 0 20px; font-weight: 800; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent); color: var(--color-text-primary); font-size: 13px; outline: none; box-sizing: border-box; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--color-accent-primary); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.btn-cancel { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: var(--color-text-secondary); font-weight: 600; cursor: pointer; }
+.btn-create { padding: 10px 20px; border-radius: 10px; border: none; background: var(--accent-gradient); color: #fff; font-weight: 700; cursor: pointer; }
+</style>

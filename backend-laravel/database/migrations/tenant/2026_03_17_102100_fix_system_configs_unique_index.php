@@ -19,23 +19,19 @@ return new class extends Migration
             return;
         }
 
-        Schema::table('system_configs', function (Blueprint $table) {
-            // Drop the old single-column unique constraint on 'key'
-            // (ignore if it doesn't exist — may already be removed)
-            try {
-                $table->dropUnique(['key']);
-            } catch (\Throwable $e) { /* already removed or named differently */ }
+        // Use raw SQL with IF EXISTS — PostgreSQL aborts entire
+        // transaction on constraint errors even inside try/catch
+        $conn = Schema::getConnection();
 
-            // Add composite unique: (key, group_name)
-            try {
-                $table->unique(['key', 'group_name'], 'sc_key_group_unique');
-            } catch (\Throwable $e) { /* already exists */ }
+        // Drop old unique on 'key' (try both possible names)
+        $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_unique");
+        $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_idx");
 
-            // Add index on group_name for fast WHERE group_name = ? queries
-            try {
-                $table->index('group_name', 'sc_group_name_idx');
-            } catch (\Throwable $e) { /* already exists */ }
-        });
+        // Add composite unique: (key, group_name)
+        $conn->statement("CREATE UNIQUE INDEX IF NOT EXISTS sc_key_group_unique ON system_configs (key, group_name)");
+
+        // Add index on group_name
+        $conn->statement("CREATE INDEX IF NOT EXISTS sc_group_name_idx ON system_configs (group_name)");
     }
 
     public function down(): void

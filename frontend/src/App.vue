@@ -404,7 +404,7 @@ const navItems = [
     key: 'store-group', label: 'Cửa hàng', icon: Store,
     featureGroup: 'store',
     permission: 'products.view',
-    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/appearance', 'shop/layout', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax'],
+    activeKeys: ['shop/products', 'shop/categories', 'shop/brands', 'shop/promotions', 'shop/flash-sales', 'shop/banners', 'shop/cms', 'shop/appearance', 'shop/layout', 'shop/config', 'shop/languages', 'orders', 'orders/customers', 'orders/accounting', 'shop/payment', 'shop/shipping', 'shop/tax', 'warehouse/stock-receipts', 'warehouse/suppliers', 'warehouse/payment-vouchers', 'warehouse/purchase-orders', 'warehouse/inventory-reports'],
     children: [
       { key: 'store-products',    view: 'shop/products',    label: 'Sản phẩm',    icon: ShoppingBag,  permission: 'products.view' },
       { key: 'store-categories',  view: 'shop/categories',  label: 'Danh mục',    icon: FolderTree,   permission: 'products.view' },
@@ -464,6 +464,7 @@ const routeToTab = {
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'orders': 'orders', 'orders/customers': 'shop-customers', 'orders/accounting': 'accounting',
   'shop/tax': 'tax', 'orders/detail': 'order-detail',
+  'warehouse/stock-receipts': 'stock-receipts', 'warehouse/suppliers': 'suppliers', 'warehouse/payment-vouchers': 'payment-vouchers', 'warehouse/purchase-orders': 'purchase-orders', 'warehouse/inventory-reports': 'inventory-reports',
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',

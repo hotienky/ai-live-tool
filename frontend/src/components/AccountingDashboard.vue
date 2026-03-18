@@ -28,23 +28,43 @@
         <div class="acc-card acc-card--expense">
           <div class="acc-card__icon"><TrendingDown :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Chi phí</span>
-            <span class="acc-card__value">{{ formatPrice(summary.expenses) }}</span>
+            <span class="acc-card__label">COGS (Giá vốn)</span>
+            <span class="acc-card__value">{{ formatPrice(summary.cogs || 0) }}</span>
           </div>
         </div>
         <div class="acc-card acc-card--profit">
           <div class="acc-card__icon"><DollarSign :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Lợi nhuận</span>
-            <span class="acc-card__value">{{ formatPrice(summary.profit) }}</span>
+            <span class="acc-card__label">Lợi nhuận gộp</span>
+            <span class="acc-card__value" :style="{ color: (summary.gross_profit || 0) >= 0 ? '#34d399' : '#f87171' }">{{ formatPrice(summary.gross_profit || 0) }}</span>
           </div>
         </div>
         <div class="acc-card acc-card--tax">
           <div class="acc-card__icon"><Receipt :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Thuế phải nộp</span>
-            <span class="acc-card__value">{{ formatPrice(summary.tax_payable) }}</span>
+            <span class="acc-card__label">Lợi nhuận ròng</span>
+            <span class="acc-card__value" :style="{ color: (summary.profit || 0) >= 0 ? '#34d399' : '#f87171' }">{{ formatPrice(summary.profit) }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- COGS Breakdown Bar -->
+      <div v-if="summary.revenue > 0" class="acc-cogs-bar">
+        <div class="acc-cogs-bar__inner">
+          <div class="acc-cogs-bar__segment acc-cogs-bar__segment--cogs" :style="{ width: Math.min(100, ((summary.cogs || 0) / summary.revenue * 100)) + '%' }">
+            <span v-if="(summary.cogs || 0) / summary.revenue > 0.15">COGS {{ Math.round((summary.cogs || 0) / summary.revenue * 100) }}%</span>
+          </div>
+          <div class="acc-cogs-bar__segment acc-cogs-bar__segment--opex" :style="{ width: Math.min(100 - ((summary.cogs || 0) / summary.revenue * 100), ((summary.operating_expenses || 0) / summary.revenue * 100)) + '%' }">
+            <span v-if="(summary.operating_expenses || 0) / summary.revenue > 0.15">Chi phí {{ Math.round((summary.operating_expenses || 0) / summary.revenue * 100) }}%</span>
+          </div>
+          <div class="acc-cogs-bar__segment acc-cogs-bar__segment--profit">
+            <span v-if="(summary.profit || 0) / summary.revenue > 0.1">LN {{ Math.round((summary.profit || 0) / summary.revenue * 100) }}%</span>
+          </div>
+        </div>
+        <div class="acc-cogs-bar__legend">
+          <span><span class="acc-legend__dot" style="background:#f87171"></span> COGS</span>
+          <span><span class="acc-legend__dot" style="background:#fbbf24"></span> Chi phí VH</span>
+          <span><span class="acc-legend__dot" style="background:#34d399"></span> Lợi nhuận</span>
         </div>
       </div>
 
@@ -491,6 +511,7 @@
                   <label>Danh mục *</label>
                   <select v-model="entryForm.category" class="acc-select">
                     <option value="order_revenue">Doanh thu đơn hàng</option>
+                    <option value="cogs">Giá vốn hàng bán (COGS)</option>
                     <option value="shipping_cost">Phí vận chuyển</option>
                     <option value="refund">Hoàn trả</option>
                     <option value="marketing">Marketing</option>
@@ -570,7 +591,7 @@ const dateFrom = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1
 const dateTo = ref(new Date().toISOString().slice(0, 10))
 
 // Data
-const summary = ref({ revenue: 0, expenses: 0, profit: 0, tax_payable: 0, tax_collected: 0, adjustments: 0 })
+const summary = ref({ revenue: 0, expenses: 0, profit: 0, tax_payable: 0, tax_collected: 0, adjustments: 0, cogs: 0, gross_profit: 0, operating_expenses: 0 })
 const monthly = ref([])
 const taxReport = ref([])
 const taxYear = ref(new Date().getFullYear())
@@ -617,7 +638,8 @@ function formatDate(d) {
 }
 
 const catLabels = {
-  order_revenue: 'Doanh thu ĐH', shipping_cost: 'Phí VC', refund: 'Hoàn trả',
+  order_revenue: 'Doanh thu ĐH', shipping_cost: 'Phí VC', refund: 'Hoàn trả', cogs: 'Giá vốn (COGS)',
+  inventory_purchase: 'Nhập kho', inventory_export: 'Xuất kho', inventory_return: 'Trả NCC', inventory_adjust: 'Kiểm kê',
   marketing: 'Marketing', salary: 'Lương', rent: 'Thuê MB', supplies: 'Vật tư', other: 'Khác', tax: 'Thuế',
 }
 function categoryLabel(c) { return catLabels[c] || c }
@@ -904,6 +926,15 @@ async function loadTaxConfig() {
 .acc-card__body { display: flex; flex-direction: column; }
 .acc-card__label { font-size: 11px; color: var(--color-text-muted); font-weight: 600; letter-spacing: 0.3px; }
 .acc-card__value { font-size: 22px; font-weight: 800; color: var(--color-text-primary); margin-top: 2px; }
+
+/* COGS Breakdown Bar */
+.acc-cogs-bar { margin: 16px 0 20px; }
+.acc-cogs-bar__inner { display: flex; height: 32px; border-radius: 10px; overflow: hidden; font-size: 11px; font-weight: 700; }
+.acc-cogs-bar__segment { display: flex; align-items: center; justify-content: center; color: #fff; min-width: 4px; transition: width 0.5s ease; }
+.acc-cogs-bar__segment--cogs { background: rgba(248,113,113,0.7); }
+.acc-cogs-bar__segment--opex { background: rgba(251,191,36,0.5); }
+.acc-cogs-bar__segment--profit { background: rgba(52,211,153,0.5); flex: 1; }
+.acc-cogs-bar__legend { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--color-text-muted); }
 
 /* ═══ Section ═══ */
 .acc-section {
