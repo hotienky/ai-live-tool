@@ -33,12 +33,24 @@
       <div class="detail-grid" :class="'ratio--' + detailConfig.layoutRatio">
         <!-- Image Gallery -->
         <div class="detail-gallery" :class="'gallery--' + detailConfig.galleryStyle">
-          <div class="detail-main-img">
-            <img v-if="activeImage" :src="activeImage" :alt="product.name" />
+          <div class="detail-main-img"
+            @mousemove="onImageZoom"
+            @mouseleave="zoomActive = false"
+            @mouseenter="zoomActive = true"
+          >
+            <img
+              v-if="activeImage"
+              :src="activeImage"
+              :alt="product.name"
+              class="detail-main-img__photo"
+              :class="{ 'zoomed': zoomActive }"
+              :style="zoomActive ? { transformOrigin: zoomOrigin } : {}"
+            />
             <div v-else class="detail-placeholder">
               <Package :size="80" />
             </div>
             <span v-if="discountPercent" class="detail-badge">-{{ discountPercent }}%</span>
+            <div v-if="zoomActive" class="zoom-hint">🔍 Di chuột để zoom</div>
           </div>
           <!-- Thumbnails -->
           <div class="detail-thumbs" v-if="allImages.length > 1">
@@ -72,6 +84,16 @@
             </span>
             <span v-if="taxConfig.enabled" class="detail-tax-label">
               {{ taxConfig.display_mode === 'inclusive' ? ('Đã gồm ' + (taxConfig.label || 'VAT')) : ('+ ' + (taxConfig.label || 'VAT')) }}
+            </span>
+          </div>
+
+          <!-- Social Proof -->
+          <div class="detail-social-proof" v-if="product">
+            <span class="social-proof__viewers">
+              <Eye :size="14" /> {{ viewerCount }} người đang xem
+            </span>
+            <span v-if="product.sold_count" class="social-proof__sold">
+              Đã bán {{ formatSoldCount(product.sold_count) }}
             </span>
           </div>
 
@@ -110,6 +132,28 @@
             </div>
           </div>
 
+          <!-- Shipping Estimate -->
+          <div class="shipping-estimate">
+            <label class="shipping-estimate__label">
+              <Truck :size="14" /> Ước tính phí vận chuyển
+            </label>
+            <div class="shipping-estimate__row">
+              <select v-model="estimateProvince" @change="fetchShippingEstimate" class="shipping-estimate__select">
+                <option value="">Chọn tỉnh/thành</option>
+                <option v-for="p in estimateProvinces" :key="p.code" :value="p.code">{{ p.name }}</option>
+              </select>
+              <span v-if="estimateLoading" class="shipping-estimate__loading">Đang tính...</span>
+            </div>
+            <div v-if="estimateResult" class="shipping-estimate__result">
+              <span class="shipping-estimate__fee">
+                {{ estimateResult.fee === 0 ? 'Miễn phí' : formatPrice(estimateResult.fee) }}
+              </span>
+              <span v-if="estimateResult.time" class="shipping-estimate__time">
+                {{ estimateResult.time }}
+              </span>
+            </div>
+          </div>
+
           <!-- Quantity -->
           <div class="detail-qty">
             <label>Số lượng</label>
@@ -138,7 +182,13 @@
 
           <!-- Share -->
           <div class="detail-share">
-            <span>Chia sẻ:</span>
+            <span>Chia sẽ:</span>
+            <button class="detail-share__btn" @click="shareToFacebook" title="Facebook">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </button>
+            <button class="detail-share__btn" @click="shareToZalo" title="Zalo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16a1.07 1.07 0 01-.373.736c-.128.104-.29.186-.48.242l-4.146 1.22 4.348 5.09c.207.243.26.556.14.84a.82.82 0 01-.712.476h-1.594a.867.867 0 01-.66-.305l-3.54-4.147v3.662a.793.793 0 01-.79.79H8.89a.793.793 0 01-.79-.79V8.026a.793.793 0 01.79-.79h.87a.793.793 0 01.79.79v3.04l4.488-3.616a.87.87 0 01.546-.19h1.42c.344 0 .623.177.746.465a.82.82 0 01-.18.906l.002-.47z"/></svg>
+            </button>
             <button class="detail-share__btn" @click="copyLink" title="Sao chép link">
               <Link :size="14" />
             </button>
@@ -163,6 +213,17 @@
         </h2>
         <div class="related-grid">
           <ProductCard v-for="p in relatedProducts" :key="p.id" :product="p" />
+        </div>
+      </div>
+
+      <!-- Recently Viewed -->
+      <div class="related-section" v-if="recentlyViewed.length > 1">
+        <h2 class="section-title">
+          <Clock :size="20" class="section-title__accent" />
+          Sản phẩm đã xem gần đây
+        </h2>
+        <div class="related-grid">
+          <ProductCard v-for="p in recentlyViewed.filter(rv => rv.id !== product?.id).slice(0, 6)" :key="'rv-' + p.id" :product="p" />
         </div>
       </div>
 
@@ -245,25 +306,79 @@
         <ArrowLeft :size="16" /> Quay lại cửa hàng
       </router-link>
     </div>
+
+    <!-- Sticky Mobile Add-to-Cart Bar -->
+    <transition name="slide-up">
+      <div v-if="product && showStickyBar" class="sticky-cart-bar">
+        <div class="sticky-cart-bar__price">
+          <span v-if="isOnSale" class="price price--original">{{ formatPrice(product.price) }}</span>
+          <span class="price price--sale">{{ formatPrice(isOnSale ? product.promotion_price : product.price) }}</span>
+        </div>
+        <button class="sticky-cart-bar__btn" :disabled="displayStock <= 0" @click="handleAddToCart">
+          <ShoppingCart :size="16" /> Thêm vào giỏ
+        </button>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, watch } from 'vue'
+import { ref, computed, inject, onMounted, onUnmounted, watch } from 'vue'
 import { apiFetch, apiAuthPost } from '../api.js'
 import {
   ChevronRight, Package, PackageX, Minus, Plus, ShoppingCart,
-  Heart, Link, FileText, ArrowLeft, Star, Lock, PenLine, RefreshCw, Loader
+  Heart, Link, FileText, ArrowLeft, Star, Lock, PenLine, RefreshCw, Loader, Clock, Eye, Truck
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useSeo } from '../composables/useSeo.js'
 import { useWishlist } from '../composables/useWishlist.js'
 import { useToast } from '../composables/useToast.js'
+import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import ProductCard from '../components/ProductCard.vue'
 
 const { addToCart } = useCart()
+const { recentlyViewed, addProduct: addToRecentlyViewed } = useRecentlyViewed()
 const { isLoggedIn, token: authToken } = useAuth()
+
+// Shipping estimate on PDP
+const estimateProvinces = ref([])
+const estimateProvince = ref('')
+const estimateLoading = ref(false)
+const estimateResult = ref(null)
+
+async function loadEstimateProvinces() {
+  try {
+    const data = await apiFetch('/shipping/provinces')
+    estimateProvinces.value = Array.isArray(data) ? data : []
+  } catch {}
+}
+
+async function fetchShippingEstimate() {
+  if (!estimateProvince.value) { estimateResult.value = null; return }
+  estimateLoading.value = true
+  estimateResult.value = null
+  try {
+    const prov = estimateProvinces.value.find(p => p.code == estimateProvince.value)
+    const wards = await apiFetch(`/shipping/wards/${estimateProvince.value}`)
+    const firstWard = Array.isArray(wards) && wards.length ? wards[0] : null
+    const params = new URLSearchParams({
+      province: prov?.name || '',
+      ward: firstWard?.name || '',
+      weight: '500',
+    })
+    const res = await apiFetch(`/shipping/rates?${params}`)
+    const rates = Array.isArray(res) ? res : []
+    if (rates.length > 0) {
+      const cheapest = rates.reduce((a, b) => (a.fee || 0) < (b.fee || 0) ? a : b)
+      estimateResult.value = {
+        fee: cheapest.fee || 0,
+        time: cheapest.estimated_days || '',
+      }
+    }
+  } catch {}
+  estimateLoading.value = false
+}
 const { setProductSeo, setBreadcrumbs } = useSeo()
 const { isLiked, toggleWishlist } = useWishlist()
 const { showToast } = useToast()
@@ -373,7 +488,51 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.href)
+  showToast('Đã sao chép link!')
 }
+
+function shareToFacebook() {
+  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, '_blank', 'width=600,height=400')
+}
+
+function shareToZalo() {
+  window.open(`https://zalo.me/share?url=${encodeURIComponent(window.location.href)}`, '_blank')
+}
+
+// Sticky mobile cart bar
+const showStickyBar = ref(false)
+const zoomActive = ref(false)
+const zoomOrigin = ref('50% 50%')
+
+function onImageZoom(e) {
+  if (window.innerWidth <= 768) return
+  const rect = e.currentTarget.getBoundingClientRect()
+  const x = ((e.clientX - rect.left) / rect.width) * 100
+  const y = ((e.clientY - rect.top) / rect.height) * 100
+  zoomOrigin.value = `${x}% ${y}%`
+}
+
+// Social proof — simulated viewer count
+const viewerCount = ref(0)
+function generateViewerCount() {
+  viewerCount.value = Math.floor(Math.random() * 15) + 3
+}
+
+function formatSoldCount(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return n
+}
+
+function onScroll() {
+  if (window.innerWidth > 768) { showStickyBar.value = false; return }
+  showStickyBar.value = window.scrollY > 500
+}
+onMounted(() => {
+  window.addEventListener('scroll', onScroll, { passive: true })
+  generateViewerCount()
+  loadEstimateProvinces()
+})
+onUnmounted(() => window.removeEventListener('scroll', onScroll))
 
 async function loadProduct() {
   loading.value = true
@@ -383,6 +542,7 @@ async function loadProduct() {
     try {
       product.value = await apiFetch(`/products/${props.slug}`)
       if (product.value?.name) {
+        addToRecentlyViewed(product.value)
         setProductSeo(product.value, reviewStats.value)
         // Breadcrumb JSON-LD
         const base = window.location.origin
@@ -535,6 +695,61 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 .breadcrumb a:hover { color: var(--sf-accent-light); }
 .breadcrumb span { color: var(--sf-text-primary); font-weight: 600; }
 
+/* Shipping Estimate */
+.shipping-estimate {
+  padding: 14px 16px;
+  border-radius: var(--sf-radius-md, 10px);
+  border: 1px solid var(--sf-border);
+  background: var(--sf-bg-card);
+}
+.shipping-estimate__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin-bottom: 10px;
+}
+.shipping-estimate__label svg { color: #10b981; }
+.shipping-estimate__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.shipping-estimate__select {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-input-bg, var(--sf-bg-card-hover, #f9fafb));
+  color: var(--sf-text-primary);
+  font-size: 13px;
+  appearance: auto;
+}
+.shipping-estimate__loading {
+  font-size: 12px;
+  color: var(--sf-text-muted);
+}
+.shipping-estimate__result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f0fdf4;
+}
+.shipping-estimate__fee {
+  font-size: 14px;
+  font-weight: 800;
+  color: #10b981;
+}
+.shipping-estimate__time {
+  font-size: 12px;
+  color: var(--sf-text-secondary);
+}
+
 /* Mobile back button — hidden on desktop */
 .mobile-back-btn {
   display: none;
@@ -600,6 +815,52 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
 .detail-save {
   font-size: 12px; font-weight: 700; color: #10b981;
   background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 100px;
+}
+
+/* Image Zoom */
+.detail-main-img__photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.detail-main-img__photo.zoomed {
+  transform: scale(2);
+  cursor: crosshair;
+}
+.zoom-hint {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 11px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Social Proof */
+.detail-social-proof {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--sf-bg-card-hover, #f9fafb);
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+}
+.social-proof__viewers {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #10b981;
+  font-weight: 600;
+}
+.social-proof__sold {
+  color: var(--sf-text-muted);
 }
 
 /* Variant Selector */
@@ -973,5 +1234,65 @@ watch(() => product.value?.id, () => { if (product.value) loadReviews() })
   color: #ef4444;
   border-color: rgba(239,68,68,0.5);
   background: rgba(239,68,68,0.06);
+}
+
+/* Sticky Mobile Cart Bar */
+.sticky-cart-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 800;
+  padding: 12px 16px;
+  background: var(--sf-bg-card, #fff);
+  border-top: 1px solid var(--sf-border);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.sticky-cart-bar__price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.sticky-cart-bar__price .price--original {
+  font-size: 12px;
+  color: var(--sf-text-muted);
+  text-decoration: line-through;
+}
+.sticky-cart-bar__price .price--sale {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--sf-accent-light, var(--sf-accent));
+}
+.sticky-cart-bar__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--sf-radius-md, 10px);
+  background: var(--sf-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.sticky-cart-bar__btn:hover { opacity: 0.9; }
+.sticky-cart-bar__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+@media (max-width: 768px) {
+  .sticky-cart-bar { display: flex; }
+}
+
+.slide-up-enter-active { animation: slideUpIn 0.3s ease; }
+.slide-up-leave-active { animation: slideUpIn 0.2s ease reverse; }
+@keyframes slideUpIn {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 </style>

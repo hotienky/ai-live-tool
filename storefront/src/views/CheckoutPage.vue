@@ -12,68 +12,109 @@
       </div>
 
       <div class="success-content">
-        <!-- Success Header -->
-        <div class="success-header">
-          <div class="success-icon-wrap">
-            <CheckCircle :size="56" />
+        <!-- Success Hero -->
+        <div class="success-hero">
+          <div class="success-hero__bg"></div>
+          <div class="success-hero__icon">
+            <CheckCircle :size="64" />
             <div class="success-ring"></div>
+            <div class="success-ring success-ring--2"></div>
           </div>
-          <h2>Đặt hàng thành công!</h2>
-          <p class="success-order-code">Mã đơn hàng: <strong>#{{ orderData.id }}</strong></p>
+          <h2 class="success-hero__title">Đặt hàng thành công!</h2>
+          <div class="success-hero__badge">
+            <Package :size="14" />
+            <span>Mã đơn hàng</span>
+            <strong>#{{ orderData.id }}</strong>
+          </div>
+          <p class="success-hero__sub">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý.</p>
         </div>
 
-        <div class="success-grid">
-          <!-- Order Info Card -->
-          <div class="success-card">
-            <h3><Package :size="16" /> Thông tin đơn hàng</h3>
-            <div class="info-rows">
-              <div class="info-row">
-                <span class="info-label">Khách hàng</span>
-                <span class="info-value">{{ orderData.customer_name }}</span>
+        <!-- Order Details Section -->
+        <div class="success-details">
+          <div class="success-section">
+            <div class="success-section__header">
+              <User :size="18" />
+              <h3>Thông tin giao hàng</h3>
+            </div>
+            <div class="detail-grid-2col">
+              <div class="detail-item">
+                <span class="detail-item__label">Khách hàng</span>
+                <span class="detail-item__value">{{ orderData.customer_name }}</span>
               </div>
-              <div class="info-row">
-                <span class="info-label">Điện thoại</span>
-                <span class="info-value">{{ orderData.customer_phone }}</span>
+              <div class="detail-item">
+                <span class="detail-item__label">Điện thoại</span>
+                <span class="detail-item__value">{{ orderData.customer_phone }}</span>
               </div>
-              <div class="info-row">
-                <span class="info-label">Địa chỉ</span>
-                <span class="info-value">{{ orderData.customer_address }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Phương thức</span>
-                <span class="info-value">{{ orderData.payment_method === 'bank' ? 'Chuyển khoản' : 'COD' }}</span>
-              </div>
-              <div v-if="orderData.coupon_code" class="info-row">
-                <span class="info-label">Mã giảm giá</span>
-                <span class="info-value" style="color:#16a34a;font-weight:700">{{ orderData.coupon_code }} (−{{ formatPrice(orderData.discount_amount) }})</span>
-              </div>
-              <div class="info-row info-row--total">
-                <span class="info-label">Tổng thanh toán</span>
-                <span class="info-value info-value--accent">{{ formatPrice(orderData.total_amount) }}</span>
+              <div class="detail-item detail-item--full">
+                <span class="detail-item__label">Địa chỉ giao hàng</span>
+                <span class="detail-item__value">{{ orderData.customer_address }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Bank Transfer Info (only shown for bank payment) -->
-          <div v-if="orderData.payment_method === 'bank' && orderData.bank_info" class="success-card bank-card">
-            <h3><Building :size="16" /> Thông tin chuyển khoản</h3>
-            <div class="bank-warning">
-              <AlertTriangle :size="14" />
-              <span>Vui lòng chuyển khoản trong vòng <strong>24 giờ</strong> để đơn hàng được xử lý</span>
+          <div class="success-divider"></div>
+
+          <div class="success-section">
+            <div class="success-section__header">
+              <CreditCard :size="18" />
+              <h3>Chi tiết thanh toán</h3>
             </div>
-            <div class="bank-fields">
-              <div class="bank-field">
-                <span class="bank-field__label">Ngân hàng</span>
-                <div class="bank-field__row">
-                  <span class="bank-field__value">{{ orderData.bank_info.bank_name }}</span>
-                </div>
+            <div class="payment-summary">
+              <div class="payment-summary__row">
+                <span>Phương thức</span>
+                <span class="payment-summary__badge" :class="orderData.payment_method === 'bank' ? 'badge--bank' : 'badge--cod'">
+                  <Truck v-if="orderData.payment_method !== 'bank'" :size="12" />
+                  <Building v-else :size="12" />
+                  {{ orderData.payment_method === 'bank' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng' }}
+                </span>
               </div>
-              <div class="bank-field">
-                <span class="bank-field__label">Chi nhánh</span>
-                <div class="bank-field__row">
-                  <span class="bank-field__value">{{ orderData.bank_info.branch }}</span>
-                </div>
+              <div v-if="orderData.coupon_code" class="payment-summary__row">
+                <span>Mã giảm giá</span>
+                <span class="payment-summary__discount">
+                  <Tag :size="12" />
+                  {{ orderData.coupon_code }} (−{{ formatPrice(orderData.discount_amount) }})
+                </span>
               </div>
+              <div v-if="orderData.shipping_fee > 0" class="payment-summary__row">
+                <span>Phí vận chuyển</span>
+                <span>{{ formatPrice(orderData.shipping_fee) }}</span>
+              </div>
+              <div v-if="orderData.tax_amount > 0" class="payment-summary__row">
+                <span>VAT</span>
+                <span>{{ formatPrice(orderData.tax_amount) }}</span>
+              </div>
+              <div class="payment-summary__total">
+                <span>Tổng thanh toán</span>
+                <span>{{ formatPrice(orderData.total_amount) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bank Transfer Info -->
+        <div v-if="orderData.payment_method === 'bank' && orderData.bank_info" class="success-bank">
+          <div class="success-section__header">
+            <Building :size="18" />
+            <h3>Thông tin chuyển khoản</h3>
+          </div>
+          <div class="bank-warning">
+            <AlertTriangle :size="14" />
+            <span>Vui lòng chuyển khoản trong vòng <strong>24 giờ</strong> để đơn hàng được xử lý</span>
+          </div>
+          <div class="bank-fields">
+            <div class="bank-field">
+              <span class="bank-field__label">Ngân hàng</span>
+              <div class="bank-field__row">
+                <span class="bank-field__value">{{ orderData.bank_info.bank_name }}</span>
+              </div>
+            </div>
+            <div class="bank-field">
+              <span class="bank-field__label">Chi nhánh</span>
+              <div class="bank-field__row">
+                <span class="bank-field__value">{{ orderData.bank_info.branch }}</span>
+              </div>
+            </div>
+            <div class="bank-fields-row">
               <div class="bank-field">
                 <span class="bank-field__label">Chủ tài khoản</span>
                 <div class="bank-field__row">
@@ -92,6 +133,8 @@
                   </button>
                 </div>
               </div>
+            </div>
+            <div class="bank-fields-row">
               <div class="bank-field">
                 <span class="bank-field__label">Số tiền</span>
                 <div class="bank-field__row">
@@ -111,23 +154,23 @@
                 </div>
               </div>
             </div>
-
-            <!-- QR Code -->
-            <div class="bank-qr" v-if="vietQrUrl">
-              <div class="bank-qr__divider"></div>
-              <p class="bank-qr__label"><QrCode :size="14" /> Quét mã QR để chuyển khoản</p>
-              <div class="bank-qr__wrap">
-                <img :src="vietQrUrl" alt="QR Code chuyển khoản" class="bank-qr__img" />
-              </div>
-              <p class="bank-qr__hint">Mở app ngân hàng → Quét QR → Số tiền & nội dung đã được điền sẵn</p>
-            </div>
           </div>
+          <!-- QR Code -->
+          <div class="bank-qr" v-if="vietQrUrl">
+            <div class="bank-qr__divider"></div>
+            <p class="bank-qr__label"><QrCode :size="14" /> Quét mã QR để chuyển khoản</p>
+            <div class="bank-qr__wrap">
+              <img :src="vietQrUrl" alt="QR Code chuyển khoản" class="bank-qr__img" />
+            </div>
+            <p class="bank-qr__hint">Mở app ngân hàng → Quét QR → Số tiền &amp; nội dung đã được điền sẵn</p>
+          </div>
+        </div>
 
-          <!-- COD Confirmation -->
-          <div v-else class="success-card cod-card">
-            <h3><Truck :size="16" /> Thanh toán khi nhận hàng</h3>
-            <div class="cod-message">
-              <div class="cod-icon"><Wallet :size="32" /></div>
+        <!-- COD Confirmation -->
+        <div v-else class="success-cod">
+          <div class="cod-content">
+            <div class="cod-icon"><Wallet :size="24" /></div>
+            <div class="cod-text">
               <p>Bạn sẽ thanh toán <strong>{{ formatPrice(orderData.total_amount) }}</strong> khi nhận hàng.</p>
               <p class="cod-sub">Chúng tôi sẽ liên hệ xác nhận đơn hàng trong thời gian sớm nhất.</p>
             </div>
@@ -136,10 +179,10 @@
 
         <!-- Actions -->
         <div class="success-actions">
-          <router-link to="/products" class="btn btn--primary">
+          <router-link to="/products" class="btn btn--primary btn--success">
             <ShoppingBag :size="16" /> Tiếp tục mua sắm
           </router-link>
-          <router-link to="/order-tracking" class="btn btn--outline">
+          <router-link to="/order-tracking" class="btn btn--outline btn--success">
             <Package :size="16" /> Theo dõi đơn hàng
           </router-link>
         </div>
@@ -159,6 +202,31 @@
         <div class="checkout-form">
           <div class="form-section">
             <h3><User :size="16" /> Thông tin giao hàng</h3>
+
+            <!-- Saved Addresses Dropdown -->
+            <div v-if="isLoggedIn && savedAddresses.length > 0" class="saved-addresses">
+              <label class="saved-addresses__label">
+                <MapPin :size="14" /> Chọn địa chỉ đã lưu
+              </label>
+              <div class="saved-addresses__list">
+                <button
+                  v-for="addr in savedAddresses" :key="addr.id"
+                  class="saved-addr-card"
+                  :class="{ active: selectedSavedAddr === addr.id }"
+                  @click="applySavedAddress(addr)"
+                >
+                  <div class="saved-addr-card__name">
+                    {{ addr.name || 'Không tên' }}
+                    <span v-if="addr.is_default" class="saved-addr-badge">★ Mặc định</span>
+                  </div>
+                  <div class="saved-addr-card__detail">{{ addr.phone }}</div>
+                  <div class="saved-addr-card__detail">{{ addr.address }}</div>
+                </button>
+                <button class="saved-addr-card saved-addr-card--new" @click="selectedSavedAddr = null">
+                  + Nhập địa chỉ mới
+                </button>
+              </div>
+            </div>
             <div class="form-row">
               <div class="form-group">
                 <label>Họ tên *</label>
@@ -234,7 +302,12 @@
                 <div class="shipping-option__info">
                   <strong>{{ opt.provider_name }}</strong>
                   <span class="shipping-option__service">{{ opt.service_name }}</span>
-                  <span class="shipping-option__time">{{ opt.estimated_days }}</span>
+                  <span class="shipping-option__time">
+                    <Truck :size="12" /> {{ opt.estimated_days }}
+                  </span>
+                  <span v-if="estimatedDeliveryDate(opt)" class="shipping-option__delivery">
+                    📅 Nhận hàng dự kiến: <strong>{{ estimatedDeliveryDate(opt) }}</strong>
+                  </span>
                 </div>
                 <span class="shipping-option__fee">{{ formatPrice(opt.fee) }}</span>
               </label>
@@ -279,6 +352,18 @@
               <CheckCircle :size="14" />
               Mã <strong>{{ couponCode.toUpperCase() }}</strong> — Giảm <strong>{{ formatPrice(couponDiscount) }}</strong>
             </div>
+          </div>
+
+          <!-- Order Notes -->
+          <div class="form-section">
+            <h3><PenLine :size="16" /> Ghi chú đơn hàng</h3>
+            <textarea
+              v-model="form.notes"
+              class="order-notes"
+              placeholder="Ghi chú cho shop (ví dụ: giao giờ hành chính, gọi trước khi giao...)"
+              rows="3"
+              maxlength="500"
+            ></textarea>
           </div>
 
           <div class="form-section">
@@ -361,7 +446,7 @@ import { useRoute, useRouter } from 'vue-router'
 import {
   CreditCard, User, Truck, FileText, Package, ShoppingCart, Check,
   CheckCircle, ShoppingBag, Home, Wallet, Copy, AlertTriangle, Building, QrCode,
-  Tag, X, MapPin
+  Tag, X, MapPin, PenLine
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
@@ -394,6 +479,32 @@ const error = ref('')
 const orderSuccess = ref(false)
 const orderData = ref({})
 const loadingOrder = ref(false)
+
+// Saved addresses
+const savedAddresses = ref([])
+const selectedSavedAddr = ref(null)
+
+function applySavedAddress(addr) {
+  selectedSavedAddr.value = addr.id
+  form.value.customerName = addr.name || ''
+  form.value.customerPhone = addr.phone || ''
+  form.value.customerAddress = addr.address || ''
+  if (addr.email) form.value.customerEmail = addr.email
+}
+
+// Estimated delivery date helper
+function estimatedDeliveryDate(opt) {
+  if (!opt.estimated_days) return null
+  const match = opt.estimated_days.match(/(\d+)/g)
+  if (!match) return null
+  const today = new Date()
+  const minDays = parseInt(match[0])
+  const maxDays = match[1] ? parseInt(match[1]) : minDays
+  const minDate = new Date(today.getTime() + minDays * 86400000)
+  const maxDate = new Date(today.getTime() + maxDays * 86400000)
+  const fmt = d => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
+  return minDays === maxDays ? fmt(minDate) : `${fmt(minDate)} - ${fmt(maxDate)}`
+}
 
 // Voucher/Coupon state — shared with CartPage via composable
 import { useCoupon } from '../composables/useCoupon.js'
@@ -520,11 +631,10 @@ onMounted(async () => {
     try {
       const addrs = await authFetch('/addresses')
       const list = Array.isArray(addrs) ? addrs : []
+      savedAddresses.value = list
       const defaultAddr = list.find(a => a.is_default) || list[0]
       if (defaultAddr) {
-        form.value.customerAddress = defaultAddr.address || ''
-        if (!form.value.customerName) form.value.customerName = defaultAddr.name || ''
-        if (!form.value.customerPhone) form.value.customerPhone = defaultAddr.phone || ''
+        applySavedAddress(defaultAddr)
       }
     } catch (err) { console.warn('[Checkout] Address load failed:', err?.message || err) }
   }
@@ -837,74 +947,149 @@ async function placeOrder() {
   50% { box-shadow: 0 2px 20px rgba(16, 185, 129, 0.7); }
 }
 
-/* Success Header */
-.success-content { max-width: 800px; margin: 0 auto; }
-.success-header {
-  text-align: center; margin-bottom: 32px;
+/* Success Content */
+.success-content { max-width: 680px; margin: 0 auto; }
+
+/* ── Success Hero ── */
+.success-hero {
+  text-align: center; padding: 48px 32px 40px;
+  position: relative; overflow: hidden;
+  border-radius: var(--sf-radius-xl) var(--sf-radius-xl) 0 0;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-bottom: none;
 }
-.success-icon-wrap {
+.success-hero__bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.04) 0%, rgba(5, 150, 105, 0.08) 50%, rgba(16, 185, 129, 0.02) 100%);
+  pointer-events: none;
+}
+.success-hero__bg::before {
+  content: ''; position: absolute; top: -60%; left: -30%; right: -30%; bottom: 60%;
+  background: radial-gradient(ellipse, rgba(16, 185, 129, 0.1), transparent 70%);
+  animation: heroGlow 4s ease-in-out infinite;
+}
+@keyframes heroGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.success-hero__icon {
   position: relative; display: inline-flex;
   align-items: center; justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
-.success-icon-wrap svg { color: #10b981; z-index: 1; }
+.success-hero__icon svg { color: #10b981; z-index: 1; }
 .success-ring {
-  position: absolute; inset: -12px; border-radius: 50%;
-  border: 3px solid rgba(16, 185, 129, 0.15);
-  animation: ringExpand 1.5s ease-out forwards;
+  position: absolute; inset: -16px; border-radius: 50%;
+  border: 3px solid rgba(16, 185, 129, 0.2);
+  animation: ringPulse 2s ease-out infinite;
 }
-@keyframes ringExpand {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(1.5); opacity: 0; }
+.success-ring--2 {
+  inset: -28px;
+  border: 2px solid rgba(16, 185, 129, 0.1);
+  animation-delay: 0.4s;
 }
-.success-header h2 {
-  font-size: 28px; font-weight: 900; margin: 0 0 6px 0;
+@keyframes ringPulse {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+.success-hero__title {
+  font-size: 32px; font-weight: 900; margin: 0 0 16px;
   background: linear-gradient(135deg, #10b981, #059669);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.success-order-code {
-  font-size: 15px; color: var(--sf-text-secondary); margin: 0;
+.success-hero__badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 20px; border-radius: 100px;
+  background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2);
+  font-size: 14px; color: var(--sf-text-secondary);
 }
-.success-order-code strong {
-  color: var(--sf-accent-light); font-size: 18px;
-  -webkit-text-fill-color: var(--sf-accent-light);
+.success-hero__badge svg { color: #10b981; }
+.success-hero__badge strong {
+  color: #10b981; font-size: 16px; font-weight: 900;
+  -webkit-text-fill-color: #10b981;
+}
+.success-hero__sub {
+  margin: 16px 0 0; font-size: 14px; color: var(--sf-text-muted); line-height: 1.6;
 }
 
-/* Success Grid */
-.success-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-  margin-bottom: 32px;
-}
-
-/* Success Card */
-.success-card {
+/* ── Order Details Section ── */
+.success-details {
   background: var(--sf-bg-card); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg); padding: 24px;
+  border-top: none; padding: 0 32px 32px;
 }
-.success-card h3 {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 15px; font-weight: 800; margin: 0 0 16px 0;
+.success-section { padding: 0; }
+.success-section__header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--sf-border);
+}
+.success-section__header svg { color: var(--sf-accent-light); flex-shrink: 0; }
+.success-section__header h3 {
+  font-size: 15px; font-weight: 800; margin: 0;
   color: var(--sf-text-primary);
 }
-.success-card h3 svg { color: var(--sf-accent-light); }
-
-/* Info Rows */
-.info-rows { display: flex; flex-direction: column; }
-.info-row {
-  display: flex; justify-content: space-between; align-items: flex-start;
-  padding: 10px 0; border-bottom: 1px solid var(--sf-border);
-  font-size: 13px; gap: 12px;
+.success-divider {
+  height: 1px; background: var(--sf-border); margin: 24px 0;
 }
-.info-row:last-child { border-bottom: none; }
-.info-label { color: var(--sf-text-muted); flex-shrink: 0; }
-.info-value { color: var(--sf-text-primary); font-weight: 600; text-align: right; }
-.info-row--total { margin-top: 4px; padding-top: 14px; border-top: 2px solid var(--sf-border); }
-.info-row--total .info-label { font-size: 15px; font-weight: 800; color: var(--sf-text-primary); }
-.info-value--accent { font-size: 18px; font-weight: 900; color: var(--sf-accent-light); }
 
-/* Bank Card */
-.bank-card { border-color: var(--sf-accent); }
+/* Detail Grid */
+.detail-grid-2col {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+.detail-item { display: flex; flex-direction: column; gap: 4px; }
+.detail-item--full { grid-column: 1 / -1; }
+.detail-item__label {
+  font-size: 11px; font-weight: 700; color: var(--sf-text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.detail-item__value {
+  font-size: 14px; font-weight: 600; color: var(--sf-text-primary);
+  line-height: 1.5;
+}
+
+/* Payment Summary */
+.payment-summary { display: flex; flex-direction: column; gap: 0; }
+.payment-summary__row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; font-size: 14px; color: var(--sf-text-secondary);
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.payment-summary__row:last-child { border-bottom: none; }
+.payment-summary__badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 100px;
+  font-size: 12px; font-weight: 700;
+}
+.badge--cod {
+  background: rgba(16, 185, 129, 0.08); color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.badge--bank {
+  background: rgba(59, 130, 246, 0.08); color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+.payment-summary__discount {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: #16a34a; font-weight: 700; font-size: 13px;
+}
+.payment-summary__total {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0 0; margin-top: 4px;
+  border-top: 2px solid var(--sf-border);
+  font-size: 16px; font-weight: 900; color: var(--sf-text-primary);
+}
+.payment-summary__total span:last-child {
+  font-size: 22px; color: var(--sf-accent-light);
+}
+
+/* ── Bank Transfer Card ── */
+.success-bank {
+  margin-top: 16px; padding: 28px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  border-left: 4px solid var(--sf-accent);
+}
 .bank-warning {
   display: flex; align-items: flex-start; gap: 8px;
   padding: 10px 14px; border-radius: 8px;
@@ -914,7 +1099,7 @@ async function placeOrder() {
 }
 .bank-warning svg { flex-shrink: 0; margin-top: 1px; }
 .bank-fields { display: flex; flex-direction: column; gap: 10px; }
-.bank-field { }
+.bank-fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bank-field__label {
   font-size: 11px; font-weight: 700; color: var(--sf-text-muted);
   text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; display: block;
@@ -971,22 +1156,37 @@ async function placeOrder() {
   line-height: 1.5;
 }
 
-/* COD Card */
-.cod-card { border-color: rgba(16, 185, 129, 0.3); }
-.cod-message {
-  text-align: center; padding: 20px 0;
+/* ── COD Confirmation ── */
+.success-cod {
+  margin-top: 16px; padding: 20px 28px;
+  background: var(--sf-bg-card); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg);
+  border-left: 4px solid #10b981;
+}
+.cod-content {
+  display: flex; align-items: center; gap: 16px;
 }
 .cod-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
   background: rgba(16, 185, 129, 0.08);
-  color: #10b981; margin-bottom: 12px;
+  color: #10b981;
 }
-.cod-message p { margin: 0 0 6px; font-size: 15px; color: var(--sf-text-secondary); }
-.cod-message p strong { color: var(--sf-accent-light); }
-.cod-sub { font-size: 13px !important; color: var(--sf-text-muted) !important; }
+.cod-text p { margin: 0 0 4px; font-size: 14px; color: var(--sf-text-secondary); line-height: 1.5; }
+.cod-text p strong { color: var(--sf-accent-light); }
+.cod-sub { font-size: 12px !important; color: var(--sf-text-muted) !important; margin: 0 !important; }
 
-/* Success Actions */
+/* ── Success Actions ── */
+.success-actions {
+  display: flex; gap: 14px; justify-content: center;
+  margin-top: 32px;
+}
+.btn--success {
+  padding: 14px 32px; font-size: 15px; font-weight: 700;
+  border-radius: var(--sf-radius-md);
+  transition: all 0.25s;
+}
+.btn--success:hover { transform: translateY(-2px); box-shadow: var(--sf-shadow-lg); }
 /* Voucher */
 .voucher-section { background: var(--sf-accent-glow); }
 .voucher-input-row {
@@ -999,6 +1199,24 @@ async function placeOrder() {
   transition: border-color 0.2s;
 }
 .voucher-input:focus { border-color: var(--sf-accent); outline: none; }
+
+/* Order Notes */
+.order-notes {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--sf-border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--sf-bg);
+  color: var(--sf-text-primary);
+  resize: vertical;
+  min-height: 70px;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.order-notes:focus { border-color: var(--sf-accent); outline: none; }
+.order-notes::placeholder { color: var(--sf-text-muted); }
 .voucher-input:disabled { opacity: 0.6; }
 .voucher-apply-btn {
   white-space: nowrap; padding: 10px 20px;
@@ -1031,13 +1249,101 @@ async function placeOrder() {
 @media (max-width: 768px) {
   .checkout-grid { grid-template-columns: 1fr; }
   .form-row { flex-direction: column; }
-  .success-grid { grid-template-columns: 1fr; }
+  .detail-grid-2col { grid-template-columns: 1fr; }
+  .bank-fields-row { grid-template-columns: 1fr; }
+  .success-hero { padding: 36px 20px 32px; }
+  .success-details { padding: 0 20px 24px; }
+  .success-bank { padding: 20px; }
+  .success-cod { padding: 16px 20px; }
+  .cod-content { flex-direction: column; text-align: center; }
   .success-steps { gap: 0; }
   .step-line { width: 40px; }
   .success-actions { flex-direction: column; }
+  .btn--success { width: 100%; justify-content: center; }
   .bank-qr__img { width: 200px; }
   .voucher-input-row { flex-direction: column; }
   .voucher-apply-btn, .voucher-remove-btn { width: 100%; justify-content: center; }
+  .saved-addresses__list { flex-direction: column; }
+}
+
+/* Saved Addresses */
+.saved-addresses {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px dashed var(--sf-border);
+}
+.saved-addresses__label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-text-secondary);
+  margin-bottom: 10px;
+}
+.saved-addresses__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.saved-addr-card {
+  flex: 1;
+  min-width: 180px;
+  max-width: 280px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--sf-border);
+  background: var(--sf-bg-card);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.saved-addr-card:hover {
+  border-color: var(--sf-accent);
+}
+.saved-addr-card.active {
+  border-color: var(--sf-accent-light);
+  background: var(--sf-accent-glow, rgba(99,102,241,0.06));
+}
+.saved-addr-card__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sf-text-primary);
+  margin-bottom: 4px;
+}
+.saved-addr-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #f59e0b;
+  background: rgba(245,158,11,0.12);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.saved-addr-card__detail {
+  font-size: 12px;
+  color: var(--sf-text-muted);
+  line-height: 1.4;
+}
+.saved-addr-card--new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  color: var(--sf-text-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.saved-addr-card--new:hover { color: var(--sf-accent); border-color: var(--sf-accent); }
+
+/* Estimated Delivery Date */
+.shipping-option__delivery {
+  display: block;
+  font-size: 11px;
+  color: #10b981;
+  margin-top: 2px;
 }
 </style>
 

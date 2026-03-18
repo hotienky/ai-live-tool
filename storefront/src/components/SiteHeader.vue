@@ -50,13 +50,39 @@
           v-model="searchQuery"
           type="text"
           placeholder="Tìm kiếm sản phẩm..."
-          @focus="searchFocused = true"
-          @blur="searchFocused = false"
+          @focus="searchFocused = true; showSuggestions = true"
+          @blur="onSearchBlur"
           @keyup.enter="onSearch"
+          @input="onSearchInput"
         />
-        <button v-if="searchQuery" class="site-header__search-clear" @click="searchQuery = ''">
+        <button v-if="searchQuery" class="site-header__search-clear" @click="searchQuery = ''; suggestions = []">
           <X :size="14" />
         </button>
+        <!-- Autocomplete Dropdown -->
+        <div v-if="showSuggestions && (suggestions.length > 0 || searchLoading)" class="search-dropdown">
+          <div v-if="searchLoading" class="search-dropdown__loading">Tìm kiếm...</div>
+          <router-link
+            v-for="item in suggestions" :key="item.id"
+            :to="'/' + (item.slug || item.id)"
+            class="search-dropdown__item"
+            @click="showSuggestions = false"
+          >
+            <img v-if="item.image" :src="item.image" class="search-dropdown__img" />
+            <Package v-else :size="24" class="search-dropdown__placeholder" />
+            <div class="search-dropdown__info">
+              <span class="search-dropdown__name">{{ item.name }}</span>
+              <span class="search-dropdown__price">{{ Number(item.promotion_price || item.price || 0).toLocaleString('vi-VN') }}đ</span>
+            </div>
+          </router-link>
+          <router-link
+            v-if="suggestions.length > 0"
+            :to="{ name: 'products', query: { q: searchQuery } }"
+            class="search-dropdown__all"
+            @click="showSuggestions = false"
+          >
+            Xem tất cả kết quả →
+          </router-link>
+        </div>
       </div>
 
       <!-- Right side: Language → Cart → Auth → Theme -->
@@ -84,6 +110,12 @@
         <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__cart-btn" active-class="active">
           <ShoppingCart :size="16" />
           <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
+        </router-link>
+
+        <!-- Wishlist -->
+        <router-link v-if="pageEnabled.account" to="/account?tab=wishlist" class="site-header__wish-btn">
+          <Heart :size="16" />
+          <span v-if="wishlistCount > 0" class="cart-badge">{{ wishlistCount }}</span>
         </router-link>
 
         <!-- Auth -->
@@ -191,6 +223,35 @@ const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
 const { isDark, toggleTheme } = useTheme()
 const { isLoggedIn, customer } = useAuth()
+
+// Wishlist count
+import { useWishlist } from '../composables/useWishlist.js'
+const { wishlistItems } = useWishlist()
+const wishlistCount = computed(() => wishlistItems.value?.length || 0)
+
+// Search autocomplete
+const suggestions = ref([])
+const searchLoading = ref(false)
+const showSuggestions = ref(false)
+let searchTimer = null
+
+function onSearchInput() {
+  clearTimeout(searchTimer)
+  const q = searchQuery.value.trim()
+  if (q.length < 2) { suggestions.value = []; return }
+  searchLoading.value = true
+  searchTimer = setTimeout(async () => {
+    try {
+      const res = await apiFetch(`/search?q=${encodeURIComponent(q)}&per_page=5`)
+      suggestions.value = res?.data || []
+    } catch { suggestions.value = [] }
+    searchLoading.value = false
+  }, 300)
+}
+
+function onSearchBlur() {
+  setTimeout(() => { searchFocused.value = false; showSuggestions.value = false }, 200)
+}
 
 const headerCfg = computed(() => {
   const defaults = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
@@ -416,6 +477,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 }
 
 .site-header__search {
+  position: relative;
   flex: 1;
   max-width: 400px;
   display: flex;
@@ -459,6 +521,83 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   color: var(--sf-text-muted);
   padding: 2px;
   cursor: pointer;
+}
+
+/* Search Autocomplete Dropdown */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 300;
+  background: var(--sf-bg-card, #fff);
+  border: 1px solid var(--sf-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  overflow: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+}
+.search-dropdown__loading {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--sf-text-muted);
+}
+.search-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: var(--sf-text-primary);
+  transition: background 0.15s;
+}
+.search-dropdown__item:hover {
+  background: var(--sf-bg-card-hover, #f9fafb);
+}
+.search-dropdown__img {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.search-dropdown__placeholder {
+  width: 40px; height: 40px; flex-shrink: 0;
+  color: var(--sf-text-muted);
+}
+.search-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.search-dropdown__name {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-dropdown__price {
+  font-size: 12px;
+  color: var(--sf-sale, #ef4444);
+  font-weight: 700;
+}
+.search-dropdown__all {
+  display: block;
+  padding: 10px 14px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--sf-accent);
+  text-decoration: none;
+  border-top: 1px solid var(--sf-border);
+  transition: background 0.15s;
+}
+.search-dropdown__all:hover {
+  background: var(--sf-accent-glow, rgba(99,102,241,0.06));
 }
 
 .site-header__menu-btn {
@@ -556,6 +695,21 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 }
 .site-header__cart-btn.active {
   color: var(--sf-accent-light);
+}
+
+/* Wishlist Button */
+.site-header__wish-btn {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  background: none; border: none;
+  color: var(--sf-text-secondary);
+  text-decoration: none; cursor: pointer;
+  transition: all 0.2s;
+}
+.site-header__wish-btn:hover {
+  color: #ef4444;
+  background: rgba(239,68,68,0.06);
 }
 
 /* Cart badge */

@@ -1,5 +1,6 @@
 <template>
   <div class="storefront-app">
+    <PromoBar v-if="!isPreviewMode" />
     <SiteHeader v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
     <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
       <router-view v-slot="{ Component }">
@@ -10,6 +11,8 @@
     </main>
     <SiteFooter v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
     <SfToastContainer />
+    <BackToTop />
+    <RouteLoader />
   </div>
 </template>
 
@@ -19,8 +22,12 @@ import { apiFetch } from './api.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
 import SfToastContainer from './components/SfToastContainer.vue'
+import BackToTop from './components/BackToTop.vue'
+import RouteLoader from './components/RouteLoader.vue'
+import PromoBar from './components/PromoBar.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
+import { useRouter } from 'vue-router'
 
 import { useSeo } from './composables/useSeo.js'
 

@@ -1,5 +1,17 @@
 <template>
   <div class="products-page container">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <router-link to="/">Trang chủ</router-link>
+      <ChevronRight :size="12" />
+      <span v-if="!selectedCategory">Sản phẩm</span>
+      <template v-else>
+        <router-link to="/products">Sản phẩm</router-link>
+        <ChevronRight :size="12" />
+        <span>{{ categories.find(c => c.id == selectedCategory)?.name || 'Danh mục' }}</span>
+      </template>
+    </nav>
+
     <div class="products-layout" :class="'layout--sidebar-' + pageConfig.sidebarPosition">
       <!-- Sidebar Filters -->
       <aside v-if="pageConfig.sidebarPosition !== 'hidden'" class="products-sidebar">
@@ -55,6 +67,8 @@
           <label class="filter-label">Sắp xếp</label>
           <select v-model="sortBy" @change="reload()" class="filter-select">
             <option value="created_at:desc">Mới nhất</option>
+            <option value="sold_count:desc">Bán chạy nhất</option>
+            <option value="avg_rating:desc">Đánh giá cao</option>
             <option value="price:asc">Giá thấp → cao</option>
             <option value="price:desc">Giá cao → thấp</option>
             <option value="name:asc">Tên A → Z</option>
@@ -78,6 +92,27 @@
             <Search :size="15" />
             <input v-model="search" placeholder="Tìm sản phẩm..." @input="debouncedReload" />
           </div>
+        </div>
+
+        <!-- Active Filter Tags -->
+        <div v-if="hasFilters" class="active-filters">
+          <span v-if="selectedCategory" class="filter-tag">
+            {{ categories.find(c => c.id == selectedCategory)?.name || 'Danh mục' }}
+            <button @click="selectedCategory = null; page = 1; reload()"><X :size="12" /></button>
+          </span>
+          <span v-if="selectedBrand" class="filter-tag">
+            {{ brands.find(b => b.id == selectedBrand)?.name || 'Thương hiệu' }}
+            <button @click="selectedBrand = null; page = 1; reload()"><X :size="12" /></button>
+          </span>
+          <span v-if="priceMin || priceMax" class="filter-tag">
+            {{ activePricePreset || `${priceMin ? formatPrice(priceMin) : '0'} — ${priceMax ? formatPrice(priceMax) : '∞'}` }}
+            <button @click="priceMin = null; priceMax = null; activePricePreset = null; page = 1; reload()"><X :size="12" /></button>
+          </span>
+          <span v-if="search" class="filter-tag">
+            "{{ search }}"
+            <button @click="search = ''; page = 1; reload()"><X :size="12" /></button>
+          </span>
+          <button class="filter-tag filter-tag--clear" @click="clearFilters">Xóa tất cả</button>
         </div>
 
         <!-- Mobile filter toggle -->
@@ -314,9 +349,20 @@ async function reload() {
 
 watch(() => props.slug, (v) => { selectedCategory.value = v; page.value = 1; reload() })
 onMounted(async () => { await loadFilters(); await reload() })
+
+function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 </script>
 
 <style scoped>
+/* Breadcrumb */
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--sf-text-muted); margin-bottom: 20px;
+}
+.breadcrumb a { color: var(--sf-text-secondary); text-decoration: none; transition: color 0.2s; }
+.breadcrumb a:hover { color: var(--sf-accent-light); }
+.breadcrumb span { color: var(--sf-text-primary); font-weight: 600; }
+
 .products-page { padding-top: 24px; padding-bottom: 60px; }
 
 .products-layout {
@@ -417,6 +463,48 @@ onMounted(async () => { await loadFilters(); await reload() })
   font-size: 13px; outline: none; width: 180px;
 }
 .products-main__search input::placeholder { color: var(--sf-text-muted); }
+
+/* Active Filter Tags */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 100px;
+  background: var(--sf-accent-glow, rgba(99,102,241,0.1));
+  color: var(--sf-accent-light, var(--sf-accent));
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.filter-tag button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+}
+.filter-tag button:hover { opacity: 1; }
+.filter-tag--clear {
+  background: transparent;
+  color: var(--sf-text-muted);
+  border: 1px dashed var(--sf-border);
+  cursor: pointer;
+}
+.filter-tag--clear:hover {
+  color: var(--sf-sale, #ef4444);
+  border-color: var(--sf-sale, #ef4444);
+}
 
 /* Product grid */
 .product-grid,

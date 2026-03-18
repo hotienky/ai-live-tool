@@ -39,6 +39,8 @@ Route::get('/featured-products', [\App\Http\Controllers\Tenant\StorefrontControl
 Route::get('/flash-sales', [\App\Http\Controllers\Tenant\StorefrontController::class, 'flashSales']);
 Route::get('/orders', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storefrontOrders'])
     ->middleware([\App\Http\Middleware\ShopCustomerAuth::class]);
+Route::post('/orders/{id}/cancel', [\App\Http\Controllers\Tenant\StorefrontController::class, 'cancelOrder'])
+    ->middleware([\App\Http\Middleware\ShopCustomerAuth::class]);
 Route::get('/shipment/{orderId}', [\App\Http\Controllers\Tenant\StorefrontController::class, 'shipmentTracking']);
 Route::get('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\StorefrontController::class, 'productReviews']);
 Route::post('/products/{productId}/reviews', [\App\Http\Controllers\Tenant\StorefrontController::class, 'createReview'])

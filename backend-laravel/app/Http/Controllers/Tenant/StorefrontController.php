@@ -372,6 +372,30 @@ class StorefrontController extends Controller
         return $this->successResponse($orders);
     }
 
+    public function cancelOrder(Request $request, $id)
+    {
+        $customer = $request->attributes->get('shop_customer');
+        if (!$customer) return $this->errorResponse('Authentication required', 401);
+
+        $order = $this->orderRepo->find($id);
+        if (!$order) return $this->notFoundResponse('Order not found');
+
+        // Verify ownership
+        $isOwner = ($order->customer_email === $customer->email) ||
+                   ($customer->phone && $order->customer_phone === $customer->phone);
+        if (!$isOwner) return $this->errorResponse('Unauthorized', 403);
+
+        // Only allow cancelling pending orders
+        if ($order->status !== 'pending') {
+            return $this->errorResponse('Chỉ có thể hủy đơn hàng đang chờ xác nhận', 422);
+        }
+
+        $order->status = 'cancelled';
+        $order->save();
+
+        return $this->successResponse(['message' => 'Đã hủy đơn hàng thành công']);
+    }
+
     public function validateCoupon(Request $request)
     {
         $code = strtoupper(trim($request->input('code', '')));

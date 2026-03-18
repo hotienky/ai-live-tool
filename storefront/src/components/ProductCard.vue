@@ -24,13 +24,21 @@
           {{ product.stock > 0 ? 'Còn hàng' : 'Hết hàng' }}
         </span>
       </div>
+      <div class="product-card__meta">
+        <span v-if="product.avg_rating" class="product-card__rating">
+          <Star :size="12" /> {{ Number(product.avg_rating).toFixed(1) }}
+        </span>
+        <span v-if="product.sold_count" class="product-card__sold">
+          Đã bán {{ formatSoldCount(product.sold_count) }}
+        </span>
+      </div>
     </div>
   </router-link>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { Package, Eye } from 'lucide-vue-next'
+import { Package, Eye, Star } from 'lucide-vue-next'
 
 const props = defineProps({
   product: { type: Object, required: true },
@@ -53,6 +61,11 @@ const discountPercent = computed(() => {
 
 function formatPrice(v) {
   return Number(v || 0).toLocaleString('vi-VN') + 'đ'
+}
+
+function formatSoldCount(n) {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+  return n
 }
 </script>
 
@@ -168,6 +181,26 @@ function formatPrice(v) {
 
 .in-stock { color: #10b981; }
 .out-stock { color: #ef4444; }
+
+.product-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--sf-text-muted);
+}
+.product-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #f59e0b;
+  font-weight: 700;
+}
+.product-card__sold {
+  color: var(--sf-text-muted);
+  font-weight: 500;
+}
 
 @media (max-width: 768px) {
   .product-card { border-radius: 10px; }

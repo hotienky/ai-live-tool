@@ -2,6 +2,22 @@
   <div class="cart-page container">
     <h1 class="page-title"><ShoppingCart :size="24" /> Giỏ hàng ({{ cartCount }})</h1>
 
+    <!-- Free Shipping Progress Bar -->
+    <div v-if="cartItems.length > 0" class="free-ship-bar">
+      <div class="free-ship-bar__info">
+        <Truck :size="16" />
+        <span v-if="cartTotal >= freeShipThreshold">
+          🎉 Bạn đã được <strong>miễn phí vận chuyển!</strong>
+        </span>
+        <span v-else>
+          Thêm <strong>{{ formatPrice(freeShipThreshold - cartTotal) }}</strong> để được <strong>miễn phí vận chuyển</strong>
+        </span>
+      </div>
+      <div class="free-ship-bar__track">
+        <div class="free-ship-bar__fill" :style="{ width: freeShipPercent + '%' }"></div>
+      </div>
+    </div>
+
     <!-- Empty Cart -->
     <div v-if="cartItems.length === 0" class="cart-empty">
       <ShoppingBag :size="64" class="cart-empty__icon" />
@@ -22,6 +38,11 @@
           </div>
           <div class="cart-item__info">
             <h3>{{ item.name }}</h3>
+            <div v-if="item.selectedOptions && Object.keys(item.selectedOptions).length" class="cart-item__variants">
+              <span v-for="(val, key) in item.selectedOptions" :key="key" class="cart-item__variant-tag">
+                {{ key }}: {{ val }}
+              </span>
+            </div>
             <span v-if="item.sku" class="cart-item__sku">SKU: {{ item.sku }}</span>
             <span class="cart-item__price">{{ formatPrice(item.price) }}/{{ item.unit }}</span>
           </div>
@@ -109,7 +130,7 @@
 import { computed, onMounted } from 'vue'
 import {
   ShoppingCart, ShoppingBag, Package, Minus, Plus, Trash2, ArrowLeft, ArrowRight,
-  X, AlertTriangle, CheckCircle
+  X, AlertTriangle, CheckCircle, Truck
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useCoupon } from '../composables/useCoupon.js'
@@ -124,6 +145,9 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
 const finalTotal = computed(() => Math.max(0, cartTotal.value - couponDiscount.value))
 
+const freeShipThreshold = 500000
+const freeShipPercent = computed(() => Math.min(100, (cartTotal.value / freeShipThreshold) * 100))
+
 function applyCoupon() { applyRaw(cartTotal.value) }
 
 // Re-validate saved coupon on mount (cart total may have changed)
@@ -135,6 +159,37 @@ onMounted(() => { revalidateCoupon(cartTotal.value) })
 .page-title {
   display: flex; align-items: center; gap: 10px;
   font-size: 24px; font-weight: 900; margin-bottom: 28px;
+}
+
+/* Free Shipping Progress Bar */
+.free-ship-bar {
+  padding: 14px 18px;
+  border-radius: var(--sf-radius-md, 12px);
+  background: var(--sf-bg-card);
+  border: 1px solid var(--sf-border);
+  margin-bottom: 20px;
+}
+.free-ship-bar__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--sf-text-secondary);
+  margin-bottom: 10px;
+}
+.free-ship-bar__info svg { color: #10b981; flex-shrink: 0; }
+.free-ship-bar__info strong { color: var(--sf-text-primary); }
+.free-ship-bar__track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sf-bg-card-hover, #f3f4f6);
+  overflow: hidden;
+}
+.free-ship-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #10b981, #059669);
+  transition: width 0.5s ease;
 }
 
 .cart-empty {
@@ -166,6 +221,14 @@ onMounted(() => { revalidateCoupon(cartTotal.value) })
 
 .cart-item__info { flex: 1; }
 .cart-item__info h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.cart-item__variants {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;
+}
+.cart-item__variant-tag {
+  display: inline-block; font-size: 11px; color: var(--sf-text-secondary);
+  background: var(--sf-bg-card-hover, #f3f4f6); padding: 2px 8px; border-radius: 4px;
+  border: 1px solid var(--sf-border);
+}
 .cart-item__sku {
   display: inline-block; font-size: 11px; color: var(--sf-accent-light);
   background: var(--sf-accent-glow); padding: 2px 8px; border-radius: 4px;

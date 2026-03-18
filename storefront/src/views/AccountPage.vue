@@ -73,6 +73,19 @@
             <h2>Lịch sử đơn hàng</h2>
             <p class="tab-desc">Theo dõi và quản lý đơn hàng của bạn</p>
           </div>
+
+          <!-- Status Filter Tabs -->
+          <div class="order-status-tabs">
+            <button
+              v-for="st in statusTabs" :key="st.value"
+              class="status-tab"
+              :class="{ active: orderStatusFilter === st.value }"
+              @click="orderStatusFilter = st.value; ordersPage = 1"
+            >
+              {{ st.label }}
+              <span v-if="st.count > 0" class="status-tab__count">{{ st.count }}</span>
+            </button>
+          </div>
           <div v-if="ordersLoading" class="orders-skeleton">
             <div v-for="i in 3" :key="i" class="order-card order-card--skeleton">
               <div class="order-header">
@@ -99,7 +112,7 @@
             <router-link to="/products" class="btn-primary"><ShoppingBag :size="14" /> Mua sắm ngay</router-link>
           </div>
           <div v-else class="orders-list">
-            <div v-for="order in orders" :key="order.id" class="order-card">
+            <div v-for="order in paginatedOrders" :key="order.id" class="order-card">
               <div class="order-header">
                 <div class="order-id-group">
                   <span class="order-id">#{{ order.id }}</span>
@@ -116,12 +129,29 @@
                 <span v-if="order.details.length > 3" class="order-more">+{{ order.details.length - 3 }} sản phẩm</span>
               </div>
               <div class="order-footer">
-                <router-link :to="`/order-tracking?order_id=${order.id}&phone=${order.customer_phone || ''}`" class="btn-link-sm">
-                  Chi tiết →
-                </router-link>
+                <div class="order-footer__actions">
+                  <router-link :to="`/order-tracking?order_id=${order.id}&phone=${order.customer_phone || ''}`" class="btn-link-sm">
+                    Chi tiết →
+                  </router-link>
+                  <button
+                    v-if="order.status === 'pending'"
+                    class="btn-cancel-order"
+                    @click="cancelOrder(order.id)"
+                    :disabled="cancellingId === order.id"
+                  >
+                    {{ cancellingId === order.id ? 'Đang hủy...' : 'Hủy đơn' }}
+                  </button>
+                </div>
                 <span class="order-total">{{ formatPrice(order.total_amount) }}</span>
               </div>
             </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="ordersTotalPages > 1" class="orders-pagination">
+            <button :disabled="ordersPage <= 1" @click="ordersPage--">← Trước</button>
+            <span class="orders-page-info">Trang {{ ordersPage }} / {{ ordersTotalPages }}</span>
+            <button :disabled="ordersPage >= ordersTotalPages" @click="ordersPage++">Tiếp →</button>
           </div>
         </div>
 
@@ -259,6 +289,43 @@ const saving = ref(false)
 const saveMsg = ref('')
 const orders = ref([])
 const ordersLoading = ref(false)
+const ordersPage = ref(1)
+const ordersPerPage = 5
+const orderStatusFilter = ref('all')
+const cancellingId = ref(null)
+
+const filteredOrders = computed(() => {
+  if (orderStatusFilter.value === 'all') return orders.value
+  return orders.value.filter(o => o.status === orderStatusFilter.value)
+})
+
+const paginatedOrders = computed(() => {
+  const start = (ordersPage.value - 1) * ordersPerPage
+  return filteredOrders.value.slice(start, start + ordersPerPage)
+})
+const ordersTotalPages = computed(() => Math.ceil(filteredOrders.value.length / ordersPerPage))
+
+const statusTabs = computed(() => [
+  { value: 'all', label: 'Tất cả', count: orders.value.length },
+  { value: 'pending', label: 'Chờ xác nhận', count: orders.value.filter(o => o.status === 'pending').length },
+  { value: 'processing', label: 'Đang xử lý', count: orders.value.filter(o => o.status === 'processing').length },
+  { value: 'shipping', label: 'Đang giao', count: orders.value.filter(o => o.status === 'shipping').length },
+  { value: 'completed', label: 'Hoàn thành', count: orders.value.filter(o => o.status === 'completed').length },
+  { value: 'cancelled', label: 'Đã hủy', count: orders.value.filter(o => o.status === 'cancelled').length },
+])
+
+async function cancelOrder(orderId) {
+  if (!confirm('Bạn có chắc muốn hủy đơn hàng #' + orderId + '?')) return
+  cancellingId.value = orderId
+  try {
+    await authFetch('/orders/' + orderId + '/cancel', { method: 'POST' })
+    const order = orders.value.find(o => o.id === orderId)
+    if (order) order.status = 'cancelled'
+  } catch (e) {
+    alert('Không thể hủy đơn hàng. Vui lòng thử lại.')
+  }
+  cancellingId.value = null
+}
 const pwMsg = ref('')
 const pwError = ref('')
 const addresses = ref([])
@@ -698,5 +765,106 @@ function formatPrice(p) { return Number(p || 0).toLocaleString('vi-VN') + 'đ' }
   .tab-content { padding: 20px; }
   .profile-form { max-width: 100%; }
   .field-row { flex-direction: column; gap: 12px; }
+}
+
+/* Orders Pagination */
+.orders-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+.orders-pagination button {
+  padding: 8px 16px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--color-bg-card, #fff);
+  color: var(--color-text-secondary, #666);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.orders-pagination button:hover:not(:disabled) {
+  border-color: var(--sf-accent);
+  color: var(--sf-accent);
+}
+.orders-pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.orders-page-info {
+  font-size: 13px;
+  color: var(--color-text-secondary, #888);
+  font-weight: 500;
+}
+
+/* Order Status Tabs */
+.order-status-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.order-status-tabs::-webkit-scrollbar { display: none; }
+.status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: transparent;
+  color: var(--color-text-secondary, #666);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.status-tab:hover { border-color: var(--sf-accent); color: var(--sf-accent); }
+.status-tab.active {
+  background: var(--sf-accent);
+  color: #fff;
+  border-color: var(--sf-accent);
+}
+.status-tab__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.25);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+}
+.status-tab.active .status-tab__count { background: rgba(255,255,255,0.3); }
+
+/* Cancel Order Button */
+.btn-cancel-order {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #fca5a5;
+  background: rgba(239,68,68,0.06);
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-cancel-order:hover { background: rgba(239,68,68,0.12); }
+.btn-cancel-order:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.order-footer__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>

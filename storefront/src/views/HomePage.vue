@@ -148,6 +148,11 @@
         :params="section.params"
         :content="section.content"
       />
+      <HomeSectionTrustBadges
+        v-if="section.type === 'trust_badges'"
+        :params="section.params"
+        :content="section.content"
+      />
       </div>
     </template>
   </div>
@@ -173,6 +178,7 @@ import HomeSectionTextBlock from '../components/sections/HomeSectionTextBlock.vu
 import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.vue'
 import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
 import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
+import HomeSectionTrustBadges from '../components/sections/HomeSectionTrustBadges.vue'
 
 const { setPageSeo } = useSeo()
 
@@ -192,6 +198,7 @@ const defaultSections = [
   { type: 'featured_products', enabled: true, order: 3 },
   { type: 'new_arrivals', enabled: true, order: 4 },
   { type: 'cms_pages', enabled: true, order: 5 },
+  { type: 'trust_badges', enabled: true, order: 6 },
 ]
 
 const activeSections = computed(() => {
