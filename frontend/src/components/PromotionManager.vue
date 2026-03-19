@@ -13,10 +13,10 @@
     <!-- Product Promotions -->
     <div v-if="subTab === 'promotions'">
       <div class="pm-form">
-        <h4>Thêm/Sửa giá khuyến mãi</h4>
+        <h4>{{ t('admin.add_edit_promo_price', 'Thêm/Sửa giá khuyến mãi') }}</h4>
         <div class="form-row">
           <div class="form-group" style="flex:2">
-            <label>Sản phẩm</label>
+            <label>{{ t('admin.product', 'Sản phẩm') }}</label>
             <select v-model="promoForm.productId">
               <option value="">-- Chọn sản phẩm --</option>
               <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }} ({{ formatCurrency(p.price) }})</option>
@@ -28,14 +28,14 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bắt đầu</label><input v-model="promoForm.dateStart" type="date" /></div>
-          <div class="form-group"><label>Kết thúc</label><input v-model="promoForm.dateEnd" type="date" /></div>
-          <div class="form-group"><label>&nbsp;</label><button class="btn-save" @click="handleSavePromo">Lưu KM</button></div>
+          <div class="form-group"><label>{{ t('admin.start', 'Bắt đầu') }}</label><input v-model="promoForm.dateStart" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.end', 'Kết thúc') }}</label><input v-model="promoForm.dateEnd" type="date" /></div>
+          <div class="form-group"><label>&nbsp;</label><button class="btn-save" @click="handleSavePromo">{{ t('admin.save_promo', 'Lưu KM') }}</button></div>
         </div>
       </div>
 
       <table class="pm-table" v-if="promotions.length">
-        <thead><tr><th>Sản phẩm</th><th>Giá gốc</th><th>Giá KM</th><th>Thời gian</th><th></th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.original_price', 'Giá gốc') }}</th><th>Giá KM</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
         <tbody>
           <tr v-for="p in promotions" :key="p.productId">
             <td>{{ p.product?.name || '—' }}</td>
@@ -54,20 +54,20 @@
       <div class="pm-form">
         <h4>{{ editCouponId ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá' }}</h4>
         <div class="form-row">
-          <div class="form-group"><label>Mã code</label><input v-model="couponForm.code" placeholder="VD: SALE20" style="text-transform: uppercase" /></div>
+          <div class="form-group"><label>{{ t('admin.coupon_code', 'Mã code') }}</label><input v-model="couponForm.code" placeholder="VD: SALE20" style="text-transform: uppercase" /></div>
           <div class="form-group">
             <label>Loại</label>
-            <select v-model="couponForm.type"><option value="percent">% Phần trăm</option><option value="fixed">Cố định (VNĐ)</option></select>
+            <select v-model="couponForm.type"><option value="percent">{{ t('admin.percent', '% Phần trăm') }}</option><option value="fixed">{{ t('admin.fixed_vnd', 'Cố định (VNĐ)') }}</option></select>
           </div>
-          <div class="form-group"><label>Giá trị</label><input v-model.number="couponForm.value" type="number" /></div>
+          <div class="form-group"><label>{{ t('admin.value', 'Giá trị') }}</label><input v-model.number="couponForm.value" type="number" /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Đơn tối thiểu</label><input v-model.number="couponForm.minOrder" type="number" placeholder="0" /></div>
-          <div class="form-group"><label>Dùng tối đa</label><input v-model.number="couponForm.maxUses" type="number" placeholder="Không giới hạn" /></div>
+          <div class="form-group"><label>{{ t('admin.min_order', 'Đơn tối thiểu') }}</label><input v-model.number="couponForm.minOrder" type="number" placeholder="0" /></div>
+          <div class="form-group"><label>{{ t('admin.max_uses', 'Dùng tối đa') }}</label><input v-model.number="couponForm.maxUses" type="number" placeholder="Không giới hạn" /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bắt đầu</label><input v-model="couponForm.dateStart" type="date" /></div>
-          <div class="form-group"><label>Kết thúc</label><input v-model="couponForm.dateEnd" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.start', 'Bắt đầu') }}</label><input v-model="couponForm.dateStart" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.end', 'Kết thúc') }}</label><input v-model="couponForm.dateEnd" type="date" /></div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-save" @click="handleSaveCoupon">{{ editCouponId ? 'Cập nhật' : 'Tạo mã' }}</button>
           </div>
@@ -75,7 +75,7 @@
       </div>
 
       <table class="pm-table" v-if="coupons.length">
-        <thead><tr><th>Mã</th><th>Loại</th><th>Giá trị</th><th>Đơn tối thiểu</th><th>Đã dùng</th><th>Thời gian</th><th></th></tr></thead>
+        <thead><tr><th>{{ t('admin.code', 'Mã') }}</th><th>{{ t('admin.type', 'Loại') }}</th><th>{{ t('admin.value', 'Giá trị') }}</th><th>{{ t('admin.min_order', 'Đơn tối thiểu') }}</th><th>{{ t('admin.used', 'Đã dùng') }}</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
         <tbody>
           <tr v-for="c in coupons" :key="c.id">
             <td class="coupon-code">{{ c.code }}</td>
@@ -103,6 +103,9 @@ import { usePromotions } from '../composables/usePromotions.js'
 import { useToast } from '../composables/useToast.js'
 import { Tag } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 const { promotions, coupons, loading, fetchPromotions, savePromotion, deletePromotion, fetchCoupons, createCoupon, updateCoupon, deleteCoupon } = usePromotions(apiFetch)
 
@@ -151,7 +154,7 @@ async function handleSaveCoupon() {
   try {
     if (editCouponId.value) {
       await updateCoupon(editCouponId.value, couponForm.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createCoupon({ ...couponForm.value,  })
       showToast('Đã tạo mã', 'success')

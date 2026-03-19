@@ -97,6 +97,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowLeft, Package, Minus, Plus, ShoppingCart, Loader2, PackageX } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 
+
 const props = defineProps({
   storeId: { type: [String, Number], required: true },
   productId: { type: [String, Number], required: true },

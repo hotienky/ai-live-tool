@@ -7,7 +7,7 @@ use App\Traits\LogsActivity;
 
 class BaseAction
 {
-    use ApiResponse, LogsActivity;
+    use ApiResponse, LogsActivity, \App\Traits\HasContentTranslations;
 
     protected ProductRepositoryInterface $productRepository;
 

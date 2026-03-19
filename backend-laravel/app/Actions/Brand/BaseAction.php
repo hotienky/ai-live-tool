@@ -6,7 +6,7 @@ use App\Traits\ApiResponse;
 
 abstract class BaseAction
 {
-    use ApiResponse;
+    use ApiResponse, \App\Traits\HasContentTranslations;
 
     public function __construct(protected BrandRepositoryInterface $repo) {}
 }

@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 
 class CmsPagesController extends Controller
 {
-    use ApiResponse, LogsActivity;
+    use ApiResponse, LogsActivity, \App\Traits\HasContentTranslations;
 
     public function __construct(private CmsPageRepositoryInterface $repo) {}
 
@@ -53,6 +53,11 @@ class CmsPagesController extends Controller
             $data['status'] = $data['status'] ?? 'draft';
             $page = $this->repo->store($data);
             $this->logActivity('cms.created', 'cms_page', $page->id, ['title' => $data['title']]);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('cms_pages', $page->id, $request->input('translations'));
+            }
+
             return $this->successResponse($page, 'Page created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422);
@@ -83,6 +88,11 @@ class CmsPagesController extends Controller
             if (!$page) return $this->notFoundResponse('Page not found');
             $this->repo->update($data, $id);
             $this->logActivity('cms.updated', 'cms_page', $id, ['title' => $data['title'] ?? null]);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('cms_pages', $id, $request->input('translations'));
+            }
+
             return $this->successResponse($this->repo->find($id), 'Page updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

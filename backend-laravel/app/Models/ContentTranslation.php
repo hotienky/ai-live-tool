@@ -18,7 +18,7 @@ class ContentTranslation extends Model
     /**
      * Get all translations for a specific entity, grouped by locale.
      */
-    public static function getGrouped(string $type, int|string $id): array
+    public static function getGrouped(string $type, int|string $id): array|object
     {
         $rows = self::where('translatable_type', $type)
             ->where('translatable_id', $id)
@@ -29,7 +29,8 @@ class ContentTranslation extends Model
             $grouped[$row->locale][$row->field] = $row->value;
         }
 
-        return $grouped;
+        // Return object so JSON encodes as {} not [] when empty
+        return empty($grouped) ? new \stdClass() : $grouped;
     }
 
     /**
@@ -57,24 +58,32 @@ class ContentTranslation extends Model
      * Merge translations into an array of items for a specific locale.
      * Used by API responses to overlay translated fields.
      */
-    public static function mergeIntoItems(array $items, string $type, string $locale, array $fields = ['name', 'description']): array
+    public static function mergeIntoItems(array $items, string $type, ?string $locale, array $fields = ['name', 'description'], string $fallbackLocale = 'vi'): array
     {
         if (empty($items) || empty($locale)) return $items;
 
         try {
             $ids = array_column($items, 'id');
-            $translations = self::where('translatable_type', $type)
+            $rows = self::where('translatable_type', $type)
                 ->whereIn('translatable_id', $ids)
-                ->where('locale', $locale)
+                ->whereIn('locale', array_unique([$locale, $fallbackLocale]))
                 ->whereIn('field', $fields)
-                ->get()
-                ->groupBy('translatable_id');
+                ->get();
+
+            $map = [];
+            foreach ($rows as $row) {
+                $map[$row->translatable_id][$row->locale][$row->field] = $row->value;
+            }
 
             foreach ($items as &$item) {
-                $itemTrans = $translations->get($item['id'], collect());
-                foreach ($itemTrans as $t) {
-                    if (!empty($t->value)) {
-                        $item[$t->field] = $t->value;
+                $id = is_array($item) ? ($item['id'] ?? null) : ($item->id ?? null);
+                if (!$id) continue;
+                foreach ($fields as $field) {
+                    $val = $map[$id][$locale][$field]
+                        ?? $map[$id][$fallbackLocale][$field]
+                        ?? null;
+                    if ($val !== null) {
+                        is_array($item) ? ($item[$field] = $val) : ($item->$field = $val);
                     }
                 }
             }
@@ -90,7 +99,7 @@ class ContentTranslation extends Model
      * Merge translations into a single item (model or array) for a specific locale.
      * Used for product detail, page detail, etc.
      */
-    public static function mergeIntoSingleItem($item, string $type, string $locale, array $fields = ['name', 'description'])
+    public static function mergeIntoSingleItem($item, string $type, ?string $locale, array $fields = ['name', 'description'], string $fallbackLocale = 'vi')
     {
         if (empty($item) || empty($locale)) return $item;
 
@@ -98,18 +107,26 @@ class ContentTranslation extends Model
             $id = is_array($item) ? ($item['id'] ?? null) : ($item->id ?? null);
             if (!$id) return $item;
 
-            $translations = self::where('translatable_type', $type)
+            $rows = self::where('translatable_type', $type)
                 ->where('translatable_id', $id)
-                ->where('locale', $locale)
+                ->whereIn('locale', array_unique([$locale, $fallbackLocale]))
                 ->whereIn('field', $fields)
-                ->pluck('value', 'field');
+                ->get();
 
-            foreach ($translations as $field => $value) {
-                if (!empty($value)) {
+            $map = [];
+            foreach ($rows as $row) {
+                $map[$row->locale][$row->field] = $row->value;
+            }
+
+            foreach ($fields as $field) {
+                $val = $map[$locale][$field]
+                    ?? $map[$fallbackLocale][$field]
+                    ?? null;
+                if ($val !== null) {
                     if (is_array($item)) {
-                        $item[$field] = $value;
+                        $item[$field] = $val;
                     } else {
-                        $item->{$field} = $value;
+                        $item->{$field} = $val;
                     }
                 }
             }

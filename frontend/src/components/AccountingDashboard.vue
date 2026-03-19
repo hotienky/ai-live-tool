@@ -21,7 +21,7 @@
         <div class="acc-card acc-card--revenue">
           <div class="acc-card__icon"><TrendingUp :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Doanh thu</span>
+            <span class="acc-card__label">{{ t('admin.revenue', 'Doanh thu') }}</span>
             <span class="acc-card__value">{{ formatPrice(summary.revenue) }}</span>
           </div>
         </div>
@@ -126,7 +126,7 @@
           <thead>
             <tr>
               <th>Tháng</th>
-              <th>Doanh thu</th>
+              <th>{{ t('admin.revenue', 'Doanh thu') }}</th>
               <th>Thuế thu</th>
               <th>Thuế hoàn</th>
               <th>Thuế phải nộp</th>
@@ -188,9 +188,9 @@
           <thead>
             <tr>
               <th>Ngày</th>
-              <th>Loại</th>
+              <th>{{ t('admin.type', 'Loại') }}</th>
               <th>Danh mục</th>
-              <th>Mô tả</th>
+              <th>{{ t('admin.description', 'Mô tả') }}</th>
               <th>Số tiền</th>
               <th>Thuế</th>
               <th>Tham chiếu</th>
@@ -241,8 +241,8 @@
               <th>Khách hàng</th>
               <th>Tổng tiền</th>
               <th>Thuế</th>
-              <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th>{{ t('admin.status', 'Trạng thái') }}</th>
+              <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -321,7 +321,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="acc-empty">Đang tải...</div>
+        <div v-else class="acc-empty">{{ t('admin.loading', 'Đang tải...') }}</div>
       </div>
     </template>
 
@@ -359,7 +359,7 @@
             <span>Đã TT: {{ balanceData.summary?.paid_invoice_count || 0 }}</span>
           </div>
         </div>
-        <div v-else class="acc-empty">Đang tải...</div>
+        <div v-else class="acc-empty">{{ t('admin.loading', 'Đang tải...') }}</div>
       </div>
     </template>
 
@@ -369,7 +369,7 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><Settings :size="14" /> Cài đặt kế toán</h4>
           <button class="acc-btn acc-btn--primary acc-btn--sm" @click="saveConfig" :disabled="savingConfig">
-            <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
+            <Save :size="13" /> {{ savingConfig ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
           </button>
         </div>
 
@@ -436,7 +436,7 @@
             </div>
             <div v-else class="acc-tax-status">
               <span class="acc-badge acc-badge--cancelled">Thuế chưa bật</span>
-              <span class="acc-form-hint" style="margin-left:8px">Bật thuế trong trang <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">Quản lý thuế</a> để tích hợp với kế toán.</span>
+              <span class="acc-form-hint" style="margin-left:8px">Bật thuế trong trang <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">{{ t('admin.tax_management', 'Quản lý thuế') }}</a> để tích hợp với kế toán.</span>
             </div>
           </div>
 
@@ -480,7 +480,7 @@
               </div>
             </div>
             <div class="acc-form-row">
-              <label>Địa chỉ</label>
+              <label>{{ t('admin.address', 'Địa chỉ') }}</label>
               <input type="text" v-model="accConfig.seller_address" class="acc-input" />
             </div>
           </div>
@@ -512,7 +512,7 @@
                   <select v-model="entryForm.category" class="acc-select">
                     <option value="order_revenue">Doanh thu đơn hàng</option>
                     <option value="cogs">Giá vốn hàng bán (COGS)</option>
-                    <option value="shipping_cost">Phí vận chuyển</option>
+                    <option value="shipping_cost">{{ t('admin.shipping_fee', 'Phí vận chuyển') }}</option>
                     <option value="refund">Hoàn trả</option>
                     <option value="marketing">Marketing</option>
                     <option value="salary">Lương</option>
@@ -537,14 +537,14 @@
                 </div>
               </div>
               <div class="acc-form-row">
-                <label>Mô tả</label>
+                <label>{{ t('admin.description', 'Mô tả') }}</label>
                 <input type="text" v-model="entryForm.description" class="acc-input" placeholder="VD: Chi phí quảng cáo T3/2026" />
               </div>
             </div>
             <div class="acc-modal__footer">
               <button class="acc-btn" @click="showEntryForm = false">Huỷ</button>
               <button class="acc-btn acc-btn--primary" @click="saveEntry" :disabled="savingEntry">
-                <Save :size="13" /> {{ savingEntry ? 'Đang lưu...' : 'Lưu' }}
+                <Save :size="13" /> {{ savingEntry ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
               </button>
             </div>
           </div>
@@ -571,6 +571,9 @@ import {
 import { apiFetch } from '../composables/useApi.js'
 import InvoicePreviewModal from './InvoicePreviewModal.vue'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()

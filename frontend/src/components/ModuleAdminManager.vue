@@ -11,7 +11,7 @@
     </div>
 
     <!-- Module List -->
-    <div v-if="loading" class="mod-admin__loading">Đang tải...</div>
+    <div v-if="loading" class="mod-admin__loading">{{ t('admin.loading', 'Đang tải...') }}</div>
 
     <div v-else class="mod-admin__table-wrap">
       <table class="mod-admin__table">
@@ -22,7 +22,7 @@
             <th>Category</th>
             <th>Version</th>
             <th>Giá (VNĐ)</th>
-            <th>Trạng thái</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th>Thao tác</th>
           </tr>
         </thead>
@@ -45,7 +45,7 @@
             </td>
             <td>
               <div class="mod-admin__actions">
-                <button class="action-btn" title="Sửa" @click="editModule(m)"><Edit :size="14" /></button>
+                <button class="action-btn" :title="t('admin.edit', 'Sửa')" @click="editModule(m)"><Edit :size="14" /></button>
                 <button class="action-btn" :title="m.is_active ? 'Tắt' : 'Bật'" @click="toggleModule(m)">
                   <ToggleLeft v-if="!m.is_active" :size="14" />
                   <ToggleRight v-else :size="14" />
@@ -68,11 +68,11 @@
             <input v-model="form.module_id" placeholder="vd: warehouse" />
           </div>
           <div class="form-row">
-            <label>Tên</label>
+            <label>{{ t('admin.last_name', 'Tên') }}</label>
             <input v-model="form.name" placeholder="Tên hiển thị" />
           </div>
           <div class="form-row">
-            <label>Mô tả</label>
+            <label>{{ t('admin.description', 'Mô tả') }}</label>
             <textarea v-model="form.description" rows="2" placeholder="Mô tả ngắn"></textarea>
           </div>
           <div class="form-row-2col">
@@ -86,7 +86,7 @@
                 <option value="operations">Vận hành</option>
                 <option value="finance">Tài chính</option>
                 <option value="marketing">Marketing</option>
-                <option value="content">Nội dung</option>
+                <option value="content">{{ t('admin.content', 'Nội dung') }}</option>
                 <option value="sales">Bán hàng</option>
                 <option value="other">Khác</option>
               </select>
@@ -106,7 +106,7 @@
         <div class="mod-admin__modal-footer">
           <button class="btn btn--cancel" @click="showForm = false">Huỷ</button>
           <button class="btn btn--save" :disabled="saving" @click="saveModule">
-            {{ saving ? 'Đang lưu...' : (editId ? 'Cập nhật' : 'Tạo mới') }}
+            {{ saving ? t('admin.saving', 'Đang lưu...') : (editId ? 'Cập nhật' : 'Tạo mới') }}
           </button>
         </div>
       </div>
@@ -119,6 +119,9 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Puzzle, Plus, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const modules = ref([])
@@ -162,7 +165,7 @@ async function saveModule() {
     const res = await apiFetch(url, { method, body: JSON.stringify(form.value) })
     const data = await res.json()
     if (res.ok) {
-      showToast(data.message || 'Đã lưu', 'success')
+      showToast(data.message || t('admin.saved', 'Đã lưu'), 'success')
       showForm.value = false
       fetchModules()
     } else { showToast(data.message || 'Lỗi', 'error') }
@@ -174,7 +177,7 @@ async function toggleModule(m) {
   try {
     const res = await apiFetch(`/master/modules/${m.id}/toggle`, { method: 'PATCH' })
     const data = await res.json()
-    showToast(data.message || 'Đã cập nhật', 'success')
+    showToast(data.message || t('admin.updated', 'Đã cập nhật'), 'success')
     fetchModules()
   } catch (e) { showToast('Lỗi', 'error') }
 }

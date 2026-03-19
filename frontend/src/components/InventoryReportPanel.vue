@@ -23,7 +23,7 @@
         <button class="btn-export" @click="exportCSV('stock')"><Download :size="13" /> Xuất CSV</button>
       </div>
       <table>
-        <thead><tr><th>Sản phẩm</th><th>SKU</th><th>Tồn kho</th><th>Tối thiểu</th><th>Giá vốn</th><th>Giá bán</th><th>Giá trị kho</th><th>TT</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>Tối thiểu</th><th>Giá vốn</th><th>{{ t('admin.selling_price', 'Giá bán') }}</th><th>Giá trị kho</th><th>TT</th></tr></thead>
         <tbody>
           <tr v-for="p in stockProducts" :key="p.id" :class="{ 'row-warn': p.is_low, 'row-danger': p.is_out }">
             <td><strong>{{ p.name }}</strong></td>
@@ -61,7 +61,7 @@
         <div class="stat-card"><div class="stat-icon stat-icon--warn"><Package :size="20" /></div><div class="stat-value">{{ mvSummary.products_moved || 0 }}</div><div class="stat-label">SP có biến động</div></div>
       </div>
       <table>
-        <thead><tr><th>Sản phẩm</th><th>SKU</th><th>Đầu kỳ</th><th>Nhập</th><th>GT nhập</th><th>Xuất</th><th>GT xuất</th><th>Cuối kỳ</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>Đầu kỳ</th><th>Nhập</th><th>GT nhập</th><th>Xuất</th><th>GT xuất</th><th>Cuối kỳ</th></tr></thead>
         <tbody>
           <tr v-for="m in mvItems" :key="m.product_id">
             <td><strong>{{ m.product_name }}</strong></td>
@@ -77,7 +77,7 @@
         </tbody>
         <tfoot v-if="mvItems.length > 0">
           <tr class="total-row">
-            <td colspan="2"><strong>Tổng cộng</strong></td>
+            <td colspan="2"><strong>{{ t('admin.total', 'Tổng cộng') }}</strong></td>
             <td></td>
             <td class="qty text-green"><strong>+{{ mvSummary.total_import_qty }}</strong></td>
             <td class="amount"><strong>{{ formatCurrency(mvSummary.total_import_value) }}</strong></td>
@@ -99,7 +99,7 @@
         </div>
       </div>
       <div class="rpt-stats">
-        <div class="stat-card"><div class="stat-icon stat-icon--green"><TrendingUp :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_revenue || 0) }}</div><div class="stat-label">Doanh thu</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--green"><TrendingUp :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_revenue || 0) }}</div><div class="stat-label">{{ t('admin.revenue', 'Doanh thu') }}</div></div>
         <div class="stat-card"><div class="stat-icon stat-icon--red"><TrendingDown :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_cogs || 0) }}</div><div class="stat-label">Giá vốn (COGS)</div></div>
         <div class="stat-card"><div class="stat-icon" :class="cogsSummary.gross_profit >= 0 ? 'stat-icon--green' : 'stat-icon--red'"><DollarSign :size="20" /></div><div class="stat-value" :class="cogsSummary.gross_profit >= 0 ? 'text-green' : 'text-red'">{{ formatCurrency(cogsSummary.gross_profit || 0) }}</div><div class="stat-label">Lợi nhuận gộp</div></div>
         <div class="stat-card"><div class="stat-icon stat-icon--blue"><Percent :size="20" /></div><div class="stat-value">{{ cogsSummary.gross_margin || 0 }}%</div><div class="stat-label">Biên lợi nhuận gộp</div></div>
@@ -119,7 +119,7 @@
 
       <h4 style="margin:20px 0 12px">Chi tiết bút toán COGS</h4>
       <table>
-        <thead><tr><th>Ngày</th><th>Mô tả</th><th>Đơn hàng</th><th>Giá vốn</th></tr></thead>
+        <thead><tr><th>Ngày</th><th>{{ t('admin.description', 'Mô tả') }}</th><th>Đơn hàng</th><th>Giá vốn</th></tr></thead>
         <tbody>
           <tr v-for="e in cogsEntries" :key="e.id">
             <td class="date">{{ formatDate(e.entry_date) }}</td>
@@ -139,7 +139,7 @@
         <div class="stat-card"><div class="stat-icon stat-icon--red"><XCircle :size="20" /></div><div class="stat-value">{{ alertData.out_of_stock || 0 }}</div><div class="stat-label">Hết hàng</div></div>
       </div>
       <table>
-        <thead><tr><th>Sản phẩm</th><th>SKU</th><th>Tồn kho</th><th>Tối thiểu</th><th>Trạng thái</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>Tối thiểu</th><th>{{ t('admin.status', 'Trạng thái') }}</th></tr></thead>
         <tbody>
           <tr v-for="a in alertItems" :key="a.id" :class="{ 'row-danger': a.is_out }">
             <td><strong>{{ a.name }}</strong></td>
@@ -157,12 +157,15 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import {
   BarChart3, Package, Layers, DollarSign, AlertTriangle, XCircle,
   ArrowDownToLine, ArrowUpFromLine, TrendingUp, TrendingDown, Percent,
   RefreshCw, Download
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const tabs = [
   { key: 'stock', label: 'Tồn kho', icon: Package },

@@ -136,6 +136,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Settings2, ShoppingBag, Package, CreditCard, Lock, User, ChevronDown } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   pageConfigs: { type: Object, required: true },

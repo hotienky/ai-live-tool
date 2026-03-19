@@ -8,22 +8,24 @@
     </div>
 
     <div v-else class="si-content">
+      <LanguageTabs v-model="currentLang" style="margin-bottom: 24px" :translations="form.translations" :fields="['shop_name', 'address', 'contact_email', 'contact_phone', 'contact_time']" :baseData="form" />
+
       <!-- Cơ bản -->
       <div class="si-section">
         <h4 class="si-section-title">Thông tin cơ bản</h4>
         <div class="si-grid">
           <div class="settings__section">
-            <label class="settings__field-label">Tên cửa hàng</label>
-            <input v-model="form.shop_name" type="text" class="swp-input" placeholder="VD: Fashion VN" />
+            <label class="settings__field-label">{{ t('admin.store_name', 'Tên cửa hàng') }}</label>
+            <input v-model="fShopName" type="text" class="swp-input" placeholder="VD: Fashion VN" />
           </div>
           <div class="settings__section">
             <label class="settings__field-label">Slogan / Tagline (Ngành nghề)</label>
-            <input v-model="form.shop_tagline" type="text" class="swp-input" placeholder="VD: Chuyên sỉ lẻ quần áo / Thế giới đồ chơi / Đồ ăn vặt" />
+            <input v-model="fShopTagline" type="text" class="swp-input" placeholder="VD: Chuyên sỉ lẻ quần áo / Thế giới đồ chơi / Đồ ăn vặt" />
             <small class="si-help">Mô tả ngắn về ngành nghề hoặc slogan của bạn để tự động thích ứng với trang web.</small>
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
             <label class="settings__field-label">Mô tả cửa hàng</label>
-            <textarea v-model="form.description" class="swp-input" rows="3" placeholder="VD: Chuyên cung cấp quần áo thời trang chất lượng cao với mức giá hợp lý..."></textarea>
+            <textarea v-model="fDescription" class="swp-input" rows="3" placeholder="VD: Chuyên cung cấp quần áo thời trang chất lượng cao với mức giá hợp lý..."></textarea>
             <small class="si-help">Mô tả ngắn về cửa hàng, hiển thị ở Footer và SEO meta.</small>
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
@@ -43,7 +45,7 @@
         <h4 class="si-section-title">Thông tin liên hệ</h4>
         <div class="si-grid">
           <div class="settings__section">
-            <label class="settings__field-label">Số điện thoại</label>
+            <label class="settings__field-label">{{ t('admin.phone', 'Số điện thoại') }}</label>
             <input v-model="form.phone" type="text" class="swp-input" placeholder="VD: 0912 345 678" />
           </div>
           <div class="settings__section">
@@ -51,12 +53,12 @@
             <input v-model="form.email" type="email" class="swp-input" placeholder="VD: support@shop.com" />
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
-            <label class="settings__field-label">Địa chỉ</label>
-            <input v-model="form.address" type="text" class="swp-input" placeholder="VD: 123 Đường A, Quận B, TP. C" />
+            <label class="settings__field-label">{{ t('admin.address', 'Địa chỉ') }}</label>
+            <input v-model="fAddress" type="text" class="swp-input" placeholder="VD: 123 Đường A, Quận B, TP. C" />
           </div>
           <div class="settings__section">
             <label class="settings__field-label">Giờ làm việc</label>
-            <input v-model="form.working_hours" type="text" class="swp-input" placeholder="VD: 8:00 - 21:00 (T2 - CN)" />
+            <input v-model="fWorkingHours" type="text" class="swp-input" placeholder="VD: 8:00 - 21:00 (T2 - CN)" />
           </div>
         </div>
       </div>
@@ -87,14 +89,14 @@
           </div>
           <div class="settings__section">
             <label class="settings__field-label">Copyright (Footer)</label>
-            <input v-model="form.copyright" type="text" class="swp-input" placeholder="VD: © 2026 Shop. Bản quyền thuộc về..." />
+            <input v-model="fCopyright" type="text" class="swp-input" placeholder="VD: © 2026 Shop. Bản quyền thuộc về..." />
           </div>
         </div>
       </div>
 
       <div class="si-actions">
         <button class="btn-create" @click="save" :disabled="saving">
-          <Save :size="16" /> {{ saving ? 'Đang lưu...' : 'Lưu thông tin' }}
+          <Save :size="16" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu thông tin' }}
         </button>
       </div>
     </div>
@@ -106,6 +108,10 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Store, Save, Loader2, Image } from 'lucide-vue-next'
+import LanguageTabs from './LanguageTabs.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 
@@ -127,7 +133,20 @@ const form = ref({
   youtube: '',
   zalo: '',
   copyright: '',
+  translations: {}
 })
+
+const currentLang = ref('vi')
+
+import { useContentTranslations } from '../composables/useContentTranslations.js'
+const { tField } = useContentTranslations(form, currentLang)
+
+const fShopName = tField('shop_name')
+const fShopTagline = tField('shop_tagline')
+const fDescription = tField('description')
+const fAddress = tField('address')
+const fWorkingHours = tField('working_hours')
+const fCopyright = tField('copyright')
 
 async function loadData() {
   loading.value = true
@@ -142,8 +161,17 @@ async function loadData() {
 
     // Assign to form
     Object.keys(form.value).forEach(k => {
-      if (map[k] !== undefined) form.value[k] = map[k]
+      if (k !== 'translations' && map[k] !== undefined) form.value[k] = map[k]
     })
+    
+    // Load translations
+    const transRes = await apiFetch(`/languages/content/configs/store`)
+    if (transRes.ok) {
+      const transData = await transRes.json()
+      if (transData?.grouped) {
+        form.value.translations = Array.isArray(transData.grouped) ? {} : transData.grouped
+      }
+    }
   } catch (e) {
     console.error('Failed to load store info:', e)
   } finally {
@@ -155,12 +183,22 @@ async function save() {
   saving.value = true
   try {
     // Backend updateGroup expects: {items: [{key, value}, ...]}
-    const items = Object.entries(form.value).map(([key, value]) => ({ key, value: String(value ?? '') }))
+    const { translations, ...baseForm } = form.value
+    const items = Object.entries(baseForm).map(([key, value]) => ({ key, value: String(value ?? '') }))
+    
+    // Save base config
     const res = await apiFetch('/system-config/group/store', {
       method: 'PUT',
       body: JSON.stringify({ items })
     })
     if (!res.ok) throw new Error('Save failed')
+
+    // Save translations
+    await apiFetch('/languages/content/configs/store', {
+      method: 'POST',
+      body: JSON.stringify({ translations: translations || {} })
+    })
+
     showToast('Đã lưu thông tin cửa hàng', 'success')
   } catch (e) {
     console.error('Failed to save store info:', e)

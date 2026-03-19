@@ -3,14 +3,14 @@
     <!-- Mobile back button (hidden on desktop, shown on mobile) -->
     <button class="mobile-back-btn" @click="$router.back()">
       <ArrowLeft :size="16" />
-      <span>Quay lại</span>
+      <span>{{ t('storefront.back') || 'Quay lại' }}</span>
     </button>
 
     <!-- Breadcrumb -->
     <nav v-if="detailConfig.showBreadcrumb" class="breadcrumb">
-      <router-link :to="'/'">Trang chủ</router-link>
+      <router-link :to="'/'">{{ t('storefront.home') || 'Trang chủ' }}</router-link>
       <ChevronRight :size="12" />
-      <router-link :to="'/products'">Sản phẩm</router-link>
+      <router-link :to="'/products'">{{ t('storefront.products') || 'Sản phẩm' }}</router-link>
       <ChevronRight :size="12" />
       <span>{{ product?.name || '...' }}</span>
     </nav>
@@ -50,7 +50,7 @@
               <Package :size="80" />
             </div>
             <span v-if="discountPercent" class="detail-badge">-{{ discountPercent }}%</span>
-            <div v-if="zoomActive" class="zoom-hint">🔍 Di chuột để zoom</div>
+            <div v-if="zoomActive" class="zoom-hint">🔍 {{ t('storefront.zoom_hint') || 'Di chuột để zoom' }}</div>
           </div>
           <!-- Thumbnails -->
           <div class="detail-thumbs" v-if="allImages.length > 1">
@@ -80,26 +80,25 @@
               {{ formatPrice(displayOnSale ? displayPromoPrice : displayPrice) }}
             </span>
             <span v-if="displayOnSale" class="detail-save">
-              Tiết kiệm {{ formatPrice(displayPrice - displayPromoPrice) }}
+              {{ t('storefront.save') || 'Tiết kiệm' }} {{ formatPrice(displayPrice - displayPromoPrice) }}
             </span>
             <span v-if="taxConfig.enabled" class="detail-tax-label">
               {{ taxConfig.display_mode === 'inclusive' ? ('Đã gồm ' + (taxConfig.label || 'VAT')) : ('+ ' + (taxConfig.label || 'VAT')) }}
             </span>
           </div>
 
-          <!-- Social Proof -->
           <div class="detail-social-proof" v-if="product">
             <span class="social-proof__viewers">
-              <Eye :size="14" /> {{ viewerCount }} người đang xem
+              <Eye :size="14" /> {{ viewerCount }} {{ t('storefront.viewing') || 'người đang xem' }}
             </span>
             <span v-if="product.sold_count" class="social-proof__sold">
-              Đã bán {{ formatSoldCount(product.sold_count) }}
+              {{ t('storefront.sold') || 'Đã bán' }} {{ formatSoldCount(product.sold_count) }}
             </span>
           </div>
 
           <!-- Variant Selector -->
           <div class="variant-selector" v-if="variants.length">
-            <label class="variant-label">Phân loại:</label>
+            <label class="variant-label">{{ t('storefront.variant') || 'Phân loại:' }}</label>
             <div class="variant-options">
               <button
                 v-for="(v, vi) in variants"
@@ -121,13 +120,13 @@
               <span class="detail-meta__value">{{ displaySku }}</span>
             </div>
             <div v-if="product.category" class="detail-meta">
-              <span class="detail-meta__label">Danh mục</span>
+              <span class="detail-meta__label">{{ t('storefront.category') || 'Danh mục' }}</span>
               <span class="detail-meta__value">{{ product.category }}</span>
             </div>
             <div class="detail-meta">
-              <span class="detail-meta__label">Tình trạng</span>
+              <span class="detail-meta__label">{{ t('storefront.status') || 'Tình trạng' }}</span>
               <span class="detail-meta__value" :class="displayStock > 0 ? 'in-stock' : 'out-stock'">
-                {{ displayStock > 0 ? `Còn hàng (${displayStock})` : 'Hết hàng' }}
+                {{ displayStock > 0 ? `${t('storefront.in_stock') || 'Còn hàng'} (${displayStock})` : t('storefront.out_of_stock') || 'Hết hàng' }}
               </span>
             </div>
           </div>
@@ -135,18 +134,18 @@
           <!-- Shipping Estimate -->
           <div class="shipping-estimate">
             <label class="shipping-estimate__label">
-              <Truck :size="14" /> Ước tính phí vận chuyển
+              <Truck :size="14" /> {{ t('storefront.shipping_estimate') || 'Ước tính phí vận chuyển' }}
             </label>
             <div class="shipping-estimate__row">
               <select v-model="estimateProvince" @change="fetchShippingEstimate" class="shipping-estimate__select">
-                <option value="">Chọn tỉnh/thành</option>
+                <option value="">{{ t('storefront.select_province') || 'Chọn tỉnh/thành' }}</option>
                 <option v-for="p in estimateProvinces" :key="p.code" :value="p.code">{{ p.name }}</option>
               </select>
-              <span v-if="estimateLoading" class="shipping-estimate__loading">Đang tính...</span>
+              <span v-if="estimateLoading" class="shipping-estimate__loading">{{ t('storefront.calculating') || 'Đang tính...' }}</span>
             </div>
             <div v-if="estimateResult" class="shipping-estimate__result">
               <span class="shipping-estimate__fee">
-                {{ estimateResult.fee === 0 ? 'Miễn phí' : formatPrice(estimateResult.fee) }}
+                {{ estimateResult.fee === 0 ? (t('storefront.free') || 'Miễn phí') : formatPrice(estimateResult.fee) }}
               </span>
               <span v-if="estimateResult.time" class="shipping-estimate__time">
                 {{ estimateResult.time }}
@@ -156,7 +155,7 @@
 
           <!-- Quantity -->
           <div class="detail-qty">
-            <label>Số lượng</label>
+            <label>{{ t('storefront.quantity') || 'Số lượng' }}</label>
             <div class="detail-qty__ctrl">
               <button @click="qty = Math.max(1, qty - 1)"><Minus :size="14" /></button>
               <input v-model.number="qty" type="number" min="1" />
@@ -164,17 +163,16 @@
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="detail-actions">
             <button class="btn btn--primary btn--lg" :disabled="displayStock <= 0" @click="handleAddToCart">
               <ShoppingCart :size="18" />
-              Thêm vào giỏ hàng
+              {{ t('storefront.add_to_cart') || 'Thêm vào giỏ hàng' }}
             </button>
             <button
               class="btn btn--outline wl-btn"
               :class="{ 'wl-btn--active': isLiked(product.id) }"
               @click="toggleWishlist(product)"
-              :title="isLiked(product.id) ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'"
+              :title="isLiked(product.id) ? (t('storefront.remove_wishlist') || 'Bỏ yêu thích') : (t('storefront.add_wishlist') || 'Thêm vào yêu thích')"
             >
               <Heart :size="18" :fill="isLiked(product.id) ? 'currentColor' : 'none'" />
             </button>
@@ -182,14 +180,14 @@
 
           <!-- Share -->
           <div class="detail-share">
-            <span>Chia sẽ:</span>
+            <span>{{ t('storefront.share') || 'Chia sẻ:' }}</span>
             <button class="detail-share__btn" @click="shareToFacebook" title="Facebook">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             </button>
             <button class="detail-share__btn" @click="shareToZalo" title="Zalo">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16a1.07 1.07 0 01-.373.736c-.128.104-.29.186-.48.242l-4.146 1.22 4.348 5.09c.207.243.26.556.14.84a.82.82 0 01-.712.476h-1.594a.867.867 0 01-.66-.305l-3.54-4.147v3.662a.793.793 0 01-.79.79H8.89a.793.793 0 01-.79-.79V8.026a.793.793 0 01.79-.79h.87a.793.793 0 01.79.79v3.04l4.488-3.616a.87.87 0 01.546-.19h1.42c.344 0 .623.177.746.465a.82.82 0 01-.18.906l.002-.47z"/></svg>
             </button>
-            <button class="detail-share__btn" @click="copyLink" title="Sao chép link">
+            <button class="detail-share__btn" @click="copyLink" :title="t('storefront.copy_link') || 'Sao chép link'">
               <Link :size="14" />
             </button>
           </div>
@@ -200,7 +198,7 @@
       <div class="detail-description" v-if="product.description">
         <h2 class="section-title">
           <FileText :size="20" class="section-title__accent" />
-          Mô tả sản phẩm
+          {{ t('storefront.product_description') || 'Mô tả sản phẩm' }}
         </h2>
         <div class="detail-desc-content" v-html="product.description"></div>
       </div>
@@ -209,7 +207,7 @@
       <div class="related-section" v-if="detailConfig.showRelatedProducts && relatedProducts.length > 0">
         <h2 class="section-title">
           <Package :size="20" class="section-title__accent" />
-          Sản phẩm liên quan
+          {{ t('storefront.related_products') || 'Sản phẩm liên quan' }}
         </h2>
         <div class="related-grid">
           <ProductCard v-for="p in relatedProducts" :key="p.id" :product="p" />
@@ -220,7 +218,7 @@
       <div class="related-section" v-if="recentlyViewed.length > 1">
         <h2 class="section-title">
           <Clock :size="20" class="section-title__accent" />
-          Sản phẩm đã xem gần đây
+          {{ t('storefront.recently_viewed') || 'Sản phẩm đã xem gần đây' }}
         </h2>
         <div class="related-grid">
           <ProductCard v-for="p in recentlyViewed.filter(rv => rv.id !== product?.id).slice(0, 6)" :key="'rv-' + p.id" :product="p" />
@@ -231,7 +229,7 @@
       <div v-if="detailConfig.showReviews" class="reviews-section" id="reviews">
         <h2 class="section-title">
           <Star :size="20" class="section-title__accent" />
-          Đánh giá sản phẩm
+          {{ t('storefront.reviews_title') || 'Đánh giá sản phẩm' }}
           <span v-if="reviewStats.total_reviews" class="review-count">({{ reviewStats.total_reviews }})</span>
         </h2>
 
@@ -243,7 +241,7 @@
               <Star v-for="i in 5" :key="i" :size="18"
                 :class="i <= Math.round(reviewStats.average_rating) ? 'star-filled' : 'star-empty'" />
             </div>
-            <span class="avg-count">{{ reviewStats.total_reviews }} đánh giá</span>
+            <span class="avg-count">{{ reviewStats.total_reviews }} {{ t('storefront.reviews') || 'đánh giá' }}</span>
           </div>
           <div class="review-bars">
             <div v-for="n in [5,4,3,2,1]" :key="n" class="bar-row">
@@ -256,30 +254,30 @@
 
         <!-- Review Form -->
         <div class="review-form-card" v-if="isLoggedIn">
-          <h3><template v-if="existingReview"><RefreshCw :size="14" /> Cập nhật đánh giá</template><template v-else><PenLine :size="14" /> Viết đánh giá</template></h3>
+          <h3><template v-if="existingReview"><RefreshCw :size="14" /> {{ t('storefront.update_review') || 'Cập nhật đánh giá' }}</template><template v-else><PenLine :size="14" /> {{ t('storefront.write_review') || 'Viết đánh giá' }}</template></h3>
           <div class="review-stars-input">
             <button v-for="i in 5" :key="i" @click="reviewForm.rating = i" class="star-btn">
               <Star :size="24" :class="i <= reviewForm.rating ? 'star-filled' : 'star-empty'" />
             </button>
           </div>
-          <textarea v-model="reviewForm.comment" placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..." rows="3"></textarea>
+          <textarea v-model="reviewForm.comment" :placeholder="t('storefront.review_placeholder') || 'Chia sẻ cảm nhận của bạn về sản phẩm...'" rows="3"></textarea>
           <button class="btn btn--primary" @click="submitReview" :disabled="reviewSubmitting || !reviewForm.rating">
-            {{ reviewSubmitting ? 'Đang gửi...' : (existingReview ? 'Cập nhật' : 'Gửi đánh giá') }}
+            {{ reviewSubmitting ? (t('storefront.submitting') || 'Đang gửi...') : (existingReview ? (t('storefront.update') || 'Cập nhật') : (t('storefront.submit_review') || 'Gửi đánh giá')) }}
           </button>
           <p v-if="reviewMsg" class="review-msg" :class="reviewMsgType">{{ reviewMsg }}</p>
         </div>
         <div v-else class="review-login-hint">
-          <p><Lock :size="14" /> <router-link to="/auth">Đăng nhập</router-link> để viết đánh giá</p>
+          <p><Lock :size="14" /> <router-link to="/auth">{{ t('storefront.login') || 'Đăng nhập' }}</router-link> {{ t('storefront.to_write_review') || 'để viết đánh giá' }}</p>
         </div>
 
         <!-- Reviews List -->
-        <div v-if="reviewsLoading" class="reviews-loading"><Loader :size="14" class="spin" /> Đang tải đánh giá...</div>
+        <div v-if="reviewsLoading" class="reviews-loading"><Loader :size="14" class="spin" /> {{ t('storefront.loading_reviews') || 'Đang tải đánh giá...' }}</div>
         <div v-else-if="reviews.length" class="reviews-list">
           <div v-for="r in reviews" :key="r.id" class="review-card">
             <div class="review-header">
               <div class="review-avatar">{{ (r.customer_name || 'K')[0] }}</div>
               <div>
-                <strong>{{ r.customer_name || 'Khách hàng' }}</strong>
+                <strong>{{ r.customer_name || t('storefront.customer') || 'Khách hàng' }}</strong>
                 <div class="review-stars">
                   <Star v-for="i in 5" :key="i" :size="12"
                     :class="i <= r.rating ? 'star-filled' : 'star-empty'" />
@@ -292,7 +290,7 @@
         </div>
         <div v-else class="reviews-empty">
           <Star :size="32" class="star-empty" />
-          <p>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+          <p>{{ t('storefront.no_reviews') || 'Chưa có đánh giá nào. Hãy là người đầu tiên!' }}</p>
         </div>
       </div>
     </div>
@@ -300,10 +298,10 @@
     <!-- Not Found -->
     <div v-else class="detail-404">
       <PackageX :size="64" />
-      <h2>Không tìm thấy sản phẩm</h2>
-      <p>Sản phẩm này không tồn tại hoặc đã bị ẩn</p>
+      <h2>{{ t('storefront.product_not_found_title') || 'Không tìm thấy sản phẩm' }}</h2>
+      <p>{{ t('storefront.product_not_found_desc') || 'Sản phẩm này không tồn tại hoặc đã bị ẩn' }}</p>
       <router-link :to="'/products'" class="btn btn--primary">
-        <ArrowLeft :size="16" /> Quay lại cửa hàng
+        <ArrowLeft :size="16" /> {{ t('storefront.back_to_shop') || 'Quay lại cửa hàng' }}
       </router-link>
     </div>
 
@@ -315,7 +313,7 @@
           <span class="price price--sale">{{ formatPrice(isOnSale ? product.promotion_price : product.price) }}</span>
         </div>
         <button class="sticky-cart-bar__btn" :disabled="displayStock <= 0" @click="handleAddToCart">
-          <ShoppingCart :size="16" /> Thêm vào giỏ
+          <ShoppingCart :size="16" /> {{ t('storefront.add_to_cart_short') || 'Thêm vào giỏ' }}
         </button>
       </div>
     </transition>
@@ -335,8 +333,10 @@ import { useSeo } from '../composables/useSeo.js'
 import { useWishlist } from '../composables/useWishlist.js'
 import { useToast } from '../composables/useToast.js'
 import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
+import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
 
+const { t } = useI18n()
 const { addToCart } = useCart()
 const { recentlyViewed, addProduct: addToRecentlyViewed } = useRecentlyViewed()
 const { isLoggedIn, token: authToken } = useAuth()
@@ -488,7 +488,7 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 
 function copyLink() {
   navigator.clipboard.writeText(window.location.href)
-  showToast('Đã sao chép link!')
+  showToast(t('storefront.link_copied') || 'Đã sao chép link!')
 }
 
 function shareToFacebook() {

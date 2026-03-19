@@ -16,6 +16,16 @@ function unwrap(json) {
 }
 
 /**
+ * Get the Accept-Language header value from stored language preference.
+ * Returns an object with the header if a non-default language is selected.
+ */
+function getLangHeaders() {
+  const lang = localStorage.getItem('sf_lang')
+  if (lang) return { 'Accept-Language': lang }
+  return {}
+}
+
+/**
  * Fetch from storefront API (GET)
  * @param {string} path — e.g. '/products', '/categories'
  * @param {object} params — query params object
@@ -25,7 +35,9 @@ export async function apiFetch(path, params = {}) {
   for (const [k, v] of Object.entries(params)) {
     if (v !== null && v !== undefined && v !== '') url.searchParams.set(k, v)
   }
-  const res = await fetch(url.toString())
+  const res = await fetch(url.toString(), {
+    headers: { ...getLangHeaders() },
+  })
   if (!res.ok) throw new Error(`API ${res.status}`)
   return unwrap(await res.json())
 }
@@ -39,7 +51,7 @@ export async function apiPost(path, body = {}) {
   const url = `${API_BASE}${path}`
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...getLangHeaders() },
     body: JSON.stringify(body),
   })
   const json = await res.json()
@@ -59,6 +71,7 @@ export async function apiAuthPost(path, body = {}) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...getLangHeaders(),
       ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(body),

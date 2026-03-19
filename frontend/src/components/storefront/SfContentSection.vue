@@ -71,6 +71,9 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   type: { type: String, required: true },

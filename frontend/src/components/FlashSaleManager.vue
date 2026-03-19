@@ -24,7 +24,7 @@
     <div v-else-if="sales.length === 0" class="fsm-empty">
       <div class="fsm-empty__icon"><Zap :size="32" /></div>
       <p class="fsm-empty__text">Chưa có Flash Sale nào</p>
-      <p class="fsm-empty__hint">Tạo chương trình flash sale để thu hút khách hàng mua hàng nhanh hơn</p>
+      <p class="fsm-empty__hint">{{ t('admin.flash_sale_hint', 'Tạo chương trình flash sale để thu hút khách hàng mua hàng nhanh hơn') }}</p>
       <button class="btn-add" @click="openCreate"><Plus :size="15" /> Tạo Flash Sale đầu tiên</button>
     </div>
 
@@ -34,10 +34,10 @@
         <thead>
           <tr>
             <th>Chương trình</th>
-            <th>Thời gian</th>
-            <th>Sản phẩm</th>
-            <th>Trạng thái</th>
-            <th>Bật/Tắt</th>
+            <th>{{ t('admin.time', 'Thời gian') }}</th>
+            <th>{{ t('admin.product', 'Sản phẩm') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.on_off', 'Bật/Tắt') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -64,7 +64,7 @@
             </td>
             <td class="fsm-table__actions">
               <button class="btn-icon" @click="openEdit(sale)" title="Chỉnh sửa"><Pencil :size="14" /></button>
-              <button class="btn-icon btn-icon--danger" @click="confirmDelete(sale)" title="Xóa"><Trash2 :size="14" /></button>
+              <button class="btn-icon btn-icon--danger" @click="confirmDelete(sale)" :title="t('admin.delete', 'Xóa')"><Trash2 :size="14" /></button>
             </td>
           </tr>
         </tbody>
@@ -87,7 +87,7 @@
             <!-- Basic info -->
             <div class="form-section">
               <div class="form-group">
-                <label>Tên chương trình <span class="required">*</span></label>
+                <label>{{ t('admin.program_name', 'Tên chương trình') }} <span class="required">*</span></label>
                 <input v-model="form.name" class="form-input" placeholder="VD: Flash Sale cuối tuần" />
               </div>
               <div class="form-row">
@@ -101,11 +101,23 @@
                 </div>
               </div>
               <div class="form-group form-group--inline">
-                <span>Kích hoạt ngay</span>
+                <span>{{ t('admin.activate_now', 'Kích hoạt ngay') }}</span>
                 <label class="toggle">
                   <input type="checkbox" v-model="form.is_active" />
                   <span class="toggle__slider"></span>
                 </label>
+              </div>
+              <div v-if="editing" style="margin-top: 16px; margin-bottom: -10px;">
+                <ContentTranslationEditor
+                  table-name="flash_sales"
+                  :row-id="editing.id"
+                  :fields-map="{
+                    'name': { type: 'text', label: 'Tên chương trình' },
+                  }"
+                  :fallback-values="{
+                    'name': form.name
+                  }"
+                />
               </div>
             </div>
 
@@ -148,7 +160,7 @@
                 <table class="items-table">
                   <thead>
                     <tr>
-                      <th>Sản phẩm</th>
+                      <th>{{ t('admin.product', 'Sản phẩm') }}</th>
                       <th>Giá gốc (đ)</th>
                       <th>Giá sale (đ)</th>
                       <th>SL giới hạn</th>
@@ -179,9 +191,9 @@
           </div>
 
           <div class="modal__footer">
-            <button class="btn-ghost" @click="closeModal">Hủy</button>
+            <button class="btn-ghost" @click="closeModal">{{ t('admin.cancel', 'Hủy') }}</button>
             <button class="btn-save" :disabled="saving" @click="save">
-              {{ saving ? 'Đang lưu...' : (editing ? 'Cập nhật' : 'Tạo Flash Sale') }}
+              {{ saving ? t('admin.saving', 'Đang lưu...') : (editing ? 'Cập nhật' : 'Tạo Flash Sale') }}
             </button>
           </div>
         </div>
@@ -200,8 +212,8 @@
             <p>Xóa <strong>{{ deleteTarget.name }}</strong>? Toàn bộ sản phẩm trong Flash Sale này cũng sẽ bị xóa.</p>
           </div>
           <div class="modal__footer">
-            <button class="btn-ghost" @click="deleteTarget = null">Hủy</button>
-            <button class="btn-danger" @click="deleteSale">Xóa</button>
+            <button class="btn-ghost" @click="deleteTarget = null">{{ t('admin.cancel', 'Hủy') }}</button>
+            <button class="btn-danger" @click="deleteSale">{{ t('admin.delete', 'Xóa') }}</button>
           </div>
         </div>
       </div>
@@ -214,6 +226,10 @@ import { ref, onMounted } from 'vue'
 import { Zap, Plus, Pencil, Trash2, X, Package, Search } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 
@@ -381,13 +397,13 @@ async function save() {
     const res = await apiFetch(url, fetchOpts)
     if (!res.ok) {
       const err = await res.json().catch(() => null)
-      throw new Error(err?.message || 'Có lỗi xảy ra')
+      throw new Error(err?.message || t('admin.error_occurred', 'Có lỗi xảy ra'))
     }
     showToast(editing.value ? 'Đã cập nhật Flash Sale' : 'Đã tạo Flash Sale mới', 'success')
     closeModal()
     await load()
   } catch (e) {
-    showToast(e?.message || 'Có lỗi xảy ra', 'error')
+    showToast(e?.message || t('admin.error_occurred', 'Có lỗi xảy ra'), 'error')
   }
   saving.value = false
 }
@@ -401,7 +417,7 @@ async function toggleActive(sale) {
     })
     sale.is_active = !sale.is_active
     showToast(sale.is_active ? 'Đã bật Flash Sale' : 'Đã tắt Flash Sale', 'success')
-  } catch { showToast('Có lỗi xảy ra', 'error') }
+  } catch { showToast(t('admin.error_occurred', 'Có lỗi xảy ra'), 'error') }
 }
 
 function confirmDelete(sale) { deleteTarget.value = sale }
@@ -412,7 +428,7 @@ async function deleteSale() {
     showToast('Đã xóa Flash Sale', 'success')
     deleteTarget.value = null
     await load()
-  } catch { showToast('Có lỗi xảy ra', 'error') }
+  } catch { showToast(t('admin.error_occurred', 'Có lỗi xảy ra'), 'error') }
 }
 
 onMounted(load)

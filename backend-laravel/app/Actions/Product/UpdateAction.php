@@ -17,6 +17,7 @@ class UpdateAction extends BaseAction
             }
 
             $data = $request->all();
+            \Illuminate\Support\Facades\Log::info('UpdateAction received:', $data);
 
             // SKU uniqueness check (exclude current)
             if (isset($data['sku'])) {
@@ -44,11 +45,15 @@ class UpdateAction extends BaseAction
             }
 
             // Strip non-DB fields
-            unset($data['category'], $data['brand'], $data['image'], $data['status']);
+            unset($data['category'], $data['brand'], $data['image'], $data['status'], $data['translations']);
 
             $this->productRepository->update($data, $id);
             $product = $this->productRepository->find($id);
             $this->logActivity('product.updated', 'product', $id, ['name' => $product->name ?? null]);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('products', $id, $request->input('translations'));
+            }
 
             return $this->successResponse($product, 'Product updated successfully');
         } catch (\Exception $e) {

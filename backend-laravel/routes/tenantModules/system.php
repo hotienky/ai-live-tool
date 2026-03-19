@@ -83,11 +83,16 @@ Route::delete('/api-keys/{id}', [ApiKeysController::class, 'destroy'])->middlewa
 
 // Languages
 Route::get('/languages', [LanguagesController::class, 'index'])->middleware('permission:settings.view');
+Route::get('/languages/supported', [LanguagesController::class, 'supported'])->middleware('permission:settings.view');
+Route::get('/languages/all-supported', [LanguagesController::class, 'allSupported'])->middleware('permission:settings.view');
 Route::post('/languages', [LanguagesController::class, 'store'])->middleware('permission:settings.edit');
 Route::put('/languages/{id}', [LanguagesController::class, 'update'])->middleware('permission:settings.edit');
 Route::delete('/languages/{id}', [LanguagesController::class, 'destroy'])->middleware('permission:settings.edit');
 Route::get('/languages/{id}/translations', [LanguagesController::class, 'getTranslations'])->middleware('permission:settings.view');
 Route::put('/languages/{id}/translations', [LanguagesController::class, 'updateTranslations'])->middleware('permission:settings.edit');
+
+// Admin translations endpoint (for useI18n composable)
+Route::get('/translations/{langCode}', [LanguagesController::class, 'translationsByCode'])->middleware('permission:settings.view');
 
 // Content translations (products, categories, CMS pages)
 Route::get('/languages/content/{table}/{id}', [LanguagesController::class, 'getContent'])->middleware('permission:settings.view');

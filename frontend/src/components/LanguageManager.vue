@@ -1,29 +1,41 @@
 <template>
   <div class="lang-mgr">
-    <h3 class="section-title"><Globe :size="16" /> Quản lý ngôn ngữ ({{ languages.length }})</h3>
+    <h3 class="section-title"><Globe :size="16" /> {{ t('admin.language_management', 'Quản lý ngôn ngữ') }} ({{ languages.length }})</h3>
 
     <!-- Add language -->
     <div class="lang-add-row">
-      <input v-model="newCode" placeholder="vi" class="lang-input lang-input--code" maxlength="5" />
-      <input v-model="newName" placeholder="Tiếng Việt" class="lang-input lang-input--name" />
-      <label class="lang-default-check">
-        <input type="checkbox" v-model="newIsDefault" /> Mặc định
-      </label>
-      <button class="lang-add-btn" @click="addLanguage" :disabled="!newCode || !newName">
-        <Plus :size="14" /> Thêm
-      </button>
+      <div class="lang-select-wrap" v-if="!showSelector">
+        <button class="lang-add-btn" @click="showSelector = true" :disabled="availableLanguages.length === 0">
+          <Plus :size="14" /> {{ t('admin.add_language', 'Thêm ngôn ngữ') }}
+        </button>
+        <span v-if="availableLanguages.length === 0" class="lang-hint">{{ t('admin.all_languages_installed', 'Đã cài đặt tất cả ngôn ngữ') }}</span>
+      </div>
+      <div class="lang-selector" v-else>
+        <select v-model="selectedLangCode" class="lang-select">
+          <option value="">-- {{ t('admin.choose_language', 'Chọn ngôn ngữ') }} --</option>
+          <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+            {{ lang.flag }} {{ lang.name }} ({{ lang.code }})
+          </option>
+        </select>
+        <button class="lang-add-btn" @click="addLanguage" :disabled="!selectedLangCode">
+          <Plus :size="14" /> {{ t('admin.add', 'Thêm') }}
+        </button>
+        <button class="lang-cancel-btn" @click="showSelector = false; selectedLangCode = ''">
+          <X :size="14" />
+        </button>
+      </div>
     </div>
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải...
+      <Loader2 :size="20" class="spin" /> {{ t('admin.loading', 'Đang tải...') }}
     </div>
 
     <!-- Empty -->
     <div v-else-if="languages.length === 0" class="empty-state">
       <Globe :size="36" />
-      <p>Chưa có ngôn ngữ nào</p>
-      <small>Thêm ngôn ngữ để hỗ trợ đa ngôn ngữ</small>
+      <p>{{ t('admin.no_languages', 'Chưa có ngôn ngữ nào') }}</p>
+      <small>{{ t('admin.add_language_hint', 'Thêm ngôn ngữ để hỗ trợ đa ngôn ngữ') }}</small>
     </div>
 
     <!-- Language list -->
@@ -32,23 +44,37 @@
         v-for="lang in languages"
         :key="lang.id"
         class="lang-item"
-        :class="{ 'lang-item--active': selectedLangId === lang.id }"
+        :class="{
+          'lang-item--active': selectedLangId === lang.id,
+          'lang-item--base': isBase(lang)
+        }"
       >
         <div class="lang-item__info" @click="selectLanguage(lang)">
+          <span class="lang-item__flag">{{ getFlagEmoji(lang.code) }}</span>
           <span class="lang-item__code">{{ lang.code }}</span>
           <span class="lang-item__name">{{ lang.name }}</span>
-          <span v-if="lang.isDefault || lang.is_default" class="lang-item__default">Mặc định</span>
+          <span v-if="isBase(lang)" class="lang-item__base-badge">
+            <Lock :size="10" /> {{ t('admin.base_language', 'Ngôn ngữ gốc') }}
+          </span>
+          <span v-else-if="lang.isDefault || lang.is_default" class="lang-item__default">
+            {{ t('admin.default', 'Mặc định') }}
+          </span>
         </div>
         <div class="lang-item__actions">
           <button
-            v-if="!(lang.isDefault || lang.is_default)"
+            v-if="!isBase(lang) && !(lang.isDefault || lang.is_default)"
             class="lang-action-btn"
             @click="setDefault(lang.id)"
-            title="Đặt mặc định"
+            :title="t('admin.set_default', 'Đặt mặc định')"
           >
             <Star :size="13" />
           </button>
-          <button class="lang-action-btn lang-action-btn--del" @click="deleteLanguage(lang.id)" title="Xóa">
+          <button
+            v-if="!isBase(lang)"
+            class="lang-action-btn lang-action-btn--del"
+            @click="deleteLanguage(lang.id)"
+            :title="t('admin.delete', 'Xóa')"
+          >
             <Trash2 :size="13" />
           </button>
         </div>
@@ -59,14 +85,14 @@
     <div v-if="selectedLangId" class="trans-editor">
       <h4 class="trans-title">
         <FileText :size="14" />
-        Bản dịch — {{ selectedLangName }}
+        {{ t('admin.translations', 'Bản dịch') }} — {{ selectedLangName }}
         <span class="trans-count">({{ translations.length }} keys)</span>
       </h4>
 
       <!-- Add translation -->
       <div class="trans-add-row">
         <input v-model="newTransKey" placeholder="translation.key" class="trans-input trans-input--key" />
-        <input v-model="newTransValue" placeholder="Giá trị dịch" class="trans-input trans-input--val" />
+        <input v-model="newTransValue" :placeholder="t('admin.translation_value', 'Giá trị dịch')" class="trans-input trans-input--val" />
         <button class="trans-add-btn" @click="addTranslation" :disabled="!newTransKey">
           <Plus :size="13" />
         </button>
@@ -75,28 +101,28 @@
       <!-- Search -->
       <div class="trans-search">
         <Search :size="13" class="trans-search__icon" />
-        <input v-model="transSearch" placeholder="Tìm key hoặc giá trị..." class="trans-search__input" />
+        <input v-model="transSearch" :placeholder="t('admin.search_key_value', 'Tìm key hoặc giá trị...')" class="trans-search__input" />
       </div>
 
       <!-- Translation list -->
       <div class="trans-list">
-        <div v-for="t in filteredTranslations" :key="t.key" class="trans-item">
-          <code class="trans-item__key">{{ t.key }}</code>
+        <div v-for="tr in filteredTranslations" :key="tr.key" class="trans-item">
+          <code class="trans-item__key">{{ tr.key }}</code>
           <input
             class="trans-item__value"
-            :value="t.value"
-            @change="updateTranslation(t.key, $event.target.value)"
+            :value="tr.value"
+            @change="updateTranslation(tr.key, $event.target.value)"
           />
         </div>
         <div v-if="filteredTranslations.length === 0" class="trans-empty">
-          Không tìm thấy bản dịch nào
+          {{ t('admin.no_translations_found', 'Không tìm thấy bản dịch nào') }}
         </div>
       </div>
 
       <!-- Save translations -->
       <div class="trans-actions" v-if="hasTransChanges">
         <button class="trans-save-btn" @click="saveTranslations" :disabled="savingTrans">
-          <Save :size="14" /> {{ savingTrans ? 'Đang lưu...' : 'Lưu bản dịch' }}
+          <Save :size="14" /> {{ savingTrans ? t('admin.saving', 'Đang lưu...') : t('admin.save_translations', 'Lưu bản dịch') }}
         </button>
       </div>
     </div>
@@ -107,14 +133,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { Globe, Plus, Trash2, Star, FileText, Search, Save, Loader2 } from 'lucide-vue-next'
+import { Globe, Plus, Trash2, Star, FileText, Search, Save, Loader2, X, Lock } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
+
+const BASE_LANG = 'vi'
+
+// All supported languages loaded from DB (for flag lookup)
+const allSupportedLanguages = ref([])
 
 const { showToast } = useToast()
 const languages = ref([])
 const loading = ref(false)
-const newCode = ref('')
-const newName = ref('')
-const newIsDefault = ref(false)
+const showSelector = ref(false)
+const selectedLangCode = ref('')
+const availableLanguages = ref([])
 
 // Translation editor
 const selectedLangId = ref(null)
@@ -127,11 +161,20 @@ const hasTransChanges = ref(false)
 const savingTrans = ref(false)
 const pendingTransChanges = ref({})
 
+function isBase(lang) {
+  return lang.code === BASE_LANG
+}
+
+function getFlagEmoji(code) {
+  const found = allSupportedLanguages.value.find(l => l.code === code)
+  return found?.flag || '🌐'
+}
+
 const filteredTranslations = computed(() => {
   if (!transSearch.value.trim()) return translations.value
   const q = transSearch.value.toLowerCase()
-  return translations.value.filter(t =>
-    t.key.toLowerCase().includes(q) || (t.value || '').toLowerCase().includes(q)
+  return translations.value.filter(tr =>
+    tr.key.toLowerCase().includes(q) || (tr.value || '').toLowerCase().includes(q)
   )
 })
 
@@ -148,29 +191,59 @@ async function loadLanguages() {
   }
 }
 
+async function loadAvailableLanguages() {
+  try {
+    const res = await apiFetch('/languages/supported')
+    const json = await res.json()
+    availableLanguages.value = Array.isArray(json) ? json : (json?.data || [])
+  } catch (e) {
+    console.warn('Failed to load available languages:', e)
+    availableLanguages.value = []
+  }
+}
+
+async function loadAllSupportedLanguages() {
+  try {
+    const res = await apiFetch('/languages/all-supported')
+    const json = await res.json()
+    allSupportedLanguages.value = Array.isArray(json) ? json : (json?.data || [])
+  } catch (e) {
+    console.warn('Failed to load all supported languages:', e)
+    allSupportedLanguages.value = []
+  }
+}
+
 async function addLanguage() {
-  if (!newCode.value || !newName.value) return
+  if (!selectedLangCode.value) return
+  const langInfo = availableLanguages.value.find(l => l.code === selectedLangCode.value)
+  if (!langInfo) return
+
   try {
     const res = await apiFetch('/languages', {
       method: 'POST',
-      body: JSON.stringify({ code: newCode.value, name: newName.value, is_default: newIsDefault.value }),
+      body: JSON.stringify({ code: langInfo.code, name: langInfo.name }),
     })
     const json = await res.json()
     const lang = json?.data || json
     if (lang && lang.id) {
       await loadLanguages()
-      newCode.value = ''
-      newName.value = ''
-      newIsDefault.value = false
-      showToast('Đã thêm ngôn ngữ', 'success')
+      await loadAvailableLanguages()
+      selectedLangCode.value = ''
+      showSelector.value = false
+      showToast(t('admin.language_added', 'Đã thêm ngôn ngữ'), 'success')
     }
   } catch (e) {
-    showToast('Lỗi thêm ngôn ngữ', 'error')
+    showToast(t('admin.add_language_error', 'Lỗi thêm ngôn ngữ'), 'error')
   }
 }
 
 async function deleteLanguage(id) {
-  if (!confirm('Xóa ngôn ngữ này?')) return
+  const lang = languages.value.find(l => l.id === id)
+  if (lang && isBase(lang)) {
+    showToast(t('admin.cannot_delete_base', 'Không thể xóa ngôn ngữ gốc'), 'error')
+    return
+  }
+  if (!confirm(t('admin.confirm_delete_language', 'Xóa ngôn ngữ này?'))) return
   try {
     const res = await apiFetch(`/languages/${id}`, { method: 'DELETE' })
     if (res.ok) {
@@ -179,10 +252,14 @@ async function deleteLanguage(id) {
         selectedLangId.value = null
         translations.value = []
       }
-      showToast('Đã xóa ngôn ngữ', 'success')
+      await loadAvailableLanguages()
+      showToast(t('admin.language_deleted', 'Đã xóa ngôn ngữ'), 'success')
+    } else {
+      const err = await res.json()
+      showToast(err?.message || 'Error', 'error')
     }
   } catch (e) {
-    showToast('Lỗi xóa', 'error')
+    showToast(t('admin.delete_error', 'Lỗi xóa'), 'error')
   }
 }
 
@@ -196,9 +273,9 @@ async function setDefault(id) {
       l.isDefault = l.id === id
       l.is_default = l.id === id
     })
-    showToast('Đã đặt ngôn ngữ mặc định', 'success')
+    showToast(t('admin.default_language_set', 'Đã đặt ngôn ngữ mặc định'), 'success')
   } catch (e) {
-    showToast('Lỗi cập nhật', 'error')
+    showToast(t('admin.update_error', 'Lỗi cập nhật'), 'error')
   }
 }
 
@@ -218,7 +295,7 @@ async function selectLanguage(lang) {
 }
 
 function updateTranslation(key, value) {
-  const item = translations.value.find(t => t.key === key)
+  const item = translations.value.find(tr => tr.key === key)
   if (item) item.value = value
   pendingTransChanges.value[key] = value
   hasTransChanges.value = true
@@ -240,39 +317,37 @@ async function saveTranslations() {
       method: 'PUT',
       body: JSON.stringify({ translations: pendingTransChanges.value }),
     })
-    showToast('Đã lưu bản dịch', 'success')
+    showToast(t('admin.translations_saved', 'Đã lưu bản dịch'), 'success')
     hasTransChanges.value = false
     pendingTransChanges.value = {}
   } catch (e) {
-    showToast('Lỗi lưu bản dịch', 'error')
+    showToast(t('admin.save_translation_error', 'Lỗi lưu bản dịch'), 'error')
   } finally {
     savingTrans.value = false
   }
 }
 
-onMounted(() => loadLanguages())
+onMounted(async () => {
+  await loadLanguages()
+  await Promise.all([loadAvailableLanguages(), loadAllSupportedLanguages()])
+})
 </script>
 
 <style scoped>
 .lang-mgr { margin-top:0; }
 .section-title { display:flex; align-items:center; gap:8px; font-size:15px; margin:0 0 16px; color:var(--color-text-primary); }
 
-.lang-add-row { display:flex; gap:8px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
-.lang-input {
-  background:var(--color-bg-card-solid); border:1px solid var(--color-border);
-  border-radius:8px; color:var(--color-text-primary); padding:9px 14px; font-size:13px;
-  transition:border-color 0.2s;
-}
-.lang-input:focus { outline:none; border-color:var(--color-accent-primary); }
-.lang-input::placeholder { color:var(--color-text-muted); }
-.lang-input--code { width:80px; text-transform:lowercase; font-family:monospace; }
-.lang-input--name { flex:1; min-width:160px; }
+.lang-add-row { margin-bottom:16px; }
+.lang-select-wrap { display:flex; align-items:center; gap:10px; }
+.lang-hint { font-size:12px; color:var(--color-text-muted); }
 
-.lang-default-check {
-  display:flex; align-items:center; gap:6px; font-size:12px;
-  color:var(--color-text-muted); cursor:pointer; white-space:nowrap;
+.lang-selector { display:flex; gap:8px; align-items:center; }
+.lang-select {
+  flex:1; min-width:260px; background:var(--color-bg-card-solid); border:1px solid var(--color-border);
+  border-radius:8px; color:var(--color-text-primary); padding:9px 14px; font-size:13px;
+  cursor:pointer; transition:border-color 0.2s; appearance:auto;
 }
-.lang-default-check input { accent-color:var(--color-accent-primary); }
+.lang-select:focus { outline:none; border-color:var(--color-accent-primary); }
 
 .lang-add-btn {
   background:var(--accent-gradient); color:#fff; border:none;
@@ -282,6 +357,12 @@ onMounted(() => loadLanguages())
 }
 .lang-add-btn:hover { transform:translateY(-1px); }
 .lang-add-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+.lang-cancel-btn {
+  background:none; border:1px solid var(--color-border); border-radius:8px;
+  padding:9px 12px; cursor:pointer; color:var(--color-text-muted); transition:all 0.15s;
+}
+.lang-cancel-btn:hover { border-color:var(--color-text-muted); color:var(--color-text-primary); }
 
 /* Language list */
 .lang-list { display:flex; flex-direction:column; gap:6px; margin-bottom:20px; }
@@ -293,14 +374,21 @@ onMounted(() => loadLanguages())
 }
 .lang-item:hover { border-color:var(--color-border-hover); }
 .lang-item--active { border-color:var(--color-accent-primary); background: var(--color-accent-glow); }
+.lang-item--base { border-left:3px solid var(--color-accent-primary); }
 
 .lang-item__info { display:flex; align-items:center; gap:10px; flex:1; }
+.lang-item__flag { font-size:18px; line-height:1; }
 .lang-item__code {
   font-family:monospace; font-size:13px; font-weight:700;
   background:var(--color-bg-card-solid); padding:3px 10px; border-radius:6px;
   color:var(--color-accent-primary); text-transform:uppercase;
 }
 .lang-item__name { font-size:13px; font-weight:600; color:var(--color-text-primary); }
+.lang-item__base-badge {
+  font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;
+  background:var(--color-accent-glow); color:var(--color-accent-primary);
+  display:inline-flex; align-items:center; gap:3px;
+}
 .lang-item__default {
   font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;
   background:rgba(245,158,11,0.12); color:#f59e0b;

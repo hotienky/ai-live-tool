@@ -6,8 +6,8 @@
         <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, ghi chú..." @input="debouncedSearch" />
         <select v-model="filterType" class="filter-select">
           <option value="">Tất cả loại</option>
-          <option value="import">Nhập kho</option>
-          <option value="export">Xuất kho</option>
+          <option value="import">{{ t('admin.import_stock', 'Nhập kho') }}</option>
+          <option value="export">{{ t('admin.export_stock', 'Xuất kho') }}</option>
           <option value="return">Trả hàng</option>
           <option value="adjust">Kiểm kê</option>
         </select>
@@ -52,12 +52,12 @@
         <thead>
           <tr>
             <th>Mã phiếu</th>
-            <th>Loại</th>
+            <th>{{ t('admin.type', 'Loại') }}</th>
             <th>NCC</th>
             <th>SP</th>
             <th>Tổng tiền</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
             <th>Thao tác</th>
           </tr>
         </thead>
@@ -75,7 +75,7 @@
                 <button class="act-btn act-view" @click="viewReceipt(r)"><Eye :size="13" /> Xem</button>
                 <button v-if="r.status === 'draft'" class="act-btn act-confirm" @click="confirmReceipt(r)"><Check :size="13" /> Xác nhận</button>
                 <button v-if="r.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelReceipt(r)"><X :size="13" /> Hủy</button>
-                <button v-if="r.status === 'draft'" class="act-btn act-cancel" @click="deleteReceipt(r)"><Trash2 :size="13" /> Xóa</button>
+                <button v-if="r.status === 'draft'" class="act-btn act-cancel" @click="deleteReceipt(r)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -112,14 +112,14 @@
           <div class="form-group">
             <label>Loại phiếu</label>
             <select v-model="form.type" :disabled="!!editingId">
-              <option value="import">Nhập kho</option>
-              <option value="export">Xuất kho</option>
+              <option value="import">{{ t('admin.import_stock', 'Nhập kho') }}</option>
+              <option value="export">{{ t('admin.export_stock', 'Xuất kho') }}</option>
               <option value="return">Trả hàng NCC</option>
               <option value="adjust">Kiểm kê</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Nhà cung cấp</label>
+            <label>{{ t('admin.supplier', 'Nhà cung cấp') }}</label>
             <select v-model="form.supplier_id">
               <option :value="null">— Không —</option>
               <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -129,7 +129,7 @@
 
         <!-- Product search + items -->
         <div class="form-group">
-          <label>Sản phẩm</label>
+          <label>{{ t('admin.product', 'Sản phẩm') }}</label>
           <div class="product-search-wrap">
             <input v-model="productSearch" class="product-search" placeholder="Tìm tên SP, SKU..." @input="searchProducts" />
             <div class="product-dropdown" v-if="productResults.length > 0">
@@ -146,7 +146,7 @@
           <table>
             <thead>
               <tr>
-                <th>Sản phẩm</th>
+                <th>{{ t('admin.product', 'Sản phẩm') }}</th>
                 <th>SKU</th>
                 <th style="width:90px">SL</th>
                 <th style="width:130px">Đơn giá</th>
@@ -183,12 +183,12 @@
         </div>
 
         <div class="form-group">
-          <label>Ghi chú</label>
+          <label>{{ t('admin.notes', 'Ghi chú') }}</label>
           <textarea v-model="form.notes" rows="2" placeholder="Lý do nhập/xuất..."></textarea>
         </div>
 
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="saveReceipt">{{ editingId ? 'Cập nhật' : 'Tạo phiếu' }}</button>
         </div>
       </div>
@@ -212,7 +212,7 @@
           <thead>
             <tr>
               <th>#</th>
-              <th>Sản phẩm</th>
+              <th>{{ t('admin.product', 'Sản phẩm') }}</th>
               <th>SKU</th>
               <th>SL</th>
               <th>Đơn giá</th>
@@ -237,8 +237,8 @@
           </tfoot>
         </table>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showDetail = false">Đóng</button>
-          <button v-if="detailReceipt.status === 'draft'" class="btn-create" @click="showDetail = false; confirmReceipt(detailReceipt)">Xác nhận</button>
+          <button class="btn-cancel" @click="showDetail = false">{{ t('admin.close', 'Đóng') }}</button>
+          <button v-if="detailReceipt.status === 'draft'" class="btn-create" @click="showDetail = false; confirmReceipt(detailReceipt)">{{ t('admin.confirm', 'Xác nhận') }}</button>
         </div>
       </div>
     </div>
@@ -247,6 +247,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import {
@@ -254,6 +255,8 @@ import {
   ArrowDownToLine, ArrowUpFromLine, FileText,
   ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const receipts = ref([])

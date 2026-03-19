@@ -36,7 +36,7 @@
             </div>
             <button class="pm-btn pm-btn--primary" @click="updateProfile" :disabled="saving || !fullName.trim()">
               <Check :size="14" />
-              {{ saving ? 'Đang lưu...' : 'Lưu' }}
+              {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
             </button>
           </div>
         </div>
@@ -98,6 +98,9 @@ import {
   RefreshCw, Shield, CheckCircle2, AlertCircle, Eye, EyeOff
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   currentUser: Object,

@@ -28,7 +28,9 @@
       "Bash(docker compose:*)",
       "Bash(docker exec:*)",
       "Bash(xxd)",
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(grep -r \"mergeIntoItems\\\\|mergeIntoSingleItem\\\\|ContentTranslation\" /Users/hotienky/datas/App/read-comment/backend-laravel/app/Actions --include=*.php)",
+      "WebSearch"
     ]
   }
 }

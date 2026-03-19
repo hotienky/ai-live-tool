@@ -65,6 +65,9 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Webhook, Plus, Trash2, Globe, Clock, Loader2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   /* tenant-scoped */

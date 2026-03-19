@@ -3,8 +3,8 @@
     <div class="activity-header">
       <h3><Activity :size="18" /> Lịch sử hoạt động</h3>
       <select v-model="filterAction" class="action-filter" @change="loadLogs">
-        <option value="">Tất cả</option>
-        <option value="user.login">Đăng nhập</option>
+        <option value="">{{ t('admin.all', 'Tất cả') }}</option>
+        <option value="user.login">{{ t('admin.login', 'Đăng nhập') }}</option>
         <option value="order.created">Tạo đơn</option>
         <option value="order.updated">Cập nhật đơn</option>
         <option value="order.deleted">Xóa đơn</option>
@@ -72,6 +72,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import {
   Activity, Clock, Loader2, ClipboardList,
@@ -79,6 +80,8 @@ import {
   ChevronLeft, ChevronRight,
   LogIn, UserPlus, UserMinus, FileText, Image, FolderTree, Shield
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const props = defineProps({
   /* tenant-scoped */

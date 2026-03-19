@@ -71,7 +71,7 @@
     <!-- Save button -->
     <div class="trans-save" v-if="hasChanges">
       <button class="trans-save-btn" @click="saveTranslations" :disabled="saving">
-        <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu bản dịch' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu bản dịch' }}
       </button>
     </div>
   </div>
@@ -82,6 +82,9 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Globe, Save, Languages } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 
@@ -159,13 +162,15 @@ async function loadTranslations() {
   try {
     const res = await apiFetch(`/languages/content/${props.tableName}/${props.rowId}`)
     if (!res.ok) return
-    const json = await res.json()
-    const data = json?.data || json
+    const data = await res.json()
     if (data?.grouped) {
-      translations.value = JSON.parse(JSON.stringify(data.grouped))
-      originalTranslations.value = JSON.parse(JSON.stringify(data.grouped))
+      const grouped = Array.isArray(data.grouped) ? {} : data.grouped
+      translations.value = JSON.parse(JSON.stringify(grouped))
+      originalTranslations.value = JSON.parse(JSON.stringify(grouped))
     }
-  } catch { /* empty */ }
+  } catch (e) {
+    console.warn('Could not load translations:', e)
+  }
 }
 
 async function saveTranslations() {

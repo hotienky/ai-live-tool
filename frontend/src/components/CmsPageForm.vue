@@ -7,19 +7,21 @@
       <h3>{{ isEditing ? 'Sửa trang CMS' : 'Tạo trang CMS mới' }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="16" class="spin" />
-        {{ saving ? 'Đang lưu...' : (isEditing ? 'Cập nhật' : 'Tạo trang') }}
+        {{ saving ? t('admin.saving', 'Đang lưu...') : (isEditing ? 'Cập nhật' : 'Tạo trang') }}
       </button>
     </div>
 
     <div class="form-page-body">
       <!-- Left Column: Basic Info -->
       <div class="form-col form-col--main">
+        <LanguageTabs v-model="currentLang" style="margin-bottom: 20px;" :translations="form.translations" :fields="['title', 'content', 'meta_title', 'meta_description']" :baseData="form" />
+
         <div class="form-card">
           <h4>Nội dung trang</h4>
           
           <div class="form-group">
             <label>Tiêu đề <span class="required">*</span></label>
-            <input v-model="form.title" type="text" placeholder="Nhập tiêu đề trang..." class="input-lg" />
+            <input v-model="fTitle" type="text" placeholder="Nhập tiêu đề trang..." class="input-lg" />
           </div>
 
           <div class="form-group">
@@ -43,31 +45,31 @@
 
             <div v-else class="form-group" style="margin-top: 12px;">
               <label>Nội dung (HTML)</label>
-              <textarea v-model="form.content" rows="18" class="textarea-code" placeholder="<h1>Tiêu đề</h1><p>Nội dung...</p>"></textarea>
+              <textarea v-model="fContent" rows="18" class="textarea-code" placeholder="<h1>{{ t('admin.title', 'Tiêu đề') }}</h1><p>Nội dung...</p>"></textarea>
             </div>
           </div>
         </div>
 
-        <!-- Multi-language (gated by languages module) -->
-        <ContentTranslationEditor
-          v-if="isEditing && pageId"
-          :tableName="'cms_pages'"
-          :rowId="pageId"
-          :fields="[
-            { key: 'title', label: 'Tiêu đề', type: 'text' },
-            { key: 'content', label: 'Nội dung', type: 'textarea' },
-          ]"
-          :defaultValues="{ title: form.title, content: form.content }"
-          :moduleActive="languagesInstalled"
-        />
+        <!-- SEO Section -->
+        <div class="form-card">
+          <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700">🔍 SEO</h4>
+          <div class="form-group">
+            <label>Meta Title</label>
+            <input v-model="fMetaTitle" placeholder="Tiêu đề SEO (tự động nếu để trống)" />
+          </div>
+          <div class="form-group">
+            <label>Meta Description</label>
+            <textarea v-model="fMetaDesc" rows="3" placeholder="Mô tả SEO (tự động nếu để trống)"></textarea>
+          </div>
+        </div>
       </div>
 
       <!-- Right Column: Metadata -->
       <div class="form-col form-col--side">
         <div class="form-card">
-          <h4>Cài đặt</h4>
+          <h4>{{ t('admin.install', 'Cài đặt') }}</h4>
           <div class="form-group">
-            <label>Trạng thái</label>
+            <label>{{ t('admin.status', 'Trạng thái') }}</label>
             <select v-model="form.status">
               <option :value="1">Published</option>
               <option :value="0">Draft</option>
@@ -101,7 +103,10 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useToast } from '../composables/useToast.js'
-import ContentTranslationEditor from './ContentTranslationEditor.vue'
+import LanguageTabs from './LanguageTabs.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const { fetchPage, createPage, updatePage } = useCmsPages(apiFetch)
@@ -114,10 +119,22 @@ const emit = defineEmits(['navigate'])
 
 const isEditing = ref(false)
 const saving = ref(false)
+const currentLang = ref('vi')
+
 const form = ref({
   title: '', alias: '', content: '', image: '',
+  meta_title: '', meta_description: '',
   status: 1, sort: 0, is_dynamic: false,
+  translations: {},
 })
+
+import { useContentTranslations } from '../composables/useContentTranslations.js'
+const { tField } = useContentTranslations(form, currentLang)
+
+const fTitle = tField('title')
+const fContent = tField('content')
+const fMetaTitle = tField('meta_title')
+const fMetaDesc = tField('meta_description')
 
 function goBack() {
   emit('navigate', 'shop/cms')
@@ -134,9 +151,23 @@ onMounted(async () => {
           alias: page.alias || '',
           content: page.content || '',
           image: page.image || '',
+          meta_title: page.meta_title || '',
+          meta_description: page.meta_description || '',
           status: page.status ?? 1,
           sort: page.sort ?? 0,
           is_dynamic: page.is_dynamic || false,
+          translations: {},
+        }
+        
+        // Fetch translations
+        try {
+          const transRes = await apiFetch(`/languages/content/cms_pages/${props.pageId}`)
+          const transData = await transRes.json()
+          if (transData?.grouped) {
+            form.value.translations = Array.isArray(transData.grouped) ? {} : transData.grouped
+          }
+        } catch (e) {
+          console.warn('Could not load CMS translations:', e)
         }
       }
     } catch (e) {

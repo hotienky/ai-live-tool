@@ -123,7 +123,7 @@
     <!-- Save -->
     <div class="tc-actions">
       <button class="tc-save" @click="saveTheme" :disabled="saving">
-        <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu giao diện' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu giao diện' }}
       </button>
       <button class="tc-reset" @click="resetToDefault">
         <RotateCcw :size="14" /> Đặt lại mặc định
@@ -137,6 +137,9 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { Palette, Sparkles, PaintBucket, Type, LayoutGrid, Moon, Sun, Save, RotateCcw } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const emit = defineEmits(['saved'])

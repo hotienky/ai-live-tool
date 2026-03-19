@@ -75,7 +75,7 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Sản phẩm</th>
+                  <th>{{ t('admin.product', 'Sản phẩm') }}</th>
                   <th class="right">Đơn giá</th>
                   <th class="right">SL</th>
                   <th class="right">Thành tiền</th>
@@ -131,6 +131,9 @@
 import { ref, computed, watch } from 'vue'
 import { Printer, Download, Mail, X } from 'lucide-vue-next'
 import { apiFetch, API_BASE } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   show: Boolean,

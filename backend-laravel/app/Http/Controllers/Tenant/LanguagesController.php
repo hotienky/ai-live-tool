@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 
 use App\Models\ContentTranslation;
+use App\Models\Language;
+use App\Models\SupportedLanguage;
 use App\Repositories\Language\LanguageRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
@@ -17,6 +19,33 @@ class LanguagesController extends Controller
     public function index()
     {
         return $this->successResponse($this->repo->getAllSorted());
+    }
+
+    /**
+     * Return supported languages that are not yet installed.
+     */
+    public function supported()
+    {
+        try {
+            $available = SupportedLanguage::getAvailableForTenant();
+            return $this->successResponse($available);
+        } catch (\Exception $e) {
+            // Fallback: return empty if table doesn't exist yet
+            return $this->successResponse([]);
+        }
+    }
+
+    /**
+     * Get all supported languages (for reference/display).
+     */
+    public function allSupported()
+    {
+        try {
+            $all = SupportedLanguage::where('is_active', true)->orderBy('sort')->get();
+            return $this->successResponse($all);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
+        }
     }
 
     public function store(Request $request)
@@ -33,6 +62,13 @@ class LanguagesController extends Controller
 
     public function destroy($id)
     {
+        $lang = Language::find($id);
+        if (!$lang) {
+            return $this->errorResponse('Language not found', 404);
+        }
+        if ($lang->isBaseLanguage()) {
+            return $this->errorResponse('Không thể xóa ngôn ngữ gốc của hệ thống', 403);
+        }
         $this->repo->delete($id);
         return $this->successResponse(null, 'Language deleted');
     }
@@ -40,6 +76,19 @@ class LanguagesController extends Controller
     public function getTranslations($id)
     {
         return $this->successResponse($this->repo->getTranslations($id));
+    }
+
+    /**
+     * Get translations by language code (for useI18n composable).
+     * Both admin and storefront frontends call this.
+     */
+    public function translationsByCode($langCode)
+    {
+        $lang = Language::where('code', $langCode)->first();
+        if (!$lang) {
+            return $this->successResponse([]);
+        }
+        return $this->successResponse($this->repo->getTranslations($lang->id));
     }
 
     public function updateTranslations(Request $request, $id)

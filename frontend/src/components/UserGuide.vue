@@ -129,8 +129,12 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
 import {
+ref } from "vue";
+import {
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
   BookOpen,
   List,
   GitBranch,

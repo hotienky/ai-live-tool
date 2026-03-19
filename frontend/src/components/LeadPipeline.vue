@@ -189,6 +189,9 @@ import {
   ShoppingBag, MessageCircle, BarChart3, FileText, GripVertical, Users, Plus
 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   // tenant-scoped

@@ -1,7 +1,7 @@
 <template>
   <div class="quick-reply-panel" v-if="visible">
     <div class="panel-header">
-      <h3>Soạn tin nhắn</h3>
+      <h3>{{ t('admin.compose_message', 'Soạn tin nhắn') }}</h3>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
     <p class="panel-hint">Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách</p>
@@ -43,7 +43,7 @@
 
     <!-- Quick templates -->
     <div class="templates">
-      <h4>Mẫu nhanh</h4>
+      <h4>{{ t('admin.quick_templates', 'Mẫu nhanh') }}</h4>
       <div class="template-list">
         <button
           v-for="(tpl, i) in templates"
@@ -63,6 +63,9 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   visible: Boolean,

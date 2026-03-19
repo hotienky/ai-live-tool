@@ -3,9 +3,9 @@
     <div class="page-header">
       <h1 class="page-title">
         <Tag :size="28" class="page-title__icon" />
-        Khuyến mãi & Ưu đãi
+        {{ t('storefront.promotions') || 'Khuyến mãi & Ưu đãi' }}
       </h1>
-      <p class="page-subtitle">Cập nhật những chương trình khuyến mãi mới nhất</p>
+      <p class="page-subtitle">{{ t('storefront.explore_promotions') || 'Cập nhật những chương trình khuyến mãi mới nhất' }}</p>
     </div>
 
     <!-- Loading State -->
@@ -16,8 +16,8 @@
     <!-- Empty State -->
     <div v-else-if="promotions.length === 0" class="empty-state">
       <Ticket :size="64" />
-      <h2>Chưa có khuyến mãi nào</h2>
-      <p>Hiện tại không có chương trình khuyến mãi nào đang diễn ra. Vui lòng quay lại sau!</p>
+      <h2>{{ t('storefront.no_promotions') || 'Chưa có khuyến mãi nào' }}</h2>
+      <p>{{ t('storefront.no_promotions_desc') || 'Hiện tại không có chương trình khuyến mãi nào đang diễn ra. Vui lòng quay lại sau!' }}</p>
     </div>
 
     <!-- Data State -->
@@ -28,8 +28,8 @@
         class="promo-card"
       >
         <div class="promo-card__header">
-          <div class="promo-card__badge" v-if="isActive(promo)">Đang diễn ra</div>
-          <div class="promo-card__badge promo-card__badge--upcoming" v-else>Sắp diễn ra</div>
+          <div class="promo-card__badge" v-if="isActive(promo)">{{ t('storefront.ongoing') || 'Đang diễn ra' }}</div>
+          <div class="promo-card__badge promo-card__badge--upcoming" v-else>{{ t('storefront.upcoming') || 'Sắp diễn ra' }}</div>
           <h3 class="promo-card__title">{{ promo.name }}</h3>
         </div>
         <div class="promo-card__body">
@@ -37,7 +37,7 @@
             <Clock :size="14" />
             <span>{{ formatDate(promo.start_time) }} - {{ formatDate(promo.end_time) }}</span>
           </div>
-          <router-link :to="`/?promo=${promo.id}`" class="btn btn-primary btn-sm mt-3">Mua ngay</router-link>
+          <router-link :to="`/?promo=${promo.id}`" class="btn btn-primary btn-sm mt-3">{{ t('storefront.buy_now') || 'Mua ngay' }}</router-link>
         </div>
       </div>
     </div>
@@ -48,7 +48,9 @@
 import { ref, onMounted } from 'vue'
 import { Tag, Ticket, Clock } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const promotions = ref([])
 const loading = ref(true)
 

@@ -12,7 +12,7 @@
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Tên NCC</th><th>SĐT</th><th>Email</th><th>Địa chỉ</th><th>MST</th><th>TT</th><th>Thao tác</th>
+            <th>#</th><th>Tên NCC</th><th>{{ t('admin.phone_short', 'SĐT') }}</th><th>Email</th><th>{{ t('admin.address', 'Địa chỉ') }}</th><th>MST</th><th>TT</th><th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -26,8 +26,8 @@
             <td><span class="status-dot" :class="s.is_active ? 'active' : 'inactive'"></span></td>
             <td>
               <div class="action-btns">
-                <button class="act-btn act-edit" @click="openEdit(s)"><Edit :size="13" /> Sửa</button>
-                <button class="act-btn act-cancel" @click="deleteSupplier(s)"><Trash2 :size="13" /> Xóa</button>
+                <button class="act-btn act-edit" @click="openEdit(s)"><Edit :size="13" /> {{ t('admin.edit', 'Sửa') }}</button>
+                <button class="act-btn act-cancel" @click="deleteSupplier(s)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -52,14 +52,14 @@
           <div class="form-group"><label>SĐT</label><input v-model="form.phone" placeholder="0912..." /></div>
           <div class="form-group"><label>Email</label><input v-model="form.email" placeholder="abc@..." /></div>
         </div>
-        <div class="form-group"><label>Địa chỉ</label><input v-model="form.address" /></div>
+        <div class="form-group"><label>{{ t('admin.address', 'Địa chỉ') }}</label><input v-model="form.address" /></div>
         <div class="form-row">
           <div class="form-group"><label>Mã số thuế</label><input v-model="form.tax_id" /></div>
           <div class="form-group"><label>Người liên hệ</label><input v-model="form.contact_person" /></div>
         </div>
-        <div class="form-group"><label>Ghi chú</label><textarea v-model="form.notes" rows="2"></textarea></div>
+        <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" rows="2"></textarea></div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="save">{{ editingId ? 'Cập nhật' : 'Thêm' }}</button>
         </div>
       </div>
@@ -72,6 +72,9 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Briefcase, Plus, Edit, Trash2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const suppliers = ref([])
@@ -115,7 +118,7 @@ async function save() {
   try {
     if (editingId.value) {
       await apiFetch(`/suppliers/${editingId.value}`, { method: 'PUT', body: JSON.stringify(form.value) })
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await apiFetch('/suppliers', { method: 'POST', body: JSON.stringify(form.value) })
       showToast('Đã thêm NCC', 'success')

@@ -12,10 +12,10 @@
 
   <div v-else class="resolver-404 container">
     <FileQuestion :size="64" />
-    <h2>Trang không tồn tại</h2>
-    <p>Rất tiếc, đường dẫn bạn đang truy cập không tồn tại hoặc đã bị xoá.</p>
+    <h2>{{ t('storefront.page_not_found') || 'Trang không tồn tại' }}</h2>
+    <p>{{ t('storefront.page_not_found_desc') || 'Rất tiếc, đường dẫn bạn đang truy cập không tồn tại hoặc đã bị xoá.' }}</p>
     <router-link to="/" class="btn btn--primary">
-      <ArrowLeft :size="16" /> Về trang chủ
+      <ArrowLeft :size="16" /> {{ t('storefront.back_home') || 'Về trang chủ' }}
     </router-link>
   </div>
 </template>
@@ -25,7 +25,9 @@ import { ref, watch, onMounted, defineAsyncComponent, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import { FileQuestion, ArrowLeft } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const route = useRoute()
 const loading = ref(true)
 const resolvedType = ref(null)

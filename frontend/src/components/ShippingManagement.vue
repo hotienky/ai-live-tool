@@ -39,7 +39,7 @@
       <div class="stat-card" style="--accent-color: #34d399;">
         <div class="stat-icon stat-icon--delivered"><CheckCircle :size="22" /></div>
         <div class="stat-value" style="color:#34d399">{{ shipStats.statusCounts?.delivered || 0 }}</div>
-        <div class="stat-label">Đã giao</div>
+        <div class="stat-label">{{ t('admin.delivered', 'Đã giao') }}</div>
       </div>
       <div class="stat-card" style="--accent-color: #60a5fa;">
         <div class="stat-icon stat-icon--rate"><TrendingUp :size="22" /></div>
@@ -56,14 +56,14 @@
             <th>#</th>
             <th>Đơn hàng</th>
             <th>Người nhận</th>
-            <th>SĐT</th>
+            <th>{{ t('admin.phone_short', 'SĐT') }}</th>
             <th>ĐVVC</th>
-            <th>Mã vận đơn</th>
+            <th>{{ t('admin.tracking_code', 'Mã vận đơn') }}</th>
             <th>Phí ship</th>
             <th>COD</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Hành động</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
+            <th>{{ t('admin.actions', 'Hành động') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -86,7 +86,7 @@
                 <button class="act-btn act-ship" @click="openTrackingModal(s)"><MapPin :size="13" /> Theo dõi</button>
                 <button class="act-btn act-print" @click="printShipmentLabel(s)"><Printer :size="13" /> In</button>
                 <button v-if="!['delivered','cancelled'].includes(s.status)" class="act-btn act-cancel" @click="cancelShipment(s)"><XCircle :size="13" /> Hủy</button>
-                <button v-if="s.status === 'draft'" class="act-btn act-cancel" @click="deleteShipment(s)"><Trash2 :size="13" /> Xóa</button>
+                <button v-if="s.status === 'draft'" class="act-btn act-cancel" @click="deleteShipment(s)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -187,7 +187,7 @@
               <input type="number" v-model.number="shipForm.insuranceFee" placeholder="0" />
             </div>
             <div class="form-group span-2">
-              <label>Ghi chú</label>
+              <label>{{ t('admin.notes', 'Ghi chú') }}</label>
               <textarea v-model="shipForm.notes" rows="2" placeholder="Ghi chú vận đơn..."></textarea>
             </div>
           </div>
@@ -214,7 +214,7 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showCreateModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showCreateModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button v-if="createStep > 1" class="btn-secondary-action" @click="createStep--">← Quay lại</button>
           <button v-if="createStep < 3" class="btn-create" @click="nextStep">Tiếp theo →</button>
           <button v-if="createStep === 3" class="btn-create" @click="createShipment"><Truck :size="14" /> Tạo vận đơn</button>
@@ -236,7 +236,7 @@
           >{{ label }}</button>
         </div>
         <div class="form-group" style="margin-top:16px">
-          <label>Mô tả</label>
+          <label>{{ t('admin.description', 'Mô tả') }}</label>
           <input v-model="statusDescription" placeholder="Mô tả trạng thái..." />
         </div>
         <div class="form-group">
@@ -244,8 +244,8 @@
           <input v-model="statusLocation" placeholder="VD: Kho HCM" />
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showStatusModal = false">Hủy</button>
-          <button class="btn-create" @click="submitStatus">Cập nhật</button>
+          <button class="btn-cancel" @click="showStatusModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
+          <button class="btn-create" @click="submitStatus">{{ t('admin.update', 'Cập nhật') }}</button>
         </div>
       </div>
     </div>
@@ -279,7 +279,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-secondary-action" @click="printShipmentLabel(trackingShipment)"><Printer :size="14" /> In phiếu gửi</button>
-          <button class="btn-cancel" @click="showTrackingModal = false">Đóng</button>
+          <button class="btn-cancel" @click="showTrackingModal = false">{{ t('admin.close', 'Đóng') }}</button>
         </div>
       </div>
     </div>
@@ -288,6 +288,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
@@ -296,6 +297,8 @@ import {
   Truck, Plus, Package, DollarSign, CheckCircle, RefreshCw,
   MapPin, Trash2, XCircle, Printer, TrendingUp
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({ /* tenant-scoped */ })

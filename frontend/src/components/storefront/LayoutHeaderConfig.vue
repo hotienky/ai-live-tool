@@ -142,6 +142,9 @@ import { apiFetch } from '../../composables/useApi.js'
 import { useNavLinks } from '../../composables/useNavLinks.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useToast } from '../../composables/useToast.js'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   headerConfig: { type: Object, required: true },

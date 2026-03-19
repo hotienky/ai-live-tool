@@ -11,6 +11,11 @@ class UpdateAction extends BaseAction
             $banner = $this->repo->find($id);
             if (!$banner) return $this->notFoundResponse('Banner not found');
             $this->repo->update($request->all(), $id);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('banners', $id, $request->input('translations'));
+            }
+
             $this->logActivity('banner.updated', 'banner', $id);
             return $this->successResponse($this->repo->find($id), 'Banner updated');
         } catch (\Exception $e) {

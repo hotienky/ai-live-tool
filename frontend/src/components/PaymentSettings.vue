@@ -2,15 +2,15 @@
   <div class="pay-settings">
     <h3 class="pay-settings__title"><CreditCard :size="16" /> Cấu hình thanh toán</h3>
 
-    <div v-if="loading" class="pay-settings__loading">Đang tải...</div>
+    <div v-if="loading" class="pay-settings__loading">{{ t('admin.loading', 'Đang tải...') }}</div>
     <template v-else>
       <!-- COD -->
       <div class="pay-settings__card">
         <div class="pay-settings__card-header">
           <Truck :size="18" />
           <div class="pay-settings__card-title">
-            <strong>Thanh toán khi nhận hàng (COD)</strong>
-            <span>Khách hàng trả tiền mặt khi nhận hàng</span>
+            <strong>{{ t('admin.cod', 'Thanh toán khi nhận hàng (COD)') }}</strong>
+            <span>{{ t('admin.cod_desc', 'Khách hàng trả tiền mặt khi nhận hàng') }}</span>
           </div>
           <label class="pay-settings__switch">
             <input type="checkbox" v-model="form.codEnabled" />
@@ -19,11 +19,11 @@
         </div>
         <div class="pay-settings__card-body" v-if="form.codEnabled">
           <div class="form-group">
-            <label>Tên hiển thị</label>
+            <label>{{ t('admin.display_name', 'Tên hiển thị') }}</label>
             <input v-model="form.codName" />
           </div>
           <div class="form-group">
-            <label>Mô tả</label>
+            <label>{{ t('admin.description', 'Mô tả') }}</label>
             <input v-model="form.codDescription" />
           </div>
         </div>
@@ -34,8 +34,8 @@
         <div class="pay-settings__card-header">
           <Building :size="18" />
           <div class="pay-settings__card-title">
-            <strong>Chuyển khoản ngân hàng</strong>
-            <span>Thanh toán qua chuyển khoản ngân hàng</span>
+            <strong>{{ t('admin.bank_transfer', 'Chuyển khoản ngân hàng') }}</strong>
+            <span>{{ t('admin.bank_transfer_desc', 'Thanh toán qua chuyển khoản ngân hàng') }}</span>
           </div>
           <label class="pay-settings__switch">
             <input type="checkbox" v-model="form.bankEnabled" />
@@ -44,44 +44,44 @@
         </div>
         <div class="pay-settings__card-body" v-if="form.bankEnabled">
           <div class="form-group">
-            <label>Tên hiển thị</label>
+            <label>{{ t('admin.display_name', 'Tên hiển thị') }}</label>
             <input v-model="form.bankName" />
           </div>
           <div class="form-group">
-            <label>Mô tả</label>
+            <label>{{ t('admin.description', 'Mô tả') }}</label>
             <input v-model="form.bankDescription" />
           </div>
           <div class="pay-settings__divider"></div>
-          <h4 class="pay-settings__section-title">Thông tin tài khoản</h4>
+          <h4 class="pay-settings__section-title">{{ t('admin.account_info', 'Thông tin tài khoản') }}</h4>
           <div class="pay-settings__row form-row">
             <div class="form-group">
-              <label>Tên ngân hàng</label>
+              <label>{{ t('admin.bank_name', 'Tên ngân hàng') }}</label>
               <input v-model="form.bankNameDisplay" placeholder="VD: Vietcombank" />
             </div>
             <div class="form-group">
-              <label>Chi nhánh</label>
+              <label>{{ t('admin.branch', 'Chi nhánh') }}</label>
               <input v-model="form.bankBranch" placeholder="VD: TP.HCM" />
             </div>
           </div>
           <div class="pay-settings__row form-row">
             <div class="form-group">
-              <label>Chủ tài khoản</label>
+              <label>{{ t('admin.account_holder', 'Chủ tài khoản') }}</label>
               <input v-model="form.bankAccountName" placeholder="NGUYEN VAN A" />
             </div>
             <div class="form-group">
-              <label>Số tài khoản</label>
+              <label>{{ t('admin.account_number', 'Số tài khoản') }}</label>
               <input v-model="form.bankAccountNumber" placeholder="1234567890" />
             </div>
           </div>
           <div class="form-group">
-            <label>Mẫu nội dung chuyển khoản</label>
+            <label>{{ t('admin.transfer_template', 'Mẫu nội dung chuyển khoản') }}</label>
             <input v-model="form.bankNoteTemplate" placeholder="DH{order_id}" />
             <span class="pay-settings__hint">Dùng <code>{order_id}</code> để tự động thay bằng mã đơn hàng</span>
           </div>
           <div class="pay-settings__divider"></div>
           <h4 class="pay-settings__section-title">QR Code (VietQR)</h4>
           <div class="form-group">
-            <label>Mã BIN ngân hàng</label>
+            <label>{{ t('admin.bank_bin', 'Mã BIN ngân hàng') }}</label>
             <input v-model="form.bankBin" placeholder="VD: 970436 (Vietcombank)" />
             <span class="pay-settings__hint">Tra cứu mã BIN tại <a href="https://www.vietqr.io/danh-sach-ngan-hang" target="_blank" style="color:var(--accent)">vietqr.io</a>. Ví dụ: Vietcombank = 970436, Techcombank = 970407, MBBank = 970422</span>
           </div>
@@ -90,7 +90,7 @@
 
       <!-- Save -->
       <button class="btn-primary" @click="save" :disabled="saving" style="margin-top:8px">
-        <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
       </button>
     </template>
   </div>
@@ -101,6 +101,9 @@ import { ref, onMounted } from 'vue'
 import { CreditCard, Truck, Building, Save } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const loading = ref(true)

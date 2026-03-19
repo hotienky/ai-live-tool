@@ -3,6 +3,8 @@
     <h4 class="lb-section__title"><LayoutDashboard :size="14" /> Cấu hình Footer</h4>
     <p class="lb-section__hint">Kéo thả để sắp xếp thứ tự các cột. Footer hiển thị ở cuối trang storefront.</p>
 
+    <LanguageTabs v-model="currentLang" style="margin: 15px 0" />
+
     <!-- Footer Columns -->
     <div class="footer-builder">
       <div
@@ -202,6 +204,10 @@ import { ref, computed, onMounted } from 'vue'
 import { LayoutDashboard, GripVertical, Trash2, Plus, X } from 'lucide-vue-next'
 import { apiFetch } from '../../composables/useApi.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
+import { useI18n } from '../../composables/useI18n.js'
+import LanguageTabs from '../LanguageTabs.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   footerConfig: { type: Object, required: true },
@@ -209,9 +215,35 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:footerConfig'])
 
+const currentLang = ref('vi')
+
 const config = computed({
-  get: () => props.footerConfig,
-  set: v => emit('update:footerConfig', v),
+  get: () => {
+    if (currentLang.value === 'vi') return props.footerConfig
+    if (!props.footerConfig.translations) props.footerConfig.translations = {}
+    if (!props.footerConfig.translations[currentLang.value]) {
+       // Copy structure but leave text empty
+       const base = JSON.parse(JSON.stringify(props.footerConfig))
+       base.columns.forEach(c => {
+         c.title = ''
+         c.content = ''
+         if (c.links) c.links.forEach(l => l.label = '')
+         if (c.items) c.items.forEach(i => { i.label = ''; i.value = '' })
+       })
+       base.legalText = ''
+       base.copyrightText = ''
+       props.footerConfig.translations[currentLang.value] = base
+    }
+    return props.footerConfig.translations[currentLang.value]
+  },
+  set: (v) => {
+    if (currentLang.value === 'vi') {
+      emit('update:footerConfig', v)
+    } else {
+      props.footerConfig.translations[currentLang.value] = v
+      emit('update:footerConfig', { ...props.footerConfig }) // force deep update
+    }
+  }
 })
 
 // CMS pages for link selector

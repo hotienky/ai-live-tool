@@ -80,10 +80,13 @@
 
 <script setup>
 import { ref, computed, onUnmounted } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import {
   FileText, X, Expand, Shrink, Play, Pause,
   Square, ChevronUp, ChevronDown
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 defineEmits(['close'])
 

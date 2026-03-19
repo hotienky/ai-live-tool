@@ -45,6 +45,10 @@ class StoreAction extends BaseAction
             $product = $this->productRepository->store($data);
             $this->logActivity('product.created', 'product', $product->id, ['name' => $data['name'], 'sku' => $data['sku']]);
 
+            if ($request->has('translations')) {
+                $this->syncTranslations('products', $product->id, $request->input('translations'));
+            }
+
             return $this->successResponse($product, 'Product created successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->validationErrorResponse($e->errors());

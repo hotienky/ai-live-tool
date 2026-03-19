@@ -58,7 +58,10 @@ export async function apiFetch(path, options = {}) {
   res.json = async () => {
     const json = await originalJson()
     // Unwrap: { type: "success", data: ... } → data
-    if (json && typeof json === 'object' && 'data' in json && json.type) {
+    if (json && typeof json === 'object' && 'type' in json && 'data' in json) {
+      if (json.type === 'error') {
+        throw new Error(json.message || 'API responded with an error')
+      }
       return json.data
     }
     return json

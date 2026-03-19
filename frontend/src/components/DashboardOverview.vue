@@ -8,7 +8,7 @@
         </div>
         <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.totalActiveLives || 0 }}</p>
-          <p class="dashboard__card-label">Đang Live</p>
+          <p class="dashboard__card-label">{{ t('admin.live_active', 'Đang Live') }}</p>
         </div>
         <div class="dashboard__card-shine"></div>
       </div>
@@ -18,7 +18,7 @@
         </div>
         <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.dbStats?.todayLeads || 0 }}</p>
-          <p class="dashboard__card-label">Leads hôm nay</p>
+          <p class="dashboard__card-label">{{ t('admin.leads_today', 'Leads hôm nay') }}</p>
         </div>
         <div class="dashboard__card-shine"></div>
       </div>
@@ -28,7 +28,7 @@
         </div>
         <div class="dashboard__card-body">
           <p class="dashboard__card-value">{{ overview?.dbStats?.todayComments || 0 }}</p>
-          <p class="dashboard__card-label">Comments hôm nay</p>
+          <p class="dashboard__card-label">{{ t('admin.comments_today', 'Comments hôm nay') }}</p>
         </div>
         <div class="dashboard__card-shine"></div>
       </div>
@@ -49,11 +49,11 @@
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
           <span class="dashboard__section-icon dashboard__section-icon--live"><Radio :size="15" /></span>
-          Phiên Live đang hoạt động
+          {{ t('admin.active_live_sessions', 'Phiên Live đang hoạt động') }}
         </h3>
         <div v-if="activeLives.length === 0" class="dashboard__empty">
           <Radio :size="32" class="dashboard__empty-icon" />
-          <span>Không có phiên live nào</span>
+          <span>{{ t('admin.no_live_sessions', 'Không có phiên live nào') }}</span>
           <span class="dashboard__empty-hint">Bắt đầu phiên live từ <strong>Live Monitor</strong></span>
         </div>
         <div v-for="live in activeLives" :key="live.shopId" class="dashboard__live-item" @click="$emit('goLive', live)" style="cursor:pointer">
@@ -77,11 +77,11 @@
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
           <span class="dashboard__section-icon dashboard__section-icon--leads"><Flame :size="15" /></span>
-          Leads mới nhất
+          {{ t('admin.recent_leads', 'Leads mới nhất') }}
         </h3>
         <div v-if="recentLeads.length === 0" class="dashboard__empty">
           <Flame :size="32" class="dashboard__empty-icon" />
-          <span>Chưa có leads nào</span>
+          <span>{{ t('admin.no_leads', 'Chưa có leads nào') }}</span>
           <span class="dashboard__empty-hint">Leads sẽ xuất hiện khi AI phân loại comments</span>
         </div>
         <div v-for="lead in recentLeads.slice(0, 10)" :key="lead.id || lead.timestamp" class="dashboard__lead-item" @click="$emit('goLead', lead)" style="cursor:pointer">
@@ -104,7 +104,7 @@
     <!-- Top Customers -->
     <div class="dashboard__section dashboard__section--full" v-if="topCustomers.length > 0">
       <h3 class="dashboard__section-title">
-        <Crown :size="16" /> Top Khách Hàng
+        <Crown :size="16" /> {{ t('admin.top_customers', 'Top Khách Hàng') }}
       </h3>
       <div class="dashboard__customers">
         <div v-for="(c, i) in topCustomers" :key="c.nickname" class="dashboard__customer" @click="$emit('goCustomer', c)" style="cursor:pointer">
@@ -134,10 +134,10 @@
         <Cpu :size="16" /> AI Queue
       </h3>
       <div class="dashboard__ai-stats">
-        <span><CheckCircle :size="13" style="color:#10b981;vertical-align:middle" /> Xử lý: {{ overview.aiStats.processed || 0 }}</span>
+        <span><CheckCircle :size="13" style="color:#10b981;vertical-align:middle" /> {{ t('admin.processed', 'Xử lý') }}: {{ overview.aiStats.processed || 0 }}</span>
         <span><Hourglass :size="13" style="color:#f59e0b;vertical-align:middle" /> Queue: {{ overview.aiStats.queueLength || 0 }}</span>
         <span><RefreshCw :size="13" style="color:#3b82f6;vertical-align:middle" /> Retry: {{ overview.aiStats.retried || 0 }}</span>
-        <span><XCircle :size="13" style="color:#ef4444;vertical-align:middle" /> Lỗi: {{ overview.aiStats.failed || 0 }}</span>
+        <span><XCircle :size="13" style="color:#ef4444;vertical-align:middle" /> {{ t('admin.errors', 'Lỗi') }}: {{ overview.aiStats.failed || 0 }}</span>
       </div>
     </div>
   </div>
@@ -146,10 +146,13 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useDashboard } from '../composables/useDashboard.js'
+import { useI18n } from '../composables/useI18n.js'
 import {
   Radio, Flame, MessageSquare, TrendingUp, Eye, CircleDot, Cpu, Crown,
   CheckCircle, Hourglass, RefreshCw, XCircle, Circle
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const emit = defineEmits(['goLive', 'goLead', 'goCustomer'])
 

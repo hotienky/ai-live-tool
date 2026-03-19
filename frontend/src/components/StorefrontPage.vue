@@ -30,6 +30,7 @@ import { ref, onMounted, watch } from 'vue'
 import { ArrowLeft, Calendar, Loader2, FileX } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
 
+
 const props = defineProps({
   storeId: { type: [String, Number], required: true },
   pageId: { type: [String, Number], required: true },

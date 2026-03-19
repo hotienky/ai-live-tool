@@ -31,12 +31,12 @@
 
         <!-- Sort -->
         <div class="sc-filter-group">
-          <label class="sc-filter-label">Sắp xếp</label>
+          <label class="sc-filter-label">{{ t('admin.sort', 'Sắp xếp') }}</label>
           <select v-model="sortBy" @change="reload()" class="sc-select">
-            <option value="created_at:desc">Mới nhất</option>
+            <option value="created_at:desc">{{ t('admin.newest', 'Mới nhất') }}</option>
             <option value="price:asc">Giá thấp → cao</option>
             <option value="price:desc">Giá cao → thấp</option>
-            <option value="name:asc">Tên A-Z</option>
+            <option value="name:asc">{{ t('admin.name_az', 'Tên A-Z') }}</option>
           </select>
         </div>
 
@@ -89,6 +89,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowLeft, SlidersHorizontal, Search, Package, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
+
 
 const props = defineProps({
   storeId: { type: [String, Number], required: true },

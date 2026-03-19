@@ -167,6 +167,7 @@ import SfFlashSaleSection from './storefront/SfFlashSaleSection.vue'
 import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
 import SfContentSection from './storefront/SfContentSection.vue'
 
+
 const contentSectionTypes = ['testimonials', 'faq', 'image_gallery', 'video_embed', 'text_block', 'newsletter', 'brands_slider', 'social_feed']
 
 const props = defineProps({

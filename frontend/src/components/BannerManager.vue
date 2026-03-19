@@ -4,7 +4,7 @@
       <h3><ImageIcon :size="16" /> Banner quảng cáo</h3>
       <div class="bm-actions">
         <select v-model="filterType" @change="reload" class="bm-filter">
-          <option value="">Tất cả</option>
+          <option value="">{{ t('admin.all', 'Tất cả') }}</option>
           <option value="banner">Banner</option>
           <option value="background">Background</option>
           <option value="breadcrumb">Breadcrumb</option>
@@ -48,18 +48,22 @@
           <a v-if="b.url" :href="b.url" target="_blank" class="bm-url">{{ b.url }}</a>
         </div>
         <div class="bm-card__actions">
-          <button class="act-btn act-edit" @click="openEdit(b)">Sửa</button>
-          <button class="act-btn act-cancel" @click="handleDelete(b)">Xóa</button>
+          <button class="act-btn act-edit" @click="openEdit(c)">{{ t('admin.edit', 'Sửa') }}</button>
+          <button class="act-btn act-cancel" @click="handleDelete(c)">{{ t('admin.delete', 'Xóa') }}</button>
         </div>
       </div>
     </div>
-    <p v-else class="empty">Chưa có banner nào</p>
+    <p v-else class="empty">{{ t('admin.no_banners', 'Chưa có banner nào') }}</p>
 
     <!-- Modal -->
     <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
       <div class="modal">
         <h3>{{ isEditing ? 'Sửa banner' : 'Thêm banner' }}</h3>
-        <div class="form-group"><label>Tiêu đề</label><input v-model="form.title" /></div>
+
+        <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['title', 'description']" :baseData="form" />
+
+        <div class="form-group"><label>{{ t('admin.title', 'Tiêu đề') }}</label><input v-model="fTitle" /></div>
+        <div class="form-group"><label>{{ t('admin.description', 'Mô tả') }}</label><textarea v-model="fDescription" rows="2" placeholder="Tùy chọn mô tả..."></textarea></div>
         <div class="form-group"><label>Hình ảnh (URL)</label><input v-model="form.image" placeholder="https://..." /></div>
 
         <!-- Image Preview -->
@@ -73,29 +77,16 @@
             <label>Kiểu</label>
             <select v-model="form.type"><option value="banner">Banner</option><option value="background">Background</option><option value="breadcrumb">Breadcrumb</option></select>
           </div>
-          <div class="form-group"><label>Thứ tự</label><input v-model.number="form.sort" type="number" /></div>
+          <div class="form-group"><label>{{ t('admin.order', 'Thứ tự') }}</label><input v-model.number="form.sort" type="number" /></div>
           <div class="form-group">
-            <label>Trạng thái</label>
+            <label>{{ t('admin.status', 'Trạng thái') }}</label>
             <select v-model="form.status"><option :value="1">Active</option><option :value="0">Inactive</option></select>
           </div>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-save" @click="handleSave">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
         </div>
-
-        <!-- Multi-language -->
-        <ContentTranslationEditor
-          v-if="isEditing && editId"
-          :tableName="'banners'"
-          :rowId="editId"
-          :fields="[
-            { key: 'title', label: 'Tiêu đề', type: 'text' },
-            { key: 'description', label: 'Mô tả', type: 'textarea' },
-          ]"
-          :defaultValues="{ title: form.title, description: form.description || '' }"
-          :moduleActive="languagesInstalled"
-        />
       </div>
     </div>
   </div>
@@ -107,7 +98,10 @@ import { apiFetch } from '../composables/useApi.js'
 import { useBanners } from '../composables/useBanners.js'
 import { useToast } from '../composables/useToast.js'
 import { Image as ImageIcon, GripVertical } from 'lucide-vue-next'
-import ContentTranslationEditor from './ContentTranslationEditor.vue'
+import LanguageTabs from './LanguageTabs.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const props = defineProps({
@@ -119,7 +113,14 @@ const filterType = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
-const form = ref({ title: '', image: '', url: '', type: 'banner', sort: 0, status: 1 })
+const currentLang = ref('vi')
+const form = ref({ title: '', description: '', image: '', url: '', type: 'banner', sort: 0, status: 1, translations: {} })
+
+import { useContentTranslations } from '../composables/useContentTranslations.js'
+const { tField } = useContentTranslations(form, currentLang)
+
+const fTitle = tField('title')
+const fDescription = tField('description')
 
 // ─── Drag & Drop state ───
 const dragIndex = ref(null)
@@ -182,13 +183,24 @@ function reload() { fetchBanners({ ...(filterType.value ? { type: filterType.val
 onMounted(reload)
 
 function openCreate() {
-  isEditing.value = false; editId.value = null
-  form.value = { title: '', image: '', url: '', type: 'banner', sort: 0, status: 1 }
+  isEditing.value = false; editId.value = null; currentLang.value = 'vi'
+  form.value = { title: '', description: '', image: '', url: '', type: 'banner', sort: 0, status: 1, translations: {} }
   showModal.value = true
 }
-function openEdit(b) {
-  isEditing.value = true; editId.value = b.id
-  form.value = { title: b.title, image: b.image, url: b.url || '', type: b.type, sort: b.sort, status: b.status }
+async function openEdit(b) {
+  isEditing.value = true; editId.value = b.id; currentLang.value = 'vi'
+  form.value = { title: b.title, description: b.description || '', image: b.image, url: b.url || '', type: b.type, sort: b.sort, status: b.status, translations: {} }
+  
+  try {
+    const transRes = await apiFetch(`/languages/content/banners/${b.id}`)
+    const transData = await transRes.json()
+    if (transData?.grouped) {
+      form.value.translations = Array.isArray(transData.grouped) ? {} : transData.grouped
+    }
+  } catch (e) {
+    console.warn('Could not load banner translations:', e)
+  }
+
   showModal.value = true
 }
 async function toggleStatus(b) {
@@ -204,7 +216,7 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateBanner(editId.value, form.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createBanner({ ...form.value })
       showToast('Đã tạo banner', 'success')

@@ -4,7 +4,7 @@
       <div class="login-card__logo">
         <Rocket :size="32" />
         <h1>AI Live Tool</h1>
-        <p class="login-card__subtitle">Công cụ hỗ trợ livestream thông minh</p>
+        <p class="login-card__subtitle">{{ t('admin.smart_livestream_tool', 'Công cụ hỗ trợ livestream thông minh') }}</p>
       </div>
 
       <form @submit.prevent="onSubmit" class="login-card__form">
@@ -65,11 +65,14 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { useAuth } from '../composables/useAuth.js'
 import {
   Rocket, Mail, Lock, Eye, EyeOff,
   AlertCircle, Loader2, LogIn
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const emit = defineEmits(['loginSuccess'])
 

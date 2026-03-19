@@ -28,6 +28,9 @@
 <script setup>
 import { computed } from 'vue'
 import { ShoppingBag, Package } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   products: { type: Array, default: () => [] },

@@ -81,7 +81,7 @@
           :disabled="saving"
         >
           <Save :size="13" />
-          {{ saving ? 'Đang lưu...' : 'Lưu thông tin' }}
+          {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu thông tin' }}
         </button>
         <span v-if="saveSuccess" class="customer-modal__save-ok"><Check :size="14" /> Đã lưu!</span>
       </div>
@@ -91,7 +91,7 @@
         <h4 class="customer-modal__section-title">
           <Clock :size="14" /> Lịch sử bình luận
         </h4>
-        <div v-if="loading" class="customer-modal__loading">Đang tải...</div>
+        <div v-if="loading" class="customer-modal__loading">{{ t('admin.loading', 'Đang tải...') }}</div>
         <div v-else class="customer-modal__timeline">
           <div v-for="log in chatLogs" :key="log.id" class="customer-modal__log">
             <div class="customer-modal__log-meta">
@@ -132,6 +132,9 @@ defineEmits(['close'])
 
 import { apiFetch } from '../composables/useApi.js'
 import { logger } from '../utils/logger.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const chatLogs = ref([])
 const loading = ref(false)
 const tags = ref([])

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class CustomFieldsController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, \App\Traits\HasContentTranslations;
 
     public function __construct(private CustomFieldRepositoryInterface $repo) {}
 
@@ -26,6 +26,11 @@ class CustomFieldsController extends Controller
             $data['options'] = json_encode($data['options']);
         }
         $field = $this->repo->store($data);
+
+        if ($request->has('translations')) {
+            $this->syncTranslations('custom_fields', $field->id, $request->input('translations'));
+        }
+
         return $this->successResponse($field, 'Custom field created', 201);
     }
 
@@ -36,6 +41,11 @@ class CustomFieldsController extends Controller
             $data['options'] = json_encode($data['options']);
         }
         $this->repo->update($data, $id);
+
+        if ($request->has('translations')) {
+            $this->syncTranslations('custom_fields', $id, $request->input('translations'));
+        }
+
         return $this->successResponse($this->repo->findOne($id));
     }
 

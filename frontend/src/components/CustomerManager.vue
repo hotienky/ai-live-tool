@@ -13,12 +13,12 @@
       <table class="cm-table" v-if="customers.length">
         <thead>
           <tr>
-            <th>Tên</th>
+            <th>{{ t('admin.name', 'Tên') }}</th>
             <th>Email</th>
-            <th>SĐT</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Hành động</th>
+            <th>{{ t('admin.phone_short', 'SĐT') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
+            <th>{{ t('admin.actions', 'Hành động') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -29,14 +29,14 @@
             <td><span class="status-dot" :class="c.status === 1 ? 'active' : 'inactive'">{{ c.status === 1 ? 'Active' : 'Inactive' }}</span></td>
             <td>{{ formatDate(c.createdAt) }}</td>
             <td class="actions-cell">
-              <button class="act-btn act-edit" @click="openEdit(c)">Sửa</button>
-              <button class="act-btn act-ship" @click="openAddresses(c)"><MapPin :size="13" /> Địa chỉ</button>
-              <button class="act-btn act-cancel" @click="handleDelete(c)">Xóa</button>
+              <button class="act-btn act-edit" @click="openEdit(c)">{{ t('admin.edit', 'Sửa') }}</button>
+              <button class="act-btn act-ship" @click="openAddresses(c)"><MapPin :size="13" /> {{ t('admin.address', 'Địa chỉ') }}</button>
+              <button class="act-btn act-cancel" @click="handleDelete(c)">{{ t('admin.delete', 'Xóa') }}</button>
             </td>
           </tr>
         </tbody>
       </table>
-      <p v-else class="empty">Chưa có khách hàng nào</p>
+      <p v-else class="empty">{{ t('admin.no_customers', 'Chưa có khách hàng nào') }}</p>
     </div>
 
     <!-- Create/Edit Modal -->
@@ -44,22 +44,22 @@
       <div class="modal">
         <h3>{{ isEditing ? 'Sửa khách hàng' : 'Thêm khách hàng' }}</h3>
         <div class="form-row">
-          <div class="form-group"><label>Họ</label><input v-model="form.firstName" /></div>
-          <div class="form-group"><label>Tên</label><input v-model="form.lastName" /></div>
+          <div class="form-group"><label>{{ t('admin.first_name', 'Họ') }}</label><input v-model="form.firstName" /></div>
+          <div class="form-group"><label>{{ t('admin.last_name', 'Tên') }}</label><input v-model="form.lastName" /></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Email</label><input v-model="form.email" type="email" /></div>
           <div class="form-group"><label>SĐT</label><input v-model="form.phone" /></div>
         </div>
         <div class="form-group" v-if="!isEditing">
-          <label>Mật khẩu</label><input v-model="form.password" type="password" placeholder="Tùy chọn" />
+          <label>{{ t('admin.password', 'Mật khẩu') }}</label><input v-model="form.password" type="password" placeholder="Tùy chọn" />
         </div>
         <div class="form-group">
-          <label>Trạng thái</label>
+          <label>{{ t('admin.status', 'Trạng thái') }}</label>
           <select v-model="form.status"><option :value="1">Active</option><option :value="0">Inactive</option></select>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-save" @click="handleSave">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
         </div>
       </div>
@@ -77,7 +77,7 @@
               <div class="address-detail">{{ a.address1 }}, {{ a.district }}, {{ a.city }}, {{ a.province }}</div>
             </div>
             <div class="address-actions">
-              <button class="act-btn act-cancel" @click="handleDeleteAddress(a.id)">Xóa</button>
+              <button class="act-btn act-cancel" @click="handleDelete(c)">{{ t('admin.delete', 'Xóa') }}</button>
             </div>
           </div>
         </div>
@@ -85,21 +85,21 @@
 
         <h4>Thêm địa chỉ mới</h4>
         <div class="form-row">
-          <div class="form-group"><label>Họ</label><input v-model="addrForm.firstName" /></div>
-          <div class="form-group"><label>Tên</label><input v-model="addrForm.lastName" /></div>
+          <div class="form-group"><label>{{ t('admin.first_name', 'Họ') }}</label><input v-model="addrForm.firstName" /></div>
+          <div class="form-group"><label>{{ t('admin.last_name', 'Tên') }}</label><input v-model="addrForm.lastName" /></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label>SĐT</label><input v-model="addrForm.phone" /></div>
           <div class="form-group"><label>Mã bưu điện</label><input v-model="addrForm.postcode" /></div>
         </div>
-        <div class="form-group"><label>Địa chỉ</label><input v-model="addrForm.address1" placeholder="Số nhà, đường..." /></div>
+        <div class="form-group"><label>{{ t('admin.address', 'Địa chỉ') }}</label><input v-model="addrForm.address1" placeholder="Số nhà, đường..." /></div>
         <div class="form-row">
           <div class="form-group"><label>Quận/Huyện</label><input v-model="addrForm.district" /></div>
           <div class="form-group"><label>Thành phố</label><input v-model="addrForm.city" /></div>
           <div class="form-group"><label>Tỉnh</label><input v-model="addrForm.province" /></div>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showAddressModal = false">Đóng</button>
+          <button class="btn-cancel" @click="showAddressModal = false">{{ t('admin.close', 'Đóng') }}</button>
           <button class="btn-save" @click="handleAddAddress">+ Thêm địa chỉ</button>
         </div>
       </div>
@@ -113,6 +113,9 @@ import { apiFetch } from '../composables/useApi.js'
 import { useShopCustomers } from '../composables/useShopCustomers.js'
 import { useToast } from '../composables/useToast.js'
 import { Users } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 const { customers, loading, fetchCustomers, createCustomer, updateCustomer, deleteCustomer, fetchAddresses: fetchAddressesApi, addAddress, deleteAddress: deleteAddressApi } = useShopCustomers(apiFetch)
 
@@ -154,7 +157,7 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateCustomer(editId.value, form.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createCustomer({ ...form.value,  })
       showToast('Đã tạo KH', 'success')

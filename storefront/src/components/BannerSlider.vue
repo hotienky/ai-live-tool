@@ -8,7 +8,7 @@
           <h2 class="banner-slider__title">{{ b.title }}</h2>
           <p v-if="b.description" class="banner-slider__desc">{{ b.description }}</p>
           <router-link v-if="b.url" :to="b.url" class="btn btn--primary banner-slider__cta">
-            Xem ngay <ArrowRight :size="16" />
+            {{ t('storefront.view_now') || 'Xem ngay' }} <ArrowRight :size="16" />
           </router-link>
         </div>
       </div>
@@ -38,6 +38,9 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   banners: { type: Array, default: () => [] },

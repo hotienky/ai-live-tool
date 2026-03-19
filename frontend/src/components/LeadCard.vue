@@ -86,10 +86,13 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import {
   Flame, CircleDot, ExternalLink, MessageCircle,
   Loader2, Bot, Copy, Check, ShoppingBag
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const props = defineProps({
   nickname: String,

@@ -6,7 +6,7 @@
         <span class="lead-panel__title-badge">
           <DollarSign :size="18" />
         </span>
-        Khách hàng tiềm năng
+        {{ t('admin.potential_customers', 'Khách hàng tiềm năng') }}
         <span class="lead-panel__count" v-if="filteredLeads.length">
           {{ filteredLeads.length }}
         </span>
@@ -72,8 +72,8 @@
         <div class="lead-panel__empty-icon">
           <RadioTower :size="48" />
         </div>
-        <p v-if="searchQuery || activeKeyword">Không tìm thấy kết quả</p>
-        <p v-else>Đang lắng nghe bình luận...</p>
+        <p v-if="searchQuery || activeKeyword">{{ t('admin.no_results', 'Không tìm thấy kết quả') }}</p>
+        <p v-else>{{ t('admin.listening_comments', 'Đang lắng nghe bình luận...') }}</p>
         <p class="lead-panel__empty-sub">
           <template v-if="searchQuery || activeKeyword">
             Thử từ khóa khác hoặc <a href="#" @click.prevent="clearAllFilters">xóa bộ lọc</a>
@@ -98,6 +98,9 @@ import { ref, computed, watch } from 'vue'
 import LeadCard from './LeadCard.vue'
 import { Search, X, Tag, RadioTower, DollarSign, List, Flame, CircleDot } from 'lucide-vue-next'
 import { useUrlParam } from '../composables/useUrlFilter.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   leads: {

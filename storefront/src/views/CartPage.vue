@@ -1,16 +1,16 @@
 <template>
   <div class="cart-page container">
-    <h1 class="page-title"><ShoppingCart :size="24" /> Giỏ hàng ({{ cartCount }})</h1>
+    <h1 class="page-title"><ShoppingCart :size="24" /> {{ t('storefront.cart_title') || 'Giỏ hàng' }} ({{ cartCount }})</h1>
 
     <!-- Free Shipping Progress Bar -->
     <div v-if="cartItems.length > 0" class="free-ship-bar">
       <div class="free-ship-bar__info">
         <Truck :size="16" />
         <span v-if="cartTotal >= freeShipThreshold">
-          🎉 Bạn đã được <strong>miễn phí vận chuyển!</strong>
+          🎉 {{ t('storefront.free_ship_success') || 'Bạn đã được miễn phí vận chuyển!' }}
         </span>
         <span v-else>
-          Thêm <strong>{{ formatPrice(freeShipThreshold - cartTotal) }}</strong> để được <strong>miễn phí vận chuyển</strong>
+          {{ (t('storefront.buy_more_for_free_ship') || 'Thêm {amount} để được miễn phí vận chuyển').replace('{amount}', formatPrice(freeShipThreshold - cartTotal)) }}
         </span>
       </div>
       <div class="free-ship-bar__track">
@@ -21,10 +21,10 @@
     <!-- Empty Cart -->
     <div v-if="cartItems.length === 0" class="cart-empty">
       <ShoppingBag :size="64" class="cart-empty__icon" />
-      <h2>Giỏ hàng trống</h2>
-      <p>Thêm sản phẩm để bắt đầu mua sắm</p>
+      <h2>{{ t('storefront.cart_empty') || 'Giỏ hàng trống' }}</h2>
+      <p>{{ t('storefront.cart_empty_desc') || 'Thêm sản phẩm để bắt đầu mua sắm' }}</p>
       <router-link to="/products" class="btn btn--primary">
-        <ArrowLeft :size="16" /> Tiếp tục mua sắm
+        <ArrowLeft :size="16" /> {{ t('storefront.continue_shopping') || 'Tiếp tục mua sắm' }}
       </router-link>
     </div>
 
@@ -65,9 +65,9 @@
       <!-- Cart Summary -->
       <div class="cart-summary">
         <div class="cart-summary__card">
-          <h3>Tóm tắt đơn hàng</h3>
+          <h3>{{ t('storefront.order_summary') || 'Tóm tắt đơn hàng' }}</h3>
           <div class="summary-row">
-            <span>Tạm tính ({{ cartCount }} sản phẩm)</span>
+            <span>{{ t('storefront.subtotal') || 'Tạm tính' }} ({{ cartCount }} SP)</span>
             <span>{{ formatPrice(cartTotal) }}</span>
           </div>
 
@@ -76,7 +76,7 @@
             <div class="voucher-input-row">
               <input
                 v-model="couponCode"
-                placeholder="Nhập mã giảm giá"
+                :placeholder="t('storefront.enter_coupon') || 'Nhập mã giảm giá'"
                 :disabled="couponApplied || couponLoading"
                 class="voucher-input"
                 @keyup.enter="applyCoupon"
@@ -88,7 +88,7 @@
                 @click="applyCoupon"
               >
                 <template v-if="couponLoading">...</template>
-                <template v-else>Áp dụng</template>
+                <template v-else>{{ t('storefront.apply') || 'Áp dụng' }}</template>
               </button>
               <button
                 v-else
@@ -102,23 +102,23 @@
               <AlertTriangle :size="12" /> {{ couponError }}
             </div>
             <div v-if="couponApplied" class="voucher-msg voucher-msg--success">
-              <CheckCircle :size="12" /> Giảm <strong>{{ formatPrice(couponDiscount) }}</strong>
+              <CheckCircle :size="12" /> {{ t('storefront.discount') || 'Giảm' }} <strong>{{ formatPrice(couponDiscount) }}</strong>
             </div>
           </div>
 
           <div v-if="couponDiscount > 0" class="summary-row summary-row--discount">
-            <span>Giảm giá</span>
+            <span>{{ t('storefront.discount') || 'Giảm giá' }}</span>
             <span>-{{ formatPrice(couponDiscount) }}</span>
           </div>
           <div class="summary-row summary-row--total">
-            <span>Tổng cộng</span>
+            <span>{{ t('storefront.total') || 'Tổng cộng' }}</span>
             <span>{{ formatPrice(finalTotal) }}</span>
           </div>
           <router-link to="/checkout" class="btn btn--primary btn--block">
-            Thanh toán <ArrowRight :size="16" />
+            {{ t('storefront.checkout_button') || 'Thanh toán' }} <ArrowRight :size="16" />
           </router-link>
           <router-link to="/products" class="btn btn--outline btn--block">
-            <ArrowLeft :size="14" /> Tiếp tục mua sắm
+            <ArrowLeft :size="14" /> {{ t('storefront.continue_shopping') || 'Tiếp tục mua sắm' }}
           </router-link>
         </div>
       </div>
@@ -134,7 +134,9 @@ import {
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useCoupon } from '../composables/useCoupon.js'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const { cartItems, cartCount, cartTotal, updateQty, removeFromCart } = useCart()
 const {
   couponCode, couponDiscount, couponApplied, couponError, couponLoading,

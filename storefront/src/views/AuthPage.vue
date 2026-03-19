@@ -3,8 +3,8 @@
     <div class="auth-card" :style="{ maxWidth: authConfig.cardMaxWidth + 'px' }">
       <!-- Tab switch -->
       <div class="auth-tabs">
-        <button :class="{ active: mode === 'login' }" @click="mode = 'login'">Đăng nhập</button>
-        <button v-if="authConfig.allowRegister" :class="{ active: mode === 'register' }" @click="mode = 'register'">Đăng ký</button>
+        <button :class="{ active: mode === 'login' }" @click="mode = 'login'">{{ t('storefront.login') || 'Đăng nhập' }}</button>
+        <button v-if="authConfig.allowRegister" :class="{ active: mode === 'register' }" @click="mode = 'register'">{{ t('storefront.register') || 'Đăng ký' }}</button>
       </div>
 
       <!-- Login Form -->
@@ -19,9 +19,9 @@
         </div>
         <div class="auth-error" v-if="error">{{ error }}</div>
         <button type="submit" class="auth-submit" :disabled="loading">
-          {{ loading ? 'Đang xử lý...' : 'Đăng nhập' }}
+          {{ loading ? (t('storefront.processing') || 'Đang xử lý...') : (t('storefront.login') || 'Đăng nhập') }}
         </button>
-        <p v-if="authConfig.allowForgotPassword" class="auth-link" @click="mode = 'forgot'">Quên mật khẩu?</p>
+        <p v-if="authConfig.allowForgotPassword" class="auth-link" @click="mode = 'forgot'">{{ t('storefront.forgot_password') || 'Quên mật khẩu?' }}</p>
       </form>
 
       <!-- Register Form -->
@@ -50,7 +50,7 @@
         </div>
         <div class="auth-error" v-if="error">{{ error }}</div>
         <button type="submit" class="auth-submit" :disabled="loading">
-          {{ loading ? 'Đang xử lý...' : 'Tạo tài khoản' }}
+          {{ loading ? (t('storefront.processing') || 'Đang xử lý...') : (t('storefront.create_account') || 'Tạo tài khoản') }}
         </button>
       </form>
 
@@ -76,7 +76,9 @@
 import { ref, reactive, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const router = useRouter()
 const { login, register, forgotPassword, loading, error } = useAuth()
 

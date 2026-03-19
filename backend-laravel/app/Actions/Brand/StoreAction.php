@@ -18,6 +18,11 @@ class StoreAction extends BaseAction
             ]);
             $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
             $brand = $this->repo->store($data);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('brands', $brand->id, $request->input('translations'));
+            }
+
             return $this->successResponse($brand, 'Brand created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

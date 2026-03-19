@@ -39,7 +39,7 @@
             <input v-model="editForm.name" class="role-mgr__slug-input" placeholder="slug (VD: manager)" :disabled="selectedRole?.name === 'super_admin'" />
             <div class="role-mgr__actions">
               <button class="role-mgr__save-btn" @click="saveRole" :disabled="saving">
-                <Save :size="13" /> {{ saving ? 'Đang lưu...' : 'Lưu' }}
+                <Save :size="13" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
               </button>
               <button v-if="selectedRole && selectedRole.name !== 'super_admin'" class="role-mgr__delete-btn" @click="deleteRole">
                 <Trash2 :size="13" /> Xóa
@@ -92,16 +92,16 @@
         <table class="user-mgr__table">
           <thead>
             <tr>
-              <th>Tên</th>
+              <th>{{ t('admin.name', 'Tên') }}</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Trạng thái</th>
-              <th>Ngày tạo</th>
+              <th>{{ t('admin.status', 'Trạng thái') }}</th>
+              <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            <tr v-if="loadingUsers"><td colspan="6" class="user-mgr__loading">Đang tải...</td></tr>
+            <tr v-if="loadingUsers"><td colspan="6" class="user-mgr__loading">{{ t('admin.loading', 'Đang tải...') }}</td></tr>
             <tr v-else-if="filteredUsers.length === 0"><td colspan="6" class="user-mgr__empty-row">Chưa có user nào</td></tr>
             <tr v-for="u in filteredUsers" :key="u.id" class="user-mgr__row">
               <td class="user-mgr__name-cell">
@@ -128,8 +128,8 @@
               </td>
               <td class="user-mgr__date">{{ formatDate(u.created_at) }}</td>
               <td class="user-mgr__actions-cell">
-                <button class="user-mgr__icon-btn" title="Sửa" @click="openUserModal(u)"><Pencil :size="13" /></button>
-                <button class="user-mgr__icon-btn danger" title="Xóa" @click="deleteUser(u)"><Trash2 :size="13" /></button>
+                <button class="user-mgr__icon-btn" :title="t('admin.edit', 'Sửa')" @click="openUserModal(u)"><Pencil :size="13" /></button>
+                <button class="user-mgr__icon-btn danger" :title="t('admin.delete', 'Xóa')" @click="deleteUser(u)"><Trash2 :size="13" /></button>
               </td>
             </tr>
           </tbody>
@@ -171,7 +171,7 @@
               </select>
             </div>
             <div class="form-row form-row--inline">
-              <label>Trạng thái</label>
+              <label>{{ t('admin.status', 'Trạng thái') }}</label>
               <label class="toggle-switch">
                 <input type="checkbox" v-model="userForm.is_active" />
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
@@ -184,7 +184,7 @@
             <button class="btn-cancel" @click="showUserModal = false">Huỷ</button>
             <button class="btn-save" @click="submitUserForm" :disabled="savingUser">
               <Loader2 v-if="savingUser" :size="14" class="spin" />
-              {{ savingUser ? 'Đang lưu...' : (userModalMode === 'create' ? 'Tạo user' : 'Lưu thay đổi') }}
+              {{ savingUser ? t('admin.saving', 'Đang lưu...') : (userModalMode === 'create' ? 'Tạo user' : 'Lưu thay đổi') }}
             </button>
           </div>
         </div>
@@ -198,6 +198,9 @@ import { ref, computed, onMounted } from 'vue'
 import { ShieldCheck, Plus, Save, Trash2, Users, AlertCircle, UserPlus, Search, Pencil, X, Eye, EyeOff, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 

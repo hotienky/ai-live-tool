@@ -21,7 +21,7 @@
       </div>
       <div class="product-card__stock" v-if="product.stock !== undefined">
         <span :class="product.stock > 0 ? 'in-stock' : 'out-stock'">
-          {{ product.stock > 0 ? 'Còn hàng' : 'Hết hàng' }}
+          {{ product.stock > 0 ? (t('storefront.in_stock') || 'Còn hàng') : (t('storefront.out_of_stock') || 'Hết hàng') }}
         </span>
       </div>
       <div class="product-card__meta">
@@ -29,7 +29,7 @@
           <Star :size="12" /> {{ Number(product.avg_rating).toFixed(1) }}
         </span>
         <span v-if="product.sold_count" class="product-card__sold">
-          Đã bán {{ formatSoldCount(product.sold_count) }}
+          {{ t('storefront.sold') || 'Đã bán' }} {{ formatSoldCount(product.sold_count) }}
         </span>
       </div>
     </div>
@@ -39,6 +39,9 @@
 <script setup>
 import { computed } from 'vue'
 import { Package, Eye, Star } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   product: { type: Object, required: true },

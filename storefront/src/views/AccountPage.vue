@@ -12,21 +12,21 @@
         </div>
         <nav class="account-nav">
           <button :class="{ active: tab === 'profile' }" @click="tab = 'profile'">
-            <span class="nav-icon"><User :size="16" /></span> Thông tin cá nhân
+            <span class="nav-icon"><User :size="16" /></span> {{ t('storefront.profile') || 'Thông tin cá nhân' }}
           </button>
           <button v-if="accountConfig.showOrders" :class="{ active: tab === 'orders' }" @click="tab = 'orders'; loadOrders()">
-            <span class="nav-icon"><Package :size="16" /></span> Đơn hàng
+            <span class="nav-icon"><Package :size="16" /></span> {{ t('storefront.orders') || 'Đơn hàng' }}
             <span v-if="orders.length" class="nav-badge">{{ orders.length }}</span>
           </button>
           <button v-if="accountConfig.showAddresses" :class="{ active: tab === 'addresses' }" @click="tab = 'addresses'; loadAddresses()">
-            <span class="nav-icon"><MapPin :size="16" /></span> Địa chỉ giao hàng
+            <span class="nav-icon"><MapPin :size="16" /></span> {{ t('storefront.addresses') || 'Địa chỉ giao hàng' }}
           </button>
           <button v-if="accountConfig.showPasswordChange" :class="{ active: tab === 'password' }" @click="tab = 'password'">
-            <span class="nav-icon"><Lock :size="16" /></span> Đổi mật khẩu
+            <span class="nav-icon"><Lock :size="16" /></span> {{ t('storefront.change_password') || 'Đổi mật khẩu' }}
           </button>
           <div class="nav-divider"></div>
           <button class="logout-btn" @click="onLogout">
-            <span class="nav-icon"><LogOut :size="16" /></span> Đăng xuất
+            <span class="nav-icon"><LogOut :size="16" /></span> {{ t('storefront.logout') || 'Đăng xuất' }}
           </button>
         </nav>
       </aside>
@@ -36,7 +36,7 @@
         <!-- Profile Tab -->
         <div v-if="tab === 'profile'" class="tab-content">
           <div class="tab-title">
-            <h2>Thông tin cá nhân</h2>
+            <h2>{{ t('storefront.profile') || 'Thông tin cá nhân' }}</h2>
             <p class="tab-desc">Quản lý thông tin cá nhân để bảo mật tài khoản</p>
           </div>
           <form @submit.prevent="onUpdateProfile" class="profile-form">
@@ -70,7 +70,7 @@
         <!-- Orders Tab -->
         <div v-if="tab === 'orders'" class="tab-content">
           <div class="tab-title">
-            <h2>Lịch sử đơn hàng</h2>
+            <h2>{{ t('storefront.order_history') || 'Lịch sử đơn hàng' }}</h2>
             <p class="tab-desc">Theo dõi và quản lý đơn hàng của bạn</p>
           </div>
 
@@ -158,7 +158,7 @@
         <!-- Addresses Tab -->
         <div v-if="tab === 'addresses'" class="tab-content">
           <div class="tab-title">
-            <h2>Địa chỉ giao hàng</h2>
+            <h2>{{ t('storefront.addresses') || 'Địa chỉ giao hàng' }}</h2>
             <p class="tab-desc">Quản lý địa chỉ để thanh toán nhanh hơn</p>
             <button class="btn-primary btn-sm" @click="showAddrForm = !showAddrForm" style="margin-top: 8px;">
               <template v-if="showAddrForm"><X :size="14" /> Đóng</template>
@@ -235,7 +235,7 @@
         <!-- Change Password Tab -->
         <div v-if="tab === 'password'" class="tab-content">
           <div class="tab-title">
-            <h2>Đổi mật khẩu</h2>
+            <h2>{{ t('storefront.change_password') || 'Đổi mật khẩu' }}</h2>
             <p class="tab-desc">Để bảo vệ tài khoản, hãy sử dụng mật khẩu mạnh</p>
           </div>
           <form @submit.prevent="onChangePassword" class="profile-form">
@@ -269,11 +269,13 @@
 import { ref, reactive, computed, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
+import { useI18n } from '../composables/useI18n.js'
 import {
   User, Package, MapPin, Lock, LogOut, Save, Check, X,
   ShoppingBag, Plus, Pencil, Trash2
 } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const router = useRouter()
 const { customer, isLoggedIn, authFetch, updateProfile, changePassword, logout, fetchProfile } = useAuth()
 

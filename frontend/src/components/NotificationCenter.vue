@@ -9,7 +9,7 @@
     <!-- Panel -->
     <div v-if="isOpen" class="notif-center__panel">
       <div class="notif-center__header">
-        <h3>Thông báo</h3>
+        <h3>{{ t('admin.notifications', 'Thông báo') }}</h3>
         <button v-if="notifications.length > 0" class="notif-center__clear" @click="clearAll">Xóa tất cả</button>
       </div>
       <div class="notif-center__list">
@@ -37,6 +37,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Bell, Flame, KeyRound, Radio, Dices, Info } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const isOpen = ref(false)
 const notifications = ref([])

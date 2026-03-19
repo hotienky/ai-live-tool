@@ -126,6 +126,9 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { MessagesSquare, Clock, Flame, CircleDot, Search, ArrowDown, Pause, X, ShoppingBag, MessageCircle, Circle } from 'lucide-vue-next'
 import { useUrlParam } from '../composables/useUrlFilter.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },

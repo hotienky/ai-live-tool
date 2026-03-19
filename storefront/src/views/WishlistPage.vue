@@ -4,21 +4,21 @@
     <div class="wl-header">
       <h1 class="wl-title">
         <Heart :size="24" class="wl-title__icon" />
-        Sản phẩm yêu thích
+        {{ t('storefront.wishlist') || 'Sản phẩm yêu thích' }}
         <span class="wl-count" v-if="wishlistItems.length">({{ wishlistItems.length }})</span>
       </h1>
       <button v-if="wishlistItems.length" class="wl-clear-btn" @click="confirmClear">
-        <Trash2 :size="14" /> Xóa tất cả
+        <Trash2 :size="14" /> {{ t('storefront.clear_all') || 'Xóa tất cả' }}
       </button>
     </div>
 
     <!-- Empty State -->
     <div v-if="!wishlistItems.length" class="wl-empty">
       <HeartOff :size="60" class="wl-empty__icon" />
-      <h2>Chưa có sản phẩm yêu thích</h2>
-      <p>Nhấn vào biểu tượng ❤️ trên trang sản phẩm để lưu sản phẩm bạn thích vào đây.</p>
+      <h2>{{ t('storefront.empty_wishlist') || 'Chưa có sản phẩm yêu thích' }}</h2>
+      <p>{{ t('storefront.empty_wishlist_desc') || 'Nhấn vào biểu tượng ❤️ trên trang sản phẩm để lưu sản phẩm bạn thích vào đây.' }}</p>
       <router-link to="/products" class="btn btn--primary">
-        <ShoppingBag :size="16" /> Khám phá sản phẩm
+        <ShoppingBag :size="16" /> {{ t('storefront.explore_products') || 'Khám phá sản phẩm' }}
       </router-link>
     </div>
 
@@ -37,7 +37,7 @@
             <Package :size="40" />
           </div>
           <!-- sold out badge -->
-          <span v-if="item.stock <= 0" class="wl-badge wl-badge--out">Hết hàng</span>
+          <span v-if="item.stock <= 0" class="wl-badge wl-badge--out">{{ t('storefront.out_of_stock') || 'Hết hàng' }}</span>
         </router-link>
 
         <!-- Info -->
@@ -62,7 +62,7 @@
             @click="addToCartFromWishlist(item)"
           >
             <ShoppingCart :size="14" />
-            {{ item.stock > 0 ? 'Thêm vào giỏ' : 'Hết hàng' }}
+            {{ item.stock > 0 ? (t('storefront.add_to_cart') || 'Thêm vào giỏ') : (t('storefront.out_of_stock') || 'Hết hàng') }}
           </button>
         </div>
       </div>
@@ -75,7 +75,9 @@ import { Heart, HeartOff, Trash2, X, Package, ShoppingBag, ShoppingCart } from '
 import { useWishlist } from '../composables/useWishlist.js'
 import { useCart } from '../composables/useCart.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const { wishlistItems, removeFromWishlist, clearWishlist } = useWishlist()
 const { addToCart } = useCart()
 const { showToast } = useToast()

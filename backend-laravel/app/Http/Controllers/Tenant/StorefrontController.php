@@ -51,7 +51,7 @@ class StorefrontController extends Controller
         // Merge translations if locale requested
         $locale = $this->getLocale($request);
         if ($locale) {
-            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description']);
+            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
         }
 
         return $this->successResponse([
@@ -65,7 +65,7 @@ class StorefrontController extends Controller
         ]);
     }
 
-    public function productDetail($identifier)
+    public function productDetail(Request $request, $identifier)
     {
         $product = $this->productRepo->findBySlugOrId($identifier);
         if (!$product) return $this->notFoundResponse('Product not found');
@@ -86,10 +86,17 @@ class StorefrontController extends Controller
         }
 
         $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
+
+        // Merge translations for product detail
+        $locale = $this->getLocale($request);
+        if ($locale) {
+            $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+        }
+
         return $this->successResponse($product);
     }
 
-    public function relatedProducts($slug)
+    public function relatedProducts(Request $request, $slug)
     {
         $product = $this->productRepo->findBySlugOrId($slug);
         if (!$product) return $this->notFoundResponse('Product not found');
@@ -101,6 +108,13 @@ class StorefrontController extends Controller
                 ->when($product->category_id, fn($q) => $q->where('category_id', $product->category_id))
                 ->limit(6)
                 ->get();
+
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($related)->map(fn($p) => $p->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'products', $locale, ['name', 'description']);
+                return $this->successResponse($arr);
+            }
             return $this->successResponse($related);
         } catch (\Exception $e) {
             return $this->successResponse([]);
@@ -113,7 +127,7 @@ class StorefrontController extends Controller
         $locale = $this->getLocale($request);
         if ($locale) {
             $arr = collect($items)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'categories', $locale, ['name', 'description']);
+            $arr = ContentTranslation::mergeIntoItems($arr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse($arr);
         }
         return $this->successResponse($items);
@@ -124,7 +138,7 @@ class StorefrontController extends Controller
         $locale = $this->getLocale($request);
         if ($locale) {
             $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'product_brands', $locale, ['name', 'description']);
+            $arr = ContentTranslation::mergeIntoItems($arr, 'product_brands', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse($arr);
         }
         return $this->successResponse($items);
@@ -148,12 +162,19 @@ class StorefrontController extends Controller
         $locale = $this->getLocale($request);
         if ($locale) {
             $arr = collect($items)->map(fn($p) => is_array($p) ? $p : $p->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'cms_pages', $locale, ['title', 'content']);
+            $arr = ContentTranslation::mergeIntoItems($arr, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
             return $this->successResponse($arr);
         }
         return $this->successResponse($items);
     }
-    public function flashSales() { return $this->successResponse($this->flashSaleRepo->getActive()); }
+    public function flashSales(Request $request) {
+        $items = collect($this->flashSaleRepo->getActive())->map(fn($item) => is_array($item) ? $item : $item->toArray())->all();
+        $locale = $this->getLocale($request);
+        if ($locale) {
+            $items = ContentTranslation::mergeIntoItems($items, 'flash_sales', $locale, ['name']);
+        }
+        return $this->successResponse($items);
+    }
 
     /**
      * Mega endpoint: returns all site configuration in one request.
@@ -161,10 +182,19 @@ class StorefrontController extends Controller
      */
     public function siteConfig(Request $request)
     {
+        $locale = $this->getLocale($request);
+
         // Store info
         $storeConfigs = $this->configRepo->getByGroup('store');
         $storeInfo = [];
         foreach ($storeConfigs as $c) { $storeInfo[$c->key] = $c->value; }
+
+        if ($locale) {
+            $trans = ContentTranslation::getGrouped('configs', 'store');
+            if (isset($trans[$locale])) {
+                $storeInfo = array_merge($storeInfo, $trans[$locale]);
+            }
+        }
 
         // Theme
         $themeConfigs = $this->configRepo->getByGroup('theme');
@@ -175,6 +205,13 @@ class StorefrontController extends Controller
         $layoutConfigs = $this->configRepo->getByGroup('storefront_layout');
         $layoutMap = [];
         foreach ($layoutConfigs as $c) { $layoutMap[$c->key] = $c->value; }
+
+        if ($locale) {
+            $transLayout = ContentTranslation::getGrouped('configs', 'storefront_layout');
+            if (isset($transLayout[$locale])) {
+                $layoutMap = array_merge($layoutMap, $transLayout[$locale]);
+            }
+        }
 
         // Nav links (nested)
         $navLinks = $this->navLinkRepo->all();
@@ -192,9 +229,8 @@ class StorefrontController extends Controller
         ])->all();
 
         // Merge translations for navLinks if needed
-        $locale = $this->getLocale($request);
         if ($locale) {
-            $mappedLinks = ContentTranslation::mergeIntoItems($mappedLinks, 'nav_links', $locale, ['name']);
+            $mappedLinks = ContentTranslation::mergeIntoItems($mappedLinks, 'nav_links', $locale, ['title']);
         }
 
         $mappedCollection = collect($mappedLinks);
@@ -210,7 +246,7 @@ class StorefrontController extends Controller
         // Merge translations for categories if needed
         if ($locale) {
             $catArr = collect($categories)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
-            $categories = ContentTranslation::mergeIntoItems($catArr, 'categories', $locale, ['name', 'description']);
+            $categories = ContentTranslation::mergeIntoItems($catArr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
         }
 
         // Default layout values
@@ -281,7 +317,7 @@ class StorefrontController extends Controller
         // Merge translations if locale requested
         $locale = $this->getLocale($request);
         if ($locale) {
-            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description']);
+            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
         }
 
         return $this->successResponse([
@@ -302,7 +338,7 @@ class StorefrontController extends Controller
 
         $locale = $this->getLocale($request);
         if ($locale) {
-            $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content']);
+            $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
         }
         return $this->successResponse($page);
     }
@@ -315,7 +351,7 @@ class StorefrontController extends Controller
 
         $page = $this->cmsPageRepo->findBy('alias', $path);
         if ($page) {
-            if ($locale) $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content']);
+            if ($locale) $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
             return $this->successResponse(['type' => 'page', 'data' => $page]);
         }
 
@@ -333,24 +369,32 @@ class StorefrontController extends Controller
                 });
             }
             $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
-            if ($locale) $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description']);
+            if ($locale) $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse(['type' => 'product', 'data' => $product]);
         }
 
         $category = $this->categoryRepo->findBy('slug', $path);
         if ($category) {
-            if ($locale) $category = ContentTranslation::mergeIntoSingleItem($category, 'categories', $locale, ['name', 'description']);
+            if ($locale) $category = ContentTranslation::mergeIntoSingleItem($category, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse(['type' => 'category', 'data' => $category]);
         }
 
         return $this->notFoundResponse('Route not found');
     }
 
-    public function storeInfo()
+    public function storeInfo(Request $request)
     {
         $configs = $this->configRepo->getByGroup('store');
         $info = [];
         foreach ($configs as $c) { $info[$c->key] = $c->value; }
+
+        $locale = $this->getLocale($request);
+        if ($locale) {
+            $trans = ContentTranslation::getGrouped('configs', 'store');
+            if (isset($trans[$locale])) {
+                $info = array_merge($info, $trans[$locale]);
+            }
+        }
         return $this->successResponse($info);
     }
 
@@ -372,7 +416,7 @@ class StorefrontController extends Controller
         $locale = $this->getLocale($request);
         if ($locale) {
             $arr = collect($items)->map(fn($p) => $p->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'products', $locale, ['name', 'description']);
+            $arr = ContentTranslation::mergeIntoItems($arr, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse($arr);
         }
         return $this->successResponse($items);
@@ -536,9 +580,16 @@ class StorefrontController extends Controller
     private function getLocale(Request $request): ?string
     {
         $locale = $request->header('Accept-Language');
-        if (!$locale || $locale === 'vi' || !$this->isLanguagesModuleActive()) {
+        if (!$locale || !$this->isLanguagesModuleActive()) {
             return null;
         }
+        // Don't translate if requesting the default language
+        try {
+            $defaultLang = $this->langRepo->query()->where('is_default', true)->first();
+            if ($defaultLang && $locale === $defaultLang->code) {
+                return null;
+            }
+        } catch (\Exception) {}
         return $locale;
     }
 }

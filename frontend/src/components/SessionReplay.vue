@@ -98,6 +98,9 @@ import { PlayCircle, Film, Download, Printer, MessageSquare, Flame, CircleDot, C
 
 import { apiFetch } from '../composables/useApi.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const selectedSessionId = useUrlParam('session', '')
 const selectedSession = ref(null)

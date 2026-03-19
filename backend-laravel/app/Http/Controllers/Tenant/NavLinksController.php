@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class NavLinksController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, \App\Traits\HasContentTranslations;
 
     public function __construct(private NavLinkRepositoryInterface $repo) {}
 
@@ -62,6 +62,11 @@ class NavLinksController extends Controller
             ];
 
             $navLink = $this->repo->store($data);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('nav_links', $navLink->id, $request->input('translations'));
+            }
+
             return $this->successResponse($navLink, 'Nav link created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -81,6 +86,11 @@ class NavLinksController extends Controller
             if (array_key_exists('collectionId', $data)) { $data['parent_id'] = $data['collectionId']; unset($data['collectionId']); }
 
             $this->repo->update($data, $id);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('nav_links', $id, $request->input('translations'));
+            }
+
             return $this->successResponse($this->repo->find($id), 'Nav link updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

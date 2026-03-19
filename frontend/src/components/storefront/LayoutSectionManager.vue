@@ -272,6 +272,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { GripVertical, Settings2, Trash2, Plus, X } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   sections: { type: Array, required: true },

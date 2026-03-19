@@ -94,11 +94,14 @@
 import { ref, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { logger } from '../utils/logger.js'
+import { useI18n } from '../composables/useI18n.js'
 import {
   History, X, Loader2, Radio, Flame, CircleDot,
   MessageCircle, Eye, Calendar, Clock, Trash2,
   Music, ShoppingCart, Facebook, Youtube
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

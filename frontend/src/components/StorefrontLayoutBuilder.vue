@@ -48,7 +48,7 @@
           <FileEdit :size="14" /> Nháp
         </button>
         <button class="btn-save" @click="saveLayout" :disabled="saving">
-          <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Xuất bản' }}
+          <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Xuất bản' }}
         </button>
       </div>
     </div>
@@ -86,7 +86,7 @@
                 <select v-model="pageConfigs.products.sidebarPosition" class="param-select">
                   <option value="left">Bên trái</option>
                   <option value="right">Bên phải</option>
-                  <option value="hidden">Ẩn</option>
+                  <option value="hidden">{{ t('admin.hidden', 'Ẩn') }}</option>
                 </select>
               </div>
               <div class="param-row"><label>Cột sản phẩm</label>
@@ -166,7 +166,7 @@
                   <option value="single-column">1 cột</option>
                 </select>
               </div>
-              <div class="param-row"><label>Mã giảm giá</label>
+              <div class="param-row"><label>{{ t('admin.coupons', 'Mã giảm giá') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.checkout.showCoupon" />
                   <span class="toggle-slider"></span>
@@ -193,7 +193,7 @@
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Quên mật khẩu</label>
+              <div class="param-row"><label>{{ t('admin.forgot_password', 'Quên mật khẩu') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.auth.allowForgotPassword" />
                   <span class="toggle-slider"></span>
@@ -238,7 +238,7 @@
               </div>
             </template>
             <button class="btn-save" style="margin-top:16px;width:100%" @click="saveLayout" :disabled="saving">
-              <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
+              <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
             </button>
           </div>
           <!-- Section List (sub-component) -->
@@ -370,6 +370,9 @@ import {
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 
@@ -967,7 +970,7 @@ async function saveNavLink() {
   try {
     if (navLinkEditing.value) {
       await updateNavLink(navLinkEditing.value, navLinkForm.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createNavLink(navLinkForm.value)
       showToast('Đã tạo link', 'success')

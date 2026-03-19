@@ -23,7 +23,7 @@
         <div v-if="overflowLinks.length" class="nav-more" ref="moreDropdownRef">
           <button class="site-header__link nav-more__trigger" @click="moreOpen = !moreOpen" :class="{ active: overflowHasActive }">
             <MoreHorizontal :size="15" />
-            Thêm
+            {{ t('storefront.more') || 'Thêm' }}
             <ChevronDown :size="12" class="nav-more__arrow" :class="{ rotated: moreOpen }" />
           </button>
           <transition name="dropdown">
@@ -49,7 +49,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Tìm kiếm sản phẩm..."
+          :placeholder="t('storefront.search_placeholder') || 'Tìm kiếm sản phẩm...'"
           @focus="searchFocused = true; showSuggestions = true"
           @blur="onSearchBlur"
           @keyup.enter="onSearch"
@@ -80,7 +80,7 @@
             class="search-dropdown__all"
             @click="showSuggestions = false"
           >
-            Xem tất cả kết quả →
+            {{ t('storefront.view_all_results') || 'Xem tất cả kết quả' }} →
           </router-link>
         </div>
       </div>
@@ -122,11 +122,11 @@
         <template v-if="pageEnabled.account || pageEnabled.auth">
           <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
             <User :size="16" />
-            <span>{{ customer?.first_name || 'Tài khoản' }}</span>
+            <span>{{ customer?.first_name || t('storefront.account') || 'Tài khoản' }}</span>
           </router-link>
           <router-link v-else :to="'/auth'" class="site-header__auth-btn">
             <User :size="16" />
-            <span>Đăng nhập</span>
+            <span>{{ t('storefront.login') || 'Đăng nhập' }}</span>
           </router-link>
         </template>
 
@@ -157,7 +157,7 @@
           {{ link.name }}
         </router-link>
         <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
-          <ShoppingCart :size="16" /> Giỏ hàng
+          <ShoppingCart :size="16" /> {{ t('storefront.cart') || 'Giỏ hàng' }}
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
         <template v-if="pageEnabled.account || pageEnabled.auth">
@@ -170,7 +170,7 @@
         </template>
         <div class="site-header__mobile-search">
           <Search :size="16" />
-          <input v-model="searchQuery" placeholder="Tìm kiếm..." @keyup.enter="onSearch(); mobileMenu = false" />
+          <input v-model="searchQuery" :placeholder="t('storefront.search_short') || 'Tìm kiếm...'" @keyup.enter="onSearch(); mobileMenu = false" />
         </div>
       </div>
     </transition>
@@ -266,6 +266,8 @@ const langOpen = ref(false)
 async function switchLang(code) {
   await setLang(code)
   langOpen.value = false
+  // Reload the page to re-fetch all data with new Accept-Language header
+  window.location.reload()
 }
 onMounted(() => initI18n())
 
@@ -284,8 +286,8 @@ const navLinks = ref([])
 
 // Fallback links if API returns empty
 const fallbackLinks = [
-  { id: 'f1', name: 'Trang chủ', url: '/', icon: 'Home', sort: 1 },
-  { id: 'f2', name: 'Sản phẩm', url: '/products', icon: 'ShoppingBag', sort: 2 },
+  { id: 'f1', name: t('storefront.home') || 'Trang chủ', url: '/', icon: 'Home', sort: 1 },
+  { id: 'f2', name: t('storefront.products') || 'Sản phẩm', url: '/products', icon: 'ShoppingBag', sort: 2 },
 ]
 
 const MAX_VISIBLE = computed(() => headerCfg.value.maxNavLinks)

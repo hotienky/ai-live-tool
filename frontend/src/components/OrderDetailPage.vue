@@ -67,7 +67,7 @@
             <div class="od-card__body">
               <div class="od-totals">
                 <div class="od-totals__row" v-if="order.subtotal">
-                  <span>Tạm tính</span>
+                  <span>{{ t('admin.subtotal', 'Tạm tính') }}</span>
                   <span>{{ formatCurrency(order.subtotal) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.discountAmount > 0">
@@ -75,7 +75,7 @@
                   <span class="od-text--discount">-{{ formatCurrency(order.discountAmount) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.shippingFee > 0">
-                  <span>Phí vận chuyển</span>
+                  <span>{{ t('admin.shipping_fee', 'Phí vận chuyển') }}</span>
                   <span>{{ formatCurrency(order.shippingFee) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.taxAmount > 0">
@@ -90,7 +90,7 @@
                   </div>
                 </template>
                 <div class="od-totals__row od-totals__row--total">
-                  <span>Tổng thanh toán</span>
+                  <span>{{ t('admin.total_payment', 'Tổng thanh toán') }}</span>
                   <span>{{ formatCurrency(order.totalAmount) }}</span>
                 </div>
               </div>
@@ -121,7 +121,7 @@
                 <span class="od-info-value">{{ order.customerName || '—' }}</span>
               </div>
               <div class="od-info-row">
-                <span class="od-info-label">Số điện thoại</span>
+                <span class="od-info-label">{{ t('admin.phone', 'Số điện thoại') }}</span>
                 <span class="od-info-value">{{ order.customerPhone || '—' }}</span>
               </div>
               <div class="od-info-row">
@@ -129,7 +129,7 @@
                 <span class="od-info-value">{{ order.customerEmail || '—' }}</span>
               </div>
               <div class="od-info-row">
-                <span class="od-info-label">Địa chỉ</span>
+                <span class="od-info-label">{{ t('admin.address', 'Địa chỉ') }}</span>
                 <span class="od-info-value">{{ order.customerAddress || '—' }}</span>
               </div>
             </div>
@@ -142,15 +142,15 @@
             </div>
             <div class="od-card__body">
               <div class="od-info-row">
-                <span class="od-info-label">Mã đơn</span>
+                <span class="od-info-label">{{ t('admin.order_code', 'Mã đơn') }}</span>
                 <span class="od-info-value od-info-value--mono">#{{ order.id }}</span>
               </div>
               <div class="od-info-row">
-                <span class="od-info-label">Ngày tạo</span>
+                <span class="od-info-label">{{ t('admin.created_at', 'Ngày tạo') }}</span>
                 <span class="od-info-value">{{ formatDate(order.createdAt || order.created_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.confirmedAt || order.confirmed_at">
-                <span class="od-info-label">Xác nhận</span>
+                <span class="od-info-label">{{ t('admin.confirm', 'Xác nhận') }}</span>
                 <span class="od-info-value">{{ formatDate(order.confirmedAt || order.confirmed_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.shippedAt || order.shipped_at">
@@ -158,15 +158,15 @@
                 <span class="od-info-value">{{ formatDate(order.shippedAt || order.shipped_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.deliveredAt || order.delivered_at">
-                <span class="od-info-label">Đã giao</span>
+                <span class="od-info-label">{{ t('admin.delivered', 'Đã giao') }}</span>
                 <span class="od-info-value">{{ formatDate(order.deliveredAt || order.delivered_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.notes">
-                <span class="od-info-label">Ghi chú</span>
+                <span class="od-info-label">{{ t('admin.notes', 'Ghi chú') }}</span>
                 <span class="od-info-value">{{ order.notes }}</span>
               </div>
               <div class="od-info-row" v-if="order.couponCode || order.coupon_code">
-                <span class="od-info-label">Mã giảm giá</span>
+                <span class="od-info-label">{{ t('admin.coupons', 'Mã giảm giá') }}</span>
                 <span class="od-info-value od-info-value--mono">{{ order.couponCode || order.coupon_code }}</span>
               </div>
             </div>
@@ -183,7 +183,7 @@
                 <span class="od-info-value">{{ order.shippingMethod || order.shipping_method }}</span>
               </div>
               <div class="od-info-row" v-if="order.trackingNumber || order.tracking_number">
-                <span class="od-info-label">Mã vận đơn</span>
+                <span class="od-info-label">{{ t('admin.tracking_code', 'Mã vận đơn') }}</span>
                 <span class="od-info-value od-info-value--mono">{{ order.trackingNumber || order.tracking_number }}</span>
               </div>
             </div>
@@ -219,12 +219,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import {
   ArrowLeft, Package, ShoppingBag, CreditCard, User, FileText, Truck, Clock,
   CheckCircle, Send, XCircle, Printer, DollarSign, RotateCcw
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({

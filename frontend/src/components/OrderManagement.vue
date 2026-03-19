@@ -4,7 +4,7 @@
       <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Đơn Hàng</h2>
       <div class="header-actions">
         <select v-model="filterStatus" class="filter-select">
-          <option value="">Tất cả</option>
+          <option value="">{{ t('admin.all', 'Tất cả') }}</option>
           <option v-for="s in orderStatuses" :key="s.id" :value="s.name">{{ s.name }}</option>
         </select>
         <button class="btn-add" @click="showCreateModal = true">+ Tạo đơn</button>
@@ -21,7 +21,7 @@
       <div class="stat-card revenue">
         <div class="stat-icon stat-icon--revenue"><DollarSign :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</div>
-        <div class="stat-label">Doanh thu</div>
+        <div class="stat-label">{{ t('admin.revenue', 'Doanh thu') }}</div>
       </div>
       <div class="stat-card paid">
         <div class="stat-icon stat-icon--paid"><CreditCard :size="22" /></div>
@@ -42,12 +42,12 @@
           <tr>
             <th>#</th>
             <th>Khách hàng</th>
-            <th>SĐT</th>
+            <th>{{ t('admin.phone_short', 'SĐT') }}</th>
             <th>Tổng tiền</th>
             <th>Thanh toán</th>
-            <th>Trạng thái</th>
-            <th>Ngày tạo</th>
-            <th>Hành động</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
+            <th>{{ t('admin.actions', 'Hành động') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -108,7 +108,7 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Địa chỉ</label>
+          <label>{{ t('admin.address', 'Địa chỉ') }}</label>
           <input v-model="newOrder.customerAddress" placeholder="123 Đường ABC, Q1, HCM" />
         </div>
 
@@ -146,11 +146,11 @@
         </div>
 
         <div class="form-group">
-          <label>Ghi chú</label>
+          <label>{{ t('admin.notes', 'Ghi chú') }}</label>
           <textarea v-model="newOrder.notes" rows="2" placeholder="Ghi chú đơn hàng..."></textarea>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showCreateModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showCreateModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="createOrder" :disabled="computedTotal === 0">
             <ShoppingCart :size="14" /> Tạo đơn — {{ formatCurrency(computedTotal) }}
           </button>
@@ -290,6 +290,9 @@ const emptyItem = () => ({ productId: '', name: '', price: 0, qty: 1 })
 const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' })
 
 import { computed } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const computedTotal = computed(() => {
   return newOrder.value.items.reduce((sum, i) => sum + (Number(i.price) || 0) * (i.qty || 1), 0)
 })
@@ -539,7 +542,7 @@ function printInvoice(order) {
       <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'}</span></div>
     </div>
     <table>
-      <thead><tr><th>#</th><th>Sản phẩm</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>
+      <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>
       <tbody>${itemsHtml || '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>'}</tbody>
     </table>
     <div class="total-section">

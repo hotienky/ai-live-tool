@@ -54,6 +54,9 @@ import { apiFetch } from '../composables/useApi.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useToast } from '../composables/useToast.js'
 import { FileText } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const { pages, loading, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)

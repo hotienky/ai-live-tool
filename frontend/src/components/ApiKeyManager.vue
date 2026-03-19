@@ -63,7 +63,7 @@
           >
             <Ban :size="13" /> Thu hồi
           </button>
-          <button class="key-action-btn key-action-btn--delete" @click="deleteKey(key.id)" title="Xóa">
+          <button class="key-action-btn key-action-btn--delete" @click="deleteKey(key.id)" :title="t('admin.delete', 'Xóa')">
             <Trash2 :size="13" />
           </button>
         </div>
@@ -77,6 +77,9 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { KeyRound, Plus, Copy, ShieldCheck, Clock, Ban, Trash2, Loader2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const apiKeys = ref([])

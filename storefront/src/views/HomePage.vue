@@ -1,7 +1,7 @@
 <template>
   <div class="home-page">
     <!-- SEO H1 (visually part of hero, but critical for heading hierarchy) -->
-    <h1 class="sr-only">Cửa hàng trực tuyến — Sản phẩm chất lượng cao</h1>
+    <h1 class="sr-only">{{ t('storefront.home_seo_title') || 'Cửa hàng trực tuyến — Sản phẩm chất lượng cao' }}</h1>
 
     <!-- Dynamic sections rendered in configured order -->
     <template v-for="section in activeSections" :key="section.type + '-' + section.order">
@@ -31,7 +31,7 @@
         <section class="home-section container" v-else-if="filteredCategories(section).length > 0">
           <h2 class="section-title">
             <Grid :size="22" class="section-title__accent" />
-            Danh mục sản phẩm
+            {{ t('storefront.categories') || 'Danh mục sản phẩm' }}
           </h2>
           <CategoryGrid :categories="filteredCategories(section)" />
         </section>
@@ -47,10 +47,10 @@
         <div class="home-section__header">
           <h2 class="section-title">
             <Sparkles :size="22" class="section-title__accent" />
-            {{ section.params?.title || 'Sản phẩm nổi bật' }}
+            {{ section.params?.title || t('storefront.featured_products') || 'Sản phẩm nổi bật' }}
           </h2>
           <router-link :to="'/products'" class="home-section__viewall">
-            Xem tất cả <ArrowRight :size="14" />
+            {{ t('storefront.view_all') || 'Xem tất cả' }} <ArrowRight :size="14" />
           </router-link>
         </div>
         <div v-if="loading" class="product-skeleton-grid">
@@ -65,7 +65,7 @@
         </div>
         <div v-else class="home-empty">
           <Package :size="48" />
-          <p>Chưa có sản phẩm nào</p>
+          <p>{{ t('storefront.no_products') || 'Chưa có sản phẩm nào' }}</p>
         </div>
       </section>
 
@@ -74,7 +74,7 @@
         <div class="home-section__header">
           <h2 class="section-title">
             <Clock :size="22" class="section-title__accent" />
-            {{ section.params?.title || 'Hàng mới về' }}
+            {{ section.params?.title || t('storefront.new_arrivals') || 'Hàng mới về' }}
           </h2>
         </div>
         <div class="product-grid" :style="gridStyle(section.params?.columns)">
@@ -86,7 +86,7 @@
       <section v-if="section.type === 'cms_pages' && pages.length > 0" class="home-section container">
         <h2 class="section-title">
           <BookOpen :size="22" class="section-title__accent" />
-          Thông tin
+          {{ t('storefront.info') || 'Thông tin' }}
         </h2>
         <div class="home-pages" :class="{ 'home-pages--list': section.params?.layout === 'list' }">
           <router-link
@@ -167,7 +167,10 @@ import ProductCard from '../components/ProductCard.vue'
 import ProductCarousel from '../components/ProductCarousel.vue'
 import FlashSale from '../components/FlashSale.vue'
 import { useSeo } from '../composables/useSeo.js'
+import { useI18n } from '../composables/useI18n.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 // Custom section components
 import HomeSectionTestimonials from '../components/sections/HomeSectionTestimonials.vue'

@@ -7,7 +7,7 @@ use App\Traits\LogsActivity;
 
 abstract class BaseAction
 {
-    use ApiResponse, LogsActivity;
+    use ApiResponse, LogsActivity, \App\Traits\HasContentTranslations;
 
     public function __construct(protected CategoryRepositoryInterface $repo) {}
 }

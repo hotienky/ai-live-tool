@@ -62,7 +62,11 @@ abstract class BaseEloquentRepository implements BaseRepoInterface
 
     public function update($data, $id, $attribute = 'id')
     {
-        return $this->model->where($attribute, $id)->update($data);
+        $record = $this->model->where($attribute, $id)->first();
+        if ($record) {
+            return $record->update($data);
+        }
+        return false;
     }
 
     public function delete($id)

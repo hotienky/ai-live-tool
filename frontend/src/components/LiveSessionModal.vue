@@ -73,6 +73,9 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { Radio, X, Music, BookOpen, Video, ShoppingCart, Drama, Signal } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const platformIcons = { tiktok: Music, facebook: BookOpen, youtube: Video, shopee: ShoppingCart }
 
@@ -174,7 +177,7 @@ async function onStart(mock) {
     emit('close')
   } catch (err) {
     console.error('LiveSession error:', err)
-    alert(err.message || 'Có lỗi xảy ra')
+    alert(err.message || t('admin.error_occurred', 'Có lỗi xảy ra'))
   } finally {
     loading.value = false
   }

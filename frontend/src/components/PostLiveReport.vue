@@ -26,14 +26,14 @@
               <div class="card-icon icon-purple"><MessageSquare :size="18" /></div>
               <div class="card-info">
                 <div class="card-value">{{ report.totalComments }}</div>
-                <div class="card-label">Bình luận</div>
+                <div class="card-label">{{ t('admin.comments', 'Bình luận') }}</div>
               </div>
             </div>
             <div class="summary-card">
               <div class="card-icon icon-green"><Users :size="18" /></div>
               <div class="card-info">
                 <div class="card-value">{{ report.uniqueViewers }}</div>
-                <div class="card-label">Người xem</div>
+                <div class="card-label">{{ t('admin.viewers', 'Người xem') }}</div>
               </div>
             </div>
             <div class="summary-card">
@@ -99,10 +99,13 @@
 </template>
 
 <script setup>
+import { useI18n } from '../composables/useI18n.js'
 import {
   BarChart3, X, Clock, MessageSquare, Users, Eye,
   Flame, Target, Hash, Trophy
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

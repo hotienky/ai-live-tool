@@ -34,6 +34,9 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Bell, Flame, AlertTriangle, CheckCircle, Zap, Info } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const emit = defineEmits(['navigate'])
 

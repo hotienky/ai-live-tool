@@ -191,7 +191,7 @@
 
     <!-- Checkout Form -->
     <template v-else>
-      <h1 class="page-title"><CreditCard :size="24" /> Thanh toán</h1>
+      <h1 class="page-title"><CreditCard :size="24" /> {{ t('storefront.checkout_title') || 'Thanh toán' }}</h1>
 
       <div v-if="cartItems.length === 0" class="checkout-empty">
         <p>Giỏ hàng trống. <router-link to="/products">Thêm sản phẩm</router-link></p>
@@ -201,7 +201,7 @@
         <!-- Form -->
         <div class="checkout-form">
           <div class="form-section">
-            <h3><User :size="16" /> Thông tin giao hàng</h3>
+            <h3><User :size="16" /> {{ t('storefront.shipping_info') || 'Thông tin giao hàng' }}</h3>
 
             <!-- Saved Addresses Dropdown -->
             <div v-if="isLoggedIn && savedAddresses.length > 0" class="saved-addresses">
@@ -281,7 +281,7 @@
 
           <!-- Shipping Options -->
           <div class="form-section shipping-section" v-if="selectedProvince">
-            <h3><Truck :size="16" /> Đơn vị vận chuyển</h3>
+            <h3><Truck :size="16" /> {{ t('storefront.shipping_provider') || 'Đơn vị vận chuyển' }}</h3>
             <div v-if="loadingShipping" class="shipping-loading">
               <span class="spinner"></span> Đang tính phí vận chuyển...
             </div>
@@ -319,7 +319,7 @@
 
           <!-- Voucher / Coupon -->
           <div class="form-section voucher-section" v-if="checkoutConfig.showCoupon">
-            <h3><Tag :size="16" /> Mã giảm giá</h3>
+            <h3><Tag :size="16" /> {{ t('storefront.coupon_code') || 'Mã giảm giá' }}</h3>
             <div class="voucher-input-row">
               <input
                 v-model="couponCode"
@@ -356,7 +356,7 @@
 
           <!-- Order Notes -->
           <div class="form-section">
-            <h3><PenLine :size="16" /> Ghi chú đơn hàng</h3>
+            <h3><PenLine :size="16" /> {{ t('storefront.order_notes') || 'Ghi chú đơn hàng' }}</h3>
             <textarea
               v-model="form.notes"
               class="order-notes"
@@ -367,7 +367,7 @@
           </div>
 
           <div class="form-section">
-            <h3><Wallet :size="16" /> Phương thức thanh toán</h3>
+            <h3><Wallet :size="16" /> {{ t('storefront.payment_method') || 'Phương thức thanh toán' }}</h3>
             <div class="payment-options">
               <label v-for="m in paymentMethodsList" :key="m.code"
                 class="payment-option" :class="{ active: form.paymentMethod === m.code }">
@@ -391,7 +391,7 @@
         <!-- Order Summary -->
         <div class="checkout-summary">
           <div class="summary-card">
-            <h3>Đơn hàng ({{ cartCount }} sản phẩm)</h3>
+            <h3>{{ t('storefront.order_summary') || 'Đơn hàng' }} ({{ cartCount }} SP)</h3>
             <div class="summary-items">
               <div class="summary-item" v-for="item in cartItems" :key="item.key || item.id">
                 <div class="summary-item__img">
@@ -428,8 +428,8 @@
             </div>
 
             <button class="btn btn--primary btn--block btn--lg" @click="placeOrder" :disabled="submitting || !isValid">
-              <template v-if="submitting">Đang xử lý...</template>
-              <template v-else><ShoppingCart :size="16" /> Đặt hàng — {{ formatPrice(finalTotal) }}</template>
+              <template v-if="submitting">{{ t('storefront.processing') || 'Đang xử lý...' }}</template>
+              <template v-else><ShoppingCart :size="16" /> {{ t('storefront.place_order') || 'Đặt hàng' }} — {{ formatPrice(finalTotal) }}</template>
             </button>
 
             <p v-if="error" class="order-error">{{ error }}</p>
@@ -451,8 +451,10 @@ import {
 import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useShipping } from '../composables/useShipping.js'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch, apiPost } from '../api.js'
 
+const { t } = useI18n()
 const layoutConfig = inject('layoutConfig', ref(null))
 const checkoutConfig = computed(() => {
   const defaults = { showCoupon: true, showNotes: true, showSteps: true, layout: 'two-column' }

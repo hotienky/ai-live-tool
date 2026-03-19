@@ -15,6 +15,9 @@
 <script setup>
 import { computed } from 'vue'
 import { Grid, FolderOpen } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   categories: { type: Array, default: () => [] },

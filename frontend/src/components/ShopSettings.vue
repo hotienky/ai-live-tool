@@ -33,27 +33,27 @@
         <div v-if="activeTab === 'appearance'" class="settings__panel appearance-split">
           <!-- Left: Controls -->
           <div class="appearance-split__controls">
-            <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> Giao diện CMS</h3>
+            <h3 class="settings__panel-title"><Palette :size="16" style="vertical-align:middle" /> {{ t('admin.cms_theme', 'Giao diện CMS') }}</h3>
 
             <!-- Theme Mode -->
             <div class="settings__section">
-              <label class="settings__field-label">Chế độ</label>
+              <label class="settings__field-label">{{ t('admin.mode', 'Chế độ') }}</label>
               <div class="theme-mode-selector">
                 <button class="theme-mode-btn" :class="{ active: theme === 'light' }" @click="setTheme('light')">
-                  <Sun :size="16" /> Sáng
+                  <Sun :size="16" /> {{ t('admin.light', 'Sáng') }}
                 </button>
                 <button class="theme-mode-btn" :class="{ active: theme === 'dark' }" @click="setTheme('dark')">
-                  <Moon :size="16" /> Tối
+                  <Moon :size="16" /> {{ t('admin.dark', 'Tối') }}
                 </button>
                 <button class="theme-mode-btn" :class="{ active: theme === 'system' }" @click="setTheme('system')">
-                  <MonitorIcon :size="16" /> Hệ thống
+                  <MonitorIcon :size="16" /> {{ t('admin.system', 'Hệ thống') }}
                 </button>
               </div>
             </div>
 
             <!-- Accent Color -->
             <div class="settings__section">
-              <label class="settings__field-label">Màu nhấn</label>
+              <label class="settings__field-label">{{ t('admin.accent_color', 'Màu nhấn') }}</label>
               <div class="accent-picker">
                 <button
                   v-for="(preset, name) in accentPresets"
@@ -71,23 +71,23 @@
 
             <!-- Font Size -->
             <div class="settings__section">
-              <label class="settings__field-label">Cỡ chữ</label>
+              <label class="settings__field-label">{{ t('admin.font_size', 'Cỡ chữ') }}</label>
               <div class="font-size-selector">
                 <button class="font-size-btn" :class="{ active: fontSizePref === 'compact' }" @click="setFontSize('compact')">
-                  <span style="font-size:12px">A</span> Nhỏ gọn
+                  <span style="font-size:12px">A</span> {{ t('admin.compact', 'Nhỏ gọn') }}
                 </button>
                 <button class="font-size-btn" :class="{ active: fontSizePref === 'normal' }" @click="setFontSize('normal')">
-                  <span style="font-size:14px">A</span> Bình thường
+                  <span style="font-size:14px">A</span> {{ t('admin.normal', 'Bình thường') }}
                 </button>
                 <button class="font-size-btn" :class="{ active: fontSizePref === 'comfortable' }" @click="setFontSize('comfortable')">
-                  <span style="font-size:16px">A</span> Thoải mái
+                  <span style="font-size:16px">A</span> {{ t('admin.comfortable', 'Thoải mái') }}
                 </button>
               </div>
             </div>
 
             <!-- Storefront Theme Customizer -->
             <div style="margin-top: 24px">
-              <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Giao diện Cửa Hàng</h3>
+              <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> {{ t('admin.storefront_theme', 'Giao diện Cửa Hàng') }}</h3>
               <ThemeCustomizer @saved="onThemeSaved" />
             </div>
           </div>
@@ -95,7 +95,7 @@
           <!-- Right: Live Preview -->
           <div class="appearance-split__preview">
             <div class="ap-header">
-              <h4 class="ap-title"><Eye :size="14" /> Xem trước</h4>
+              <h4 class="ap-title"><Eye :size="14" /> {{ t('admin.preview', 'Xem trước') }}</h4>
               <div class="ap-device-btns">
                 <button :class="{ active: apDevice === 'desktop' }" @click="apDevice = 'desktop'" title="Desktop">
                   <MonitorIcon :size="14" />
@@ -107,7 +107,7 @@
                   <Smartphone :size="14" />
                 </button>
               </div>
-              <button class="ap-refresh" @click="apPreviewKey++" title="Làm mới">
+              <button class="ap-refresh" @click="apPreviewKey++" :title="t('admin.refresh', 'Làm mới')">
                 <RotateCcw :size="13" />
               </button>
             </div>
@@ -128,7 +128,7 @@
                     placeholder="https://store.fashionvn.com"
                     @keyup.enter="apStorefrontUrl = apUrlInput; apPreviewKey++"
                   />
-                  <button @click="apStorefrontUrl = apUrlInput; apPreviewKey++" :disabled="!apUrlInput">Xem</button>
+                  <button @click="apStorefrontUrl = apUrlInput; apPreviewKey++" :disabled="!apUrlInput">{{ t('admin.view', 'Xem') }}</button>
                 </div>
               </div>
             </div>
@@ -137,14 +137,14 @@
 
         <!-- ═══ Tab: Connection ═══ -->
         <div v-if="activeTab === 'connection'" class="settings__panel">
-          <h3 class="settings__panel-title"><Link :size="16" style="vertical-align:middle" /> Kết nối nền tảng</h3>
+          <h3 class="settings__panel-title"><Link :size="16" style="vertical-align:middle" /> {{ t('admin.platform_connection', 'Kết nối nền tảng') }}</h3>
 
           <!-- TikTok -->
         <div class="settings__platform-group">
           <h4 class="settings__platform-label">
             <Music :size="14" style="vertical-align:middle" /> TikTok Live
             <span class="settings__conn-badge" :class="shopForm.tiktokUsername ? 'settings__conn-badge--ok' : ''">
-              {{ shopForm.tiktokUsername ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+              {{ shopForm.tiktokUsername ? '✓ ' + t('admin.configured', 'Đã cấu hình') : '○ ' + t('admin.not_configured', 'Chưa cấu hình') }}
             </span>
           </h4>
           <div class="settings__field">
@@ -158,7 +158,7 @@
           <h4 class="settings__platform-label">
             <BookOpen :size="14" style="vertical-align:middle" /> Facebook Live
             <span class="settings__conn-badge" :class="shopForm.facebookPageId && shopForm.facebookAccessToken ? 'settings__conn-badge--ok' : ''">
-              {{ shopForm.facebookPageId && shopForm.facebookAccessToken ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+              {{ shopForm.facebookPageId && shopForm.facebookAccessToken ? '✓ ' + t('admin.configured', 'Đã cấu hình') : '○ ' + t('admin.not_configured', 'Chưa cấu hình') }}
             </span>
           </h4>
           <div class="settings__field">
@@ -177,7 +177,7 @@
           <h4 class="settings__platform-label">
             <Video :size="14" style="vertical-align:middle" /> YouTube Live
             <span class="settings__conn-badge" :class="shopForm.youtubeChannel && shopForm.youtubeApiKey ? 'settings__conn-badge--ok' : ''">
-              {{ shopForm.youtubeChannel && shopForm.youtubeApiKey ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+              {{ shopForm.youtubeChannel && shopForm.youtubeApiKey ? '✓ ' + t('admin.configured', 'Đã cấu hình') : '○ ' + t('admin.not_configured', 'Chưa cấu hình') }}
             </span>
           </h4>
           <div class="settings__field">
@@ -196,7 +196,7 @@
           <h4 class="settings__platform-label">
             <ShoppingCart :size="14" style="vertical-align:middle" /> Shopee Live
             <span class="settings__conn-badge" :class="shopForm.shopeeShopIdApi && shopForm.shopeePartnerId ? 'settings__conn-badge--ok' : ''">
-              {{ shopForm.shopeeShopIdApi && shopForm.shopeePartnerId ? '✓ Đã cấu hình' : '○ Chưa cấu hình' }}
+              {{ shopForm.shopeeShopIdApi && shopForm.shopeePartnerId ? '✓ ' + t('admin.configured', 'Đã cấu hình') : '○ ' + t('admin.not_configured', 'Chưa cấu hình') }}
             </span>
           </h4>
           <div class="settings__field">
@@ -215,18 +215,18 @@
         </div>
 
         <button class="settings__save-btn" @click="saveShopInfo">
-          <Save :size="14" /> Lưu cấu hình
+          <Save :size="14" /> {{ t('admin.save_config', t('admin.save_config', 'Lưu cấu hình')) }}
         </button>
       </div>
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <ProductManager :languagesInstalled="isModuleInstalled('languages')" />
+        <ProductManager :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.productEditId" @navigate="(r) => emit('navigate', r)" />
       </div>
 
       <!-- ═══ Tab: Categories ═══ -->
       <div v-if="activeTab === 'categories'" class="settings__panel">
-        <CategoryManager :languagesInstalled="isModuleInstalled('languages')" />
+        <CategoryManager :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.categoryEditId" @navigate="(r) => emit('navigate', r)" />
       </div>
 
       <!-- ═══ Tab: Brands ═══ -->
@@ -241,12 +241,12 @@
           <input v-model="newKeyword.keyword" placeholder="Keyword" class="settings__input settings__input--flex" />
           <select v-model="newKeyword.alert_type" class="settings__input settings__input--sm">
             <option value="highlight">Highlight</option>
-            <option value="notify">Thông báo</option>
+            <option value="notify">{{ t('admin.notifications', 'Thông báo') }}</option>
             <option value="auto_reply">Auto Reply</option>
           </select>
           <input v-model="newKeyword.color" type="color" class="settings__color-picker" />
           <button class="settings__add-btn" @click="addKeyword">
-            <Plus :size="14" /> Thêm
+            <Plus :size="14" /> {{ t('admin.add', 'Thêm') }}
           </button>
         </div>
         <input
@@ -267,7 +267,7 @@
               <Trash2 :size="12" />
             </button>
           </div>
-          <p v-if="keywords.length === 0" class="settings__empty-list">Chưa có keyword nào</p>
+          <p v-if="keywords.length === 0" class="settings__empty-list">{{ t('admin.no_keywords', 'Chưa có keyword nào') }}</p>
         </div>
       </div>
 
@@ -282,7 +282,7 @@
             <span class="settings__switch-slider"></span>
           </label>
           <span class="settings__toggle-label">
-            Auto-Reply {{ autoReplyEnabled ? 'Đang bật' : 'Đang tắt' }}
+            Auto-Reply {{ autoReplyEnabled ? t('admin.on', 'Đang bật') : t('admin.off', 'Đang tắt') }}
           </span>
           <span class="settings__toggle-hint">Tự động reply cho comment HOT/WARM</span>
         </div>
@@ -295,7 +295,7 @@
           </select>
           <input v-model="newTemplate.template_text" placeholder="VD: Cảm ơn {{nickname}}, mình inbox bạn nhé!" class="settings__input settings__input--flex" />
           <button class="settings__add-btn" @click="addTemplate">
-            <Plus :size="14" /> Thêm
+            <Plus :size="14" /> {{ t('admin.add', 'Thêm') }}
           </button>
         </div>
         <p class="settings__variable-hint">
@@ -313,7 +313,7 @@
               <Trash2 :size="12" />
             </button>
           </div>
-          <p v-if="templates.length === 0" class="settings__empty-list">Chưa có mẫu trả lời</p>
+          <p v-if="templates.length === 0" class="settings__empty-list">{{ t('admin.no_templates', 'Chưa có mẫu trả lời') }}</p>
         </div>
 
         <!-- Auto-reply Log -->
@@ -332,14 +332,14 @@
       <div v-if="activeTab === 'moderation'" class="settings__panel">
         <h3 class="settings__panel-title"><Shield :size="16" style="vertical-align:middle" /> Quản lý bình luận</h3>
         <div class="settings__field">
-          <label>Danh sách từ cấm (mỗi dòng 1 từ)</label>
+          <label>{{ t('admin.blacklist', 'Danh sách từ cấm (mỗi dòng 1 từ)') }}</label>
           <textarea v-model="moderationConfig.blacklist" rows="5" class="settings__textarea"
             placeholder="spam&#10;quảng cáo&#10;đối thủ"></textarea>
         </div>
         <div class="settings__field">
           <label>
             <input type="checkbox" v-model="moderationConfig.hideSpam" />
-            Tự động ẩn comment spam
+            {{ t('admin.auto_hide_spam', 'Tự động ẩn comment spam') }}
           </label>
         </div>
         <div class="settings__field">
@@ -541,14 +541,18 @@ import { useTheme } from '../composables/useTheme.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useUrlParam } from '../composables/useUrlFilter.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
 import { logger } from '../utils/logger.js'
 const { showToast } = useToast()
+const { t } = useI18n()
 
 const props = defineProps({
   currentShop: { type: Object, default: null },
   initialTab: { type: String, default: '' },
   activeView: { type: String, default: '' },
   cmsEditPageId: { type: String, default: null },
+  productEditId: { type: String, default: null },
+  categoryEditId: { type: String, default: null },
 })
 
 const emit = defineEmits(['openShopSelector', 'navigate'])
@@ -696,87 +700,87 @@ watch(() => props.initialTab, (newTab) => {
   }
 }, { immediate: true })
 const tabs = [
-  { key: 'connection', label: 'Kết nối', icon: Link },
-  { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
-  { key: 'categories', label: 'Danh mục', icon: FolderTree },
-  { key: 'brands', label: 'Thương hiệu', icon: Award },
+  { key: 'connection', label: t('admin.connection', 'Kết nối'), icon: Link },
+  { key: 'products', label: t('admin.products', 'Sản phẩm'), icon: ShoppingBag },
+  { key: 'categories', label: t('admin.categories', 'Danh mục'), icon: FolderTree },
+  { key: 'brands', label: t('admin.brands', 'Thương hiệu'), icon: Award },
   { key: 'keywords', label: 'Keywords', icon: Key },
   { key: 'replies', label: 'Auto Reply', icon: MessageCircle },
   { key: 'moderation', label: 'Moderation', icon: Shield },
-  { key: 'shop-customers', label: 'Khách hàng', icon: Users },
-  { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
-  { key: 'cms', label: 'Trang CMS', icon: BookOpen },
+  { key: 'shop-customers', label: t('admin.customers', 'Khách hàng'), icon: Users },
+  { key: 'promotions', label: t('admin.promotions', 'Khuyến mãi'), icon: Tag },
+  { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
   { key: 'banners', label: 'Banner', icon: Video },
 
 ]
 const allTabs = [
   ...tabs,
-  { key: 'store-info', label: 'Cửa hàng', icon: Store },
-  { key: 'appearance', label: 'Giao diện', icon: Palette },
+  { key: 'store-info', label: t('admin.store', 'Cửa hàng'), icon: Store },
+  { key: 'appearance', label: t('admin.theme', 'Giao diện'), icon: Palette },
 ]
 const tabGroups = [
   {
-    label: 'Sản phẩm',
+    label: t('admin.products', 'Sản phẩm'),
     items: [
-      { key: 'products', label: 'Sản phẩm', icon: ShoppingBag },
-      { key: 'categories', label: 'Danh mục', icon: FolderTree },
-      { key: 'brands', label: 'Thương hiệu', icon: Award },
+      { key: 'products', label: t('admin.products', 'Sản phẩm'), icon: ShoppingBag },
+      { key: 'categories', label: t('admin.categories', 'Danh mục'), icon: FolderTree },
+      { key: 'brands', label: t('admin.brands', 'Thương hiệu'), icon: Award },
     ],
   },
   {
-    label: 'Bán hàng',
+    label: t('admin.sales', 'Bán hàng'),
     items: [
-      { key: 'orders', label: 'Đơn hàng', icon: Receipt },
-      { key: 'shop-customers', label: 'Khách hàng', icon: Users },
-      { key: 'accounting', label: 'Kế toán', icon: DollarSign },
-      { key: 'payment', label: 'Thanh toán', icon: CreditCard },
-      { key: 'shipping', label: 'Vận chuyển', icon: Truck },
-      { key: 'tax', label: 'Thuế', icon: Receipt },
+      { key: 'orders', label: t('admin.orders', 'Đơn hàng'), icon: Receipt },
+      { key: 'shop-customers', label: t('admin.customers', 'Khách hàng'), icon: Users },
+      { key: 'accounting', label: t('admin.accounting', 'Kế toán'), icon: DollarSign },
+      { key: 'payment', label: t('admin.payment', 'Thanh toán'), icon: CreditCard },
+      { key: 'shipping', label: t('admin.shipping', 'Vận chuyển'), icon: Truck },
+      { key: 'tax', label: t('admin.tax', 'Thuế'), icon: Receipt },
     ],
   },
   {
-    label: 'Kho & Tài chính',
+    label: t('admin.warehouse_finance', 'Kho & Tài chính'),
     items: [
-      { key: 'stock-receipts', label: 'Phiếu kho', icon: ClipboardList },
-      { key: 'suppliers', label: 'Nhà cung cấp', icon: Briefcase },
-      { key: 'payment-vouchers', label: 'Thu/Chi', icon: Wallet },
-      { key: 'purchase-orders', label: 'Đơn mua hàng', icon: ShoppingCart },
-      { key: 'inventory-reports', label: 'Báo cáo kho', icon: BarChart2 },
+      { key: 'stock-receipts', label: t('admin.stock_receipts', 'Phiếu kho'), icon: ClipboardList },
+      { key: 'suppliers', label: t('admin.suppliers', 'Nhà cung cấp'), icon: Briefcase },
+      { key: 'payment-vouchers', label: t('admin.payment_vouchers', 'Thu/Chi'), icon: Wallet },
+      { key: 'purchase-orders', label: t('admin.purchase_orders', 'Đơn mua hàng'), icon: ShoppingCart },
+      { key: 'inventory-reports', label: t('admin.inventory_reports', 'Báo cáo kho'), icon: BarChart2 },
     ],
   },
   {
     label: 'Marketing',
     items: [
-      { key: 'promotions', label: 'Khuyến mãi', icon: Tag },
+      { key: 'promotions', label: t('admin.promotions', 'Khuyến mãi'), icon: Tag },
       { key: 'flash-sales', label: 'Flash Sale', icon: Zap },
     ],
   },
   {
-    label: 'Giao diện',
+    label: t('admin.theme', 'Giao diện'),
     items: [
-      { key: 'cms', label: 'Trang CMS', icon: BookOpen },
+      { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
       { key: 'banners', label: 'Banner', icon: Video },
 
       { key: 'appearance', label: 'Theme', icon: Palette },
-      { key: 'storefront-layout', label: 'Bố cục Cửa Hàng', icon: LayoutList },
+      { key: 'storefront-layout', label: t('admin.storefront_layout', 'Bố cục Cửa Hàng'), icon: LayoutList },
     ],
   },
   {
-    label: 'Cửa hàng',
+    label: t('admin.store', 'Cửa hàng'),
     items: [
-      { key: 'store-info', label: 'Thông tin', icon: Store },
-      { key: 'system-config', label: 'Cấu hình', icon: Cog },
-      { key: 'languages', label: 'Ngôn ngữ', icon: Globe },
+      { key: 'store-info', label: t('admin.info', 'Thông tin'), icon: Store },
+      { key: 'system-config', label: t('admin.config', 'Cấu hình'), icon: Cog },
+      { key: 'languages', label: t('admin.languages', 'Ngôn ngữ'), icon: Globe },
     ],
   },
   {
-    label: 'Hệ thống',
+    label: t('admin.system', 'Hệ thống'),
     items: [
       { key: 'api-keys', label: 'API Keys', icon: KeyRound },
       { key: 'webhooks', label: 'Webhooks', icon: Webhook },
       { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
-      { key: 'activity-logs', label: 'Nhật ký', icon: ScrollText },
-      { key: 'roles', label: 'Phân quyền', icon: ShieldCheck },
+      { key: 'activity-logs', label: t('admin.activity_logs', 'Nhật ký'), icon: ScrollText },
+      { key: 'roles', label: t('admin.roles', 'Phân quyền'), icon: ShieldCheck },
       { key: 'modules', label: 'Modules', icon: Puzzle },
     ],
   },
@@ -869,8 +873,8 @@ const activeTabGroups = computed(() => {
 
 const sectionTitle = computed(() => {
   const tab = activeTab.value
-  if (liveTabs.includes(tab)) return 'Cài đặt Live'
-  return 'Cửa hàng'
+  if (liveTabs.includes(tab)) return t('admin.live_settings', 'Cài đặt Live')
+  return t('admin.store', 'Cửa hàng')
 })
 
 function onSidebarClick(tabKey) {

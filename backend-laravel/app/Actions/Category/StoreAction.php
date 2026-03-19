@@ -21,6 +21,11 @@ class StoreAction extends BaseAction
             $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
             $category = $this->repo->store($data);
             $this->logActivity('category.created', 'category', $category->id, ['name' => $data['name']]);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('categories', $category->id, $request->input('translations'));
+            }
+
             return $this->successResponse($category, 'Category created', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

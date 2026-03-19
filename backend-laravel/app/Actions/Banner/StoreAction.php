@@ -17,6 +17,11 @@ class StoreAction extends BaseAction
                 'is_active' => 'nullable|boolean',
             ]);
             $banner = $this->repo->store($data);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('banners', $banner->id, $request->input('translations'));
+            }
+
             $this->logActivity('banner.created', 'banner', $banner->id, ['title' => $data['title']]);
             return $this->successResponse($banner, 'Banner created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

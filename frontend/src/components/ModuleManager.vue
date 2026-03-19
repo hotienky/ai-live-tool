@@ -5,7 +5,7 @@
       <p class="mod-subtitle">Cài đặt hoặc gỡ bỏ các tính năng mở rộng cho cửa hàng</p>
     </div>
 
-    <div v-if="loading" class="mod-loading">Đang tải...</div>
+    <div v-if="loading" class="mod-loading">{{ t('admin.loading', 'Đang tải...') }}</div>
 
     <div v-else class="mod-grid">
       <div
@@ -127,6 +127,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import {
@@ -135,6 +136,8 @@ import {
   Warehouse, BarChart2, ShoppingCart, Clock, AlertCircle, Send,
   CheckCircle2, AlertTriangle,
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const emit = defineEmits(['modulesChanged'])

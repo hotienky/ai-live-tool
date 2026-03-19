@@ -46,7 +46,7 @@
     <!-- Empty -->
     <div v-else-if="filteredFields.length === 0" class="empty-state">
       <LayoutList :size="36" />
-      <p>Chưa có custom field nào</p>
+      <p>{{ t('admin.no_custom_fields', 'Chưa có custom field nào') }}</p>
       <small>Tạo trường tùy chỉnh để mở rộng dữ liệu sản phẩm, danh mục, khách hàng...</small>
     </div>
 
@@ -66,13 +66,34 @@
           </div>
         </div>
         <div class="cf-item__actions">
+          <button class="cf-edit-btn" @click="openEdit(field)" :title="t('admin.edit', 'Sửa')">
+            <Edit2 :size="13" />
+          </button>
           <label class="toggle-switch">
             <input type="checkbox" :checked="field.isActive ?? field.is_active ?? true" @change="toggleField(field)" />
             <span class="toggle-slider"></span>
           </label>
-          <button class="cf-del-btn" @click="deleteField(field.id)" title="Xóa">
+          <button class="cf-del-btn" @click="deleteField(field.id)" :title="t('admin.delete', 'Xóa')">
             <Trash2 :size="13" />
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+      <div class="modal">
+        <h3>{{ t('admin.edit_custom_field', 'Sửa Custom Field') }}</h3>
+        <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['label']" :baseData="form" />
+        
+        <div class="form-group">
+          <label>Tên hiển thị (Label) *</label>
+          <input v-model="fLabel" placeholder="Tên hiển thị..." class="cf-input cf-input--full" />
+        </div>
+        
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
+          <button class="btn-save" @click="handleSave">{{ t('admin.save', 'Lưu') }}</button>
         </div>
       </div>
     </div>
@@ -83,7 +104,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { LayoutList, Plus, Trash2, Loader2, ShoppingBag, FolderTree, Users, FileText } from 'lucide-vue-next'
+import { LayoutList, Plus, Trash2, Loader2, ShoppingBag, FolderTree, Users, FileText, Edit2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+import LanguageTabs from './LanguageTabs.vue'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 
@@ -113,6 +138,24 @@ const newField = ref({
   fieldType: 'text',
   entityType: 'product',
   optionsText: '',
+})
+
+// Modal Edit State
+const showModal = ref(false)
+const editId = ref(null)
+const currentLang = ref('vi')
+const editForm = ref({ label: '', translations: {} })
+
+const fLabel = computed({
+  get: () => currentLang.value === 'vi' ? editForm.value.label : (editForm.value.translations?.[currentLang.value]?.label || ''),
+  set: (val) => {
+    if (currentLang.value === 'vi') editForm.value.label = val
+    else {
+      if (!editForm.value.translations) editForm.value.translations = {}
+      if (!editForm.value.translations[currentLang.value]) editForm.value.translations[currentLang.value] = {}
+      editForm.value.translations[currentLang.value].label = val
+    }
+  }
 })
 
 const filteredFields = computed(() => {
@@ -154,6 +197,41 @@ async function addField() {
     }
   } catch (e) {
     showToast('Lỗi thêm field', 'error')
+  }
+}
+
+async function openEdit(field) {
+  editId.value = field.id
+  currentLang.value = 'vi'
+  editForm.value = { label: field.label || field.name, translations: {} }
+  
+  try {
+    const transRes = await apiFetch(`/languages/content/custom_fields/${field.id}`)
+    const transData = await transRes.json()
+    if (transData?.grouped) {
+      editForm.value.translations = Array.isArray(transData.grouped) ? {} : transData.grouped
+    }
+  } catch (e) {
+    console.warn('Could not load custom field translations:', e)
+  }
+    
+  showModal.value = true
+}
+
+async function handleSave() {
+  try {
+    const res = await apiFetch(`/custom-fields/${editId.value}`, {
+      method: 'PUT',
+      body: JSON.stringify(editForm.value)
+    })
+    const updated = await res.json()
+    const idx = fields.value.findIndex(f => f.id === editId.value)
+    if (idx !== -1) fields.value[idx] = updated
+    showModal.value = false
+    showToast('Đã cập nhật', 'success')
+    loadFields()
+  } catch (e) {
+    showToast('Lỗi cập nhật', 'error')
   }
 }
 
@@ -286,4 +364,16 @@ onMounted(() => loadFields())
 .empty-state small { font-size:12px; }
 .spin { animation:spin 1s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
+
+/* Edit Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: var(--color-bg-primary); width: 100%; max-width: 500px; padding: 24px; border-radius: 16px; box-shadow: var(--shadow-modal); border: 1px solid var(--color-border); }
+.modal h3 { font-size: 17px; font-weight: 700; margin: 0 0 20px; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--color-text-muted); margin-bottom: 4px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+.btn-cancel { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-save { padding: 8px 16px; border-radius: 8px; border: none; background: var(--color-accent-primary); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.cf-edit-btn { background:none; border:1px solid var(--color-border); border-radius:6px; padding:4px 6px; cursor:pointer; color:var(--color-text-muted); transition:all 0.15s; }
+.cf-edit-btn:hover { color:#3b82f6; border-color:#3b82f6; background:rgba(59,130,246,0.08); }
 </style>

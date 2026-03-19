@@ -3,9 +3,9 @@
     <div class="page-header">
       <h1 class="page-title">
         <Award :size="28" class="page-title__icon" />
-        Thương hiệu
+        {{ t('storefront.brand') || 'Thương hiệu' }}
       </h1>
-      <p class="page-subtitle">Khám phá sản phẩm từ các thương hiệu nổi tiếng</p>
+      <p class="page-subtitle">{{ t('storefront.explore_brands') || 'Khám phá sản phẩm từ các thương hiệu nổi tiếng' }}</p>
     </div>
 
     <!-- Loading State -->
@@ -16,8 +16,8 @@
     <!-- Empty State -->
     <div v-else-if="brands.length === 0" class="empty-state">
       <Award :size="64" />
-      <h2>Chưa có thương hiệu nào</h2>
-      <p>Cửa hàng hiện tại chưa cấu hình thương hiệu nào.</p>
+      <h2>{{ t('storefront.no_brands') || 'Chưa có thương hiệu nào' }}</h2>
+      <p>{{ t('storefront.no_brands_desc') || 'Cửa hàng hiện tại chưa cấu hình thương hiệu nào.' }}</p>
     </div>
 
     <!-- Data State -->
@@ -45,6 +45,9 @@
 import { ref, onMounted } from 'vue'
 import { Award, ArrowRight } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const brands = ref([])
 const loading = ref(true)

@@ -2,24 +2,24 @@
   <div class="products-page container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-      <router-link to="/">Trang chủ</router-link>
+      <router-link to="/">{{ t('storefront.home') || 'Trang chủ' }}</router-link>
       <ChevronRight :size="12" />
-      <span v-if="!selectedCategory">Sản phẩm</span>
+      <span v-if="!selectedCategory">{{ t('storefront.products') || 'Sản phẩm' }}</span>
       <template v-else>
-        <router-link to="/products">Sản phẩm</router-link>
+        <router-link to="/products">{{ t('storefront.products') || 'Sản phẩm' }}</router-link>
         <ChevronRight :size="12" />
-        <span>{{ categories.find(c => c.id == selectedCategory)?.name || 'Danh mục' }}</span>
+        <span>{{ categories.find(c => c.id == selectedCategory)?.name || (t('storefront.category') || 'Danh mục') }}</span>
       </template>
     </nav>
 
     <div class="products-layout" :class="'layout--sidebar-' + pageConfig.sidebarPosition">
       <!-- Sidebar Filters -->
       <aside v-if="pageConfig.sidebarPosition !== 'hidden'" class="products-sidebar">
-        <h3 class="sidebar-title"><SlidersHorizontal :size="16" /> Bộ lọc</h3>
+        <h3 class="sidebar-title"><SlidersHorizontal :size="16" /> {{ t('storefront.filter') || 'Bộ lọc' }}</h3>
 
         <!-- Categories -->
         <div class="filter-group" v-if="categories.length > 0 && pageConfig.showFilters.category">
-          <label class="filter-label">Danh mục</label>
+          <label class="filter-label">{{ t('storefront.category') || 'Danh mục' }}</label>
           <button
             v-for="c in categories"
             :key="c.id"
@@ -33,7 +33,7 @@
 
         <!-- Brands -->
         <div class="filter-group" v-if="brands.length > 0 && pageConfig.showFilters.brand">
-          <label class="filter-label">Thương hiệu</label>
+          <label class="filter-label">{{ t('storefront.brand') || 'Thương hiệu' }}</label>
           <button
             v-for="b in brands"
             :key="b.id"
@@ -47,7 +47,7 @@
 
         <!-- Price Filter -->
         <div class="filter-group" v-if="pageConfig.showFilters.price">
-          <label class="filter-label">Khoảng giá</label>
+          <label class="filter-label">{{ t('storefront.price') || 'Khoảng giá' }}</label>
           <div class="price-presets">
             <button v-for="p in pricePresets" :key="p.label" class="filter-btn price-preset"
               :class="{ active: activePricePreset === p.label }"
@@ -64,7 +64,7 @@
 
         <!-- Sort -->
         <div class="filter-group">
-          <label class="filter-label">Sắp xếp</label>
+          <label class="filter-label">{{ t('storefront.sort') || 'Sắp xếp' }}</label>
           <select v-model="sortBy" @change="reload()" class="filter-select">
             <option value="created_at:desc">Mới nhất</option>
             <option value="sold_count:desc">Bán chạy nhất</option>
@@ -162,8 +162,8 @@
         <!-- Empty -->
         <div v-else class="products-empty">
           <SearchX :size="48" />
-          <p>Không tìm thấy sản phẩm nào</p>
-          <button v-if="hasFilters" class="btn btn--outline" @click="clearFilters">Xóa bộ lọc</button>
+          <p>{{ t('storefront.no_products_found') || 'Không tìm thấy sản phẩm nào' }}</p>
+          <button v-if="hasFilters" class="btn btn--outline" @click="clearFilters">{{ t('storefront.clear_filter') || 'Xóa bộ lọc' }}</button>
         </div>
 
         <!-- Pagination -->
@@ -195,8 +195,10 @@ import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import ProductCard from '../components/ProductCard.vue'
 import { useSeo } from '../composables/useSeo.js'
+import { useI18n } from '../composables/useI18n.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const { setPageSeo } = useSeo()
 
 const layoutConfig = inject('layoutConfig', ref(null))

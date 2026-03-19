@@ -2,7 +2,7 @@
   <div class="cms-page">
     <!-- Breadcrumb (only for static pages or if configured) -->
     <nav class="breadcrumb container" v-if="page && !page.is_dynamic" style="margin-top: 24px">
-      <router-link :to="'/'">Trang chủ</router-link>
+      <router-link :to="'/'">{{ t('storefront.home') || 'Trang chủ' }}</router-link>
       <ChevronRight :size="12" />
       <span>{{ page.title || '...' }}</span>
     </nav>
@@ -36,7 +36,7 @@
               <section class="home-section container" v-if="filteredCategories(section).length > 0">
                 <h2 class="section-title">
                   <Grid :size="22" class="section-title__accent" />
-                  Danh mục sản phẩm
+                  {{ t('storefront.product_categories') || 'Danh mục sản phẩm' }}
                 </h2>
                 <CategoryGrid :categories="filteredCategories(section)" />
               </section>
@@ -52,10 +52,10 @@
               <div class="home-section__header">
                 <h2 class="section-title">
                   <Sparkles :size="22" class="section-title__accent" />
-                  {{ section.params?.title || 'Sản phẩm nổi bật' }}
+                  {{ section.params?.title || t('storefront.featured_products') || 'Sản phẩm nổi bật' }}
                 </h2>
                 <router-link :to="'/products'" class="home-section__viewall">
-                  Xem tất cả <ArrowRight :size="14" />
+                  {{ t('storefront.view_all') || 'Xem tất cả' }} <ArrowRight :size="14" />
                 </router-link>
               </div>
               <div v-if="products.length > 0" class="product-grid" :style="gridStyle(section.params?.columns)">
@@ -68,7 +68,7 @@
               <div class="home-section__header">
                 <h2 class="section-title">
                   <Clock :size="22" class="section-title__accent" />
-                  {{ section.params?.title || 'Hàng mới về' }}
+                  {{ section.params?.title || t('storefront.new_arrivals') || 'Hàng mới về' }}
                 </h2>
               </div>
               <div class="product-grid">
@@ -80,7 +80,7 @@
             <section v-if="section.type === 'cms_pages' && cmsPagesList.length > 0" class="home-section container">
               <h2 class="section-title">
                 <BookOpen :size="22" class="section-title__accent" />
-                Thông tin
+                {{ t('storefront.information') || 'Thông tin' }}
               </h2>
               <div class="home-pages" :class="{ 'home-pages--list': section.params?.layout === 'list' }">
                 <router-link
@@ -135,9 +135,9 @@
     <!-- Not Found -->
     <div v-else class="cms-404 container" style="margin-top: 24px">
       <FileQuestion :size="64" />
-      <h2>Trang không tồn tại</h2>
+      <h2>{{ t('storefront.page_not_found') || 'Trang không tồn tại' }}</h2>
       <router-link :to="'/'" class="btn btn--primary">
-        <ArrowLeft :size="16" /> Về trang chủ
+        <ArrowLeft :size="16" /> {{ t('storefront.back_home') || 'Về trang chủ' }}
       </router-link>
     </div>
   </div>
@@ -162,7 +162,9 @@ import HomeSectionTextBlock from '../components/sections/HomeSectionTextBlock.vu
 import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.vue'
 import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
 import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const { setPageSeo } = useSeo()
 
 const props = defineProps({

@@ -1,6 +1,6 @@
 <template>
   <div class="tracking-page container">
-    <h1 class="page-title"><Search :size="24" /> Tra cứu đơn hàng</h1>
+    <h1 class="page-title"><Search :size="24" /> {{ t('storefront.track_order') || 'Tra cứu đơn hàng' }}</h1>
 
     <!-- Search Form -->
     <div class="tracking-form" v-if="!orderData">
@@ -17,8 +17,8 @@
           </div>
         </div>
         <button class="btn btn--primary btn--block" @click="trackOrder" :disabled="searching || !phone || !orderId">
-          <template v-if="searching">Đang tìm...</template>
-          <template v-else><Search :size="16" /> Tra cứu</template>
+          <template v-if="searching">{{ t('storefront.processing') || 'Đang tìm...' }}</template>
+          <template v-else><Search :size="16" /> {{ t('storefront.track_order') || 'Tra cứu' }}</template>
         </button>
         <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
       </div>
@@ -26,7 +26,7 @@
 
     <!-- Order Result -->
     <div v-if="orderData" class="tracking-result">
-      <button class="back-btn" @click="orderData = null"><ArrowLeft :size="16" /> Tra cứu đơn khác</button>
+      <button class="back-btn" @click="orderData = null"><ArrowLeft :size="16" /> {{ t('storefront.track_other') || 'Tra cứu đơn khác' }}</button>
 
       <!-- Status Timeline -->
       <div class="status-timeline">
@@ -183,7 +183,9 @@ import {
   Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building, Truck, ClipboardList
 } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
+import { useI18n } from '../composables/useI18n.js'
 
+const { t } = useI18n()
 const route = useRoute()
 const phone = ref(route.query.phone || '')
 const orderId = ref(route.query.order_id || '')

@@ -5,9 +5,9 @@
       <div class="header-actions">
         <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, đối tác..." @input="debouncedSearch" />
         <select v-model="filterType" class="filter-select">
-          <option value="">Tất cả</option>
-          <option value="receipt">Phiếu thu</option>
-          <option value="payment">Phiếu chi</option>
+          <option value="">{{ t('admin.all', 'Tất cả') }}</option>
+          <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
+          <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
         </select>
         <button class="btn-primary" @click="openCreate('receipt')"><Plus :size="14" /> Phiếu thu</button>
         <button class="btn-secondary" @click="openCreate('payment')"><Minus :size="14" /> Phiếu chi</button>
@@ -43,8 +43,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã phiếu</th><th>Loại</th><th>Đối tác</th><th>Danh mục</th>
-            <th>Số tiền</th><th>PT thanh toán</th><th>Trạng thái</th><th>Ngày</th><th>Thao tác</th>
+            <th>Mã phiếu</th><th>{{ t('admin.type', 'Loại') }}</th><th>Đối tác</th><th>Danh mục</th>
+            <th>Số tiền</th><th>PT thanh toán</th><th>{{ t('admin.status', 'Trạng thái') }}</th><th>Ngày</th><th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -63,7 +63,7 @@
               <div class="action-btns">
                 <button v-if="v.status === 'draft'" class="act-btn act-confirm" @click="confirmVoucher(v)"><Check :size="13" /> Xác nhận</button>
                 <button v-if="v.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelVoucher(v)"><X :size="13" /> Hủy</button>
-                <button v-if="v.status === 'draft'" class="act-btn act-cancel" @click="deleteVoucher(v)"><Trash2 :size="13" /> Xóa</button>
+                <button v-if="v.status === 'draft'" class="act-btn act-cancel" @click="deleteVoucher(v)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -89,8 +89,8 @@
           <div class="form-group">
             <label>Loại</label>
             <select v-model="form.type">
-              <option value="receipt">Phiếu thu</option>
-              <option value="payment">Phiếu chi</option>
+              <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
+              <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
             </select>
           </div>
           <div class="form-group">
@@ -126,11 +126,11 @@
           </div>
         </div>
         <div class="form-group">
-          <label>Mô tả</label>
+          <label>{{ t('admin.description', 'Mô tả') }}</label>
           <textarea v-model="form.description" rows="2" placeholder="Chi tiết..."></textarea>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="save">Tạo phiếu</button>
         </div>
       </div>
@@ -140,6 +140,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import {
@@ -147,6 +148,8 @@ import {
   ArrowDownToLine, ArrowUpFromLine, Scale, FileText,
   ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const vouchers = ref([])

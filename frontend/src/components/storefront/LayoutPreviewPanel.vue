@@ -132,6 +132,9 @@
 <script setup>
 import { computed } from 'vue'
 import { Eye, Monitor, Tablet, Smartphone, AlertCircle } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   previewMode: { type: String, default: 'wireframe' },

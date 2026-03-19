@@ -142,7 +142,7 @@
 
     <button class="btn-primary" @click="save" :disabled="saving" style="margin-top:8px">
       <Save :size="14" />
-      {{ saving ? 'Đang lưu...' : 'Lưu cấu hình vận chuyển' }}
+      {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu cấu hình vận chuyển' }}
     </button>
   </div>
 </template>
@@ -152,6 +152,9 @@ import { ref, onMounted } from 'vue'
 import { Truck, Save } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const saving = ref(false)

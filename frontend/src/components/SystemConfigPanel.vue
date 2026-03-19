@@ -66,7 +66,7 @@
     <!-- Save All -->
     <div class="config-actions" v-if="hasChanges">
       <button class="cfg-save-btn" @click="saveAll" :disabled="saving">
-        <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Lưu thay đổi' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu thay đổi' }}
       </button>
     </div>
   </div>
@@ -77,6 +77,9 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Cog, Database, Plus, Save, Loader2, Server, Mail, ListTodo, Settings } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 

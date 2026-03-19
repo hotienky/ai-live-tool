@@ -16,6 +16,9 @@
 <script setup>
 import { computed } from 'vue'
 import { FileText } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },

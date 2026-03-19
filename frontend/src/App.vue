@@ -37,7 +37,7 @@
   <div class="app" v-else>
     <!-- Connection Lost Banner -->
     <div class="connection-lost" v-if="connectionLost">
-      <AlertTriangle :size="14" style="vertical-align:middle" /> Mất kết nối server — đang thử kết nối lại...
+      <AlertTriangle :size="14" style="vertical-align:middle" /> {{ t('admin.connection_lost', 'Mất kết nối server — đang thử kết nối lại...') }}
     </div>
     <!-- Top Header Bar -->
     <header class="app-header">
@@ -100,11 +100,11 @@
             <Monitor v-else :size="16" />
           </button>
           <NotificationBell @navigate="navigateTo" />
-          <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" title="Hồ sơ" v-if="currentUser">
+          <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" :title="t('admin.profile', 'Hồ sơ')" v-if="currentUser">
             <UserIcon :size="16" />
             <span class="app-header__username">{{ currentUser.fullName || currentUser.name || currentUser.email }}</span>
           </button>
-          <button class="app-header__btn app-header__btn--logout" @click="onLogout" title="Đăng xuất" v-if="currentUser">
+          <button class="app-header__btn app-header__btn--logout" @click="onLogout" :title="t('admin.logout', 'Đăng xuất')" v-if="currentUser">
             <LogOut :size="16" />
           </button>
         </div>
@@ -129,10 +129,10 @@
             <Volume2 v-if="ttsEnabled" :size="15" />
             <VolumeX v-else :size="15" />
           </button>
-          <button class="app-header__icon-btn" :class="{ active: showChart }" @click="showChart = !showChart" title="Biểu đồ">
+          <button class="app-header__icon-btn" :class="{ active: showChart }" @click="showChart = !showChart" :title="t('admin.chart', 'Biểu đồ')">
             <BarChart3 :size="15" />
           </button>
-          <button class="app-header__icon-btn" :class="{ active: showHistory }" @click="showHistory = !showHistory" title="Lịch sử">
+          <button class="app-header__icon-btn" :class="{ active: showHistory }" @click="showHistory = !showHistory" :title="t('admin.history', 'Lịch sử')">
             <History :size="15" />
           </button>
           <button class="app-header__icon-btn" @click="onExport" title="Export CSV">
@@ -140,14 +140,14 @@
           </button>
           <div class="app-header__divider"></div>
           <button class="app-header__action-btn app-header__action-btn--connect" @click="showLiveModal = true" :disabled="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'">
-            <Radio :size="13" /> Phiên Live
+            <Radio :size="13" /> {{ t('admin.live_session', 'Phiên Live') }}
           </button>
           <button
             class="app-header__action-btn app-header__action-btn--stop"
             @click="onDisconnect"
             v-if="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'"
           >
-            <Square :size="13" /> Ngắt
+            <Square :size="13" /> {{ t('admin.disconnect', 'Ngắt') }}
           </button>
           <button class="app-header__icon-btn" @click="onResetStats" title="Reset">
             <RotateCcw :size="14" />
@@ -216,6 +216,8 @@
       :initialTab="settingsActiveTab"
       :activeView="activeView"
       :cmsEditPageId="cmsEditPageId"
+      :productEditId="productEditId"
+      :categoryEditId="categoryEditId"
       @openShopSelector="shopSelectorRef?.open()"
       @navigate="navigateTo"
     />
@@ -237,7 +239,7 @@
 
     <!-- Floating Action Buttons (Live Monitor) -->
     <div class="app-fab" v-if="activeView === 'live'">
-      <button class="app-fab__btn app-fab__btn--notif" @click="toggleBrowserNotif" :title="notifEnabled ? 'Tắt thông báo' : 'Bật thông báo'">
+      <button class="app-fab__btn app-fab__btn--notif" @click="toggleBrowserNotif" :title="notifEnabled ? t('admin.disable_notif', 'Tắt thông báo') : t('admin.enable_notif', 'Bật thông báo')">
         <BellRing v-if="notifEnabled" :size="18" />
         <BellOff v-else :size="18" />
       </button>
@@ -246,14 +248,14 @@
     <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-overlay" v-if="showShortcuts" @click.self="showShortcuts = false">
       <div class="shortcuts-modal">
-        <h3><Keyboard :size="16" style="vertical-align:middle" /> Phím tắt</h3>
+        <h3><Keyboard :size="16" style="vertical-align:middle" /> {{ t('admin.shortcuts', 'Phím tắt') }}</h3>
         <div class="shortcuts-list">
           <div v-for="s in shortcuts" :key="s.keys" class="shortcut-item">
             <kbd>{{ s.keys }}</kbd>
             <span>{{ s.desc }}</span>
           </div>
         </div>
-        <button class="shortcuts-close" @click="showShortcuts = false">Đóng</button>
+        <button class="shortcuts-close" @click="showShortcuts = false">{{ t('admin.close', 'Đóng') }}</button>
       </div>
     </div>
 
@@ -322,6 +324,7 @@ import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
 import { useTheme } from './composables/useTheme.js'
 import { usePermissions, fetchPermissionsIfEmpty } from './composables/usePermissions.js'
 import { usePluginLoader } from './composables/usePluginLoader.js'
+import { useI18n } from './composables/useI18n.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -340,6 +343,7 @@ const { isLoggedIn, currentUser, logout } = useAuth()
 const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
 const { theme, resolvedTheme, toggleTheme } = useTheme()
 const { can, isSuperAdmin } = usePermissions()
+const { t } = useI18n()
 
 function onLoginSuccess() {}
 function onLogout() { logout() }
@@ -419,15 +423,15 @@ const navItems = [
       { key: 'dashboard', view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
       { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
-      { key: 'reports', view: 'reports', label: 'Báo cáo', icon: BarChart2 },
+      { key: 'reports', view: 'reports', label: t('admin.reports', 'Báo cáo'), icon: BarChart2 },
       { key: 'live-keywords', view: 'live/keywords', label: 'Keywords', icon: Key },
       { key: 'live-replies', view: 'live/replies', label: 'Auto Reply', icon: MessageCircle },
       { key: 'live-moderation', view: 'live/moderation', label: 'Moderation', icon: Shield },
-      { key: 'live-connection', view: 'live/connection', label: 'Kết nối', icon: Link },
+      { key: 'live-connection', view: 'live/connection', label: t('admin.connection', 'Kết nối'), icon: Link },
     ],
   },
   {
-    key: 'shop/products', label: 'Cửa hàng', icon: Store,
+    key: 'shop/products', label: t('admin.store', 'Cửa hàng'), icon: Store,
     featureGroup: 'store',
     permission: 'products.view',
   },
@@ -469,7 +473,7 @@ const filteredNavItems = computed(() => {
 // Route → settingsTab mapping
 const routeToTab = {
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
-  'shop/products': 'products', 'shop/categories': 'categories', 'shop/brands': 'brands',
+  'shop/products': 'products', 'shop/products/edit': 'products', 'shop/categories': 'categories', 'shop/categories/edit': 'categories', 'shop/brands': 'brands',
   'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
   'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
   'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
@@ -484,6 +488,7 @@ const routeToTab = {
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',
   'shop/cms/create', 'shop/cms/edit',
+  'shop/products/edit', 'shop/categories/edit',
   ...Object.keys(routeToTab),
 ]
 // ── Storefront Detection ──
@@ -520,6 +525,10 @@ function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '')
   // Match CMS edit with ID: shop/cms/edit/123
   if (path.startsWith('shop/cms/edit/')) return 'shop/cms/edit'
+  // Match product edit with ID: shop/products/edit/123
+  if (path.startsWith('shop/products/edit/')) return 'shop/products/edit'
+  // Match category edit with ID: shop/categories/edit/123
+  if (path.startsWith('shop/categories/edit/')) return 'shop/categories/edit'
   // Match order detail: orders/detail/123
   if (path.startsWith('orders/detail/')) return 'orders/detail'
   // Match multi-segment routes like shop/products, orders/customers etc
@@ -538,18 +547,34 @@ const isSettingsView = computed(() => activeView.value in routeToTab)
 
 // CMS page edit ID (from URL: /shop/cms/edit/123)
 const cmsEditPageId = ref(null)
+// Product edit ID (from URL: /shop/products/edit/123)
+const productEditId = ref(null)
+// Category edit ID (from URL: /shop/categories/edit/123)
+const categoryEditId = ref(null)
 
 function extractCmsId(pathStr) {
   const match = pathStr.replace(/^\//, '').match(/^shop\/cms\/edit\/(\d+)/)
   return match ? match[1] : null
 }
+function extractProductEditId(pathStr) {
+  const match = pathStr.replace(/^\//, '').match(/^shop\/products\/edit\/(\d+)/)
+  return match ? match[1] : null
+}
+function extractCategoryEditId(pathStr) {
+  const match = pathStr.replace(/^\//, '').match(/^shop\/categories\/edit\/(\d+)/)
+  return match ? match[1] : null
+}
 cmsEditPageId.value = extractCmsId(window.location.pathname)
+productEditId.value = extractProductEditId(window.location.pathname)
+categoryEditId.value = extractCategoryEditId(window.location.pathname)
 function navigateTo(view) {
   // Support CMS edit with ID: shop/cms/edit/123
   const urlPath = view
   
   // Track dynamic params
   cmsEditPageId.value = extractCmsId(urlPath)
+  productEditId.value = extractProductEditId(urlPath)
+  categoryEditId.value = extractCategoryEditId(urlPath)
   
   if (!validViews.includes(view)) {
     // Check if it matches view + ID pattern
@@ -575,6 +600,8 @@ window.addEventListener('popstate', () => {
     isStorefront.value = false
     activeView.value = viewFromPath()
     cmsEditPageId.value = extractCmsId(window.location.pathname)
+    productEditId.value = extractProductEditId(window.location.pathname)
+    categoryEditId.value = extractCategoryEditId(window.location.pathname)
   }
 })
 

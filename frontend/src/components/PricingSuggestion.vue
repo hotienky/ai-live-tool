@@ -53,6 +53,9 @@
 import { ref, computed } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { Lightbulb, Search, Loader2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },

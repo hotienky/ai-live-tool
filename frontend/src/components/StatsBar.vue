@@ -79,6 +79,9 @@
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { Eye, Flame, CircleDot, Circle, BarChart2 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   stats: { type: Object, default: () => ({ hot: 0, warm: 0, cold: 0, total: 0 }) },

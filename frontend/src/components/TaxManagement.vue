@@ -5,7 +5,7 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Settings :size="14" /> Cài đặt thuế</h4>
         <button class="tax-btn tax-btn--primary tax-btn--sm" @click="saveConfig" :disabled="savingConfig">
-          <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
+          <Save :size="13" /> {{ savingConfig ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
         </button>
       </div>
 
@@ -87,17 +87,17 @@
         </div>
       </div>
 
-      <div v-if="loading" class="tax-loading">Đang tải...</div>
+      <div v-if="loading" class="tax-loading">{{ t('admin.loading', 'Đang tải...') }}</div>
 
       <table v-else-if="rates.length" class="tax-table">
         <thead>
           <tr>
-            <th>Tên</th>
-            <th>Mã</th>
+            <th>{{ t('admin.name', 'Tên') }}</th>
+            <th>{{ t('admin.code', 'Mã') }}</th>
             <th>Thuế suất</th>
-            <th>Loại</th>
+            <th>{{ t('admin.type', 'Loại') }}</th>
             <th>Phạm vi</th>
-            <th>Trạng thái</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -122,7 +122,7 @@
               </span>
             </td>
             <td class="tax-cell--actions">
-              <button class="tax-action-btn" @click="openForm(rate)" title="Sửa"><Pencil :size="13" /></button>
+              <button class="tax-action-btn" @click="openForm(rate)" :title="t('admin.edit', 'Sửa')"><Pencil :size="13" /></button>
               <button class="tax-action-btn tax-action-btn--danger" @click="deleteRate(rate)" title="Xoá"><Trash2 :size="13" /></button>
             </td>
           </tr>
@@ -191,7 +191,7 @@
                   </select>
                 </div>
                 <div class="tax-form-row">
-                  <label>Ưu tiên</label>
+                  <label>{{ t('admin.priority', 'Ưu tiên') }}</label>
                   <input v-model.number="form.priority" type="number" min="0" class="tax-input" />
                 </div>
               </div>
@@ -223,7 +223,7 @@
             <div class="tax-modal__footer">
               <button class="tax-btn" @click="showForm = false">Huỷ</button>
               <button class="tax-btn tax-btn--primary" @click="saveRate" :disabled="savingRate">
-                <Save :size="13" /> {{ savingRate ? 'Đang lưu...' : 'Lưu' }}
+                <Save :size="13" /> {{ savingRate ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
               </button>
             </div>
           </div>
@@ -238,6 +238,9 @@ import { ref, onMounted } from 'vue'
 import { Settings, Percent, Plus, Pencil, Trash2, Save, X, Flag, Receipt, BarChart2 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const emit = defineEmits(['navigate-to-accounting'])
 const { showToast } = useToast()
@@ -359,7 +362,7 @@ async function saveRate() {
     const method = editingRate.value ? 'PUT' : 'POST'
     const res = await apiFetch(url, { method, body: JSON.stringify(payload) })
     if (!res.ok) throw new Error()
-    showToast(editingRate.value ? 'Đã cập nhật' : 'Đã thêm thuế suất', 'success')
+    showToast(editingRate.value ? t('admin.updated', 'Đã cập nhật') : 'Đã thêm thuế suất', 'success')
     showForm.value = false
     await loadRates()
   } catch {

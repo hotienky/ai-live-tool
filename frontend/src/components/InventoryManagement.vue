@@ -50,14 +50,14 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Tên sản phẩm</th>
+            <th>{{ t('admin.product_name', 'Tên sản phẩm') }}</th>
             <th>SKU</th>
             <th>Danh mục</th>
-            <th>Giá bán</th>
+            <th>{{ t('admin.selling_price', 'Giá bán') }}</th>
             <th>Giá nhập</th>
-            <th>Tồn kho</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
+            <th>{{ t('admin.stock', 'Tồn kho') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
+            <th>{{ t('admin.actions', 'Hành động') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -81,10 +81,10 @@
             </td>
             <td>
               <div class="action-btns">
-                <button class="act-btn act-edit" @click="openEditModal(product)"><Edit :size="13" /> Sửa</button>
+                <button class="act-btn act-edit" @click="openEditModal(product)"><Edit :size="13" /> {{ t('admin.edit', 'Sửa') }}</button>
                 <button class="act-btn act-confirm" @click="openAdjustModal(product)"><BarChart3 :size="13" /> Điều chỉnh</button>
                 <button class="act-btn act-view" @click="openHistoryModal(product)"><History :size="13" /> Lịch sử</button>
-                <button class="act-btn act-cancel" @click="deleteProduct(product)"><Trash2 :size="13" /> Xóa</button>
+                <button class="act-btn act-cancel" @click="deleteProduct(product)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -138,7 +138,7 @@
             <CurrencyInput v-model="productForm.costPrice" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>Tồn kho</label>
+            <label>{{ t('admin.stock', 'Tồn kho') }}</label>
             <input type="number" v-model.number="productForm.stock" placeholder="0" />
           </div>
           <div class="form-group">
@@ -150,7 +150,7 @@
             <input v-model="productForm.category" placeholder="Áo" />
           </div>
           <div class="form-group">
-            <label>Đơn vị</label>
+            <label>{{ t('admin.unit', 'Đơn vị') }}</label>
             <input v-model="productForm.unit" placeholder="cái" />
           </div>
           <div class="form-group span-2">
@@ -176,7 +176,7 @@
               <input v-model="v.sku" placeholder="SKU" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
               <CurrencyInput v-model="v.price" placeholder="Giá" suffix="" />
               <input v-model.number="v.stock" type="number" placeholder="Kho" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
-              <button @click="deleteVariant(v, i)" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:6px;cursor:pointer" title="Xóa"><Trash2 :size="14" /></button>
+              <button @click="deleteVariant(v, i)" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:6px;cursor:pointer" :title="t('admin.delete', 'Xóa')"><Trash2 :size="14" /></button>
             </div>
             <div style="display:flex;gap:8px;margin-top:8px">
               <button @click="addVariantRow" style="flex:1;padding:8px;border:1px dashed var(--glass-border);background:transparent;color:var(--color-text-muted);border-radius:8px;cursor:pointer;font-size:13px">+ Thêm biến thể</button>
@@ -186,7 +186,7 @@
         </div>
 
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showProductModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showProductModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="saveProduct">{{ editingProduct ? 'Lưu' : 'Thêm' }}</button>
         </div>
       </div>
@@ -224,8 +224,8 @@
           <input v-model="adjustReason" placeholder="Nhập hàng / Kiểm kê / Hàng lỗi..." />
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showAdjustModal = false">Hủy</button>
-          <button class="btn-create" @click="submitAdjust" :disabled="!adjustReason">Xác nhận</button>
+          <button class="btn-cancel" @click="showAdjustModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
+          <button class="btn-create" @click="submitAdjust" :disabled="!adjustReason">{{ t('admin.confirm', 'Xác nhận') }}</button>
         </div>
       </div>
     </div>
@@ -255,7 +255,7 @@
           <p class="empty-state__title">Chưa có lịch sử</p>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showHistoryModal = false">Đóng</button>
+          <button class="btn-cancel" @click="showHistoryModal = false">{{ t('admin.close', 'Đóng') }}</button>
         </div>
       </div>
     </div>
@@ -277,7 +277,7 @@
           <table class="preview-table">
             <thead>
               <tr>
-                <th>Tên</th><th>SKU</th><th>Giá</th><th>Tồn kho</th>
+                <th>{{ t('admin.name', 'Tên') }}</th><th>SKU</th><th>Giá</th><th>{{ t('admin.stock', 'Tồn kho') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -292,7 +292,7 @@
           <p v-if="importPreview.length > 10" style="color: var(--color-text-muted); font-size: 12px">...và {{ importPreview.length - 10 }} sản phẩm khác</p>
         </div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showImportModal = false; importPreview = []">Hủy</button>
+          <button class="btn-cancel" @click="showImportModal = false; importPreview = []">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="submitImport" :disabled="importPreview.length === 0">Nhập {{ importPreview.length }} sản phẩm</button>
         </div>
       </div>
@@ -311,6 +311,9 @@ import {
   ChevronLeft, ChevronRight, Layers
 } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({ /* tenant-scoped */ })

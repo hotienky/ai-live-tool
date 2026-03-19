@@ -12,7 +12,7 @@
           <span class="timer-block">{{ countdown.seconds }}</span>
         </div>
       </div>
-      <router-link to="/products?flash=1" class="flash-sale__more">Xem tất cả →</router-link>
+      <router-link to="/products?flash=1" class="flash-sale__more">{{ t('storefront.view_all') || 'Xem tất cả' }} →</router-link>
     </div>
 
     <div class="flash-sale__grid">
@@ -36,7 +36,7 @@
             <div class="progress-bar">
               <div class="progress-fill" :style="{ width: soldPercent(item) + '%' }"></div>
             </div>
-            <span class="progress-text">Đã bán {{ item.sold_count || 0 }}/{{ item.stock_limit }}</span>
+            <span class="progress-text">{{ t('storefront.sold') || 'Đã bán' }} {{ item.sold_count || 0 }}/{{ item.stock_limit }}</span>
           </div>
         </div>
       </router-link>
@@ -48,6 +48,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Zap } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },

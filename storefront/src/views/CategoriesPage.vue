@@ -3,9 +3,9 @@
     <div class="page-header">
       <h1 class="page-title">
         <FolderTree :size="28" class="page-title__icon" />
-        Danh mục sản phẩm
+        {{ t('storefront.product_categories') || 'Danh mục sản phẩm' }}
       </h1>
-      <p class="page-subtitle">Khám phá các sản phẩm theo danh mục</p>
+      <p class="page-subtitle">{{ t('storefront.explore_categories') || 'Khám phá các sản phẩm theo danh mục' }}</p>
     </div>
 
     <!-- Loading State -->
@@ -16,9 +16,9 @@
     <!-- Empty State -->
     <div v-else-if="categories.length === 0" class="empty-state">
       <Package :size="64" />
-      <h2>Chưa có danh mục nào</h2>
-      <p>Cửa hàng hiện tại chưa có danh mục sản phẩm nào được hiển thị.</p>
-      <router-link to="/products" class="btn btn-primary mt-4">Xem tất cả sản phẩm</router-link>
+      <h2>{{ t('storefront.no_categories') || 'Chưa có danh mục nào' }}</h2>
+      <p>{{ t('storefront.no_categories_desc') || 'Cửa hàng hiện tại chưa có danh mục sản phẩm nào được hiển thị.' }}</p>
+      <router-link to="/products" class="btn btn-primary mt-4">{{ t('storefront.view_all_products') || 'Xem tất cả sản phẩm' }}</router-link>
     </div>
 
     <!-- Data State -->
@@ -31,6 +31,9 @@ import { ref, onMounted } from 'vue'
 import { FolderTree, Package } from 'lucide-vue-next'
 import CategoryGrid from '../components/CategoryGrid.vue'
 import { apiFetch } from '../api.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const categories = ref([])
 const loading = ref(true)

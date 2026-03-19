@@ -16,7 +16,7 @@
       <button class="nm-tab" :class="{ active: activeTab === 'footer' }" @click="activeTab = 'footer'">
         <component :is="icons.PanelBottom" :size="14" />
         Footer
-        <span class="nm-tab__count">{{ footerConfig.columns.length }} cột</span>
+        <span class="nm-tab__count">{{ currentFooter.columns.length }} cột</span>
       </button>
     </div>
 
@@ -53,7 +53,7 @@
             <button class="nm-action nm-action--edit" @click="openEdit(link)" title="Chỉnh sửa">
               <component :is="icons.Pencil" :size="13" /> Sửa
             </button>
-            <button class="nm-action nm-action--delete" @click="handleDelete(link)" title="Xóa">
+            <button class="nm-action nm-action--delete" @click="handleDelete(link)" :title="t('admin.delete', 'Xóa')">
               <component :is="icons.Trash2" :size="13" />
             </button>
           </div>
@@ -70,7 +70,7 @@
                 </div>
               </div>
               <div class="nm-item__actions">
-                <button class="nm-action nm-action--edit" @click="openEdit(child)"><component :is="icons.Pencil" :size="12" /> Sửa</button>
+                <button class="nm-action nm-action--edit" @click="openEdit(child)"><component :is="icons.Pencil" :size="12" /> {{ t('admin.edit', 'Sửa') }}</button>
                 <button class="nm-action nm-action--delete" @click="handleDelete(child)"><component :is="icons.Trash2" :size="12" /></button>
               </div>
             </div>
@@ -95,14 +95,16 @@
         </div>
         <button class="btn-save-footer" @click="saveFooter" :disabled="savingFooter">
           <component :is="icons.Save" :size="14" />
-          {{ savingFooter ? 'Đang lưu...' : 'Lưu Footer' }}
+          {{ savingFooter ? t('admin.saving', 'Đang lưu...') : 'Lưu Footer' }}
         </button>
       </div>
+      
+      <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" />
 
       <!-- Footer Columns -->
       <div class="footer-builder">
         <div
-          v-for="(col, ci) in footerConfig.columns"
+          v-for="(col, ci) in currentFooter.columns"
           :key="'fc-' + ci"
           class="footer-col-card"
           :class="{ 'footer-col-card--dragging': footerDragIdx === ci, 'footer-col-card--drag-over': footerDragOverIdx === ci && footerDragIdx !== ci }"
@@ -185,14 +187,14 @@
         </div>
 
         <button class="btn-add-col" @click="addFooterCol">
-          <component :is="icons.Plus" :size="14" /> Thêm cột (hiện có {{ footerConfig.columns.length }} cột)
+          <component :is="icons.Plus" :size="14" /> Thêm cột (hiện có {{ currentFooter.columns.length }} cột)
         </button>
       </div>
 
       <!-- Social Links -->
       <details class="ft-details" open>
         <summary>🌐 Mạng xã hội</summary>
-        <div v-for="(s, si) in footerConfig.social" :key="si" class="footer-link-row">
+        <div v-for="(s, si) in currentFooter.social" :key="si" class="footer-link-row">
           <select v-model="s.platform" class="ft-select ft-select--sm">
             <option value="facebook">Facebook</option>
             <option value="instagram">Instagram</option>
@@ -204,9 +206,9 @@
             <option value="lazada">Lazada</option>
           </select>
           <input v-model="s.url" class="ft-input ft-input--wide" placeholder="URL" />
-          <button class="btn-remove-item" @click="footerConfig.social.splice(si, 1)"><component :is="icons.X" :size="10" /></button>
+          <button class="btn-remove-item" @click="currentFooter.social.splice(si, 1)"><component :is="icons.X" :size="10" /></button>
         </div>
-        <button class="btn-add-item" @click="footerConfig.social.push({ platform: 'facebook', url: '' })">
+        <button class="btn-add-item" @click="currentFooter.social.push({ platform: 'facebook', url: '' })">
           <component :is="icons.Plus" :size="12" /> Thêm
         </button>
       </details>
@@ -216,7 +218,7 @@
         <summary>💳 Phương thức thanh toán</summary>
         <div class="footer-badges-grid">
           <label v-for="pm in allPaymentMethods" :key="pm.code" class="footer-badge-check">
-            <input type="checkbox" :value="pm.code" v-model="footerConfig.paymentMethods" />
+            <input type="checkbox" :value="pm.code" v-model="currentFooter.paymentMethods" />
             <span>{{ pm.label }}</span>
           </label>
         </div>
@@ -225,13 +227,13 @@
       <!-- Badges -->
       <details class="ft-details">
         <summary>🏅 Chứng nhận / Badge</summary>
-        <div v-for="(b, bi) in footerConfig.badges" :key="bi" class="footer-link-row">
+        <div v-for="(b, bi) in currentFooter.badges" :key="bi" class="footer-link-row">
           <input v-model="b.label" class="ft-input" placeholder="Tên" />
           <input v-model="b.imageUrl" class="ft-input ft-input--wide" placeholder="URL hình ảnh" />
           <input v-model="b.url" class="ft-input" placeholder="Link" />
-          <button class="btn-remove-item" @click="footerConfig.badges.splice(bi, 1)"><component :is="icons.X" :size="10" /></button>
+          <button class="btn-remove-item" @click="currentFooter.badges.splice(bi, 1)"><component :is="icons.X" :size="10" /></button>
         </div>
-        <button class="btn-add-item" @click="footerConfig.badges.push({ label: '', imageUrl: '', url: '' })">
+        <button class="btn-add-item" @click="currentFooter.badges.push({ label: '', imageUrl: '', url: '' })">
           <component :is="icons.Plus" :size="12" /> Thêm badge
         </button>
       </details>
@@ -239,11 +241,11 @@
       <!-- Legal & Copyright -->
       <details class="ft-details">
         <summary>📋 Thông tin pháp lý</summary>
-        <textarea v-model="footerConfig.legalText" class="ft-input ft-input--wide ft-textarea" rows="3"
+        <textarea v-model="currentFooter.legalText" class="ft-input ft-input--wide ft-textarea" rows="3"
           placeholder="VD: Công Ty TNHH ABC&#10;Trụ sở: 123 Đường A, Quận B, TP.HCM&#10;MST: 0123456789"></textarea>
         <div class="ft-param-row" style="margin-top:8px">
           <label>Copyright</label>
-          <input type="text" v-model="footerConfig.copyrightText" class="ft-input ft-input--wide" placeholder="© 2026 Shop Name" />
+          <input type="text" v-model="currentFooter.copyrightText" class="ft-input ft-input--wide" placeholder="© 2026 Shop Name" />
         </div>
       </details>
 
@@ -254,22 +256,22 @@
           <div class="footer-color-item">
             <label>Nền</label>
             <div class="footer-color-pick">
-              <input type="color" v-model="footerConfig.bgColor" class="ft-color" />
-              <button v-if="footerConfig.bgColor" class="btn-remove-item" @click="footerConfig.bgColor = ''"><component :is="icons.X" :size="10" /></button>
+              <input type="color" v-model="currentFooter.bgColor" class="ft-color" />
+              <button v-if="currentFooter.bgColor" class="btn-remove-item" @click="currentFooter.bgColor = ''"><component :is="icons.X" :size="10" /></button>
             </div>
           </div>
           <div class="footer-color-item">
-            <label>Tiêu đề</label>
+            <label>{{ t('admin.title', 'Tiêu đề') }}</label>
             <div class="footer-color-pick">
-              <input type="color" v-model="footerConfig.headingColor" class="ft-color" />
-              <button v-if="footerConfig.headingColor" class="btn-remove-item" @click="footerConfig.headingColor = ''"><component :is="icons.X" :size="10" /></button>
+              <input type="color" v-model="currentFooter.headingColor" class="ft-color" />
+              <button v-if="currentFooter.headingColor" class="btn-remove-item" @click="currentFooter.headingColor = ''"><component :is="icons.X" :size="10" /></button>
             </div>
           </div>
           <div class="footer-color-item">
             <label>Chữ</label>
             <div class="footer-color-pick">
-              <input type="color" v-model="footerConfig.textColor" class="ft-color" />
-              <button v-if="footerConfig.textColor" class="btn-remove-item" @click="footerConfig.textColor = ''"><component :is="icons.X" :size="10" /></button>
+              <input type="color" v-model="currentFooter.textColor" class="ft-color" />
+              <button v-if="currentFooter.textColor" class="btn-remove-item" @click="currentFooter.textColor = ''"><component :is="icons.X" :size="10" /></button>
             </div>
           </div>
         </div>
@@ -280,26 +282,26 @@
         <h5>👁 Xem trước Footer</h5>
         <div class="pv-footer" :style="footerPreviewStyle">
           <div class="pv-footer__cols">
-            <div v-for="(col, ci) in footerConfig.columns" :key="ci" class="pv-footer__col">
-              <div class="pv-footer__col-title" :style="footerConfig.headingColor ? { color: footerConfig.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
+            <div v-for="(col, ci) in currentFooter.columns" :key="ci" class="pv-footer__col">
+              <div class="pv-footer__col-title" :style="currentFooter.headingColor ? { color: currentFooter.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
               <template v-if="col.type === 'links'">
-                <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ link.label || '—' }}</div>
+                <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="currentFooter.textColor ? { color: currentFooter.textColor } : {}">{{ link.label || '—' }}</div>
               </template>
               <template v-else-if="col.type === 'contact'">
-                <div v-for="(item, ii) in col.items" :key="ii" class="pv-footer__contact" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">
+                <div v-for="(item, ii) in col.items" :key="ii" class="pv-footer__contact" :style="currentFooter.textColor ? { color: currentFooter.textColor } : {}">
                   <span>{{ { phone:'📞', email:'📧', address:'📍', clock:'🕐', text:'💬' }[item.icon] || '•' }}</span>
                   {{ item.value || item.label || '—' }}
                 </div>
               </template>
               <template v-else>
-                <div class="pv-footer__text" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ col.content ? '(HTML)' : '—' }}</div>
+                <div class="pv-footer__text" :style="currentFooter.textColor ? { color: currentFooter.textColor } : {}">{{ col.content ? '(HTML)' : '—' }}</div>
               </template>
             </div>
           </div>
-          <div v-if="footerConfig.social?.length" class="pv-footer__social">
-            <span v-for="s in footerConfig.social" :key="s.platform" class="pv-footer__social-icon">{{ { facebook:'f', instagram:'ig', youtube:'yt', tiktok:'tt', zalo:'z', twitter:'x' }[s.platform] || '?' }}</span>
+          <div v-if="currentFooter.social?.length" class="pv-footer__social">
+            <span v-for="s in currentFooter.social" :key="s.platform" class="pv-footer__social-icon">{{ { facebook:'f', instagram:'ig', youtube:'yt', tiktok:'tt', zalo:'z', twitter:'x' }[s.platform] || '?' }}</span>
           </div>
-          <div v-if="footerConfig.copyrightText" class="pv-footer__copyright" :style="footerConfig.textColor ? { color: footerConfig.textColor, opacity: 0.6 } : {}">{{ footerConfig.copyrightText }}</div>
+          <div v-if="currentFooter.copyrightText" class="pv-footer__copyright" :style="currentFooter.textColor ? { color: currentFooter.textColor, opacity: 0.6 } : {}">{{ currentFooter.copyrightText }}</div>
         </div>
       </div>
     </div>
@@ -313,13 +315,15 @@
             <button class="nm-modal__close" @click="showModal = false"><component :is="icons.X" :size="16" /></button>
           </div>
           <div class="nm-modal__body">
+            <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['name', 'url']" :baseData="form" />
+
             <div class="nm-form-group">
               <label>Tên hiển thị <span class="req">*</span></label>
-              <input v-model="form.name" placeholder="VD: Trang chủ, Sản phẩm..." />
+              <input v-model="fName" placeholder="VD: Trang chủ, Sản phẩm..." />
             </div>
             <div class="nm-form-group">
               <label>Đường dẫn (URL)</label>
-              <input v-model="form.url" placeholder="/ hoặc /products" />
+              <input v-model="fUrl" placeholder="/ hoặc /products" />
             </div>
             <div class="nm-form-row">
               <div class="nm-form-group">
@@ -365,31 +369,19 @@
                 </div>
               </div>
               <div class="nm-form-group">
-                <label>Thứ tự</label>
+                <label>{{ t('admin.order', 'Thứ tự') }}</label>
                 <input v-model.number="form.sort" type="number" />
               </div>
             </div>
           </div>
           <div class="nm-modal__footer">
-            <button class="btn-cancel" @click="showModal = false">Hủy</button>
+            <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
             <button class="btn-save" @click="handleSave">
               <component :is="icons.Save" :size="14" /> {{ isEditing ? 'Cập nhật' : 'Tạo liên kết' }}
             </button>
           </div>
 
-          <!-- Multi-language -->
-          <div style="padding: 0 24px 20px;">
-            <ContentTranslationEditor
-              v-if="isEditing && editId"
-              :tableName="'nav_links'"
-              :rowId="editId"
-              :fields="[
-                { key: 'name', label: 'Tên hiển thị', type: 'text' },
-              ]"
-              :defaultValues="{ name: form.name }"
-              :moduleActive="languagesInstalled"
-            />
-          </div>
+          <!-- Translates dynamically via Tabs -->
         </div>
       </div>
     </Teleport>
@@ -398,10 +390,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useToast } from '../composables/useToast.js'
-import ContentTranslationEditor from './ContentTranslationEditor.vue'
+import LanguageTabs from './LanguageTabs.vue'
 import {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
   Search, Heart, User, Settings, Bell, Mail, MapPin, Globe,
@@ -416,6 +409,8 @@ import {
   Car, Plane, Building2, Trees, Sun, Moon, X, Pencil, Trash2,
   GripVertical, PanelBottom
 } from 'lucide-vue-next'
+
+const { t } = useI18n()
 
 const icons = {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
@@ -444,7 +439,15 @@ const activeTab = ref('header')
 const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
-const form = ref({ name: '', url: '', group: 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0 })
+const currentLang = ref('vi')
+
+const form = ref({ name: '', url: '', group: 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0, translations: {} })
+
+import { useContentTranslations } from '../composables/useContentTranslations.js'
+const { tField } = useContentTranslations(form, currentLang)
+
+const fName = tField('name')
+const fUrl = tField('url')
 const iconDropOpen = ref(false)
 const iconSearch = ref('')
 
@@ -463,13 +466,24 @@ const filteredIcons = computed(() => {
 function selectIcon(name) { form.value.icon = name; iconDropOpen.value = false; iconSearch.value = '' }
 
 function openCreate(group) {
-  isEditing.value = false; editId.value = null
-  form.value = { name: '', url: '', group: group || 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0 }
+  isEditing.value = false; editId.value = null; currentLang.value = 'vi'
+  form.value = { name: '', url: '', group: group || 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0, translations: {} }
   showModal.value = true
 }
-function openEdit(l) {
-  isEditing.value = true; editId.value = l.id
-  form.value = { name: l.name, url: l.url || '', group: l.group, type: l.type, collectionId: l.collectionId, target: l.target, icon: l.icon || '', sort: l.sort }
+async function openEdit(l) {
+  isEditing.value = true; editId.value = l.id; currentLang.value = 'vi'
+  form.value = { name: l.name, url: l.url || '', group: l.group, type: l.type, collectionId: l.collectionId, target: l.target, icon: l.icon || '', sort: l.sort, translations: {} }
+  
+  try {
+    const transRes = await apiFetch(`/languages/content/nav_links/${l.id}`)
+    const transData = await transRes.json()
+    if (transData?.grouped) {
+      form.value.translations = Array.isArray(transData.grouped) ? {} : transData.grouped
+    }
+  } catch (e) {
+    console.warn('Could not load nav link translations:', e)
+  }
+
   showModal.value = true
 }
 
@@ -478,7 +492,7 @@ async function handleSave() {
   try {
     if (isEditing.value) {
       await updateLink(editId.value, form.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createLink({ ...form.value })
       showToast('Đã tạo link', 'success')
@@ -508,13 +522,24 @@ const defaultFooterConfig = {
   bgColor: '',
   textColor: '',
   headingColor: '',
+  translations: {}
 }
 const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
 const savingFooter = ref(false)
 
+const currentFooter = computed(() => {
+  if (currentLang.value === 'vi') return footerConfig.value;
+  if (!footerConfig.value.translations) footerConfig.value.translations = {};
+  if (!footerConfig.value.translations[currentLang.value]) {
+    footerConfig.value.translations[currentLang.value] = JSON.parse(JSON.stringify(footerConfig.value));
+    delete footerConfig.value.translations[currentLang.value].translations; 
+  }
+  return footerConfig.value.translations[currentLang.value];
+});
+
 const footerPreviewStyle = computed(() => {
   const s = {}
-  if (footerConfig.value.bgColor) s.background = footerConfig.value.bgColor
+  if (currentFooter.value.bgColor) s.background = currentFooter.value.bgColor
   return s
 })
 
@@ -535,27 +560,27 @@ function onFooterDragOver(e, idx) { footerDragOverIdx.value = idx }
 function onFooterDrop(targetIdx) {
   const srcIdx = footerDragIdx.value
   if (srcIdx < 0 || srcIdx === targetIdx) return
-  const cols = footerConfig.value.columns
+  const cols = currentFooter.value.columns
   const [moved] = cols.splice(srcIdx, 1)
   cols.splice(targetIdx, 0, moved)
   footerDragIdx.value = -1; footerDragOverIdx.value = -1
 }
 function onFooterItemDrop(ci, li) {
   if (!footerItemDrag.value || footerItemDrag.value.ci !== ci) return
-  const arr = footerConfig.value.columns[ci].links
+  const arr = currentFooter.value.columns[ci].links
   const from = footerItemDrag.value.li; if (from === li) return
   const [item] = arr.splice(from, 1); arr.splice(li, 0, item)
   footerItemDrag.value = null
 }
 function onFooterContactDrop(ci, ii) {
   if (!footerItemDrag.value || footerItemDrag.value.ci !== ci) return
-  const arr = footerConfig.value.columns[ci].items
+  const arr = currentFooter.value.columns[ci].items
   const from = footerItemDrag.value.ii; if (from === ii) return
   const [item] = arr.splice(from, 1); arr.splice(ii, 0, item)
   footerItemDrag.value = null
 }
-function addFooterCol() { footerConfig.value.columns.push({ title: '', type: 'links', links: [], items: [], content: '' }) }
-function removeFooterCol(idx) { footerConfig.value.columns.splice(idx, 1) }
+function addFooterCol() { currentFooter.value.columns.push({ title: '', type: 'links', links: [], items: [], content: '' }) }
+function removeFooterCol(idx) { currentFooter.value.columns.splice(idx, 1) }
 
 // Load/Save Footer via system-config API (same as StorefrontLayoutBuilder)
 async function loadFooterConfig() {
@@ -578,6 +603,20 @@ async function loadFooterConfig() {
           social: parsedFC.social || [],
           badges: parsedFC.badges || [],
           paymentMethods: parsedFC.paymentMethods || ['cod', 'bank'],
+          translations: parsedFC.translations || {}
+        }
+      }
+    }
+    
+    // Load translations
+    const transRes = await apiFetch('/languages/content/configs/storefront_layout')
+    if (transRes.ok) {
+      const transData = await transRes.json()
+      const d = transData?.grouped?.layout_footer_config
+      if (d) {
+        footerConfig.value.translations = {}
+        for (const [lang, jsonStr] of Object.entries(d)) {
+          footerConfig.value.translations[lang] = JSON.parse(jsonStr)
         }
       }
     }
@@ -587,14 +626,30 @@ async function loadFooterConfig() {
 async function saveFooter() {
   savingFooter.value = true
   try {
+    const { translations, ...baseConfig } = footerConfig.value;
+    
+    const transSave = {};
+    if (translations) {
+      for (const [lang, obj] of Object.entries(translations)) {
+        transSave[lang] = { layout_footer_config: JSON.stringify(obj) };
+      }
+    }
+
     await apiFetch('/system-config/group/storefront_layout', {
       method: 'PUT',
       body: JSON.stringify({
         items: [
-          { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
+          { key: 'layout_footer_config', value: JSON.stringify(baseConfig) },
         ],
       }),
     })
+    
+    // Save translations
+    await apiFetch('/languages/content/configs/storefront_layout', {
+      method: 'POST',
+      body: JSON.stringify({ translations: transSave }),
+    })
+    
     showToast('Đã lưu cấu hình Footer', 'success')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
   finally { savingFooter.value = false }
