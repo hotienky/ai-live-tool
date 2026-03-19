@@ -3,10 +3,11 @@ namespace App\Actions\Coupon;
 
 use App\Repositories\Coupon\CouponRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\HasContentTranslations;
 
 abstract class BaseAction
 {
-    use ApiResponse;
+    use ApiResponse, HasContentTranslations;
 
     public function __construct(protected CouponRepositoryInterface $repo) {}
 

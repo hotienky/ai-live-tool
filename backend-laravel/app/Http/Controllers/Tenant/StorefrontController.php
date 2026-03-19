@@ -138,7 +138,7 @@ class StorefrontController extends Controller
         $locale = $this->getLocale($request);
         if ($locale) {
             $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'product_brands', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            $arr = ContentTranslation::mergeIntoItems($arr, 'brands', $locale, ['name', 'description', 'meta_title', 'meta_description']);
             return $this->successResponse($arr);
         }
         return $this->successResponse($items);

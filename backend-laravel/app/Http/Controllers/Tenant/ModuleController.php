@@ -115,6 +115,6 @@ class ModuleController extends Controller
         $contentType = str_ends_with($file, '.js') ? 'application/javascript' : 'text/css';
         return response(file_get_contents($path), 200)
             ->header('Content-Type', $contentType)
-            ->header('Cache-Control', 'public, max-age=86400');
+            ->header('Cache-Control', 'no-cache, must-revalidate');
     }
 }

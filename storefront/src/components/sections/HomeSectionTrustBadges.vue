@@ -6,8 +6,8 @@
           <Truck :size="24" />
         </div>
         <div class="trust-text">
-          <strong>{{ badges[0]?.title || 'Miễn phí vận chuyển' }}</strong>
-          <span>{{ badges[0]?.desc || 'Cho đơn từ 500K' }}</span>
+          <strong>{{ badges[0]?.title || t('storefront.section.trust_free_shipping', 'Miễn phí vận chuyển') }}</strong>
+          <span>{{ badges[0]?.desc || t('storefront.section.trust_free_shipping_desc', 'Cho đơn từ 500K') }}</span>
         </div>
       </div>
       <div class="trust-item">
@@ -15,8 +15,8 @@
           <RefreshCw :size="24" />
         </div>
         <div class="trust-text">
-          <strong>{{ badges[1]?.title || 'Đổi trả miễn phí' }}</strong>
-          <span>{{ badges[1]?.desc || 'Trong 30 ngày' }}</span>
+          <strong>{{ badges[1]?.title || t('storefront.section.trust_free_returns', 'Đổi trả miễn phí') }}</strong>
+          <span>{{ badges[1]?.desc || t('storefront.section.trust_free_returns_desc', 'Trong 30 ngày') }}</span>
         </div>
       </div>
       <div class="trust-item">
@@ -24,8 +24,8 @@
           <ShieldCheck :size="24" />
         </div>
         <div class="trust-text">
-          <strong>{{ badges[2]?.title || 'Thanh toán an toàn' }}</strong>
-          <span>{{ badges[2]?.desc || 'Bảo mật 100%' }}</span>
+          <strong>{{ badges[2]?.title || t('storefront.section.trust_secure_payment', 'Thanh toán an toàn') }}</strong>
+          <span>{{ badges[2]?.desc || t('storefront.section.trust_secure_payment_desc', 'Bảo mật 100%') }}</span>
         </div>
       </div>
       <div class="trust-item">
@@ -33,8 +33,8 @@
           <Headphones :size="24" />
         </div>
         <div class="trust-text">
-          <strong>{{ badges[3]?.title || 'Hỗ trợ 24/7' }}</strong>
-          <span>{{ badges[3]?.desc || 'Tư vấn miễn phí' }}</span>
+          <strong>{{ badges[3]?.title || t('storefront.section.trust_support_247', 'Hỗ trợ 24/7') }}</strong>
+          <span>{{ badges[3]?.desc || t('storefront.section.trust_support_247_desc', 'Tư vấn miễn phí') }}</span>
         </div>
       </div>
     </div>
@@ -43,6 +43,9 @@
 
 <script setup>
 import { Truck, RefreshCw, ShieldCheck, Headphones } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   params: { type: Object, default: () => ({}) },
@@ -50,10 +53,10 @@ defineProps({
 })
 
 const badges = [
-  { title: 'Miễn phí vận chuyển', desc: 'Cho đơn từ 500K' },
-  { title: 'Đổi trả miễn phí', desc: 'Trong 30 ngày' },
-  { title: 'Thanh toán an toàn', desc: 'Bảo mật 100%' },
-  { title: 'Hỗ trợ 24/7', desc: 'Tư vấn miễn phí' },
+  { title: t('storefront.section.trust_free_shipping', 'Miễn phí vận chuyển'), desc: t('storefront.section.trust_free_shipping_desc', 'Cho đơn từ 500K') },
+  { title: t('storefront.section.trust_free_returns', 'Đổi trả miễn phí'), desc: t('storefront.section.trust_free_returns_desc', 'Trong 30 ngày') },
+  { title: t('storefront.section.trust_secure_payment', 'Thanh toán an toàn'), desc: t('storefront.section.trust_secure_payment_desc', 'Bảo mật 100%') },
+  { title: t('storefront.section.trust_support_247', 'Hỗ trợ 24/7'), desc: t('storefront.section.trust_support_247_desc', 'Tư vấn miễn phí') },
 ]
 </script>
 

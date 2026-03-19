@@ -12,64 +12,36 @@
 
     <!-- ─────────── TAB: ROLES ─────────── -->
     <div v-if="activeTab === 'roles'" class="role-mgr">
-      <div class="role-mgr__split">
-        <!-- Left: Role list -->
-        <div class="role-mgr__sidebar">
-          <div class="role-mgr__role-list">
-            <button
-              v-for="r in roles" :key="r.id"
-              class="role-mgr__role-item"
-              :class="{ active: selectedRole?.id === r.id }"
-              @click="selectRole(r)"
-            >
-              <ShieldCheck :size="14" />
-              <span>{{ r.display_name || r.name }}</span>
-              <span class="role-mgr__badge" v-if="r.name === 'super_admin'">Super</span>
-            </button>
+      <RoleForm 
+        v-if="showRoleForm"
+        :role-id="selectedRole?.id"
+        :all-permissions="allPermissions"
+        @back="showRoleForm = false"
+        @saved="onRoleFormSaved"
+      />
+      <div v-else class="role-mgr__list-view">
+        <div class="role-mgr__header">
+          <div class="role-mgr__search-wrap">
+            <ShieldCheck :size="16" />
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-text-primary)">Danh sách Phân quyền</h3>
           </div>
           <button class="role-mgr__add-btn" @click="startCreateRole">
             <Plus :size="14" /> Tạo role mới
           </button>
         </div>
 
-        <!-- Right: Permission matrix -->
-        <div class="role-mgr__detail" v-if="selectedRole || isCreating">
-          <div class="role-mgr__detail-header">
-            <input v-model="editForm.display_name" class="role-mgr__name-input" placeholder="Tên hiển thị (VD: Quản lý)" />
-            <input v-model="editForm.name" class="role-mgr__slug-input" placeholder="slug (VD: manager)" :disabled="selectedRole?.name === 'super_admin'" />
-            <div class="role-mgr__actions">
-              <button class="role-mgr__save-btn" @click="saveRole" :disabled="saving">
-                <Save :size="13" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
-              </button>
-              <button v-if="selectedRole && selectedRole.name !== 'super_admin'" class="role-mgr__delete-btn" @click="deleteRole">
-                <Trash2 :size="13" /> Xóa
-              </button>
-            </div>
-          </div>
-
-          <!-- Permission matrix -->
-          <div class="role-mgr__matrix">
-            <div v-for="(group, module) in permissionsByModule" :key="module" class="role-mgr__module">
-              <div class="role-mgr__module-header">
-                <label class="role-mgr__module-label">
-                  <input type="checkbox" :checked="isModuleFullyChecked(module)" :indeterminate.prop="isModulePartiallyChecked(module)" @change="toggleModule(module, $event.target.checked)" :disabled="selectedRole?.name === 'super_admin'" />
-                  <span>{{ moduleLabels[module] || module }}</span>
-                </label>
+        <div class="role-mgr__grid">
+          <button v-for="r in roles" :key="r.id" class="role-card" @click="selectRole(r)">
+            <div class="role-card__icon"><ShieldCheck :size="20" /></div>
+            <div class="role-card__info">
+              <div class="role-card__name">
+                {{ r.display_name || r.name }}
+                <span class="role-mgr__badge" v-if="r.name === 'super_admin'">Super</span>
               </div>
-              <div class="role-mgr__perms">
-                <label v-for="perm in group" :key="perm.id" class="role-mgr__perm-item">
-                  <input type="checkbox" :checked="editForm.permissionIds.includes(perm.id)" @change="togglePerm(perm.id, $event.target.checked)" :disabled="selectedRole?.name === 'super_admin'" />
-                  <span>{{ perm.display_name }}</span>
-                </label>
-              </div>
+              <div class="role-card__slug">{{ r.name }}</div>
             </div>
-          </div>
-          <p v-if="selectedRole?.name === 'super_admin'" class="role-mgr__note">
-            <AlertCircle :size="14" /> Super Admin có toàn quyền — không thể chỉnh sửa permissions.
-          </p>
-        </div>
-        <div v-else class="role-mgr__empty">
-          <ShieldCheck :size="28" /><p>Chọn một role để xem permissions</p>
+            <div class="role-card__arrow"><ChevronRight :size="16" /></div>
+          </button>
         </div>
       </div>
     </div>
@@ -195,10 +167,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ShieldCheck, Plus, Save, Trash2, Users, AlertCircle, UserPlus, Search, Pencil, X, Eye, EyeOff, Loader2 } from 'lucide-vue-next'
+import { ShieldCheck, Plus, Save, Trash2, Users, AlertCircle, UserPlus, Search, Pencil, X, Eye, EyeOff, Loader2, ChevronRight } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
+import RoleForm from './RoleForm.vue'
 
 const { t } = useI18n()
 
@@ -211,44 +184,7 @@ const activeTab = ref('roles')
 const roles = ref([])
 const allPermissions = ref([])
 const selectedRole = ref(null)
-const isCreating = ref(false)
-const saving = ref(false)
-
-const editForm = ref({ name: '', display_name: '', permissionIds: [] })
-
-const moduleLabels = {
-  products: 'Sản phẩm', orders: 'Đơn hàng', customers: 'Khách hàng',
-  cms: 'Trang CMS', banners: 'Banner', promotions: 'Khuyến mãi',
-  settings: 'Cài đặt', system: 'Hệ thống',
-}
-
-const permissionsByModule = computed(() => {
-  const map = {}
-  for (const p of allPermissions.value) {
-    if (!map[p.module]) map[p.module] = []
-    map[p.module].push(p)
-  }
-  return map
-})
-
-function isModuleFullyChecked(module) {
-  const perms = permissionsByModule.value[module] || []
-  return perms.length > 0 && perms.every(p => editForm.value.permissionIds.includes(p.id))
-}
-function isModulePartiallyChecked(module) {
-  const perms = permissionsByModule.value[module] || []
-  const checked = perms.filter(p => editForm.value.permissionIds.includes(p.id))
-  return checked.length > 0 && checked.length < perms.length
-}
-function toggleModule(module, checked) {
-  const ids = (permissionsByModule.value[module] || []).map(p => p.id)
-  if (checked) editForm.value.permissionIds = [...new Set([...editForm.value.permissionIds, ...ids])]
-  else editForm.value.permissionIds = editForm.value.permissionIds.filter(id => !ids.includes(id))
-}
-function togglePerm(id, checked) {
-  if (checked) editForm.value.permissionIds.push(id)
-  else editForm.value.permissionIds = editForm.value.permissionIds.filter(i => i !== id)
-}
+const showRoleForm = ref(false)
 
 async function loadRoles() {
   try {
@@ -262,61 +198,17 @@ async function loadRoles() {
 
 async function selectRole(role) {
   selectedRole.value = role
-  isCreating.value = false
-  try {
-    const res = await apiFetch(`/roles/${role.id}`)
-    const data = await res.json()
-    const detail = data?.data || data
-    const perms = detail.permission_list || detail.permissions || []
-    editForm.value = {
-      name: detail.name || '',
-      display_name: detail.display_name || '',
-      permissionIds: perms.map(p => typeof p === 'object' ? p.id : p),
-    }
-  } catch (e) { console.error('selectRole error:', e) }
+  showRoleForm.value = true
 }
 
 function startCreateRole() {
   selectedRole.value = null
-  isCreating.value = true
-  editForm.value = { name: '', display_name: '', permissionIds: [] }
+  showRoleForm.value = true
 }
 
-async function saveRole() {
-  saving.value = true
-  try {
-    const payload = { name: editForm.value.name, display_name: editForm.value.display_name, permissions: editForm.value.permissionIds }
-    if (isCreating.value) {
-      const res = await apiFetch('/roles', { method: 'POST', body: JSON.stringify(payload) })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err?.message || 'Không thể tạo role')
-      }
-      showToast('Tạo role thành công!', 'success')
-    } else {
-      const res = await apiFetch(`/roles/${selectedRole.value.id}`, { method: 'PUT', body: JSON.stringify(payload) })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        const msg = err?.errors ? Object.values(err.errors).flat().join(', ') : (err?.message || 'Không thể cập nhật role')
-        throw new Error(msg)
-      }
-      showToast('Cập nhật role thành công!', 'success')
-    }
-    await loadRoles()
-    if (selectedRole.value) await selectRole(selectedRole.value)
-    isCreating.value = false
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
-  finally { saving.value = false }
-}
-
-async function deleteRole() {
-  if (!confirm('Xóa role này?')) return
-  try {
-    await apiFetch(`/roles/${selectedRole.value.id}`, { method: 'DELETE' })
-    showToast('Đã xóa role', 'success')
-    selectedRole.value = null
-    await loadRoles()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+async function onRoleFormSaved() {
+  showRoleForm.value = false
+  await loadRoles()
 }
 
 // ── Users ──
@@ -442,64 +334,23 @@ onMounted(async () => {
 .rbac__tab.active { color: var(--color-accent-primary); border-bottom-color: var(--color-accent-primary); }
 
 /* ── Role manager ── */
-.role-mgr__split { display: flex; gap: 20px; min-height: 500px; }
-.role-mgr__sidebar { width: 280px; flex-shrink: 0; }
-.role-mgr__role-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
-.role-mgr__role-item {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px;
-  border: 1px solid transparent; background: none; cursor: pointer; font-size: 13px;
-  font-weight: 500; color: var(--color-text-secondary); text-align: left; transition: all 0.15s;
-}
-.role-mgr__role-item:hover { background: var(--color-bg-card-solid); }
-.role-mgr__role-item.active { background: var(--color-accent-primary); color: #fff; border-color: var(--color-accent-primary); }
-.role-mgr__badge {
-  margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 6px;
-  border-radius: 4px; background: var(--color-accent-glow); color: var(--color-accent-primary);
-}
-.role-mgr__role-item.active .role-mgr__badge { background: rgba(255,255,255,0.2); color: #fff; }
-.role-mgr__add-btn {
-  display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 8px;
-  border: 1px dashed var(--color-border); background: none; cursor: pointer;
-  font-size: 12px; font-weight: 600; color: var(--color-text-muted); transition: all 0.2s; width: 100%;
-}
-.role-mgr__add-btn:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
-.role-mgr__detail {
-  flex: 1; background: var(--color-bg-card-solid); border: 1px solid var(--color-border);
-  border-radius: 12px; padding: 20px;
-}
-.role-mgr__detail-header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.role-mgr__name-input, .role-mgr__slug-input {
-  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-border);
-  background: var(--color-bg-secondary); color: var(--color-text-primary); font-size: 14px; font-weight: 600;
-}
-.role-mgr__name-input { flex: 1; min-width: 160px; }
-.role-mgr__slug-input { width: 140px; font-size: 12px; font-family: monospace; }
-.role-mgr__slug-input:disabled { opacity: 0.5; }
-.role-mgr__actions { display: flex; gap: 6px; margin-left: auto; }
-.role-mgr__save-btn {
-  display: flex; align-items: center; gap: 5px; padding: 8px 18px; border-radius: 8px; border: none;
-  background: var(--accent-gradient); color: #fff;
-  font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-}
-.role-mgr__save-btn:hover { transform: translateY(-1px); }
-.role-mgr__save-btn:disabled { opacity: .5; cursor: wait; }
-.role-mgr__delete-btn {
-  display: flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 8px;
-  border: 1px solid var(--color-border); background: none; color: #ef4444;
-  font-size: 12px; font-weight: 600; cursor: pointer;
-}
-.role-mgr__delete-btn:hover { background: rgba(239,68,68,0.08); }
-.role-mgr__matrix { display: flex; flex-direction: column; gap: 12px; }
-.role-mgr__module { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 10px; padding: 12px; }
-.role-mgr__module-header { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--color-border); }
-.role-mgr__module-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--color-text-primary); cursor: pointer; }
-.role-mgr__module-label input { accent-color: var(--color-accent-primary); }
-.role-mgr__perms { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px; }
-.role-mgr__perm-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; padding: 2px 0; }
-.role-mgr__perm-item input { accent-color: var(--color-accent-primary); }
-.role-mgr__note { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: var(--color-accent-glow); color: var(--color-text-muted); font-size: 12px; }
-.role-mgr__empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--color-text-muted); }
-.role-mgr__empty p { font-size: 13px; }
+.role-mgr__list-view { animation: fadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.role-mgr__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.role-mgr__search-wrap { display: flex; align-items: center; gap: 8px; }
+.role-mgr__add-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent-gradient); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+.role-mgr__add-btn:hover { opacity: .9; }
+.role-mgr__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.role-card { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-bg-card-solid); text-align: left; cursor: pointer; transition: all .2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+.role-card:hover { border-color: var(--color-accent-primary); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.role-card__icon { width: 40px; height: 40px; border-radius: 10px; background: var(--color-bg-secondary); display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); transition: all .2s; }
+.role-card:hover .role-card__icon { background: var(--color-accent-primary); color: #fff; }
+.role-card__info { flex: 1; min-width: 0; }
+.role-card__name { font-size: 15px; font-weight: 700; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; }
+.role-card__slug { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+.role-mgr__badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--color-accent-glow); color: var(--color-accent-primary); }
+.role-card__arrow { color: var(--color-text-muted); display: flex; align-items: center; justify-content: center; opacity: 0; transform: translateX(-10px); transition: all .2s; }
+.role-card:hover .role-card__arrow { opacity: 1; transform: translateX(0); }
 
 /* ── User manager ── */
 .user-mgr__header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }

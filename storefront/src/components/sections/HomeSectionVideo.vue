@@ -10,13 +10,16 @@
         <p v-if="v.caption" class="video-caption">{{ v.caption }}</p>
       </div>
     </div>
-    <p v-if="!items.length" class="section-empty">Chưa có video nào</p>
+    <p v-if="!items.length" class="section-empty">{{ t('storefront.section.video_empty', 'Chưa có video nào') }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { Video } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
@@ -31,7 +34,7 @@ function getEmbed(url) {
   const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
   if (ytMatch) return `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:12px"></iframe>`
   // TikTok — just link
-  if (url.includes('tiktok.com')) return `<a href="${url}" target="_blank" style="color:var(--sf-accent-light)">Xem trên TikTok</a>`
+  if (url.includes('tiktok.com')) return `<a href="${url}" target="_blank" style="color:var(--sf-accent-light)">${t('storefront.section.video_tiktok', 'Xem trên TikTok')}</a>`
   return `<iframe src="${url}" frameborder="0" allowfullscreen style="width:100%;aspect-ratio:16/9;border-radius:12px"></iframe>`
 }
 </script>

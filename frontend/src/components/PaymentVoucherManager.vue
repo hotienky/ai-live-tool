@@ -1,5 +1,8 @@
 <template>
-  <div class="pv-mgr">
+  <!-- Form view -->
+  <PaymentVoucherForm v-if="showForm" :initialType="formType" @saved="onSaved" @back="showForm = false" />
+  <!-- List view -->
+  <div v-else class="pv-mgr">
     <div class="pv-header">
       <h2><Wallet :size="20" style="vertical-align:middle" /> Phiếu Thu / Chi</h2>
       <div class="header-actions">
@@ -80,61 +83,6 @@
       <span class="page-info">{{ currentPage }} / {{ pagination.last_page }}</span>
       <button @click="currentPage = Math.min(pagination.last_page, currentPage + 1)" :disabled="currentPage >= pagination.last_page" class="page-btn"><ChevronRight :size="14" /></button>
     </div>
-
-    <!-- Create Modal -->
-    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
-      <div class="modal">
-        <h3><Wallet :size="16" style="vertical-align:middle" /> {{ form.type === 'receipt' ? 'Phiếu Thu' : 'Phiếu Chi' }}</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Loại</label>
-            <select v-model="form.type">
-              <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
-              <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Ngày</label>
-            <input type="date" v-model="form.voucher_date" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Số tiền *</label>
-            <input type="number" v-model.number="form.amount" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Danh mục *</label>
-            <select v-model="form.category">
-              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>PT thanh toán</label>
-            <select v-model="form.payment_method">
-              <option value="cash">Tiền mặt</option>
-              <option value="bank">Chuyển khoản</option>
-              <option value="wallet">Ví điện tử</option>
-              <option value="other">Khác</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Đối tác</label>
-            <input v-model="form.counterparty" placeholder="Tên đối tác/KH..." />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>{{ t('admin.description', 'Mô tả') }}</label>
-          <textarea v-model="form.description" rows="2" placeholder="Chi tiết..."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="save">Tạo phiếu</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -143,11 +91,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import {
-  Wallet, Plus, Minus, Check, X, Trash2,
+import { Wallet, Plus, Minus, Check, X, Trash2,
   ArrowDownToLine, ArrowUpFromLine, Scale, FileText,
   ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+import PaymentVoucherForm from './PaymentVoucherForm.vue'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -158,7 +106,8 @@ const pvStats = ref({})
 const searchTerm = ref('')
 const filterType = ref('')
 const currentPage = ref(1)
-const showModal = ref(false)
+const showForm = ref(false)
+const formType = ref('receipt')
 
 const categories = [
   'Tiền hàng', 'Vận chuyển', 'Marketing', 'Lương', 'Thuê mặt bằng',
@@ -206,23 +155,14 @@ async function fetchStats() {
 }
 
 function openCreate(type) {
-  form.value = {
-    type, amount: 0, category: 'Tiền hàng',
-    description: '', payment_method: 'cash', counterparty: '',
-    voucher_date: new Date().toISOString().split('T')[0],
-  }
-  showModal.value = true
+  formType.value = type
+  showForm.value = true
 }
 
-async function save() {
-  if (!form.value.amount) return showToast('Vui lòng nhập số tiền', 'error')
-  try {
-    await apiFetch('/payment-vouchers', { method: 'POST', body: JSON.stringify(form.value) })
-    showToast('Đã tạo phiếu', 'success')
-    showModal.value = false
-    fetchVouchers()
-    fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+function onSaved() {
+  showForm.value = false
+  fetchVouchers()
+  fetchStats()
 }
 
 async function confirmVoucher(v) {
@@ -317,16 +257,4 @@ tr:hover { background: var(--color-accent-glow); }
 .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .page-info { font-size: 13px; color: var(--color-text-secondary); font-weight: 600; }
 
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
-.modal { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 16px; padding: 28px; width: 520px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.modal h3 { margin: 0 0 20px; font-weight: 800; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
-.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent); color: var(--color-text-primary); font-size: 13px; outline: none; box-sizing: border-box; }
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--color-accent-primary); }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-.btn-cancel { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: var(--color-text-secondary); font-weight: 600; cursor: pointer; }
-.btn-create { padding: 10px 20px; border-radius: 10px; border: none; background: var(--accent-gradient); color: #fff; font-weight: 700; cursor: pointer; }
 </style>

@@ -14,8 +14,8 @@
           <input v-model="loginForm.email" type="email" placeholder="email@example.com" required />
         </div>
         <div class="field">
-          <label>Mật khẩu</label>
-          <input v-model="loginForm.password" type="password" placeholder="Nhập mật khẩu" required />
+          <label>{{ t('storefront.password', 'Mật khẩu') }}</label>
+          <input v-model="loginForm.password" type="password" :placeholder="t('storefront.enter_password', 'Nhập mật khẩu')" required />
         </div>
         <div class="auth-error" v-if="error">{{ error }}</div>
         <button type="submit" class="auth-submit" :disabled="loading">
@@ -28,12 +28,12 @@
       <form v-else-if="mode === 'register'" @submit.prevent="onRegister" class="auth-form">
         <div class="field-row">
           <div class="field">
-            <label>Họ</label>
-            <input v-model="registerForm.lastName" placeholder="Nguyễn" />
+            <label>{{ t('storefront.last_name', 'Họ') }}</label>
+            <input v-model="registerForm.lastName" :placeholder="t('storefront.last_name_placeholder', 'Nguyễn')" />
           </div>
           <div class="field">
-            <label>Tên</label>
-            <input v-model="registerForm.firstName" placeholder="Văn A" required />
+            <label>{{ t('storefront.first_name', 'Tên') }}</label>
+            <input v-model="registerForm.firstName" :placeholder="t('storefront.first_name_placeholder', 'Văn A')" required />
           </div>
         </div>
         <div class="field">
@@ -41,12 +41,12 @@
           <input v-model="registerForm.email" type="email" placeholder="email@example.com" required />
         </div>
         <div class="field">
-          <label>Số điện thoại</label>
+          <label>{{ t('storefront.phone', 'Số điện thoại') }}</label>
           <input v-model="registerForm.phone" type="tel" placeholder="0901234567" />
         </div>
         <div class="field">
-          <label>Mật khẩu</label>
-          <input v-model="registerForm.password" type="password" placeholder="Tối thiểu 6 ký tự" required minlength="6" />
+          <label>{{ t('storefront.password', 'Mật khẩu') }}</label>
+          <input v-model="registerForm.password" type="password" :placeholder="t('storefront.min_6_chars', 'Tối thiểu 6 ký tự')" required minlength="6" />
         </div>
         <div class="auth-error" v-if="error">{{ error }}</div>
         <button type="submit" class="auth-submit" :disabled="loading">
@@ -56,17 +56,17 @@
 
       <!-- Forgot Password -->
       <form v-else @submit.prevent="onForgot" class="auth-form">
-        <p class="auth-desc">Nhập email để nhận link đặt lại mật khẩu</p>
+        <p class="auth-desc">{{ t('storefront.forgot_desc', 'Nhập email để nhận link đặt lại mật khẩu') }}</p>
         <div class="field">
           <label>Email</label>
           <input v-model="forgotEmail" type="email" placeholder="email@example.com" required />
         </div>
         <div class="auth-error" v-if="error">{{ error }}</div>
-        <div class="auth-success" v-if="forgotSent">Đã gửi email đặt lại mật khẩu!</div>
+        <div class="auth-success" v-if="forgotSent">{{ t('storefront.forgot_sent', 'Đã gửi email đặt lại mật khẩu!') }}</div>
         <button type="submit" class="auth-submit" :disabled="loading">
-          {{ loading ? 'Đang gửi...' : 'Gửi link đặt lại' }}
+          {{ loading ? t('storefront.sending', 'Đang gửi...') : t('storefront.send_reset_link', 'Gửi link đặt lại') }}
         </button>
-        <p class="auth-link" @click="mode = 'login'">← Quay lại đăng nhập</p>
+        <p class="auth-link" @click="mode = 'login'">← {{ t('storefront.back_to_login', 'Quay lại đăng nhập') }}</p>
       </form>
     </div>
   </div>

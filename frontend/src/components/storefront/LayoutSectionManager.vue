@@ -1,5 +1,6 @@
 <template>
   <div class="section-list">
+    <LanguageTabs v-model="currentLang" style="margin-bottom: 16px" />
     <div
       v-for="(section, idx) in list"
       :key="section.type"
@@ -103,7 +104,7 @@
           </template>
 
           <template v-if="section.type === 'featured_products'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Sản phẩm nổi bật" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" placeholder="Sản phẩm nổi bật" /></div>
             <div class="param-row"><label>Số lượng</label><input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" /><span class="param-value">{{ section.params.count }}</span></div>
             <div class="param-row"><label>Số cột</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
             <div class="param-row"><label>Lọc danh mục</label>
@@ -129,7 +130,7 @@
           </template>
 
           <template v-if="section.type === 'new_arrivals'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" placeholder="Hàng mới về" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" placeholder="Hàng mới về" /></div>
             <div class="param-row"><label>Số lượng</label><input type="range" v-model.number="section.params.count" min="4" max="12" class="param-range" /><span class="param-value">{{ section.params.count }}</span></div>
             <div class="param-row"><label>Số cột</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns || 4 }}</span></div>
             <div class="param-row"><label>Sắp xếp</label>
@@ -156,10 +157,10 @@
 
           <!-- Library blocks -->
           <template v-if="section.type === 'video_embed'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="content-editor">
               <label class="content-editor__label">Danh sách video</label>
-              <div v-for="(item, i) in section.content" :key="i" class="content-item">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
                 <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL video" />
                 <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
               </div>
@@ -168,10 +169,10 @@
           </template>
 
           <template v-if="section.type === 'testimonials'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="param-row"><label>Số cột</label><input type="range" v-model.number="section.params.columns" min="2" max="4" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
             <div class="content-editor">
-              <div v-for="(item, i) in section.content" :key="i" class="content-item" style="flex-direction:column;gap:4px">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
                 <div style="display:flex;gap:4px">
                   <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên khách hàng" />
                   <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
@@ -183,9 +184,9 @@
           </template>
 
           <template v-if="section.type === 'faq'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="content-editor">
-              <div v-for="(item, i) in section.content" :key="i" class="content-item" style="flex-direction:column;gap:4px">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
                 <div style="display:flex;gap:4px">
                   <input type="text" v-model="item.question" class="param-input param-input--wide" placeholder="Câu hỏi" />
                   <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
@@ -197,10 +198,10 @@
           </template>
 
           <template v-if="section.type === 'image_gallery'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="param-row"><label>Số cột</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
             <div class="content-editor">
-              <div v-for="(item, i) in section.content" :key="i" class="content-item">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
                 <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL ảnh" />
                 <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
               </div>
@@ -209,22 +210,22 @@
           </template>
 
           <template v-if="section.type === 'text_block'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="content-editor">
-              <textarea :value="typeof section.content === 'string' ? section.content : ''" @input="section.content = $event.target.value" class="param-input param-input--wide content-html-editor" rows="6"></textarea>
+              <textarea :value="typeof section.content === 'string' ? section.content : ''" @input="setTextBlockContent(section, $event.target.value)" class="param-input param-input--wide content-html-editor" rows="6"></textarea>
             </div>
           </template>
 
           <template v-if="section.type === 'newsletter'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>Phụ đề</label><input type="text" v-model="section.params.subtitle" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>Nút bấm</label><input type="text" v-model="section.params.buttonText" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Phụ đề</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Nút bấm</label><input type="text" v-model="getParams(section).buttonText" class="param-input param-input--wide" /></div>
           </template>
 
           <template v-if="section.type === 'social_feed'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="content-editor">
-              <div v-for="(item, i) in section.content" :key="i" class="content-item">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
                 <select v-model="item.platform" class="param-select"><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option></select>
                 <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL" />
                 <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
@@ -234,9 +235,9 @@
           </template>
 
           <template v-if="section.type === 'brands_slider'">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="section.params.title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
             <div class="content-editor">
-              <div v-for="(item, i) in section.content" :key="i" class="content-item" style="flex-direction:column;gap:4px">
+              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
                 <div style="display:flex;gap:4px">
                   <input type="text" v-model="item.name" class="param-input param-input--wide" placeholder="Tên hãng" />
                   <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
@@ -249,6 +250,21 @@
 
           <!-- Style Params -->
           <div class="section-style-divider"></div>
+
+          <!-- Per-section auto-translate button -->
+          <div v-if="currentLang !== 'vi'" class="section-auto-translate">
+            <button
+              class="btn-section-translate"
+              type="button"
+              @click="autoTranslateSection(section)"
+              :disabled="translatingSection === section.type"
+            >
+              <component :is="translatingSection === section.type ? 'Loader2' : 'Sparkles'" :size="13" :class="{ spin: translatingSection === section.type }" />
+              <span>{{ translatingSection === section.type ? 'Đang dịch...' : 'Dịch tự động section này' }}</span>
+              <span class="btn-ai-badge">AI</span>
+            </button>
+          </div>
+
           <details class="section-style-details">
             <summary>🎨 Style & Advanced</summary>
             <div class="param-row">
@@ -271,10 +287,13 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { GripVertical, Settings2, Trash2, Plus, X } from 'lucide-vue-next'
+import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2 } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { apiFetch } from '../../composables/useApi.js'
+import LanguageTabs from '../LanguageTabs.vue'
 
 const { t } = useI18n()
+const currentLang = ref('vi')
 
 const props = defineProps({
   sections: { type: Array, required: true },
@@ -315,12 +334,82 @@ function toggleExpand(type) {
   expandedSection.value = expandedSection.value === type ? null : type
 }
 
+// Multi-language Helpers
+function getParams(section) {
+  if (currentLang.value === 'vi') return section.params;
+  if (!section.translations) section.translations = {};
+  if (!section.translations[currentLang.value]) {
+    section.translations[currentLang.value] = {
+      params: { 
+        title: section.params.title || '', 
+        subtitle: section.params.subtitle || '', 
+        buttonText: section.params.buttonText || '' 
+      },
+      content: JSON.parse(JSON.stringify(section.content || []))
+    };
+    if (Array.isArray(section.translations[currentLang.value].content)) {
+      section.translations[currentLang.value].content.forEach(item => {
+        if (typeof item === 'object') {
+          if (item.name) item.name = ''; 
+          if (item.text) item.text = ''; 
+          if (item.question) item.question = ''; 
+          if (item.answer) item.answer = '';
+          if (item.label) item.label = '';
+        }
+      });
+    } else if (typeof section.translations[currentLang.value].content === 'string') {
+      section.translations[currentLang.value].content = '';
+    }
+  }
+  return section.translations[currentLang.value].params;
+}
+
+function getContent(section) {
+  if (currentLang.value === 'vi') return section.content;
+  getParams(section);
+  return section.translations[currentLang.value].content;
+}
+
+function getTextBlockContent(section) {
+  if (currentLang.value === 'vi') return typeof section.content === 'string' ? section.content : '';
+  getParams(section);
+  return typeof section.translations[currentLang.value].content === 'string' ? section.translations[currentLang.value].content : '';
+}
+
+function setTextBlockContent(section, val) {
+  if (currentLang.value === 'vi') section.content = val;
+  else {
+    getParams(section);
+    section.translations[currentLang.value].content = val;
+  }
+}
+
 function addContentItem(section, defaultItem) {
   if (!section.content) section.content = []
   section.content.push({ ...defaultItem })
+  if (section.translations) {
+    Object.keys(section.translations).forEach(lang => {
+      const tContent = section.translations[lang].content
+      if (Array.isArray(tContent)) {
+        const emptyItem = JSON.parse(JSON.stringify(defaultItem))
+        if (emptyItem.name !== undefined) emptyItem.name = ''
+        if (emptyItem.text !== undefined) emptyItem.text = ''
+        if (emptyItem.question !== undefined) emptyItem.question = ''
+        if (emptyItem.answer !== undefined) emptyItem.answer = ''
+        if (emptyItem.label !== undefined) emptyItem.label = ''
+        tContent.push(emptyItem)
+      }
+    })
+  }
 }
 function removeContentItem(section, index) {
-  section.content.splice(index, 1)
+  if (Array.isArray(section.content)) section.content.splice(index, 1)
+  if (section.translations) {
+    Object.keys(section.translations).forEach(lang => {
+      const tContent = section.translations[lang].content
+      if (Array.isArray(tContent)) tContent.splice(index, 1)
+    })
+  }
 }
 function toggleCategoryId(section, catId) {
   if (!section.params.selectedCategoryIds) section.params.selectedCategoryIds = []
@@ -328,4 +417,119 @@ function toggleCategoryId(section, catId) {
   if (idx >= 0) section.params.selectedCategoryIds.splice(idx, 1)
   else section.params.selectedCategoryIds.push(catId)
 }
+
+// ── Per-section auto translate ──
+const translatingSection = ref(null)
+
+async function autoTranslateSection(section) {
+  const lang = currentLang.value
+  if (!lang || lang === 'vi') return
+  translatingSection.value = section.type
+
+  try {
+    // Ensure translations structure exists
+    getParams(section)
+    const tp = section.translations[lang].params
+    const tc = section.translations[lang].content
+
+    // Translate params fields (title, subtitle, buttonText)
+    const paramFields = ['title', 'subtitle', 'buttonText']
+    for (const f of paramFields) {
+      const src = section.params[f]
+      if (!src || !String(src).trim()) continue
+      try {
+        const res = await apiFetch('/languages/auto-translate', {
+          method: 'POST',
+          body: JSON.stringify({ text: src, from: 'vi', to: lang })
+        })
+        const data = await res.json()
+        if (data?.translated) tp[f] = data.translated
+      } catch {}
+    }
+
+    // Translate content items (arrays)
+    if (Array.isArray(section.content) && Array.isArray(tc)) {
+      const contentFields = ['name', 'text', 'question', 'answer', 'label', 'caption']
+      for (let i = 0; i < section.content.length; i++) {
+        const item = section.content[i]
+        if (!tc[i]) tc[i] = {}
+        for (const f of contentFields) {
+          if (!item[f] || !String(item[f]).trim()) continue
+          try {
+            const res = await apiFetch('/languages/auto-translate', {
+              method: 'POST',
+              body: JSON.stringify({ text: item[f], from: 'vi', to: lang })
+            })
+            const data = await res.json()
+            if (data?.translated) tc[i][f] = data.translated
+          } catch {}
+        }
+      }
+    }
+
+    // Translate string content (text_block)
+    if (typeof section.content === 'string' && section.content.trim()) {
+      try {
+        const res = await apiFetch('/languages/auto-translate', {
+          method: 'POST',
+          body: JSON.stringify({ text: section.content, from: 'vi', to: lang })
+        })
+        const data = await res.json()
+        if (data?.translated) section.translations[lang].content = data.translated
+      } catch {}
+    }
+  } catch (e) {
+    console.error('Section auto-translate failed:', e)
+  } finally {
+    translatingSection.value = null
+  }
+}
 </script>
+
+<style scoped>
+/* Per-section auto-translate */
+.section-auto-translate {
+  margin: 8px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-section-translate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 40%, #ec4899 100%);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 10px rgba(124, 58, 237, 0.3);
+}
+.btn-section-translate:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.45);
+  filter: brightness(1.08);
+}
+.btn-section-translate:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.btn-ai-badge {
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.25);
+  border-radius: 6px;
+  padding: 1px 5px;
+  letter-spacing: 0.08em;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

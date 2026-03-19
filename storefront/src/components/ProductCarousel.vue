@@ -9,10 +9,10 @@
     @mouseleave="startAutoplay"
   >
     <!-- Prev / Next arrows -->
-    <button class="pc-arrow pc-arrow--prev" @click="scrollBy(-1)" :disabled="!canScrollLeft" aria-label="Trước">
+    <button class="pc-arrow pc-arrow--prev" @click="scrollBy(-1)" :disabled="!canScrollLeft" :aria-label="t('storefront.carousel.prev', 'Trước')">
       <ChevronLeft :size="20" />
     </button>
-    <button class="pc-arrow pc-arrow--next" @click="scrollBy(1)" :disabled="!canScrollRight" aria-label="Sau">
+    <button class="pc-arrow pc-arrow--next" @click="scrollBy(1)" :disabled="!canScrollRight" :aria-label="t('storefront.carousel.next', 'Sau')">
       <ChevronRight :size="20" />
     </button>
 
@@ -31,7 +31,7 @@
         class="pc-dot"
         :class="{ active: currentPage === i - 1 }"
         @click="goToPage(i - 1)"
-        :aria-label="`Trang ${i}`"
+        :aria-label="t('storefront.carousel.page', 'Trang') + ' ' + i"
       />
     </div>
   </div>
@@ -41,6 +41,9 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import ProductCard from './ProductCard.vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   products:      { type: Array,   default: () => [] },

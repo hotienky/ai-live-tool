@@ -1,13 +1,16 @@
 <template>
-  <div class="pv-mgr">
+  <!-- Form view -->
+  <PaymentVoucherForm v-if="showForm" :initialType="formType" @saved="onSaved" @back="showForm = false" />
+  <!-- List view -->
+  <div v-else class="pv-mgr">
     <div class="pv-header">
       <h2><Wallet :size="20" style="vertical-align:middle" /> Phiếu Thu / Chi</h2>
       <div class="header-actions">
         <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, đối tác..." @input="debouncedSearch" />
         <select v-model="filterType" class="filter-select">
-          <option value="">Tất cả</option>
-          <option value="receipt">Phiếu thu</option>
-          <option value="payment">Phiếu chi</option>
+          <option value="">{{ t('admin.all', 'Tất cả') }}</option>
+          <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
+          <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
         </select>
         <button class="btn-primary" @click="openCreate('receipt')"><Plus :size="14" /> Phiếu thu</button>
         <button class="btn-secondary" @click="openCreate('payment')"><Minus :size="14" /> Phiếu chi</button>
@@ -43,8 +46,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã phiếu</th><th>Loại</th><th>Đối tác</th><th>Danh mục</th>
-            <th>Số tiền</th><th>PT thanh toán</th><th>Trạng thái</th><th>Ngày</th><th>Thao tác</th>
+            <th>Mã phiếu</th><th>{{ t('admin.type', 'Loại') }}</th><th>Đối tác</th><th>Danh mục</th>
+            <th>Số tiền</th><th>PT thanh toán</th><th>{{ t('admin.status', 'Trạng thái') }}</th><th>Ngày</th><th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -61,9 +64,9 @@
             <td class="date">{{ formatDate(v.voucher_date) }}</td>
             <td>
               <div class="action-btns">
-                <button v-if="v.status === 'draft'" @click="confirmVoucher(v)" title="Xác nhận" class="btn-confirm"><Check :size="14" /></button>
-                <button v-if="v.status !== 'cancelled'" @click="cancelVoucher(v)" title="Hủy" class="btn-danger"><X :size="14" /></button>
-                <button v-if="v.status === 'draft'" @click="deleteVoucher(v)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button v-if="v.status === 'draft'" class="act-btn act-confirm" @click="confirmVoucher(v)"><Check :size="13" /> Xác nhận</button>
+                <button v-if="v.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelVoucher(v)"><X :size="13" /> Hủy</button>
+                <button v-if="v.status === 'draft'" class="act-btn act-cancel" @click="deleteVoucher(v)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -80,73 +83,21 @@
       <span class="page-info">{{ currentPage }} / {{ pagination.last_page }}</span>
       <button @click="currentPage = Math.min(pagination.last_page, currentPage + 1)" :disabled="currentPage >= pagination.last_page" class="page-btn"><ChevronRight :size="14" /></button>
     </div>
-
-    <!-- Create Modal -->
-    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
-      <div class="modal">
-        <h3><Wallet :size="16" style="vertical-align:middle" /> {{ form.type === 'receipt' ? 'Phiếu Thu' : 'Phiếu Chi' }}</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Loại</label>
-            <select v-model="form.type">
-              <option value="receipt">Phiếu thu</option>
-              <option value="payment">Phiếu chi</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Ngày</label>
-            <input type="date" v-model="form.voucher_date" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Số tiền *</label>
-            <input type="number" v-model.number="form.amount" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Danh mục *</label>
-            <select v-model="form.category">
-              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>PT thanh toán</label>
-            <select v-model="form.payment_method">
-              <option value="cash">Tiền mặt</option>
-              <option value="bank">Chuyển khoản</option>
-              <option value="wallet">Ví điện tử</option>
-              <option value="other">Khác</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Đối tác</label>
-            <input v-model="form.counterparty" placeholder="Tên đối tác/KH..." />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Mô tả</label>
-          <textarea v-model="form.description" rows="2" placeholder="Chi tiết..."></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
-          <button class="btn-create" @click="save">Tạo phiếu</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from '../helpers.js'
 import { apiFetch } from '../helpers.js'
 import { useToast } from '../helpers.js'
-import {
-  Wallet, Plus, Minus, Check, X, Trash2,
+import { Wallet, Plus, Minus, Check, X, Trash2,
   ArrowDownToLine, ArrowUpFromLine, Scale, FileText,
   ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+import PaymentVoucherForm from './PaymentVoucherForm.vue'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const vouchers = ref([])
@@ -155,7 +106,8 @@ const pvStats = ref({})
 const searchTerm = ref('')
 const filterType = ref('')
 const currentPage = ref(1)
-const showModal = ref(false)
+const showForm = ref(false)
+const formType = ref('receipt')
 
 const categories = [
   'Tiền hàng', 'Vận chuyển', 'Marketing', 'Lương', 'Thuê mặt bằng',
@@ -203,23 +155,14 @@ async function fetchStats() {
 }
 
 function openCreate(type) {
-  form.value = {
-    type, amount: 0, category: 'Tiền hàng',
-    description: '', payment_method: 'cash', counterparty: '',
-    voucher_date: new Date().toISOString().split('T')[0],
-  }
-  showModal.value = true
+  formType.value = type
+  showForm.value = true
 }
 
-async function save() {
-  if (!form.value.amount) return showToast('Vui lòng nhập số tiền', 'error')
-  try {
-    await apiFetch('/payment-vouchers', { method: 'POST', body: JSON.stringify(form.value) })
-    showToast('Đã tạo phiếu', 'success')
-    showModal.value = false
-    fetchVouchers()
-    fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+function onSaved() {
+  showForm.value = false
+  fetchVouchers()
+  fetchStats()
 }
 
 async function confirmVoucher(v) {
@@ -303,11 +246,7 @@ tr:hover { background: var(--color-accent-glow); }
 .status-badge.confirmed { background: rgba(52,211,153,0.1); color: #34d399; }
 .status-badge.cancelled { background: rgba(248,113,113,0.1); color: #f87171; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px; }
-.action-btns button:hover { opacity: 1; color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-confirm:hover { color: #34d399; }
-.action-btns .btn-danger:hover { color: #f87171; }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 .empty { text-align: center; padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .empty-state__icon { color: var(--color-text-muted); opacity: 0.4; }

@@ -5,13 +5,16 @@
       {{ params.title }}
     </h2>
     <div class="text-content" v-if="htmlContent" v-html="htmlContent"></div>
-    <p v-else class="section-empty">Chưa có nội dung</p>
+    <p v-else class="section-empty">{{ t('storefront.section.text_empty', 'Chưa có nội dung') }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { Type } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },

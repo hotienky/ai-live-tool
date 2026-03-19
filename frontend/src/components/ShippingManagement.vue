@@ -1,7 +1,12 @@
 <template>
   <div class="shipping-management">
-    <div class="ship-header">
-      <h2><Truck :size="20" style="vertical-align:middle" /> Quản Lý Vận Chuyển</h2>
+    <!-- Views -->
+    <ShipmentForm v-if="viewMode === 'form'" :initial-order-id="orderLookupId" @back="viewMode = 'list'" @saved="onShipmentSaved" />
+    <ShipmentDetail v-else-if="viewMode === 'detail'" :shipment-id="selectedShipmentId" @back="viewMode = 'list'" @updated="onShipmentSaved" />
+
+    <div v-else class="shipping-list">
+      <div class="ship-header">
+        <h2><Truck :size="20" style="vertical-align:middle" /> Quản Lý Vận Chuyển</h2>
       <div class="header-actions">
         <input v-model="searchTerm" class="search-input" placeholder="🔍 Tìm mã VĐ, người nhận..." />
         <select v-model="filterStatus" class="filter-select">
@@ -82,8 +87,7 @@
             <td>{{ formatDate(s.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button class="act-btn act-edit" @click="openStatusModal(s)"><RefreshCw :size="13" /> Cập nhật</button>
-                <button class="act-btn act-ship" @click="openTrackingModal(s)"><MapPin :size="13" /> Theo dõi</button>
+                <button class="act-btn act-edit" @click="openDetail(s)"><RefreshCw :size="13" /> Chi tiết</button>
                 <button class="act-btn act-print" @click="printShipmentLabel(s)"><Printer :size="13" /> In</button>
                 <button v-if="!['delivered','cancelled'].includes(s.status)" class="act-btn act-cancel" @click="cancelShipment(s)"><XCircle :size="13" /> Hủy</button>
                 <button v-if="s.status === 'draft'" class="act-btn act-cancel" @click="deleteShipment(s)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
@@ -102,188 +106,8 @@
         </tbody>
       </table>
     </div>
-
-    <!-- Create Shipment Modal (with order lookup) -->
-    <div class="modal-overlay" v-if="showCreateModal" @click.self="showCreateModal = false">
-      <div class="modal modal--wide">
-        <h3><Truck :size="16" style="vertical-align:middle" /> Tạo vận đơn mới</h3>
-
-        <!-- Step indicator -->
-        <div class="step-indicator">
-          <div class="step" :class="{ active: createStep === 1, done: createStep > 1 }"><span>1</span> Thông tin</div>
-          <div class="step-line"></div>
-          <div class="step" :class="{ active: createStep === 2, done: createStep > 2 }"><span>2</span> Vận chuyển</div>
-          <div class="step-line"></div>
-          <div class="step" :class="{ active: createStep === 3 }"><span>3</span> Xác nhận</div>
-        </div>
-
-        <!-- Step 1: Order/Receiver Info -->
-        <div v-if="createStep === 1">
-          <div class="form-group" style="margin-bottom:14px">
-            <label>Tạo từ đơn hàng (tùy chọn)</label>
-            <div class="order-lookup">
-              <input type="text" v-model="orderLookupId" placeholder="Nhập ID đơn hàng..." />
-              <button @click="lookupOrder" class="btn-lookup" :disabled="!orderLookupId">Tìm</button>
-            </div>
-            <div v-if="orderLookupResult" class="order-found">
-              <CheckCircle :size="14" style="color:#34d399" /> Đơn #{{ orderLookupResult.id }} — {{ orderLookupResult.customerName }} — {{ formatCurrency(orderLookupResult.totalAmount) }}
-              <button @click="fillFromOrder" class="btn-fill">Điền thông tin</button>
-            </div>
-          </div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Người nhận *</label>
-              <input v-model="shipForm.receiverName" placeholder="Nguyễn Văn A" />
-            </div>
-            <div class="form-group">
-              <label>SĐT nhận *</label>
-              <input v-model="shipForm.receiverPhone" placeholder="0901234567" />
-            </div>
-            <div class="form-group span-2">
-              <label>Địa chỉ nhận *</label>
-              <input v-model="shipForm.receiverAddress" placeholder="123 Đường ABC, Q1, HCM" />
-            </div>
-            <div class="form-group">
-              <label>Phường/Xã</label>
-              <input v-model="shipForm.receiverWard" placeholder="Phường 1" />
-            </div>
-            <div class="form-group">
-              <label>Quận/Huyện</label>
-              <input v-model="shipForm.receiverDistrict" placeholder="Quận 1" />
-            </div>
-            <div class="form-group span-2">
-              <label>Tỉnh/TP</label>
-              <input v-model="shipForm.receiverProvince" placeholder="Hồ Chí Minh" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2: Carrier & Fees -->
-        <div v-if="createStep === 2">
-          <div class="carrier-selector">
-            <div v-for="c in carriers" :key="c.key"
-              class="carrier-card" :class="{ selected: shipForm.carrier === c.key }"
-              @click="shipForm.carrier = c.key">
-              <div class="carrier-card__icon"><Truck :size="20" /></div>
-              <div class="carrier-card__name">{{ c.name }}</div>
-              <div class="carrier-card__desc">{{ c.desc }}</div>
-            </div>
-          </div>
-          <div class="form-grid" style="margin-top:16px">
-            <div class="form-group">
-              <label>Phí ship (VNĐ)</label>
-              <input type="number" v-model.number="shipForm.shippingFee" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>COD (VNĐ)</label>
-              <input type="number" v-model.number="shipForm.codAmount" placeholder="0" />
-            </div>
-            <div class="form-group">
-              <label>Khối lượng (gram)</label>
-              <input type="number" v-model.number="shipForm.weight" placeholder="500" />
-            </div>
-            <div class="form-group">
-              <label>Phí bảo hiểm</label>
-              <input type="number" v-model.number="shipForm.insuranceFee" placeholder="0" />
-            </div>
-            <div class="form-group span-2">
-              <label>{{ t('admin.notes', 'Ghi chú') }}</label>
-              <textarea v-model="shipForm.notes" rows="2" placeholder="Ghi chú vận đơn..."></textarea>
-            </div>
-          </div>
-          <button v-if="shipForm.carrier !== 'manual'" class="btn-calc-fee" @click="calcFee" :disabled="calcingFee" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:var(--accent-gradient);color:#fff;font-weight:700;cursor:pointer;opacity:1" :style="{ opacity: calcingFee ? 0.6 : 1 }">
-            <Calculator :size="14" v-if="!calcingFee" /> {{ calcingFee ? 'Đang tính...' : 'Tính phí tự động' }}
-          </button>
-        </div>
-
-        <!-- Step 3: Confirm -->
-        <div v-if="createStep === 3">
-          <div class="confirm-summary">
-            <h4>Xác nhận thông tin vận đơn</h4>
-            <div class="confirm-grid">
-              <div class="confirm-item"><span>Người nhận:</span><strong>{{ shipForm.receiverName }}</strong></div>
-              <div class="confirm-item"><span>SĐT:</span><strong>{{ shipForm.receiverPhone }}</strong></div>
-              <div class="confirm-item span-2"><span>Địa chỉ:</span><strong>{{ shipForm.receiverAddress }}, {{ shipForm.receiverWard }}, {{ shipForm.receiverDistrict }}, {{ shipForm.receiverProvince }}</strong></div>
-              <div class="confirm-item"><span>ĐVVC:</span><strong>{{ carrierLabels[shipForm.carrier] }}</strong></div>
-              <div class="confirm-item"><span>Phí ship:</span><strong class="price">{{ formatCurrency(shipForm.shippingFee) }}</strong></div>
-              <div class="confirm-item"><span>COD:</span><strong class="price">{{ formatCurrency(shipForm.codAmount) }}</strong></div>
-              <div class="confirm-item"><span>Khối lượng:</span><strong>{{ shipForm.weight }}g</strong></div>
-              <div class="confirm-item span-2" v-if="shipForm.notes"><span>Ghi chú:</span><strong>{{ shipForm.notes }}</strong></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showCreateModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button v-if="createStep > 1" class="btn-secondary-action" @click="createStep--">← Quay lại</button>
-          <button v-if="createStep < 3" class="btn-create" @click="nextStep">Tiếp theo →</button>
-          <button v-if="createStep === 3" class="btn-create" @click="createShipment"><Truck :size="14" /> Tạo vận đơn</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Update Status Modal -->
-    <div class="modal-overlay" v-if="showStatusModal" @click.self="showStatusModal = false">
-      <div class="modal">
-        <h3><RefreshCw :size="16" style="vertical-align:middle" /> Cập nhật trạng thái — #{{ statusShipment?.id }}</h3>
-        <div class="status-flow">
-          <button
-            v-for="(label, key) in statusLabels"
-            :key="key"
-            class="status-flow__btn"
-            :class="{ active: statusNewValue === key, current: statusShipment?.status === key }"
-            @click="statusNewValue = key"
-          >{{ label }}</button>
-        </div>
-        <div class="form-group" style="margin-top:16px">
-          <label>{{ t('admin.description', 'Mô tả') }}</label>
-          <input v-model="statusDescription" placeholder="Mô tả trạng thái..." />
-        </div>
-        <div class="form-group">
-          <label>Vị trí</label>
-          <input v-model="statusLocation" placeholder="VD: Kho HCM" />
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showStatusModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="submitStatus">{{ t('admin.update', 'Cập nhật') }}</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tracking Modal -->
-    <div class="modal-overlay" v-if="showTrackingModal" @click.self="showTrackingModal = false">
-      <div class="modal modal--wide">
-        <h3><MapPin :size="16" style="vertical-align:middle" /> Theo dõi — #{{ trackingShipment?.id }}</h3>
-        <div class="tracking-info">
-          <div class="tracking-info__row"><strong>Người nhận:</strong> {{ trackingShipment?.receiverName }} — {{ trackingShipment?.receiverPhone }}</div>
-          <div class="tracking-info__row"><strong>Địa chỉ:</strong> {{ trackingShipment?.receiverAddress }}</div>
-          <div class="tracking-info__row" v-if="trackingShipment?.trackingCode"><strong>Mã vận đơn:</strong> {{ trackingShipment?.trackingCode }}</div>
-        </div>
-        <div class="tracking-timeline" v-if="trackingHistory.length > 0">
-          <div v-for="entry in trackingHistory" :key="entry.id" class="tracking-item">
-            <div class="tracking-dot" :class="entry.status"></div>
-            <div class="tracking-content">
-              <div class="tracking-row">
-                <span class="tracking-badge" :class="entry.status">{{ statusLabels[entry.status] || entry.status }}</span>
-                <span class="tracking-source">{{ entry.source }}</span>
-              </div>
-              <div class="tracking-desc" v-if="entry.description">{{ entry.description }}</div>
-              <div class="tracking-loc" v-if="entry.location"><MapPin :size="12" /> {{ entry.location }}</div>
-              <div class="tracking-time">{{ formatDate(entry.createdAt) }}</div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state" style="padding:30px 0">
-          <MapPin :size="32" class="empty-state__icon" />
-          <p class="empty-state__title">Chưa có lịch sử</p>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-secondary-action" @click="printShipmentLabel(trackingShipment)"><Printer :size="14" /> In phiếu gửi</button>
-          <button class="btn-cancel" @click="showTrackingModal = false">{{ t('admin.close', 'Đóng') }}</button>
-        </div>
-      </div>
-    </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -297,6 +121,8 @@ import {
   Truck, Plus, Package, DollarSign, CheckCircle, RefreshCw,
   MapPin, Trash2, XCircle, Printer, TrendingUp
 } from 'lucide-vue-next'
+import ShipmentForm from './ShipmentForm.vue'
+import ShipmentDetail from './ShipmentDetail.vue'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -310,19 +136,9 @@ const searchTerm = ref('')
 const filterStatus = useUrlParam('ship_status', '')
 const filterCarrier = useUrlParam('ship_carrier', '')
 
-const showCreateModal = ref(false)
-const showStatusModal = ref(false)
-const showTrackingModal = ref(false)
-const createStep = ref(1)
-
-const statusShipment = ref(null)
-const statusNewValue = ref('')
-const statusDescription = ref('')
-const statusLocation = ref('')
-const trackingShipment = ref(null)
-const trackingHistory = ref([])
+const viewMode = ref('list')
+const selectedShipmentId = ref(null)
 const orderLookupId = ref(null)
-const orderLookupResult = ref(null)
 
 const statusLabels = {
   draft: 'Nháp',
@@ -336,21 +152,6 @@ const statusLabels = {
 }
 
 const carrierLabels = { manual: 'Thủ công', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
-
-const carriers = [
-  { key: 'manual', name: 'Thủ công', desc: 'Tự giao hoặc nhập tay' },
-  { key: 'ghn', name: 'GHN', desc: 'Giao Hàng Nhanh' },
-  { key: 'ghtk', name: 'GHTK', desc: 'Giao Hàng Tiết Kiệm' },
-  { key: 'viettel_post', name: 'Viettel Post', desc: 'Viettel Post' },
-]
-
-const defaultForm = () => ({
-  orderId: null, carrier: 'manual',
-  receiverName: '', receiverPhone: '', receiverAddress: '',
-  receiverWard: '', receiverDistrict: '', receiverProvince: '',
-  shippingFee: 0, codAmount: 0, weight: 500, insuranceFee: 0, notes: '',
-})
-const shipForm = ref(defaultForm())
 
 const deliveryRate = computed(() => {
   const total = shipStats.value.total || 0
@@ -372,34 +173,6 @@ const displayedShipments = computed(() => {
 
 onMounted(() => { fetchShipments(); fetchStats(); setupSocketListeners() })
 watch([filterStatus, filterCarrier], () => fetchShipments())
-
-const calcingFee = ref(false)
-
-async function calcFee() {
-  calcingFee.value = true
-  try {
-    const res = await apiFetch('/shipping/calculate-fee', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        carrier: shipForm.value.carrier,
-        weight: shipForm.value.weight || 500,
-        codAmount: shipForm.value.codAmount || 0
-      }),
-    })
-    const data = await res.json()
-    if (data.fee !== undefined) {
-      shipForm.value.shippingFee = data.fee
-      showToast('Đã tính phí: ' + data.fee.toLocaleString('vi-VN') + 'đ', 'success')
-    } else {
-      showToast(data.error || 'Không tính được phí', 'error')
-    }
-  } catch (e) {
-    showToast('Lỗi tính phí: ' + e.message, 'error')
-  } finally {
-    calcingFee.value = false
-  }
-}
 
 // Socket auto-refresh for shipment events
 function setupSocketListeners() {
@@ -439,90 +212,19 @@ async function fetchStats() {
 }
 
 function openCreateModal(orderId) {
-  shipForm.value = defaultForm()
-  createStep.value = 1
   orderLookupId.value = orderId || null
-  orderLookupResult.value = null
-  showCreateModal.value = true
-  if (orderId) lookupOrder()
+  viewMode.value = 'form'
 }
 
-function nextStep() {
-  if (createStep.value === 1) {
-    if (!shipForm.value.receiverName || !shipForm.value.receiverPhone) {
-      return showToast('Vui lòng nhập tên và SĐT người nhận', 'error')
-    }
-  }
-  createStep.value++
+function openDetail(shipment) {
+  selectedShipmentId.value = shipment.id
+  viewMode.value = 'detail'
 }
 
-async function lookupOrder() {
-  if (!orderLookupId.value) return
-  try {
-    const res = await apiFetch(`/orders/${orderLookupId.value}`)
-    orderLookupResult.value = mapKeys(await res.json())
-  } catch {
-    orderLookupResult.value = null
-    showToast('Không tìm thấy đơn hàng', 'error')
-  }
-}
-
-function fillFromOrder() {
-  if (!orderLookupResult.value) return
-  const o = orderLookupResult.value
-  shipForm.value.orderId = o.id
-  shipForm.value.receiverName = o.customerName || ''
-  shipForm.value.receiverPhone = o.customerPhone || ''
-  shipForm.value.receiverAddress = o.customerAddress || ''
-  shipForm.value.codAmount = o.totalAmount || 0
-  showToast('Đã điền thông tin từ đơn hàng', 'success')
-}
-
-async function createShipment() {
-  try {
-    await apiFetch('/shipments', {
-      method: 'POST',
-      body: JSON.stringify({ ...shipForm.value }),
-    })
-    showToast('Đã tạo vận đơn', 'success')
-    showCreateModal.value = false
-    fetchShipments()
-    fetchStats()
-  } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
-}
-
-function openStatusModal(shipment) {
-  statusShipment.value = shipment
-  statusNewValue.value = shipment.status
-  statusDescription.value = ''
-  statusLocation.value = ''
-  showStatusModal.value = true
-}
-
-async function submitStatus() {
-  try {
-    await apiFetch(`/shipments/${statusShipment.value.id}/status`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        status: statusNewValue.value,
-        description: statusDescription.value,
-        location: statusLocation.value,
-      }),
-    })
-    showToast(`Đã cập nhật: ${statusLabels[statusNewValue.value]}`, 'success')
-    showStatusModal.value = false
-    fetchShipments()
-    fetchStats()
-  } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
-}
-
-async function openTrackingModal(shipment) {
-  trackingShipment.value = shipment
-  showTrackingModal.value = true
-  try {
-    const res = await apiFetch(`/shipments/${shipment.id}/tracking`)
-    trackingHistory.value = await res.json()
-  } catch { trackingHistory.value = [] }
+function onShipmentSaved() {
+  viewMode.value = 'list'
+  fetchShipments()
+  fetchStats()
 }
 
 async function cancelShipment(s) {
@@ -714,17 +416,12 @@ tr:hover { background: var(--color-accent-glow); }
 .empty-state__sub { font-size: 13px; color: var(--color-text-muted); margin: 0; }
 
 /* Modals */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7); display: flex; align-items: center;
-  justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
-}
-/* Removed local modal */
+/* Removed local modal styles as form is now a page view */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.modal h3 { margin: 0 0 20px 0; font-weight: 800; }
+/* The following styles are kept as they might be used by other components or general form elements */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-group { margin-bottom: 0; }
 .form-group.span-2 { grid-column: span 2; }

@@ -4,11 +4,11 @@
     <div v-if="orderSuccess" class="checkout-success">
       <!-- Progress Steps -->
       <div class="success-steps" v-if="checkoutConfig.showSteps">
-        <div class="step done"><span class="step-num">1</span><span class="step-label">Giỏ hàng</span></div>
+        <div class="step done"><span class="step-num">1</span><span class="step-label">{{ t('storefront.cart', 'Giỏ hàng') }}</span></div>
         <div class="step-line done"></div>
-        <div class="step done"><span class="step-num">2</span><span class="step-label">Thanh toán</span></div>
+        <div class="step done"><span class="step-num">2</span><span class="step-label">{{ t('storefront.checkout', 'Thanh toán') }}</span></div>
         <div class="step-line done"></div>
-        <div class="step done current"><span class="step-num"><Check :size="14" /></span><span class="step-label">Hoàn tất</span></div>
+        <div class="step done current"><span class="step-num"><Check :size="14" /></span><span class="step-label">{{ t('storefront.completed', 'Hoàn tất') }}</span></div>
       </div>
 
       <div class="success-content">
@@ -20,13 +20,13 @@
             <div class="success-ring"></div>
             <div class="success-ring success-ring--2"></div>
           </div>
-          <h2 class="success-hero__title">Đặt hàng thành công!</h2>
+          <h2 class="success-hero__title">{{ t('storefront.order_success', 'Đặt hàng thành công!') }}</h2>
           <div class="success-hero__badge">
             <Package :size="14" />
-            <span>Mã đơn hàng</span>
+            <span>{{ t('storefront.order_code', 'Mã đơn hàng') }}</span>
             <strong>#{{ orderData.id }}</strong>
           </div>
-          <p class="success-hero__sub">Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý.</p>
+          <p class="success-hero__sub">{{ t('storefront.order_success_desc', 'Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đang được xử lý.') }}</p>
         </div>
 
         <!-- Order Details Section -->
@@ -34,19 +34,19 @@
           <div class="success-section">
             <div class="success-section__header">
               <User :size="18" />
-              <h3>Thông tin giao hàng</h3>
+              <h3>{{ t('storefront.shipping_info', 'Thông tin giao hàng') }}</h3>
             </div>
             <div class="detail-grid-2col">
               <div class="detail-item">
-                <span class="detail-item__label">Khách hàng</span>
+                <span class="detail-item__label">{{ t('storefront.customer', 'Khách hàng') }}</span>
                 <span class="detail-item__value">{{ orderData.customer_name }}</span>
               </div>
               <div class="detail-item">
-                <span class="detail-item__label">Điện thoại</span>
+                <span class="detail-item__label">{{ t('storefront.phone', 'Điện thoại') }}</span>
                 <span class="detail-item__value">{{ orderData.customer_phone }}</span>
               </div>
               <div class="detail-item detail-item--full">
-                <span class="detail-item__label">Địa chỉ giao hàng</span>
+                <span class="detail-item__label">{{ t('storefront.shipping_address', 'Địa chỉ giao hàng') }}</span>
                 <span class="detail-item__value">{{ orderData.customer_address }}</span>
               </div>
             </div>
@@ -57,26 +57,26 @@
           <div class="success-section">
             <div class="success-section__header">
               <CreditCard :size="18" />
-              <h3>Chi tiết thanh toán</h3>
+              <h3>{{ t('storefront.payment_details', 'Chi tiết thanh toán') }}</h3>
             </div>
             <div class="payment-summary">
               <div class="payment-summary__row">
-                <span>Phương thức</span>
+                <span>{{ t('storefront.payment_method', 'Phương thức') }}</span>
                 <span class="payment-summary__badge" :class="orderData.payment_method === 'bank' ? 'badge--bank' : 'badge--cod'">
                   <Truck v-if="orderData.payment_method !== 'bank'" :size="12" />
                   <Building v-else :size="12" />
-                  {{ orderData.payment_method === 'bank' ? 'Chuyển khoản' : 'Thanh toán khi nhận hàng' }}
+                  {{ orderData.payment_method === 'bank' ? t('storefront.bank_transfer', 'Chuyển khoản') : t('storefront.cod', 'Thanh toán khi nhận hàng') }}
                 </span>
               </div>
               <div v-if="orderData.coupon_code" class="payment-summary__row">
-                <span>Mã giảm giá</span>
+                <span>{{ t('storefront.coupon_code', 'Mã giảm giá') }}</span>
                 <span class="payment-summary__discount">
                   <Tag :size="12" />
                   {{ orderData.coupon_code }} (−{{ formatPrice(orderData.discount_amount) }})
                 </span>
               </div>
               <div v-if="orderData.shipping_fee > 0" class="payment-summary__row">
-                <span>Phí vận chuyển</span>
+                <span>{{ t('storefront.shipping_fee', 'Phí vận chuyển') }}</span>
                 <span>{{ formatPrice(orderData.shipping_fee) }}</span>
               </div>
               <div v-if="orderData.tax_amount > 0" class="payment-summary__row">
@@ -84,7 +84,7 @@
                 <span>{{ formatPrice(orderData.tax_amount) }}</span>
               </div>
               <div class="payment-summary__total">
-                <span>Tổng thanh toán</span>
+                <span>{{ t('storefront.total', 'Tổng thanh toán') }}</span>
                 <span>{{ formatPrice(orderData.total_amount) }}</span>
               </div>
             </div>
@@ -95,40 +95,40 @@
         <div v-if="orderData.payment_method === 'bank' && orderData.bank_info" class="success-bank">
           <div class="success-section__header">
             <Building :size="18" />
-            <h3>Thông tin chuyển khoản</h3>
+            <h3>{{ t('storefront.bank_info', 'Thông tin chuyển khoản') }}</h3>
           </div>
           <div class="bank-warning">
             <AlertTriangle :size="14" />
-            <span>Vui lòng chuyển khoản trong vòng <strong>24 giờ</strong> để đơn hàng được xử lý</span>
+            <span>{{ t('storefront.bank_transfer_warning', 'Vui lòng chuyển khoản trong vòng') }} <strong>24h</strong> {{ t('storefront.bank_transfer_warning2', 'để đơn hàng được xử lý') }}</span>
           </div>
           <div class="bank-fields">
             <div class="bank-field">
-              <span class="bank-field__label">Ngân hàng</span>
+              <span class="bank-field__label">{{ t('storefront.bank_name', 'Ngân hàng') }}</span>
               <div class="bank-field__row">
                 <span class="bank-field__value">{{ orderData.bank_info.bank_name }}</span>
               </div>
             </div>
             <div class="bank-field">
-              <span class="bank-field__label">Chi nhánh</span>
+              <span class="bank-field__label">{{ t('storefront.bank_branch', 'Chi nhánh') }}</span>
               <div class="bank-field__row">
                 <span class="bank-field__value">{{ orderData.bank_info.branch }}</span>
               </div>
             </div>
             <div class="bank-fields-row">
               <div class="bank-field">
-                <span class="bank-field__label">Chủ tài khoản</span>
+                <span class="bank-field__label">{{ t('storefront.account_holder', 'Chủ tài khoản') }}</span>
                 <div class="bank-field__row">
                   <span class="bank-field__value highlight">{{ orderData.bank_info.account_name }}</span>
-                  <button class="copy-btn" @click="copyText(orderData.bank_info.account_name)" title="Sao chép">
+                  <button class="copy-btn" @click="copyText(orderData.bank_info.account_name)" :title="t('storefront.copy', 'Sao chép')">
                     <Copy :size="13" />
                   </button>
                 </div>
               </div>
               <div class="bank-field">
-                <span class="bank-field__label">Số tài khoản</span>
+                <span class="bank-field__label">{{ t('storefront.account_number', 'Số tài khoản') }}</span>
                 <div class="bank-field__row">
                   <span class="bank-field__value highlight mono">{{ orderData.bank_info.account_number }}</span>
-                  <button class="copy-btn" @click="copyText(orderData.bank_info.account_number)" title="Sao chép">
+                  <button class="copy-btn" @click="copyText(orderData.bank_info.account_number)" :title="t('storefront.copy', 'Sao chép')">
                     <Copy :size="13" />
                   </button>
                 </div>
@@ -136,19 +136,19 @@
             </div>
             <div class="bank-fields-row">
               <div class="bank-field">
-                <span class="bank-field__label">Số tiền</span>
+                <span class="bank-field__label">{{ t('storefront.amount', 'Số tiền') }}</span>
                 <div class="bank-field__row">
                   <span class="bank-field__value highlight accent">{{ formatPrice(orderData.total_amount) }}</span>
-                  <button class="copy-btn" @click="copyText(String(orderData.total_amount))" title="Sao chép">
+                  <button class="copy-btn" @click="copyText(String(orderData.total_amount))" :title="t('storefront.copy', 'Sao chép')">
                     <Copy :size="13" />
                   </button>
                 </div>
               </div>
               <div class="bank-field">
-                <span class="bank-field__label">Nội dung chuyển khoản</span>
+                <span class="bank-field__label">{{ t('storefront.transfer_note', 'Nội dung chuyển khoản') }}</span>
                 <div class="bank-field__row">
                   <span class="bank-field__value highlight mono">{{ orderData.bank_info.note }}</span>
-                  <button class="copy-btn" @click="copyText(orderData.bank_info.note)" title="Sao chép">
+                  <button class="copy-btn" @click="copyText(orderData.bank_info.note)" :title="t('storefront.copy', 'Sao chép')">
                     <Copy :size="13" />
                   </button>
                 </div>
@@ -158,11 +158,11 @@
           <!-- QR Code -->
           <div class="bank-qr" v-if="vietQrUrl">
             <div class="bank-qr__divider"></div>
-            <p class="bank-qr__label"><QrCode :size="14" /> Quét mã QR để chuyển khoản</p>
+            <p class="bank-qr__label"><QrCode :size="14" /> {{ t('storefront.scan_qr', 'Quét mã QR để chuyển khoản') }}</p>
             <div class="bank-qr__wrap">
-              <img :src="vietQrUrl" alt="QR Code chuyển khoản" class="bank-qr__img" />
+              <img :src="vietQrUrl" :alt="t('storefront.qr_code', 'QR Code chuyển khoản')" class="bank-qr__img" />
             </div>
-            <p class="bank-qr__hint">Mở app ngân hàng → Quét QR → Số tiền &amp; nội dung đã được điền sẵn</p>
+            <p class="bank-qr__hint">{{ t('storefront.scan_qr_hint', 'Mở app ngân hàng → Quét QR → Số tiền & nội dung đã được điền sẵn') }}</p>
           </div>
         </div>
 
@@ -171,8 +171,8 @@
           <div class="cod-content">
             <div class="cod-icon"><Wallet :size="24" /></div>
             <div class="cod-text">
-              <p>Bạn sẽ thanh toán <strong>{{ formatPrice(orderData.total_amount) }}</strong> khi nhận hàng.</p>
-              <p class="cod-sub">Chúng tôi sẽ liên hệ xác nhận đơn hàng trong thời gian sớm nhất.</p>
+              <p>{{ t('storefront.cod_message', 'Bạn sẽ thanh toán') }} <strong>{{ formatPrice(orderData.total_amount) }}</strong> {{ t('storefront.cod_on_delivery', 'khi nhận hàng.') }}</p>
+              <p class="cod-sub">{{ t('storefront.cod_confirm', 'Chúng tôi sẽ liên hệ xác nhận đơn hàng trong thời gian sớm nhất.') }}</p>
             </div>
           </div>
         </div>
@@ -180,10 +180,10 @@
         <!-- Actions -->
         <div class="success-actions">
           <router-link to="/products" class="btn btn--primary btn--success">
-            <ShoppingBag :size="16" /> Tiếp tục mua sắm
+            <ShoppingBag :size="16" /> {{ t('storefront.continue_shopping', 'Tiếp tục mua sắm') }}
           </router-link>
           <router-link to="/order-tracking" class="btn btn--outline btn--success">
-            <Package :size="16" /> Theo dõi đơn hàng
+            <Package :size="16" /> {{ t('storefront.track_order', 'Theo dõi đơn hàng') }}
           </router-link>
         </div>
       </div>
@@ -194,7 +194,7 @@
       <h1 class="page-title"><CreditCard :size="24" /> {{ t('storefront.checkout_title') || 'Thanh toán' }}</h1>
 
       <div v-if="cartItems.length === 0" class="checkout-empty">
-        <p>Giỏ hàng trống. <router-link to="/products">Thêm sản phẩm</router-link></p>
+        <p>{{ t('storefront.empty_cart', 'Giỏ hàng trống.') }} <router-link to="/products">{{ t('storefront.add_products', 'Thêm sản phẩm') }}</router-link></p>
       </div>
 
       <div v-else class="checkout-grid" :class="{ 'checkout-grid--single': checkoutConfig.layout === 'single-column' }">
@@ -206,7 +206,7 @@
             <!-- Saved Addresses Dropdown -->
             <div v-if="isLoggedIn && savedAddresses.length > 0" class="saved-addresses">
               <label class="saved-addresses__label">
-                <MapPin :size="14" /> Chọn địa chỉ đã lưu
+                <MapPin :size="14" /> {{ t('storefront.select_saved_address', 'Chọn địa chỉ đã lưu') }}
               </label>
               <div class="saved-addresses__list">
                 <button
@@ -216,61 +216,61 @@
                   @click="applySavedAddress(addr)"
                 >
                   <div class="saved-addr-card__name">
-                    {{ addr.name || 'Không tên' }}
-                    <span v-if="addr.is_default" class="saved-addr-badge">★ Mặc định</span>
+                    {{ addr.name || t('storefront.unnamed', 'Không tên') }}
+                    <span v-if="addr.is_default" class="saved-addr-badge">★ {{ t('storefront.default', 'Mặc định') }}</span>
                   </div>
                   <div class="saved-addr-card__detail">{{ addr.phone }}</div>
                   <div class="saved-addr-card__detail">{{ addr.address }}</div>
                 </button>
                 <button class="saved-addr-card saved-addr-card--new" @click="selectedSavedAddr = null">
-                  + Nhập địa chỉ mới
+                  + {{ t('storefront.new_address', 'Nhập địa chỉ mới') }}
                 </button>
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Họ tên *</label>
-                <input v-model="form.customerName" placeholder="Nguyễn Văn A" required />
+                <label>{{ t('storefront.full_name', 'Họ tên') }} *</label>
+                <input v-model="form.customerName" :placeholder="t('storefront.name_placeholder', 'Nguyễn Văn A')" required />
               </div>
               <div class="form-group">
-                <label>Số điện thoại *</label>
+                <label>{{ t('storefront.phone', 'Số điện thoại') }} *</label>
                 <input v-model="form.customerPhone" placeholder="0901234567" required />
               </div>
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Email (nhận xác nhận đơn)</label>
+                <label>{{ t('storefront.email_confirm', 'Email (nhận xác nhận đơn)') }}</label>
                 <input v-model="form.customerEmail" type="email" placeholder="email@example.com" />
               </div>
             </div>
             <!-- Address Selector (2-level: Province → Ward) -->
             <div class="form-row">
               <div class="form-group">
-                <label>Tỉnh/Thành phố *</label>
+                <label>{{ t('storefront.province', 'Tỉnh/Thành phố') }} *</label>
                 <select @change="e => onProvinceChange(e.target.value)" :value="selectedProvince || ''">
-                  <option value="" disabled>{{ loadingProvinces ? 'Đang tải...' : 'Chọn tỉnh/thành' }}</option>
+                  <option value="" disabled>{{ loadingProvinces ? t('storefront.loading', 'Đang tải...') : t('storefront.select_province', 'Chọn tỉnh/thành') }}</option>
                   <option v-for="p in provinces" :key="p.code" :value="p.code">{{ p.name }}</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Phường/Xã *</label>
+                <label>{{ t('storefront.ward', 'Phường/Xã') }} *</label>
                 <select @change="e => onWardChange(e.target.value)" :value="selectedWard || ''" :disabled="!selectedProvince">
-                  <option value="" disabled>{{ loadingWards ? 'Đang tải...' : 'Chọn phường/xã' }}</option>
+                  <option value="" disabled>{{ loadingWards ? t('storefront.loading', 'Đang tải...') : t('storefront.select_ward', 'Chọn phường/xã') }}</option>
                   <option v-for="w in wards" :key="w.code" :value="w.code">{{ w.name }}</option>
                 </select>
               </div>
             </div>
             <div class="form-group address-autocomplete-wrapper">
-              <label>Địa chỉ chi tiết *</label>
+              <label>{{ t('storefront.detail_address', 'Địa chỉ chi tiết') }} *</label>
               <input
                 v-model="form.customerAddress"
-                placeholder="Số nhà, tên đường..."
+                :placeholder="t('storefront.address_placeholder', 'Số nhà, tên đường...')"
                 required
                 @input="e => searchAddress(e.target.value)"
                 @blur="() => setTimeout(() => clearSuggestions(), 200)"
                 autocomplete="off"
               />
-              <div v-if="loadingSuggestions" class="address-loading">Đang tìm...</div>
+              <div v-if="loadingSuggestions" class="address-loading">{{ t('storefront.searching', 'Đang tìm...') }}</div>
               <ul v-if="addressSuggestions.length" class="address-suggestions">
                 <li v-for="(s, i) in addressSuggestions" :key="i" @mousedown.prevent="handleSelectSuggestion(s)">
                   {{ s.display }}
@@ -283,7 +283,7 @@
           <div class="form-section shipping-section" v-if="selectedProvince">
             <h3><Truck :size="16" /> {{ t('storefront.shipping_provider') || 'Đơn vị vận chuyển' }}</h3>
             <div v-if="loadingShipping" class="shipping-loading">
-              <span class="spinner"></span> Đang tính phí vận chuyển...
+              <span class="spinner"></span> {{ t('storefront.calculating_shipping', 'Đang tính phí vận chuyển...') }}
             </div>
             <div v-else-if="shippingError" class="shipping-error">
               <AlertTriangle :size="14" /> {{ shippingError }}
@@ -306,14 +306,14 @@
                     <Truck :size="12" /> {{ opt.estimated_days }}
                   </span>
                   <span v-if="estimatedDeliveryDate(opt)" class="shipping-option__delivery">
-                    📅 Nhận hàng dự kiến: <strong>{{ estimatedDeliveryDate(opt) }}</strong>
+                    📅 {{ t('storefront.estimated_delivery', 'Nhận hàng dự kiến:') }} <strong>{{ estimatedDeliveryDate(opt) }}</strong>
                   </span>
                 </div>
                 <span class="shipping-option__fee">{{ formatPrice(opt.fee) }}</span>
               </label>
             </div>
             <div v-else class="shipping-empty">
-              <p>Vui lòng chọn đầy đủ địa chỉ để tính phí vận chuyển</p>
+              <p>{{ t('storefront.select_address_for_shipping', 'Vui lòng chọn đầy đủ địa chỉ để tính phí vận chuyển') }}</p>
             </div>
           </div>
 
@@ -350,7 +350,7 @@
             </div>
             <div v-if="couponApplied" class="voucher-msg voucher-msg--success">
               <CheckCircle :size="14" />
-              Mã <strong>{{ couponCode.toUpperCase() }}</strong> — Giảm <strong>{{ formatPrice(couponDiscount) }}</strong>
+              {{ t('storefront.coupon_applied', 'Mã') }} <strong>{{ couponCode.toUpperCase() }}</strong> — {{ t('storefront.discount', 'Giảm') }} <strong>{{ formatPrice(couponDiscount) }}</strong>
             </div>
           </div>
 
@@ -360,7 +360,7 @@
             <textarea
               v-model="form.notes"
               class="order-notes"
-              placeholder="Ghi chú cho shop (ví dụ: giao giờ hành chính, gọi trước khi giao...)"
+              :placeholder="t('storefront.order_notes_placeholder', 'Ghi chú cho shop (ví dụ: giao giờ hành chính, gọi trước khi giao...)')"
               rows="3"
               maxlength="500"
             ></textarea>
@@ -383,8 +383,8 @@
           </div>
 
           <div class="form-section" v-if="checkoutConfig.showNotes">
-            <h3><FileText :size="16" /> Ghi chú</h3>
-            <textarea v-model="form.notes" rows="3" placeholder="Ghi chú thêm cho đơn hàng (không bắt buộc)"></textarea>
+            <h3><FileText :size="16" /> {{ t('storefront.notes', 'Ghi chú') }}</h3>
+            <textarea v-model="form.notes" rows="3" :placeholder="t('storefront.notes_placeholder', 'Ghi chú thêm cho đơn hàng (không bắt buộc)')"></textarea>
           </div>
         </div>
 
@@ -407,22 +407,22 @@
             </div>
 
             <div class="summary-totals">
-              <div class="total-row"><span>Tạm tính</span><span>{{ formatPrice(cartTotal) }}</span></div>
+              <div class="total-row"><span>{{ t('storefront.subtotal', 'Tạm tính') }}</span><span>{{ formatPrice(cartTotal) }}</span></div>
               <div v-if="couponDiscount > 0" class="total-row total-row--discount">
-                <span>Giảm giá ({{ couponCode.toUpperCase() }})</span>
+                <span>{{ t('storefront.discount', 'Giảm giá') }} ({{ couponCode.toUpperCase() }})</span>
                 <span>-{{ formatPrice(couponDiscount) }}</span>
               </div>
               <div class="total-row">
-                <span>Phí giao hàng</span>
+                <span>{{ t('storefront.shipping_fee', 'Phí giao hàng') }}</span>
                 <span v-if="shippingFee > 0">{{ formatPrice(shippingFee) }}</span>
-                <span v-else class="free">{{ selectedProvince ? 'Chọn đơn vị vận chuyển' : 'Chọn địa chỉ trước' }}</span>
+                <span v-else class="free">{{ selectedProvince ? t('storefront.select_shipping', 'Chọn đơn vị vận chuyển') : t('storefront.select_address_first', 'Chọn địa chỉ trước') }}</span>
               </div>
               <div v-if="taxEnabled && taxAmount > 0" class="total-row">
                 <span>{{ taxLabel }} <span v-if="taxDetails.length" style="font-size:11px;opacity:0.7">({{ taxDetails.map(d => d.name).join(', ') }})</span><span v-if="taxInclusive" style="font-size:11px;opacity:0.7;margin-left:4px">(đã gồm trong giá)</span></span>
                 <span>{{ formatPrice(taxAmount) }}</span>
               </div>
               <div class="total-row total-row--grand">
-                <span>Tổng thanh toán</span>
+                <span>{{ t('storefront.total', 'Tổng thanh toán') }}</span>
                 <span>{{ formatPrice(finalTotal) }}</span>
               </div>
             </div>
@@ -680,7 +680,7 @@ const vietQrUrl = computed(() => {
 })
 
 async function placeOrder() {
-  if (!isValid.value) { error.value = 'Vui lòng điền đầy đủ thông tin'; return }
+  if (!isValid.value) { error.value = t('storefront.fill_required', 'Vui lòng điền đầy đủ thông tin'); return }
   submitting.value = true
   error.value = ''
   try {
@@ -729,7 +729,7 @@ async function placeOrder() {
     router.replace({ query: { order_id: result.id } })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } catch (err) {
-    error.value = 'Đặt hàng thất bại: ' + (err.message || 'Lỗi không xác định')
+    error.value = t('storefront.order_failed', 'Đặt hàng thất bại') + ': ' + (err.message || t('storefront.unknown_error', 'Lỗi không xác định'))
   }
   submitting.value = false
 }

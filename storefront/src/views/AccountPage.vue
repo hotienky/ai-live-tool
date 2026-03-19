@@ -37,17 +37,17 @@
         <div v-if="tab === 'profile'" class="tab-content">
           <div class="tab-title">
             <h2>{{ t('storefront.profile') || 'Thông tin cá nhân' }}</h2>
-            <p class="tab-desc">Quản lý thông tin cá nhân để bảo mật tài khoản</p>
+            <p class="tab-desc">{{ t('storefront.account.profile_desc', 'Quản lý thông tin cá nhân để bảo mật tài khoản') }}</p>
           </div>
           <form @submit.prevent="onUpdateProfile" class="profile-form">
             <div class="field-row">
               <div class="field">
-                <label>Họ</label>
-                <input v-model="profileForm.last_name" placeholder="Nhập họ" />
+                <label>{{ t('storefront.account.last_name', 'Họ') }}</label>
+                <input v-model="profileForm.last_name" :placeholder="t('storefront.account.enter_last_name', 'Nhập họ')" />
               </div>
               <div class="field">
-                <label>Tên</label>
-                <input v-model="profileForm.first_name" placeholder="Nhập tên" />
+                <label>{{ t('storefront.account.first_name', 'Tên') }}</label>
+                <input v-model="profileForm.first_name" :placeholder="t('storefront.account.enter_first_name', 'Nhập tên')" />
               </div>
             </div>
             <div class="field">
@@ -55,12 +55,12 @@
               <input :value="customer?.email" disabled class="disabled" />
             </div>
             <div class="field">
-              <label>Số điện thoại</label>
+              <label>{{ t('storefront.account.phone', 'Số điện thoại') }}</label>
               <input v-model="profileForm.phone" placeholder="0901234567" />
             </div>
             <div class="form-actions">
               <button type="submit" class="btn-primary" :disabled="saving">
-                <Save :size="14" v-if="!saving" /> {{ saving ? 'Đang lưu...' : 'Cập nhật thông tin' }}
+                <Save :size="14" v-if="!saving" /> {{ saving ? t('storefront.account.saving', 'Đang lưu...') : t('storefront.account.update_info', 'Cập nhật thông tin') }}
               </button>
               <span class="save-msg success" v-if="saveMsg"><Check :size="14" /> {{ saveMsg }}</span>
             </div>
@@ -71,7 +71,7 @@
         <div v-if="tab === 'orders'" class="tab-content">
           <div class="tab-title">
             <h2>{{ t('storefront.order_history') || 'Lịch sử đơn hàng' }}</h2>
-            <p class="tab-desc">Theo dõi và quản lý đơn hàng của bạn</p>
+            <p class="tab-desc">{{ t('storefront.account.orders_desc', 'Theo dõi và quản lý đơn hàng của bạn') }}</p>
           </div>
 
           <!-- Status Filter Tabs -->
@@ -107,9 +107,9 @@
           </div>
           <div v-else-if="orders.length === 0" class="empty-state">
             <div class="empty-icon"><Package :size="48" /></div>
-            <h3>Chưa có đơn hàng nào</h3>
-            <p>Hãy bắt đầu mua sắm ngay!</p>
-            <router-link to="/products" class="btn-primary"><ShoppingBag :size="14" /> Mua sắm ngay</router-link>
+            <h3>{{ t('storefront.account.no_orders', 'Chưa có đơn hàng nào') }}</h3>
+            <p>{{ t('storefront.account.start_shopping', 'Hãy bắt đầu mua sắm ngay!') }}</p>
+            <router-link to="/products" class="btn-primary"><ShoppingBag :size="14" /> {{ t('storefront.account.shop_now', 'Mua sắm ngay') }}</router-link>
           </div>
           <div v-else class="orders-list">
             <div v-for="order in paginatedOrders" :key="order.id" class="order-card">
@@ -126,12 +126,12 @@
                 <div v-for="item in order.details.slice(0, 3)" :key="item.id" class="order-item-tag">
                   {{ item.name }} × {{ item.qty }} — {{ formatPrice(item.price) }}
                 </div>
-                <span v-if="order.details.length > 3" class="order-more">+{{ order.details.length - 3 }} sản phẩm</span>
+                <span v-if="order.details.length > 3" class="order-more">+{{ order.details.length - 3 }} {{ t('storefront.account.products', 'sản phẩm') }}</span>
               </div>
               <div class="order-footer">
                 <div class="order-footer__actions">
                   <router-link :to="`/order-tracking?order_id=${order.id}&phone=${order.customer_phone || ''}`" class="btn-link-sm">
-                    Chi tiết →
+                    {{ t('storefront.account.details', 'Chi tiết') }} →
                   </router-link>
                   <button
                     v-if="order.status === 'pending'"
@@ -139,7 +139,7 @@
                     @click="cancelOrder(order.id)"
                     :disabled="cancellingId === order.id"
                   >
-                    {{ cancellingId === order.id ? 'Đang hủy...' : 'Hủy đơn' }}
+                    {{ cancellingId === order.id ? t('storefront.account.cancelling', 'Đang hủy...') : t('storefront.account.cancel_order', 'Hủy đơn') }}
                   </button>
                 </div>
                 <span class="order-total">{{ formatPrice(order.total_amount) }}</span>
@@ -149,9 +149,9 @@
 
           <!-- Pagination -->
           <div v-if="ordersTotalPages > 1" class="orders-pagination">
-            <button :disabled="ordersPage <= 1" @click="ordersPage--">← Trước</button>
-            <span class="orders-page-info">Trang {{ ordersPage }} / {{ ordersTotalPages }}</span>
-            <button :disabled="ordersPage >= ordersTotalPages" @click="ordersPage++">Tiếp →</button>
+            <button :disabled="ordersPage <= 1" @click="ordersPage--">← {{ t('storefront.account.prev', 'Trước') }}</button>
+            <span class="orders-page-info">{{ t('storefront.account.page', 'Trang') }} {{ ordersPage }} / {{ ordersTotalPages }}</span>
+            <button :disabled="ordersPage >= ordersTotalPages" @click="ordersPage++">{{ t('storefront.account.next', 'Tiếp') }} →</button>
           </div>
         </div>
 
@@ -159,17 +159,17 @@
         <div v-if="tab === 'addresses'" class="tab-content">
           <div class="tab-title">
             <h2>{{ t('storefront.addresses') || 'Địa chỉ giao hàng' }}</h2>
-            <p class="tab-desc">Quản lý địa chỉ để thanh toán nhanh hơn</p>
+            <p class="tab-desc">{{ t('storefront.account.addresses_desc', 'Quản lý địa chỉ để thanh toán nhanh hơn') }}</p>
             <button class="btn-primary btn-sm" @click="showAddrForm = !showAddrForm" style="margin-top: 8px;">
-              <template v-if="showAddrForm"><X :size="14" /> Đóng</template>
-              <template v-else><Plus :size="14" /> Thêm địa chỉ mới</template>
+              <template v-if="showAddrForm"><X :size="14" /> {{ t('storefront.account.close', 'Đóng') }}</template>
+              <template v-else><Plus :size="14" /> {{ t('storefront.account.add_address', 'Thêm địa chỉ mới') }}</template>
             </button>
           </div>
 
           <!-- Address Form -->
           <form v-if="showAddrForm" @submit.prevent="onSaveAddress" class="profile-form addr-form">
             <div class="form-card">
-              <h3 class="form-card-title">{{ editingAddrId ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới' }}</h3>
+              <h3 class="form-card-title">{{ editingAddrId ? t('storefront.account.edit_address', 'Chỉnh sửa địa chỉ') : t('storefront.account.add_address', 'Thêm địa chỉ mới') }}</h3>
               <div class="field-row">
                 <div class="field"><label>Họ</label><input v-model="addrForm.last_name" placeholder="Nguyễn" /></div>
                 <div class="field"><label>Tên</label><input v-model="addrForm.first_name" placeholder="Văn A" /></div>
@@ -211,8 +211,8 @@
           </div>
           <div v-else-if="addresses.length === 0 && !showAddrForm" class="empty-state">
             <div class="empty-icon"><MapPin :size="48" /></div>
-            <h3>Chưa có địa chỉ nào</h3>
-            <p>Thêm địa chỉ giao hàng để thanh toán nhanh hơn</p>
+            <h3>{{ t('storefront.account.no_addresses', 'Chưa có địa chỉ nào') }}</h3>
+            <p>{{ t('storefront.account.add_address_desc', 'Thêm địa chỉ giao hàng để thanh toán nhanh hơn') }}</p>
           </div>
           <div v-else class="addr-list">
             <div v-for="addr in addresses" :key="addr.id" class="addr-card">
@@ -236,24 +236,24 @@
         <div v-if="tab === 'password'" class="tab-content">
           <div class="tab-title">
             <h2>{{ t('storefront.change_password') || 'Đổi mật khẩu' }}</h2>
-            <p class="tab-desc">Để bảo vệ tài khoản, hãy sử dụng mật khẩu mạnh</p>
+            <p class="tab-desc">{{ t('storefront.account.password_desc', 'Để bảo vệ tài khoản, hãy sử dụng mật khẩu mạnh') }}</p>
           </div>
           <form @submit.prevent="onChangePassword" class="profile-form">
             <div class="field">
-              <label>Mật khẩu hiện tại</label>
+              <label>{{ t('storefront.account.current_password', 'Mật khẩu hiện tại') }}</label>
               <input v-model="pwForm.current" type="password" required />
             </div>
             <div class="field">
-              <label>Mật khẩu mới</label>
+              <label>{{ t('storefront.account.new_password', 'Mật khẩu mới') }}</label>
               <input v-model="pwForm.newPw" type="password" required minlength="6" />
             </div>
             <div class="field">
-              <label>Xác nhận mật khẩu mới</label>
+              <label>{{ t('storefront.account.confirm_password', 'Xác nhận mật khẩu mới') }}</label>
               <input v-model="pwForm.confirm" type="password" required minlength="6" />
             </div>
             <div class="form-actions">
               <button type="submit" class="btn-primary" :disabled="saving">
-                <Lock :size="14" v-if="!saving" /> {{ saving ? 'Đang xử lý...' : 'Đổi mật khẩu' }}
+                <Lock :size="14" v-if="!saving" /> {{ saving ? t('storefront.account.processing', 'Đang xử lý...') : t('storefront.change_password', 'Đổi mật khẩu') }}
               </button>
               <span class="save-msg success" v-if="pwMsg"><Check :size="14" /> {{ pwMsg }}</span>
               <span class="save-msg error" v-if="pwError"><X :size="14" /> {{ pwError }}</span>

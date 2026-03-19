@@ -121,10 +121,10 @@ async function doAutoTranslate() {
 <style scoped>
 .language-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 24px;
-  overflow-x: auto;
   align-items: flex-end; /* Align tabs to the bottom border */
 }
 .lang-tab {

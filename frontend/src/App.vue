@@ -218,6 +218,8 @@
       :cmsEditPageId="cmsEditPageId"
       :productEditId="productEditId"
       :categoryEditId="categoryEditId"
+      :flashSaleFormMode="flashSaleFormMode"
+      :flashSaleEditId="flashSaleEditId"
       @openShopSelector="shopSelectorRef?.open()"
       @navigate="navigateTo"
     />
@@ -476,6 +478,7 @@ const routeToTab = {
   'shop/products': 'products', 'shop/products/edit': 'products', 'shop/categories': 'categories', 'shop/categories/edit': 'categories', 'shop/brands': 'brands',
   'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
   'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
+  'shop/flash-sales/create': 'flash-sales', 'shop/flash-sales/edit': 'flash-sales',
   'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
@@ -529,6 +532,9 @@ function viewFromPath() {
   if (path.startsWith('shop/products/edit/')) return 'shop/products/edit'
   // Match category edit with ID: shop/categories/edit/123
   if (path.startsWith('shop/categories/edit/')) return 'shop/categories/edit'
+  // Match flash sale create/edit
+  if (path === 'shop/flash-sales/create') return 'shop/flash-sales/create'
+  if (path.startsWith('shop/flash-sales/edit/')) return 'shop/flash-sales/edit'
   // Match order detail: orders/detail/123
   if (path.startsWith('orders/detail/')) return 'orders/detail'
   // Match multi-segment routes like shop/products, orders/customers etc
@@ -551,6 +557,9 @@ const cmsEditPageId = ref(null)
 const productEditId = ref(null)
 // Category edit ID (from URL: /shop/categories/edit/123)
 const categoryEditId = ref(null)
+// Flash Sale form state (from URL: /shop/flash-sales/create or /shop/flash-sales/edit/123)
+const flashSaleFormMode = ref(null) // null | 'create' | 'edit'
+const flashSaleEditId = ref(null)
 
 function extractCmsId(pathStr) {
   const match = pathStr.replace(/^\//, '').match(/^shop\/cms\/edit\/(\d+)/)
@@ -564,9 +573,17 @@ function extractCategoryEditId(pathStr) {
   const match = pathStr.replace(/^\//, '').match(/^shop\/categories\/edit\/(\d+)/)
   return match ? match[1] : null
 }
+function extractFlashSaleState(pathStr) {
+  const p = pathStr.replace(/^\//, '')
+  if (p === 'shop/flash-sales/create') return { mode: 'create', id: null }
+  const m = p.match(/^shop\/flash-sales\/edit\/(\d+)/)
+  if (m) return { mode: 'edit', id: m[1] }
+  return { mode: null, id: null }
+}
 cmsEditPageId.value = extractCmsId(window.location.pathname)
 productEditId.value = extractProductEditId(window.location.pathname)
 categoryEditId.value = extractCategoryEditId(window.location.pathname)
+;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
 function navigateTo(view) {
   // Support CMS edit with ID: shop/cms/edit/123
   const urlPath = view
@@ -575,6 +592,7 @@ function navigateTo(view) {
   cmsEditPageId.value = extractCmsId(urlPath)
   productEditId.value = extractProductEditId(urlPath)
   categoryEditId.value = extractCategoryEditId(urlPath)
+  ;(function() { const fs = extractFlashSaleState(urlPath); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
   
   if (!validViews.includes(view)) {
     // Check if it matches view + ID pattern
@@ -602,6 +620,7 @@ window.addEventListener('popstate', () => {
     cmsEditPageId.value = extractCmsId(window.location.pathname)
     productEditId.value = extractProductEditId(window.location.pathname)
     categoryEditId.value = extractCategoryEditId(window.location.pathname)
+    ;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
   }
 })
 

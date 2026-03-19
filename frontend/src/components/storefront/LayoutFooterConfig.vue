@@ -5,6 +5,20 @@
 
     <LanguageTabs v-model="currentLang" style="margin: 15px 0" />
 
+    <!-- Auto-translate button for footer -->
+    <div v-if="currentLang !== 'vi'" class="footer-auto-translate">
+      <button
+        class="btn-footer-translate"
+        type="button"
+        @click="autoTranslateFooter"
+        :disabled="isTranslating"
+      >
+        <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ spin: isTranslating }" />
+        <span>{{ isTranslating ? 'Đang dịch...' : 'Dịch tự động toàn bộ Footer' }}</span>
+        <span class="btn-ai-badge">AI</span>
+      </button>
+    </div>
+
     <!-- Footer Columns -->
     <div class="footer-builder">
       <div
@@ -201,7 +215,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, GripVertical, Trash2, Plus, X } from 'lucide-vue-next'
+import { LayoutDashboard, GripVertical, Trash2, Plus, X, Sparkles, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../../composables/useApi.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useI18n } from '../../composables/useI18n.js'
@@ -297,4 +311,136 @@ function onFooterContactDrop(ci, targetIi) {
 }
 
 onMounted(() => { fetchCmsPageList() })
+
+// ── Auto-translate footer ──
+const isTranslating = ref(false)
+
+async function translateText(text, toLang) {
+  if (!text || !String(text).trim()) return ''
+  try {
+    const res = await apiFetch('/languages/auto-translate', {
+      method: 'POST',
+      body: JSON.stringify({ text, from: 'vi', to: toLang })
+    })
+    const data = await res.json()
+    return data?.translated || ''
+  } catch { return '' }
+}
+
+async function autoTranslateFooter() {
+  const lang = currentLang.value
+  if (!lang || lang === 'vi') return
+  isTranslating.value = true
+
+  try {
+    const base = props.footerConfig
+    const target = config.value
+
+    // Translate column titles, link labels, contact items, text content
+    for (let ci = 0; ci < base.columns.length; ci++) {
+      const baseCol = base.columns[ci]
+      const targetCol = target.columns[ci]
+      if (!targetCol) continue
+
+      // Column title
+      if (baseCol.title) {
+        const translated = await translateText(baseCol.title, lang)
+        if (translated) targetCol.title = translated
+      }
+
+      // Links labels
+      if (baseCol.links) {
+        for (let li = 0; li < baseCol.links.length; li++) {
+          if (baseCol.links[li]?.label && targetCol.links?.[li]) {
+            const translated = await translateText(baseCol.links[li].label, lang)
+            if (translated) targetCol.links[li].label = translated
+          }
+        }
+      }
+
+      // Contact items
+      if (baseCol.items) {
+        for (let ii = 0; ii < baseCol.items.length; ii++) {
+          if (baseCol.items[ii]?.label && targetCol.items?.[ii]) {
+            const translated = await translateText(baseCol.items[ii].label, lang)
+            if (translated) targetCol.items[ii].label = translated
+          }
+          if (baseCol.items[ii]?.value && targetCol.items?.[ii]) {
+            const translated = await translateText(baseCol.items[ii].value, lang)
+            if (translated) targetCol.items[ii].value = translated
+          }
+        }
+      }
+
+      // Text content
+      if (baseCol.content && baseCol.type === 'text') {
+        const translated = await translateText(baseCol.content, lang)
+        if (translated) targetCol.content = translated
+      }
+    }
+
+    // Legal text
+    if (base.legalText) {
+      const translated = await translateText(base.legalText, lang)
+      if (translated) target.legalText = translated
+    }
+
+    // Copyright
+    if (base.copyrightText) {
+      const translated = await translateText(base.copyrightText, lang)
+      if (translated) target.copyrightText = translated
+    }
+  } catch (e) {
+    console.error('Footer auto-translate failed:', e)
+  } finally {
+    isTranslating.value = false
+  }
+}
 </script>
+
+<style scoped>
+.footer-auto-translate {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+.btn-footer-translate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px 7px 10px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 40%, #ec4899 100%);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35);
+}
+.btn-footer-translate:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.5);
+  filter: brightness(1.08);
+}
+.btn-footer-translate:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.btn-ai-badge {
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.25);
+  border-radius: 6px;
+  padding: 1px 5px;
+  letter-spacing: 0.08em;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>

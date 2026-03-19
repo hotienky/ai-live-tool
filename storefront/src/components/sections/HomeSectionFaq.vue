@@ -2,7 +2,7 @@
   <section class="section-faq container">
     <h2 class="section-title">
       <HelpCircle :size="22" class="section-title__accent" />
-      {{ params?.title || 'Câu hỏi thường gặp' }}
+      {{ params?.title || t('storefront.section.faq_title', 'Câu hỏi thường gặp') }}
     </h2>
     <div class="faq-list">
       <div v-for="(item, i) in items" :key="i" class="faq-item" :class="{ open: openIndex === i }">
@@ -17,13 +17,16 @@
         </transition>
       </div>
     </div>
-    <p v-if="!items.length" class="section-empty">Chưa có câu hỏi nào</p>
+    <p v-if="!items.length" class="section-empty">{{ t('storefront.section.faq_empty', 'Chưa có câu hỏi nào') }}</p>
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { HelpCircle, ChevronDown } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
@@ -32,9 +35,9 @@ const props = defineProps({
 
 const openIndex = ref(null)
 const items = computed(() => props.content.length ? props.content : [
-  { question: 'Thời gian giao hàng bao lâu?', answer: 'Thông thường từ 2-5 ngày tùy khu vực.' },
-  { question: 'Chính sách đổi trả như thế nào?', answer: 'Bạn có thể đổi trả trong vòng 7 ngày kể từ khi nhận hàng.' },
-  { question: 'Có hỗ trợ thanh toán COD không?', answer: 'Có, chúng tôi hỗ trợ thanh toán khi nhận hàng (COD).' },
+  { question: t('storefront.section.faq_q1', 'Thời gian giao hàng bao lâu?'), answer: t('storefront.section.faq_a1', 'Thông thường từ 2-5 ngày tùy khu vực.') },
+  { question: t('storefront.section.faq_q2', 'Chính sách đổi trả như thế nào?'), answer: t('storefront.section.faq_a2', 'Bạn có thể đổi trả trong vòng 7 ngày kể từ khi nhận hàng.') },
+  { question: t('storefront.section.faq_q3', 'Có hỗ trợ thanh toán COD không?'), answer: t('storefront.section.faq_a3', 'Có, chúng tôi hỗ trợ thanh toán khi nhận hàng (COD).') },
 ])
 </script>
 

@@ -1,6 +1,16 @@
 <template>
   <div class="fsm">
+    <!-- Flash Sale Form (separate page) -->
+    <FlashSaleForm
+      v-if="showForm"
+      :editId="formEditId"
+      :languagesInstalled="languagesInstalled"
+      @back="closeForm"
+      @saved="onFormSaved"
+    />
 
+    <!-- List view -->
+    <template v-else>
     <!-- Header -->
     <div class="fsm-header">
       <div class="fsm-header__left">
@@ -70,137 +80,9 @@
         </tbody>
       </table>
     </div>
+    </template><!-- end list view -->
 
-    <!-- ───── Modal Create / Edit ───── -->
-    <teleport to="body">
-      <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
-        <div class="modal">
-          <div class="modal__header">
-            <h3 class="modal__title">
-              <Zap :size="17" />
-              {{ editing ? 'Chỉnh sửa Flash Sale' : 'Tạo Flash Sale mới' }}
-            </h3>
-            <button class="btn-icon" @click="closeModal"><X :size="16" /></button>
-          </div>
-
-          <div class="modal__body">
-            <!-- Basic info -->
-            <div class="form-section">
-              <div class="form-group">
-                <label>{{ t('admin.program_name', 'Tên chương trình') }} <span class="required">*</span></label>
-                <input v-model="form.name" class="form-input" placeholder="VD: Flash Sale cuối tuần" />
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label>Bắt đầu <span class="required">*</span></label>
-                  <input v-model="form.start_date" type="datetime-local" class="form-input" />
-                </div>
-                <div class="form-group">
-                  <label>Kết thúc <span class="required">*</span></label>
-                  <input v-model="form.end_date" type="datetime-local" class="form-input" />
-                </div>
-              </div>
-              <div class="form-group form-group--inline">
-                <span>{{ t('admin.activate_now', 'Kích hoạt ngay') }}</span>
-                <label class="toggle">
-                  <input type="checkbox" v-model="form.is_active" />
-                  <span class="toggle__slider"></span>
-                </label>
-              </div>
-              <div v-if="editing" style="margin-top: 16px; margin-bottom: -10px;">
-                <ContentTranslationEditor
-                  table-name="flash_sales"
-                  :row-id="editing.id"
-                  :fields-map="{
-                    'name': { type: 'text', label: 'Tên chương trình' },
-                  }"
-                  :fallback-values="{
-                    'name': form.name
-                  }"
-                />
-              </div>
-            </div>
-
-            <!-- Product search -->
-            <div class="form-section">
-              <div class="form-section__label">
-                <Package :size="14" /> Danh sách sản phẩm
-              </div>
-              <div class="product-search">
-                <Search :size="14" class="product-search__icon" />
-                <input
-                  v-model="productSearch"
-                  class="product-search__input"
-                  placeholder="Tìm sản phẩm để thêm vào Flash Sale..."
-                  @input="searchProducts"
-                  @focus="loadInitialProducts"
-                  @click="loadInitialProducts"
-                />
-                <div v-if="searchResults.length > 0" class="product-search__dropdown">
-                  <div
-                    v-for="p in searchResults"
-                    :key="p.id"
-                    class="product-search__item"
-                    @click="addProduct(p)"
-                  >
-                    <img
-                      :src="p.image_url || 'https://placehold.co/36x36/f5f5f5/aaa?text=SP'"
-                      :alt="p.name"
-                      class="product-search__thumb"
-                    />
-                    <span class="product-search__name">{{ p.name }}</span>
-                    <span class="product-search__price">{{ formatPrice(p.price) }}</span>
-                    <Plus :size="14" class="product-search__add" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Items list -->
-              <div v-if="form.items.length > 0" class="items-table-wrap">
-                <table class="items-table">
-                  <thead>
-                    <tr>
-                      <th>{{ t('admin.product', 'Sản phẩm') }}</th>
-                      <th>Giá gốc (đ)</th>
-                      <th>Giá sale (đ)</th>
-                      <th>SL giới hạn</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, i) in form.items" :key="item.product_id">
-                      <td class="items-table__product">
-                        <img
-                          :src="item.image || 'https://placehold.co/32x32/f5f5f5/aaa?text=SP'"
-                          class="items-table__thumb"
-                        />
-                        <span>{{ item.name }}</span>
-                      </td>
-                      <td><input v-model.number="item.original_price" type="number" class="form-input form-input--sm" /></td>
-                      <td><input v-model.number="item.sale_price" type="number" class="form-input form-input--sm sale-input" /></td>
-                      <td><input v-model.number="item.stock_limit" type="number" class="form-input form-input--sm" min="0" placeholder="0=∞" /></td>
-                      <td><button class="btn-icon btn-icon--danger btn-icon--xs" @click="removeProduct(i)"><X :size="13" /></button></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div v-else class="items-empty">
-                Tìm và thêm sản phẩm từ ô tìm kiếm phía trên
-              </div>
-            </div>
-          </div>
-
-          <div class="modal__footer">
-            <button class="btn-ghost" @click="closeModal">{{ t('admin.cancel', 'Hủy') }}</button>
-            <button class="btn-save" :disabled="saving" @click="save">
-              {{ saving ? t('admin.saving', 'Đang lưu...') : (editing ? 'Cập nhật' : 'Tạo Flash Sale') }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </teleport>
-
-    <!-- ───── Confirm delete ───── -->
+    <!-- Delete confirm modal (always mounted) -->
     <teleport to="body">
       <div v-if="deleteTarget" class="modal-backdrop" @click.self="deleteTarget = null">
         <div class="modal modal--sm">
@@ -223,34 +105,25 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Zap, Plus, Pencil, Trash2, X, Package, Search } from 'lucide-vue-next'
+import { Zap, Plus, Pencil, Trash2, X, Package } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import ContentTranslationEditor from './ContentTranslationEditor.vue'
 import { useI18n } from '../composables/useI18n.js'
+import FlashSaleForm from './FlashSaleForm.vue'
 
 const { t } = useI18n()
-
 const { showToast } = useToast()
+
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 
 const sales = ref([])
 const loading = ref(true)
-const showModal = ref(false)
-const editing = ref(null)
+const showForm = ref(false)
+const formEditId = ref(null)
 const saving = ref(false)
 const deleteTarget = ref(null)
-const productSearch = ref('')
-const searchResults = ref([])
-let searchTimer = null
-
-const emptyForm = () => ({
-  name: '',
-  start_date: '',
-  end_date: '',
-  is_active: true,
-  items: [],
-})
-const form = ref(emptyForm())
 
 // ── Load ──
 async function load() {
@@ -288,124 +161,24 @@ function formatPrice(p) {
 
 // ── CRUD ──
 function openCreate() {
-  editing.value = null
-  form.value = emptyForm()
-  showModal.value = true
+  formEditId.value = null
+  showForm.value = true
 }
 
 function openEdit(sale) {
-  editing.value = sale
-  form.value = {
-    name: sale.name,
-    start_date: toLocalDatetime(sale.start_date),
-    end_date: toLocalDatetime(sale.end_date),
-    is_active: sale.is_active,
-    items: (sale.items || []).map(item => ({
-      product_id: item.product_id,
-      name: item.name,
-      image: item.image,
-      original_price: item.original_price ?? item.price ?? 0,
-      sale_price: item.sale_price,
-      stock_limit: item.stock_limit || 0,
-    }))
-  }
-  showModal.value = true
+  formEditId.value = sale.id
+  showForm.value = true
 }
 
-function toLocalDatetime(d) {
-  if (!d) return ''
-  const dt = new Date(d)
-  dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset())
-  return dt.toISOString().slice(0, 16)
+function closeForm() {
+  showForm.value = false
+  formEditId.value = null
 }
 
-function closeModal() {
-  showModal.value = false
-  searchResults.value = []
-  productSearch.value = ''
-}
-
-async function loadInitialProducts() {
-  if (searchResults.value.length > 0) return
-  try {
-    const res = await apiFetch('/products?limit=8')
-    const data = await res.json()
-    searchResults.value = Array.isArray(data) ? data : (data?.data || [])
-  } catch { searchResults.value = [] }
-}
-
-async function searchProducts() {
-  clearTimeout(searchTimer)
-  if (!productSearch.value.trim()) {
-    // Show initial products when search is cleared
-    loadInitialProducts()
-    return
-  }
-  searchTimer = setTimeout(async () => {
-    try {
-      const q = encodeURIComponent(productSearch.value)
-      const res = await apiFetch(`/products?search=${q}&limit=8`)
-      const data = await res.json()
-      searchResults.value = Array.isArray(data) ? data : (data?.data || [])
-    } catch { searchResults.value = [] }
-  }, 300)
-}
-
-function addProduct(p) {
-  if (form.value.items.find(i => i.product_id === p.id)) {
-    showToast('Sản phẩm đã có trong Flash Sale', 'warning'); return
-  }
-  form.value.items.push({
-    product_id: p.id,
-    name: p.name,
-    image: p.image_url,
-    original_price: p.price,
-    sale_price: Math.round(p.price * 0.8),
-    stock_limit: 0,
-  })
-  // Remove added product from dropdown, keep dropdown open
-  searchResults.value = searchResults.value.filter(sr => sr.id !== p.id)
-  productSearch.value = ''
-}
-
-function removeProduct(i) { form.value.items.splice(i, 1) }
-
-async function save() {
-  if (!form.value.name || !form.value.start_date || !form.value.end_date) {
-    showToast('Vui lòng điền đầy đủ thông tin bắt buộc', 'error'); return
-  }
-  saving.value = true
-  try {
-    const payload = {
-      name: form.value.name,
-      start_date: form.value.start_date,
-      end_date: form.value.end_date,
-      is_active: form.value.is_active,
-      products: form.value.items.map(i => ({
-        product_id: i.product_id,
-        original_price: i.original_price,
-        sale_price: i.sale_price,
-        stock_limit: i.stock_limit || 0,
-      }))
-    }
-    const fetchOpts = {
-      method: editing.value ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    }
-    const url = editing.value ? `/flash-sales/${editing.value.id}` : '/flash-sales'
-    const res = await apiFetch(url, fetchOpts)
-    if (!res.ok) {
-      const err = await res.json().catch(() => null)
-      throw new Error(err?.message || t('admin.error_occurred', 'Có lỗi xảy ra'))
-    }
-    showToast(editing.value ? 'Đã cập nhật Flash Sale' : 'Đã tạo Flash Sale mới', 'success')
-    closeModal()
-    await load()
-  } catch (e) {
-    showToast(e?.message || t('admin.error_occurred', 'Có lỗi xảy ra'), 'error')
-  }
-  saving.value = false
+async function onFormSaved() {
+  showForm.value = false
+  formEditId.value = null
+  await load()
 }
 
 async function toggleActive(sale) {

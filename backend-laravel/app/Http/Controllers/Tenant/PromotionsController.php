@@ -5,11 +5,12 @@ use App\Http\Controllers\Controller;
 
 use App\Repositories\Product\ProductRepositoryInterface;
 use App\Traits\ApiResponse;
+use App\Traits\HasContentTranslations;
 use Illuminate\Http\Request;
 
 class PromotionsController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, HasContentTranslations;
 
     public function __construct(
         private ProductRepositoryInterface $productRepo
@@ -58,6 +59,10 @@ class PromotionsController extends Controller
                 'promotion_end' => $dateEnd ?: null,
             ], $productId);
 
+            if ($request->has('translations')) {
+                $this->syncTranslations('promotions', $productId, $request->input('translations'));
+            }
+
             return $this->successResponse(null, 'Đã lưu khuyến mãi', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -76,6 +81,10 @@ class PromotionsController extends Controller
                 'promotion_start' => $dateStart ?: null,
                 'promotion_end' => $dateEnd ?: null,
             ], $id);
+
+            if ($request->has('translations')) {
+                $this->syncTranslations('promotions', $id, $request->input('translations'));
+            }
 
             return $this->successResponse(null, 'Đã cập nhật khuyến mãi');
         } catch (\Exception $e) {

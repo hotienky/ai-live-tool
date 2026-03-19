@@ -162,70 +162,7 @@
 
     <!-- ═══ Tab: Sổ Thu Chi ═══ -->
     <template v-if="activeTab === 'entries'">
-      <div class="acc-section">
-        <div class="acc-section__header">
-          <h4 class="acc-section__title"><BookOpen :size="14" /> Sổ thu chi</h4>
-          <div style="display:flex;gap:6px">
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('entries')" title="Xuất Excel"><Download :size="12" /> Excel</button>
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất tổng hợp"><Download :size="12" /> Tổng hợp</button>
-            <button class="acc-btn acc-btn--sm" @click="exportEntriesCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
-            <button class="acc-btn acc-btn--primary acc-btn--sm" @click="openEntryForm()">
-              <Plus :size="13" /> Thêm bút toán
-            </button>
-          </div>
-        </div>
-
-        <div class="acc-entries-filter">
-          <select v-model="entryFilter.type" class="acc-select" @change="loadEntries">
-            <option value="">Tất cả loại</option>
-            <option value="revenue">Thu</option>
-            <option value="expense">Chi</option>
-            <option value="adjustment">Điều chỉnh</option>
-          </select>
-        </div>
-
-        <table class="acc-table" v-if="entries.length">
-          <thead>
-            <tr>
-              <th>Ngày</th>
-              <th>Loại</th>
-              <th>Danh mục</th>
-              <th>Mô tả</th>
-              <th>Số tiền</th>
-              <th>Thuế</th>
-              <th>Tham chiếu</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="e in entries" :key="e.id">
-              <td>{{ formatDate(e.entry_date) }}</td>
-              <td>
-                <span class="acc-badge" :class="'acc-badge--' + e.type">
-                  {{ { revenue: 'Thu', expense: 'Chi', adjustment: 'Đ/C' }[e.type] }}
-                </span>
-              </td>
-              <td>{{ categoryLabel(e.category) }}</td>
-              <td class="acc-cell--desc">{{ e.description }}</td>
-              <td :class="{ 'acc-cell--green': e.amount > 0, 'acc-cell--red': e.amount < 0 }">
-                {{ formatPrice(Math.abs(e.amount)) }}
-              </td>
-              <td>{{ e.tax_amount > 0 ? formatPrice(e.tax_amount) : '—' }}</td>
-              <td>
-                <a v-if="e.reference_type === 'order'" href="#" class="acc-ref-link" @click.prevent="$emit('navigate-to-order', e.reference_id)">
-                  ĐH #{{ e.reference_id }}
-                </a>
-                <span v-else-if="e.reference_type">{{ e.reference_type }}#{{ e.reference_id }}</span>
-                <span v-else>—</span>
-              </td>
-              <td class="acc-cell--actions">
-                <button v-if="!e.reference_type" class="acc-action-btn acc-action-btn--danger" @click="deleteEntry(e)" title="Xoá"><Trash2 :size="13" /></button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else class="acc-empty">Chưa có bút toán nào.</div>
-      </div>
+      <PaymentVoucherManager />
     </template>
 
     <!-- ═══ Tab: Hoá Đơn ═══ -->
@@ -488,70 +425,6 @@
       </div>
     </template>
 
-    <!-- Entry Form Modal -->
-    <Teleport to="body">
-      <Transition name="modal-fade">
-        <div v-if="showEntryForm" class="acc-modal-overlay" @click.self="showEntryForm = false">
-          <div class="acc-modal">
-            <div class="acc-modal__header">
-              <h4>Thêm bút toán</h4>
-              <button class="acc-modal__close" @click="showEntryForm = false"><X :size="16" /></button>
-            </div>
-            <div class="acc-modal__body">
-              <div class="acc-form-row">
-                <label>Loại *</label>
-                <select v-model="entryForm.type" class="acc-select">
-                  <option value="revenue">Thu (revenue)</option>
-                  <option value="expense">Chi (expense)</option>
-                  <option value="adjustment">Điều chỉnh</option>
-                </select>
-              </div>
-              <div class="acc-form-grid">
-                <div class="acc-form-row">
-                  <label>Danh mục *</label>
-                  <select v-model="entryForm.category" class="acc-select">
-                    <option value="order_revenue">Doanh thu đơn hàng</option>
-                    <option value="cogs">Giá vốn hàng bán (COGS)</option>
-                    <option value="shipping_cost">Phí vận chuyển</option>
-                    <option value="refund">Hoàn trả</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="salary">Lương</option>
-                    <option value="rent">Thuê mặt bằng</option>
-                    <option value="supplies">Vật tư</option>
-                    <option value="other">Khác</option>
-                  </select>
-                </div>
-                <div class="acc-form-row">
-                  <label>Ngày *</label>
-                  <input type="date" v-model="entryForm.entry_date" class="acc-input" />
-                </div>
-              </div>
-              <div class="acc-form-grid">
-                <div class="acc-form-row">
-                  <label>Số tiền *</label>
-                  <input type="number" v-model.number="entryForm.amount" class="acc-input" step="1000" />
-                </div>
-                <div class="acc-form-row">
-                  <label>Thuế</label>
-                  <input type="number" v-model.number="entryForm.tax_amount" class="acc-input" step="100" />
-                </div>
-              </div>
-              <div class="acc-form-row">
-                <label>Mô tả</label>
-                <input type="text" v-model="entryForm.description" class="acc-input" placeholder="VD: Chi phí quảng cáo T3/2026" />
-              </div>
-            </div>
-            <div class="acc-modal__footer">
-              <button class="acc-btn" @click="showEntryForm = false">Huỷ</button>
-              <button class="acc-btn acc-btn--primary" @click="saveEntry" :disabled="savingEntry">
-                <Save :size="13" /> {{ savingEntry ? 'Đang lưu...' : 'Lưu' }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
     <!-- Invoice Preview Modal -->
     <InvoicePreviewModal
       :show="showInvoicePreview"
@@ -570,6 +443,7 @@ import {
 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import InvoicePreviewModal from './InvoicePreviewModal.vue'
+import PaymentVoucherManager from './PaymentVoucherManager.vue'
 import { useToast } from '../helpers.js'
 
 const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])

@@ -162,10 +162,10 @@
         </router-link>
         <template v-if="pageEnabled.account || pageEnabled.auth">
           <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
-            <User :size="16" /> {{ customer?.first_name || 'Tài khoản' }}
+            <User :size="16" /> {{ customer?.first_name || t('storefront.account', 'Tài khoản') }}
           </router-link>
           <router-link v-else :to="'/auth'" class="site-header__mobile-link" @click="mobileMenu = false">
-            <User :size="16" /> Đăng nhập
+            <User :size="16" /> {{ t('storefront.login', 'Đăng nhập') }}
           </router-link>
         </template>
         <div class="site-header__mobile-search">
@@ -284,11 +284,11 @@ const mobileMenu = ref(false)
 // Dynamic nav links — use provided from site-config or fetch as fallback
 const navLinks = ref([])
 
-// Fallback links if API returns empty
-const fallbackLinks = [
-  { id: 'f1', name: t('storefront.home') || 'Trang chủ', url: '/', icon: 'Home', sort: 1 },
-  { id: 'f2', name: t('storefront.products') || 'Sản phẩm', url: '/products', icon: 'ShoppingBag', sort: 2 },
-]
+// Fallback links if API returns empty — computed so translations are reactive
+const fallbackLinks = computed(() => [
+  { id: 'f1', name: t('storefront.home', 'Trang chủ'), url: '/', icon: 'Home', sort: 1 },
+  { id: 'f2', name: t('storefront.products', 'Sản phẩm'), url: '/products', icon: 'ShoppingBag', sort: 2 },
+])
 
 const MAX_VISIBLE = computed(() => headerCfg.value.maxNavLinks)
 const moreOpen = ref(false)
@@ -296,7 +296,7 @@ const moreDropdownRef = ref(null)
 
 const menuLinks = computed(() => {
   // Prefer provided navLinks from site-config, fallback to locally fetched navLinks
-  const links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks)
+  const links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks.value)
   return links
     .filter(l => l.is_active !== false && l.group !== 'footer')
     .sort((a, b) => (a.sort || 0) - (b.sort || 0))

@@ -10,6 +10,9 @@ class UpdateAction extends BaseAction
         try {
             $data = $this->mapCouponFields($request);
             $this->repo->update($data, $id);
+            if ($request->has('translations')) {
+                $this->syncTranslations('coupons', $id, $request->input('translations'));
+            }
             return $this->successResponse($this->repo->findOne($id), 'Đã cập nhật');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

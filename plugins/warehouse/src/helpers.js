@@ -30,3 +30,10 @@ export function useToast() {
     }),
   }
 }
+
+export function useI18n() {
+  const bridge = window.__APP_BRIDGE__
+  return {
+    t: bridge?.t || ((key, fallback) => fallback || key)
+  }
+}

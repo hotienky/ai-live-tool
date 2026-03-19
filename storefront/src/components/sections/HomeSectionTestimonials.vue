@@ -2,7 +2,7 @@
   <section class="section-testimonials container">
     <h2 class="section-title">
       <MessageSquareQuote :size="22" class="section-title__accent" />
-      {{ params?.title || 'Khách hàng nói gì' }}
+      {{ params?.title || t('storefront.section.testimonials_title', 'Khách hàng nói gì') }}
     </h2>
     <div class="testimonials-grid" :style="{ gridTemplateColumns: `repeat(${params?.columns || 3}, 1fr)` }">
       <div v-for="(t, i) in items" :key="i" class="testimonial-card">
@@ -21,13 +21,16 @@
         </div>
       </div>
     </div>
-    <p v-if="!items.length" class="section-empty">Chưa có đánh giá nào được thêm</p>
+    <p v-if="!items.length" class="section-empty">{{ t('storefront.section.testimonials_empty', 'Chưa có đánh giá nào được thêm') }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { MessageSquareQuote, Star } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
@@ -35,9 +38,9 @@ const props = defineProps({
 })
 
 const items = computed(() => props.content.length ? props.content : [
-  { name: 'Khách hàng A', text: 'Sản phẩm rất tốt, giao hàng nhanh!', rating: 5 },
-  { name: 'Khách hàng B', text: 'Chất lượng tuyệt vời, sẽ mua lại.', rating: 4 },
-  { name: 'Khách hàng C', text: 'Đóng gói cẩn thận, rất hài lòng.', rating: 5 },
+  { name: t('storefront.section.testimonial_customer_a', 'Khách hàng A'), text: t('storefront.section.testimonial_text_a', 'Sản phẩm rất tốt, giao hàng nhanh!'), rating: 5 },
+  { name: t('storefront.section.testimonial_customer_b', 'Khách hàng B'), text: t('storefront.section.testimonial_text_b', 'Chất lượng tuyệt vời, sẽ mua lại.'), rating: 4 },
+  { name: t('storefront.section.testimonial_customer_c', 'Khách hàng C'), text: t('storefront.section.testimonial_text_c', 'Đóng gói cẩn thận, rất hài lòng.'), rating: 5 },
 ])
 </script>
 

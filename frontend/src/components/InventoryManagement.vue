@@ -1,7 +1,10 @@
 <template>
   <div class="inventory-management">
-    <div class="inv-header">
-      <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Kho</h2>
+    <StockAdjustForm v-if="viewMode === 'adjust'" :product-id="selectedProductId" @back="viewMode = 'list'" @updated="onStockUpdated" />
+
+    <div v-else class="inventory-list">
+      <div class="inv-header">
+        <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Kho</h2>
       <div class="header-actions">
         <input v-model="searchTerm" class="search-input" placeholder="Tìm tên, SKU, barcode..." @input="debouncedSearch" />
         <select v-model="filterCategory" class="filter-select">
@@ -192,73 +195,7 @@
       </div>
     </div>
 
-    <!-- Stock Adjust Modal (Enhanced with +/- mode) -->
-    <div class="modal-overlay" v-if="showAdjustModal" @click.self="showAdjustModal = false">
-      <div class="modal">
-        <h3><BarChart3 :size="16" style="vertical-align:middle" /> Điều chỉnh kho — {{ adjustProduct?.name }}</h3>
-        <!-- Mode selector -->
-        <div class="adjust-mode">
-          <button :class="{ active: adjustMode === 'add' }" @click="adjustMode = 'add'; adjustQty = 0">
-            <Plus :size="14" /> Nhập kho
-          </button>
-          <button :class="{ active: adjustMode === 'deduct' }" @click="adjustMode = 'deduct'; adjustQty = 0">
-            <Minus :size="14" /> Xuất kho
-          </button>
-          <button :class="{ active: adjustMode === 'set' }" @click="adjustMode = 'set'; adjustQty = adjustProduct?.stock || 0">
-            <Edit :size="14" /> Đặt giá trị
-          </button>
-        </div>
-        <div class="adjust-preview">
-          <div class="adjust-current">Hiện tại: <strong>{{ adjustProduct?.stock }}</strong></div>
-          <div class="adjust-arrow">→</div>
-          <div class="adjust-new" :class="{ positive: adjustFinalStock > adjustProduct?.stock, negative: adjustFinalStock < adjustProduct?.stock }">
-            Sau: <strong>{{ adjustFinalStock }}</strong>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>{{ adjustMode === 'set' ? 'Số lượng mới' : 'Số lượng' }}</label>
-          <input type="number" v-model.number="adjustQty" min="0" />
-        </div>
-        <div class="form-group">
-          <label>Lý do *</label>
-          <input v-model="adjustReason" placeholder="Nhập hàng / Kiểm kê / Hàng lỗi..." />
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showAdjustModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="submitAdjust" :disabled="!adjustReason">{{ t('admin.confirm', 'Xác nhận') }}</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stock History Modal -->
-    <div class="modal-overlay" v-if="showHistoryModal" @click.self="showHistoryModal = false">
-      <div class="modal modal--wide">
-        <h3><History :size="16" style="vertical-align:middle" /> Lịch sử kho — {{ historyProduct?.name }}</h3>
-        <div class="history-timeline" v-if="stockHistoryData.length > 0">
-          <div v-for="entry in stockHistoryData" :key="entry.id" class="history-item">
-            <div class="history-dot" :class="entry.action"></div>
-            <div class="history-content">
-              <div class="history-action">
-                <span class="history-badge" :class="entry.action">{{ actionLabels[entry.action] || entry.action }}</span>
-                <span class="history-change" :class="{ positive: entry.quantityChange > 0, negative: entry.quantityChange < 0 }">
-                  {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange }}
-                </span>
-              </div>
-              <div class="history-detail">{{ entry.stockBefore }} → {{ entry.stockAfter }}</div>
-              <div class="history-reason" v-if="entry.reason">{{ entry.reason }}</div>
-              <div class="history-time">{{ formatDate(entry.createdAt) }}</div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state" style="padding:30px 0">
-          <History :size="32" class="empty-state__icon" />
-          <p class="empty-state__title">Chưa có lịch sử</p>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showHistoryModal = false">{{ t('admin.close', 'Đóng') }}</button>
-        </div>
-      </div>
-    </div>
+    <!-- Removed Stock Adjust & History Modals -->
 
     <!-- Import CSV Modal -->
     <div class="modal-overlay" v-if="showImportModal" @click.self="showImportModal = false">
@@ -297,7 +234,9 @@
         </div>
       </div>
     </div>
+    </div>
   </div>
+</div>
 </template>
 
 <script setup>
@@ -311,6 +250,7 @@ import {
   ChevronLeft, ChevronRight, Layers
 } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
+import StockAdjustForm from './StockAdjustForm.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -328,20 +268,14 @@ const pageSize = 25
 
 // Modals
 const showProductModal = ref(false)
-const showAdjustModal = ref(false)
-const showHistoryModal = ref(false)
 const showImportModal = ref(false)
 const editingProduct = ref(null)
-const adjustProduct = ref(null)
-const adjustMode = ref('add') // 'add' | 'deduct' | 'set'
-const adjustQty = ref(0)
+const viewMode = ref('list')
+const selectedProductId = ref(null)
 
 // Variants
 const showVariants = ref(false)
 const variants = ref([])
-const adjustReason = ref('')
-const historyProduct = ref(null)
-const stockHistoryData = ref([])
 const importPreview = ref([])
 const fileInput = ref(null)
 
@@ -396,13 +330,6 @@ const totalPages = computed(() => {
   if (filterStock.value === 'low_stock') list = list.filter(p => p.stock > 0 && p.stock <= p.lowStockThreshold)
   if (filterStock.value === 'out_of_stock') list = list.filter(p => p.stock <= 0)
   return Math.max(1, Math.ceil(list.length / pageSize))
-})
-
-const adjustFinalStock = computed(() => {
-  const current = adjustProduct.value?.stock || 0
-  if (adjustMode.value === 'add') return current + (adjustQty.value || 0)
-  if (adjustMode.value === 'deduct') return Math.max(0, current - (adjustQty.value || 0))
-  return adjustQty.value || 0
 })
 
 let searchTimer = null
@@ -540,35 +467,19 @@ async function deleteProduct(product) {
 }
 
 function openAdjustModal(product) {
-  adjustProduct.value = product
-  adjustMode.value = 'add'
-  adjustQty.value = 0
-  adjustReason.value = ''
-  showAdjustModal.value = true
+  selectedProductId.value = product.id
+  viewMode.value = 'adjust'
 }
 
-async function submitAdjust() {
-  if (!adjustReason.value) return showToast('Vui lòng nhập lý do', 'error')
-  try {
-    await apiFetch(`/products/${adjustProduct.value.id}/adjust-stock`, {
-      method: 'POST',
-      body: JSON.stringify({ newStock: adjustFinalStock.value, reason: adjustReason.value }),
-    })
-    showToast(`Đã điều chỉnh kho: ${adjustProduct.value.name}`, 'success')
-    showAdjustModal.value = false
-    fetchProducts()
-    fetchStats()
-  } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
+function openHistoryModal(product) {
+  selectedProductId.value = product.id
+  viewMode.value = 'adjust'
 }
 
-async function openHistoryModal(product) {
-  historyProduct.value = product
-  showHistoryModal.value = true
-  try {
-    const res = await apiFetch(`/products/${product.id}/stock-history`)
-    const data = await res.json()
-    stockHistoryData.value = data.data || data || []
-  } catch { stockHistoryData.value = [] }
+function onStockUpdated() {
+  viewMode.value = 'list'
+  fetchProducts()
+  fetchStats()
 }
 
 async function exportProducts() {
@@ -814,60 +725,7 @@ tr:hover { background: var(--color-accent-glow); }
 .btn-create:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .btn-create:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-/* Stock adjust mode selector */
-.adjust-mode {
-  display: flex; gap: 6px; margin-bottom: 16px;
-}
-.adjust-mode button {
-  flex: 1; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700;
-  border: 1px solid var(--glass-border); background: var(--glass-bg);
-  color: var(--color-text-muted); cursor: pointer; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-}
-.adjust-mode button.active {
-  background: var(--accent-gradient); color: #fff;
-  border-color: transparent; box-shadow: var(--accent-shadow);
-}
 
-/* Adjust preview */
-.adjust-preview {
-  display: flex; align-items: center; gap: 16px; justify-content: center;
-  margin-bottom: 20px; padding: 16px; border-radius: 12px;
-  background: var(--glass-bg); border: 1px solid var(--glass-border);
-}
-.adjust-current, .adjust-new { font-size: 16px; }
-.adjust-current strong { color: var(--color-text-primary); font-size: 22px; }
-.adjust-arrow { font-size: 24px; color: var(--color-text-muted); }
-.adjust-new strong { font-size: 22px; }
-.adjust-new.positive strong { color: #34d399; }
-.adjust-new.negative strong { color: #f87171; }
-
-/* History Timeline */
-.history-timeline { max-height: 400px; overflow-y: auto; }
-.history-item {
-  display: flex; gap: 14px; padding: 12px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.history-dot {
-  width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
-}
-.history-dot.add, .history-dot.order_cancelled { background: #34d399; }
-.history-dot.deduct, .history-dot.order_confirmed { background: #f87171; }
-.history-dot.adjust { background: #fbbf24; }
-.history-content { flex: 1; min-width: 0; }
-.history-action { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.history-badge {
-  padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase;
-}
-.history-badge.add, .history-badge.order_cancelled { background: rgba(52,211,153,0.1); color: #34d399; }
-.history-badge.deduct, .history-badge.order_confirmed { background: rgba(248,113,113,0.1); color: #f87171; }
-.history-badge.adjust { background: rgba(251,191,36,0.1); color: #fbbf24; }
-.history-change { font-weight: 800; font-size: 14px; }
-.history-change.positive { color: #34d399; }
-.history-change.negative { color: #f87171; }
-.history-detail { font-size: 12px; color: var(--color-text-muted); }
-.history-reason { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
-.history-time { font-size: 11px; color: var(--color-text-muted); margin-top: 4px; }
 
 /* Import */
 .import-zone { margin-bottom: 16px; }

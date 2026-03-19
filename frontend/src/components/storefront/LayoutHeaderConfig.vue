@@ -67,6 +67,7 @@
           <button @click="showNavLinkModal = false"><X :size="16" /></button>
         </div>
         <div class="hl-modal__body">
+          <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="navLinkForm.translations" :fields="['name']" :baseData="navLinkForm" />
           <div class="hl-form-group">
             <label>Tên hiển thị <span style="color:#ef4444">*</span></label>
             <input v-model="navLinkForm.name" placeholder="VD: Trang chủ, Sản phẩm..." />
@@ -143,8 +144,11 @@ import { useNavLinks } from '../../composables/useNavLinks.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useToast } from '../../composables/useToast.js'
 import { useI18n } from '../../composables/useI18n.js'
+import LanguageTabs from '../LanguageTabs.vue'
 
 const { t } = useI18n()
+
+const currentLang = ref('vi')
 
 const props = defineProps({
   headerConfig: { type: Object, required: true },
@@ -165,7 +169,7 @@ const collectionNavLinks = computed(() => (navLinksRaw.value || []).filter(l => 
 
 const showNavLinkModal = ref(false)
 const navLinkEditing = ref(null)
-const navLinkForm = ref({ name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: 0, group: 'menu' })
+const navLinkForm = ref({ name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: 0, group: 'menu', translations: {} })
 const pageSelectMode = ref('builtin')
 
 // CMS pages
@@ -174,13 +178,14 @@ const cmsPageList = computed(() => (cmsPageListRaw.value || []).filter(p => p.st
 
 function openCreateNavLink() {
   navLinkEditing.value = null
-  navLinkForm.value = { name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: navLinks.value.length, group: 'menu' }
+  navLinkForm.value = { name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: navLinks.value.length, group: 'menu', translations: {} }
   pageSelectMode.value = 'builtin'
+  currentLang.value = 'vi'
   showNavLinkModal.value = true
 }
 function openEditNavLink(link) {
   navLinkEditing.value = link.id
-  navLinkForm.value = { name: link.name, url: link.url || '', type: link.type, target: link.target || '_self', collectionId: link.collectionId || null, sort: link.sort || 0, group: 'menu' }
+  navLinkForm.value = { name: link.name, url: link.url || '', type: link.type, target: link.target || '_self', collectionId: link.collectionId || null, sort: link.sort || 0, group: 'menu', translations: link.translations ? JSON.parse(JSON.stringify(link.translations)) : {} }
   const builtinUrls = ['/', '/products', '/categories', '/brands', '/cart', '/promotions', '/wishlist', '/order-tracking', '/account', '/auth']
   if (builtinUrls.includes(link.url)) pageSelectMode.value = 'builtin'
   else if (link.url?.startsWith('/page/')) pageSelectMode.value = 'cms'

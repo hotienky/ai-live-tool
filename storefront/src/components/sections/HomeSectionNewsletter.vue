@@ -2,13 +2,13 @@
   <section class="section-newsletter container">
     <div class="newsletter-card">
       <Mail :size="32" class="newsletter-icon" />
-      <h2>{{ params?.title || 'Đăng ký nhận tin' }}</h2>
-      <p>{{ params?.subtitle || 'Nhận thông tin khuyến mãi và sản phẩm mới nhất' }}</p>
+      <h2>{{ params?.title || t('storefront.section.newsletter_title', 'Đăng ký nhận tin') }}</h2>
+      <p>{{ params?.subtitle || t('storefront.section.newsletter_subtitle', 'Nhận thông tin khuyến mãi và sản phẩm mới nhất') }}</p>
       <form class="newsletter-form" @submit.prevent="onSubmit">
-        <input v-model="email" type="email" placeholder="Email của bạn..." required />
+        <input v-model="email" type="email" :placeholder="t('storefront.section.newsletter_placeholder', 'Email của bạn...')" required />
         <button type="submit" :disabled="loading || submitted">
           <Loader v-if="loading" :size="14" class="spin" />
-          {{ submitted ? '✓ Đã đăng ký!' : (params?.buttonText || 'Đăng ký') }}
+          {{ submitted ? ('✓ ' + t('storefront.section.newsletter_subscribed', 'Đã đăng ký!')) : (params?.buttonText || t('storefront.section.newsletter_subscribe', 'Đăng ký')) }}
         </button>
       </form>
       <p v-if="message" class="newsletter-msg" :class="{ error: isError }">{{ message }}</p>
@@ -20,6 +20,9 @@
 import { ref } from 'vue'
 import { Mail, Loader } from 'lucide-vue-next'
 import { apiFetch } from '../../api.js'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   params: { type: Object, default: () => ({}) },
@@ -43,11 +46,11 @@ async function onSubmit() {
       body: JSON.stringify({ email: email.value }),
     })
     submitted.value = true
-    message.value = res?.message || 'Đăng ký nhận tin thành công!'
+    message.value = res?.message || t('storefront.section.newsletter_success', 'Đăng ký nhận tin thành công!')
     setTimeout(() => { submitted.value = false; email.value = ''; message.value = '' }, 4000)
   } catch (err) {
     isError.value = true
-    message.value = err?.message || 'Không thể đăng ký. Vui lòng thử lại.'
+    message.value = err?.message || t('storefront.section.newsletter_error', 'Không thể đăng ký. Vui lòng thử lại.')
   }
   loading.value = false
 }

@@ -2,7 +2,7 @@
   <section class="section-social container">
     <h2 class="section-title">
       <Share2 :size="22" class="section-title__accent" />
-      {{ params?.title || 'Theo dõi chúng tôi' }}
+      {{ params?.title || t('storefront.section.social_title', 'Theo dõi chúng tôi') }}
     </h2>
     <div class="social-links">
       <a v-for="(link, i) in items" :key="i" :href="link.url" target="_blank" class="social-link">
@@ -10,13 +10,16 @@
         <span>{{ link.label || link.platform }}</span>
       </a>
     </div>
-    <p v-if="!items.length" class="section-empty">Chưa có liên kết mạng xã hội</p>
+    <p v-if="!items.length" class="section-empty">{{ t('storefront.section.social_empty', 'Chưa có liên kết mạng xã hội') }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { Share2, Globe, Facebook, Instagram, Youtube, Twitter, MessageCircle } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },

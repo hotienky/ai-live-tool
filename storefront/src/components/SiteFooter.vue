@@ -48,7 +48,7 @@
         <!-- Social + Payment + Badges (last column or separate section) -->
         <div class="site-footer__col site-footer__col--extras" v-if="hasSocialOrBadges">
           <template v-if="cfg.social?.length">
-            <h4 class="site-footer__col-title">Theo dõi chúng tôi</h4>
+            <h4 class="site-footer__col-title">{{ t('storefront.footer.follow_us', 'Theo dõi chúng tôi') }}</h4>
             <div class="sf-social-row">
               <a
                 v-for="s in cfg.social"
@@ -65,7 +65,7 @@
           </template>
 
           <template v-if="cfg.badges?.length">
-            <h4 class="site-footer__col-title sf-mt">Chứng nhận</h4>
+            <h4 class="site-footer__col-title sf-mt">{{ t('storefront.footer.certifications', 'Chứng nhận') }}</h4>
             <div class="sf-badges-row">
               <a
                 v-for="b in cfg.badges"
@@ -81,7 +81,7 @@
           </template>
 
           <template v-if="activePayments.length">
-            <h4 class="site-footer__col-title sf-mt">Hỗ trợ thanh toán</h4>
+            <h4 class="site-footer__col-title sf-mt">{{ t('storefront.footer.payment_support', 'Hỗ trợ thanh toán') }}</h4>
             <div class="sf-payments-row">
               <span v-for="pm in activePayments" :key="pm.code" class="sf-payment-badge">
                 {{ pm.label }}
@@ -113,6 +113,9 @@ import {
   Facebook, Instagram, Youtube, Twitter, Globe,
   ShoppingBag, ExternalLink
 } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({ storeName: { type: String, default: '' } })
 
@@ -146,11 +149,11 @@ const cfg = computed(() => {
     cols.push({ title: i.shop_name || 'Shop', type: 'text', content: i.description || i.shop_tagline || '' })
     // Contact column
     const contactItems = []
-    if (i.phone) contactItems.push({ icon: 'phone', label: 'Hotline', value: i.phone })
+    if (i.phone) contactItems.push({ icon: 'phone', label: t('storefront.footer.hotline', 'Hotline'), value: i.phone })
     if (i.email) contactItems.push({ icon: 'email', label: 'Email', value: i.email })
-    if (i.address) contactItems.push({ icon: 'address', label: 'Địa chỉ', value: i.address })
-    if (i.working_hours) contactItems.push({ icon: 'clock', label: 'Giờ làm việc', value: i.working_hours })
-    if (contactItems.length) cols.push({ title: 'Liên hệ', type: 'contact', items: contactItems })
+    if (i.address) contactItems.push({ icon: 'address', label: t('storefront.footer.address', 'Địa chỉ'), value: i.address })
+    if (i.working_hours) contactItems.push({ icon: 'clock', label: t('storefront.footer.working_hours', 'Giờ làm việc'), value: i.working_hours })
+    if (contactItems.length) cols.push({ title: t('storefront.footer.contact', 'Liên hệ'), type: 'contact', items: contactItems })
     // Social from storeInfo
     const social = []
     if (i.facebook) social.push({ platform: 'facebook', url: i.facebook })

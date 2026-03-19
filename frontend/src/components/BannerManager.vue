@@ -48,8 +48,8 @@
           <a v-if="b.url" :href="b.url" target="_blank" class="bm-url">{{ b.url }}</a>
         </div>
         <div class="bm-card__actions">
-          <button class="act-btn act-edit" @click="openEdit(c)">{{ t('admin.edit', 'Sửa') }}</button>
-          <button class="act-btn act-cancel" @click="handleDelete(c)">{{ t('admin.delete', 'Xóa') }}</button>
+          <button class="act-btn act-edit" @click="openEdit(b)">{{ t('admin.edit', 'Sửa') }}</button>
+          <button class="act-btn act-cancel" @click="handleDelete(b)">{{ t('admin.delete', 'Xóa') }}</button>
         </div>
       </div>
     </div>
@@ -343,6 +343,7 @@ async function handleDelete(b) {
   font-size: .85rem;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   line-height: 1.3;
@@ -353,6 +354,7 @@ async function handleDelete(b) {
   word-break: break-all;
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   opacity: .8;

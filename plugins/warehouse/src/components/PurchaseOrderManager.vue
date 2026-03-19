@@ -1,5 +1,10 @@
 <template>
-  <div class="po-mgr">
+  <!-- Form view -->
+  <PurchaseOrderForm v-if="viewMode === 'form'" :editId="editId" @saved="onFormSaved" @back="viewMode = 'list'" />
+  <!-- Detail view -->
+  <PurchaseOrderDetail v-else-if="viewMode === 'detail'" :editId="detailId" @back="viewMode = 'list'" @refresh="fetchOrders" />
+  <!-- List view -->
+  <div v-else class="po-mgr">
     <div class="po-header">
       <h2><ShoppingCart :size="20" style="vertical-align:middle" /> Đơn Mua Hàng</h2>
       <div class="header-actions">
@@ -29,8 +34,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã PO</th><th>Nhà cung cấp</th><th>SP</th><th>Tổng tiền</th>
-            <th>Trạng thái</th><th>Thanh toán</th><th>Ngày đặt</th><th>Ngày nhận dự kiến</th><th>Thao tác</th>
+            <th>Mã PO</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>Tổng tiền</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>Thanh toán</th><th>Ngày đặt</th><th>Ngày nhận dự kiến</th><th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
@@ -45,11 +50,11 @@
             <td class="date">{{ formatDate(po.expected_date) }}</td>
             <td>
               <div class="action-btns">
-                <button @click="viewPO(po)" title="Xem"><Eye :size="14" /></button>
-                <button v-if="po.status === 'draft'" @click="sendPO(po)" title="Đặt hàng" class="btn-send"><Send :size="14" /></button>
-                <button v-if="['ordered','partial'].includes(po.status)" @click="openReceive(po)" title="Nhận hàng" class="btn-confirm"><PackageCheck :size="14" /></button>
-                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" @click="cancelPO(po)" title="Hủy" class="btn-danger"><X :size="14" /></button>
-                <button v-if="po.status === 'draft'" @click="deletePO(po)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> Đặt hàng</button>
+                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> Nhận hàng</button>
+                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> Hủy</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
@@ -105,7 +110,7 @@
 
         <div class="items-table" v-if="form.items.length > 0">
           <table>
-            <thead><tr><th>Sản phẩm</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">Đơn giá</th><th style="width:110px">Thành tiền</th><th style="width:40px"></th></tr></thead>
+            <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">Đơn giá</th><th style="width:110px">Thành tiền</th><th style="width:40px"></th></tr></thead>
             <tbody>
               <tr v-for="(item, idx) in form.items" :key="idx">
                 <td>{{ item.product_name }}</td>
@@ -124,9 +129,9 @@
           <div class="form-group"><label>Giảm giá</label><input type="number" v-model.number="form.discount_amount" min="0" @change="recalcTotal" /></div>
           <div class="form-group"><label>Tổng tiền</label><input type="number" v-model.number="form.total_amount" readonly class="total-input" /></div>
         </div>
-        <div class="form-group"><label>Ghi chú</label><textarea v-model="form.notes" rows="2"></textarea></div>
+        <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" rows="2"></textarea></div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="savePO">{{ editingId ? 'Cập nhật' : 'Tạo đơn' }}</button>
         </div>
       </div>
@@ -148,7 +153,7 @@
           <div v-if="detailPO.notes"><strong>Ghi chú:</strong> {{ detailPO.notes }}</div>
         </div>
         <table class="detail-table">
-          <thead><tr><th>#</th><th>Sản phẩm</th><th>SKU</th><th>SL đặt</th><th>Đã nhận</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+          <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>SL đặt</th><th>Đã nhận</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in (detailPO.items || [])" :key="idx">
               <td>{{ idx + 1 }}</td>
@@ -172,7 +177,7 @@
           </tfoot>
         </table>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showDetail = false">Đóng</button>
+          <button class="btn-cancel" @click="showDetail = false">{{ t('admin.close', 'Đóng') }}</button>
           <button v-if="detailPO.status === 'draft'" class="btn-send-lg" @click="showDetail = false; sendPO(detailPO)"><Send :size="14" /> Đặt hàng</button>
           <button v-if="['ordered','partial'].includes(detailPO.status)" class="btn-create" @click="showDetail = false; openReceive(detailPO)"><PackageCheck :size="14" /> Nhận hàng</button>
         </div>
@@ -185,7 +190,7 @@
         <h3><PackageCheck :size="16" style="vertical-align:middle" /> Nhận hàng — {{ receivePO?.po_number }}</h3>
         <p class="receive-hint">Nhập số lượng thực nhận cho từng sản phẩm:</p>
         <table class="receive-table">
-          <thead><tr><th>Sản phẩm</th><th>SL đặt</th><th>Đã nhận</th><th>Còn lại</th><th style="width:100px">Nhận lần này</th></tr></thead>
+          <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SL đặt</th><th>Đã nhận</th><th>Còn lại</th><th style="width:100px">Nhận lần này</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in receiveItems" :key="idx">
               <td>{{ item.product_name }}</td>
@@ -196,9 +201,9 @@
             </tr>
           </tbody>
         </table>
-        <div class="form-group" style="margin-top:12px"><label>Ghi chú</label><input v-model="receiveNotes" placeholder="Ghi chú nhận hàng..." /></div>
+        <div class="form-group" style="margin-top:12px"><label>{{ t('admin.notes', 'Ghi chú') }}</label><input v-model="receiveNotes" placeholder="Ghi chú nhận hàng..." /></div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showReceiveModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showReceiveModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" /> Xác nhận nhận hàng</button>
         </div>
       </div>
@@ -208,11 +213,17 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { apiFetch, useToast } from '../helpers.js'
+import { useI18n } from '../helpers.js'
+import { apiFetch } from '../helpers.js'
+import { useToast } from '../helpers.js'
 import {
   ShoppingCart, Plus, Eye, Send, PackageCheck, X, Trash2, DollarSign,
   Clock, AlertCircle, ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+import PurchaseOrderForm from './PurchaseOrderForm.vue'
+import PurchaseOrderDetail from './PurchaseOrderDetail.vue'
+
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const orders = ref([])
@@ -223,27 +234,10 @@ const searchTerm = ref('')
 const filterStatus = ref('')
 const currentPage = ref(1)
 
-// Modals
-const showModal = ref(false)
-const showDetail = ref(false)
-const showReceiveModal = ref(false)
-const editingId = ref(null)
-const detailPO = ref({})
-const receivePO = ref(null)
-const receiveItems = ref([])
-const receiveNotes = ref('')
-
-// Product search
-const productSearch = ref('')
-const productResults = ref([])
-
-const defaultForm = () => ({
-  supplier_id: null, items: [],
-  tax_amount: 0, discount_amount: 0, total_amount: 0,
-  order_date: new Date().toISOString().split('T')[0],
-  expected_date: '', notes: '',
-})
-const form = ref(defaultForm())
+// View state: 'list' | 'form' | 'detail'
+const viewMode = ref('list')
+const editId = ref(null)
+const detailId = ref(null)
 
 function statusLabel(s) {
   return { draft: 'Nháp', ordered: 'Đã đặt', partial: 'Nhận 1 phần', received: 'Đã nhận', cancelled: 'Đã hủy' }[s] || s
@@ -320,34 +314,19 @@ function recalcTotal() {
 }
 
 function openCreate() {
-  editingId.value = null
-  form.value = defaultForm()
-  showModal.value = true
+  editId.value = null
+  viewMode.value = 'form'
 }
 
-async function savePO() {
-  if (!form.value.supplier_id) return showToast('Chọn nhà cung cấp', 'error')
-  if (form.value.items.length === 0) return showToast('Thêm sản phẩm', 'error')
-  try {
-    if (editingId.value) {
-      await apiFetch(`/purchase-orders/${editingId.value}`, { method: 'PUT', body: JSON.stringify(form.value) })
-      showToast('Đã cập nhật', 'success')
-    } else {
-      await apiFetch('/purchase-orders', { method: 'POST', body: JSON.stringify(form.value) })
-      showToast('Đã tạo đơn mua hàng', 'success')
-    }
-    showModal.value = false
-    fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+function onFormSaved() {
+  viewMode.value = 'list'
+  fetchOrders()
+  fetchStats()
 }
 
-async function viewPO(po) {
-  try {
-    const res = await apiFetch(`/purchase-orders/${po.id}`)
-    const data = await res.json()
-    detailPO.value = data.data || data
-    showDetail.value = true
-  } catch { showToast('Lỗi tải đơn', 'error') }
+function viewPO(po) {
+  detailId.value = po.id
+  viewMode.value = 'detail'
 }
 
 async function sendPO(po) {
@@ -359,35 +338,6 @@ async function sendPO(po) {
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
-function openReceive(po) {
-  receivePO.value = po
-  receiveItems.value = (po.items || []).map(i => ({
-    ...i,
-    received_qty: i.received_qty || 0,
-    remaining: i.qty - (i.received_qty || 0),
-    receive_qty: i.qty - (i.received_qty || 0), // default = nhận hết
-  })).filter(i => i.remaining > 0)
-  receiveNotes.value = ''
-  showReceiveModal.value = true
-}
-
-async function submitReceive() {
-  const items = receiveItems.value.filter(i => i.receive_qty > 0).map(i => ({
-    product_id: i.product_id,
-    receive_qty: Math.min(i.receive_qty, i.remaining),
-  }))
-  if (items.length === 0) return showToast('Nhập số lượng nhận', 'error')
-  try {
-    const res = await apiFetch(`/purchase-orders/${receivePO.value.id}/receive`, {
-      method: 'POST',
-      body: JSON.stringify({ items, notes: receiveNotes.value }),
-    })
-    const data = await res.json()
-    showToast(data.message || 'Đã nhận hàng — Phiếu nhập kho đã tạo', 'success')
-    showReceiveModal.value = false
-    fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
-}
 
 async function cancelPO(po) {
   if (!confirm(`Hủy đơn ${po.po_number}?`)) return
@@ -455,12 +405,7 @@ tr:hover { background: var(--color-accent-glow); }
 .pay-badge.partial { background: rgba(251,191,36,0.08); color: #fbbf24; }
 .pay-badge.paid { background: rgba(52,211,153,0.08); color: #34d399; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px; }
-.action-btns button:hover { opacity: 1; color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-send:hover { color: #60a5fa; }
-.action-btns .btn-confirm:hover { color: #34d399; }
-.action-btns .btn-danger:hover { color: #f87171; }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .empty { text-align: center; padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }

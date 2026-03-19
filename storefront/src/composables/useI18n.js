@@ -21,17 +21,18 @@ export function useI18n() {
   const languages = computed(() => state.languages)
 
   /**
-   * t(key) — Get translation, fallback to key
+   * t(key, fallback) — Get translation, fallback to provided text or empty string
    * Keys use dot notation: "storefront.home" → "Trang chủ"
+   * When key is not found: returns fallback if provided, otherwise '' (empty)
    */
-  function t(key) {
+  function t(key, fallback) {
     // Try full key first
     if (state.translations[key]) return state.translations[key]
     // Try with storefront prefix
     const sfKey = `storefront.${key}`
     if (state.translations[sfKey]) return state.translations[sfKey]
-    // Fallback to key itself
-    return key
+    // Return fallback or empty string (so || pattern works)
+    return fallback !== undefined ? fallback : ''
   }
 
   async function loadLanguages() {

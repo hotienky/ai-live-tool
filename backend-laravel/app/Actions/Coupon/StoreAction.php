@@ -11,6 +11,9 @@ class StoreAction extends BaseAction
             $data = $this->mapCouponFields($request);
             if (empty($data['code'])) return $this->errorResponse('Chưa nhập mã code');
             $coupon = $this->repo->store($data);
+            if ($request->has('translations')) {
+                $this->syncTranslations('coupons', $coupon->id, $request->input('translations'));
+            }
             return $this->successResponse($coupon, 'Đã tạo mã giảm giá', 201);
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

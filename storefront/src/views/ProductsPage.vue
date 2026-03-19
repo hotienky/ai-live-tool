@@ -56,9 +56,9 @@
             </button>
           </div>
           <div class="price-inputs">
-            <input v-model.number="priceMin" type="number" placeholder="Từ" class="price-input" @change="onPriceChange" />
+            <input v-model.number="priceMin" type="number" :placeholder="t('storefront.from', 'Từ')" class="price-input" @change="onPriceChange" />
             <span class="price-sep">—</span>
-            <input v-model.number="priceMax" type="number" placeholder="Đến" class="price-input" @change="onPriceChange" />
+            <input v-model.number="priceMax" type="number" :placeholder="t('storefront.to', 'Đến')" class="price-input" @change="onPriceChange" />
           </div>
         </div>
 
@@ -66,17 +66,17 @@
         <div class="filter-group">
           <label class="filter-label">{{ t('storefront.sort') || 'Sắp xếp' }}</label>
           <select v-model="sortBy" @change="reload()" class="filter-select">
-            <option value="created_at:desc">Mới nhất</option>
-            <option value="sold_count:desc">Bán chạy nhất</option>
-            <option value="avg_rating:desc">Đánh giá cao</option>
-            <option value="price:asc">Giá thấp → cao</option>
-            <option value="price:desc">Giá cao → thấp</option>
-            <option value="name:asc">Tên A → Z</option>
+            <option value="created_at:desc">{{ t('storefront.sort_newest', 'Mới nhất') }}</option>
+            <option value="sold_count:desc">{{ t('storefront.sort_best_selling', 'Bán chạy nhất') }}</option>
+            <option value="avg_rating:desc">{{ t('storefront.sort_top_rated', 'Đánh giá cao') }}</option>
+            <option value="price:asc">{{ t('storefront.sort_price_asc', 'Giá thấp → cao') }}</option>
+            <option value="price:desc">{{ t('storefront.sort_price_desc', 'Giá cao → thấp') }}</option>
+            <option value="name:asc">{{ t('storefront.sort_name_az', 'Tên A → Z') }}</option>
           </select>
         </div>
 
         <button v-if="hasFilters" class="filter-clear" @click="clearFilters">
-          <X :size="13" /> Xóa bộ lọc
+          <X :size="13" /> {{ t('storefront.clear_filter', 'Xóa bộ lọc') }}
         </button>
       </aside>
 
@@ -90,18 +90,18 @@
           </h1>
           <div class="products-main__search">
             <Search :size="15" />
-            <input v-model="search" placeholder="Tìm sản phẩm..." @input="debouncedReload" />
+            <input v-model="search" :placeholder="t('storefront.search_products', 'Tìm sản phẩm...')" @input="debouncedReload" />
           </div>
         </div>
 
         <!-- Active Filter Tags -->
         <div v-if="hasFilters" class="active-filters">
           <span v-if="selectedCategory" class="filter-tag">
-            {{ categories.find(c => c.id == selectedCategory)?.name || 'Danh mục' }}
+            {{ categories.find(c => c.id == selectedCategory)?.name || t('storefront.category', 'Danh mục') }}
             <button @click="selectedCategory = null; page = 1; reload()"><X :size="12" /></button>
           </span>
           <span v-if="selectedBrand" class="filter-tag">
-            {{ brands.find(b => b.id == selectedBrand)?.name || 'Thương hiệu' }}
+            {{ brands.find(b => b.id == selectedBrand)?.name || t('storefront.brand', 'Thương hiệu') }}
             <button @click="selectedBrand = null; page = 1; reload()"><X :size="12" /></button>
           </span>
           <span v-if="priceMin || priceMax" class="filter-tag">
@@ -112,12 +112,12 @@
             "{{ search }}"
             <button @click="search = ''; page = 1; reload()"><X :size="12" /></button>
           </span>
-          <button class="filter-tag filter-tag--clear" @click="clearFilters">Xóa tất cả</button>
+          <button class="filter-tag filter-tag--clear" @click="clearFilters">{{ t('storefront.clear_all', 'Xóa tất cả') }}</button>
         </div>
 
         <!-- Mobile filter toggle -->
         <button class="mobile-filter-btn" @click="showMobileFilter = !showMobileFilter">
-          <SlidersHorizontal :size="14" /> Bộ lọc
+          <SlidersHorizontal :size="14" /> {{ t('storefront.filter', 'Bộ lọc') }}
           <span v-if="hasFilters" class="mobile-filter-dot"></span>
         </button>
 
@@ -125,19 +125,19 @@
         <transition name="slide">
           <div v-if="showMobileFilter" class="mobile-filter-drawer">
             <div class="filter-group" v-if="categories.length > 0">
-              <label class="filter-label">Danh mục</label>
+              <label class="filter-label">{{ t('storefront.category', 'Danh mục') }}</label>
               <div class="filter-chips">
                 <button v-for="c in categories" :key="c.id" class="filter-chip" :class="{ active: selectedCategory == c.id }" @click="toggleFilter('category', c.id)">{{ c.name }}</button>
               </div>
             </div>
             <div class="filter-group" v-if="brands.length > 0">
-              <label class="filter-label">Thương hiệu</label>
+              <label class="filter-label">{{ t('storefront.brand', 'Thương hiệu') }}</label>
               <div class="filter-chips">
                 <button v-for="b in brands" :key="b.id" class="filter-chip" :class="{ active: selectedBrand == b.id }" @click="toggleFilter('brand', b.id)">{{ b.name }}</button>
               </div>
             </div>
             <div class="filter-group">
-              <label class="filter-label">Khoảng giá</label>
+              <label class="filter-label">{{ t('storefront.price', 'Khoảng giá') }}</label>
               <div class="filter-chips">
                 <button v-for="p in pricePresets" :key="p.label" class="filter-chip" :class="{ active: activePricePreset === p.label }" @click="applyPricePreset(p)">{{ p.label }}</button>
               </div>
@@ -229,12 +229,12 @@ const priceMin = ref(null)
 const priceMax = ref(null)
 const activePricePreset = ref(null)
 
-const pricePresets = [
-  { label: 'Dưới 200K', min: null, max: 200000 },
-  { label: '200K - 500K', min: 200000, max: 500000 },
-  { label: '500K - 1 triệu', min: 500000, max: 1000000 },
-  { label: 'Trên 1 triệu', min: 1000000, max: null },
-]
+const pricePresets = computed(() => [
+  { label: t('storefront.price_under_200k', 'Dưới 200K'), min: null, max: 200000 },
+  { label: t('storefront.price_200k_500k', '200K - 500K'), min: 200000, max: 500000 },
+  { label: t('storefront.price_500k_1m', '500K - 1 triệu'), min: 500000, max: 1000000 },
+  { label: t('storefront.price_over_1m', 'Trên 1 triệu'), min: 1000000, max: null },
+])
 
 function applyPricePreset(p) {
   if (activePricePreset.value === p.label) {
@@ -261,9 +261,9 @@ const hasFilters = computed(() => !!(selectedCategory.value || selectedBrand.val
 const pageTitle = computed(() => {
   if (selectedCategory.value) {
     const c = categories.value.find(x => x.id == selectedCategory.value)
-    return c ? c.name : 'Sản phẩm'
+    return c ? c.name : t('storefront.products', 'Sản phẩm')
   }
-  return 'Tất cả sản phẩm'
+  return t('storefront.all_products', 'Tất cả sản phẩm')
 })
 
 
@@ -344,8 +344,8 @@ async function reload() {
 
   // SEO — set page meta tags (C1)
   setPageSeo({
-    title: `${pageTitle.value} (${total.value}) — Cửa hàng`,
-    description: `Xem ${total.value} sản phẩm${search.value ? ' cho "' + search.value + '"' : ''}. Lọc theo danh mục, thương hiệu, giá.`,
+    title: `${pageTitle.value} (${total.value}) — ${t('storefront.store', 'Cửa hàng')}`,
+    description: `${t('storefront.view', 'Xem')} ${total.value} ${t('storefront.products', 'sản phẩm')}`,
   })
 }
 

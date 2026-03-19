@@ -366,7 +366,16 @@
 
       <!-- ═══ Tab: Flash Sales (Plugin) ═══ -->
       <div v-if="activeTab === 'flash-sales'" class="settings__panel">
-        <PluginRenderer moduleId="marketing" tabKey="flash-sales" />
+        <!-- Form view with own URL -->
+        <FlashSaleForm
+          v-if="fsFormMode"
+          :editId="fsFormMode === 'edit' ? fsEditId : null"
+          :languagesInstalled="isModuleInstalled('languages')"
+          @back="onFlashSaleFormNavigate('shop/flash-sales')"
+          @saved="onFlashSaleFormNavigate('shop/flash-sales')"
+        />
+        <!-- List view via plugin -->
+        <PluginRenderer v-else moduleId="marketing" tabKey="flash-sales" @navigate="onFlashSaleNavigate" />
       </div>
 
       <!-- ═══ Tab: CMS Pages (Plugin) ═══ -->
@@ -519,6 +528,7 @@ import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
 import CmsPageForm from './CmsPageForm.vue'
+import FlashSaleForm from './FlashSaleForm.vue'
 import RoleManager from './RoleManager.vue'
 import SystemConfigPanel from './SystemConfigPanel.vue'
 import ApiKeyManager from './ApiKeyManager.vue'
@@ -553,6 +563,8 @@ const props = defineProps({
   cmsEditPageId: { type: String, default: null },
   productEditId: { type: String, default: null },
   categoryEditId: { type: String, default: null },
+  flashSaleEditId: { type: String, default: null },
+  flashSaleFormMode: { type: String, default: null }, // null | 'create' | 'edit'
 })
 
 const emit = defineEmits(['openShopSelector', 'navigate'])
@@ -560,6 +572,36 @@ const emit = defineEmits(['openShopSelector', 'navigate'])
 // CMS form state
 const cmsFormMode = ref(null) // null = list, 'create', 'edit'
 const cmsFormEditId = ref(null)
+
+// Flash Sale form state (synced from props for reload support)
+const fsFormMode = ref(props.flashSaleFormMode || null)
+const fsEditId = ref(props.flashSaleEditId || null)
+
+// Handle navigate from Flash Sale plugin list
+function onFlashSaleNavigate(route) {
+  if (route === 'shop/flash-sales/create') {
+    fsFormMode.value = 'create'
+    fsEditId.value = null
+    history.pushState({}, '', '/shop/flash-sales/create')
+  } else if (route.startsWith('shop/flash-sales/edit/')) {
+    const id = route.replace('shop/flash-sales/edit/', '')
+    fsFormMode.value = 'edit'
+    fsEditId.value = id
+    history.pushState({}, '', `/shop/flash-sales/edit/${id}`)
+  } else {
+    emit('navigate', route)
+  }
+}
+// Handle back from FlashSaleForm
+function onFlashSaleFormNavigate(route) {
+  if (route === 'shop/flash-sales' || !route) {
+    fsFormMode.value = null
+    fsEditId.value = null
+    history.pushState({}, '', '/shop/flash-sales')
+  } else {
+    emit('navigate', route)
+  }
+}
 
 // Handle navigate from CMS plugin list
 function onCmsNavigate(route) {
@@ -666,7 +708,7 @@ async function loadStorefrontUrl() {
 }
 
 const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
-const activeTab = useUrlParam('tab', 'connection')
+const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
 function extractOrderId() {

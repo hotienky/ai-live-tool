@@ -83,7 +83,7 @@
               {{ t('storefront.save') || 'Tiết kiệm' }} {{ formatPrice(displayPrice - displayPromoPrice) }}
             </span>
             <span v-if="taxConfig.enabled" class="detail-tax-label">
-              {{ taxConfig.display_mode === 'inclusive' ? ('Đã gồm ' + (taxConfig.label || 'VAT')) : ('+ ' + (taxConfig.label || 'VAT')) }}
+              {{ taxConfig.display_mode === 'inclusive' ? (t('storefront.tax_inclusive', 'Đã gồm') + ' ' + (taxConfig.label || 'VAT')) : ('+ ' + (taxConfig.label || 'VAT')) }}
             </span>
           </div>
 
@@ -546,7 +546,7 @@ async function loadProduct() {
         setProductSeo(product.value, reviewStats.value)
         // Breadcrumb JSON-LD
         const base = window.location.origin
-        const crumbs = [{ name: 'Trang chủ', url: base + '/' }]
+        const crumbs = [{ name: t('storefront.home', 'Trang chủ'), url: base + '/' }]
         if (product.value.category_name) {
           crumbs.push({ name: product.value.category_name, url: base + '/products?category=' + encodeURIComponent(product.value.category_name) })
         }
@@ -594,7 +594,7 @@ function handleAddToCart() {
   addedToCart.value = true
   setTimeout(() => { addedToCart.value = false }, 2000)
   const name = v ? `${product.value.name} — ${v.name}` : product.value.name
-  showToast(` ✓ Đã thêm "${name}" vào giỏ hàng`, 'success')
+  showToast(` ✓ ${t('storefront.added_to_cart', 'Đã thêm')} "${name}" ${t('storefront.to_cart', 'vào giỏ hàng')}`, 'success')
 }
 
 // ── Related Products ──
@@ -648,7 +648,7 @@ async function loadReviews() {
 async function submitReview() {
   if (!product.value || !reviewForm.value.rating) return
   if (!isLoggedIn.value) {
-    reviewMsg.value = 'Vui lòng đăng nhập để gửi đánh giá'
+    reviewMsg.value = t('storefront.login_to_review', 'Vui lòng đăng nhập để gửi đánh giá')
     reviewMsgType.value = 'error'
     return
   }
@@ -659,12 +659,12 @@ async function submitReview() {
       rating: reviewForm.value.rating,
       comment: reviewForm.value.comment,
     })
-    reviewMsg.value = 'Đánh giá của bạn đã được gửi!'
+    reviewMsg.value = t('storefront.review_submitted', 'Đánh giá của bạn đã được gửi!')
     reviewMsgType.value = 'success'
     reviewForm.value = { rating: 0, comment: '' }
     await loadReviews()
   } catch (err) {
-    reviewMsg.value = 'Lỗi: ' + (err.message || 'Không thể gửi đánh giá')
+    reviewMsg.value = t('storefront.error', 'Lỗi') + ': ' + (err.message || t('storefront.cannot_submit_review', 'Không thể gửi đánh giá'))
     reviewMsgType.value = 'error'
   }
   reviewSubmitting.value = false

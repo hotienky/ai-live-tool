@@ -2,7 +2,7 @@
   <section class="section-gallery container">
     <h2 class="section-title">
       <Images :size="22" class="section-title__accent" />
-      {{ params?.title || 'Thư viện ảnh' }}
+      {{ params?.title || t('storefront.section.gallery_title', 'Thư viện ảnh') }}
     </h2>
     <div class="gallery-grid" :style="{ gridTemplateColumns: `repeat(${params?.columns || 3}, 1fr)` }">
       <div v-for="(img, i) in items" :key="i" class="gallery-item" @click="lightboxIdx = i">
@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-    <p v-if="!items.length" class="section-empty">Chưa có ảnh nào</p>
+    <p v-if="!items.length" class="section-empty">{{ t('storefront.section.gallery_empty', 'Chưa có ảnh nào') }}</p>
     <!-- Lightbox -->
     <div v-if="lightboxIdx !== null" class="lightbox" @click="lightboxIdx = null">
       <img :src="items[lightboxIdx]?.url" :alt="items[lightboxIdx]?.caption" />
@@ -24,6 +24,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Images, Maximize2, X } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },

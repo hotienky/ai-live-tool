@@ -1,5 +1,10 @@
 <template>
-  <div class="stock-receipt-mgr">
+  <!-- Form view -->
+  <StockReceiptForm v-if="viewMode === 'form'" :editId="editId" :initialType="initialType" @saved="onFormSaved" @back="viewMode = 'list'" />
+  <!-- Detail view -->
+  <StockReceiptDetail v-else-if="viewMode === 'detail'" :editId="detailId" @back="viewMode = 'list'" @refresh="fetchReceipts" />
+  <!-- List view -->
+  <div v-else class="stock-receipt-mgr">
     <div class="sr-header">
       <h2><ClipboardList :size="20" style="vertical-align:middle" /> Phiếu Nhập/Xuất Kho</h2>
       <div class="header-actions">
@@ -17,8 +22,8 @@
           <option value="confirmed">Đã xác nhận</option>
           <option value="cancelled">Đã hủy</option>
         </select>
-        <button class="btn-primary" @click="openCreateModal('import')"><Plus :size="14" /> Nhập kho</button>
-        <button class="btn-secondary" @click="openCreateModal('export')"><Minus :size="14" /> Xuất kho</button>
+        <button class="btn-primary" @click="openCreate('import')"><Plus :size="14" /> Nhập kho</button>
+        <button class="btn-secondary" @click="openCreate('export')"><Minus :size="14" /> Xuất kho</button>
       </div>
     </div>
 
@@ -102,146 +107,6 @@
         <ChevronRight :size="14" />
       </button>
     </div>
-
-    <!-- Create/Edit Receipt Modal -->
-    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
-      <div class="modal modal--wide">
-        <h3><ClipboardList :size="16" style="vertical-align:middle" /> {{ editingId ? 'Sửa phiếu kho' : 'Tạo phiếu kho' }}</h3>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>Loại phiếu</label>
-            <select v-model="form.type" :disabled="!!editingId">
-              <option value="import">{{ t('admin.import_stock', 'Nhập kho') }}</option>
-              <option value="export">{{ t('admin.export_stock', 'Xuất kho') }}</option>
-              <option value="return">Trả hàng NCC</option>
-              <option value="adjust">Kiểm kê</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>{{ t('admin.supplier', 'Nhà cung cấp') }}</label>
-            <select v-model="form.supplier_id">
-              <option :value="null">— Không —</option>
-              <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Product search + items -->
-        <div class="form-group">
-          <label>{{ t('admin.product', 'Sản phẩm') }}</label>
-          <div class="product-search-wrap">
-            <input v-model="productSearch" class="product-search" placeholder="Tìm tên SP, SKU..." @input="searchProducts" />
-            <div class="product-dropdown" v-if="productResults.length > 0">
-              <div v-for="p in productResults" :key="p.id" class="product-result" @click="addProduct(p)">
-                <span class="pr-name">{{ p.name }}</span>
-                <span class="pr-sku">{{ p.sku || '' }}</span>
-                <span class="pr-stock">Kho: {{ p.stock }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="items-table" v-if="form.items.length > 0">
-          <table>
-            <thead>
-              <tr>
-                <th>{{ t('admin.product', 'Sản phẩm') }}</th>
-                <th>SKU</th>
-                <th style="width:90px">SL</th>
-                <th style="width:130px">Đơn giá</th>
-                <th style="width:110px">Thành tiền</th>
-                <th style="width:40px"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, idx) in form.items" :key="idx">
-                <td>{{ item.product_name }}</td>
-                <td class="sku">{{ item.sku || '—' }}</td>
-                <td><input type="number" v-model.number="item.qty" min="1" class="item-input" @change="recalcTotal" /></td>
-                <td><input type="number" v-model.number="item.unit_price" min="0" class="item-input" @change="recalcTotal" /></td>
-                <td class="amount">{{ formatCurrency(item.qty * item.unit_price) }}</td>
-                <td><button @click="form.items.splice(idx, 1); recalcTotal()" class="btn-rm"><Trash2 :size="12" /></button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="form-row" style="margin-top:12px">
-          <div class="form-group">
-            <label>Thuế</label>
-            <input type="number" v-model.number="form.tax_amount" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Giảm giá</label>
-            <input type="number" v-model.number="form.discount_amount" min="0" />
-          </div>
-          <div class="form-group">
-            <label>Tổng tiền</label>
-            <input type="number" v-model.number="form.total_amount" readonly class="total-input" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>{{ t('admin.notes', 'Ghi chú') }}</label>
-          <textarea v-model="form.notes" rows="2" placeholder="Lý do nhập/xuất..."></textarea>
-        </div>
-
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="saveReceipt">{{ editingId ? 'Cập nhật' : 'Tạo phiếu' }}</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- View Detail Modal -->
-    <div class="modal-overlay" v-if="showDetail" @click.self="showDetail = false">
-      <div class="modal modal--wide">
-        <h3>
-          <span class="type-badge" :class="detailReceipt.type">{{ typeLabel(detailReceipt.type) }}</span>
-          {{ detailReceipt.receipt_number }}
-          <span class="status-badge" :class="detailReceipt.status" style="margin-left:8px">{{ statusLabel(detailReceipt.status) }}</span>
-        </h3>
-        <div class="detail-info">
-          <div v-if="detailReceipt.supplier"><strong>NCC:</strong> {{ detailReceipt.supplier?.name }}</div>
-          <div><strong>Ngày tạo:</strong> {{ formatDate(detailReceipt.created_at) }}</div>
-          <div v-if="detailReceipt.confirmed_at"><strong>Xác nhận:</strong> {{ formatDate(detailReceipt.confirmed_at) }}</div>
-          <div v-if="detailReceipt.notes"><strong>Ghi chú:</strong> {{ detailReceipt.notes }}</div>
-        </div>
-        <table class="detail-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>{{ t('admin.product', 'Sản phẩm') }}</th>
-              <th>SKU</th>
-              <th>SL</th>
-              <th>Đơn giá</th>
-              <th>Thành tiền</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(item, idx) in (detailReceipt.items || [])" :key="idx">
-              <td>{{ idx + 1 }}</td>
-              <td>{{ item.product_name }}</td>
-              <td class="sku">{{ item.sku || '—' }}</td>
-              <td>{{ item.qty }}</td>
-              <td>{{ formatCurrency(item.unit_price) }}</td>
-              <td class="amount">{{ formatCurrency(item.total || item.qty * item.unit_price) }}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="5" style="text-align:right;font-weight:700">Tổng cộng:</td>
-              <td class="amount" style="font-weight:800">{{ formatCurrency(detailReceipt.total_amount) }}</td>
-            </tr>
-          </tfoot>
-        </table>
-        <div class="modal-actions">
-          <button class="btn-cancel" @click="showDetail = false">{{ t('admin.close', 'Đóng') }}</button>
-          <button v-if="detailReceipt.status === 'draft'" class="btn-create" @click="showDetail = false; confirmReceipt(detailReceipt)">{{ t('admin.confirm', 'Xác nhận') }}</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -255,6 +120,8 @@ import {
   ArrowDownToLine, ArrowUpFromLine, FileText,
   ChevronLeft, ChevronRight
 } from 'lucide-vue-next'
+import StockReceiptForm from './StockReceiptForm.vue'
+import StockReceiptDetail from './StockReceiptDetail.vue'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -268,22 +135,11 @@ const filterType = ref('')
 const filterStatus = ref('')
 const currentPage = ref(1)
 
-// Modals
-const showModal = ref(false)
-const showDetail = ref(false)
-const editingId = ref(null)
-const detailReceipt = ref({})
-
-// Product search
-const productSearch = ref('')
-const productResults = ref([])
-let searchTimer = null
-
-const defaultForm = () => ({
-  type: 'import', supplier_id: null, items: [],
-  total_amount: 0, tax_amount: 0, discount_amount: 0, notes: '',
-})
-const form = ref(defaultForm())
+// View state
+const viewMode = ref('list')
+const editId = ref(null)
+const detailId = ref(null)
+const initialType = ref('import')
 
 // Labels
 function typeLabel(t) {
@@ -372,51 +228,24 @@ function recalcTotal() {
   form.value.total_amount = itemsTotal + (form.value.tax_amount || 0) - (form.value.discount_amount || 0)
 }
 
-// CRUD
-function openCreateModal(type = 'import') {
-  editingId.value = null
-  form.value = { ...defaultForm(), type }
-  showModal.value = true
+function openCreate(type = 'import') {
+  initialType.value = type
+  editId.value = null
+  viewMode.value = 'form'
 }
 
-async function saveReceipt() {
-  if (form.value.items.length === 0) return showToast('Vui lòng thêm sản phẩm', 'error')
-  try {
-    if (editingId.value) {
-      await apiFetch(`/stock-receipts/${editingId.value}`, {
-        method: 'PUT', body: JSON.stringify(form.value),
-      })
-      showToast('Đã cập nhật phiếu', 'success')
-    } else {
-      await apiFetch('/stock-receipts', {
-        method: 'POST', body: JSON.stringify(form.value),
-      })
-      showToast('Đã tạo phiếu kho', 'success')
-    }
-    showModal.value = false
-    fetchReceipts()
-    fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+function viewReceipt(r) {
+  detailId.value = r.id
+  viewMode.value = 'detail'
 }
 
-async function viewReceipt(r) {
-  try {
-    const res = await apiFetch(`/stock-receipts/${r.id}`)
-    const data = await res.json()
-    detailReceipt.value = data.data || data
-    showDetail.value = true
-  } catch { showToast('Lỗi tải phiếu', 'error') }
+function onFormSaved() {
+  viewMode.value = 'list'
+  fetchReceipts()
+  fetchStats()
 }
 
-async function confirmReceipt(r) {
-  if (!confirm(`Xác nhận phiếu ${r.receipt_number}? Kho sẽ được cập nhật.`)) return
-  try {
-    await apiFetch(`/stock-receipts/${r.id}/confirm`, { method: 'POST' })
-    showToast('Đã xác nhận — Kho và kế toán đã cập nhật', 'success')
-    fetchReceipts()
-    fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
-}
+
 
 async function cancelReceipt(r) {
   if (!confirm(`Hủy phiếu ${r.receipt_number}?`)) return
@@ -560,87 +389,4 @@ tr:hover { background: var(--color-accent-glow); }
 .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .page-info { font-size: 13px; color: var(--color-text-secondary); font-weight: 600; }
 
-/* Modal */
-.modal-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.7); display: flex; align-items: center;
-  justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
-}
-.modal {
-  background: var(--color-bg-secondary); border: 1px solid var(--color-border);
-  border-radius: 16px; padding: 28px; width: 500px; max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out;
-  max-height: 85vh; overflow-y: auto;
-}
-.modal--wide { width: 720px; }
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.modal h3 { margin: 0 0 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.form-row:has(> :nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
-.form-group input, .form-group textarea, .form-group select {
-  width: 100%; padding: 10px 12px; border-radius: 10px;
-  border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent);
-  color: var(--color-text-primary); font-size: 13px; outline: none;
-  transition: border-color 0.2s; box-sizing: border-box;
-}
-.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--color-accent-primary); }
-
-/* Product search */
-.product-search-wrap { position: relative; }
-.product-search { width: 100%; }
-.product-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10;
-  background: var(--color-bg-secondary); border: 1px solid var(--glass-border);
-  border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-}
-.product-result {
-  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-  cursor: pointer; transition: background 0.15s; font-size: 13px;
-}
-.product-result:hover { background: var(--color-accent-glow); }
-.pr-name { flex: 1; font-weight: 600; }
-.pr-sku { font-family: monospace; font-size: 11px; color: var(--color-text-muted); }
-.pr-stock { font-size: 11px; color: var(--color-text-muted); }
-
-/* Items table */
-.items-table { margin: 8px 0; border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; }
-.items-table table { margin: 0; }
-.item-input {
-  width: 100%; padding: 6px 8px; border-radius: 6px;
-  border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent);
-  color: var(--color-text-primary); font-size: 13px; outline: none;
-  box-sizing: border-box;
-}
-.btn-rm {
-  background: rgba(239,68,68,0.08); border: none; color: #ef4444;
-  border-radius: 6px; padding: 4px; cursor: pointer;
-}
-.total-input { font-weight: 800; color: #34d399 !important; }
-
-/* Modal actions */
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-.btn-cancel {
-  padding: 10px 20px; border-radius: 10px;
-  border: 1px solid var(--glass-border); background: transparent;
-  color: var(--color-text-secondary); font-weight: 600; cursor: pointer;
-}
-.btn-create {
-  padding: 10px 20px; border-radius: 10px; border: none;
-  background: var(--accent-gradient); color: #fff; font-weight: 700;
-  cursor: pointer; box-shadow: var(--accent-shadow);
-}
-
-/* Detail */
-.detail-info {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  padding: 14px; background: var(--glass-bg); border-radius: 10px;
-  margin-bottom: 16px; font-size: 13px;
-}
-.detail-table { margin: 0; }
-.detail-table tfoot td { border-top: 2px solid var(--color-border); }
 </style>

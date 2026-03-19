@@ -2,7 +2,7 @@
   <section class="section-brands container">
     <h2 class="section-title">
       <Award :size="22" class="section-title__accent" />
-      {{ params?.title || 'Thương hiệu' }}
+      {{ params?.title || t('storefront.section.brands_title', 'Thương hiệu') }}
     </h2>
     <div class="brands-slider" v-if="items.length">
       <div class="brands-track">
@@ -12,13 +12,16 @@
         </a>
       </div>
     </div>
-    <p v-else class="section-empty">Chưa có thương hiệu nào</p>
+    <p v-else class="section-empty">{{ t('storefront.section.brands_empty', 'Chưa có thương hiệu nào') }}</p>
   </section>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { Award } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },

@@ -109,21 +109,13 @@ function goBackToList() {
 
 async function loadCategoryForEdit(id) {
   try {
-    // If we have categories in memory, we can prefill some data, but we still need translations
-    // actually we should just fetch it or get it passed. The modal version didn't fetch the single item,
-    // it just used the item from the list! Since we are mounting this separately, passing the full item is best, 
-    // OR just fetching it. Let's fetch the translations.
-    
-    // Find the item in the local categories array if we just fetched it
-    const c = categories.value.find(x => String(x.id) === String(id))
+    // Try to find in local array first (fast path), otherwise fetch from API
+    let c = categories.value.find(x => String(x.id) === String(id))
     if (!c) {
-      if (categories.value.length === 0) {
-        // Fallback or ignore for now
-      } else {
-        showToast('Không tìm thấy danh mục', 'error')
-        emit('back')
-        return
-      }
+      try {
+        const res = await apiFetch(`/categories/${id}`)
+        c = await res.json()
+      } catch { /* ignore */ }
     }
 
     if (c) {
@@ -132,6 +124,10 @@ async function loadCategoryForEdit(id) {
         parent_id: c.parent_id || null, sort: c.sort ?? 0,
         meta_title: c.meta_title || '', meta_description: c.meta_description || '', translations: {} 
       }
+    } else {
+      showToast('Không tìm thấy danh mục', 'error')
+      emit('back')
+      return
     }
 
     // Always fetch translations

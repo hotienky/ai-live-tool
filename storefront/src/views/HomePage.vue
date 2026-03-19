@@ -47,7 +47,7 @@
         <div class="home-section__header">
           <h2 class="section-title">
             <Sparkles :size="22" class="section-title__accent" />
-            {{ section.params?.title || t('storefront.featured_products') || 'Sản phẩm nổi bật' }}
+            {{ rp(section)?.title || t('storefront.featured_products') || 'Sản phẩm nổi bật' }}
           </h2>
           <router-link :to="'/products'" class="home-section__viewall">
             {{ t('storefront.view_all') || 'Xem tất cả' }} <ArrowRight :size="14" />
@@ -74,7 +74,7 @@
         <div class="home-section__header">
           <h2 class="section-title">
             <Clock :size="22" class="section-title__accent" />
-            {{ section.params?.title || t('storefront.new_arrivals') || 'Hàng mới về' }}
+            {{ rp(section)?.title || t('storefront.new_arrivals') || 'Hàng mới về' }}
           </h2>
         </div>
         <div class="product-grid" :style="gridStyle(section.params?.columns)">
@@ -110,48 +110,48 @@
       <!-- ═══ Custom Library Sections ═══ -->
       <HomeSectionTestimonials
         v-if="section.type === 'testimonials'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionFaq
         v-if="section.type === 'faq'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionGallery
         v-if="section.type === 'image_gallery'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionVideo
         v-if="section.type === 'video_embed'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionTextBlock
         v-if="section.type === 'text_block'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionNewsletter
         v-if="section.type === 'newsletter'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionSocial
         v-if="section.type === 'social_feed'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionBrands
         v-if="section.type === 'brands_slider'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       <HomeSectionTrustBadges
         v-if="section.type === 'trust_badges'"
-        :params="section.params"
-        :content="section.content"
+        :params="rp(section)"
+        :content="rc(section)"
       />
       </div>
     </template>
@@ -170,7 +170,42 @@ import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
+
+// ── Resolve section translations based on current storefront language ──
+function rp(section) {
+  const lang = currentLang.value
+  if (!lang || lang === 'vi') return section.params || {}
+  const tp = section.translations?.[lang]?.params
+  if (!tp) return section.params || {}
+  // Merge: translated params override base, but only non-empty fields
+  const merged = { ...(section.params || {}) }
+  for (const [k, v] of Object.entries(tp)) {
+    if (v && String(v).trim()) merged[k] = v
+  }
+  return merged
+}
+
+function rc(section) {
+  const lang = currentLang.value
+  if (!lang || lang === 'vi') return section.content
+  const tc = section.translations?.[lang]?.content
+  if (!tc) return section.content
+  // For arrays, merge per-item: only override non-empty fields
+  if (Array.isArray(tc) && Array.isArray(section.content)) {
+    return section.content.map((item, i) => {
+      if (!tc[i]) return item
+      const merged = { ...item }
+      for (const [k, v] of Object.entries(tc[i])) {
+        if (v && String(v).trim()) merged[k] = v
+      }
+      return merged
+    })
+  }
+  // For string content (text_block)
+  if (typeof tc === 'string' && tc.trim()) return tc
+  return section.content
+}
 
 // Custom section components
 import HomeSectionTestimonials from '../components/sections/HomeSectionTestimonials.vue'

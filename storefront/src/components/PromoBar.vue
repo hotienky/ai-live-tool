@@ -4,10 +4,10 @@
       <div class="promo-bar__content container">
         <span class="promo-bar__text">
           <Sparkles :size="14" />
-          {{ text }}
+          {{ displayText }}
         </span>
         <router-link v-if="link" :to="link" class="promo-bar__cta">
-          {{ ctaText }} →
+          {{ displayCta }} →
         </router-link>
         <button class="promo-bar__close" @click="dismiss">
           <X :size="14" />
@@ -18,15 +18,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Sparkles, X } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
-  text: { type: String, default: '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!' },
+  text: { type: String, default: '' },
   link: { type: String, default: '/products' },
-  ctaText: { type: String, default: 'Mua sắm' },
+  ctaText: { type: String, default: '' },
   storageKey: { type: String, default: 'sf_promo_dismissed' },
 })
+
+const displayText = computed(() => props.text || t('storefront.promo.default_text', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!'))
+const displayCta = computed(() => props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
 
 const visible = ref(false)
 

@@ -1,6 +1,6 @@
 <template>
   <transition name="btt">
-    <button v-if="show" class="back-to-top" @click="scrollTop" aria-label="Lên đầu trang">
+    <button v-if="show" class="back-to-top" @click="scrollTop" :aria-label="t('storefront.back_to_top', 'Lên đầu trang')">
       <ChevronUp :size="20" />
     </button>
   </transition>
@@ -9,6 +9,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { ChevronUp } from 'lucide-vue-next'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const show = ref(false)
 

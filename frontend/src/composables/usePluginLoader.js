@@ -30,7 +30,7 @@ async function loadPlugin(moduleId) {
     // Load CSS via apiFetch (auth required) + inject as inline style
     if (!document.getElementById(`plugin-css-${moduleId}`)) {
       try {
-        const cssRes = await apiFetch(`/modules/${moduleId}/style.css`)
+        const cssRes = await apiFetch(`/modules/${moduleId}/style.css?v=${Date.now()}`)
         if (cssRes.ok) {
           const cssText = await cssRes.text()
           const style = document.createElement('style')
@@ -42,7 +42,8 @@ async function loadPlugin(moduleId) {
     }
 
     // Fetch JS bundle as text (use apiFetch for auth token)
-    const res = await apiFetch(`/modules/${moduleId}/bundle.js`)
+    const v = Date.now()
+    const res = await apiFetch(`/modules/${moduleId}/bundle.js?v=${v}`)
     if (!res.ok) throw new Error(`HTTP ${res.status} loading plugin ${moduleId}`)
     const code = await res.text()
 
