@@ -81,10 +81,10 @@
             </td>
             <td>
               <div class="action-btns">
-                <button @click="openEditModal(product)" title="Sửa"><Edit :size="14" /></button>
-                <button @click="openAdjustModal(product)" title="Điều chỉnh kho"><BarChart3 :size="14" /></button>
-                <button @click="openHistoryModal(product)" title="Lịch sử kho"><History :size="14" /></button>
-                <button @click="deleteProduct(product)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-edit" @click="openEditModal(product)"><Edit :size="13" /> Sửa</button>
+                <button class="act-btn act-confirm" @click="openAdjustModal(product)"><BarChart3 :size="13" /> Điều chỉnh</button>
+                <button class="act-btn act-view" @click="openHistoryModal(product)"><History :size="13" /> Lịch sử</button>
+                <button class="act-btn act-cancel" @click="deleteProduct(product)"><Trash2 :size="13" /> Xóa</button>
               </div>
             </td>
           </tr>
@@ -747,13 +747,7 @@ tr:hover { background: var(--color-accent-glow); }
 .stock-badge.low { background: rgba(251,191,36,0.1); color: #fbbf24; }
 .stock-badge.out { background: rgba(248,113,113,0.1); color: #f87171; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button {
-  background: none; border: none; cursor: pointer; padding: 5px;
-  color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px;
-}
-.action-btns button:hover { opacity: 1; transform: scale(1.1); color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-danger:hover { color: #f87171; background: rgba(248,113,113,0.06); }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .empty { text-align: center; color: var(--color-text-muted); padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }

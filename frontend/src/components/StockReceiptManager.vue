@@ -72,10 +72,10 @@
             <td class="date">{{ formatDate(r.created_at) }}</td>
             <td>
               <div class="action-btns">
-                <button @click="viewReceipt(r)" title="Xem"><Eye :size="14" /></button>
-                <button v-if="r.status === 'draft'" @click="confirmReceipt(r)" title="Xác nhận" class="btn-confirm"><Check :size="14" /></button>
-                <button v-if="r.status !== 'cancelled'" @click="cancelReceipt(r)" title="Hủy" class="btn-danger"><X :size="14" /></button>
-                <button v-if="r.status === 'draft'" @click="deleteReceipt(r)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-view" @click="viewReceipt(r)"><Eye :size="13" /> Xem</button>
+                <button v-if="r.status === 'draft'" class="act-btn act-confirm" @click="confirmReceipt(r)"><Check :size="13" /> Xác nhận</button>
+                <button v-if="r.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelReceipt(r)"><X :size="13" /> Hủy</button>
+                <button v-if="r.status === 'draft'" class="act-btn act-cancel" @click="deleteReceipt(r)"><Trash2 :size="13" /> Xóa</button>
               </div>
             </td>
           </tr>
@@ -534,14 +534,7 @@ tr:hover { background: var(--color-accent-glow); }
 .status-badge.cancelled { background: rgba(248,113,113,0.1); color: #f87171; }
 
 /* Actions */
-.action-btns { display: flex; gap: 4px; }
-.action-btns button {
-  background: none; border: none; cursor: pointer; padding: 5px;
-  color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px;
-}
-.action-btns button:hover { opacity: 1; transform: scale(1.1); color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-confirm:hover { color: #34d399; background: rgba(52,211,153,0.08); }
-.action-btns .btn-danger:hover { color: #f87171; background: rgba(248,113,113,0.06); }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 
 /* Empty */
 .empty { text-align: center; color: var(--color-text-muted); padding: 40px; }

@@ -28,6 +28,7 @@ class OrderRepository extends BaseEloquentRepository implements OrderRepositoryI
             'delivered' => $this->model->where('status', 'delivered')->count(),
             'cancelled' => $this->model->where('status', 'cancelled')->count(),
             'revenue' => $this->model->whereIn('status', ['confirmed', 'shipped', 'delivered'])->sum('total_amount'),
+            'paid_revenue' => $this->model->where('payment_status', 'paid')->sum('total_amount'),
         ];
     }
 

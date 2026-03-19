@@ -16,8 +16,8 @@
           <span class="bm-slug" v-if="b.slug">/{{ b.slug }}</span>
         </div>
         <div class="bm-card__actions">
-          <button class="btn-sm btn-edit" @click="openEdit(b)"><Edit3 :size="13" /></button>
-          <button class="btn-sm btn-del" @click="handleDelete(b)"><Trash2 :size="13" /></button>
+          <button class="act-btn act-edit" @click="openEdit(b)"><Edit3 :size="13" /> Sửa</button>
+          <button class="act-btn act-cancel" @click="handleDelete(b)"><Trash2 :size="13" /> Xóa</button>
         </div>
       </div>
     </div>
@@ -38,6 +38,19 @@
           <button class="btn-cancel" @click="showModal = false">Hủy</button>
           <button class="btn-save" @click="handleSave" :disabled="!form.name">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
         </div>
+
+        <!-- Multi-language -->
+        <ContentTranslationEditor
+          v-if="isEditing && editId"
+          :tableName="'product_brands'"
+          :rowId="editId"
+          :fields="[
+            { key: 'name', label: 'Tên thương hiệu', type: 'text' },
+            { key: 'description', label: 'Mô tả', type: 'textarea' },
+          ]"
+          :defaultValues="{ name: form.name, description: form.description }"
+          :moduleActive="languagesInstalled"
+        />
       </div>
     </div>
   </div>
@@ -48,9 +61,12 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Award, Edit3, Trash2 } from 'lucide-vue-next'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
 
 const { showToast } = useToast()
-const props = defineProps({ /* tenant-scoped */ })
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 
 const brands = ref([])
 const showModal = ref(false)

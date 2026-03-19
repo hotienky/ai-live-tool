@@ -69,14 +69,14 @@
             <td>{{ formatDate(order.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" title="Xác nhận"><CheckCircle :size="15" /></button>
-                <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" title="Tạo vận đơn" class="btn-ship"><Send :size="15" /></button>
-                <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" title="Giao hàng"><Truck :size="15" /></button>
-                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" title="Đã giao"><Package :size="15" /></button>
-                <button v-if="order.paymentStatus === 'unpaid'" @click.stop="updatePayment(order, 'paid')" title="Đã thanh toán" class="btn-pay"><DollarSign :size="15" /></button>
-                <button v-if="order.paymentStatus === 'paid'" @click.stop="updatePayment(order, 'refunded')" title="Hoàn tiền" class="btn-refund"><RotateCcw :size="15" /></button>
-                <button @click.stop="printInvoice(order)" title="In hóa đơn"><Printer :size="15" /></button>
-                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" title="Hủy"><XCircle :size="15" /></button>
+                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" class="act-btn act-confirm"><CheckCircle :size="14" /> Xác nhận</button>
+                <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" class="act-btn act-ship"><Send :size="14" /> Vận đơn</button>
+                <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" class="act-btn act-shipping"><Truck :size="14" /> Giao</button>
+                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" class="act-btn act-delivered"><Package :size="14" /> Đã giao</button>
+                <button v-if="order.paymentStatus === 'unpaid'" @click.stop="updatePayment(order, 'paid')" class="act-btn act-pay"><DollarSign :size="14" /> Thu tiền</button>
+                <button v-if="order.paymentStatus === 'paid'" @click.stop="updatePayment(order, 'refunded')" class="act-btn act-refund"><RotateCcw :size="14" /> Hoàn</button>
+                <button @click.stop="printInvoice(order)" class="act-btn act-print"><Printer :size="14" /> In</button>
+                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" class="act-btn act-cancel"><XCircle :size="14" /> Hủy</button>
               </div>
             </td>
           </tr>
@@ -401,7 +401,16 @@ async function fetchStats() {
   try {
     let url = `/orders/stats`
     const res = await apiFetch(url)
-    stats.value = await res.json()
+    const json = await res.json()
+    const d = json.data || json
+    const total = d.total || 0
+    const delivered = d.delivered || 0
+    stats.value = {
+      totalOrders: total,
+      totalRevenue: d.revenue || 0,
+      paidRevenue: d.paid_revenue || d.paidRevenue || 0,
+      conversionRate: total > 0 ? Math.round((delivered / total) * 100) : 0,
+    }
   } catch { /* silent */ }
 }
 
@@ -644,18 +653,29 @@ tr:hover { background: var(--color-accent-glow); }
 .payment-badge.paid { background: rgba(16,185,129,0.1); color: #86efac; }
 .payment-badge.refunded { background: rgba(168,85,247,0.1); color: #c4b5fd; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button {
-  background: none; border: none; cursor: pointer; font-size: 16px;
-  padding: 4px; opacity: 0.5; transition: all 0.2s;
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.act-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 6px; border: none;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
 }
-.action-btns button:hover { opacity: 1; transform: scale(1.15); }
-.action-btns .btn-ship { color: #60a5fa; opacity: 0.8; }
-.action-btns .btn-ship:hover { color: #3b82f6; opacity: 1; }
-.action-btns .btn-pay { color: #34d399; opacity: 0.8; }
-.action-btns .btn-pay:hover { color: #10b981; opacity: 1; }
-.action-btns .btn-refund { color: #c4b5fd; opacity: 0.8; }
-.action-btns .btn-refund:hover { color: var(--accent-light); opacity: 1; }
+.act-confirm { background: rgba(16,185,129,0.12); color: #34d399; }
+.act-confirm:hover { background: rgba(16,185,129,0.25); }
+.act-ship { background: rgba(59,130,246,0.12); color: #60a5fa; }
+.act-ship:hover { background: rgba(59,130,246,0.25); }
+.act-shipping { background: rgba(6,182,212,0.12); color: #22d3ee; }
+.act-shipping:hover { background: rgba(6,182,212,0.25); }
+.act-delivered { background: rgba(34,197,94,0.12); color: #86efac; }
+.act-delivered:hover { background: rgba(34,197,94,0.25); }
+.act-pay { background: rgba(52,211,153,0.12); color: #34d399; }
+.act-pay:hover { background: rgba(52,211,153,0.25); }
+.act-refund { background: rgba(168,85,247,0.12); color: #c4b5fd; }
+.act-refund:hover { background: rgba(168,85,247,0.25); }
+.act-print { background: rgba(148,163,184,0.12); color: #94a3b8; }
+.act-print:hover { background: rgba(148,163,184,0.25); }
+.act-cancel { background: rgba(239,68,68,0.12); color: #fca5a5; }
+.act-cancel:hover { background: rgba(239,68,68,0.25); }
 
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;

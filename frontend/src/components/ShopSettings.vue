@@ -221,17 +221,17 @@
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <ProductManager />
+        <ProductManager :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
       <!-- ═══ Tab: Categories ═══ -->
       <div v-if="activeTab === 'categories'" class="settings__panel">
-        <CategoryManager />
+        <CategoryManager :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
       <!-- ═══ Tab: Brands ═══ -->
       <div v-if="activeTab === 'brands'" class="settings__panel">
-        <BrandManager />
+        <BrandManager :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
       <!-- ═══ Tab: Keywords ═══ -->
@@ -371,7 +371,13 @@
 
       <!-- ═══ Tab: CMS Pages (Plugin) ═══ -->
       <div v-if="activeTab === 'cms'" class="settings__panel">
-        <PluginRenderer moduleId="cms" tabKey="cms" />
+        <CmsPageForm
+          v-if="cmsFormMode"
+          :pageId="cmsFormMode === 'edit' ? cmsFormEditId : null"
+          :languagesInstalled="isModuleInstalled('languages')"
+          @navigate="onCmsFormNavigate"
+        />
+        <PluginRenderer v-else moduleId="cms" tabKey="cms" @navigate="onCmsNavigate" />
       </div>
 
       <!-- ═══ Tab: Storefront Layout ═══ -->
@@ -381,7 +387,7 @@
 
       <!-- ═══ Tab: Banners ═══ -->
       <div v-if="activeTab === 'banners'" class="settings__panel">
-        <BannerManager />
+        <BannerManager :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
 
@@ -512,6 +518,7 @@ import PluginRenderer from './PluginRenderer.vue'
 import ProductManager from './ProductManager.vue'
 import CategoryManager from './CategoryManager.vue'
 import BrandManager from './BrandManager.vue'
+import CmsPageForm from './CmsPageForm.vue'
 import RoleManager from './RoleManager.vue'
 import SystemConfigPanel from './SystemConfigPanel.vue'
 import ApiKeyManager from './ApiKeyManager.vue'
@@ -545,6 +552,33 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['openShopSelector', 'navigate'])
+
+// CMS form state
+const cmsFormMode = ref(null) // null = list, 'create', 'edit'
+const cmsFormEditId = ref(null)
+
+// Handle navigate from CMS plugin list
+function onCmsNavigate(route) {
+  if (route === 'shop/cms/create') {
+    cmsFormMode.value = 'create'
+    cmsFormEditId.value = null
+  } else if (route.startsWith('shop/cms/edit/')) {
+    const id = route.replace('shop/cms/edit/', '')
+    cmsFormMode.value = 'edit'
+    cmsFormEditId.value = id
+  } else {
+    emit('navigate', route)
+  }
+}
+// Handle navigate from CmsPageForm (go back to list)
+function onCmsFormNavigate(route) {
+  if (route === 'shop/cms') {
+    cmsFormMode.value = null
+    cmsFormEditId.value = null
+  } else {
+    emit('navigate', route)
+  }
+}
 
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 const { can, canAny, isSuperAdmin } = usePermissions()
@@ -802,6 +836,9 @@ function onModulesChanged(newInstalled) {
 function isPluginTab(tabKey) {
   const moduleId = moduleTabMap[tabKey]
   if (!moduleId) return false
+  return installedModules.value.includes(moduleId)
+}
+function isModuleInstalled(moduleId) {
   return installedModules.value.includes(moduleId)
 }
 

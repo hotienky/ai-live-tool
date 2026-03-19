@@ -82,11 +82,11 @@
             <td>{{ formatDate(s.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button @click="openStatusModal(s)" title="Cập nhật TT"><RefreshCw :size="14" /></button>
-                <button @click="openTrackingModal(s)" title="Theo dõi"><MapPin :size="14" /></button>
-                <button @click="printShipmentLabel(s)" title="In phiếu gửi"><Printer :size="14" /></button>
-                <button v-if="!['delivered','cancelled'].includes(s.status)" @click="cancelShipment(s)" title="Hủy VĐ" class="btn-danger"><XCircle :size="14" /></button>
-                <button v-if="s.status === 'draft'" @click="deleteShipment(s)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-edit" @click="openStatusModal(s)"><RefreshCw :size="13" /> Cập nhật</button>
+                <button class="act-btn act-ship" @click="openTrackingModal(s)"><MapPin :size="13" /> Theo dõi</button>
+                <button class="act-btn act-print" @click="printShipmentLabel(s)"><Printer :size="13" /> In</button>
+                <button v-if="!['delivered','cancelled'].includes(s.status)" class="act-btn act-cancel" @click="cancelShipment(s)"><XCircle :size="13" /> Hủy</button>
+                <button v-if="s.status === 'draft'" class="act-btn act-cancel" @click="deleteShipment(s)"><Trash2 :size="13" /> Xóa</button>
               </div>
             </td>
           </tr>
@@ -702,13 +702,7 @@ tr:hover { background: var(--color-accent-glow); }
 .status-badge.returned { background: rgba(239,68,68,0.1); color: #fca5a5; }
 .status-badge.cancelled { background: rgba(239,68,68,0.1); color: #f87171; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button {
-  background: none; border: none; cursor: pointer; padding: 5px;
-  color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px;
-}
-.action-btns button:hover { opacity: 1; transform: scale(1.1); color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-danger:hover { color: #f87171; background: rgba(248,113,113,0.06); }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .empty { text-align: center; color: var(--color-text-muted); padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }

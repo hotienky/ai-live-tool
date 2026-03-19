@@ -376,6 +376,20 @@
               <component :is="icons.Save" :size="14" /> {{ isEditing ? 'Cập nhật' : 'Tạo liên kết' }}
             </button>
           </div>
+
+          <!-- Multi-language -->
+          <div style="padding: 0 24px 20px;">
+            <ContentTranslationEditor
+              v-if="isEditing && editId"
+              :tableName="'nav_links'"
+              :rowId="editId"
+              :fields="[
+                { key: 'name', label: 'Tên hiển thị', type: 'text' },
+              ]"
+              :defaultValues="{ name: form.name }"
+              :moduleActive="languagesInstalled"
+            />
+          </div>
         </div>
       </div>
     </Teleport>
@@ -387,6 +401,7 @@ import { ref, computed, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useToast } from '../composables/useToast.js'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
 import {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
   Search, Heart, User, Settings, Bell, Mail, MapPin, Globe,
@@ -420,6 +435,9 @@ const icons = {
 const availableIcons = Object.keys(icons).filter(n => !['ChevronDown', 'CircleDashed', 'Menu', 'Plus', 'X', 'Pencil', 'Trash2', 'Save', 'ArrowDown', 'ArrowUp', 'GripVertical', 'PanelBottom', 'Navigation'].includes(n))
 
 const { showToast } = useToast()
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 const { links, loading, fetchLinks, createLink, updateLink, deleteLink } = useNavLinks(apiFetch)
 
 const activeTab = ref('header')

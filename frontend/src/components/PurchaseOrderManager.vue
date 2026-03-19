@@ -45,11 +45,11 @@
             <td class="date">{{ formatDate(po.expected_date) }}</td>
             <td>
               <div class="action-btns">
-                <button @click="viewPO(po)" title="Xem"><Eye :size="14" /></button>
-                <button v-if="po.status === 'draft'" @click="sendPO(po)" title="Đặt hàng" class="btn-send"><Send :size="14" /></button>
-                <button v-if="['ordered','partial'].includes(po.status)" @click="openReceive(po)" title="Nhận hàng" class="btn-confirm"><PackageCheck :size="14" /></button>
-                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" @click="cancelPO(po)" title="Hủy" class="btn-danger"><X :size="14" /></button>
-                <button v-if="po.status === 'draft'" @click="deletePO(po)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> Đặt hàng</button>
+                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> Nhận hàng</button>
+                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> Hủy</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> Xóa</button>
               </div>
             </td>
           </tr>
@@ -456,12 +456,7 @@ tr:hover { background: var(--color-accent-glow); }
 .pay-badge.partial { background: rgba(251,191,36,0.08); color: #fbbf24; }
 .pay-badge.paid { background: rgba(52,211,153,0.08); color: #34d399; }
 
-.action-btns { display: flex; gap: 4px; }
-.action-btns button { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px; }
-.action-btns button:hover { opacity: 1; color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-send:hover { color: #60a5fa; }
-.action-btns .btn-confirm:hover { color: #34d399; }
-.action-btns .btn-danger:hover { color: #f87171; }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 
 .empty { text-align: center; padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }

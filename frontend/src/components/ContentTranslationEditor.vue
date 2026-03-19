@@ -1,5 +1,5 @@
 <template>
-  <div class="content-trans" v-if="languages.length > 1">
+  <div class="content-trans" v-if="moduleActive && languages.length > 1">
     <div class="trans-header">
       <Globe :size="15" />
       <span class="trans-label">Nội dung đa ngôn ngữ</span>
@@ -12,38 +12,60 @@
         v-for="lang in languages"
         :key="lang.id"
         class="trans-tab"
-        :class="{ active: activeLangId === lang.id }"
-        @click="activeLangId = lang.id"
+        :class="{ active: activeLangCode === lang.code }"
+        @click="activeLangCode = lang.code"
       >
-        <span v-if="lang.icon" class="tab-icon">{{ lang.icon }}</span>
+        <span class="tab-code">{{ lang.code.toUpperCase() }}</span>
         {{ lang.name }}
         <span v-if="lang.is_default" class="tab-default">●</span>
       </button>
     </div>
 
     <!-- Translation Fields per Language -->
-    <div class="trans-fields" v-for="lang in languages" :key="'f-' + lang.id" v-show="activeLangId === lang.id">
+    <div class="trans-fields" v-for="lang in languages" :key="'f-' + lang.code" v-show="activeLangCode === lang.code">
       <div class="trans-field" v-for="field in fields" :key="field.key">
         <label class="trans-field__label">
           {{ field.label }}
           <span v-if="lang.is_default" class="trans-field__hint">(ngôn ngữ mặc định)</span>
+          <!-- Auto-translate button (optional) -->
+          <button
+            v-if="!lang.is_default && getDefaultValue(field.key)"
+            class="trans-auto-btn"
+            :disabled="translatingKey === `${lang.code}-${field.key}`"
+            @click="autoTranslateField(lang, field)"
+            title="Dịch tự động từ ngôn ngữ mặc định"
+          >
+            <Languages :size="12" />
+            {{ translatingKey === `${lang.code}-${field.key}` ? 'Đang dịch...' : 'Dịch tự động' }}
+          </button>
         </label>
         <textarea
           v-if="field.type === 'textarea'"
           class="trans-field__input trans-field__textarea"
-          :value="getFieldValue(lang.id, field.key)"
-          @input="setFieldValue(lang.id, field.key, $event.target.value)"
+          :value="getFieldValue(lang.code, field.key)"
+          @input="setFieldValue(lang.code, field.key, $event.target.value)"
           :placeholder="getDefaultValue(field.key) || field.label"
           rows="3"
         ></textarea>
         <input
           v-else
           class="trans-field__input"
-          :value="getFieldValue(lang.id, field.key)"
-          @input="setFieldValue(lang.id, field.key, $event.target.value)"
+          :value="getFieldValue(lang.code, field.key)"
+          @input="setFieldValue(lang.code, field.key, $event.target.value)"
           :placeholder="getDefaultValue(field.key) || field.label"
         />
       </div>
+
+      <!-- Translate all fields button -->
+      <button
+        v-if="!lang.is_default && hasDefaultValues"
+        class="trans-all-btn"
+        :disabled="translatingAll"
+        @click="autoTranslateAll(lang)"
+      >
+        <Languages :size="14" />
+        {{ translatingAll ? 'Đang dịch tất cả...' : 'Dịch tự động tất cả' }}
+      </button>
     </div>
 
     <!-- Save button -->
@@ -57,7 +79,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { Globe, Save } from 'lucide-vue-next'
+import { Globe, Save, Languages } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 
@@ -76,41 +98,58 @@ const props = defineProps({
     default: () => ({}),
     // { name: 'Áo thun', description: 'Mô tả...' } — values from the base record (default language)
   },
+  moduleActive: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['saved'])
 
 const languages = ref([])
-const activeLangId = ref(null)
-const translations = ref({}) // { langId: { fieldName: value } }
+const activeLangCode = ref(null)
+const translations = ref({}) // { locale: { fieldName: value } }
 const originalTranslations = ref({})
 const saving = ref(false)
+const translatingKey = ref(null)
+const translatingAll = ref(false)
+
+// Find default language code
+const defaultLangCode = computed(() => {
+  const def = languages.value.find(l => l.is_default)
+  return def?.code || 'vi'
+})
+
+const hasDefaultValues = computed(() => {
+  return props.fields.some(f => !!props.defaultValues?.[f.key])
+})
 
 const hasChanges = computed(() => {
   return JSON.stringify(translations.value) !== JSON.stringify(originalTranslations.value)
 })
 
-function getFieldValue(langId, fieldKey) {
-  return translations.value[langId]?.[fieldKey] || ''
+function getFieldValue(langCode, fieldKey) {
+  return translations.value[langCode]?.[fieldKey] || ''
 }
 
 function getDefaultValue(fieldKey) {
   return props.defaultValues?.[fieldKey] || ''
 }
 
-function setFieldValue(langId, fieldKey, value) {
-  if (!translations.value[langId]) translations.value[langId] = {}
-  translations.value[langId][fieldKey] = value
+function setFieldValue(langCode, fieldKey, value) {
+  if (!translations.value[langCode]) translations.value[langCode] = {}
+  translations.value[langCode][fieldKey] = value
 }
 
 async function loadLanguages() {
   try {
-    const data = await apiFetch('/languages')
-    languages.value = Array.isArray(data) ? data.filter(l => l.is_active) : []
+    const res = await apiFetch('/languages')
+    const json = await res.json()
+    const data = json?.data || json
+    languages.value = Array.isArray(data) ? data : []
     if (languages.value.length > 0) {
-      // Default to first non-default language (for editing translations)
       const nonDefault = languages.value.find(l => !l.is_default)
-      activeLangId.value = nonDefault?.id || languages.value[0].id
+      activeLangCode.value = nonDefault?.code || languages.value[0].code
     }
   } catch { languages.value = [] }
 }
@@ -118,7 +157,10 @@ async function loadLanguages() {
 async function loadTranslations() {
   if (!props.rowId || props.rowId === 'new') return
   try {
-    const data = await apiFetch(`/languages/content/${props.tableName}/${props.rowId}`)
+    const res = await apiFetch(`/languages/content/${props.tableName}/${props.rowId}`)
+    if (!res.ok) return
+    const json = await res.json()
+    const data = json?.data || json
     if (data?.grouped) {
       translations.value = JSON.parse(JSON.stringify(data.grouped))
       originalTranslations.value = JSON.parse(JSON.stringify(data.grouped))
@@ -129,18 +171,66 @@ async function loadTranslations() {
 async function saveTranslations() {
   saving.value = true
   try {
-    await apiFetch(`/languages/content/${props.tableName}/${props.rowId}`, {
+    const res = await apiFetch(`/languages/content/${props.tableName}/${props.rowId}`, {
       method: 'PUT',
       body: JSON.stringify({ translations: translations.value }),
     })
+    if (!res.ok) {
+      const err = await res.json().catch(() => null)
+      throw new Error(err?.error || err?.message || 'Server error')
+    }
     originalTranslations.value = JSON.parse(JSON.stringify(translations.value))
     showToast('Đã lưu bản dịch', 'success')
     emit('saved')
   } catch (e) {
-    showToast('Lỗi lưu bản dịch', 'error')
+    showToast('Lỗi lưu bản dịch: ' + (e?.message || ''), 'error')
   } finally {
     saving.value = false
   }
+}
+
+// Auto-translate a single field
+async function autoTranslateField(lang, field) {
+  const text = getDefaultValue(field.key)
+  if (!text) return
+  translatingKey.value = `${lang.code}-${field.key}`
+  try {
+    const res = await apiFetch('/languages/auto-translate', {
+      method: 'POST',
+      body: JSON.stringify({ text, from: defaultLangCode.value, to: lang.code }),
+    })
+    const json = await res.json()
+    const translated = json?.data?.translated || json?.translated
+    if (translated) {
+      setFieldValue(lang.code, field.key, translated)
+    }
+  } catch (e) {
+    showToast('Lỗi dịch tự động', 'error')
+  } finally {
+    translatingKey.value = null
+  }
+}
+
+// Auto-translate all fields for a language
+async function autoTranslateAll(lang) {
+  translatingAll.value = true
+  for (const field of props.fields) {
+    const text = getDefaultValue(field.key)
+    if (!text) continue
+    try {
+      const res = await apiFetch('/languages/auto-translate', {
+        method: 'POST',
+        body: JSON.stringify({ text, from: defaultLangCode.value, to: lang.code }),
+      })
+      const json = await res.json()
+      const translated = json?.data?.translated || json?.translated
+      if (translated) {
+        setFieldValue(lang.code, field.key, translated)
+      }
+    } catch { /* skip */ }
+  }
+  translatingAll.value = false
+  showToast('Đã dịch tự động tất cả', 'success')
 }
 
 onMounted(async () => {
@@ -188,12 +278,17 @@ watch(() => props.rowId, async () => {
   border-color: var(--color-accent-primary);
   background: var(--color-accent-glow);
 }
-.tab-icon { font-size: 16px; }
+.tab-code {
+  font-size: 10px; font-weight: 800; padding: 1px 6px;
+  background: var(--color-bg-card-solid); border-radius: 4px;
+  color: var(--color-text-muted); font-family: monospace;
+}
 .tab-default { color: #f59e0b; font-size: 8px; }
 
 .trans-fields { display: flex; flex-direction: column; gap: 12px; }
 .trans-field__label {
-  display: block; font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700;
   color: var(--color-text-secondary); margin-bottom: 6px;
 }
 .trans-field__hint { font-weight: 400; color: var(--color-text-muted); }
@@ -207,6 +302,31 @@ watch(() => props.rowId, async () => {
 .trans-field__input:focus { outline: none; border-color: var(--color-accent-primary); }
 .trans-field__input::placeholder { color: var(--color-text-muted); }
 .trans-field__textarea { resize: vertical; min-height: 60px; }
+
+/* Auto-translate button */
+.trans-auto-btn {
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  background: rgba(99,102,241,0.08); color: #6366f1;
+  border: 1px solid rgba(99,102,241,0.2);
+  transition: all 0.2s;
+}
+.trans-auto-btn:hover { background: rgba(99,102,241,0.15); }
+.trans-auto-btn:disabled { opacity: 0.5; cursor: wait; }
+
+.trans-all-btn {
+  margin-top: 12px; align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 18px; border-radius: 8px;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+  border: none; box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  transition: all 0.2s;
+}
+.trans-all-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.4); }
+.trans-all-btn:disabled { opacity: 0.6; cursor: wait; transform: none; }
 
 .trans-save { display: flex; justify-content: flex-end; margin-top: 16px; }
 .trans-save-btn {

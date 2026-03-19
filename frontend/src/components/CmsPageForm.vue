@@ -47,6 +47,19 @@
             </div>
           </div>
         </div>
+
+        <!-- Multi-language (gated by languages module) -->
+        <ContentTranslationEditor
+          v-if="isEditing && pageId"
+          :tableName="'cms_pages'"
+          :rowId="pageId"
+          :fields="[
+            { key: 'title', label: 'Tiêu đề', type: 'text' },
+            { key: 'content', label: 'Nội dung', type: 'textarea' },
+          ]"
+          :defaultValues="{ title: form.title, content: form.content }"
+          :moduleActive="languagesInstalled"
+        />
       </div>
 
       <!-- Right Column: Metadata -->
@@ -88,12 +101,14 @@ import { ArrowLeft, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useToast } from '../composables/useToast.js'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
 
 const { showToast } = useToast()
 const { fetchPage, createPage, updatePage } = useCmsPages(apiFetch)
 
 const props = defineProps({
   pageId: { type: [String, Number], default: null },
+  languagesInstalled: { type: Boolean, default: false },
 })
 const emit = defineEmits(['navigate'])
 

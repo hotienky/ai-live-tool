@@ -26,8 +26,8 @@
             <td><span class="status-dot" :class="s.is_active ? 'active' : 'inactive'"></span></td>
             <td>
               <div class="action-btns">
-                <button @click="openEdit(s)" title="Sửa"><Edit :size="14" /></button>
-                <button @click="deleteSupplier(s)" title="Xóa" class="btn-danger"><Trash2 :size="14" /></button>
+                <button class="act-btn act-edit" @click="openEdit(s)"><Edit :size="13" /> Sửa</button>
+                <button class="act-btn act-cancel" @click="deleteSupplier(s)"><Trash2 :size="13" /> Xóa</button>
               </div>
             </td>
           </tr>
@@ -156,10 +156,7 @@ tr:hover { background: var(--color-accent-glow); }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 .status-dot.active { background: #34d399; }
 .status-dot.inactive { background: #f87171; }
-.action-btns { display: flex; gap: 4px; }
-.action-btns button { background: none; border: none; cursor: pointer; padding: 5px; color: var(--color-text-muted); opacity: 0.6; transition: all 0.2s; border-radius: 6px; }
-.action-btns button:hover { opacity: 1; color: var(--color-text-primary); background: var(--color-accent-glow); }
-.action-btns .btn-danger:hover { color: #f87171; background: rgba(248,113,113,0.06); }
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
 .empty { text-align: center; padding: 40px; }
 .empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .empty-state__icon { color: var(--color-text-muted); opacity: 0.4; }

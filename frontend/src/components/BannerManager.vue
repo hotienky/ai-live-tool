@@ -48,8 +48,8 @@
           <a v-if="b.url" :href="b.url" target="_blank" class="bm-url">{{ b.url }}</a>
         </div>
         <div class="bm-card__actions">
-          <button class="btn-sm btn-edit" @click="openEdit(b)">Sửa</button>
-          <button class="btn-sm btn-del" @click="handleDelete(b)">×</button>
+          <button class="act-btn act-edit" @click="openEdit(b)">Sửa</button>
+          <button class="act-btn act-cancel" @click="handleDelete(b)">Xóa</button>
         </div>
       </div>
     </div>
@@ -83,6 +83,19 @@
           <button class="btn-cancel" @click="showModal = false">Hủy</button>
           <button class="btn-save" @click="handleSave">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
         </div>
+
+        <!-- Multi-language -->
+        <ContentTranslationEditor
+          v-if="isEditing && editId"
+          :tableName="'banners'"
+          :rowId="editId"
+          :fields="[
+            { key: 'title', label: 'Tiêu đề', type: 'text' },
+            { key: 'description', label: 'Mô tả', type: 'textarea' },
+          ]"
+          :defaultValues="{ title: form.title, description: form.description || '' }"
+          :moduleActive="languagesInstalled"
+        />
       </div>
     </div>
   </div>
@@ -94,7 +107,12 @@ import { apiFetch } from '../composables/useApi.js'
 import { useBanners } from '../composables/useBanners.js'
 import { useToast } from '../composables/useToast.js'
 import { Image as ImageIcon, GripVertical } from 'lucide-vue-next'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
+
 const { showToast } = useToast()
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 const { banners, loading, fetchBanners, createBanner, updateBanner, deleteBanner } = useBanners(apiFetch)
 
 const filterType = ref('')

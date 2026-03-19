@@ -1,7 +1,7 @@
 <template>
   <div class="plugin-renderer">
     <!-- Plugin loaded → render its component -->
-    <component v-if="pluginComp" :is="pluginComp" />
+    <component v-if="pluginComp" :is="pluginComp" @navigate="(route) => emit('navigate', route)" />
 
     <!-- Loading state -->
     <div v-else-if="isLoading" class="plugin-renderer__loading">
@@ -33,6 +33,7 @@ const props = defineProps({
   moduleId: { type: String, required: true },
   tabKey: { type: String, required: true },
 })
+const emit = defineEmits(['navigate'])
 
 const { loadPlugin, getPluginComponent } = usePluginLoader()
 

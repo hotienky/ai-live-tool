@@ -60,8 +60,8 @@
               </span>
             </td>
             <td class="td-actions">
-              <button class="btn-sm btn-edit" @click="openEdit(p)"><Edit3 :size="13" /></button>
-              <button class="btn-sm btn-del" @click="handleDelete(p)"><Trash2 :size="13" /></button>
+              <button class="act-btn act-edit" @click="openEdit(p)"><Edit3 :size="13" /> Sửa</button>
+              <button class="act-btn act-cancel" @click="handleDelete(p)"><Trash2 :size="13" /> Xóa</button>
             </td>
           </tr>
         </tbody>
@@ -158,6 +158,21 @@
               <input v-model="form.meta_keywords" placeholder="keyword1, keyword2, ..." />
             </div>
           </div>
+
+          <!-- Multi-language Content (gated by languages module) -->
+          <ContentTranslationEditor
+            v-if="isEditing && editId"
+            :tableName="'products'"
+            :rowId="editId"
+            :fields="[
+              { key: 'name', label: 'Tên sản phẩm', type: 'text' },
+              { key: 'description', label: 'Mô tả', type: 'textarea' },
+              { key: 'meta_title', label: 'Meta Title', type: 'text' },
+              { key: 'meta_description', label: 'Meta Description', type: 'textarea' },
+            ]"
+            :defaultValues="{ name: form.name, description: form.description, meta_title: form.meta_title, meta_description: form.meta_description }"
+            :moduleActive="languagesInstalled"
+          />
 
           <!-- Variants Section -->
           <div class="form-card">
@@ -290,9 +305,12 @@ import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { ShoppingBag, Search, Package, Minus, Plus, Edit3, Trash2, ChevronLeft, ChevronRight, Layers } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
 
 const { showToast } = useToast()
-const props = defineProps({ /* tenant-scoped */ })
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 
 const products = ref([])
 const categories = ref([])

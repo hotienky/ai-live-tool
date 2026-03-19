@@ -29,9 +29,9 @@
             <td><span class="status-dot" :class="c.status === 1 ? 'active' : 'inactive'">{{ c.status === 1 ? 'Active' : 'Inactive' }}</span></td>
             <td>{{ formatDate(c.createdAt) }}</td>
             <td class="actions-cell">
-              <button class="btn-sm btn-edit" @click="openEdit(c)">Sửa</button>
-              <button class="btn-sm btn-addresses" @click="openAddresses(c)"><MapPin :size="12" /></button>
-              <button class="btn-sm btn-del" @click="handleDelete(c)">×</button>
+              <button class="act-btn act-edit" @click="openEdit(c)">Sửa</button>
+              <button class="act-btn act-ship" @click="openAddresses(c)"><MapPin :size="13" /> Địa chỉ</button>
+              <button class="act-btn act-cancel" @click="handleDelete(c)">Xóa</button>
             </td>
           </tr>
         </tbody>
@@ -77,7 +77,7 @@
               <div class="address-detail">{{ a.address1 }}, {{ a.district }}, {{ a.city }}, {{ a.province }}</div>
             </div>
             <div class="address-actions">
-              <button class="btn-sm btn-del" @click="handleDeleteAddress(a.id)">×</button>
+              <button class="act-btn act-cancel" @click="handleDeleteAddress(a.id)">Xóa</button>
             </div>
           </div>
         </div>

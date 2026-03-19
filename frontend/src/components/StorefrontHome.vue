@@ -17,9 +17,17 @@
       </nav>
       <div class="sf-header__search" v-if="headerConfig.showSearch !== false">
         <Search :size="16" />
-        <input v-model="search" type="text" placeholder="Tìm sản phẩm..." class="sf-search-input" @keyup.enter="doSearch" />
+        <input v-model="search" type="text" :placeholder="t('search_placeholder')" class="sf-search-input" @keyup.enter="doSearch" />
       </div>
       <div class="sf-header__right">
+        <!-- Language Selector (only if >1 language) -->
+        <div class="sf-lang-selector" v-if="availableLanguages.length > 1">
+          <select v-model="currentLocale" @change="onLocaleChange" class="sf-lang-select">
+            <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+              {{ lang.code.toUpperCase() }} — {{ lang.name }}
+            </option>
+          </select>
+        </div>
         <button class="sf-header__btn" @click="$emit('navigate', 'cart')">
           <ShoppingCart :size="18" />
           <span class="sf-cart-count" v-if="cartCount > 0">{{ cartCount }}</span>
@@ -44,10 +52,10 @@
           </a>
           <div class="sf-mobile-nav__divider"></div>
           <a class="sf-mobile-nav__link" href="#" @click.prevent="$emit('navigate', 'cart'); mobileMenuOpen = false">
-            <ShoppingCart :size="16" /> Giỏ hàng
+            <ShoppingCart :size="16" /> {{ t('cart') }}
           </a>
           <a class="sf-mobile-nav__link" href="#" @click.prevent="$emit('navigate', 'account'); mobileMenuOpen = false">
-            <User :size="16" /> Tài khoản
+            <User :size="16" /> {{ t('account') }}
           </a>
         </nav>
       </div>
@@ -56,7 +64,7 @@
     <!-- Loading State -->
     <div class="sf-loading" v-if="loading">
       <Loader2 :size="32" class="spin" />
-      <p>Đang tải...</p>
+      <p>{{ t('loading') }}</p>
     </div>
 
     <!-- Dynamic Section Renderer -->
@@ -90,7 +98,7 @@
         <SfProductGridSection
           v-if="section.type === 'featured_products'"
           :products="sectionData.featuredProducts"
-          :title="section.params?.title || 'Sản phẩm nổi bật'"
+          :title="section.params?.title || t('featured_products')"
           :config="section.params || {}"
           @viewProduct="(id) => $emit('viewProduct', id)"
         />
@@ -99,7 +107,7 @@
         <SfProductGridSection
           v-if="section.type === 'new_arrivals'"
           :products="sectionData.newArrivals"
-          :title="section.params?.title || 'Hàng mới về'"
+          :title="section.params?.title || t('new_arrivals')"
           :config="section.params || {}"
           @viewProduct="(id) => $emit('viewProduct', id)"
         />
@@ -173,6 +181,56 @@ const storeInfo = ref(null)
 const search = ref('')
 const mobileMenuOpen = ref(false)
 
+// Multi-language
+const availableLanguages = ref([])
+const currentLocale = ref(localStorage.getItem('sf_locale') || '')
+
+function onLocaleChange() {
+  localStorage.setItem('sf_locale', currentLocale.value)
+  // Load UI translations for the new locale
+  loadUiTranslations()
+  // Re-fetch content with new locale
+  bootstrap()
+}
+
+// ── UI Translations ──
+const defaultUiStrings = {
+  search_placeholder: 'Tìm sản phẩm...',
+  cart: 'Giỏ hàng',
+  account: 'Tài khoản',
+  loading: 'Đang tải...',
+  featured_products: 'Sản phẩm nổi bật',
+  new_arrivals: 'Hàng mới về',
+}
+const uiStrings = ref({ ...defaultUiStrings })
+
+function t(key) {
+  return uiStrings.value[key] || defaultUiStrings[key] || key
+}
+
+async function loadUiTranslations() {
+  const locale = currentLocale.value
+  if (!locale || availableLanguages.value.length <= 1) {
+    uiStrings.value = { ...defaultUiStrings }
+    return
+  }
+  // Check if this is the default language
+  const defaultLang = availableLanguages.value.find(l => l.is_default)
+  if (defaultLang && defaultLang.code === locale) {
+    uiStrings.value = { ...defaultUiStrings }
+    return
+  }
+  try {
+    const translations = await sfApiFetch(`/translations/${locale}`)
+    if (translations && typeof translations === 'object') {
+      // Merge: API translations override defaults
+      uiStrings.value = { ...defaultUiStrings, ...translations }
+    }
+  } catch {
+    uiStrings.value = { ...defaultUiStrings }
+  }
+}
+
 // Layout config from API
 const sections = ref([])
 const headerConfig = ref({})
@@ -211,7 +269,11 @@ const customCssVars = computed(() => {
 
 // API helpers
 async function sfApiFetch(path) {
-  const res = await fetch(`${API_BASE}/storefront${path}`, { headers: { 'Accept': 'application/json' } })
+  const headers = { 'Accept': 'application/json' }
+  if (currentLocale.value) {
+    headers['Accept-Language'] = currentLocale.value
+  }
+  const res = await fetch(`${API_BASE}/storefront${path}`, { headers })
   const json = await res.json()
   if (json && typeof json === 'object' && 'data' in json && json.type) return json.data
   return json
@@ -229,6 +291,17 @@ async function bootstrap() {
     footerConfig.value = config.layout?.footerConfig || {}
     customCss.value = config.layout?.customCss || ''
     navLinks.value = config.navLinks || []
+
+    // Languages
+    if (config.languages && config.languages.length > 0) {
+      availableLanguages.value = config.languages
+      if (!currentLocale.value) {
+        const def = config.languages.find(l => l.is_default)
+        currentLocale.value = def?.code || config.languages[0].code
+      }
+      // Load UI translations for current locale
+      loadUiTranslations()
+    }
 
     // Store categories from config (saves an extra API call)
     sectionData.value.categories = config.categories || []
@@ -344,6 +417,16 @@ watch(() => props.storeId, bootstrap)
   border-radius: 9px; background: var(--color-accent-hot, #ef4444); color: #fff;
   font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
+
+/* Language Selector */
+.sf-lang-selector { flex-shrink: 0; }
+.sf-lang-select {
+  padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+  background: var(--color-bg-card, #fff); color: var(--color-text-primary, #18181b);
+  cursor: pointer; outline: none; transition: border-color 0.2s;
+}
+.sf-lang-select:hover { border-color: var(--sf-accent, #7c3aed); }
 
 /* ── Mobile Nav Drawer ── */
 .sf-mobile-overlay {

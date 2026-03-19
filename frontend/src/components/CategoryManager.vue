@@ -24,8 +24,8 @@
           </span>
         </div>
         <div class="cm-card__actions">
-          <button class="btn-sm btn-edit" @click="openEdit(c)"><Edit3 :size="13" /></button>
-          <button class="btn-sm btn-del" @click="handleDelete(c)"><Trash2 :size="13" /></button>
+          <button class="act-btn act-edit" @click="openEdit(c)"><Edit3 :size="13" /> Sửa</button>
+          <button class="act-btn act-cancel" @click="handleDelete(c)"><Trash2 :size="13" /> Xóa</button>
         </div>
       </div>
     </div>
@@ -51,6 +51,20 @@
           </div>
           <div class="form-group"><label>Thứ tự</label><input v-model.number="form.sort" type="number" /></div>
         </div>
+
+        <!-- Multi-language (gated by languages module) -->
+        <ContentTranslationEditor
+          v-if="isEditing && editId"
+          :tableName="'categories'"
+          :rowId="editId"
+          :fields="[
+            { key: 'name', label: 'Tên danh mục', type: 'text' },
+            { key: 'description', label: 'Mô tả', type: 'textarea' },
+          ]"
+          :defaultValues="{ name: form.name, description: form.description }"
+          :moduleActive="languagesInstalled"
+        />
+
         <div class="modal-actions">
           <button class="btn-cancel" @click="showModal = false">Hủy</button>
           <button class="btn-save" @click="handleSave" :disabled="!form.name">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
@@ -65,9 +79,12 @@ import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { FolderOpen, Edit3, Trash2 } from 'lucide-vue-next'
+import ContentTranslationEditor from './ContentTranslationEditor.vue'
 
 const { showToast } = useToast()
-const props = defineProps({ /* tenant-scoped */ })
+const props = defineProps({
+  languagesInstalled: { type: Boolean, default: false },
+})
 
 const categories = ref([])
 const showModal = ref(false)

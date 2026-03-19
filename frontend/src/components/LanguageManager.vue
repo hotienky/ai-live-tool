@@ -153,7 +153,7 @@ async function addLanguage() {
   try {
     const res = await apiFetch('/languages', {
       method: 'POST',
-      body: JSON.stringify({ code: newCode.value, name: newName.value, isDefault: newIsDefault.value }),
+      body: JSON.stringify({ code: newCode.value, name: newName.value, is_default: newIsDefault.value }),
     })
     const json = await res.json()
     const lang = json?.data || json
@@ -190,7 +190,7 @@ async function setDefault(id) {
   try {
     await apiFetch(`/languages/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ isDefault: true }),
+      body: JSON.stringify({ is_default: true }),
     })
     languages.value.forEach(l => {
       l.isDefault = l.id === id

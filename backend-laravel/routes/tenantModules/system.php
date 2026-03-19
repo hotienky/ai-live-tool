@@ -89,6 +89,11 @@ Route::delete('/languages/{id}', [LanguagesController::class, 'destroy'])->middl
 Route::get('/languages/{id}/translations', [LanguagesController::class, 'getTranslations'])->middleware('permission:settings.view');
 Route::put('/languages/{id}/translations', [LanguagesController::class, 'updateTranslations'])->middleware('permission:settings.edit');
 
+// Content translations (products, categories, CMS pages)
+Route::get('/languages/content/{table}/{id}', [LanguagesController::class, 'getContent'])->middleware('permission:settings.view');
+Route::put('/languages/content/{table}/{id}', [LanguagesController::class, 'updateContent'])->middleware('permission:settings.edit');
+Route::post('/languages/auto-translate', [LanguagesController::class, 'autoTranslate'])->middleware('permission:settings.edit');
+
 // Custom Fields
 Route::get('/custom-fields', [CustomFieldsController::class, 'index'])->middleware('permission:settings.view');
 Route::post('/custom-fields', [CustomFieldsController::class, 'store'])->middleware('permission:settings.edit');
