@@ -44,6 +44,12 @@ class UpdateAction extends BaseAction
                 $data['slug'] = Str::slug($data['name']);
             }
 
+            // Convert keywords: frontend sends comma string, DB expects array
+            if (isset($data['keywords']) && is_string($data['keywords'])) {
+                $kw = array_filter(array_map('trim', explode(',', $data['keywords'])));
+                $data['keywords'] = array_values($kw);
+            }
+
             // Strip non-DB fields
             unset($data['category'], $data['brand'], $data['image'], $data['status'], $data['translations']);
 

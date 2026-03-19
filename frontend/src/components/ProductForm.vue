@@ -293,7 +293,7 @@ async function loadProductForEdit(id) {
   try {
     const res = await apiFetch(`/products/${id}`)
     const p = await res.json()
-    if (!p) {
+    if (!p || (p.type === 'error')) {
       showToast('Không tìm thấy sản phẩm', 'error')
       emit('back')
       return
@@ -303,11 +303,38 @@ async function loadProductForEdit(id) {
     const vars = p.variants ? (typeof p.variants === 'string' ? JSON.parse(p.variants) : p.variants) : []
     if (imgs.length === 0 && (p.image || p.image_url)) imgs.push(p.image || p.image_url)
 
+    // Resolve category name - API may return category as object {id, name, ...} or string or null
+    let categoryName = ''
+    if (p.category && typeof p.category === 'object') {
+      categoryName = p.category.name || ''
+    } else if (typeof p.category === 'string') {
+      categoryName = p.category
+    } else if (p.category_id && categories.value.length) {
+      const found = categories.value.find(c => c.id == p.category_id)
+      categoryName = found?.name || ''
+    }
+
+    // Resolve brand name - same logic
+    let brandName = ''
+    if (p.brand && typeof p.brand === 'object') {
+      brandName = p.brand.name || ''
+    } else if (typeof p.brand === 'string') {
+      brandName = p.brand
+    } else if (p.brand_id && brands.value.length) {
+      const found = brands.value.find(b => b.id == p.brand_id)
+      brandName = found?.name || ''
+    }
+
+    // Keywords: API returns array (cast), join to comma string for input
+    const keywordsStr = Array.isArray(p.keywords)
+      ? p.keywords.join(', ')
+      : (typeof p.keywords === 'string' ? p.keywords : '')
+
     form.value = {
       name: p.name || '', sku: p.sku || '', price: p.price || 0,
       promotion_price: p.promotion_price || '', promotion_start: p.promotion_start || '', promotion_end: p.promotion_end || '', stock: p.stock || 0,
-      category: p.category || '', brand: p.brand || '',
-      keywords: Array.isArray(p.keywords) ? p.keywords.join(', ') : (p.keywords || ''),
+      category: categoryName, brand: brandName,
+      keywords: keywordsStr,
       description: p.description || '',
       low_stock_threshold: p.low_stock_threshold || p.lowStockThreshold || 5,
       is_active: p.is_active ?? (p.status === 1 ? true : (p.status === 0 ? false : true)),
@@ -364,22 +391,24 @@ async function handleSave() {
       image: form.value.images.length > 0 ? form.value.images[0] : '',
     }
     if (isEditing.value) {
-      await apiFetch(`/products/${props.editId}`, { method: 'PUT', body: JSON.stringify(body) })
+      const res = await apiFetch(`/products/${props.editId}`, { method: 'PUT', body: JSON.stringify(body) })
+      await res.json() // throws if API returns type:error
       showToast('Đã cập nhật sản phẩm', 'success')
       emit('saved')
     } else {
-      const addedProduct = await apiFetch('/products', { method: 'POST', body: JSON.stringify(body) })
+      const res = await apiFetch('/products', { method: 'POST', body: JSON.stringify(body) })
+      const addedProduct = await res.json() // throws if API returns type:error
       showToast('Đã thêm sản phẩm', 'success')
-      emit('saved', addedProduct.id)
+      emit('saved', addedProduct?.id)
     }
   } catch (e) {
     showToast('Lỗi: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
-onMounted(() => {
-  fetchCategories()
-  fetchBrands()
+onMounted(async () => {
+  // Load categories and brands first so category_id can be resolved to name
+  await Promise.all([fetchCategories(), fetchBrands()])
   if (props.editId) {
     loadProductForEdit(props.editId)
   }

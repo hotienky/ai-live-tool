@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class SupportedLanguage extends Model
 {
-    protected $connection = null; // uses default (central) connection
+    protected $connection = 'master'; // Always use central DB, never tenant DB
 
     protected $guarded = ['id'];
 

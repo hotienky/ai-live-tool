@@ -42,6 +42,24 @@ class StoreAction extends BaseAction
             $data['is_active'] = $data['is_active'] ?? true;
             $data['is_featured'] = $data['is_featured'] ?? false;
 
+            // Convert keywords: frontend sends comma string, DB expects array
+            if (isset($data['keywords']) && is_string($data['keywords'])) {
+                $kw = array_filter(array_map('trim', explode(',', $data['keywords'])));
+                $data['keywords'] = array_values($kw);
+            }
+
+            // Map category name → category_id if needed
+            if (!isset($data['category_id']) && !empty($request->input('category'))) {
+                $cat = \App\Models\ProductCategory::where('name', $request->input('category'))->first();
+                $data['category_id'] = $cat?->id;
+            }
+
+            // Map brand name → brand_id if needed
+            if (!isset($data['brand_id']) && !empty($request->input('brand'))) {
+                $brand = \App\Models\ProductBrand::where('name', $request->input('brand'))->first();
+                $data['brand_id'] = $brand?->id;
+            }
+
             $product = $this->productRepository->store($data);
             $this->logActivity('product.created', 'product', $product->id, ['name' => $data['name'], 'sku' => $data['sku']]);
 

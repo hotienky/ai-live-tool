@@ -17,9 +17,13 @@
       <span v-if="hasError(lang.code)" class="lang-error">!</span>
     </button>
     <div class="lang-actions" v-if="modelValue && !activeLangIsDefault && baseData && fields">
-      <button class="btn-auto-translate" type="button" @click="doAutoTranslate" :disabled="isTranslating">
-        <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="14" :class="{ 'spin': isTranslating }" />
-        {{ isTranslating ? 'Đang dịch...' : 'Dịch tự động' }}
+      <button class="btn-auto-translate" type="button" @click="doAutoTranslate" :disabled="isTranslating" :class="{ translating: isTranslating }">
+        <span class="btn-ai-icon">
+          <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ 'spin': isTranslating }" />
+        </span>
+        <span class="btn-ai-text">{{ isTranslating ? 'Đang dịch...' : 'Dịch tự động' }}</span>
+        <span class="btn-ai-badge">AI</span>
+        <span class="btn-shimmer"></span>
       </button>
     </div>
   </div>
@@ -191,36 +195,94 @@ async function doAutoTranslate() {
   padding-bottom: 8px;
 }
 .btn-auto-translate {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: var(--color-accent-primary);
+  padding: 7px 14px 7px 10px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 40%, #ec4899 100%);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease;
+  overflow: hidden;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: all 0.25s ease;
+}
+.btn-auto-translate::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.3), rgba(255,255,255,0.0));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 .btn-auto-translate:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
-  filter: brightness(1.05);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5), 0 0 0 3px rgba(168, 85, 247, 0.15);
+  filter: brightness(1.08);
+}
+.btn-auto-translate:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 .btn-auto-translate:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  opacity: 0.75;
+}
+.btn-ai-icon {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.18);
+  border-radius: 50%;
+  padding: 3px;
+}
+.btn-ai-text {
+  position: relative;
+  z-index: 1;
+}
+.btn-ai-badge {
+  font-size: 9px;
+  font-weight: 800;
+  background: rgba(255,255,255,0.25);
+  border-radius: 6px;
+  padding: 1px 5px;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+}
+/* Shimmer sweep */
+.btn-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+.btn-auto-translate.translating .btn-shimmer {
+  animation: shimmer-sweep 1.2s linear infinite;
+}
+@keyframes shimmer-sweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 .spin {
   animation: spin 1s linear infinite;
 }
 @keyframes spin {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 </style>
