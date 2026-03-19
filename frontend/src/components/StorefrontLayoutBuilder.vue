@@ -80,6 +80,24 @@
           <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? 'Cấu hình trang' : (activePageId ? 'Sections trong trang' : 'Sections trang chủ') }}</h4>
           <!-- Builtin page config panel: shown instead of sections list -->
           <div v-if="activeBuiltinPage" class="builtin-page-config">
+            <!-- Language Tabs for i18n -->
+            <LanguageTabs v-model="builtinPageLang" :fields="['pageTitle', 'pageDescription']"
+              :translations="pageConfigs[activeBuiltinPage]?.translations || {}"
+              :base-data="{ pageTitle: pageConfigs[activeBuiltinPage]?.pageTitle || '', pageDescription: pageConfigs[activeBuiltinPage]?.pageDescription || '' }" />
+            <!-- i18n Fields: Page Title & Description -->
+            <div class="param-row"><label>Tiêu đề trang</label>
+              <input type="text" class="param-input param-input--wide"
+                :value="getPageConfigI18n(activeBuiltinPage, 'pageTitle')"
+                @input="setPageConfigI18n(activeBuiltinPage, 'pageTitle', $event.target.value)"
+                placeholder="Nhập tiêu đề trang..." />
+            </div>
+            <div class="param-row"><label>Mô tả trang</label>
+              <input type="text" class="param-input param-input--wide"
+                :value="getPageConfigI18n(activeBuiltinPage, 'pageDescription')"
+                @input="setPageConfigI18n(activeBuiltinPage, 'pageDescription', $event.target.value)"
+                placeholder="Nhập mô tả trang (tuỳ chọn)..." />
+            </div>
+            <div class="param-divider"></div>
             <!-- Products -->
             <template v-if="activeBuiltinPage === 'products'">
               <div class="param-row"><label>Sidebar</label>
@@ -243,6 +261,7 @@
           </div>
           <!-- Section List (sub-component) -->
           <LayoutSectionManager
+            v-show="!activeBuiltinPage"
             v-model:sections="sections"
             :section-meta="sectionMeta"
             :all-categories="allCategories"
@@ -359,6 +378,7 @@ import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
 import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
+import LanguageTabs from './LanguageTabs.vue'
 import { useToast } from '../composables/useToast.js'
 import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
@@ -546,6 +566,9 @@ const defaultPageConfigs = {
     gridColumns: 4,
     itemsPerPage: 12,
     showFilters: { category: true, brand: true, price: true },
+    pageTitle: 'Sản phẩm',
+    pageDescription: '',
+    translations: {},
   },
   productDetail: {
     galleryStyle: 'thumbnails',
@@ -554,27 +577,59 @@ const defaultPageConfigs = {
     showRelatedProducts: true,
     relatedCount: 6,
     showReviews: true,
+    pageTitle: 'Chi tiết sản phẩm',
+    pageDescription: '',
+    translations: {},
   },
   checkout: {
     showCoupon: true,
     showNotes: true,
     showSteps: true,
     layout: 'two-column',
+    pageTitle: 'Thanh toán',
+    pageDescription: '',
+    translations: {},
   },
   auth: {
     allowRegister: true,
     allowForgotPassword: true,
     showSocialLogin: false,
     cardMaxWidth: 440,
+    pageTitle: 'Đăng nhập / Đăng ký',
+    pageDescription: '',
+    translations: {},
   },
   account: {
     showOrders: true,
     showAddresses: true,
     showPasswordChange: true,
     sidebarPosition: 'left',
+    pageTitle: 'Tài khoản',
+    pageDescription: '',
+    translations: {},
   },
 }
 const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
+
+// ─── Builtin Page i18n ───
+const builtinPageLang = ref('vi')
+
+function getPageConfigI18n(pageName, field) {
+  if (builtinPageLang.value === 'vi') return pageConfigs.value[pageName]?.[field] || ''
+  const t = pageConfigs.value[pageName]?.translations?.[builtinPageLang.value]
+  return t?.[field] || ''
+}
+function setPageConfigI18n(pageName, field, value) {
+  if (builtinPageLang.value === 'vi') {
+    if (pageConfigs.value[pageName]) pageConfigs.value[pageName][field] = value
+    return
+  }
+  if (!pageConfigs.value[pageName].translations) pageConfigs.value[pageName].translations = {}
+  if (!pageConfigs.value[pageName].translations[builtinPageLang.value]) {
+    pageConfigs.value[pageName].translations[builtinPageLang.value] = { pageTitle: '', pageDescription: '' }
+  }
+  pageConfigs.value[pageName].translations[builtinPageLang.value][field] = value
+}
 
 // ─── Drag & Drop ───
 const dragIndex = ref(null)
@@ -1178,6 +1233,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   font-size: 12px; width: 80px;
 }
 .param-input--wide { width: 100%; flex: 1; }
+.param-divider { height: 1px; background: var(--glass-border); margin: 8px 0; }
 .param-select {
   padding: 4px 8px; border: 1px solid var(--glass-border); border-radius: 6px;
   background: var(--glass-bg); color: var(--color-text-primary); font-size: 12px;

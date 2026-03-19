@@ -4,15 +4,15 @@
 
     <!-- Search Form -->
     <div class="tracking-form" v-if="!orderData">
-      <p class="tracking-desc">Nhập số điện thoại và mã đơn hàng để xem trạng thái đơn hàng.</p>
+      <p class="tracking-desc">{{ t('storefront.tracking_desc', 'Nhập số điện thoại và mã đơn hàng để xem trạng thái đơn hàng.') }}</p>
       <div class="search-card">
         <div class="form-row">
           <div class="form-group">
-            <label>Số điện thoại</label>
+            <label>{{ t('storefront.phone_number', 'Số điện thoại') }}</label>
             <input v-model="phone" placeholder="0901234567" required />
           </div>
           <div class="form-group">
-            <label>Mã đơn hàng</label>
+            <label>{{ t('storefront.order_id', 'Mã đơn hàng') }}</label>
             <input v-model="orderId" placeholder="VD: 10" required />
           </div>
         </div>
@@ -48,28 +48,28 @@
       <!-- Order Info -->
       <div class="result-grid">
         <div class="result-card">
-          <h3><Package :size="16" /> Đơn hàng #{{ orderData.id }}</h3>
+          <h3><Package :size="16" /> {{ t('storefront.order', 'Đơn hàng') }} #{{ orderData.id }}</h3>
           <div class="info-rows">
-            <div class="info-row"><span>Khách hàng</span><strong>{{ orderData.customer_name }}</strong></div>
-            <div class="info-row"><span>Điện thoại</span><strong>{{ orderData.customer_phone }}</strong></div>
-            <div class="info-row"><span>Địa chỉ</span><strong>{{ orderData.customer_address }}</strong></div>
-            <div class="info-row"><span>Ngày đặt</span><strong>{{ formatDate(orderData.created_at) }}</strong></div>
-            <div class="info-row"><span>Phương thức</span><strong>{{ orderData.payment_method === 'bank' ? 'Chuyển khoản' : 'COD' }}</strong></div>
-            <div class="info-row"><span>Trạng thái TT</span>
+            <div class="info-row"><span>{{ t('storefront.customer', 'Khách hàng') }}</span><strong>{{ orderData.customer_name }}</strong></div>
+            <div class="info-row"><span>{{ t('storefront.phone_number', 'Điện thoại') }}</span><strong>{{ orderData.customer_phone }}</strong></div>
+            <div class="info-row"><span>{{ t('storefront.address', 'Địa chỉ') }}</span><strong>{{ orderData.customer_address }}</strong></div>
+            <div class="info-row"><span>{{ t('storefront.order_date', 'Ngày đặt') }}</span><strong>{{ formatDate(orderData.created_at) }}</strong></div>
+            <div class="info-row"><span>{{ t('storefront.payment_method', 'Phương thức') }}</span><strong>{{ orderData.payment_method === 'bank' ? t('storefront.bank_transfer', 'Chuyển khoản') : 'COD' }}</strong></div>
+            <div class="info-row"><span>{{ t('storefront.payment_status', 'Trạng thái TT') }}</span>
               <span class="badge" :class="'badge--' + (orderData.payment_status || 'pending')">{{ paymentStatusLabel(orderData.payment_status) }}</span>
             </div>
           </div>
           <div class="total-row" v-if="orderData.discount_amount > 0 || orderData.shipping_fee > 0">
-            <span>Tổng cộng</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
+            <span>{{ t('storefront.total', 'Tổng cộng') }}</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
           </div>
           <div class="total-row" v-else>
-            <span>Tổng cộng</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
+            <span>{{ t('storefront.total', 'Tổng cộng') }}</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
           </div>
         </div>
 
         <!-- Order Details / Items -->
         <div class="result-card" v-if="orderData.details?.length">
-          <h3><ShoppingBag :size="16" /> Sản phẩm</h3>
+          <h3><ShoppingBag :size="16" /> {{ t('storefront.products', 'Sản phẩm') }}</h3>
           <div class="items-list">
             <div v-for="item in orderData.details" :key="item.id" class="detail-item">
               <div class="detail-info">
@@ -82,19 +82,19 @@
           <!-- Price Breakdown -->
           <div class="price-breakdown">
             <div class="breakdown-row">
-              <span>Tạm tính</span>
+              <span>{{ t('storefront.subtotal', 'Tạm tính') }}</span>
               <span>{{ formatPrice(itemsSubtotal) }}</span>
             </div>
             <div class="breakdown-row discount" v-if="orderData.discount_amount > 0">
-              <span>Giảm giá <template v-if="orderData.coupon_code">({{ orderData.coupon_code }})</template></span>
+              <span>{{ t('storefront.discount', 'Giảm giá') }} <template v-if="orderData.coupon_code">({{ orderData.coupon_code }})</template></span>
               <span>-{{ formatPrice(orderData.discount_amount) }}</span>
             </div>
             <div class="breakdown-row" v-if="orderData.shipping_fee > 0">
-              <span>Phí vận chuyển</span>
+              <span>{{ t('storefront.shipping_fee', 'Phí vận chuyển') }}</span>
               <span>{{ formatPrice(orderData.shipping_fee) }}</span>
             </div>
             <div class="breakdown-row breakdown-total">
-              <strong>Tổng cộng</strong>
+              <strong>{{ t('storefront.total', 'Tổng cộng') }}</strong>
               <strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong>
             </div>
           </div>
@@ -103,23 +103,23 @@
 
       <!-- Bank info if applicable -->
       <div class="result-card bank-card" v-if="orderData.payment_method === 'bank' && orderData.bank_info">
-        <h3><Building :size="16" /> Thông tin chuyển khoản</h3>
+        <h3><Building :size="16" /> {{ t('storefront.bank_transfer_info', 'Thông tin chuyển khoản') }}</h3>
         <div class="bank-rows">
-          <div class="bank-row"><span>Ngân hàng</span><strong>{{ orderData.bank_info.bank_name }}</strong></div>
-          <div class="bank-row"><span>Chủ TK</span><strong>{{ orderData.bank_info.account_name }}</strong></div>
-          <div class="bank-row"><span>Số TK</span><strong class="mono">{{ orderData.bank_info.account_number }}</strong></div>
-          <div class="bank-row"><span>Nội dung CK</span><strong class="mono">{{ orderData.bank_info.note }}</strong></div>
-          <div class="bank-row"><span>Số tiền</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong></div>
+          <div class="bank-row"><span>{{ t('storefront.bank_name', 'Ngân hàng') }}</span><strong>{{ orderData.bank_info.bank_name }}</strong></div>
+          <div class="bank-row"><span>{{ t('storefront.account_holder', 'Chủ TK') }}</span><strong>{{ orderData.bank_info.account_name }}</strong></div>
+          <div class="bank-row"><span>{{ t('storefront.account_number', 'Số TK') }}</span><strong class="mono">{{ orderData.bank_info.account_number }}</strong></div>
+          <div class="bank-row"><span>{{ t('storefront.transfer_note', 'Nội dung CK') }}</span><strong class="mono">{{ orderData.bank_info.note }}</strong></div>
+          <div class="bank-row"><span>{{ t('storefront.amount', 'Số tiền') }}</span><strong class="accent">{{ formatPrice(orderData.total_amount) }}</strong></div>
         </div>
         <div class="qr-section" v-if="vietQrUrl">
           <img :src="vietQrUrl" alt="QR Code" class="qr-img" />
-          <p class="qr-hint">Quét mã QR để chuyển khoản - số tiền & nội dung đã điền sẵn</p>
+          <p class="qr-hint">{{ t('storefront.qr_hint', 'Quét mã QR để chuyển khoản - số tiền & nội dung đã điền sẵn') }}</p>
         </div>
       </div>
 
       <!-- Shipping Tracking Section -->
       <div class="result-card shipping-card">
-        <h3><Truck :size="16" /> Vận chuyển</h3>
+        <h3><Truck :size="16" /> {{ t('storefront.shipping', 'Vận chuyển') }}</h3>
         <div v-if="shippingLoading" class="shipping-skeleton">
           <div v-for="i in 4" :key="i" class="shipping-skeleton-row">
             <div class="skeleton" style="width:100px;height:14px;border-radius:6px"></div>
@@ -129,36 +129,36 @@
         <div v-else-if="!shippingData || !shippingData.shipment">
           <div class="shipping-empty">
             <Package :size="32" />
-            <p>{{ shippingData?.message || 'Đơn hàng chưa được giao cho đơn vị vận chuyển' }}</p>
+            <p>{{ shippingData?.message || t('storefront.no_shipping_yet', 'Đơn hàng chưa được giao cho đơn vị vận chuyển') }}</p>
           </div>
         </div>
         <div v-else>
           <div class="shipping-info">
             <div class="shipping-row">
-              <span>Đơn vị vận chuyển</span>
+              <span>{{ t('storefront.carrier', 'Đơn vị vận chuyển') }}</span>
               <strong>{{ carrierLabel(shippingData.carrier) }}</strong>
             </div>
             <div class="shipping-row" v-if="shippingData.tracking_code">
-              <span>Mã vận đơn</span>
+              <span>{{ t('storefront.tracking_code', 'Mã vận đơn') }}</span>
               <strong class="mono accent">{{ shippingData.tracking_code }}</strong>
             </div>
             <div class="shipping-row">
-              <span>Trạng thái</span>
+              <span>{{ t('storefront.status', 'Trạng thái') }}</span>
               <span class="badge" :class="'badge--ship-' + shippingData.status">{{ shipStatusLabel(shippingData.status) }}</span>
             </div>
             <div class="shipping-row" v-if="shippingData.shipping_fee > 0">
-              <span>Phí vận chuyển</span>
+              <span>{{ t('storefront.shipping_fee', 'Phí vận chuyển') }}</span>
               <strong>{{ formatPrice(shippingData.shipping_fee) }}</strong>
             </div>
             <div class="shipping-row" v-if="shippingData.delivered_at">
-              <span>Giao thành công</span>
+              <span>{{ t('storefront.delivered_at', 'Giao thành công') }}</span>
               <strong>{{ formatDate(shippingData.delivered_at) }}</strong>
             </div>
           </div>
 
           <!-- Shipment History Timeline -->
           <div v-if="shippingData.history?.length" class="ship-timeline">
-            <h4><ClipboardList :size="14" /> Lịch sử vận chuyển</h4>
+            <h4><ClipboardList :size="14" /> {{ t('storefront.shipping_history', 'Lịch sử vận chuyển') }}</h4>
             <div class="ship-timeline-list">
               <div v-for="(evt, i) in shippingData.history" :key="i" class="ship-evt">
                 <div class="ship-evt-dot" :class="{ first: i === 0 }"></div>
@@ -204,17 +204,17 @@ async function trackOrder() {
       // Normalize phone for comparison — strip non-digits, compare last 9
       const normalizePhone = (p) => (p || '').replace(/[\s\-\+]/g, '').slice(-9)
       if (normalizePhone(data.customer_phone) !== normalizePhone(phone.value)) {
-        errorMsg.value = 'Số điện thoại không khớp với đơn hàng này'
+    errorMsg.value = t('storefront.phone_mismatch', 'Số điện thoại không khớp với đơn hàng này')
       } else {
         orderData.value = data
         // Load shipping data
         loadShipping(data.id)
       }
     } else {
-      errorMsg.value = 'Không tìm thấy đơn hàng'
+      errorMsg.value = t('storefront.order_not_found', 'Không tìm thấy đơn hàng')
     }
   } catch {
-    errorMsg.value = 'Không tìm thấy đơn hàng. Vui lòng kiểm tra lại thông tin.'
+    errorMsg.value = t('storefront.order_not_found_desc', 'Không tìm thấy đơn hàng. Vui lòng kiểm tra lại thông tin.')
   }
   searching.value = false
 }
@@ -231,10 +231,10 @@ async function loadShipping(oid) {
 if (phone.value && orderId.value) trackOrder()
 
 const statusFlow = [
-  { key: 'pending', label: 'Chờ xác nhận', field: 'created_at' },
-  { key: 'confirmed', label: 'Đã xác nhận', field: 'confirmed_at' },
-  { key: 'shipped', label: 'Đang giao', field: 'shipped_at' },
-  { key: 'delivered', label: 'Đã giao', field: 'delivered_at' },
+  { key: 'pending', label: t('storefront.status_pending', 'Chờ xác nhận'), field: 'created_at' },
+  { key: 'confirmed', label: t('storefront.status_confirmed', 'Đã xác nhận'), field: 'confirmed_at' },
+  { key: 'shipped', label: t('storefront.status_shipped', 'Đang giao'), field: 'shipped_at' },
+  { key: 'delivered', label: t('storefront.status_delivered', 'Đã giao'), field: 'delivered_at' },
 ]
 
 const currentStatusIndex = computed(() => {
@@ -255,10 +255,10 @@ const statusSteps = computed(() => {
 })
 
 const paymentStatusMap = {
-  pending: 'Chờ xác nhận',
-  unpaid: 'Chưa thanh toán',
-  paid: 'Đã thanh toán',
-  refunded: 'Đã hoàn tiền',
+  pending: t('storefront.payment_pending', 'Chờ xác nhận'),
+  unpaid: t('storefront.payment_unpaid', 'Chưa thanh toán'),
+  paid: t('storefront.payment_paid', 'Đã thanh toán'),
+  refunded: t('storefront.payment_refunded', 'Đã hoàn tiền'),
 }
 function paymentStatusLabel(s) { return paymentStatusMap[s] || s }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '' }
@@ -278,7 +278,7 @@ const vietQrUrl = computed(() => {
 const carrierMap = { manual: 'Tự giao', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post', jt: 'J&T Express', ninja_van: 'Ninja Van', best: 'BEST Express' }
 function carrierLabel(c) { return carrierMap[c] || c }
 
-const shipStatusMap = { draft: 'Chờ lấy hàng', picking: 'Đang lấy hàng', picked: 'Đã lấy hàng', delivering: 'Đang giao', delivered: 'Đã giao', returned: 'Hoàn hàng', cancelled: 'Đã hủy' }
+const shipStatusMap = { draft: t('storefront.ship_draft', 'Chờ lấy hàng'), picking: t('storefront.ship_picking', 'Đang lấy hàng'), picked: t('storefront.ship_picked', 'Đã lấy hàng'), delivering: t('storefront.ship_delivering', 'Đang giao'), delivered: t('storefront.ship_delivered', 'Đã giao'), returned: t('storefront.ship_returned', 'Hoàn hàng'), cancelled: t('storefront.ship_cancelled', 'Đã hủy') }
 function shipStatusLabel(s) { return shipStatusMap[s] || s }
 </script>
 

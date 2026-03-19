@@ -336,7 +336,7 @@ import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
 
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
 const { addToCart } = useCart()
 const { recentlyViewed, addProduct: addToRecentlyViewed } = useRecentlyViewed()
 const { isLoggedIn, token: authToken } = useAuth()
@@ -385,9 +385,15 @@ const { showToast } = useToast()
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const detailConfig = computed(() => {
-  const defaults = { galleryStyle: 'thumbnails', layoutRatio: '50-50', showBreadcrumb: true, showRelatedProducts: true, relatedCount: 6, showReviews: true }
+  const defaults = { galleryStyle: 'thumbnails', layoutRatio: '50-50', showBreadcrumb: true, showRelatedProducts: true, relatedCount: 6, showReviews: true, pageTitle: '', pageDescription: '', translations: {} }
   const dc = layoutConfig.value?.pageConfigs?.productDetail
-  return dc ? { ...defaults, ...dc } : defaults
+  const merged = dc ? { ...defaults, ...dc } : defaults
+  const lang = currentLang.value
+  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+    if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
+    if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
+  }
+  return merged
 })
 
 const props = defineProps({

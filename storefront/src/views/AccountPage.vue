@@ -171,23 +171,23 @@
             <div class="form-card">
               <h3 class="form-card-title">{{ editingAddrId ? t('storefront.account.edit_address', 'Chỉnh sửa địa chỉ') : t('storefront.account.add_address', 'Thêm địa chỉ mới') }}</h3>
               <div class="field-row">
-                <div class="field"><label>Họ</label><input v-model="addrForm.last_name" placeholder="Nguyễn" /></div>
-                <div class="field"><label>Tên</label><input v-model="addrForm.first_name" placeholder="Văn A" /></div>
+                <div class="field"><label>{{ t('storefront.account.last_name', 'Họ') }}</label><input v-model="addrForm.last_name" :placeholder="t('storefront.account.last_name_placeholder', 'Nguyễn')" /></div>
+                <div class="field"><label>{{ t('storefront.account.first_name', 'Tên') }}</label><input v-model="addrForm.first_name" :placeholder="t('storefront.account.first_name_placeholder', 'Văn A')" /></div>
               </div>
-              <div class="field"><label>Điện thoại</label><input v-model="addrForm.phone" placeholder="0901234567" /></div>
-              <div class="field"><label>Địa chỉ chi tiết *</label><input v-model="addrForm.address1" placeholder="123 Đường ABC, Phường X" required /></div>
+              <div class="field"><label>{{ t('storefront.account.phone', 'Điện thoại') }}</label><input v-model="addrForm.phone" placeholder="0901234567" /></div>
+              <div class="field"><label>{{ t('storefront.account.address_detail', 'Địa chỉ chi tiết') }} *</label><input v-model="addrForm.address1" :placeholder="t('storefront.account.address_placeholder', '123 Đường ABC, Phường X')" required /></div>
               <div class="field-row">
-                <div class="field"><label>Phường/Xã</label><input v-model="addrForm.city" placeholder="Phường Bến Nghé" /></div>
-                <div class="field"><label>Tỉnh/Thành phố</label><input v-model="addrForm.province" placeholder="Hồ Chí Minh" /></div>
+                <div class="field"><label>{{ t('storefront.account.ward', 'Phường/Xã') }}</label><input v-model="addrForm.city" :placeholder="t('storefront.account.ward_placeholder', 'Phường Bến Nghé')" /></div>
+                <div class="field"><label>{{ t('storefront.account.province', 'Tỉnh/Thành phố') }}</label><input v-model="addrForm.province" :placeholder="t('storefront.account.province_placeholder', 'Hồ Chí Minh')" /></div>
               </div>
               <div class="field-row">
-                <div class="field"><label>Quốc gia</label><input v-model="addrForm.country" /></div>
+                <div class="field"><label>{{ t('storefront.account.country', 'Quốc gia') }}</label><input v-model="addrForm.country" /></div>
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn-primary" :disabled="saving">
-                  <Save :size="14" /> {{ editingAddrId ? 'Cập nhật' : 'Lưu địa chỉ' }}
+                  <Save :size="14" /> {{ editingAddrId ? t('storefront.account.update', 'Cập nhật') : t('storefront.account.save_address', 'Lưu địa chỉ') }}
                 </button>
-                <button type="button" class="btn-outline" @click="resetAddrForm">Hủy</button>
+                <button type="button" class="btn-outline" @click="resetAddrForm">{{ t('storefront.account.cancel', 'Hủy') }}</button>
               </div>
             </div>
           </form>
@@ -275,15 +275,21 @@ import {
   ShoppingBag, Plus, Pencil, Trash2
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, currentLang } = useI18n()
 const router = useRouter()
 const { customer, isLoggedIn, authFetch, updateProfile, changePassword, logout, fetchProfile } = useAuth()
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const accountConfig = computed(() => {
-  const defaults = { showOrders: true, showAddresses: true, showPasswordChange: true, sidebarPosition: 'left' }
+  const defaults = { showOrders: true, showAddresses: true, showPasswordChange: true, sidebarPosition: 'left', pageTitle: '', pageDescription: '', translations: {} }
   const ac = layoutConfig.value?.pageConfigs?.account
-  return ac ? { ...defaults, ...ac } : defaults
+  const merged = ac ? { ...defaults, ...ac } : defaults
+  const lang = currentLang.value
+  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+    if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
+    if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
+  }
+  return merged
 })
 
 const tab = ref('profile')
@@ -308,23 +314,23 @@ const paginatedOrders = computed(() => {
 const ordersTotalPages = computed(() => Math.ceil(filteredOrders.value.length / ordersPerPage))
 
 const statusTabs = computed(() => [
-  { value: 'all', label: 'Tất cả', count: orders.value.length },
-  { value: 'pending', label: 'Chờ xác nhận', count: orders.value.filter(o => o.status === 'pending').length },
-  { value: 'processing', label: 'Đang xử lý', count: orders.value.filter(o => o.status === 'processing').length },
-  { value: 'shipping', label: 'Đang giao', count: orders.value.filter(o => o.status === 'shipping').length },
-  { value: 'completed', label: 'Hoàn thành', count: orders.value.filter(o => o.status === 'completed').length },
-  { value: 'cancelled', label: 'Đã hủy', count: orders.value.filter(o => o.status === 'cancelled').length },
+  { value: 'all', label: t('storefront.all', 'Tất cả'), count: orders.value.length },
+  { value: 'pending', label: t('storefront.status_pending', 'Chờ xác nhận'), count: orders.value.filter(o => o.status === 'pending').length },
+  { value: 'processing', label: t('storefront.status_processing', 'Đang xử lý'), count: orders.value.filter(o => o.status === 'processing').length },
+  { value: 'shipping', label: t('storefront.status_shipping', 'Đang giao'), count: orders.value.filter(o => o.status === 'shipping').length },
+  { value: 'completed', label: t('storefront.status_completed', 'Hoàn thành'), count: orders.value.filter(o => o.status === 'completed').length },
+  { value: 'cancelled', label: t('storefront.status_cancelled', 'Đã hủy'), count: orders.value.filter(o => o.status === 'cancelled').length },
 ])
 
 async function cancelOrder(orderId) {
-  if (!confirm('Bạn có chắc muốn hủy đơn hàng #' + orderId + '?')) return
+  if (!confirm(t('storefront.account.confirm_cancel', 'Bạn có chắc muốn hủy đơn hàng #') + orderId + '?')) return
   cancellingId.value = orderId
   try {
     await authFetch('/orders/' + orderId + '/cancel', { method: 'POST' })
     const order = orders.value.find(o => o.id === orderId)
     if (order) order.status = 'cancelled'
   } catch (e) {
-    alert('Không thể hủy đơn hàng. Vui lòng thử lại.')
+    alert(t('storefront.account.cancel_failed', 'Không thể hủy đơn hàng. Vui lòng thử lại.'))
   }
   cancellingId.value = null
 }
@@ -372,11 +378,11 @@ async function onUpdateProfile() {
   saveMsg.value = ''
   try {
     await updateProfile(profileForm)
-    saveMsg.value = 'Đã cập nhật thành công!'
+    saveMsg.value = t('storefront.account.update_success', 'Đã cập nhật thành công!')
     setTimeout(() => saveMsg.value = '', 3000)
   } catch (e) {
     saveMsg.value = ''
-    alert('Lỗi: ' + e.message)
+    alert(t('storefront.error', 'Lỗi') + ': ' + e.message)
   } finally {
     saving.value = false
   }
@@ -397,13 +403,13 @@ async function onChangePassword() {
   pwMsg.value = ''
   pwError.value = ''
   if (pwForm.newPw !== pwForm.confirm) {
-    pwError.value = 'Mật khẩu mới không khớp'
+    pwError.value = t('storefront.account.password_mismatch', 'Mật khẩu mới không khớp')
     return
   }
   saving.value = true
   try {
     await changePassword(pwForm.current, pwForm.newPw)
-    pwMsg.value = 'Đã đổi mật khẩu thành công!'
+    pwMsg.value = t('storefront.account.password_changed', 'Đã đổi mật khẩu thành công!')
     pwForm.current = ''
     pwForm.newPw = ''
     pwForm.confirm = ''
@@ -459,7 +465,7 @@ async function onSaveAddress() {
 }
 
 async function deleteAddr(id) {
-  if (!confirm('Bạn có chắc muốn xóa địa chỉ này?')) return
+  if (!confirm(t('storefront.account.confirm_delete_address', 'Bạn có chắc muốn xóa địa chỉ này?'))) return
   try {
     await authFetch(`/addresses/${id}`, { method: 'DELETE' })
     await loadAddresses()
@@ -474,13 +480,13 @@ function onLogout() {
 
 // ─── Helpers ───
 const statusMap = {
-  pending: { label: 'Chờ xác nhận', color: '#f59e0b' },
-  confirmed: { label: 'Đã xác nhận', color: '#3b82f6' },
-  processing: { label: 'Đang xử lý', color: '#8b5cf6' },
-  shipping: { label: 'Đang giao', color: '#06b6d4' },
-  delivered: { label: 'Đã giao', color: '#10b981' },
-  completed: { label: 'Hoàn thành', color: '#22c55e' },
-  cancelled: { label: 'Đã hủy', color: '#ef4444' },
+  pending: { label: t('storefront.status_pending', 'Chờ xác nhận'), color: '#f59e0b' },
+  confirmed: { label: t('storefront.status_confirmed', 'Đã xác nhận'), color: '#3b82f6' },
+  processing: { label: t('storefront.status_processing', 'Đang xử lý'), color: '#8b5cf6' },
+  shipping: { label: t('storefront.status_shipping', 'Đang giao'), color: '#06b6d4' },
+  delivered: { label: t('storefront.status_delivered', 'Đã giao'), color: '#10b981' },
+  completed: { label: t('storefront.status_completed', 'Hoàn thành'), color: '#22c55e' },
+  cancelled: { label: t('storefront.status_cancelled', 'Đã hủy'), color: '#ef4444' },
 }
 function statusLabel(s) { return statusMap[s]?.label || s }
 function statusColor(s) { return statusMap[s]?.color || '#94a3b8' }
