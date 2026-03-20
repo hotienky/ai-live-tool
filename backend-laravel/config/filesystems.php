@@ -47,6 +47,23 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Media disk — Central storage for uploaded media.
+         * Always points to storage/app/public (NOT per-tenant).
+         * Tenant isolation via path: media/{tenant_slug}/{Y}/{m}/
+         * Stancl tenancy overrides 'public' disk root per tenant,
+         * so this dedicated disk ensures files are always accessible
+         * via the public/storage symlink.
+         */
+        'media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

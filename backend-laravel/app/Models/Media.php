@@ -26,16 +26,39 @@ class Media extends Model
     protected $appends = ['url', 'thumbnail_url', 'medium_url'];
 
     /**
+     * Build full URL for a storage path.
+     * Uses request host to generate correct absolute URL.
+     */
+    private function buildUrl(string $filePath): string
+    {
+        // Determine which disk to use for URL generation
+        // 'public' and 'media' both use the central 'media' disk (avoids Stancl override)
+        $urlDisk = in_array($this->disk, ['public', 'media']) ? 'media' : $this->disk;
+
+        if ($this->isCloudDisk()) {
+            return Storage::disk($urlDisk)->url($filePath);
+        }
+
+        // For local disk: use Storage url() then fix base to actual request host
+        $storageUrl = Storage::disk($urlDisk)->url($filePath);
+
+        // Replace APP_URL base with actual request host
+        $appUrl = rtrim(config('app.url', 'http://localhost'), '/');
+        $requestBase = request()->getSchemeAndHttpHost();
+
+        if ($appUrl !== $requestBase && !empty($requestBase)) {
+            $storageUrl = str_replace($appUrl, $requestBase, $storageUrl);
+        }
+
+        return $storageUrl;
+    }
+
+    /**
      * Full URL to the original file.
-     * For local disk: relative /storage/ path (works with any domain).
-     * For cloud disks: full URL from Storage driver.
      */
     public function getUrlAttribute(): string
     {
-        if ($this->isCloudDisk()) {
-            return Storage::disk($this->disk)->url($this->path);
-        }
-        return '/storage/' . $this->path;
+        return $this->buildUrl($this->path);
     }
 
     /**
@@ -45,10 +68,7 @@ class Media extends Model
     {
         $thumbs = $this->thumbnails;
         if (!empty($thumbs['thumb'])) {
-            if ($this->isCloudDisk()) {
-                return Storage::disk($this->disk)->url($thumbs['thumb']);
-            }
-            return '/storage/' . $thumbs['thumb'];
+            return $this->buildUrl($thumbs['thumb']);
         }
         return $this->url;
     }
@@ -60,10 +80,7 @@ class Media extends Model
     {
         $thumbs = $this->thumbnails;
         if (!empty($thumbs['medium'])) {
-            if ($this->isCloudDisk()) {
-                return Storage::disk($this->disk)->url($thumbs['medium']);
-            }
-            return '/storage/' . $thumbs['medium'];
+            return $this->buildUrl($thumbs['medium']);
         }
         return $this->url;
     }
@@ -73,7 +90,7 @@ class Media extends Model
      */
     private function isCloudDisk(): bool
     {
-        return in_array($this->disk, ['s3', 'firebase', 'vstorage']);
+        return in_array($this->disk, ['s3', 'firebase', 'vstorage', 'tenant_cloud']);
     }
 
     /**

@@ -40,13 +40,22 @@ class TenantsController extends Controller
             'db_name' => 'tenant_' . $request->input('slug'),
         ];
 
-        // Store default_language in stancl data column (defaults to 'vi')
+        // Stancl data column: default_language + storage settings
         $defaultLang = $request->input('default_language', $request->input('defaultLanguage', 'vi'));
-        $storageDriver = $request->input('storage_driver', 'public');
-        $data['data'] = json_encode([
+        $storageDriver = $this->validateDriver($request->input('storage_driver', 'local'));
+
+        $stancData = [
             'default_language' => $defaultLang,
-            'storage_driver' => in_array($storageDriver, ['public', 's3', 'firebase', 'vstorage']) ? $storageDriver : 'public',
-        ]);
+            'storage_driver' => $storageDriver,
+        ];
+
+        // Merge storage_config if provided
+        $storageConfig = $request->input('storage_config');
+        if (is_array($storageConfig)) {
+            $stancData['storage_config'] = $this->sanitizeStorageConfig($storageConfig);
+        }
+
+        $data['data'] = json_encode($stancData);
 
         $tenant = $this->repo->store($data);
         return $this->successResponse($this->transformer->transform($tenant), 'Tenant created', 201);
@@ -68,12 +77,23 @@ class TenantsController extends Controller
             $this->repo->update($data, $id);
         }
 
-        // Handle storage_driver (stored in Stancl data JSON column)
+        // Handle storage settings (stored in Stancl data JSON column)
         $storageDriver = $request->input('storage_driver');
-        if ($storageDriver !== null) {
+        $storageConfig = $request->input('storage_config');
+
+        if ($storageDriver !== null || $storageConfig !== null) {
             $tenant = $this->repo->findOne($id);
             $currentData = is_string($tenant->data) ? json_decode($tenant->data, true) : ($tenant->data ?? []);
-            $currentData['storage_driver'] = in_array($storageDriver, ['public', 's3', 'firebase', 'vstorage']) ? $storageDriver : 'public';
+
+            if ($storageDriver !== null) {
+                $currentData['storage_driver'] = $this->validateDriver($storageDriver);
+            }
+            if (is_array($storageConfig)) {
+                // Merge: keep existing secrets if new values are masked (****)
+                $existing = $currentData['storage_config'] ?? [];
+                $currentData['storage_config'] = $this->mergeStorageConfig($existing, $storageConfig);
+            }
+
             $this->repo->update(['data' => json_encode($currentData)], $id);
         }
 
@@ -106,5 +126,35 @@ class TenantsController extends Controller
     public function seed($id)
     {
         return $this->successResponse(null, 'Seeding triggered');
+    }
+
+    // ── Storage config helpers ──
+
+    private function validateDriver(?string $driver): string
+    {
+        $allowed = ['local', 's3', 'firebase', 'vstorage'];
+        return in_array($driver, $allowed) ? $driver : 'local';
+    }
+
+    private function sanitizeStorageConfig(array $config): array
+    {
+        $allowed = ['key', 'secret', 'region', 'bucket', 'endpoint', 'cdn_url'];
+        return array_intersect_key($config, array_flip($allowed));
+    }
+
+    /**
+     * Merge new config into existing config.
+     * Keeps existing secret values if the new value looks masked (e.g. "****").
+     */
+    private function mergeStorageConfig(array $existing, array $new): array
+    {
+        $sanitized = $this->sanitizeStorageConfig($new);
+        foreach ($sanitized as $key => $value) {
+            // If the new value is masked (all asterisks), keep existing
+            if (preg_match('/^\*+$/', $value ?? '') && !empty($existing[$key])) {
+                $sanitized[$key] = $existing[$key];
+            }
+        }
+        return array_merge($existing, $sanitized);
     }
 }

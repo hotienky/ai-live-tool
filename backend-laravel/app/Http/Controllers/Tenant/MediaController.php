@@ -334,24 +334,52 @@ class MediaController extends Controller
 
     /**
      * Resolve storage disk for current tenant.
-     * Reads `storage_driver` from Stancl's data JSON column.
-     * Supported: 'public' (local, default), 's3', 'firebase', 'vstorage'.
+     * Builds dynamic disk config from tenant's storage_config credentials.
      */
     private function getStorageDisk(): string
     {
         try {
             $tenant = tenant();
-            if ($tenant) {
-                $driver = $tenant->storage_driver; // Stancl reads from data JSON
-                if ($driver && in_array($driver, ['public', 's3', 'firebase', 'vstorage'])) {
-                    return $driver;
-                }
+            if (!$tenant) return 'media';
+
+            $driver = $tenant->storage_driver;
+            if (!$driver || !in_array($driver, ['s3', 'firebase', 'vstorage'])) {
+                return 'media'; // local
             }
+
+            // Build dynamic cloud disk from tenant config
+            $config = $tenant->storage_config;
+            if (!is_array($config) || empty($config['key']) || empty($config['bucket'])) {
+                return 'media'; // incomplete config → fallback local
+            }
+
+            $diskName = 'tenant_cloud';
+            $diskConfig = [
+                'driver' => 's3',
+                'key' => $config['key'],
+                'secret' => $config['secret'] ?? '',
+                'region' => $config['region'] ?? 'us-east-1',
+                'bucket' => $config['bucket'],
+                'url' => $config['cdn_url'] ?? null,
+                'endpoint' => $config['endpoint'] ?? null,
+                'use_path_style_endpoint' => ($driver === 'firebase'),
+                'throw' => false,
+            ];
+
+            // Firebase uses path-style endpoint
+            if ($driver === 'firebase' && empty($config['endpoint'])) {
+                $diskConfig['endpoint'] = 'https://storage.googleapis.com';
+            }
+
+            // Register runtime disk
+            \Illuminate\Support\Facades\Config::set("filesystems.disks.{$diskName}", $diskConfig);
+
+            return $diskName;
         } catch (\Exception $e) {
-            // Fallback silently
+            \Illuminate\Support\Facades\Log::warning("getStorageDisk failed: {$e->getMessage()}");
         }
 
-        return 'public'; // default: local storage
+        return 'media';
     }
 
     /**
@@ -359,7 +387,7 @@ class MediaController extends Controller
      */
     private function isCloudDisk(string $disk): bool
     {
-        return in_array($disk, ['s3', 'firebase', 'vstorage']);
+        return in_array($disk, ['s3', 'firebase', 'vstorage', 'tenant_cloud']);
     }
 }
 

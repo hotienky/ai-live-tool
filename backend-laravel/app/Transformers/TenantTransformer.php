@@ -19,7 +19,8 @@ class TenantTransformer extends BaseTransformer
             'logo' => $item->logo,
             'features' => $item->features ?? 'all',
             'settings' => is_string($item->settings) ? json_decode($item->settings, true) : ($item->settings ?? []),
-            'storage_driver' => $this->extractDataField($item, 'storage_driver', 'public'),
+            'storage_driver' => $this->extractDataField($item, 'storage_driver', 'local'),
+            'storage_config' => $this->maskStorageConfig($this->extractDataField($item, 'storage_config', [])),
             'expires_at' => $item->expires_at,
             'created_at' => $item->created_at,
             'updated_at' => $item->updated_at,
@@ -33,5 +34,23 @@ class TenantTransformer extends BaseTransformer
             $data = json_decode($data, true);
         }
         return $data[$key] ?? $default;
+    }
+
+    /**
+     * Mask secret fields in storage config — show only last 4 chars.
+     */
+    private function maskStorageConfig($config): array
+    {
+        if (!is_array($config)) return [];
+
+        $sensitiveKeys = ['key', 'secret'];
+        $masked = $config;
+        foreach ($sensitiveKeys as $k) {
+            if (!empty($masked[$k])) {
+                $val = $masked[$k];
+                $masked[$k] = str_repeat('*', max(0, strlen($val) - 4)) . substr($val, -4);
+            }
+        }
+        return $masked;
     }
 }

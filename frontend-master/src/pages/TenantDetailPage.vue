@@ -93,12 +93,46 @@
           <div>
             <label class="mp-label flex items-center gap-1"><HardDrive :size="12" /> Storage Driver</label>
             <select v-model="editForm.storage_driver" class="input w-full">
-              <option value="public">Local (mặc định)</option>
+              <option value="local">Local (mặc định)</option>
               <option value="s3">AWS S3</option>
               <option value="firebase">Firebase / Google Cloud Storage</option>
               <option value="vstorage">VNG vStorage</option>
             </select>
             <p class="text-[11px] mp-text-muted mt-1">Dịch vụ lưu trữ media cho tenant này</p>
+          </div>
+        </div>
+
+        <!-- Cloud Storage Config (show when driver is not local) -->
+        <div v-if="editForm.storage_driver && editForm.storage_driver !== 'local'" class="mt-4 p-4 rounded-lg border border-primary-500/20 bg-primary-500/5">
+          <h4 class="text-sm font-semibold mb-3 flex items-center gap-1">
+            <Settings :size="13" />
+            Cấu hình {{ driverLabel(editForm.storage_driver) }}
+          </h4>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="mp-label">Access Key</label>
+              <input v-model="editForm.storage_config.key" class="input w-full" placeholder="AKIA..." />
+            </div>
+            <div>
+              <label class="mp-label">Secret Key</label>
+              <input v-model="editForm.storage_config.secret" type="password" class="input w-full" placeholder="******" />
+            </div>
+            <div>
+              <label class="mp-label">Region</label>
+              <input v-model="editForm.storage_config.region" class="input w-full" :placeholder="editForm.storage_driver === 'firebase' ? 'us-central1' : 'ap-southeast-1'" />
+            </div>
+            <div>
+              <label class="mp-label">Bucket</label>
+              <input v-model="editForm.storage_config.bucket" class="input w-full" placeholder="my-media-bucket" />
+            </div>
+            <div v-if="editForm.storage_driver !== 's3'">
+              <label class="mp-label">Endpoint</label>
+              <input v-model="editForm.storage_config.endpoint" class="input w-full" :placeholder="editForm.storage_driver === 'firebase' ? 'https://storage.googleapis.com' : 'https://hcm01.vstorage.vngcloud.vn'" />
+            </div>
+            <div>
+              <label class="mp-label">CDN URL <span class="mp-text-muted">(tùy chọn)</span></label>
+              <input v-model="editForm.storage_config.cdn_url" class="input w-full" placeholder="https://cdn.example.com" />
+            </div>
           </div>
         </div>
         <div class="mt-4">
@@ -236,7 +270,11 @@ const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
 
-const editForm = ref({ name: '', plan: '', features: 'all', storage_driver: 'public' })
+const editForm = ref({
+  name: '', plan: '', features: 'all',
+  storage_driver: 'local',
+  storage_config: { key: '', secret: '', region: '', bucket: '', endpoint: '', cdn_url: '' },
+})
 const editMsg = ref('')
 const editError = ref(false)
 
@@ -245,18 +283,33 @@ const hasChanges = computed(() => {
   return editForm.value.name !== tenant.value.name
     || editForm.value.plan !== tenant.value.plan
     || editForm.value.features !== (tenant.value.features || 'all')
-    || editForm.value.storage_driver !== (tenant.value.storage_driver || 'public')
+    || editForm.value.storage_driver !== (tenant.value.storage_driver || 'local')
+    || JSON.stringify(editForm.value.storage_config) !== JSON.stringify(tenant.value.storage_config || {})
 })
 
 function syncEditForm() {
   if (tenant.value) {
+    const sc = tenant.value.storage_config || {}
     editForm.value = {
       name: tenant.value.name || '',
       plan: tenant.value.plan || 'free',
       features: tenant.value.features || 'all',
-      storage_driver: tenant.value.storage_driver || 'public',
+      storage_driver: tenant.value.storage_driver || 'local',
+      storage_config: {
+        key: sc.key || '',
+        secret: sc.secret || '',
+        region: sc.region || '',
+        bucket: sc.bucket || '',
+        endpoint: sc.endpoint || '',
+        cdn_url: sc.cdn_url || '',
+      },
     }
   }
+}
+
+function driverLabel(driver) {
+  const labels = { s3: 'AWS S3', firebase: 'Firebase', vstorage: 'VNG vStorage' }
+  return labels[driver] || driver
 }
 
 watch(tenant, syncEditForm)

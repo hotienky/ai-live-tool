@@ -223,6 +223,13 @@
       @openShopSelector="shopSelectorRef?.open()"
       @navigate="navigateTo"
     />
+    <!-- ═══ View: All Notifications ═══ -->
+    <NotificationPage
+      v-if="activeView === 'notifications'"
+      :backView="prevView"
+      @navigate="navigateTo"
+    />
+
     <!-- Customer Detail Modal -->
     <CustomerDetail
       :visible="showCustomerDetail"
@@ -310,6 +317,7 @@ import ShopSettings from './components/ShopSettings.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
+import NotificationPage from './components/NotificationPage.vue'
 import QuickReply from './components/QuickReply.vue'
 
 import LiveSessionModal from './components/LiveSessionModal.vue'
@@ -490,10 +498,49 @@ const routeToTab = {
 }
 const validViews = [
   'dashboard', 'live', 'crm', 'reports',
+  'notifications',
   'shop/cms/create', 'shop/cms/edit',
   'shop/products/edit', 'shop/categories/edit',
   ...Object.keys(routeToTab),
 ]
+
+// ── Feature-group → views map (derived from navItems) ──
+// Used to block URL-typed navigation to disabled feature areas.
+const viewFeatureGroupMap = (() => {
+  const map = {}
+  for (const item of navItems) {
+    if (!item.featureGroup) continue
+    if (item.children) {
+      for (const child of item.children) {
+        if (child.view) map[child.view] = item.featureGroup
+      }
+    } else {
+      map[item.key] = item.featureGroup
+    }
+  }
+  // All shop/* and order/warehouse paths belong to the 'store' feature
+  for (const key of Object.keys(routeToTab)) {
+    if (!map[key] && (key.startsWith('shop/') || key === 'orders' || key.startsWith('orders/') || key.startsWith('warehouse/'))) {
+      map[key] = 'store'
+    }
+  }
+  return map
+})()
+
+function getViewFeatureGroup(view) {
+  if (viewFeatureGroupMap[view]) return viewFeatureGroupMap[view]
+  // Match prefix (e.g. 'shop/products/edit' → 'store')
+  for (const [k, fg] of Object.entries(viewFeatureGroupMap)) {
+    if (view.startsWith(k + '/')) return fg
+  }
+  return null
+}
+
+function defaultAccessibleView() {
+  const first = filteredNavItems.value[0]
+  if (!first) return 'dashboard'
+  return first.children ? (first.children[0]?.view ?? 'dashboard') : first.key
+}
 // ── Storefront Detection ──
 // CMS mode: running on *.cms.* domain — never show storefront
 function isCmsMode() {
@@ -526,25 +573,27 @@ function onAddToCart(data) {
 
 function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '')
+  let resolved
   // Match CMS edit with ID: shop/cms/edit/123
-  if (path.startsWith('shop/cms/edit/')) return 'shop/cms/edit'
-  // Match product edit with ID: shop/products/edit/123
-  if (path.startsWith('shop/products/edit/')) return 'shop/products/edit'
-  // Match category edit with ID: shop/categories/edit/123
-  if (path.startsWith('shop/categories/edit/')) return 'shop/categories/edit'
-  // Match flash sale create/edit
-  if (path === 'shop/flash-sales/create') return 'shop/flash-sales/create'
-  if (path.startsWith('shop/flash-sales/edit/')) return 'shop/flash-sales/edit'
-  // Match order detail: orders/detail/123
-  if (path.startsWith('orders/detail/')) return 'orders/detail'
-  // Match multi-segment routes like shop/products, orders/customers etc
-  if (validViews.includes(path)) return path
-  // Try first segment
-  const first = path.split('/')[0] || ''
-  if (validViews.includes(first)) return first
-  return 'live'
+  if (path.startsWith('shop/cms/edit/'))          resolved = 'shop/cms/edit'
+  else if (path.startsWith('shop/products/edit/')) resolved = 'shop/products/edit'
+  else if (path.startsWith('shop/categories/edit/')) resolved = 'shop/categories/edit'
+  else if (path === 'shop/flash-sales/create')    resolved = 'shop/flash-sales/create'
+  else if (path.startsWith('shop/flash-sales/edit/')) resolved = 'shop/flash-sales/edit'
+  else if (path.startsWith('orders/detail/'))     resolved = 'orders/detail'
+  else if (validViews.includes(path))             resolved = path
+  else {
+    const first = path.split('/')[0] || ''
+    resolved = validViews.includes(first) ? first : null
+  }
+  if (!resolved) return defaultAccessibleView()
+  // Redirect if the resolved view belongs to a disabled feature group
+  const fg = getViewFeatureGroup(resolved)
+  if (fg && !isFeatureEnabled(fg)) return defaultAccessibleView()
+  return resolved
 }
 const activeView = ref(viewFromPath())
+const prevView   = ref(defaultAccessibleView())
 
 // Computed: which settings tab to show
 const settingsActiveTab = computed(() => routeToTab[activeView.value] || 'products')
@@ -585,24 +634,24 @@ productEditId.value = extractProductEditId(window.location.pathname)
 categoryEditId.value = extractCategoryEditId(window.location.pathname)
 ;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
 function navigateTo(view) {
-  // Support CMS edit with ID: shop/cms/edit/123
   const urlPath = view
-  
+
   // Track dynamic params
   cmsEditPageId.value = extractCmsId(urlPath)
   productEditId.value = extractProductEditId(urlPath)
   categoryEditId.value = extractCategoryEditId(urlPath)
   ;(function() { const fs = extractFlashSaleState(urlPath); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
-  
+
   if (!validViews.includes(view)) {
     // Check if it matches view + ID pattern
     const base = view.replace(/\/\d+$/, '')
-    if (validViews.includes(base)) {
-      view = base
-    } else {
-      view = 'live'
-    }
+    view = validViews.includes(base) ? base : defaultAccessibleView()
   }
+  // Redirect if target view belongs to a disabled feature group
+  const fg = getViewFeatureGroup(view)
+  if (fg && !isFeatureEnabled(fg)) view = defaultAccessibleView()
+
+  if (view !== 'notifications') prevView.value = view
   activeView.value = view
   history.pushState({ view }, '', '/' + urlPath)
 }
@@ -697,6 +746,12 @@ const {
 // Auto-show post-live report when received
 watch(postLiveReport, (report) => {
   if (report) showPostLiveReport.value = true
+})
+
+// Redirect away from disabled-feature views when tenant features load/change
+watch(tenantFeatures, () => {
+  const fg = getViewFeatureGroup(activeView.value)
+  if (fg && !isFeatureEnabled(fg)) navigateTo(defaultAccessibleView())
 })
 
 // Shops composable

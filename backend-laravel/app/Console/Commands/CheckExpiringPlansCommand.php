@@ -19,35 +19,38 @@ class CheckExpiringPlansCommand extends Command
 
     public function handle(): int
     {
-        $milestones = [7, 3, 1]; // số ngày trước khi hết hạn
+        try {
+            $milestones = [7, 3, 1];
+            $fired = 0;
 
-        $fired = 0;
-        foreach ($milestones as $days) {
-            // Tìm tenant hết hạn đúng trong khoảng ngày hôm nay + $days
-            $from = now()->addDays($days)->startOfDay();
-            $to   = now()->addDays($days)->endOfDay();
+            foreach ($milestones as $days) {
+                $from = now()->addDays($days)->startOfDay();
+                $to   = now()->addDays($days)->endOfDay();
 
-            $tenants = DB::connection('landlord')
-                ->table('tenants')
-                ->whereBetween('plan_expires_at', [$from, $to])
-                ->where('status', 'active')
-                ->select('id', 'name', 'plan_expires_at')
-                ->get();
+                $tenants = DB::connection('landlord')
+                    ->table('tenants')
+                    ->whereBetween('plan_expires_at', [$from, $to])
+                    ->where('status', 'active')
+                    ->select('id', 'name', 'plan_expires_at')
+                    ->get();
 
-            foreach ($tenants as $tenant) {
-                event(new PlanExpiring(
-                    tenantId:   $tenant->id,
-                    tenantName: $tenant->name ?? $tenant->id,
-                    daysLeft:   $days,
-                    expiresAt:  $tenant->plan_expires_at,
-                ));
-
-                $fired++;
-                $this->line("  → Tenant [{$tenant->name}] hết hạn sau {$days} ngày");
+                foreach ($tenants as $tenant) {
+                    event(new PlanExpiring(
+                        tenantId:   $tenant->id,
+                        tenantName: $tenant->name ?? $tenant->id,
+                        daysLeft:   $days,
+                        expiresAt:  $tenant->plan_expires_at,
+                    ));
+                    $fired++;
+                    $this->line("  → Tenant [{$tenant->name}] hết hạn sau {$days} ngày");
+                }
             }
-        }
 
-        $this->info($fired > 0 ? "Đã gửi {$fired} thông báo gói hết hạn." : 'Không có gói nào sắp hết hạn.');
-        return self::SUCCESS;
+            $this->info($fired > 0 ? "Đã gửi {$fired} thông báo gói hết hạn." : 'Không có gói nào sắp hết hạn.');
+            return self::SUCCESS;
+        } catch (\Throwable $e) {
+            $this->error('Lỗi check-expiring-plans: ' . $e->getMessage());
+            return self::FAILURE;
+        }
     }
 }
