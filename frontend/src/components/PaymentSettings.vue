@@ -174,7 +174,7 @@ async function save() {
     })
     showToast(t('admin.msg_28dbe1', 'Đã lưu cấu hình thanh toán'), 'success')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
   saving.value = false
 }

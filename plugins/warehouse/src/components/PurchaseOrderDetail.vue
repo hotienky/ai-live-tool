@@ -1,7 +1,7 @@
 <template>
   <div class="pod-page">
     <div class="pod-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="pod-header__center">
         <h3 v-if="po">
           {{ po.po_number }}
@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-hint">Đang tải...</div>
+    <div v-if="loading" class="loading-hint">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div v-else-if="po">
       <div class="pod-info-grid">
         <div><strong>NCC:</strong> {{ po.supplier?.name }}</div>
@@ -65,7 +65,7 @@
         </table>
         <div class="form-group" style="margin-top:12px"><label>Ghi chú</label><input v-model="receiveNotes" class="form-input" placeholder="Ghi chú nhận hàng..." /></div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showReceiveModal = false">Hủy</button>
+          <button class="btn-cancel" @click="showReceiveModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" /> Xác nhận nhận hàng</button>
         </div>
       </div>
@@ -74,12 +74,14 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { ChevronLeft, Send, PackageCheck } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import { useToast } from '../helpers.js'
 
 const { showToast } = useToast()
+const { t } = useI18n()
 const props = defineProps({ editId: { type: [String, Number], required: true } })
 const emit = defineEmits(['back', 'refresh'])
 
@@ -113,7 +115,7 @@ async function sendPO() {
     await apiFetch(`/purchase-orders/${props.editId}/send`, { method: 'POST' })
     showToast('Đã chuyển sang Đã đặt', 'success')
     loadPO()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function submitReceive() {
@@ -126,7 +128,7 @@ async function submitReceive() {
     showReceiveModal.value = false
     loadPO()
     emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function statusLabel(s) { return { draft: 'Nháp', ordered: 'Đã đặt', partial: 'Nhận 1 phần', received: 'Đã nhận', cancelled: 'Đã hủy' }[s] || s }

@@ -254,11 +254,11 @@ async function cancelReceipt(r) {
     showToast(t('admin.msg_578e8a', 'Đã hủy phiếu'), 'success')
     fetchReceipts()
     fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deleteReceipt(r) {
-  if (!confirm(`Xóa phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_853940', 'Đã xóa phiếu'), 'success')

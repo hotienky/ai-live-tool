@@ -113,7 +113,7 @@ async function sendPO() {
     await apiFetch(`/purchase-orders/${props.editId}/send`, { method: 'POST' })
     showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')
     loadPO()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function submitReceive() {
@@ -126,7 +126,7 @@ async function submitReceive() {
     showReceiveModal.value = false
     loadPO()
     emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function statusLabel(s) { return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s }

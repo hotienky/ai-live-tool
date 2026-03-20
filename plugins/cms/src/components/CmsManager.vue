@@ -19,7 +19,7 @@
         </div>
         <div class="cm-card__actions">
           <button class="btn-sm btn-preview" @click="previewPage(p)">⊙</button>
-          <button class="btn-sm btn-edit" @click="$emit('navigate', `shop/cms/edit/${p.id}`)">Sửa</button>
+          <button class="btn-sm btn-edit" @click="$emit('navigate', `shop/cms/edit/${p.id}`)">{{ t('admin.edit', 'Sửa') }}</button>
           <button class="btn-sm btn-del" @click="handleDelete(p)">×</button>
         </div>
       </div>
@@ -49,6 +49,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { apiFetch } from '../helpers.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -56,6 +57,7 @@ import { useToast } from '../helpers.js'
 import { FileText } from 'lucide-vue-next'
 
 const { showToast } = useToast()
+const { t } = useI18n()
 const { pages, loading, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)
 
 const emit = defineEmits(['navigate'])
@@ -75,11 +77,11 @@ async function toggleStatus(p) {
     await updatePage(p.id, { status: newStatus })
     showToast(newStatus === 1 ? 'Published' : 'Set to Draft', 'success')
     fetchPages({})
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function handleDelete(p) {
-  if (!confirm(`Xóa trang "${p.title}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} trang "${p.title}"?`)) return
   await deletePage(p.id)
   fetchPages({})
   showToast('Đã xóa', 'success')

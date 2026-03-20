@@ -16,6 +16,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, computed, watch } from 'vue'
 
 const props = defineProps({

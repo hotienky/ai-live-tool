@@ -85,7 +85,7 @@
             <td>{{ c.usedCount }}/{{ c.maxUses || '∞' }}</td>
             <td class="date-range">{{ c.dateStart?.slice(0,10) || '∞' }} → {{ c.dateEnd?.slice(0,10) || '∞' }}</td>
             <td class="actions-cell">
-              <button class="btn-sm btn-edit" @click="editCoupon(c)">Sửa</button>
+              <button class="btn-sm btn-edit" @click="editCoupon(c)">{{ t('admin.edit', 'Sửa') }}</button>
               <button class="btn-sm btn-del" @click="handleDeleteCoupon(c.id)">×</button>
             </td>
           </tr>
@@ -97,6 +97,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../helpers.js'
 import { usePromotions } from '../composables/usePromotions.js'
@@ -104,6 +105,7 @@ import { useToast } from '../helpers.js'
 import { Tag } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 const { showToast } = useToast()
+const { t } = useI18n()
 const { promotions, coupons, loading, fetchPromotions, savePromotion, deletePromotion, fetchCoupons, createCoupon, updateCoupon, deleteCoupon } = usePromotions(apiFetch)
 
 const props = defineProps({ /* tenant-scoped */ })
@@ -136,11 +138,11 @@ async function handleSavePromo() {
     showToast('Đã lưu KM', 'success')
     promoForm.value = { productId: '', pricePromotion: 0, dateStart: '', dateEnd: '' }
     fetchPromotions({  })
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function handleDeletePromo(productId) {
-  if (!confirm('Xóa khuyến mãi?')) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} khuyến mãi?`)) return
   await deletePromotion(productId)
   fetchPromotions({  })
   showToast('Đã xóa', 'success')
@@ -159,7 +161,7 @@ async function handleSaveCoupon() {
     editCouponId.value = null
     couponForm.value = { code: '', type: 'percent', value: 0, minOrder: 0, maxUses: null, dateStart: '', dateEnd: '' }
     fetchCoupons({  })
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function editCoupon(c) {
@@ -168,7 +170,7 @@ function editCoupon(c) {
 }
 
 async function handleDeleteCoupon(id) {
-  if (!confirm('Xóa mã giảm giá?')) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} mã giảm giá?`)) return
   await deleteCoupon(id)
   fetchCoupons({  })
   showToast('Đã xóa', 'success')

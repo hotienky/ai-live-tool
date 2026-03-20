@@ -346,7 +346,7 @@ async function syncDefaults() {
       showToast(t('admin.msg_865009', 'Tất cả translations đã được đồng bộ'), 'info')
     }
   } catch (e) {
-    showToast('Lỗi đồng bộ: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' đồng bộ: ' + e.message, 'error')
   } finally {
     syncing.value = false
   }

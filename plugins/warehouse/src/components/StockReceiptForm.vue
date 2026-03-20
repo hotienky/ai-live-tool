@@ -1,7 +1,7 @@
 <template>
   <div class="srf-page">
     <div class="srf-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="srf-header__center">
         <div class="srf-header__icon"><ClipboardList :size="15" /></div>
         <h3>{{ props.editId ? 'Sửa phiếu kho' : 'Tạo phiếu kho' }}</h3>
@@ -82,8 +82,7 @@
 import { ref, onMounted } from 'vue'
 import { ChevronLeft, ClipboardList, Loader2, Trash2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
-import { useToast } from '../helpers.js'
-import { useI18n } from '../helpers.js'
+import { useToast, useI18n } from '../helpers.js'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -151,7 +150,7 @@ async function handleSave() {
       showToast('Đã tạo phiếu kho', 'success')
     }
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 

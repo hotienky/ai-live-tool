@@ -1922,5 +1922,11 @@
   "admin.msg_3db89625": "Dùng lần cuối",
   "admin.msg_6aa5ba86": "Giá chưa gồm thuế",
   "admin.msg_35851e19": "Tìm kiếm (Ctrl+K)",
-  "admin.msg_1578dded": "Nhóm"
+  "admin.msg_1578dded": "Nhóm",
+  "admin.msg_select_shop": "Chọn shop để bắt đầu",
+  "admin.msg_connection_lost": "Mất kết nối server",
+  "admin.msg_live_now": "Đang Live",
+  "admin.msg_disconnected": "Ngắt kết nối",
+  "admin.msg_ready": "Sẵn sàng kết nối",
+  "admin.msg_2a7b6a8c": "Xuất tổng hợp"
 }

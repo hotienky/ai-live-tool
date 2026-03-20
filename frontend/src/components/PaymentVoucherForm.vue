@@ -91,7 +91,7 @@ async function handleSave() {
     await apiFetch('/payment-vouchers', { method: 'POST', body: JSON.stringify(form.value) })
     showToast(t('admin.msg_eae9d3', 'Đã tạo phiếu'), 'success')
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 </script>

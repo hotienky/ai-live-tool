@@ -980,7 +980,7 @@ async function saveLayout() {
     })
     showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
   } catch (e) {
-    showToast('Lỗi lưu: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu: ' + e.message, 'error')
   }
   saving.value = false
 }
@@ -1014,7 +1014,7 @@ async function saveDraft() {
     })
     showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
   } catch (e) {
-    showToast('Lỗi lưu nháp: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu nháp: ' + e.message, 'error')
   }
   saving.value = false
 }
@@ -1069,10 +1069,10 @@ async function saveNavLink() {
     }
     showNavLinkModal.value = false
     fetchNavLinks()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 async function deleteNavLink(link) {
-  if (!confirm(`Xóa link "${link.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} link "${link.name}"?`)) return
   await deleteNavLinkApi(link.id)
   fetchNavLinks()
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

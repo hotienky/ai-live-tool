@@ -200,7 +200,7 @@ async function save() {
     })
     showToast(t('admin.msg_b3e281', 'Đã lưu cấu hình vận chuyển'), 'success')
   } catch (e) {
-    showToast('Lỗi lưu: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu: ' + (e.message || 'Unknown'), 'error')
   }
   saving.value = false
 }

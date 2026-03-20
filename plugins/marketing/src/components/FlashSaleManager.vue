@@ -63,7 +63,7 @@
             </td>
             <td class="fsm-table__actions">
               <button class="btn-icon" @click="openEdit(sale)" title="Chỉnh sửa"><Pencil :size="14" /></button>
-              <button class="btn-icon btn-icon--danger" @click="confirmDelete(sale)" title="Xóa"><Trash2 :size="14" /></button>
+              <button class="btn-icon btn-icon--danger" @click="confirmDelete(sale)" :title="t('admin.delete', 'Xóa')" ><Trash2 :size="14" /></button>
             </td>
           </tr>
         </tbody>
@@ -82,8 +82,8 @@
             <p>Xóa <strong>{{ deleteTarget.name }}</strong>? Toàn bộ sản phẩm trong Flash Sale này cũng sẽ bị xóa.</p>
           </div>
           <div class="modal__footer">
-            <button class="btn-ghost" @click="deleteTarget = null">Hủy</button>
-            <button class="btn-danger" @click="deleteSale">Xóa</button>
+            <button class="btn-ghost" @click="deleteTarget = null">{{ t('admin.cancel', 'Hủy') }}</button>
+            <button class="btn-danger" @click="deleteSale">{{ t('admin.delete', 'Xóa') }}</button>
           </div>
         </div>
       </div>
@@ -92,11 +92,13 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { Zap, Plus, Pencil, Trash2, X, Package } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
 
 const { showToast } = useToast()
+const { t } = useI18n()
 const emit = defineEmits(['navigate'])
 
 const sales = ref([])

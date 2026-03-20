@@ -1924,5 +1924,11 @@
   "admin.msg_3db89625": "最終使用",
   "admin.msg_6aa5ba86": "税抜価格",
   "admin.msg_35851e19": "検索 (Ctrl+K)",
-  "admin.msg_1578dded": "グループ"
+  "admin.msg_1578dded": "グループ",
+  "admin.msg_select_shop": "ショップを選択して開始",
+  "admin.msg_connection_lost": "サーバー接続が切断されました",
+  "admin.msg_live_now": "ライブ中",
+  "admin.msg_disconnected": "切断",
+  "admin.msg_ready": "接続準備完了",
+  "admin.msg_2a7b6a8c": "統合エクスポート"
 }

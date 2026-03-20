@@ -188,7 +188,7 @@ async function saveTranslations() {
     showToast(t('admin.msg_a7250d', 'Đã lưu bản dịch'), 'success')
     emit('saved')
   } catch (e) {
-    showToast('Lỗi lưu bản dịch: ' + (e?.message || ''), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu bản dịch: ' + (e?.message || ''), 'error')
   } finally {
     saving.value = false
   }

@@ -115,8 +115,8 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><Receipt :size="14" /> Báo cáo thuế năm {{ taxYear }}</h4>
           <div class="acc-section__actions">
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" title="Xuất Excel"><Download :size="12" /> Excel</button>
-            <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
+            <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" :title="t('admin.msg_47bfce15', 'Xuất CSV')" ><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--sm" @click="taxYear--; loadTaxReport()">←</button>
             <span>{{ taxYear }}</span>
             <button class="acc-btn acc-btn--sm" @click="taxYear++; loadTaxReport()">→</button>
@@ -211,7 +211,7 @@
       <div class="acc-section">
         <div class="acc-section__header">
           <h4 class="acc-section__title"><TrendingUp :size="14" /> Báo cáo lãi lỗ</h4>
-          <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất Excel"><Download :size="12" /> Excel</button>
+          <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
         </div>
         <div v-if="pnlData" class="acc-pnl">
           <!-- Revenue -->
@@ -258,7 +258,7 @@
             </div>
           </div>
         </div>
-        <div v-else class="acc-empty">Đang tải...</div>
+        <div v-else class="acc-empty">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
       </div>
     </template>
 
@@ -296,7 +296,7 @@
             <span>Đã TT: {{ balanceData.summary?.paid_invoice_count || 0 }}</span>
           </div>
         </div>
-        <div v-else class="acc-empty">Đang tải...</div>
+        <div v-else class="acc-empty">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
       </div>
     </template>
 
@@ -436,6 +436,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import {
   TrendingUp, TrendingDown, DollarSign, Receipt, BarChart2,
@@ -448,6 +449,7 @@ import { useToast } from '../helpers.js'
 
 const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()
+const { t } = useI18n()
 
 const tabs = [
   { key: 'overview', label: 'Tổng quan', icon: BarChart2 },
@@ -618,18 +620,18 @@ async function saveEntry() {
     showToast('Đã tạo bút toán', 'success')
     showEntryForm.value = false
     loadAll()
-  } catch { showToast('Lỗi tạo bút toán', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tạo bút toán', 'error') }
   savingEntry.value = false
 }
 
 async function deleteEntry(e) {
-  if (!confirm(`Xoá bút toán "${e.description}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} bút toán "${e.description}"?`)) return
   try {
     const res = await apiFetch(`/accounting/entries/${e.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()
     showToast('Đã xoá', 'success')
     loadAll()
-  } catch { showToast('Lỗi xoá', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xoá', 'error') }
 }
 
 function getApiBaseUrl() {
@@ -705,7 +707,7 @@ async function saveConfig() {
     })
     if (!res.ok) throw new Error()
     showToast('Đã lưu cấu hình kế toán', 'success')
-  } catch { showToast('Lỗi lưu cấu hình', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu cấu hình', 'error') }
   savingConfig.value = false
 }
 

@@ -241,7 +241,7 @@ async function cancelShipment(s) {
 }
 
 async function deleteShipment(s) {
-  if (!confirm(`Xóa vận đơn #${s.id}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} vận đơn #${s.id}?`)) return
   try {
     await apiFetch(`/shipments/${s.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_776619', 'Đã xóa vận đơn'), 'success')

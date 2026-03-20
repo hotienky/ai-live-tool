@@ -78,11 +78,11 @@ async function toggleStatus(p) {
     await updatePage(p.id, { status: newStatus })
     showToast(newStatus === 1 ? 'Published' : 'Set to Draft', 'success')
     fetchPages({})
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function handleDelete(p) {
-  if (!confirm(`Xóa trang "${p.title}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} trang "${p.title}"?`)) return
   await deletePage(p.id)
   fetchPages({})
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

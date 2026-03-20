@@ -190,7 +190,7 @@ async function submitAdjust() {
     await loadData() // Refresh
     emit('updated')
   } catch (err) { 
-    showToast('Lỗi: ' + err.message, 'error') 
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + err.message, 'error') 
   } finally {
     saving.value = false
   }

@@ -313,7 +313,7 @@ import { ref, computed, watch, onMounted, onUnmounted, onErrorCaptured } from 'v
 const appError = ref(null)
 onErrorCaptured((err, instance, info) => {
   console.error('[App Error Boundary]', err, info)
-  appError.value = { message: err.message || 'Đã xảy ra lỗi', info }
+  appError.value = { message: err.message || t('admin.msg_aaf377aa', 'Đã xảy ra lỗi'), info }
   return false // prevent propagation
 })
 import { API_BASE } from './config.js'
@@ -936,18 +936,18 @@ const statusDotClass = computed(() => {
 })
 
 const statusText = computed(() => {
-  if (!currentShop.value) return 'Chọn shop để bắt đầu'
-  if (!isConnected.value) return 'Mất kết nối server'
+  if (!currentShop.value) return t('admin.msg_select_shop', 'Chọn shop để bắt đầu')
+  if (!isConnected.value) return t('admin.msg_connection_lost', 'Mất kết nối server')
   const status = crawlerStatus.value?.status
   if (status === 'connected' || status === 'mock') {
     const shop = currentShop.value
     const identifier = shop.tiktok_username || shop.shopee_id || shop.facebook_page_id || shop.youtube_channel_id || shop.shop_name || ''
-    const prefix = status === 'mock' ? 'Mock' : 'Đang Live'
+    const prefix = status === 'mock' ? 'Mock' : t('admin.msg_live_now', 'Đang Live')
     return `${prefix} - ${shop.shop_name}${identifier && identifier !== shop.shop_name ? ` @${identifier}` : ''}`
   }
-  if (status === 'error') return 'Lỗi: ' + (crawlerStatus.value?.message || '')
-  if (status === 'disconnected') return 'Ngắt kết nối'
-  return 'Sẵn sàng kết nối'
+  if (status === 'error') return t('admin.msg_aaf377aa', 'Lỗi') + ': ' + (crawlerStatus.value?.message || '')
+  if (status === 'disconnected') return t('admin.msg_disconnected', 'Ngắt kết nối')
+  return t('admin.msg_ready', 'Sẵn sàng kết nối')
 })
 </script>
 

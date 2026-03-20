@@ -196,7 +196,7 @@ async function handleSave() {
       goBack()
     }
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   } finally {
     saving.value = false
   }

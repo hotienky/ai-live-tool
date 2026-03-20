@@ -10,7 +10,7 @@
               <button class="inv-btn inv-btn--outline" @click="printInvoice" title="In hoá đơn">
                 <Printer :size="14" /> In
               </button>
-              <button class="inv-btn inv-btn--outline" @click="downloadPdf" title="Tải PDF">
+              <button class="inv-btn inv-btn--outline" @click="downloadPdf" :title="t('admin.msg_34de7842', 'Tải PDF')" >
                 <Download :size="14" /> PDF
               </button>
               <button v-if="invoice?.customer_email" class="inv-btn inv-btn--outline"

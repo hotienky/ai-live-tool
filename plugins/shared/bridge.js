@@ -18,7 +18,17 @@ export function useAppBridge() {
     return {
       apiFetch: () => Promise.reject('Bridge not ready'),
       showToast: () => {},
+      t: (key, fallback) => fallback || key,
+      currentLang: { value: 'vi' },
     }
   }
   return bridge
+}
+
+// Plugin-side helper for i18n — use the main app's translation function
+export function usePluginI18n() {
+  const bridge = window.__APP_BRIDGE__
+  const t = bridge?.t || ((key, fallback) => fallback || key)
+  const currentLang = bridge?.currentLang || { value: 'vi' }
+  return { t, currentLang }
 }

@@ -1076,7 +1076,7 @@ async function saveShopInfo() {
       body: JSON.stringify(shopForm.value),
     })
     showToast(t('admin.msg_043a3b', 'Đã lưu cấu hình shop'), 'success')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function addProduct() {
@@ -1090,7 +1090,7 @@ async function addProduct() {
     await loadProducts()
     showToast(t('admin.msg_7a810a', 'Đã thêm sản phẩm'), 'success')
   } catch (e) {
-    showToast('Lỗi thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1101,7 +1101,7 @@ async function deleteProduct(id) {
     await loadProducts()
     showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1113,7 +1113,7 @@ async function addCategory() {
     newCategory.value = { name: '', description: '' }
     showToast(t('admin.msg_002465', 'Đã thêm danh mục'), 'success')
   } catch (e) {
-    showToast('Lỗi thêm danh mục: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm danh mục: ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeCategory(id) {
@@ -1122,7 +1122,7 @@ async function removeCategory(id) {
     await deleteCategoryApi(id)
     showToast(t('admin.msg_2c1fe2', 'Đã xóa danh mục'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa danh mục: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa danh mục: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1134,7 +1134,7 @@ async function addBrand() {
     newBrand.value = { name: '', description: '' }
     showToast(t('admin.msg_aaabca', 'Đã thêm thương hiệu'), 'success')
   } catch (e) {
-    showToast('Lỗi thêm thương hiệu: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm thương hiệu: ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeBrand(id) {
@@ -1143,7 +1143,7 @@ async function removeBrand(id) {
     await deleteBrandApi(id)
     showToast(t('admin.msg_b05808', 'Đã xóa thương hiệu'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa thương hiệu: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa thương hiệu: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1220,7 +1220,7 @@ async function saveModerationConfig() {
     })
     showToast(t('admin.msg_1ed748', 'Đã lưu cấu hình moderation'), 'success')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 onMounted(() => {
@@ -1249,7 +1249,7 @@ async function toggleAutoReply() {
     })
     showToast(autoReplyEnabled.value ? t('admin.msg_f13221fe', 'Auto-reply đã bật') : t('admin.msg_bd320e37', 'Auto-reply đã tắt'), 'success')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
     autoReplyEnabled.value = !autoReplyEnabled.value
   }
 }

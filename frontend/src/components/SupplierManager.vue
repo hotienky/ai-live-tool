@@ -84,7 +84,7 @@ function openEdit(s) { editId.value = s.id; showForm.value = true }
 function onSaved() { showForm.value = false; fetchSuppliers() }
 
 async function deleteSupplier(s) {
-  if (!confirm(`Xóa "${s.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${s.name}"?`)) return
   try {
     await apiFetch(`/suppliers/${s.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

@@ -128,6 +128,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, computed, watch } from 'vue'
 import { Printer, Download, Mail, X } from 'lucide-vue-next'
 import { apiFetch, API_BASE } from '../helpers.js'

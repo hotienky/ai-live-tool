@@ -282,8 +282,8 @@ function formatTime(ts) {
   const now = new Date()
   const diff = now.getTime() - d.getTime()
   if (diff < 60000) return t('admin.msg_e92d1675', 'Vừa xong')
-  if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)} giờ trước`
+  if (diff < 3600000) return `${Math.floor(diff / 60000)} {{ t('admin.msg_dd01dbbd', 'phút trước') }}`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)} {{ t('admin.msg_3102dfbe', 'giờ trước') }}`
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 

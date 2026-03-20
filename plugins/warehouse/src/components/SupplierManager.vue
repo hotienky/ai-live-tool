@@ -84,12 +84,12 @@ function openEdit(s) { editId.value = s.id; showForm.value = true }
 function onSaved() { showForm.value = false; fetchSuppliers() }
 
 async function deleteSupplier(s) {
-  if (!confirm(`Xóa "${s.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${s.name}"?`)) return
   try {
     await apiFetch(`/suppliers/${s.id}`, { method: 'DELETE' })
     showToast('Đã xóa', 'success')
     fetchSuppliers()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 </script>
 

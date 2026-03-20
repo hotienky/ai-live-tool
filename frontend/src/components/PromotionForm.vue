@@ -228,7 +228,7 @@ async function handleSave() {
       }
     }
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 

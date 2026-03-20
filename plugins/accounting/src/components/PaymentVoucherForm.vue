@@ -1,7 +1,7 @@
 <template>
   <div class="pvf-page">
     <div class="pvf-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="pvf-header__center">
         <div class="pvf-header__icon"><Wallet :size="15" /></div>
         <h3>{{ form.type === 'receipt' ? 'Phiếu Thu' : 'Phiếu Chi' }}</h3>
@@ -68,8 +68,7 @@
 import { ref } from 'vue'
 import { ChevronLeft, Wallet, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
-import { useToast } from '../helpers.js'
-import { useI18n } from '../helpers.js'
+import { useToast, useI18n } from '../helpers.js'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -91,7 +90,7 @@ async function handleSave() {
     await apiFetch('/payment-vouchers', { method: 'POST', body: JSON.stringify(form.value) })
     showToast('Đã tạo phiếu', 'success')
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 </script>

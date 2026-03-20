@@ -59,7 +59,7 @@
             v-if="key.status === 'active'"
             class="key-action-btn key-action-btn--revoke"
             @click="revokeKey(key.id)"
-            title="Thu hồi"
+            :title="t('admin.msg_b8c669f9', 'Thu hồi')" 
           >
             <Ban :size="13" /> Thu hồi
           </button>

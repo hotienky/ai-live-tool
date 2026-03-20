@@ -65,7 +65,7 @@
             <td>
               <div class="action-btns">
                 <button v-if="v.status === 'draft'" class="act-btn act-confirm" @click="confirmVoucher(v)"><Check :size="13" /> Xác nhận</button>
-                <button v-if="v.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelVoucher(v)"><X :size="13" /> Hủy</button>
+                <button v-if="v.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelVoucher(v)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="v.status === 'draft'" class="act-btn act-cancel" @click="deleteVoucher(v)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
@@ -171,7 +171,7 @@ async function confirmVoucher(v) {
     await apiFetch(`/payment-vouchers/${v.id}/confirm`, { method: 'POST' })
     showToast('Đã xác nhận — Bút toán đã tạo', 'success')
     fetchVouchers(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function cancelVoucher(v) {
@@ -180,16 +180,16 @@ async function cancelVoucher(v) {
     await apiFetch(`/payment-vouchers/${v.id}/cancel`, { method: 'POST' })
     showToast('Đã hủy', 'success')
     fetchVouchers(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deleteVoucher(v) {
-  if (!confirm(`Xóa phiếu ${v.voucher_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${v.voucher_number}?`)) return
   try {
     await apiFetch(`/payment-vouchers/${v.id}`, { method: 'DELETE' })
     showToast('Đã xóa', 'success')
     fetchVouchers(); fetchStats()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 
 function formatCurrency(v) {

@@ -8,7 +8,7 @@
           class="chat-stream__search-toggle"
           :class="{ active: showSearch }"
           @click="showSearch = !showSearch"
-          title="Tìm kiếm (Ctrl+K)"
+          :title="t('admin.msg_35851e19', 'Tìm kiếm (Ctrl+K)')" 
         >
           <Search :size="13" />
         </button>
@@ -104,7 +104,7 @@
         <button
           class="chat-msg__reply-btn"
           @click.stop="$emit('reply', msg)"
-          title="Trả lời nhanh"
+          :title="t('admin.msg_fb352fcc', 'Trả lời nhanh')" 
         >
           <MessageCircle :size="13" />
         </button>
@@ -117,7 +117,7 @@
       class="chat-stream__jump-bottom"
       @click="scrollToBottom"
     >
-      ⬇ {{ newMessageCount }} tin nhắn mới
+      ⬇ {{ newMessageCount }} {{ t('admin.msg_be2ff4b0', 'tin nhắn mới') }}
     </button>
   </div>
 </template>

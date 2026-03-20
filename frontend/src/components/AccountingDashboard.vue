@@ -115,8 +115,8 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><Receipt :size="14" /> Báo cáo thuế năm {{ taxYear }}</h4>
           <div class="acc-section__actions">
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" title="Xuất Excel"><Download :size="12" /> Excel</button>
-            <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
+            <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" :title="t('admin.msg_47bfce15', 'Xuất CSV')" ><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--sm" @click="taxYear--; loadTaxReport()">←</button>
             <span>{{ taxYear }}</span>
             <button class="acc-btn acc-btn--sm" @click="taxYear++; loadTaxReport()">→</button>
@@ -166,9 +166,9 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><BookOpen :size="14" /> {{ t('admin.msg_9df87a66', 'Sổ thu chi') }}</h4>
           <div style="display:flex;gap:6px">
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('entries')" title="Xuất Excel"><Download :size="12" /> Excel</button>
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất tổng hợp"><Download :size="12" /> {{ t('admin.msg_8e4e2737', 'Tổng hợp') }}</button>
-            <button class="acc-btn acc-btn--sm" @click="exportEntriesCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('entries')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" :title="t('admin.msg_2a7b6a8c', 'Xuất tổng hợp')" ><Download :size="12" /> {{ t('admin.msg_8e4e2737', 'Tổng hợp') }}</button>
+            <button class="acc-btn acc-btn--sm" @click="exportEntriesCSV" :title="t('admin.msg_47bfce15', 'Xuất CSV')" ><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--primary acc-btn--sm" @click="openEntryForm()">
               <Plus :size="13" /> Thêm bút toán
             </button>
@@ -219,7 +219,7 @@
                 <span v-else>—</span>
               </td>
               <td class="acc-cell--actions">
-                <button v-if="!e.reference_type" class="acc-action-btn acc-action-btn--danger" @click="deleteEntry(e)" title="Xoá"><Trash2 :size="13" /></button>
+                <button v-if="!e.reference_type" class="acc-action-btn acc-action-btn--danger" @click="deleteEntry(e)" :title="t('admin.delete', 'Xóa')" ><Trash2 :size="13" /></button>
               </td>
             </tr>
           </tbody>
@@ -259,8 +259,8 @@
               </td>
               <td>{{ formatDate(inv.created_at) }}</td>
               <td class="acc-cell--actions">
-                <button class="acc-action-btn" @click="previewInvoiceId = inv.id; showInvoicePreview = true" title="Xem hoá đơn"><Eye :size="13" /></button>
-                <button class="acc-action-btn" @click="openInvoicePdf(inv.id)" title="Tải PDF"><Download :size="13" /></button>
+                <button class="acc-action-btn" @click="previewInvoiceId = inv.id; showInvoicePreview = true" :title="t('admin.msg_ec9f1c00', 'Xem hoá đơn')" ><Eye :size="13" /></button>
+                <button class="acc-action-btn" @click="openInvoicePdf(inv.id)" :title="t('admin.msg_34de7842', 'Tải PDF')" ><Download :size="13" /></button>
               </td>
             </tr>
           </tbody>
@@ -274,7 +274,7 @@
       <div class="acc-section">
         <div class="acc-section__header">
           <h4 class="acc-section__title"><TrendingUp :size="14" /> {{ t('admin.msg_32cd6d1a', 'Báo cáo lãi lỗ') }}</h4>
-          <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất Excel"><Download :size="12" /> Excel</button>
+          <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
         </div>
         <div v-if="pnlData" class="acc-pnl">
           <!-- Revenue -->
@@ -752,7 +752,7 @@ async function saveEntry() {
 }
 
 async function deleteEntry(e) {
-  if (!confirm(`Xoá bút toán "${e.description}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} bút toán "${e.description}"?`)) return
   try {
     const res = await apiFetch(`/accounting/entries/${e.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()

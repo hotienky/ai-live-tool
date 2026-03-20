@@ -50,7 +50,7 @@
                   <ToggleLeft v-if="!m.is_active" :size="14" />
                   <ToggleRight v-else :size="14" />
                 </button>
-                <button class="action-btn action-btn--danger" title="Xoá" @click="deleteModule(m)"><Trash2 :size="14" /></button>
+                <button class="action-btn action-btn--danger" :title="t('admin.delete', 'Xóa')"  @click="deleteModule(m)"><Trash2 :size="14" /></button>
               </div>
             </td>
           </tr>
@@ -183,7 +183,7 @@ async function toggleModule(m) {
 }
 
 async function deleteModule(m) {
-  if (!confirm(`Xoá module "${m.name}"? Hành động này không thể hoàn tác.`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} module "${m.name}"? Hành động này không thể hoàn tác.`)) return
   try {
     const res = await apiFetch(`/master/modules/${m.id}`, { method: 'DELETE' })
     const data = await res.json()

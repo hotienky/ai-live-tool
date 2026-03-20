@@ -171,7 +171,7 @@ async function confirmVoucher(v) {
     await apiFetch(`/payment-vouchers/${v.id}/confirm`, { method: 'POST' })
     showToast(t('admin.msg_795e66', 'Đã xác nhận — Bút toán đã tạo'), 'success')
     fetchVouchers(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function cancelVoucher(v) {
@@ -180,11 +180,11 @@ async function cancelVoucher(v) {
     await apiFetch(`/payment-vouchers/${v.id}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_1a46e0', 'Đã hủy'), 'success')
     fetchVouchers(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deleteVoucher(v) {
-  if (!confirm(`Xóa phiếu ${v.voucher_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${v.voucher_number}?`)) return
   try {
     await apiFetch(`/payment-vouchers/${v.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

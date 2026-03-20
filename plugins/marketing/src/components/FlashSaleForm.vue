@@ -150,6 +150,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ChevronLeft, Zap, Package, Search, Plus, X, Loader2, Clock } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
@@ -157,6 +158,7 @@ import LanguageTabs from './LanguageTabs.vue'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
 
 const { showToast } = useToast()
+const { t } = useI18n()
 const props = defineProps({
   editId: { type: [String, Number], default: null },
 })
@@ -268,7 +270,7 @@ async function loadForEdit() {
       if (td?.grouped && !Array.isArray(td.grouped)) form.value.translations = td.grouped
     } catch { /* ok */ }
   } catch (e) {
-    showToast('Lỗi tải Flash Sale', 'error'); emit('back')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tải Flash Sale', 'error'); emit('back')
   }
 }
 

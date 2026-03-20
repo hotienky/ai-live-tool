@@ -423,7 +423,7 @@ async function saveVariants() {
       }
     }
     showToast(t('admin.msg_9a6831', 'Đã lưu biến thể'), 'success')
-  } catch (e) { showToast('Lỗi lưu biến thể: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu biến thể: ' + e.message, 'error') }
 }
 
 async function deleteVariant(v, idx) {
@@ -454,11 +454,11 @@ async function saveProduct() {
     showProductModal.value = false
     fetchProducts()
     fetchStats()
-  } catch (err) { showToast('Lỗi: ' + err.message, 'error') }
+  } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + err.message, 'error') }
 }
 
 async function deleteProduct(product) {
-  if (!confirm(`Xóa "${product.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${product.name}"?`)) return
   try {
     await apiFetch(`/products/${product.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
@@ -538,7 +538,7 @@ async function submitImport() {
     importPreview.value = []
     fetchProducts()
     fetchStats()
-  } catch (err) { showToast('Lỗi nhập: ' + err.message, 'error') }
+  } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' nhập: ' + err.message, 'error') }
 }
 
 function formatCurrency(v) {

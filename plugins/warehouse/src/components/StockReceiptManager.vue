@@ -79,7 +79,7 @@
               <div class="action-btns">
                 <button class="act-btn act-view" @click="viewReceipt(r)"><Eye :size="13" /> Xem</button>
                 <button v-if="r.status === 'draft'" class="act-btn act-confirm" @click="confirmReceipt(r)"><Check :size="13" /> Xác nhận</button>
-                <button v-if="r.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelReceipt(r)"><X :size="13" /> Hủy</button>
+                <button v-if="r.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelReceipt(r)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="r.status === 'draft'" class="act-btn act-cancel" @click="deleteReceipt(r)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
@@ -254,17 +254,17 @@ async function cancelReceipt(r) {
     showToast('Đã hủy phiếu', 'success')
     fetchReceipts()
     fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deleteReceipt(r) {
-  if (!confirm(`Xóa phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}`, { method: 'DELETE' })
     showToast('Đã xóa phiếu', 'success')
     fetchReceipts()
     fetchStats()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 
 function formatCurrency(v) {

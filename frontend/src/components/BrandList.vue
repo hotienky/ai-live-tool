@@ -44,9 +44,9 @@ async function fetchBrands() {
 }
 
 async function handleDelete(b) {
-  if (!confirm(`Xóa "${b.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${b.name}"?`)) return
   try { await apiFetch(`/brands/${b.id}`, { method: 'DELETE' }); showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success'); await fetchBrands() }
-  catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 onMounted(() => fetchBrands())

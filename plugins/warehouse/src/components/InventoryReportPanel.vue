@@ -156,6 +156,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted, watch } from 'vue'
 import { apiFetch } from '../helpers.js'
 import {

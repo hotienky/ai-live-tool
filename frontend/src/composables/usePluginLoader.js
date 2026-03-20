@@ -4,6 +4,7 @@ import * as Vue from 'vue'
 import * as LucideVueNext from 'lucide-vue-next'
 import { apiFetch } from './useApi.js'
 import { useToast } from './useToast.js'
+import { useI18n } from './useI18n.js'
 
 // ── Set globals immediately at module scope ──
 window.Vue = Vue
@@ -17,7 +18,8 @@ const loadingPlugin = ref(null)
 
 function initBridge() {
   const { showToast } = useToast()
-  window.__APP_BRIDGE__ = { apiFetch, showToast }
+  const { t, currentLang } = useI18n()
+  window.__APP_BRIDGE__ = { apiFetch, showToast, t, currentLang }
 }
 
 // Load a plugin bundle dynamically via fetch + eval (no script tag race conditions)

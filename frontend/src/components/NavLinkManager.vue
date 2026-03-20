@@ -502,11 +502,11 @@ async function handleSave() {
       showToast(t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
     }
     showModal.value = false; fetchLinks()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function handleDelete(l) {
-  if (!confirm(`Xóa link "${l.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} link "${l.name}"?`)) return
   await deleteLink(l.id); fetchLinks()
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
@@ -655,7 +655,7 @@ async function saveFooter() {
     })
     
     showToast(t('admin.msg_c28060', 'Đã lưu cấu hình Footer'), 'success')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   finally { savingFooter.value = false }
 }
 

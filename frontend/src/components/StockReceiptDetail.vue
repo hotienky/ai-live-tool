@@ -77,7 +77,7 @@ async function confirmReceipt() {
     await apiFetch(`/stock-receipts/${props.editId}/confirm`, { method: 'POST' })
     showToast(t('admin.msg_757b90', 'Đã xác nhận — Kho và kế toán đã cập nhật'), 'success')
     loadReceipt(); emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function cancelReceipt() {
@@ -86,7 +86,7 @@ async function cancelReceipt() {
     await apiFetch(`/stock-receipts/${props.editId}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_578e8a', 'Đã hủy phiếu'), 'success')
     loadReceipt(); emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function typeLabel(t) { return { import: t('admin.msg_94e97353', 'Nhập kho'), export: t('admin.msg_25af27c7', 'Xuất kho'), return: t('admin.msg_4d38cf36', 'Trả hàng'), adjust: t('admin.msg_cd34d41d', 'Kiểm kê') }[t] || t }

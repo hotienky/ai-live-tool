@@ -461,7 +461,7 @@ async function handleSave() {
       emit('saved', addedProduct?.id)
     }
   } catch (e) {
-    showToast('Lỗi: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 

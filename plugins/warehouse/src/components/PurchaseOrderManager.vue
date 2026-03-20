@@ -53,7 +53,7 @@
                 <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
                 <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> Đặt hàng</button>
                 <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> Nhận hàng</button>
-                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> Hủy</button>
+                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
@@ -335,7 +335,7 @@ async function sendPO(po) {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast('Đã chuyển sang Đã đặt', 'success')
     fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 
@@ -345,16 +345,16 @@ async function cancelPO(po) {
     await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
     showToast('Đã hủy', 'success')
     fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deletePO(po) {
-  if (!confirm(`Xóa đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} đơn ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
     showToast('Đã xóa', 'success')
     fetchOrders(); fetchStats()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 
 function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }

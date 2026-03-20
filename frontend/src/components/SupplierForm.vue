@@ -103,7 +103,7 @@ async function handleSave() {
       showToast(t('admin.msg_038af2', 'Đã thêm NCC'), 'success')
     }
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 </script>

@@ -69,8 +69,8 @@ function clearAll() {
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
   if (seconds < 60) return t('admin.msg_e92d1675', 'Vừa xong')
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} {{ t('admin.msg_dd01dbbd', 'phút trước') }}`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} {{ t('admin.msg_3102dfbe', 'giờ trước') }}`
   return `${Math.floor(seconds / 86400)} ngày trước`
 }
 

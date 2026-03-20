@@ -169,7 +169,7 @@ async function sendPO(po) {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')
     fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 
@@ -179,11 +179,11 @@ async function cancelPO(po) {
     await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_1a46e0', 'Đã hủy'), 'success')
     fetchOrders(); fetchStats()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deletePO(po) {
-  if (!confirm(`Xóa đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} đơn ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

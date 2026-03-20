@@ -1919,5 +1919,11 @@
   "admin.msg_3db89625": "Last used",
   "admin.msg_6aa5ba86": "Price excludes tax",
   "admin.msg_35851e19": "Search (Ctrl+K)",
-  "admin.msg_1578dded": "Group"
+  "admin.msg_1578dded": "Group",
+  "admin.msg_select_shop": "Select shop to start",
+  "admin.msg_connection_lost": "Server connection lost",
+  "admin.msg_live_now": "Live",
+  "admin.msg_disconnected": "Disconnected",
+  "admin.msg_ready": "Ready to connect",
+  "admin.msg_2a7b6a8c": "Export combined"
 }

@@ -222,7 +222,7 @@ async function calcFee() {
       showToast(data.error || t('admin.msg_23dfb463', 'Không tính được phí'), 'error')
     }
   } catch (e) {
-    showToast('Lỗi tính phí: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tính phí: ' + e.message, 'error')
   } finally {
     calcingFee.value = false
   }
@@ -238,7 +238,7 @@ async function createShipment() {
     showToast(t('admin.msg_51ddf0', 'Đã tạo vận đơn'), 'success')
     emit('saved')
   } catch (err) { 
-    showToast('Lỗi: ' + err.message, 'error') 
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + err.message, 'error') 
   } finally {
     saving.value = false
   }

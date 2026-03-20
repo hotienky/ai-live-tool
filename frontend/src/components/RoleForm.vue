@@ -165,7 +165,7 @@ async function saveRole() {
     showToast(props.roleId ? t('admin.msg_f4388709', 'Cập nhật role thành công!') : t('admin.msg_e79132f4', 'Tạo role thành công!'), 'success')
     emit('saved')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   } finally {
     saving.value = false
   }
@@ -178,7 +178,7 @@ async function deleteRole() {
     showToast(t('admin.msg_c5d2b9', 'Đã xóa role'), 'success')
     emit('saved')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 </script>

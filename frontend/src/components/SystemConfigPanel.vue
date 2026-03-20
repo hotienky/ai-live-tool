@@ -22,6 +22,16 @@
     </div>
 
     <template v-else>
+      <!-- Cảnh báo chưa cấu hình -->
+      <div v-if="isUnconfigured" class="config-warning">
+        <AlertTriangle :size="15" />
+        <span>
+          Nhóm <strong>{{ currentSchema.label }}</strong> chưa được cấu hình.
+          Hệ thống đang dùng giá trị mặc định từ server (<code>.env</code>).
+          Hãy chọn dịch vụ và điền thông tin để áp dụng cho tenant này.
+        </span>
+      </div>
+
       <!-- Group description -->
       <p class="group-desc">{{ currentSchema.description }}</p>
 
@@ -100,7 +110,7 @@
       <!-- No fields needed -->
       <div v-else class="no-fields-note">
         <CheckCircle2 :size="20" />
-        <span>Không cần cấu hình thêm — chọn <strong>Lưu</strong> để áp dụng</span>
+        <span>Không cần cấu hình thêm — chọn <strong>{{ t('admin.save', 'Lưu') }}</strong> để áp dụng</span>
       </div>
 
       <!-- Actions -->
@@ -177,7 +187,7 @@ import {
 } from '../composables/useSystemConfigSchema.js'
 import {
   Cog, Save, Loader2, Mail, Database, ListTodo, MessageSquare,
-  CheckCircle2, XCircle, Eye, EyeOff, FlaskConical, Send,
+  CheckCircle2, XCircle, Eye, EyeOff, FlaskConical, Send, AlertTriangle,
 } from 'lucide-vue-next'
 
 const { t } = useI18n()
@@ -208,6 +218,12 @@ const currentFields  = computed(() => currentService.value?.fields ?? [])
 // Mail drivers có thể gửi test (trừ 'log' vì không thật)
 const TESTABLE_MAIL_DRIVERS = ['smtp', 'ses', 'mailgun', 'sendgrid']
 const canTestMail = computed(() => TESTABLE_MAIL_DRIVERS.includes(selectedService.value))
+
+// Cảnh báo: group chưa có driver key nào trong DB (chưa từng lưu config)
+const isUnconfigured = computed(() => {
+  const driverKey = currentSchema.value?.driverKey
+  return !driverKey || !dbValues.value[driverKey]
+})
 
 // ─── Load configs từ API ──────────────────────────────────────────────────────
 async function loadGroup(group) {
@@ -287,7 +303,7 @@ async function saveAll() {
     hasChanges.value = false
     showToast('Đã lưu cấu hình', 'success')
   } catch (e) {
-    showToast('Lỗi khi lưu cấu hình', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' khi lưu cấu hình', 'error')
   } finally {
     saving.value = false
   }
@@ -369,6 +385,18 @@ onMounted(() => loadGroup(activeGroup.value))
   border-color: var(--color-accent-primary);
   color: var(--color-accent-primary);
   background: var(--color-accent-glow);
+}
+
+/* ── Warning banner ── */
+.config-warning {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px; border-radius: 8px; margin-bottom: 14px;
+  background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.35);
+  color: #d97706; font-size: 13px; line-height: 1.5;
+}
+.config-warning code {
+  background: rgba(245,158,11,0.15); padding: 1px 5px;
+  border-radius: 4px; font-size: 11px; font-family: monospace;
 }
 
 /* ── Group description ── */

@@ -1,7 +1,7 @@
 <template>
   <div class="srd-page">
     <div class="srd-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="srd-header__center">
         <h3 v-if="receipt">
           <span class="type-badge" :class="receipt.type">{{ typeLabel(receipt.type) }}</span>
@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-hint">Đang tải...</div>
+    <div v-if="loading" class="loading-hint">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div v-else-if="receipt">
       <div class="srd-info-grid">
         <div v-if="receipt.supplier"><strong>NCC:</strong> {{ receipt.supplier?.name }}</div>
@@ -47,12 +47,14 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { ChevronLeft, Check, X } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import { useToast } from '../helpers.js'
 
 const { showToast } = useToast()
+const { t } = useI18n()
 const props = defineProps({ editId: { type: [String, Number], required: true } })
 const emit = defineEmits(['back', 'refresh'])
 
@@ -77,7 +79,7 @@ async function confirmReceipt() {
     await apiFetch(`/stock-receipts/${props.editId}/confirm`, { method: 'POST' })
     showToast('Đã xác nhận — Kho và kế toán đã cập nhật', 'success')
     loadReceipt(); emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function cancelReceipt() {
@@ -86,7 +88,7 @@ async function cancelReceipt() {
     await apiFetch(`/stock-receipts/${props.editId}/cancel`, { method: 'POST' })
     showToast('Đã hủy phiếu', 'success')
     loadReceipt(); emit('refresh')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function typeLabel(t) { return { import: 'Nhập kho', export: 'Xuất kho', return: 'Trả hàng', adjust: 'Kiểm kê' }[t] || t }

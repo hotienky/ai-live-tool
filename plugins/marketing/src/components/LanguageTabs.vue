@@ -30,6 +30,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { computed, onMounted } from 'vue'
 import { apiFetch } from '../helpers.js'
 

@@ -55,13 +55,13 @@ async function fetchCategories() {
 }
 
 async function handleDelete(c) {
-  if (!confirm(`Xóa danh mục "${c.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} danh mục "${c.name}"?`)) return
   try {
     await apiFetch(`/categories/${c.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
     await fetchCategories()
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 
@@ -70,7 +70,7 @@ async function toggleActive(c) {
     await apiFetch(`/categories/${c.id}`, { method: 'PUT', body: JSON.stringify({ is_active: c.is_active === false ? true : false }) })
     c.is_active = c.is_active === false ? true : false
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 

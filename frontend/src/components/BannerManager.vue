@@ -32,7 +32,7 @@
         @drop.prevent="onDrop(index)"
       >
         <!-- Drag Handle -->
-        <div class="bm-card__drag-handle" title="Kéo để sắp xếp">
+        <div class="bm-card__drag-handle" :title="t('admin.msg_b433b0b1', 'Kéo để sắp xếp')" >
           <GripVertical :size="16" />
         </div>
 
@@ -179,7 +179,7 @@ async function onDrop(targetIndex) {
     showToast(t('admin.msg_654d75', 'Đã sắp xếp lại'), 'success')
     reload()
   } catch (e) {
-    showToast('Lỗi sắp xếp: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' sắp xếp: ' + e.message, 'error')
     reload()
   }
 }
@@ -214,7 +214,7 @@ async function toggleStatus(b) {
     await updateBanner(b.id, { status: newStatus })
     showToast(newStatus === 1 ? 'Activated' : 'Deactivated', 'success')
     reload()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 async function handleSave() {
   if (!form.value.image) return showToast(t('admin.msg_b263b8', 'Nhập URL hình ảnh'), 'error')
@@ -227,10 +227,10 @@ async function handleSave() {
       showToast(t('admin.msg_370f6c', 'Đã tạo banner'), 'success')
     }
     showModal.value = false; reload()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 async function handleDelete(b) {
-  if (!confirm(`Xóa banner "${b.title}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} banner "${b.title}"?`)) return
   await deleteBanner(b.id); reload()
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }

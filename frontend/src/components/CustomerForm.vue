@@ -168,7 +168,7 @@ async function handleSave() {
       showToast(t('admin.msg_8f038f', 'Đã tạo khách hàng'), 'success')
     }
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 

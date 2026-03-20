@@ -154,7 +154,7 @@ async function handleSave() {
       showToast(t('admin.msg_9ae9d5', 'Đã tạo Đơn Nhập Hàng'), 'success')
     }
     emit('saved')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
   saving.value = false
 }
 

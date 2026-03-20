@@ -442,7 +442,7 @@ async function createOrder() {
     newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' }
     fetchOrders(); fetchStats()
     showToast(t('admin.msg_09da14', 'Tạo đơn thành công!'), 'success')
-  } catch (err) { showToast('Lỗi tạo đơn: ' + err.message, 'error') }
+  } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tạo đơn: ' + err.message, 'error') }
 }
 
 async function fetchStatuses() {

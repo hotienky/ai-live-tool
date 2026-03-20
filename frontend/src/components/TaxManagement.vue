@@ -123,7 +123,7 @@
             </td>
             <td class="tax-cell--actions">
               <button class="tax-action-btn" @click="openForm(rate)" :title="t('admin.edit', 'Sửa')"><Pencil :size="13" /></button>
-              <button class="tax-action-btn tax-action-btn--danger" @click="deleteRate(rate)" title="Xoá"><Trash2 :size="13" /></button>
+              <button class="tax-action-btn tax-action-btn--danger" @click="deleteRate(rate)" :title="t('admin.delete', 'Xóa')" ><Trash2 :size="13" /></button>
             </td>
           </tr>
         </tbody>
@@ -373,7 +373,7 @@ async function saveRate() {
 }
 
 async function deleteRate(rate) {
-  if (!confirm(`Xoá thuế suất "${rate.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} thuế suất "${rate.name}"?`)) return
   try {
     const res = await apiFetch(`/tax-rates/${rate.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()

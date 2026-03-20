@@ -87,7 +87,7 @@
         </div>
       </div>
 
-      <div v-if="loading" class="tax-loading">Đang tải...</div>
+      <div v-if="loading" class="tax-loading">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
       <table v-else-if="rates.length" class="tax-table">
         <thead>
@@ -122,8 +122,8 @@
               </span>
             </td>
             <td class="tax-cell--actions">
-              <button class="tax-action-btn" @click="openForm(rate)" title="Sửa"><Pencil :size="13" /></button>
-              <button class="tax-action-btn tax-action-btn--danger" @click="deleteRate(rate)" title="Xoá"><Trash2 :size="13" /></button>
+              <button class="tax-action-btn" @click="openForm(rate)" :title="t('admin.edit', 'Sửa')" ><Pencil :size="13" /></button>
+              <button class="tax-action-btn tax-action-btn--danger" @click="deleteRate(rate)" :title="t('admin.delete', 'Xóa')" ><Trash2 :size="13" /></button>
             </td>
           </tr>
         </tbody>
@@ -234,6 +234,7 @@
 </template>
 
 <script setup>
+import { useI18n } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { Settings, Percent, Plus, Pencil, Trash2, Save, X, Flag, Receipt, BarChart2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
@@ -241,6 +242,7 @@ import { useToast } from '../helpers.js'
 
 const emit = defineEmits(['navigate-to-accounting'])
 const { showToast } = useToast()
+const { t } = useI18n()
 
 const loading = ref(false)
 const savingConfig = ref(false)
@@ -305,7 +307,7 @@ async function saveConfig() {
     if (!res.ok) throw new Error()
     showToast('Đã lưu cấu hình thuế', 'success')
   } catch {
-    showToast('Lỗi lưu cấu hình', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu cấu hình', 'error')
   } finally {
     savingConfig.value = false
   }
@@ -363,21 +365,21 @@ async function saveRate() {
     showForm.value = false
     await loadRates()
   } catch {
-    showToast('Lỗi lưu thuế suất', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu thuế suất', 'error')
   } finally {
     savingRate.value = false
   }
 }
 
 async function deleteRate(rate) {
-  if (!confirm(`Xoá thuế suất "${rate.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} thuế suất "${rate.name}"?`)) return
   try {
     const res = await apiFetch(`/tax-rates/${rate.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()
     showToast('Đã xoá', 'success')
     await loadRates()
   } catch {
-    showToast('Lỗi xoá', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xoá', 'error')
   }
 }
 
@@ -405,7 +407,7 @@ async function applyVN2026Rates() {
       showToast('Tất cả thuế suất VN 2026 đã tồn tại', 'info')
     }
   } catch {
-    showToast('Lỗi tạo thuế suất', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tạo thuế suất', 'error')
   }
   applyingVN.value = false
 }

@@ -161,7 +161,7 @@ async function handleSave() {
       showToast(t('admin.msg_002465', 'Đã thêm danh mục'), 'success')
       emit('saved', res.id || res.data?.id)
     }
-  } catch (e) { showToast('Lỗi: ' + (e.message || 'Unknown'), 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + (e.message || 'Unknown'), 'error') }
 }
 
 onMounted(async () => {

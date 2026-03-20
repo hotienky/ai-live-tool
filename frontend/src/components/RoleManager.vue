@@ -295,17 +295,17 @@ async function toggleActive(user) {
     if (!res.ok) throw new Error('Failed')
     user.is_active = !user.is_active
     showToast(user.is_active ? t('admin.msg_d8b606d4', 'Đã mở khoá user') : t('admin.msg_60d1c6da', 'Đã khoá user'), 'success')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 async function deleteUser(user) {
-  if (!confirm(`Xóa user "${user.name || user.email}"? Hành động này không thể hoàn tác.`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} user "${user.name || user.email}"? Hành động này không thể hoàn tác.`)) return
   try {
     const res = await apiFetch(`/users/${user.id}`, { method: 'DELETE' })
     if (!res.ok) { const d = await res.json(); throw new Error(d?.message || 'Error') }
     showToast(t('admin.msg_1f2807', 'Đã xóa user'), 'success')
     users.value = users.value.filter(u => u.id !== user.id)
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
 }
 
 function formatDate(dt) {

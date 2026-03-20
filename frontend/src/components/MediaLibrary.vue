@@ -181,12 +181,12 @@ async function saveDetail() {
       Object.assign(selected.value, result.data)
     }
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 
 async function handleDelete(item) {
-  if (!confirm(`Xóa "${item.filename}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${item.filename}"?`)) return
   try {
     await deleteMedia(item.id)
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
@@ -194,7 +194,7 @@ async function handleDelete(item) {
     selectedId.value = null
     reload()
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 

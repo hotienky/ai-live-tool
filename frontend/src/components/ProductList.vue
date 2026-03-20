@@ -20,7 +20,7 @@
             <th>{{ t('admin.product_name', 'Tên sản phẩm') }}</th>
             <th>SKU</th>
             <th>{{ t('admin.msg_072c1a4b', 'Giá') }}</th>
-            <th>Kho</th>
+            <th>{{ t('admin.stock', 'Kho') }}</th>
             <th>{{ t('admin.msg_53d8de58', 'Danh mục') }}</th>
             <th class="th-status">{{ t('admin.status', 'Trạng thái') }}</th>
             <th class="th-actions">{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
@@ -56,7 +56,7 @@
             <td class="td-status">
               <span class="status-dot" :class="p.is_active !== false ? 'active' : 'inactive'"
                 @click="toggleStatus(p)">
-                {{ p.is_active !== false ? 'Active' : t('admin.msg_f7bc96f2', 'Ẩn') }}
+                {{ p.is_active !== false ? t('admin.active', 'Active') : t('admin.msg_f7bc96f2', 'Ẩn') }}
               </span>
             </td>
             <td class="td-actions">
@@ -81,7 +81,7 @@
       <button class="pg-btn" :disabled="pagination.page >= pagination.lastPage" @click="goPage(pagination.page + 1)">
         <ChevronRight :size="14" />
       </button>
-      <span class="pg-info">{{ pagination.total }} sản phẩm</span>
+      <span class="pg-info">{{ pagination.total }} {{ t('admin.products', 'sản phẩm') }}</span>
     </div>
   </div>
 </template>
@@ -150,13 +150,13 @@ function goPage(pg) {
 }
 
 async function handleDelete(p) {
-  if (!confirm(`Xóa "${p.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} "${p.name}"?`)) return
   try {
     await apiFetch(`/products/${p.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
     await fetchProducts()
   } catch (e) {
-    showToast('Lỗi: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -167,7 +167,7 @@ async function toggleStatus(p) {
     p.is_active = newActive
     showToast(newActive ? t('admin.msg_35776a2b', 'Đã kích hoạt') : t('admin.msg_b0f5126e', 'Đã ẩn'), 'success')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
 
@@ -180,13 +180,17 @@ async function adjustStock(productId, action, quantity) {
     const updated = await res.json()
     const idx = products.value.findIndex(p => p.id === productId)
     if (idx !== -1 && updated) products.value[idx].stock = updated.stock
-    showToast(action === 'add' ? `+${quantity} tồn kho` : `-${quantity} tồn kho`, 'success')
+    showToast(action === 'add' ? `+${quantity} ${t('admin.stock', 'tồn kho')}` : `-${quantity} ${t('admin.stock', 'tồn kho')}`, 'success')
   } catch (e) {
     showToast(e.message || t('admin.msg_aaf377aa', 'Lỗi'), 'error')
   }
 }
 
-function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+const CURRENCY_MAP = { vi: 'đ', en: '$', ja: '¥', zh: '¥', ko: '₩', th: '฿', fr: '€', de: '€' }
+function formatPrice(v) {
+  const { currentLang } = useI18n()
+  return Number(v || 0).toLocaleString('vi-VN') + (CURRENCY_MAP[currentLang.value] || 'đ')
+}
 
 onMounted(() => {
   fetchProducts()
