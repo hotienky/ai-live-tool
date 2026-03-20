@@ -15,6 +15,38 @@ abstract class BaseAdminMail extends Mailable
 
     public $queue = 'notifications';
 
+    /**
+     * Gọi khi job gửi mail thất bại sau hết số lần retry.
+     * Tạo DB notification để admin thấy ngay trên dashboard.
+     */
+    public function failed(\Throwable $e): void
+    {
+        Log::error('[BaseAdminMail] Mail job failed: ' . $e->getMessage(), [
+            'mailable' => static::class,
+            'exception' => $e,
+        ]);
+
+        try {
+            DB::table('notifications')->insert([
+                'id'              => \Illuminate\Support\Str::uuid(),
+                'type'            => 'mail_job_failed',
+                'title'           => 'Gửi email thất bại',
+                'message'         => 'Không thể gửi email ' . class_basename(static::class) . '. Lỗi: ' . $e->getMessage(),
+                'data'            => json_encode([
+                    'mailable' => static::class,
+                    'error'    => $e->getMessage(),
+                    'hint'     => 'Kiểm tra lại cấu hình email tại Cài đặt → Cấu hình hệ thống',
+                ]),
+                'is_read'         => false,
+                'target_roles'    => json_encode(['admin', 'super_admin']),
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+        } catch (\Throwable $dbError) {
+            Log::error('[BaseAdminMail] Could not create failure notification: ' . $dbError->getMessage());
+        }
+    }
+
     // ─── HTML layout helpers ─────────────────────────────────────
 
     protected function wrapHtml(string $accentColor, string $headerIcon, string $headerTitle, string $headerSub, string $body): string
