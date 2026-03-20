@@ -35,7 +35,7 @@
         </div>
       </div>
       <div class="layout-builder__header-actions">
-        <button v-if="undoStack.length" class="btn-undo" @click="undo" title="Hoàn tác">
+        <button v-if="undoStack.length" class="btn-undo" @click="undo" :title="t('admin.msg_96ce272e', 'Hoàn tác')">
           <Undo2 :size="14" />
         </button>
         <button class="btn-preview-toggle" @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'">
@@ -44,10 +44,10 @@
           {{ previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe' }}
         </button>
         <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
-          <FileEdit :size="14" /> Nháp
+          <FileEdit :size="14" /> {{ t('admin.msg_867cf3b9', 'Nháp') }}
         </button>
         <button class="btn-save" @click="saveLayout" :disabled="saving">
-          <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Xuất bản' }}
+          <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.msg_723f4d22', 'Xuất bản') }}
         </button>
       </div>
     </div>
@@ -268,7 +268,7 @@
 
           <!-- Add Section Button (only for homepage and CMS dynamic pages, not builtin pages) -->
           <button class="btn-add-section" @click="showLibrary = true" v-show="!activeBuiltinPage">
-            <Plus :size="14" /> Thêm section
+            <Plus :size="14" /> {{ t('admin.msg_09acbe8c', 'Thêm section') }}
           </button>
         </div>
 

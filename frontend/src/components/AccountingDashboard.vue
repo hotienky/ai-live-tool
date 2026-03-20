@@ -418,7 +418,7 @@
               <div class="acc-tax-status__row">
                 <span class="acc-badge acc-badge--paid">{{ t('admin.msg_9eae5130', 'Bật') }}</span>
                 <span>{{ t('admin.msg_a273899d', 'Nhãn:') }} <strong>{{ taxConfig.label || 'VAT' }}</strong></span>
-                <span>{{ t('admin.msg_cea0c32e', 'Hiển thị:') }} <strong>{{ taxConfig.display_mode === 'inclusive' ? 'Giá đã gồm thuế' : taxConfig.display_mode === 'exclusive' ? 'Giá + thuế riêng' : 'Cả hai' }}</strong></span>
+                <span>{{ t('admin.msg_cea0c32e', 'Hiển thị:') }} <strong>{{ taxConfig.display_mode === 'inclusive' ? t('admin.msg_price_incl_tax', 'Giá đã gồm thuế') : taxConfig.display_mode === 'exclusive' ? t('admin.msg_price_excl_tax', 'Giá + thuế riêng') : t('admin.msg_both', 'Cả hai') }}</strong></span>
                 <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">{{ t('admin.msg_f503a745', 'Giá gồm thuế') }}</span>
               </div>
               <div v-if="activeTaxRates.length" class="acc-tax-status__rates">
@@ -542,7 +542,7 @@
             <div class="acc-modal__footer">
               <button class="acc-btn" @click="showEntryForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
               <button class="acc-btn acc-btn--primary" @click="saveEntry" :disabled="savingEntry">
-                <Save :size="13" /> {{ savingEntry ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
+                <Save :size="13" /> {{ savingEntry ? t('admin.saving', 'Đang lưu...') : t('admin.save', 'Lưu') }}
               </button>
             </div>
           </div>

@@ -170,7 +170,7 @@
         <div v-if="editingProduct" class="variants-section">
           <div class="variants-header" @click="showVariants = !showVariants" style="cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--glass-border);margin-top:12px">
             <Layers :size="16" />
-            <strong>Biến thể ({{ variants.length }})</strong>
+            <strong>{{ t('admin.variants', 'Biến thể') }} ({{ variants.length }})</strong>
             <ChevronRight :size="14" :style="{ transform: showVariants ? 'rotate(90deg)' : '', transition: 'transform 0.2s' }" />
           </div>
           <div v-if="showVariants" style="margin-bottom:12px">
@@ -210,7 +210,7 @@
           </div>
         </div>
         <div v-if="importPreview.length > 0" class="import-preview">
-          <p style="font-weight:700; margin-bottom:8px">Xem trước ({{ importPreview.length }} sản phẩm):</p>
+          <p style="font-weight:700; margin-bottom:8px">{{ t('admin.msg_preview', 'Xem trước') }} ({{ importPreview.length }} {{ t('admin.msg_bbdf19a3', 'sản phẩm') }}):</p>
           <table class="preview-table">
             <thead>
               <tr>
@@ -230,7 +230,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showImportModal = false; importPreview = []">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="submitImport" :disabled="importPreview.length === 0">Nhập {{ importPreview.length }} sản phẩm</button>
+          <button class="btn-create" @click="submitImport" :disabled="importPreview.length === 0">{{ t('admin.msg_9b9d9310', 'Nhập') }} {{ importPreview.length }} sản phẩm</button>
         </div>
       </div>
     </div>

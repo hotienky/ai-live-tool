@@ -106,7 +106,7 @@
         <div class="mod-admin__modal-footer">
           <button class="btn btn--cancel" @click="showForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
           <button class="btn btn--save" :disabled="saving" @click="saveModule">
-            {{ saving ? t('admin.saving', 'Đang lưu...') : (editId ? 'Cập nhật' : 'Tạo mới') }}
+            {{ saving ? t('admin.saving', 'Đang lưu...') : (editId ? t('admin.update', 'Cập nhật') : t('admin.msg_e69e49b5', 'Tạo mới')) }}
           </button>
         </div>
       </div>

@@ -4,12 +4,12 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="sd-header__center">
         <div class="sd-header__icon"><MapPin :size="15" /></div>
-        <h3>Chi tiết Vận đơn #{{ shipment?.id || shipmentId }}</h3>
+        <h3>{{ t('admin.msg_35db9eb6', 'Chi tiết Vận đơn') }} #{{ shipment?.id || shipmentId }}</h3>
       </div>
       <div class="sd-actions">
         <button class="btn-print" @click="printShipmentLabel"><Printer :size="14" /> {{ t('admin.msg_378e9242', 'In phiếu') }}</button>
         <button v-if="shipment && !['delivered','cancelled'].includes(shipment.status)" class="btn-cancel" @click="cancelShipment">
-          <XCircle :size="14" /> Hủy Đơn
+          <XCircle :size="14" /> {{ t('admin.msg_b5ba07d0', 'Hủy Đơn') }}
         </button>
       </div>
     </div>
@@ -190,7 +190,7 @@ async function submitStatus() {
 }
 
 async function cancelShipment() {
-  if (!confirm(`Hủy vận đơn #${props.shipmentId}?`)) return
+  if (!confirm(`${t('admin.msg_a9eae200', 'Hủy vận đơn')} #${props.shipmentId}?`)) return
   try {
     await apiFetch(`/shipments/${props.shipmentId}/status`, {
       method: 'PUT',
@@ -206,7 +206,7 @@ function printShipmentLabel() {
   if (!shipment.value) return
   const s = shipment.value
   const win = window.open('', '_blank', 'width=400,height=600')
-  win.document.write(`<!DOCTYPE html><html><head><title>Phiếu gửi hàng #${s.id}</title>
+  win.document.write(`<!DOCTYPE html><html><head><title>${t('admin.msg_711f1b8c', 'Phiếu gửi hàng')} #${s.id}</title>
     <style>
       * { margin:0; padding:0; box-sizing:border-box; }
       body { font-family:'Segoe UI',sans-serif; padding:20px; font-size:13px; }
@@ -223,7 +223,7 @@ function printShipmentLabel() {
     </style>
   </head><body>
     <div class="header">
-      <h1>Phiếu Gửi Hàng</h1>
+      <h1>${t('admin.msg_70fe94d4', 'Phiếu Gửi Hàng')}</h1>
       <p>${carrierLabels[s.carrier] || s.carrier} — ${new Date().toLocaleDateString('vi-VN')}</p>
     </div>
     <div class="barcode">${s.trackingCode || `VD-${String(s.id).padStart(6,'0')}`}</div>
@@ -234,7 +234,7 @@ function printShipmentLabel() {
       <div class="row"><span class="label">{{ t('admin.msg_ce467846', 'Địa chỉ:') }}</span><span class="value">${s.receiverAddress || '—'}</span></div>
     </div>
     <div class="section">
-      <div class="section-title">Thông tin gói hàng</div>
+      <div class="section-title">${t('admin.msg_870fc8a4', 'Thông tin gói hàng')}</div>
       <div class="row"><span class="label">{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><span class="value">${s.weight || 500}g</span></div>
       <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${formatCurrency(s.shippingFee || 0)}</span></div>
       <div class="row"><span class="label">COD:</span><span class="value">${formatCurrency(s.codAmount || 0)}</span></div>

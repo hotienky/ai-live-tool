@@ -6,7 +6,7 @@
       <h3>{{ isEditing ? t('admin.msg_72f5b421', 'Sửa trang CMS') : t('admin.msg_4ae8d81c', 'Tạo trang CMS mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="16" class="spin" />
-        {{ saving ? t('admin.saving', 'Đang lưu...') : (isEditing ? 'Cập nhật' : 'Tạo trang') }}
+        {{ saving ? t('admin.saving', 'Đang lưu...') : (isEditing ? t('admin.update', 'Cập nhật') : 'Tạo trang') }}
       </button>
     </div>
 

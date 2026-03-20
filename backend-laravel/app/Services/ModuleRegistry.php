@@ -10,7 +10,7 @@ class ModuleRegistry
     // Get all active modules from master DB
     public static function availableModules(): array
     {
-        return Module::where('is_active', true)
+        return Module::whereRaw('"is_active" = true')
             ->orderBy('category')
             ->orderBy('name')
             ->get()
@@ -22,7 +22,7 @@ class ModuleRegistry
     public static function installedModuleIds(string $tenantId): array
     {
         return TenantModuleSubscription::where('tenant_id', $tenantId)
-            ->where('is_active', true)
+            ->whereRaw('"is_active" = true')
             ->pluck('module_id')
             ->toArray();
     }
@@ -36,7 +36,7 @@ class ModuleRegistry
     // Install a module for a tenant
     public static function install(string $tenantId, string $moduleId, ?int $userId = null): array
     {
-        $module = Module::where('module_id', $moduleId)->where('is_active', true)->first();
+        $module = Module::where('module_id', $moduleId)->whereRaw('"is_active" = true')->first();
         if (!$module) {
             return ['success' => false, 'message' => "Module '{$moduleId}' không tồn tại hoặc đã bị tắt"];
         }
@@ -103,7 +103,7 @@ class ModuleRegistry
     // Request a paid module (creates pending subscription)
     public static function requestModule(string $tenantId, string $moduleId, ?int $userId = null, ?string $note = null): array
     {
-        $module = Module::where('module_id', $moduleId)->where('is_active', true)->first();
+        $module = Module::where('module_id', $moduleId)->whereRaw('"is_active" = true')->first();
         if (!$module) {
             return ['success' => false, 'message' => "Module không tồn tại"];
         }
@@ -202,7 +202,7 @@ class ModuleRegistry
     // Get module list with install status for a tenant (for UI)
     public static function listForTenant(string $tenantId): array
     {
-        $modules = Module::where('is_active', true)->orderBy('category')->orderBy('name')->get();
+        $modules = Module::whereRaw('"is_active" = true')->orderBy('category')->orderBy('name')->get();
         $subscriptions = TenantModuleSubscription::where('tenant_id', $tenantId)
             ->get()
             ->keyBy('module_id');

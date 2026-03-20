@@ -69,10 +69,13 @@
 </template>
 
 <script setup>
+import { useI18n } from '../composables/useI18n.js'
 import { ref, computed, onMounted } from 'vue'
 import { ChevronLeft, ShieldCheck, CheckSquare, Save, Trash2, Loader2, AlertCircle } from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 

@@ -317,6 +317,7 @@ onErrorCaptured((err, instance, info) => {
   return false // prevent propagation
 })
 import { API_BASE } from './config.js'
+import { apiFetch } from './composables/useApi.js'
 import { logger } from './utils/logger.js'
 import { useSocket } from './composables/useSocket.js'
 import { useShops } from './composables/useShops.js'

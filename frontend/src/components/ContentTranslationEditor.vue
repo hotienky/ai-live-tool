@@ -71,7 +71,7 @@
     <!-- Save button -->
     <div class="trans-save" v-if="hasChanges">
       <button class="trans-save-btn" @click="saveTranslations" :disabled="saving">
-        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu bản dịch' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save_translations', 'Lưu bản dịch') }}
       </button>
     </div>
   </div>

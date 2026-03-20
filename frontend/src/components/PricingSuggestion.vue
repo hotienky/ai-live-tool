@@ -20,7 +20,7 @@
           {{ analysis.icon }} {{ analysis.verdict }}
         </div>
         <div class="pricing-suggestion__confidence">
-          Độ tin cậy: {{ analysis.confidence }}%
+          {{ t('admin.msg_3746e753', 'Độ tin cậy') }}: {{ analysis.confidence }}%
         </div>
       </div>
 

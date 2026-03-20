@@ -36,7 +36,7 @@
             </div>
             <button class="pm-btn pm-btn--primary" @click="updateProfile" :disabled="saving || !fullName.trim()">
               <Check :size="14" />
-              {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
+              {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save', 'Lưu') }}
             </button>
           </div>
         </div>

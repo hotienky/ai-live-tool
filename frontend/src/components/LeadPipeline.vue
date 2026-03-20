@@ -7,8 +7,8 @@
         Lead Pipeline
       </h2>
       <div class="pipeline__summary">
-        <span class="pipeline__badge pipeline__badge--new">{{ pipeStats.New }} Mới</span>
-        <span class="pipeline__badge pipeline__badge--contact">{{ pipeStats.Contacting }} Đã liên hệ</span>
+        <span class="pipeline__badge pipeline__badge--new">{{ pipeStats.New }} {{ t('admin.msg_cd5dc8cc', 'Mới') }}</span>
+        <span class="pipeline__badge pipeline__badge--contact">{{ pipeStats.Contacting }} {{ t('admin.msg_0e0e8508', 'Đã liên hệ') }}</span>
         <span class="pipeline__badge pipeline__badge--closed">{{ (pipeStats.Closed || 0) + (pipeStats.Ignored || 0) + (pipeStats.Done || 0) }} Xong</span>
       </div>
       <button class="pipeline__refresh" @click="loadData" :disabled="loading">
@@ -65,7 +65,7 @@
                 target="_blank"
                 class="pipeline__card-zalo"
                 @click.stop
-                title="Mở Zalo"
+                :title="t('admin.msg_895c4ba1', 'Mở Zalo')"
               >
                 <Phone :size="11" /> Zalo: {{ detectPhone(lead.comment || lead.commentText) }}
               </a>
@@ -159,14 +159,14 @@
           <div class="pipeline__modal-actions-row" style="display:flex;gap:8px;margin-top:8px">
             <button class="pipeline__modal-save" @click="saveLeadDetails" style="flex:1">
               <Save :size="14" />
-              Lưu thay đổi
+              {{ t('admin.msg_0dc3cc51', 'Lưu thay đổi') }}
             </button>
             <button
               class="pipeline__modal-save"
               @click="copyLeadInfo"
               style="flex:1;background:linear-gradient(135deg, #3b82f6, #2563eb)"
             >
-              <Clipboard :size="14" /> Copy thông tin
+              <Clipboard :size="14" /> {{ t('admin.msg_140f696f', 'Copy thông tin') }}
             </button>
           </div>
         </div>
@@ -367,10 +367,10 @@ function copyLeadInfo() {
   if (!selectedLead.value) return
   const lead = selectedLead.value
   const info = [
-    `Khách: ${lead.nickname || 'Unknown'} (@${lead.uniqueId || lead.unique_id || '?'})`,
-    `Bình luận: "${lead.comment || lead.commentText || ''}"`,
-    editProductIntent.value ? `Sản phẩm: ${editProductIntent.value}` : '',
-    editNotes.value ? `Ghi chú: ${editNotes.value}` : '',
+    `${t('admin.msg_customer_label', 'Khách')}: ${lead.nickname || 'Unknown'} (@${lead.uniqueId || lead.unique_id || '?'})`,
+    `${t('admin.comments', 'Bình luận')}: \"${lead.comment || lead.commentText || ''}"`,
+    editProductIntent.value ? `${t('admin.promotion.product', 'Sản phẩm')}: ${editProductIntent.value}` : '',
+    editNotes.value ? `${t('admin.notes', 'Ghi chú')}: ${editNotes.value}` : '',
   ].filter(Boolean).join('\n')
   navigator.clipboard.writeText(info)
   showToast(t('admin.msg_9f0d44', 'Đã copy thông tin khách hàng!'), 'success')

@@ -228,7 +228,7 @@
         </div>
 
         <button class="settings__save-btn" @click="saveShopInfo">
-          <Save :size="14" /> {{ t('admin.save_config', t('admin.save_config', 'Lưu cấu hình')) }}
+          <Save :size="14" /> {{ t('admin.save_config', 'Lưu cấu hình') }}
         </button>
       </div>
 

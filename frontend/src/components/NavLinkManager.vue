@@ -16,7 +16,7 @@
       <button class="nm-tab" :class="{ active: activeTab === 'footer' }" @click="activeTab = 'footer'">
         <component :is="icons.PanelBottom" :size="14" />
         Footer
-        <span class="nm-tab__count">{{ currentFooter.columns.length }} cột</span>
+        <span class="nm-tab__count">{{ currentFooter.columns.length }} {{ t('admin.msg_f801f808', 'cột') }}</span>
       </button>
     </div>
 
@@ -28,7 +28,7 @@
           <p class="nm-hint">Hiển thị trên thanh điều hướng chính. Tối đa 5 link hiển thị trực tiếp, còn lại nằm trong menu "Thêm".</p>
         </div>
         <button class="btn-add" @click="openCreate('menu')">
-          <component :is="icons.Plus" :size="14" /> Thêm link
+          <component :is="icons.Plus" :size="14" /> {{ t('admin.msg_e5618ddc', 'Thêm link') }}
         </button>
       </div>
 
@@ -46,7 +46,7 @@
             </div>
             <span v-if="link.type === 'collection'" class="nm-badge">Dropdown</span>
             <span v-if="link.target === '_blank'" class="nm-badge nm-badge--ext">
-              <component :is="icons.ExternalLink" :size="10" /> Tab mới
+              <component :is="icons.ExternalLink" :size="10" /> {{ t('admin.msg_13d4017f', 'Tab mới') }}
             </span>
           </div>
           <div class="nm-item__actions">
@@ -80,7 +80,7 @@
         <component :is="icons.Link" :size="28" />
         <p>{{ t('admin.msg_ce37bea8', 'Chưa có link nào trong Header Menu') }}</p>
         <button class="btn-add btn-add--ghost" @click="openCreate('menu')">
-          <component :is="icons.Plus" :size="14" /> Thêm link Header
+          <component :is="icons.Plus" :size="14" /> {{ t('admin.msg_4328a171', 'Thêm link Header') }}
         </button>
       </div>
     </div>
@@ -94,7 +94,7 @@
         </div>
         <button class="btn-save-footer" @click="saveFooter" :disabled="savingFooter">
           <component :is="icons.Save" :size="14" />
-          {{ savingFooter ? t('admin.saving', 'Đang lưu...') : 'Lưu Footer' }}
+          {{ savingFooter ? t('admin.saving', 'Đang lưu...') : t('admin.msg_ac36d344', 'Lưu Footer') }}
         </button>
       </div>
       
@@ -118,9 +118,9 @@
           <div class="footer-col-card__header">
             <div class="footer-col-card__label">
               <component :is="icons.GripVertical" :size="12" class="footer-col-card__grip" />
-              <span class="footer-col-card__num">Cột {{ ci + 1 }}</span>
+              <span class="footer-col-card__num">{{ t('admin.msg_20ec6f82', 'Cột') }} {{ ci + 1 }}</span>
             </div>
-            <button class="btn-remove-item" @click="removeFooterCol(ci)" title="Xóa cột">
+            <button class="btn-remove-item" @click="removeFooterCol(ci)" :title="t('admin.msg_7344b3f4', 'Xóa cột')">
               <component :is="icons.Trash2" :size="12" />
             </button>
           </div>
@@ -150,7 +150,7 @@
               <button class="btn-remove-item" @click="col.links.splice(li, 1)"><component :is="icons.X" :size="10" /></button>
             </div>
             <button class="btn-add-item" @click="col.links.push({ label: '', url: '' })">
-              <component :is="icons.Plus" :size="12" /> Thêm link
+              <component :is="icons.Plus" :size="12" /> {{ t('admin.msg_e5618ddc', 'Thêm link') }}
             </button>
           </template>
 
@@ -175,7 +175,7 @@
               <button class="btn-remove-item" @click="col.items.splice(ii, 1)"><component :is="icons.X" :size="10" /></button>
             </div>
             <button class="btn-add-item" @click="col.items.push({ icon: 'phone', label: '', value: '' })">
-              <component :is="icons.Plus" :size="12" /> Thêm dòng
+              <component :is="icons.Plus" :size="12" /> {{ t('admin.msg_a332db0a', 'Thêm dòng') }}
             </button>
           </template>
 
@@ -186,7 +186,7 @@
         </div>
 
         <button class="btn-add-col" @click="addFooterCol">
-          <component :is="icons.Plus" :size="14" /> Thêm cột (hiện có {{ currentFooter.columns.length }} cột)
+          <component :is="icons.Plus" :size="14" /> Thêm cột (hiện có {{ currentFooter.columns.length }} {{ t('admin.msg_f801f808', 'cột') }})
         </button>
       </div>
 
@@ -208,7 +208,7 @@
           <button class="btn-remove-item" @click="currentFooter.social.splice(si, 1)"><component :is="icons.X" :size="10" /></button>
         </div>
         <button class="btn-add-item" @click="currentFooter.social.push({ platform: 'facebook', url: '' })">
-          <component :is="icons.Plus" :size="12" /> Thêm
+          <component :is="icons.Plus" :size="12" /> {{ t('admin.msg_d9cb420e', 'Thêm') }}
         </button>
       </details>
 
@@ -233,7 +233,7 @@
           <button class="btn-remove-item" @click="currentFooter.badges.splice(bi, 1)"><component :is="icons.X" :size="10" /></button>
         </div>
         <button class="btn-add-item" @click="currentFooter.badges.push({ label: '', imageUrl: '', url: '' })">
-          <component :is="icons.Plus" :size="12" /> Thêm badge
+          <component :is="icons.Plus" :size="12" /> {{ t('admin.msg_3022302f', 'Thêm badge') }}
         </button>
       </details>
 

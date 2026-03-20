@@ -228,7 +228,7 @@ function onShipmentSaved() {
 }
 
 async function cancelShipment(s) {
-  if (!confirm(`Hủy vận đơn #${s.id}?`)) return
+  if (!confirm(`${t('admin.msg_a9eae200', 'Hủy vận đơn')} #${s.id}?`)) return
   try {
     await apiFetch(`/shipments/${s.id}/status`, {
       method: 'PUT',
@@ -241,7 +241,7 @@ async function cancelShipment(s) {
 }
 
 async function deleteShipment(s) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} vận đơn #${s.id}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_b7782058', 'vận đơn')} #${s.id}?`)) return
   try {
     await apiFetch(`/shipments/${s.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_776619', 'Đã xóa vận đơn'), 'success')
@@ -253,7 +253,7 @@ async function deleteShipment(s) {
 function printShipmentLabel(s) {
   if (!s) return
   const win = window.open('', '_blank', 'width=400,height=600')
-  win.document.write(`<!DOCTYPE html><html><head><title>Phiếu gửi hàng #${s.id}</title>
+  win.document.write(`<!DOCTYPE html><html><head><title>${t('admin.msg_711f1b8c', 'Phiếu gửi hàng')} #${s.id}</title>
     <style>
       * { margin:0; padding:0; box-sizing:border-box; }
       body { font-family:'Segoe UI',sans-serif; padding:20px; font-size:13px; }
@@ -271,23 +271,23 @@ function printShipmentLabel(s) {
     </style>
   </head><body>
     <div class="header">
-      <h1>Phiếu Gửi Hàng</h1>
+      <h1>${t('admin.msg_70fe94d4', 'Phiếu Gửi Hàng')}</h1>
       <p>${carrierLabels[s.carrier] || s.carrier} — ${new Date().toLocaleDateString('vi-VN')}</p>
     </div>
     <div class="barcode">${s.trackingCode || `VD-${String(s.id).padStart(6,'0')}`}</div>
     <div class="section">
-      <div class="section-title">Người gửi</div>
-      <div class="row"><span class="label">Tên:</span><span class="value">${s.senderName || 'Shop'}</span></div>
+      <div class="section-title">${t('admin.msg_0c86fe9c', 'Người gửi')}</div>
+      <div class="row"><span class="label">${t('admin.msg_6b8e0206', 'Tên:')}</span><span class="value">${s.senderName || 'Shop'}</span></div>
       <div class="row"><span class="label">{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span><span class="value">${s.senderPhone || '—'}</span></div>
     </div>
     <div class="section">
       <div class="section-title">{{ t('admin.msg_6d8b1e4a', 'Người nhận') }}</div>
-      <div class="row"><span class="label">Tên:</span><span class="value">${s.receiverName || '—'}</span></div>
+      <div class="row"><span class="label">${t('admin.msg_6b8e0206', 'Tên:')}</span><span class="value">${s.receiverName || '—'}</span></div>
       <div class="row"><span class="label">{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span><span class="value">${s.receiverPhone || '—'}</span></div>
       <div class="row"><span class="label">{{ t('admin.msg_ce467846', 'Địa chỉ:') }}</span><span class="value">${s.receiverAddress || '—'}</span></div>
     </div>
     <div class="section">
-      <div class="section-title">Thông tin gói hàng</div>
+      <div class="section-title">${t('admin.msg_870fc8a4', 'Thông tin gói hàng')}</div>
       <div class="row"><span class="label">{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><span class="value">${s.weight || 500}g</span></div>
       <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${formatCurrency(s.shippingFee || 0)}</span></div>
       <div class="row"><span class="label">COD:</span><span class="value">${formatCurrency(s.codAmount || 0)}</span></div>

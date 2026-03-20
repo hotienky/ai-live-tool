@@ -24,7 +24,7 @@
           <div class="product-summary">
             <div class="ps-row"><span>SKU:</span> <strong>{{ product.sku || '—' }}</strong></div>
             <div class="ps-row"><span>{{ t('admin.msg_43c21243', 'Giá bán:') }}</span> <strong>{{ formatCurrency(product.price) }}</strong></div>
-            <div class="ps-row"><span>{{ t('admin.msg_c062022e', 'Tồn kho hiện tại:') }}</span><strong class="stock-highlight">{{ product.stock }} {{ product.unit || 'cái' }}</strong></div>
+            <div class="ps-row"><span>{{ t('admin.msg_c062022e', 'Tồn kho hiện tại:') }}</span><strong class="stock-highlight">{{ product.stock }} {{ product.unit || t('admin.msg_50c7e101', 'cái') }}</strong></div>
           </div>
 
           <div class="form-divider">{{ t('admin.msg_9905427a', 'Thực hiện điều chỉnh') }}</div>

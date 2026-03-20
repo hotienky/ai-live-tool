@@ -85,10 +85,13 @@
 </template>
 
 <script setup>
+import { useI18n } from '../composables/useI18n.js'
 import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowLeft, SlidersHorizontal, Search, Package, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
 
+
+const { t } = useI18n()
 
 const props = defineProps({
   storeId: { type: [String, Number], required: true },

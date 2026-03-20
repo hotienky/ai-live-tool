@@ -120,7 +120,7 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import { X, Clock, Download, Tag, Plus, FileText, Save } from 'lucide-vue-next'
+import { X, Clock, Download, Tag, Plus, FileText, Save, Check, Lightbulb } from 'lucide-vue-next'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

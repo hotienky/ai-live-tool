@@ -12,7 +12,7 @@
       <!-- Header -->
       <div class="od-header">
         <div class="od-header__left">
-          <h2>Đơn hàng #{{ order.id }}</h2>
+          <h2>{{ t('admin.orders', 'Đơn hàng') }} #{{ order.id }}</h2>
           <span class="od-badge" :class="'od-badge--' + order.status">{{ statusLabels[order.status] || order.status }}</span>
           <span class="od-badge" :class="'od-badge--pay-' + order.paymentStatus">{{ paymentLabels[order.paymentStatus] || order.paymentStatus }}</span>
         </div>
@@ -33,7 +33,7 @@
           <!-- Products -->
           <div class="od-card">
             <div class="od-card__header">
-              <h3><ShoppingBag :size="16" /> Sản phẩm ({{ items.length }})</h3>
+              <h3><ShoppingBag :size="16" /> {{ t('admin.promotion.product', 'Sản phẩm') }} ({{ items.length }})</h3>
             </div>
             <div class="od-card__body" v-if="items.length">
               <div class="od-item" v-for="item in items" :key="item.id">
@@ -98,10 +98,10 @@
               <!-- Payment Actions -->
               <div class="od-pay-actions" v-if="order.paymentStatus !== 'refunded'">
                 <button v-if="order.paymentStatus === 'unpaid'" class="od-btn od-btn--success od-btn--full" @click="updatePayment('paid')">
-                  <DollarSign :size="14" /> Xác nhận đã thanh toán
+                  <DollarSign :size="14" /> {{ t('admin.msg_6a2e0efd', 'Xác nhận đã thanh toán') }}
                 </button>
                 <button v-if="order.paymentStatus === 'paid'" class="od-btn od-btn--danger od-btn--full" @click="updatePayment('refunded')">
-                  <RotateCcw :size="14" /> Hoàn tiền
+                  <RotateCcw :size="14" /> {{ t('admin.msg_548fd02c', 'Hoàn tiền') }}
                 </button>
               </div>
             </div>
@@ -338,7 +338,7 @@ async function updatePayment(newStatus) {
     })
     const data = await res.json()
     order.value = data.data || data
-    showToast?.(`Đã cập nhật thanh toán: ${paymentLabels[newStatus]}`, 'success')
+    showToast?.(`${t('admin.msg_9854e53f', 'Đã cập nhật thanh toán')}: ${paymentLabels[newStatus]}`, 'success')
     loadOrder()
   } catch (err) {
     showToast?.(t('admin.msg_e009e9b3', 'Cập nhật thất bại'), 'error')
