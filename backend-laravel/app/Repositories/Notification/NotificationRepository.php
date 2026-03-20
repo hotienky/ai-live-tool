@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\Notification;
 
 use App\Models\Notification;
@@ -11,29 +12,55 @@ class NotificationRepository extends BaseEloquentRepository implements Notificat
         parent::__construct($model);
     }
 
-    public function getForUser(int $userId)
+    public function getForUser(int $userId, ?string $type = null, int $perPage = 20)
     {
-        return $this->model->where('user_id', $userId)
-            ->orderByDesc('created_at')
-            ->get();
+        $query = $this->model
+            ->forUser($userId)
+            ->notExpired()
+            ->orderByDesc('created_at');
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function getUnreadCount(int $userId): int
     {
-        return $this->model->where('user_id', $userId)
-            ->where('is_read', false)
+        return $this->model
+            ->forUser($userId)
+            ->unread()
+            ->notExpired()
             ->count();
     }
 
-    public function markAsRead(int $id)
+    public function markAsRead(int $id): void
     {
-        return $this->update(['is_read' => true], $id);
+        $this->model->where('id', $id)->whereNull('read_at')->update(['read_at' => now(), 'is_read' => true]);
     }
 
-    public function markAllAsRead(int $userId)
+    public function markAllAsRead(int $userId): void
     {
-        return $this->model->where('user_id', $userId)
-            ->where('is_read', false)
-            ->update(['is_read' => true]);
+        $this->model
+            ->forUser($userId)
+            ->unread()
+            ->update(['read_at' => now(), 'is_read' => true]);
+    }
+
+    public function deleteForUser(int $notificationId, int $userId): bool
+    {
+        return (bool) $this->model
+            ->forUser($userId)
+            ->where('id', $notificationId)
+            ->delete();
+    }
+
+    public function deleteAllReadForUser(int $userId): int
+    {
+        return $this->model
+            ->forUser($userId)
+            ->whereNotNull('read_at')
+            ->delete();
     }
 }

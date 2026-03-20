@@ -6,9 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Language extends Model
 {
-    /** Vietnamese is the system base language — cannot be deleted */
-    public const BASE_LANGUAGE_CODE = 'vi';
-
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -21,9 +18,18 @@ class Language extends Model
         return $this->hasMany(LanguageTranslation::class);
     }
 
-    /** Check if this is the system base language */
+    /**
+     * Get the default (source/base) language code dynamically.
+     * Whichever language has is_default=true is the source language.
+     */
+    public static function getDefaultCode(): string
+    {
+        return static::where('is_default', true)->value('code') ?? 'vi';
+    }
+
+    /** Check if this is the default (base/source) language */
     public function isBaseLanguage(): bool
     {
-        return $this->code === self::BASE_LANGUAGE_CODE;
+        return (bool) $this->is_default;
     }
 }

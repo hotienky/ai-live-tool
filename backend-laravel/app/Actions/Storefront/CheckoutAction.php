@@ -1,6 +1,7 @@
 <?php
 namespace App\Actions\Storefront;
 
+use App\Events\Order\OrderPlaced;
 use App\Services\TaxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -89,6 +90,9 @@ class CheckoutAction extends BaseAction
             ]);
 
             $this->orderRepo->createOrderDetails($order->id, $data['items']);
+
+            // Thông báo admin: đơn hàng mới
+            event(new OrderPlaced($order));
 
             $response = $order->toArray();
             $bankInfo = null;

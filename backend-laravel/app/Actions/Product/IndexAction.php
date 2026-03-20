@@ -6,9 +6,11 @@ class IndexAction extends BaseAction
     public function __invoke()
     {
         try {
-            $products = $this->productRepository->getProducts();
+            $perPage = min((int) request()->input('limit', 15), 100);
+            $paginated = $this->productRepository->getProducts($perPage);
+
             // Append category/brand names and variants for each product
-            foreach ($products as $p) {
+            foreach ($paginated as $p) {
                 $cat = $p->category()->first();
                 $brand = $p->brand()->first();
                 $p->category = $cat?->name ?? $p->getAttribute('category') ?? '';
@@ -21,7 +23,16 @@ class IndexAction extends BaseAction
                     }
                 }
             }
-            return $this->successResponse($products, 'Products retrieved successfully');
+
+            return $this->successResponse([
+                'data' => $paginated->items(),
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+            ], 'Products retrieved successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }

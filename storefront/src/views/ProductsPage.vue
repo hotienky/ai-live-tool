@@ -198,7 +198,7 @@ import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
-const { t, currentLang } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 const { setPageSeo } = useSeo()
 
 const layoutConfig = inject('layoutConfig', ref(null))
@@ -208,7 +208,7 @@ const pageConfig = computed(() => {
   const merged = pc ? { ...defaults, ...pc, showFilters: { ...defaults.showFilters, ...(pc.showFilters || {}) } } : defaults
   // Resolve i18n pageTitle/pageDescription
   const lang = currentLang.value
-  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+  if (lang && lang !== defaultLangCode.value && merged.translations?.[lang]) {
     if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
     if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
   }

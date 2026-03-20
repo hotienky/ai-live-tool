@@ -19,9 +19,19 @@ class TenantTransformer extends BaseTransformer
             'logo' => $item->logo,
             'features' => $item->features ?? 'all',
             'settings' => is_string($item->settings) ? json_decode($item->settings, true) : ($item->settings ?? []),
+            'storage_driver' => $this->extractDataField($item, 'storage_driver', 'public'),
             'expires_at' => $item->expires_at,
             'created_at' => $item->created_at,
             'updated_at' => $item->updated_at,
         ];
+    }
+
+    private function extractDataField($item, string $key, $default = null)
+    {
+        $data = $item->data ?? null;
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+        return $data[$key] ?? $default;
     }
 }

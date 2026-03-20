@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -99,9 +101,15 @@ class TokenAuth
             ->where('id', $tokenRecord->id)
             ->update(['last_used_at' => now()]);
 
-        // Store on request
+        // Store on request (cho controllers dùng $request->attributes)
         $request->attributes->set('auth_user', $user);
         $request->attributes->set('user_permissions', $user->permissions);
+
+        // Đăng ký vào Auth facade (cần thiết cho Broadcasting channel auth)
+        $userModel = User::find($user->id);
+        if ($userModel) {
+            Auth::setUser($userModel);
+        }
 
         return $next($request);
     }

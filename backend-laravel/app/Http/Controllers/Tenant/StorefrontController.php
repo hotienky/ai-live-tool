@@ -19,6 +19,7 @@ use App\Actions\Storefront\ShipmentTrackingAction;
 use App\Actions\Storefront\ProductReviewsAction;
 use App\Actions\Storefront\CreateReviewAction;
 use App\Repositories\NavLink\NavLinkRepositoryInterface;
+use App\Events\Order\OrderCancelled;
 use App\Traits\ApiResponse;
 use App\Models\ContentTranslation;
 use App\Models\TenantModuleSubscription;
@@ -537,6 +538,9 @@ class StorefrontController extends Controller
         $order->status = 'cancelled';
         $order->save();
 
+        // Thông báo admin: đơn hàng bị hủy bởi khách
+        event(new OrderCancelled($order, 'customer'));
+
         return $this->successResponse(['message' => 'Đã hủy đơn hàng thành công']);
     }
 
@@ -561,13 +565,12 @@ class StorefrontController extends Controller
     private function isLanguagesModuleActive(): bool
     {
         try {
-            $tenantId = app('tenant_id') ?? null;
-            $query = TenantModuleSubscription::where('module_id', 'languages')
-                ->where('is_active', true);
-            if ($tenantId) {
-                $query->where('tenant_id', $tenantId);
-            }
-            return $query->exists();
+            $tenantId = tenant()?->getTenantKey();
+            if (!$tenantId) return false;
+            return TenantModuleSubscription::where('module_id', 'languages')
+                ->where('is_active', true)
+                ->where('tenant_id', $tenantId)
+                ->exists();
         } catch (\Exception) {
             return false;
         }

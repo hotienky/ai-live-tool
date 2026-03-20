@@ -66,8 +66,8 @@ class LanguagesController extends Controller
         if (!$lang) {
             return $this->errorResponse('Language not found', 404);
         }
-        if ($lang->isBaseLanguage()) {
-            return $this->errorResponse('Không thể xóa ngôn ngữ gốc của hệ thống', 403);
+        if ($lang->is_default) {
+            return $this->errorResponse('Không thể xóa ngôn ngữ mặc định (ngôn ngữ gốc)', 403);
         }
         $this->repo->delete($id);
         return $this->successResponse(null, 'Language deleted');
@@ -132,7 +132,7 @@ class LanguagesController extends Controller
     public function autoTranslate(Request $request)
     {
         $text = $request->input('text', '');
-        $from = $request->input('from', 'vi');
+        $from = $request->input('from', Language::getDefaultCode());
         $to = $request->input('to', 'en');
 
         if (empty($text)) {

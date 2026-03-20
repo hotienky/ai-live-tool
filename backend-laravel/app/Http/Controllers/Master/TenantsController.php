@@ -39,6 +39,15 @@ class TenantsController extends Controller
             'features' => $request->input('features', 'all'),
             'db_name' => 'tenant_' . $request->input('slug'),
         ];
+
+        // Store default_language in stancl data column (defaults to 'vi')
+        $defaultLang = $request->input('default_language', $request->input('defaultLanguage', 'vi'));
+        $storageDriver = $request->input('storage_driver', 'public');
+        $data['data'] = json_encode([
+            'default_language' => $defaultLang,
+            'storage_driver' => in_array($storageDriver, ['public', 's3', 'firebase', 'vstorage']) ? $storageDriver : 'public',
+        ]);
+
         $tenant = $this->repo->store($data);
         return $this->successResponse($this->transformer->transform($tenant), 'Tenant created', 201);
     }
@@ -58,6 +67,16 @@ class TenantsController extends Controller
         if (!empty($data)) {
             $this->repo->update($data, $id);
         }
+
+        // Handle storage_driver (stored in Stancl data JSON column)
+        $storageDriver = $request->input('storage_driver');
+        if ($storageDriver !== null) {
+            $tenant = $this->repo->findOne($id);
+            $currentData = is_string($tenant->data) ? json_decode($tenant->data, true) : ($tenant->data ?? []);
+            $currentData['storage_driver'] = in_array($storageDriver, ['public', 's3', 'firebase', 'vstorage']) ? $storageDriver : 'public';
+            $this->repo->update(['data' => json_encode($currentData)], $id);
+        }
+
         return $this->successResponse($this->transformer->transform($this->repo->findOne($id)));
     }
 

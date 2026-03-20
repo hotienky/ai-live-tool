@@ -172,6 +172,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 import LanguageTabs from './LanguageTabs.vue'
 
 const { t } = useI18n()
@@ -185,7 +186,9 @@ const emit = defineEmits(['back', 'saved'])
 
 const isEditing = computed(() => !!props.editId)
 const saving = ref(false)
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 const editSale = ref(null)
 
 const form = ref({

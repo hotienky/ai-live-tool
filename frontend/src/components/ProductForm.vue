@@ -130,8 +130,8 @@
                   <input v-model.number="v.stock" type="number" placeholder="0" />
                 </div>
                 <div class="form-group form-group--flex">
-                  <label>Ảnh (URL)</label>
-                  <input v-model="v.image" placeholder="URL ảnh biến thể" />
+                  <label>Ảnh</label>
+                  <MediaPicker v-model="v.image" placeholder="Chọn ảnh biến thể..." accept="image/*" />
                 </div>
               </div>
             </div>
@@ -173,7 +173,7 @@
               <span class="img-main-badge" v-if="idx === 0">Chính</span>
             </div>
             <div class="img-add">
-              <input v-model="newImageUrl" placeholder="Nhập URL ảnh..." @keyup.enter="addImage" />
+              <MediaPicker v-model="newImageUrl" placeholder="Chọn ảnh từ Media..." accept="image/*" />
               <button type="button" @click="addImage" :disabled="!newImageUrl.trim()">+</button>
             </div>
           </div>
@@ -206,8 +206,10 @@ import { useToast } from '../composables/useToast.js'
 import { ShoppingBag, Layers, Trash2, ChevronLeft, Edit3 } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 import LanguageTabs from './LanguageTabs.vue'
+import MediaPicker from './MediaPicker.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -221,7 +223,9 @@ const emit = defineEmits(['back', 'saved'])
 const categories = ref([])
 const brands = ref([])
 const isEditing = ref(!!props.editId)
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 const form = ref(defaultForm())
 const newImageUrl = ref('')

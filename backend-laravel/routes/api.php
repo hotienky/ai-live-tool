@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\InitializeTenancyBySlug;
 use App\Http\Middleware\TokenAuth;
@@ -87,6 +88,9 @@ Route::middleware([InitializeTenancyBySlug::class])->prefix('auth')->group(funct
 // ──── TENANT ADMIN API (tenant-scoped + authenticated) ────
 // ════════════════════════════════════════════════════════════
 Route::middleware([InitializeTenancyBySlug::class, TokenAuth::class])->group(function () {
+    // Broadcasting auth endpoint cho Laravel Reverb WebSocket
+    Broadcast::routes(['middleware' => [InitializeTenancyBySlug::class, TokenAuth::class]]);
+
     foreach (glob(__DIR__ . '/tenantModules/*.php') as $file) {
         require $file;
     }

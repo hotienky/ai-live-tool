@@ -9,8 +9,11 @@ import { apiFetch } from '../api.js'
 
 const LANG_KEY = 'sf_lang'
 
+// Default language will be resolved from the API via loadLanguages(). 
+// Use localStorage value if available, otherwise leave empty to auto-detect from API.
 const state = reactive({
-  currentLang: localStorage.getItem(LANG_KEY) || 'vi',
+  currentLang: localStorage.getItem(LANG_KEY) || '',
+  defaultLangCode: '',
   languages: [],
   translations: {},
   loaded: false,
@@ -39,12 +42,16 @@ export function useI18n() {
     try {
       const res = await apiFetch('/languages')
       state.languages = Array.isArray(res) ? res : []
-      // If current lang is not in the list, fallback to default
+      // Detect default language from API
+      const defaultLang = state.languages.find(l => l.is_default) || state.languages[0]
+      if (defaultLang) {
+        state.defaultLangCode = defaultLang.code
+      }
+      // If current lang is empty or not in the list, fallback to default
       if (state.languages.length > 0) {
-        const valid = state.languages.find(l => l.code === state.currentLang)
+        const valid = state.currentLang && state.languages.find(l => l.code === state.currentLang)
         if (!valid) {
-          const defaultLang = state.languages.find(l => l.is_default) || state.languages[0]
-          state.currentLang = defaultLang.code
+          state.currentLang = state.defaultLangCode || (state.languages[0]?.code) || 'vi'
           localStorage.setItem(LANG_KEY, state.currentLang)
         }
       }
@@ -75,5 +82,7 @@ export function useI18n() {
     }
   }
 
-  return { t, currentLang, languages, setLang, init, loadLanguages, loadTranslations }
+  const defaultLangCode = computed(() => state.defaultLangCode)
+
+  return { t, currentLang, defaultLangCode, languages, setLang, init, loadLanguages, loadTranslations }
 }

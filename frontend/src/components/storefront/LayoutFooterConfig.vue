@@ -6,7 +6,7 @@
     <LanguageTabs v-model="currentLang" style="margin: 15px 0" />
 
     <!-- Auto-translate button for footer -->
-    <div v-if="currentLang !== 'vi'" class="footer-auto-translate">
+    <div v-if="currentLang !== defaultLangCode" class="footer-auto-translate">
       <button
         class="btn-footer-translate"
         type="button"
@@ -220,6 +220,7 @@ import { apiFetch } from '../../composables/useApi.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useI18n } from '../../composables/useI18n.js'
 import LanguageTabs from '../LanguageTabs.vue'
+import { useLanguages } from '../../composables/useLanguages.js'
 
 const { t } = useI18n()
 
@@ -229,11 +230,13 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:footerConfig'])
 
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 const config = computed({
   get: () => {
-    if (currentLang.value === 'vi') return props.footerConfig
+    if (currentLang.value === defaultLangCode.value) return props.footerConfig
     if (!props.footerConfig.translations) props.footerConfig.translations = {}
     if (!props.footerConfig.translations[currentLang.value]) {
        // Copy structure but leave text empty
@@ -251,7 +254,7 @@ const config = computed({
     return props.footerConfig.translations[currentLang.value]
   },
   set: (v) => {
-    if (currentLang.value === 'vi') {
+    if (currentLang.value === defaultLangCode.value) {
       emit('update:footerConfig', v)
     } else {
       props.footerConfig.translations[currentLang.value] = v
@@ -320,7 +323,7 @@ async function translateText(text, toLang) {
   try {
     const res = await apiFetch('/languages/auto-translate', {
       method: 'POST',
-      body: JSON.stringify({ text, from: 'vi', to: toLang })
+      body: JSON.stringify({ text, from: defaultLangCode.value, to: toLang })
     })
     const data = await res.json()
     return data?.translated || ''
@@ -329,7 +332,7 @@ async function translateText(text, toLang) {
 
 async function autoTranslateFooter() {
   const lang = currentLang.value
-  if (!lang || lang === 'vi') return
+  if (!lang || lang === defaultLangCode.value) return
   isTranslating.value = true
 
   try {

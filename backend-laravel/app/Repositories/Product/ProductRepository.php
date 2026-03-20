@@ -17,7 +17,7 @@ class ProductRepository extends BaseEloquentRepository implements ProductReposit
     {
         $query = $this->model->query();
         $query = ProductFilterPipeline::run($query, request()->all());
-        $query->orderByDesc('created_at');
+        $query->orderByDesc('created_at')->orderByDesc('id');
         if ($perPage) {
             return $query->paginate($perPage);
         }
@@ -47,7 +47,6 @@ class ProductRepository extends BaseEloquentRepository implements ProductReposit
 
         DB::table('stock_histories')->insert([
             'product_id' => $id,
-            'user_id' => $userId,
             'action' => $quantity > 0 ? 'add' : 'subtract',
             'quantity_change' => $quantity,
             'stock_before' => $stockBefore,

@@ -73,11 +73,37 @@ class TenantBaseSeeder extends Seeder
 
         // ── 3. Languages ──
         if ($db->table('languages')->count() < 1) {
-            $db->table('languages')->insert([
-                ['code' => 'vi', 'name' => 'Tiếng Việt', 'is_default' => true, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
-                ['code' => 'en', 'name' => 'English', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
-            ]);
-            echo "   ✅ Languages created (vi, en)\n";
+            // Determine default language from tenant data (set during creation), fallback to 'vi'
+            $defaultLangCode = $tenant->default_language ?? 'vi';
+
+            $languageNames = [
+                'vi' => 'Tiếng Việt', 'en' => 'English', 'ja' => '日本語',
+                'ko' => '한국어', 'zh' => '中文', 'fr' => 'Français',
+                'de' => 'Deutsch', 'es' => 'Español', 'th' => 'ไทย',
+                'id' => 'Bahasa Indonesia', 'pt' => 'Português', 'ru' => 'Русский',
+                'it' => 'Italiano', 'nl' => 'Nederlands', 'ar' => 'العربية',
+                'hi' => 'हिन्दी', 'ms' => 'Bahasa Melayu', 'pl' => 'Polski',
+                'tr' => 'Türkçe', 'uk' => 'Українська', 'sv' => 'Svenska',
+            ];
+
+            $defaultName = $languageNames[$defaultLangCode] ?? ucfirst($defaultLangCode);
+
+            $languages = [
+                ['code' => $defaultLangCode, 'name' => $defaultName, 'is_default' => true, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+            ];
+
+            // Always add English as secondary language if it's not already the default
+            if ($defaultLangCode !== 'en') {
+                $languages[] = ['code' => 'en', 'name' => 'English', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
+            }
+            // If default is English, add Vietnamese as secondary
+            if ($defaultLangCode === 'en') {
+                $languages[] = ['code' => 'vi', 'name' => 'Tiếng Việt', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
+            }
+
+            $db->table('languages')->insert($languages);
+            $langCodes = implode(', ', array_column($languages, 'code'));
+            echo "   ✅ Languages created ({$langCodes}) — default: {$defaultLangCode}\n";
         }
 
         // ── 4. System Configs ──

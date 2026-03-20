@@ -336,7 +336,7 @@ import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
 
-const { t, currentLang } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 const { addToCart } = useCart()
 const { recentlyViewed, addProduct: addToRecentlyViewed } = useRecentlyViewed()
 const { isLoggedIn, token: authToken } = useAuth()
@@ -389,7 +389,7 @@ const detailConfig = computed(() => {
   const dc = layoutConfig.value?.pageConfigs?.productDetail
   const merged = dc ? { ...defaults, ...dc } : defaults
   const lang = currentLang.value
-  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+  if (lang && lang !== defaultLangCode.value && merged.translations?.[lang]) {
     if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
     if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
   }

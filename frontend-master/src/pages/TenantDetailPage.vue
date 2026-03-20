@@ -90,6 +90,16 @@
               <option value="enterprise">Enterprise</option>
             </select>
           </div>
+          <div>
+            <label class="mp-label flex items-center gap-1"><HardDrive :size="12" /> Storage Driver</label>
+            <select v-model="editForm.storage_driver" class="input w-full">
+              <option value="public">Local (mặc định)</option>
+              <option value="s3">AWS S3</option>
+              <option value="firebase">Firebase / Google Cloud Storage</option>
+              <option value="vstorage">VNG vStorage</option>
+            </select>
+            <p class="text-[11px] mp-text-muted mt-1">Dịch vụ lưu trữ media cho tenant này</p>
+          </div>
         </div>
         <div class="mt-4">
           <label class="mp-label">Tính năng sử dụng</label>
@@ -215,7 +225,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save, Globe, Plus } from 'lucide-vue-next'
+import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save, Globe, Plus, HardDrive } from 'lucide-vue-next'
 import { tenants, domains } from '../services/api.js'
 
 const route = useRoute()
@@ -226,7 +236,7 @@ const actionLoading = ref(false)
 const actionMsg = ref('')
 const actionError = ref(false)
 
-const editForm = ref({ name: '', plan: '', features: 'all' })
+const editForm = ref({ name: '', plan: '', features: 'all', storage_driver: 'public' })
 const editMsg = ref('')
 const editError = ref(false)
 
@@ -235,6 +245,7 @@ const hasChanges = computed(() => {
   return editForm.value.name !== tenant.value.name
     || editForm.value.plan !== tenant.value.plan
     || editForm.value.features !== (tenant.value.features || 'all')
+    || editForm.value.storage_driver !== (tenant.value.storage_driver || 'public')
 })
 
 function syncEditForm() {
@@ -243,6 +254,7 @@ function syncEditForm() {
       name: tenant.value.name || '',
       plan: tenant.value.plan || 'free',
       features: tenant.value.features || 'all',
+      storage_driver: tenant.value.storage_driver || 'public',
     }
   }
 }

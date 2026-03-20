@@ -454,14 +454,14 @@ import { useShipping } from '../composables/useShipping.js'
 import { useI18n } from '../composables/useI18n.js'
 import { apiFetch, apiPost } from '../api.js'
 
-const { t, currentLang } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 const layoutConfig = inject('layoutConfig', ref(null))
 const checkoutConfig = computed(() => {
   const defaults = { showCoupon: true, showNotes: true, showSteps: true, layout: 'two-column', pageTitle: '', pageDescription: '', translations: {} }
   const cc = layoutConfig.value?.pageConfigs?.checkout
   const merged = cc ? { ...defaults, ...cc } : defaults
   const lang = currentLang.value
-  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+  if (lang && lang !== defaultLangCode.value && merged.translations?.[lang]) {
     if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
     if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
   }

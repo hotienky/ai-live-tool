@@ -170,12 +170,12 @@ import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
 
-const { t, currentLang } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 
 // ── Resolve section translations based on current storefront language ──
 function rp(section) {
   const lang = currentLang.value
-  if (!lang || lang === 'vi') return section.params || {}
+  if (!lang || lang === defaultLangCode.value) return section.params || {}
   const tp = section.translations?.[lang]?.params
   if (!tp) return section.params || {}
   // Merge: translated params override base, but only non-empty fields
@@ -188,7 +188,7 @@ function rp(section) {
 
 function rc(section) {
   const lang = currentLang.value
-  if (!lang || lang === 'vi') return section.content
+  if (!lang || lang === defaultLangCode.value) return section.content
   const tc = section.translations?.[lang]?.content
   if (!tc) return section.content
   // For arrays, merge per-item: only override non-empty fields

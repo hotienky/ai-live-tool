@@ -27,11 +27,11 @@
           <h4><Tag :size="13" /> {{ t('admin.promotion.product_promo', 'Giá khuyến mãi sản phẩm') }}</h4>
           
           <div class="form-group">
-            <label>{{ t('admin.promotion.name', 'Tên CTKM') }} <span v-if="currentLangPromotion !== 'vi'" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
+            <label>{{ t('admin.promotion.name', 'Tên CTKM') }} <span v-if="currentLangPromotion !== defaultLangCode" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
             <input v-model="promoName" class="form-input" placeholder="VD: Khuyến mãi Hè" />
           </div>
           <div class="form-group">
-            <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangPromotion !== 'vi'" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
+            <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangPromotion !== defaultLangCode" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
             <textarea v-model="promoDesc" class="form-input" rows="2" placeholder="Chi tiết..."></textarea>
           </div>
 
@@ -69,11 +69,11 @@
           <h4>🎟️ {{ props.editId ? t('admin.promotion.edit_coupon', 'Sửa mã giảm giá') : t('admin.promotion.create_coupon', 'Tạo mã giảm giá') }}</h4>
 
           <div class="form-group">
-            <label>{{ t('admin.promotion.code_name', 'Tên mã') }} <span v-if="currentLangCoupon !== 'vi'" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
+            <label>{{ t('admin.promotion.code_name', 'Tên mã') }} <span v-if="currentLangCoupon !== defaultLangCode" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
             <input v-model="couponName" class="form-input" placeholder="VD: Ưu đãi tân binh" />
           </div>
           <div class="form-group">
-            <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangCoupon !== 'vi'" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
+            <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangCoupon !== defaultLangCode" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
             <textarea v-model="couponDesc" class="form-input" rows="2" placeholder="Chi tiết..."></textarea>
           </div>
 
@@ -128,6 +128,7 @@ import { usePromotions } from '../composables/usePromotions.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 import LanguageTabs from './LanguageTabs.vue'
 import CurrencyInput from './CurrencyInput.vue'
 
@@ -146,17 +147,19 @@ const saving = ref(false)
 const subTab = ref(props.editType || 'coupon')
 const products = ref([])
 
-const currentLangPromotion = ref('vi')
-const currentLangCoupon = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLangPromotion = ref(defaultLangCode.value)
+const currentLangCoupon = ref(defaultLangCode.value)
 
 const promoForm = ref({ name: '', description: '', productId: '', pricePromotion: 0, dateStart: '', dateEnd: '', translations: {} })
 const couponForm = ref({ name: '', description: '', code: '', type: 'percent', value: 0, minOrder: 0, maxUses: null, dateStart: '', dateEnd: '', translations: {} })
 
-const { tField: tFieldPromo } = useContentTranslations(promoForm, currentLangPromotion, 'vi')
+const { tField: tFieldPromo } = useContentTranslations(promoForm, currentLangPromotion)
 const promoName = tFieldPromo('name')
 const promoDesc = tFieldPromo('description')
 
-const { tField: tFieldCoupon } = useContentTranslations(couponForm, currentLangCoupon, 'vi')
+const { tField: tFieldCoupon } = useContentTranslations(couponForm, currentLangCoupon)
 const couponName = tFieldCoupon('name')
 const couponDesc = tFieldCoupon('description')
 
@@ -176,9 +179,9 @@ onMounted(async () => {
       apiFetch(`/languages/content/coupons/${props.editId}`).then(r => r.json()).then(td => {
         if (td?.grouped && !Array.isArray(td.grouped)) {
           couponForm.value.translations = td.grouped
-          if (td.grouped['vi']) {
-             couponForm.value.name = td.grouped['vi'].name || ''
-             couponForm.value.description = td.grouped['vi'].description || ''
+          if (td.grouped[defaultLangCode.value]) {
+             couponForm.value.name = td.grouped[defaultLangCode.value].name || ''
+             couponForm.value.description = td.grouped[defaultLangCode.value].description || ''
           }
         }
       }).catch(()=>{})
@@ -188,9 +191,9 @@ onMounted(async () => {
       apiFetch(`/languages/content/promotions/${p.productId}`).then(r => r.json()).then(td => {
         if (td?.grouped && !Array.isArray(td.grouped)) {
           promoForm.value.translations = td.grouped
-          if (td.grouped['vi']) {
-             promoForm.value.name = td.grouped['vi'].name || ''
-             promoForm.value.description = td.grouped['vi'].description || ''
+          if (td.grouped[defaultLangCode.value]) {
+             promoForm.value.name = td.grouped[defaultLangCode.value].name || ''
+             promoForm.value.description = td.grouped[defaultLangCode.value].description || ''
           }
         }
       }).catch(()=>{})
@@ -204,13 +207,13 @@ async function handleSave() {
     if (subTab.value === 'promotion') {
       if (!promoForm.value.productId) { showToast(t('admin.promotion.select_product', 'Chọn sản phẩm'), 'error'); saving.value = false; return }
       const payload = { ...promoForm.value }
-      payload.translations = { ...payload.translations, vi: { name: payload.name, description: payload.description } }
+      payload.translations = { ...payload.translations, [defaultLangCode.value]: { name: payload.name, description: payload.description } }
       await savePromotion(payload)
       showToast(t('admin.promotion.saved', 'Đã lưu khuyến mãi'), 'success')
     } else {
       if (!couponForm.value.code) { showToast(t('admin.promotion.enter_code', 'Nhập mã code'), 'error'); saving.value = false; return }
       const payload = { ...couponForm.value }
-      payload.translations = { ...payload.translations, vi: { name: payload.name, description: payload.description } }
+      payload.translations = { ...payload.translations, [defaultLangCode.value]: { name: payload.name, description: payload.description } }
       
       // Remove name and description from payload directly to prevent SQL errors if they exist
       delete payload.name

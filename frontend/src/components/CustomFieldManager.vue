@@ -107,6 +107,7 @@ import { useToast } from '../composables/useToast.js'
 import { LayoutList, Plus, Trash2, Loader2, ShoppingBag, FolderTree, Users, FileText, Edit2 } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 import LanguageTabs from './LanguageTabs.vue'
+import { useLanguages } from '../composables/useLanguages.js'
 
 const { t } = useI18n()
 
@@ -143,13 +144,15 @@ const newField = ref({
 // Modal Edit State
 const showModal = ref(false)
 const editId = ref(null)
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 const editForm = ref({ label: '', translations: {} })
 
 const fLabel = computed({
-  get: () => currentLang.value === 'vi' ? editForm.value.label : (editForm.value.translations?.[currentLang.value]?.label || ''),
+  get: () => currentLang.value === defaultLangCode.value ? editForm.value.label : (editForm.value.translations?.[currentLang.value]?.label || ''),
   set: (val) => {
-    if (currentLang.value === 'vi') editForm.value.label = val
+    if (currentLang.value === defaultLangCode.value) editForm.value.label = val
     else {
       if (!editForm.value.translations) editForm.value.translations = {}
       if (!editForm.value.translations[currentLang.value]) editForm.value.translations[currentLang.value] = {}
@@ -202,7 +205,7 @@ async function addField() {
 
 async function openEdit(field) {
   editId.value = field.id
-  currentLang.value = 'vi'
+  currentLang.value = defaultLangCode.value
   editForm.value = { label: field.label || field.name, translations: {} }
   
   try {

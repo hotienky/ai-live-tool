@@ -1,6 +1,7 @@
 <?php
 namespace App\Actions\Storefront;
 
+use App\Events\Product\ReviewSubmitted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +25,8 @@ class CreateReviewAction extends BaseAction
                 ->where('customer_id', $customer->id)
                 ->first();
 
+            $isUpdate = (bool) $existing;
+
             if ($existing) {
                 DB::table('product_reviews')
                     ->where('id', $existing->id)
@@ -46,6 +49,15 @@ class CreateReviewAction extends BaseAction
                 ]);
                 $review = DB::table('product_reviews')->where('id', $id)->first();
             }
+
+            // Thông báo admin: có review mới
+            $product = DB::table('products')->where('id', $productId)->first();
+            event(new ReviewSubmitted(
+                review:      $review,
+                productId:   $productId,
+                productName: $product->name ?? "#{$productId}",
+                isUpdate:    $isUpdate,
+            ));
 
             return $this->successResponse($review, 'Review submitted successfully', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {

@@ -476,7 +476,7 @@ const filteredNavItems = computed(() => {
 const routeToTab = {
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
   'shop/products': 'products', 'shop/products/edit': 'products', 'shop/categories': 'categories', 'shop/categories/edit': 'categories', 'shop/brands': 'brands',
-  'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/cms': 'cms',
+  'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/media': 'media', 'shop/cms': 'cms',
   'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
   'shop/flash-sales/create': 'flash-sales', 'shop/flash-sales/edit': 'flash-sales',
   'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',

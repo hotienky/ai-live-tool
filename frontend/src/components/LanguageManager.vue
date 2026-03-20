@@ -56,13 +56,10 @@
           <span v-if="isBase(lang)" class="lang-item__base-badge">
             <Lock :size="10" /> {{ t('admin.base_language', 'Ngôn ngữ gốc') }}
           </span>
-          <span v-else-if="lang.isDefault || lang.is_default" class="lang-item__default">
-            {{ t('admin.default', 'Mặc định') }}
-          </span>
         </div>
         <div class="lang-item__actions">
           <button
-            v-if="!isBase(lang) && !(lang.isDefault || lang.is_default)"
+            v-if="!isBase(lang)"
             class="lang-action-btn"
             @click="setDefault(lang.id)"
             :title="t('admin.set_default', 'Đặt mặc định')"
@@ -138,7 +135,9 @@ import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
 
-const BASE_LANG = 'vi'
+function isBase(lang) {
+  return lang.is_default || lang.isDefault
+}
 
 // All supported languages loaded from DB (for flag lookup)
 const allSupportedLanguages = ref([])
@@ -160,10 +159,6 @@ const newTransValue = ref('')
 const hasTransChanges = ref(false)
 const savingTrans = ref(false)
 const pendingTransChanges = ref({})
-
-function isBase(lang) {
-  return lang.code === BASE_LANG
-}
 
 function getFlagEmoji(code) {
   const found = allSupportedLanguages.value.find(l => l.code === code)

@@ -439,11 +439,14 @@ const activeTab = ref('header')
 const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
-const currentLang = ref('vi')
+const currentLang = ref(defaultLangCode.value)
 
 const form = ref({ name: '', url: '', group: 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0, translations: {} })
 
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
 const { tField } = useContentTranslations(form, currentLang)
 
 const fName = tField('name')
@@ -466,12 +469,12 @@ const filteredIcons = computed(() => {
 function selectIcon(name) { form.value.icon = name; iconDropOpen.value = false; iconSearch.value = '' }
 
 function openCreate(group) {
-  isEditing.value = false; editId.value = null; currentLang.value = 'vi'
+  isEditing.value = false; editId.value = null; currentLang.value = defaultLangCode.value
   form.value = { name: '', url: '', group: group || 'menu', type: 'single', collectionId: null, target: '_self', icon: '', sort: 0, translations: {} }
   showModal.value = true
 }
 async function openEdit(l) {
-  isEditing.value = true; editId.value = l.id; currentLang.value = 'vi'
+  isEditing.value = true; editId.value = l.id; currentLang.value = defaultLangCode.value
   form.value = { name: l.name, url: l.url || '', group: l.group, type: l.type, collectionId: l.collectionId, target: l.target, icon: l.icon || '', sort: l.sort, translations: {} }
   
   try {
@@ -528,7 +531,7 @@ const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
 const savingFooter = ref(false)
 
 const currentFooter = computed(() => {
-  if (currentLang.value === 'vi') return footerConfig.value;
+  if (currentLang.value === defaultLangCode.value) return footerConfig.value;
   if (!footerConfig.value.translations) footerConfig.value.translations = {};
   if (!footerConfig.value.translations[currentLang.value]) {
     footerConfig.value.translations[currentLang.value] = JSON.parse(JSON.stringify(footerConfig.value));

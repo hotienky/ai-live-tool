@@ -612,15 +612,18 @@ const defaultPageConfigs = {
 const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
 
 // ─── Builtin Page i18n ───
-const builtinPageLang = ref('vi')
+import { useLanguages } from '../composables/useLanguages.js'
+const { defaultLangCode: dfLangCode, loadLanguages: loadLangs2 } = useLanguages()
+loadLangs2()
+const builtinPageLang = ref(dfLangCode.value)
 
 function getPageConfigI18n(pageName, field) {
-  if (builtinPageLang.value === 'vi') return pageConfigs.value[pageName]?.[field] || ''
+  if (builtinPageLang.value === dfLangCode.value) return pageConfigs.value[pageName]?.[field] || ''
   const t = pageConfigs.value[pageName]?.translations?.[builtinPageLang.value]
   return t?.[field] || ''
 }
 function setPageConfigI18n(pageName, field, value) {
-  if (builtinPageLang.value === 'vi') {
+  if (builtinPageLang.value === dfLangCode.value) {
     if (pageConfigs.value[pageName]) pageConfigs.value[pageName][field] = value
     return
   }

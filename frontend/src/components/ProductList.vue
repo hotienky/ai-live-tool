@@ -128,7 +128,9 @@ async function fetchProducts() {
     const params = new URLSearchParams({ page: pagination.value.page, limit: pagination.value.perPage })
     if (searchQuery.value) params.set('search', searchQuery.value)
     const res = await apiFetch(`/products?${params}`)
-    const data = await res.json()
+    const raw = await res.json()
+    // Unwrap API envelope: { type, data: ... } → inner
+    const data = raw?.data ?? raw
     if (Array.isArray(data)) {
       products.value = data
       pagination.value.total = data.length

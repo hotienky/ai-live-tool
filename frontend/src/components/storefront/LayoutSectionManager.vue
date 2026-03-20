@@ -252,7 +252,7 @@
           <div class="section-style-divider"></div>
 
           <!-- Per-section auto-translate button -->
-          <div v-if="currentLang !== 'vi'" class="section-auto-translate">
+          <div v-if="currentLang !== defaultLangCode" class="section-auto-translate">
             <button
               class="btn-section-translate"
               type="button"
@@ -293,7 +293,10 @@ import { apiFetch } from '../../composables/useApi.js'
 import LanguageTabs from '../LanguageTabs.vue'
 
 const { t } = useI18n()
-const currentLang = ref('vi')
+import { useLanguages } from '../../composables/useLanguages.js'
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 const props = defineProps({
   sections: { type: Array, required: true },
@@ -336,7 +339,7 @@ function toggleExpand(type) {
 
 // Multi-language Helpers
 function getParams(section) {
-  if (currentLang.value === 'vi') return section.params;
+  if (currentLang.value === defaultLangCode.value) return section.params;
   if (!section.translations) section.translations = {};
   if (!section.translations[currentLang.value]) {
     section.translations[currentLang.value] = {
@@ -365,19 +368,19 @@ function getParams(section) {
 }
 
 function getContent(section) {
-  if (currentLang.value === 'vi') return section.content;
+  if (currentLang.value === defaultLangCode.value) return section.content;
   getParams(section);
   return section.translations[currentLang.value].content;
 }
 
 function getTextBlockContent(section) {
-  if (currentLang.value === 'vi') return typeof section.content === 'string' ? section.content : '';
+  if (currentLang.value === defaultLangCode.value) return typeof section.content === 'string' ? section.content : '';
   getParams(section);
   return typeof section.translations[currentLang.value].content === 'string' ? section.translations[currentLang.value].content : '';
 }
 
 function setTextBlockContent(section, val) {
-  if (currentLang.value === 'vi') section.content = val;
+  if (currentLang.value === defaultLangCode.value) section.content = val;
   else {
     getParams(section);
     section.translations[currentLang.value].content = val;
@@ -423,7 +426,7 @@ const translatingSection = ref(null)
 
 async function autoTranslateSection(section) {
   const lang = currentLang.value
-  if (!lang || lang === 'vi') return
+  if (!lang || lang === defaultLangCode.value) return
   translatingSection.value = section.type
 
   try {
@@ -440,7 +443,7 @@ async function autoTranslateSection(section) {
       try {
         const res = await apiFetch('/languages/auto-translate', {
           method: 'POST',
-          body: JSON.stringify({ text: src, from: 'vi', to: lang })
+          body: JSON.stringify({ text: src, from: defaultLangCode.value, to: lang })
         })
         const data = await res.json()
         if (data?.translated) tp[f] = data.translated
@@ -458,7 +461,7 @@ async function autoTranslateSection(section) {
           try {
             const res = await apiFetch('/languages/auto-translate', {
               method: 'POST',
-              body: JSON.stringify({ text: item[f], from: 'vi', to: lang })
+              body: JSON.stringify({ text: item[f], from: defaultLangCode.value, to: lang })
             })
             const data = await res.json()
             if (data?.translated) tc[i][f] = data.translated
@@ -472,7 +475,7 @@ async function autoTranslateSection(section) {
       try {
         const res = await apiFetch('/languages/auto-translate', {
           method: 'POST',
-          body: JSON.stringify({ text: section.content, from: 'vi', to: lang })
+          body: JSON.stringify({ text: section.content, from: defaultLangCode.value, to: lang })
         })
         const data = await res.json()
         if (data?.translated) section.translations[lang].content = data.translated

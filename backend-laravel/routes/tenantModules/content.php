@@ -35,3 +35,11 @@ Route::get('/redirects', [\App\Http\Controllers\Tenant\RedirectsController::clas
 Route::post('/redirects', [\App\Http\Controllers\Tenant\RedirectsController::class, 'store'])->middleware('permission:settings.edit');
 Route::put('/redirects/{id}', [\App\Http\Controllers\Tenant\RedirectsController::class, 'update'])->middleware('permission:settings.edit');
 Route::delete('/redirects/{id}', [\App\Http\Controllers\Tenant\RedirectsController::class, 'destroy'])->middleware('permission:settings.edit');
+
+// Media Library
+Route::get('/media', [\App\Http\Controllers\Tenant\MediaController::class, 'index'])->middleware('permission:media.view');
+Route::post('/media/upload', [\App\Http\Controllers\Tenant\MediaController::class, 'upload'])->middleware('permission:media.upload');
+Route::get('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 'show'])->middleware('permission:media.view');
+Route::put('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 'update'])->middleware('permission:media.edit');
+Route::delete('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 'destroy'])->middleware('permission:media.delete');
+

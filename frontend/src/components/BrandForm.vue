@@ -64,6 +64,7 @@ import { ChevronLeft } from 'lucide-vue-next'
 import LanguageTabs from './LanguageTabs.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -75,7 +76,9 @@ const props = defineProps({
 const emit = defineEmits(['back', 'saved'])
 
 const isEditing = ref(!!props.editId)
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 const form = ref(defaultForm())
 
 const { tField } = useContentTranslations(form, currentLang)

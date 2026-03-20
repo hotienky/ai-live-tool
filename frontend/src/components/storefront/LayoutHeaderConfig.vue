@@ -145,10 +145,13 @@ import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useToast } from '../../composables/useToast.js'
 import { useI18n } from '../../composables/useI18n.js'
 import LanguageTabs from '../LanguageTabs.vue'
+import { useLanguages } from '../../composables/useLanguages.js'
 
 const { t } = useI18n()
 
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 const props = defineProps({
   headerConfig: { type: Object, required: true },
@@ -180,7 +183,7 @@ function openCreateNavLink() {
   navLinkEditing.value = null
   navLinkForm.value = { name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: navLinks.value.length, group: 'menu', translations: {} }
   pageSelectMode.value = 'builtin'
-  currentLang.value = 'vi'
+  currentLang.value = defaultLangCode.value
   showNavLinkModal.value = true
 }
 function openEditNavLink(link) {

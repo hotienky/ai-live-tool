@@ -136,9 +136,12 @@ const form = ref({
   translations: {}
 })
 
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 const { tField } = useContentTranslations(form, currentLang)
 
 const fShopName = tField('shop_name')

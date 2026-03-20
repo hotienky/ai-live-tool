@@ -64,7 +64,7 @@
 
         <div class="form-group"><label>{{ t('admin.title', 'Tiêu đề') }}</label><input v-model="fTitle" /></div>
         <div class="form-group"><label>{{ t('admin.description', 'Mô tả') }}</label><textarea v-model="fDescription" rows="2" placeholder="Tùy chọn mô tả..."></textarea></div>
-        <div class="form-group"><label>Hình ảnh (URL)</label><input v-model="form.image" placeholder="https://..." /></div>
+        <div class="form-group"><label>Hình ảnh</label><MediaPicker v-model="form.image" placeholder="Chọn hoặc nhập URL hình ảnh..." /></div>
 
         <!-- Image Preview -->
         <div class="bm-img-preview" v-if="form.image">
@@ -99,6 +99,7 @@ import { useBanners } from '../composables/useBanners.js'
 import { useToast } from '../composables/useToast.js'
 import { Image as ImageIcon, GripVertical } from 'lucide-vue-next'
 import LanguageTabs from './LanguageTabs.vue'
+import MediaPicker from './MediaPicker.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -109,14 +110,18 @@ const props = defineProps({
 })
 const { banners, loading, fetchBanners, createBanner, updateBanner, deleteBanner } = useBanners(apiFetch)
 
+import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+
 const filterType = ref('')
 const showModal = ref(false)
 const isEditing = ref(false)
 const editId = ref(null)
-const currentLang = ref('vi')
+const currentLang = ref(defaultLangCode.value)
 const form = ref({ title: '', description: '', image: '', url: '', type: 'banner', sort: 0, status: 1, translations: {} })
 
-import { useContentTranslations } from '../composables/useContentTranslations.js'
 const { tField } = useContentTranslations(form, currentLang)
 
 const fTitle = tField('title')
@@ -183,12 +188,12 @@ function reload() { fetchBanners({ ...(filterType.value ? { type: filterType.val
 onMounted(reload)
 
 function openCreate() {
-  isEditing.value = false; editId.value = null; currentLang.value = 'vi'
+  isEditing.value = false; editId.value = null; currentLang.value = defaultLangCode.value
   form.value = { title: '', description: '', image: '', url: '', type: 'banner', sort: 0, status: 1, translations: {} }
   showModal.value = true
 }
 async function openEdit(b) {
-  isEditing.value = true; editId.value = b.id; currentLang.value = 'vi'
+  isEditing.value = true; editId.value = b.id; currentLang.value = defaultLangCode.value
   form.value = { title: b.title, description: b.description || '', image: b.image, url: b.url || '', type: b.type, sort: b.sort, status: b.status, translations: {} }
   
   try {

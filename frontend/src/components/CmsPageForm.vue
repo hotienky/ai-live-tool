@@ -119,7 +119,9 @@ const emit = defineEmits(['navigate'])
 
 const isEditing = ref(false)
 const saving = ref(false)
-const currentLang = ref('vi')
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const currentLang = ref(defaultLangCode.value)
 
 const form = ref({
   title: '', alias: '', content: '', image: '',
@@ -129,6 +131,7 @@ const form = ref({
 })
 
 import { useContentTranslations } from '../composables/useContentTranslations.js'
+import { useLanguages } from '../composables/useLanguages.js'
 const { tField } = useContentTranslations(form, currentLang)
 
 const fTitle = tField('title')

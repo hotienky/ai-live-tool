@@ -60,6 +60,41 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Firebase / Google Cloud Storage
+         * Uses S3-compatible interoperability API.
+         * Docs: https://cloud.google.com/storage/docs/interoperability
+         */
+        'firebase' => [
+            'driver' => 's3',
+            'key' => env('FIREBASE_STORAGE_KEY'),
+            'secret' => env('FIREBASE_STORAGE_SECRET'),
+            'region' => env('FIREBASE_STORAGE_REGION', 'us-central1'),
+            'bucket' => env('FIREBASE_STORAGE_BUCKET'),
+            'url' => env('FIREBASE_STORAGE_URL'),
+            'endpoint' => env('FIREBASE_STORAGE_ENDPOINT', 'https://storage.googleapis.com'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        /*
+         * VNG vStorage (S3-compatible Object Storage)
+         * Docs: https://docs.vngcloud.vn/vng-cloud-document/vn/vstorage
+         */
+        'vstorage' => [
+            'driver' => 's3',
+            'key' => env('VSTORAGE_ACCESS_KEY'),
+            'secret' => env('VSTORAGE_SECRET_KEY'),
+            'region' => env('VSTORAGE_REGION', 'HCM03'),
+            'bucket' => env('VSTORAGE_BUCKET'),
+            'url' => env('VSTORAGE_URL'),
+            'endpoint' => env('VSTORAGE_ENDPOINT', 'https://hcm03.vstorage.vngcloud.vn'),
+            'use_path_style_endpoint' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
     ],
 
     /*

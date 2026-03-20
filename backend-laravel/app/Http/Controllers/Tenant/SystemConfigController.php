@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers\Tenant;
-use App\Http\Controllers\Controller;
 
+use App\Http\Controllers\Controller;
+use App\Events\Tenant\SettingsChanged;
 use App\Repositories\SystemConfig\SystemConfigRepositoryInterface;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
@@ -23,9 +24,18 @@ class SystemConfigController extends Controller
     public function store(Request $request)
     {
         try {
-            $items = $request->input('items', []);
+            $items  = $request->input('items', []);
+            $userId = $request->attributes->get('auth_user')->id ?? 0;
+
             $this->repo->upsertItems($items);
             $this->logActivity('settings.updated', 'system_config', null, ['count' => count($items)]);
+
+            // Thông báo: cấu hình thay đổi
+            $changedKeys = array_column($items, 'key');
+            if (!empty($changedKeys)) {
+                event(new SettingsChanged('general', $changedKeys, $userId));
+            }
+
             return $this->successResponse(null, 'Config saved');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -40,9 +50,18 @@ class SystemConfigController extends Controller
     public function updateGroup(Request $request, $group)
     {
         try {
-            $items = $request->input('items', []);
+            $items  = $request->input('items', []);
+            $userId = $request->attributes->get('auth_user')->id ?? 0;
+
             $this->repo->updateGroup($group, $items);
             $this->logActivity('settings.updated', 'system_config', null, ['group' => $group]);
+
+            // Thông báo: cấu hình nhóm thay đổi
+            $changedKeys = array_column($items, 'key');
+            if (!empty($changedKeys)) {
+                event(new SettingsChanged($group, $changedKeys, $userId));
+            }
+
             return $this->successResponse(null, 'Config updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

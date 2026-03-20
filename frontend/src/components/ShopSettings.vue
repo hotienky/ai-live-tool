@@ -11,18 +11,31 @@
     <div class="settings__layout">
       <!-- Sidebar Navigation -->
       <aside class="settings__sidebar">
-        <div v-for="group in activeTabGroups" :key="group.label" class="settings__sidebar-group">
+        <div class="sidebar-search">
+          <Search :size="14" class="sidebar-search__icon" />
+          <input
+            v-model="sidebarSearch"
+            type="text"
+            :placeholder="t('admin.search_menu', 'Tìm chức năng...')"
+            class="sidebar-search__input"
+          />
+          <button v-if="sidebarSearch" class="sidebar-search__clear" @click="sidebarSearch = ''">&times;</button>
+        </div>
+        <div v-for="group in filteredSidebarGroups" :key="group.label" class="settings__sidebar-group">
           <div class="settings__sidebar-label">{{ group.label }}</div>
           <button
             v-for="tab in group.items"
             :key="tab.key"
             class="settings__sidebar-item"
             :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
-            @click="onSidebarClick(tab.key)"
+            @click="onSidebarClick(tab.key); sidebarSearch = ''"
           >
             <component :is="tab.icon" :size="16" />
             <span>{{ tab.label }}</span>
           </button>
+        </div>
+        <div v-if="sidebarSearch && filteredSidebarGroups.length === 0" class="sidebar-search__empty">
+          Không tìm thấy "{{ sidebarSearch }}"
         </div>
       </aside>
 
@@ -399,6 +412,11 @@
         <BannerManager :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
+      <!-- ═══ Tab: Media Library ═══ -->
+      <div v-if="activeTab === 'media'" class="settings__panel">
+        <MediaLibrary />
+      </div>
+
 
 
       <!-- ═══ Tab: System Config ═══ -->
@@ -516,11 +534,13 @@ import {
   FolderTree, Award, Users, Tag, Zap, BarChart2, Puzzle,
   Cog, KeyRound, Globe, LayoutList, DollarSign, Briefcase, Wallet,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
-  Eye, Tablet, Smartphone, RotateCcw, AlertCircle,
+  Eye, Tablet, Smartphone, RotateCcw, AlertCircle, Search,
+  Image as ImageIcon,
 } from 'lucide-vue-next'
 import CustomerManager from './CustomerManager.vue'
 // Module components removed — loaded dynamically via PluginRenderer
 import BannerManager from './BannerManager.vue'
+import MediaLibrary from './MediaLibrary.vue'
 import NavLinkManager from './NavLinkManager.vue'
 import ModuleManager from './ModuleManager.vue'
 import PluginRenderer from './PluginRenderer.vue'
@@ -707,7 +727,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
 const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -802,7 +822,7 @@ const tabGroups = [
     items: [
       { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
       { key: 'banners', label: 'Banner', icon: Video },
-
+      { key: 'media', label: 'Media', icon: ImageIcon },
       { key: 'appearance', label: 'Theme', icon: Palette },
       { key: 'storefront-layout', label: t('admin.storefront_layout', 'Bố cục Cửa Hàng'), icon: LayoutList },
     ],
@@ -841,7 +861,7 @@ const tabToRoute = {
   // Marketing
   'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
   // Giao diện
-  'cms': 'shop/cms', 'banners': 'shop/banners',
+  'cms': 'shop/cms', 'banners': 'shop/banners', 'media': 'shop/media',
   'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
   // Cửa hàng
   'store-info': 'shop/info', 'system-config': 'shop/config', 'languages': 'shop/languages',
@@ -872,6 +892,9 @@ const moduleTabMap = {
   'promotions': 'marketing', 'flash-sales': 'marketing',
   'tax': 'tax',
   'cms': 'cms',
+  'banners': 'banners',
+  'storefront-layout': 'banners',
+  'languages': 'languages',
 }
 
 function onModulesChanged(newInstalled) {
@@ -890,7 +913,7 @@ function isModuleInstalled(moduleId) {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
@@ -909,6 +932,27 @@ const activeTabGroups = computed(() => {
         if (!requiredPerm) return true
         return can(requiredPerm)
       }),
+    }))
+    .filter(g => g.items.length > 0)
+})
+
+// ── Sidebar Search ──
+const sidebarSearch = ref('')
+function normalizeVi(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase()
+}
+const filteredSidebarGroups = computed(() => {
+  const q = sidebarSearch.value.trim()
+  if (!q) return activeTabGroups.value
+  const nq = normalizeVi(q)
+  return activeTabGroups.value
+    .map(g => ({
+      ...g,
+      items: g.items.filter(i =>
+        normalizeVi(i.label).includes(nq) ||
+        normalizeVi(i.key).includes(nq) ||
+        normalizeVi(g.label).includes(nq)
+      ),
     }))
     .filter(g => g.items.length > 0)
 })
@@ -1300,6 +1344,68 @@ defineExpose({ handleAutoReplyEvent })
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* Sidebar Search */
+.sidebar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0 4px 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--color-bg-card, rgba(255,255,255,0.05));
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.sidebar-search:focus-within {
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px var(--color-accent-glow);
+}
+.sidebar-search__icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+.sidebar-search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 12px;
+  outline: none;
+  padding: 0 6px;
+  width: 100%;
+  font-family: inherit;
+}
+.sidebar-search__input::placeholder {
+  color: var(--color-text-muted);
+}
+.sidebar-search__clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: var(--color-bg-card-hover);
+  color: var(--color-text-muted);
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.sidebar-search__clear:hover {
+  background: var(--color-accent-primary);
+  color: #fff;
+}
+.sidebar-search__empty {
+  padding: 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
 }
 .settings__sidebar-group {
   margin-bottom: 8px;

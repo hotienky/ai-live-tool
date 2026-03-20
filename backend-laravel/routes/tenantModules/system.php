@@ -38,10 +38,12 @@ Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
 Route::put('/auth/change-password', [AuthController::class, 'changePassword']);
 
 // Notifications (all authenticated users)
-Route::get('/notifications', [NotificationsController::class, 'index']);
+Route::get('/notifications', [NotificationsController::class, 'index']);                    // ?type=order.placed&per_page=20
 Route::get('/notifications/unread-count', [NotificationsController::class, 'unreadCount']);
-Route::put('/notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
 Route::put('/notifications/read-all', [NotificationsController::class, 'markAllAsRead']);
+Route::put('/notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
+Route::delete('/notifications/clear-read', [NotificationsController::class, 'destroyRead']); // Xóa tất cả đã đọc
+Route::delete('/notifications/{id}', [NotificationsController::class, 'destroy']);            // Xóa 1 thông báo
 
 // Webhooks
 Route::get('/webhooks', [WebhooksController::class, 'index'])->middleware('permission:system.webhooks');

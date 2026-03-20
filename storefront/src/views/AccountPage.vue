@@ -275,7 +275,7 @@ import {
   ShoppingBag, Plus, Pencil, Trash2
 } from 'lucide-vue-next'
 
-const { t, currentLang } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 const router = useRouter()
 const { customer, isLoggedIn, authFetch, updateProfile, changePassword, logout, fetchProfile } = useAuth()
 
@@ -285,7 +285,7 @@ const accountConfig = computed(() => {
   const ac = layoutConfig.value?.pageConfigs?.account
   const merged = ac ? { ...defaults, ...ac } : defaults
   const lang = currentLang.value
-  if (lang && lang !== 'vi' && merged.translations?.[lang]) {
+  if (lang && lang !== defaultLangCode.value && merged.translations?.[lang]) {
     if (merged.translations[lang].pageTitle) merged.pageTitle = merged.translations[lang].pageTitle
     if (merged.translations[lang].pageDescription) merged.pageDescription = merged.translations[lang].pageDescription
   }

@@ -10,7 +10,7 @@
     >
       <span class="lang-flag">{{ lang.flag || '🌐' }}</span>
       <span class="lang-name">{{ lang.name }}</span>
-      <span v-if="lang.is_default || lang.code === 'vi'" class="lang-badge">Gốc</span>
+      <span v-if="lang.is_default" class="lang-badge">Gốc</span>
       <span v-else-if="fields && translations" class="lang-completeness" :class="{ done: getCompleteness(lang.code) === 100 }">
         {{ getCompleteness(lang.code) }}%
       </span>
@@ -100,9 +100,10 @@ async function doAutoTranslate() {
       const text = props.baseData[f];
       if (!text || !String(text).trim()) continue;
       
+      const defaultLang = installedLanguages.value.find(l => l.is_default)?.code || 'vi'
       const res = await apiFetch('/languages/auto-translate', {
         method: 'POST',
-        body: JSON.stringify({ text, from: 'vi', to: code })
+        body: JSON.stringify({ text, from: defaultLang, to: code })
       })
       const data = await res.json()
       if (data?.translated) {

@@ -477,6 +477,46 @@ body {
 .form-group textarea::placeholder {
   color: var(--text-3);
 }
+
+/* ── Filled Field Indicator (green checkmark) ────────── */
+/* Inputs & textareas that have content show a ✓ icon */
+.form-group input:not(:placeholder-shown):not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]),
+.form-group textarea:not(:placeholder-shown),
+.form-group select:not(.empty) {
+  border-left: 2.5px solid var(--color-success, #10b981);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+  padding-right: 28px;
+}
+/* Inputs without placeholder attr that have a value — fallback via .has-value class */
+input.has-value:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]),
+textarea.has-value,
+select.has-value {
+  border-left: 2.5px solid var(--color-success, #10b981);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px;
+  padding-right: 28px;
+}
+/* Don't show tick on date/time inputs showing default placeholder */
+.form-group input[type="date"]:invalid,
+.form-group input[type="datetime-local"]:invalid,
+.form-group input[type="time"]:invalid {
+  border-left-color: var(--border);
+  background-image: none;
+  padding-right: 0.65rem;
+}
+/* Keep focus styling above filled styling */
+.form-group input:not(:placeholder-shown):focus,
+.form-group textarea:not(:placeholder-shown):focus,
+.form-group select:not(.empty):focus {
+  border-color: var(--accent);
+  border-left-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--color-accent-glow);
+}
 .form-row {
   display: flex;
   gap: 0.5rem;
