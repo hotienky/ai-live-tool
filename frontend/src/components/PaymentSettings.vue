@@ -1,6 +1,6 @@
 <template>
   <div class="pay-settings">
-    <h3 class="pay-settings__title"><CreditCard :size="16" /> Cấu hình thanh toán</h3>
+    <h3 class="pay-settings__title"><CreditCard :size="16" /> {{ t('admin.payment_config', 'Cấu hình thanh toán') }}</h3>
 
     <div v-if="loading" class="pay-settings__loading">{{ t('admin.loading', 'Đang tải...') }}</div>
     <template v-else>
@@ -56,34 +56,34 @@
           <div class="pay-settings__row form-row">
             <div class="form-group">
               <label>{{ t('admin.bank_name', 'Tên ngân hàng') }}</label>
-              <input v-model="form.bankNameDisplay" placeholder="VD: Vietcombank" />
+              <input v-model="form.bankNameDisplay" :placeholder="t('admin.bank_name_display_placeholder', 'VD: Vietcombank')" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.branch', 'Chi nhánh') }}</label>
-              <input v-model="form.bankBranch" placeholder="VD: TP.HCM" />
+              <input v-model="form.bankBranch" :placeholder="t('admin.bank_branch_placeholder', 'VD: TP.HCM')" />
             </div>
           </div>
           <div class="pay-settings__row form-row">
             <div class="form-group">
               <label>{{ t('admin.account_holder', 'Chủ tài khoản') }}</label>
-              <input v-model="form.bankAccountName" placeholder="NGUYEN VAN A" />
+              <input v-model="form.bankAccountName" :placeholder="t('admin.account_name_placeholder', 'NGUYEN VAN A')" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.account_number', 'Số tài khoản') }}</label>
-              <input v-model="form.bankAccountNumber" placeholder="1234567890" />
+              <input v-model="form.bankAccountNumber" :placeholder="t('admin.account_number_placeholder', '1234567890')" />
             </div>
           </div>
           <div class="form-group">
             <label>{{ t('admin.transfer_template', 'Mẫu nội dung chuyển khoản') }}</label>
-            <input v-model="form.bankNoteTemplate" placeholder="DH{order_id}" />
-            <span class="pay-settings__hint">Dùng <code>{order_id}</code> để tự động thay bằng mã đơn hàng</span>
+            <input v-model="form.bankNoteTemplate" :placeholder="t('admin.bank_note_template_placeholder', 'DH{order_id}')" />
+            <span class="pay-settings__hint">{{ t('admin.bank_note_hint', 'Dùng {order_id} để tự động thay bằng mã đơn hàng') }}</span>
           </div>
           <div class="pay-settings__divider"></div>
           <h4 class="pay-settings__section-title">QR Code (VietQR)</h4>
           <div class="form-group">
             <label>{{ t('admin.bank_bin', 'Mã BIN ngân hàng') }}</label>
-            <input v-model="form.bankBin" placeholder="VD: 970436 (Vietcombank)" />
-            <span class="pay-settings__hint">Tra cứu mã BIN tại <a href="https://www.vietqr.io/danh-sach-ngan-hang" target="_blank" style="color:var(--accent)">vietqr.io</a>. Ví dụ: Vietcombank = 970436, Techcombank = 970407, MBBank = 970422</span>
+            <input v-model="form.bankBin" :placeholder="t('admin.bank_bin_placeholder', 'VD: 970436 (Vietcombank)')" />
+            <span class="pay-settings__hint">{{ t('admin.msg_02ae96bf', 'Tra cứu mã BIN tại') }} <a href="https://www.vietqr.io/danh-sach-ngan-hang" target="_blank" style="color:var(--accent)">vietqr.io</a>{{ t('admin.msg_2f548c52', '. Ví dụ: Vietcombank = 970436, Techcombank = 970407, MBBank = 970422') }}</span>
           </div>
         </div>
       </div>
@@ -111,11 +111,11 @@ const saving = ref(false)
 
 const form = ref({
   codEnabled: true,
-  codName: 'Thanh toán khi nhận hàng (COD)',
-  codDescription: 'Trả tiền mặt khi nhận hàng',
+  codName: t('admin.msg_71f01a7e', 'Thanh toán khi nhận hàng (COD)'),
+  codDescription: t('admin.msg_1a0cac77', 'Trả tiền mặt khi nhận hàng'),
   bankEnabled: true,
-  bankName: 'Chuyển khoản ngân hàng',
-  bankDescription: 'Thanh toán qua chuyển khoản ngân hàng',
+  bankName: t('admin.msg_11440012', 'Chuyển khoản ngân hàng'),
+  bankDescription: t('admin.msg_33f722ae', 'Thanh toán qua chuyển khoản ngân hàng'),
   bankAccountName: '',
   bankAccountNumber: '',
   bankNameDisplay: '',
@@ -172,7 +172,7 @@ async function save() {
       method: 'POST',
       body: JSON.stringify({ items }),
     })
-    showToast('Đã lưu cấu hình thanh toán', 'success')
+    showToast(t('admin.msg_28dbe1', 'Đã lưu cấu hình thanh toán'), 'success')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
   }

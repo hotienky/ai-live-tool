@@ -2,7 +2,7 @@
   <div class="content-trans" v-if="moduleActive && languages.length > 1">
     <div class="trans-header">
       <Globe :size="15" />
-      <span class="trans-label">Nội dung đa ngôn ngữ</span>
+      <span class="trans-label">{{ t('admin.msg_6f17b070', 'Nội dung đa ngôn ngữ') }}</span>
       <span class="trans-badge">{{ languages.length }} ngôn ngữ</span>
     </div>
 
@@ -26,7 +26,7 @@
       <div class="trans-field" v-for="field in fields" :key="field.key">
         <label class="trans-field__label">
           {{ field.label }}
-          <span v-if="lang.is_default" class="trans-field__hint">(ngôn ngữ mặc định)</span>
+          <span v-if="lang.is_default" class="trans-field__hint">{{ t('admin.msg_5feac72d', '(ngôn ngữ mặc định)') }}</span>
           <!-- Auto-translate button (optional) -->
           <button
             v-if="!lang.is_default && getDefaultValue(field.key)"
@@ -36,7 +36,7 @@
             title="Dịch tự động từ ngôn ngữ mặc định"
           >
             <Languages :size="12" />
-            {{ translatingKey === `${lang.code}-${field.key}` ? 'Đang dịch...' : 'Dịch tự động' }}
+            {{ translatingKey === `${lang.code}-${field.key}` ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}
           </button>
         </label>
         <textarea
@@ -64,7 +64,7 @@
         @click="autoTranslateAll(lang)"
       >
         <Languages :size="14" />
-        {{ translatingAll ? 'Đang dịch tất cả...' : 'Dịch tự động tất cả' }}
+        {{ translatingAll ? t('admin.msg_106fa6dd', 'Đang dịch tất cả...') : t('admin.msg_a4970559', 'Dịch tự động tất cả') }}
       </button>
     </div>
 
@@ -94,12 +94,12 @@ const props = defineProps({
   fields: {
     type: Array,
     required: true,
-    // [{ key: 'name', label: 'Tên SP', type: 'text' }, { key: 'description', label: 'Mô tả', type: 'textarea' }]
+    // [{ key: 'name', label: t('admin.msg_06245ff0', 'Tên SP'), type: 'text' }, { key: 'description', label: t('admin.msg_e9c02d54', 'Mô tả'), type: 'textarea' }]
   },
   defaultValues: {
     type: Object,
     default: () => ({}),
-    // { name: 'Áo thun', description: 'Mô tả...' } — values from the base record (default language)
+    // { name: t('admin.msg_5dd9d036', 'Áo thun'), description: t('admin.msg_750a2054', 'Mô tả...') } — values from the base record (default language)
   },
   moduleActive: {
     type: Boolean,
@@ -185,7 +185,7 @@ async function saveTranslations() {
       throw new Error(err?.error || err?.message || 'Server error')
     }
     originalTranslations.value = JSON.parse(JSON.stringify(translations.value))
-    showToast('Đã lưu bản dịch', 'success')
+    showToast(t('admin.msg_a7250d', 'Đã lưu bản dịch'), 'success')
     emit('saved')
   } catch (e) {
     showToast('Lỗi lưu bản dịch: ' + (e?.message || ''), 'error')
@@ -210,7 +210,7 @@ async function autoTranslateField(lang, field) {
       setFieldValue(lang.code, field.key, translated)
     }
   } catch (e) {
-    showToast('Lỗi dịch tự động', 'error')
+    showToast(t('admin.msg_7c7d29', 'Lỗi dịch tự động'), 'error')
   } finally {
     translatingKey.value = null
   }
@@ -235,7 +235,7 @@ async function autoTranslateAll(lang) {
     } catch { /* skip */ }
   }
   translatingAll.value = false
-  showToast('Đã dịch tự động tất cả', 'success')
+  showToast(t('admin.msg_2ec816', 'Đã dịch tự động tất cả'), 'success')
 }
 
 onMounted(async () => {

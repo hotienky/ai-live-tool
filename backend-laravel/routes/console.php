@@ -31,3 +31,6 @@ Schedule::command('notifications:check-expiring-plans')
 Schedule::command('notifications:cleanup')
     ->dailyAt('02:00')
     ->withoutOverlapping();
+
+// Horizon metrics snapshot — mỗi 5 phút (hiển thị đồ thị trong dashboard)
+Schedule::command('horizon:snapshot')->everyFiveMinutes();

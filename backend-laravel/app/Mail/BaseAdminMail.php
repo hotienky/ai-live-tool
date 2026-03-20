@@ -11,7 +11,7 @@ abstract class BaseAdminMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public string $queue = 'notifications';
+    public $queue = 'notifications';
 
     // ─── HTML layout helpers ─────────────────────────────────────
 

@@ -9,6 +9,7 @@ use App\Models\SupportedLanguage;
 use App\Repositories\Language\LanguageRepositoryInterface;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LanguagesController extends Controller
 {
@@ -51,7 +52,86 @@ class LanguagesController extends Controller
     public function store(Request $request)
     {
         $language = $this->repo->store($request->all());
+
+        // Auto-seed translations if DB is empty for this language
+        $this->seedTranslationsForLanguage($language);
+
         return $this->successResponse($language, 'Language created', 201);
+    }
+
+    /**
+     * Auto-seed translations for a newly created language.
+     * Reads en.json + vi.json as seed data, auto-translates to target language,
+     * and inserts into DB. Only runs if no translations exist for this language.
+     */
+    private function seedTranslationsForLanguage($language)
+    {
+        $hasLangId = DB::getSchemaBuilder()->hasColumn('language_translations', 'language_id');
+        
+        // Check if translations already exist
+        $existingCount = DB::table('language_translations')
+            ->when($hasLangId, fn($q) => $q->where('language_id', $language->id))
+            ->when(!$hasLangId, fn($q) => $q->where('language_code', $language->code))
+            ->count();
+
+        if ($existingCount > 0) {
+            return; // Already has translations, don't migrate
+        }
+
+        // Load seed data from JSON files
+        $storefrontDir = base_path('../storefront/src/locales');
+        $adminDir = base_path('../frontend/src/locales');
+        $seedData = [];
+
+        // Try to load the language's own JSON file first (vi, en have their own)
+        foreach ([$storefrontDir, $adminDir] as $dir) {
+            $file = $dir . '/' . $language->code . '.json';
+            if (file_exists($file)) {
+                $parsed = json_decode(file_get_contents($file), true);
+                if (is_array($parsed)) $seedData = array_merge($seedData, $parsed);
+            }
+        }
+
+        // If no locale file for this language, auto-translate from English seed
+        if (empty($seedData) && $language->code !== 'en') {
+            $enBase = [];
+            foreach ([$storefrontDir, $adminDir] as $dir) {
+                $enFile = $dir . '/en.json';
+                if (file_exists($enFile)) {
+                    $parsed = json_decode(file_get_contents($enFile), true);
+                    if (is_array($parsed)) $enBase = array_merge($enBase, $parsed);
+                }
+            }
+            if (!empty($enBase)) {
+                $seedData = $this->autoTranslateBatch($enBase, 'en', $language->code);
+            }
+        }
+
+        if (empty($seedData)) return;
+
+        // Batch insert translations
+        $batch = [];
+        $now = now();
+        foreach ($seedData as $key => $value) {
+            $row = [
+                'key'           => $key,
+                'value'         => $value,
+                'language_code' => $language->code,
+                'updated_at'    => $now,
+                'created_at'    => $now,
+            ];
+            if ($hasLangId) $row['language_id'] = $language->id;
+            $batch[] = $row;
+
+            // Insert in chunks of 200
+            if (count($batch) >= 200) {
+                DB::table('language_translations')->insert($batch);
+                $batch = [];
+            }
+        }
+        if (!empty($batch)) {
+            DB::table('language_translations')->insert($batch);
+        }
     }
 
     public function update(Request $request, $id)
@@ -95,6 +175,139 @@ class LanguagesController extends Controller
     {
         $translations = $this->repo->upsertTranslations($id, $request->input('translations', []));
         return $this->successResponse($translations);
+    }
+
+    /**
+     * Sync default translations from local JSON locale files into DB.
+     * Reads from both storefront/src/locales/ and frontend/src/locales/.
+     * For languages without a JSON file, auto-translates from English.
+     * Only inserts MISSING keys — never overwrites existing admin edits.
+     */
+    public function syncDefaults()
+    {
+        $storefrontDir = base_path('../storefront/src/locales');
+        $adminDir = base_path('../frontend/src/locales');
+        $languages = Language::all();
+        $hasLangId = DB::getSchemaBuilder()->hasColumn('language_translations', 'language_id');
+        $synced = [];
+
+        // Load English base as fallback for auto-translation
+        $enBase = [];
+        foreach ([$storefrontDir, $adminDir] as $dir) {
+            $enFile = $dir . '/en.json';
+            if (file_exists($enFile)) {
+                $parsed = json_decode(file_get_contents($enFile), true);
+                if (is_array($parsed)) $enBase = array_merge($enBase, $parsed);
+            }
+        }
+
+        foreach ($languages as $lang) {
+            // Merge defaults from both storefront and admin locale files
+            $defaults = [];
+            foreach ([$storefrontDir, $adminDir] as $dir) {
+                $file = $dir . '/' . $lang->code . '.json';
+                if (file_exists($file)) {
+                    $parsed = json_decode(file_get_contents($file), true);
+                    if (is_array($parsed)) $defaults = array_merge($defaults, $parsed);
+                }
+            }
+
+            // If no locale file found for this language, auto-translate from English
+            if (empty($defaults) && !empty($enBase) && $lang->code !== 'en') {
+                $defaults = $this->autoTranslateBatch($enBase, 'en', $lang->code);
+            }
+
+            if (empty($defaults)) {
+                $synced[$lang->code] = 0;
+                continue;
+            }
+
+            // Get existing keys for this language
+            $existingKeys = DB::table('language_translations')
+                ->when($hasLangId, fn($q) => $q->where('language_id', $lang->id))
+                ->when(!$hasLangId, fn($q) => $q->where('language_code', $lang->code))
+                ->pluck('key')
+                ->toArray();
+
+            // Only insert missing keys
+            $missing = array_diff_key($defaults, array_flip($existingKeys));
+            $count = 0;
+
+            foreach ($missing as $key => $value) {
+                $data = [
+                    'key' => $key,
+                    'value' => $value,
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ];
+                if ($hasLangId) $data['language_id'] = $lang->id;
+                $data['language_code'] = $lang->code;
+
+                DB::table('language_translations')->insert($data);
+                $count++;
+            }
+
+            $synced[$lang->code] = $count;
+        }
+
+        $total = array_sum($synced);
+        return $this->successResponse($synced, "Đã đồng bộ {$total} translations mặc định");
+    }
+
+    /**
+     * Batch auto-translate an array of key => value pairs using Google Translate.
+     * Translates values in chunks to avoid URL length limits.
+     */
+    private function autoTranslateBatch(array $source, string $from, string $to): array
+    {
+        $result = [];
+        $keys = array_keys($source);
+        $values = array_values($source);
+
+        // Translate in chunks of 20 to avoid URL length limits
+        $chunks = array_chunk($values, 20);
+        $keyChunks = array_chunk($keys, 20);
+
+        foreach ($chunks as $i => $chunk) {
+            try {
+                foreach ($chunk as $j => $text) {
+                    if (empty($text)) {
+                        $result[$keyChunks[$i][$j]] = '';
+                        continue;
+                    }
+                    $url = 'https://translate.googleapis.com/translate_a/single?client=gtx'
+                        . '&sl=' . urlencode($from)
+                        . '&tl=' . urlencode($to)
+                        . '&dt=t'
+                        . '&q=' . urlencode($text);
+
+                    $response = @file_get_contents($url);
+                    if ($response) {
+                        $data = json_decode($response, true);
+                        $translated = '';
+                        if (!empty($data[0])) {
+                            foreach ($data[0] as $segment) {
+                                $translated .= $segment[0] ?? '';
+                            }
+                        }
+                        $result[$keyChunks[$i][$j]] = $translated ?: $text;
+                    } else {
+                        $result[$keyChunks[$i][$j]] = $text; // Fallback to source
+                    }
+                    // Small delay to avoid rate limiting
+                    usleep(50000); // 50ms
+                }
+            } catch (\Exception $e) {
+                // On failure, use source text as fallback
+                foreach ($chunk as $j => $text) {
+                    if (!isset($result[$keyChunks[$i][$j]])) {
+                        $result[$keyChunks[$i][$j]] = $text;
+                    }
+                }
+            }
+        }
+
+        return $result;
     }
 
     // ── Content Translations (products, categories, CMS pages) ──

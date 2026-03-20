@@ -133,7 +133,7 @@
               ></iframe>
               <div v-else class="ap-no-url">
                 <AlertCircle :size="22" />
-                <p>Nhập URL storefront để xem trước</p>
+                <p>{{ t('admin.msg_27242049', 'Nhập URL storefront để xem trước') }}</p>
                 <div class="ap-url-input">
                   <input
                     v-model="apUrlInput"
@@ -182,7 +182,7 @@
             <label>Access Token</label>
             <input v-model="shopForm.facebookAccessToken" type="password" placeholder="Page Access Token" class="settings__input" />
           </div>
-          <p class="settings__help-text">Lấy token tại: Facebook Developer → Graph API Explorer → Get Page Access Token</p>
+          <p class="settings__help-text">{{ t('admin.msg_2b97a43e', 'Lấy token tại: Facebook Developer → Graph API Explorer → Get Page Access Token') }}</p>
         </div>
 
         <!-- YouTube -->
@@ -201,7 +201,7 @@
             <label>API Key</label>
             <input v-model="shopForm.youtubeApiKey" type="password" placeholder="YouTube Data API Key" class="settings__input" />
           </div>
-          <p class="settings__help-text">Lấy API Key tại: Google Cloud Console → APIs &amp; Services → Credentials</p>
+          <p class="settings__help-text">{{ t('admin.msg_580221a2', 'Lấy API Key tại: Google Cloud Console → APIs &amp; Services → Credentials') }}</p>
         </div>
 
         <!-- Shopee -->
@@ -224,7 +224,7 @@
             <label>Partner Key</label>
             <input v-model="shopForm.shopeePartnerKey" type="password" placeholder="Partner Key (Secret)" class="settings__input" />
           </div>
-          <p class="settings__help-text">Cần đăng ký Shopee Open Platform để lấy credentials</p>
+          <p class="settings__help-text">{{ t('admin.msg_2bb9c473', 'Cần đăng ký Shopee Open Platform để lấy credentials') }}</p>
         </div>
 
         <button class="settings__save-btn" @click="saveShopInfo">
@@ -265,7 +265,7 @@
         <input
           v-if="newKeyword.alert_type === 'auto_reply'"
           v-model="newKeyword.auto_reply_text"
-          placeholder="Nội dung auto reply..."
+          :placeholder="t('admin.msg_13f63c', 'Nội dung auto reply...')"
           class="settings__input"
           style="margin-top: 8px"
         />
@@ -286,7 +286,7 @@
 
       <!-- ═══ Tab: Auto Reply ═══ -->
       <div v-if="activeTab === 'replies'" class="settings__panel">
-        <h3 class="settings__panel-title"><MessageCircle :size="16" style="vertical-align:middle" /> Mẫu trả lời tự động</h3>
+        <h3 class="settings__panel-title"><MessageCircle :size="16" style="vertical-align:middle" /> {{ t('admin.msg_18b0cba6', 'Mẫu trả lời tự động') }}</h3>
 
         <!-- Master Toggle -->
         <div class="settings__toggle-row">
@@ -297,7 +297,7 @@
           <span class="settings__toggle-label">
             Auto-Reply {{ autoReplyEnabled ? t('admin.on', 'Đang bật') : t('admin.off', 'Đang tắt') }}
           </span>
-          <span class="settings__toggle-hint">Tự động reply cho comment HOT/WARM</span>
+          <span class="settings__toggle-hint">{{ t('admin.msg_e1dae608', 'Tự động reply cho comment HOT/WARM') }}</span>
         </div>
 
         <div class="settings__add-row">
@@ -306,7 +306,7 @@
             <option value="WARM">Khi WARM</option>
             <option value="keyword">Theo keyword</option>
           </select>
-          <input v-model="newTemplate.template_text" placeholder="VD: Cảm ơn {{nickname}}, mình inbox bạn nhé!" class="settings__input settings__input--flex" />
+          <input v-model="newTemplate.template_text" :placeholder="t('admin.msg_d28e2e', 'VD: Cảm ơn {{nickname}}, mình inbox bạn nhé!')" class="settings__input settings__input--flex" />
           <button class="settings__add-btn" @click="addTemplate">
             <Plus :size="14" /> {{ t('admin.add', 'Thêm') }}
           </button>
@@ -331,7 +331,7 @@
 
         <!-- Auto-reply Log -->
         <div v-if="autoReplyLog.length > 0" class="settings__log">
-          <h4 class="settings__log-title"><ClipboardList :size="14" style="vertical-align:middle" /> Lịch sử auto-reply gần nhất</h4>
+          <h4 class="settings__log-title"><ClipboardList :size="14" style="vertical-align:middle" /> {{ t('admin.msg_f01509c4', 'Lịch sử auto-reply gần nhất') }}</h4>
           <div v-for="(log, i) in autoReplyLog" :key="i" class="settings__log-item">
             <span class="settings__log-user">@{{ log.nickname }}</span>
             <span class="settings__log-label" :class="'label--' + (log.triggerLabel || '').toLowerCase()">{{ log.triggerLabel }}</span>
@@ -343,11 +343,11 @@
 
       <!-- ═══ Tab: Moderation ═══ -->
       <div v-if="activeTab === 'moderation'" class="settings__panel">
-        <h3 class="settings__panel-title"><Shield :size="16" style="vertical-align:middle" /> Quản lý bình luận</h3>
+        <h3 class="settings__panel-title"><Shield :size="16" style="vertical-align:middle" /> {{ t('admin.msg_2194f28b', 'Quản lý bình luận') }}</h3>
         <div class="settings__field">
           <label>{{ t('admin.blacklist', 'Danh sách từ cấm (mỗi dòng 1 từ)') }}</label>
           <textarea v-model="moderationConfig.blacklist" rows="5" class="settings__textarea"
-            placeholder="spam&#10;quảng cáo&#10;đối thủ"></textarea>
+            :placeholder="t('admin.msg_49e8f6', 'spam\nquảng cáo\nđối thủ')"></textarea>
         </div>
         <div class="settings__field">
           <label>
@@ -1068,7 +1068,7 @@ async function saveShopInfo() {
       method: 'PUT',
       body: JSON.stringify(shopForm.value),
     })
-    showToast('Đã lưu cấu hình shop', 'success')
+    showToast(t('admin.msg_043a3b', 'Đã lưu cấu hình shop'), 'success')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
@@ -1081,18 +1081,18 @@ async function addProduct() {
     })
     newProduct.value = { name: '', price: '', keywords: '', category: '' }
     await loadProducts()
-    showToast('Đã thêm sản phẩm', 'success')
+    showToast(t('admin.msg_7a810a', 'Đã thêm sản phẩm'), 'success')
   } catch (e) {
     showToast('Lỗi thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
   }
 }
 
 async function deleteProduct(id) {
-  if (!confirm('Xóa sản phẩm này?')) return
+  if (!confirm(t('admin.msg_01d3c362', 'Xóa sản phẩm này?'))) return
   try {
     await apiFetch(`/products/${id}`, { method: 'DELETE' })
     await loadProducts()
-    showToast('Đã xóa sản phẩm', 'success')
+    showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
   } catch (e) {
     showToast('Lỗi xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
   }
@@ -1104,16 +1104,16 @@ async function addCategory() {
   try {
     await createCategory(newCategory.value)
     newCategory.value = { name: '', description: '' }
-    showToast('Đã thêm danh mục', 'success')
+    showToast(t('admin.msg_002465', 'Đã thêm danh mục'), 'success')
   } catch (e) {
     showToast('Lỗi thêm danh mục: ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeCategory(id) {
-  if (!confirm('Xóa danh mục này?')) return
+  if (!confirm(t('admin.msg_3619a51b', 'Xóa danh mục này?'))) return
   try {
     await deleteCategoryApi(id)
-    showToast('Đã xóa danh mục', 'success')
+    showToast(t('admin.msg_2c1fe2', 'Đã xóa danh mục'), 'success')
   } catch (e) {
     showToast('Lỗi xóa danh mục: ' + (e.message || 'Unknown'), 'error')
   }
@@ -1125,16 +1125,16 @@ async function addBrand() {
   try {
     await createBrand(newBrand.value)
     newBrand.value = { name: '', description: '' }
-    showToast('Đã thêm thương hiệu', 'success')
+    showToast(t('admin.msg_aaabca', 'Đã thêm thương hiệu'), 'success')
   } catch (e) {
     showToast('Lỗi thêm thương hiệu: ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeBrand(id) {
-  if (!confirm('Xóa thương hiệu này?')) return
+  if (!confirm(t('admin.msg_b814aa5b', 'Xóa thương hiệu này?'))) return
   try {
     await deleteBrandApi(id)
-    showToast('Đã xóa thương hiệu', 'success')
+    showToast(t('admin.msg_b05808', 'Đã xóa thương hiệu'), 'success')
   } catch (e) {
     showToast('Lỗi xóa thương hiệu: ' + (e.message || 'Unknown'), 'error')
   }
@@ -1155,7 +1155,7 @@ async function adjustStock(productId, action, quantity) {
       showToast(action === 'add' ? `+${quantity} tồn kho` : `-${quantity} tồn kho`, 'success')
     }
   } catch (e) {
-    showToast(e.message || 'Lỗi cập nhật tồn kho', 'error')
+    showToast(e.message || t('admin.msg_7ddcc126', 'Lỗi cập nhật tồn kho'), 'error')
   }
 }
 
@@ -1172,7 +1172,7 @@ async function addKeyword() {
 }
 
 async function deleteKeyword(id) {
-  if (!confirm('Xóa keyword này?')) return
+  if (!confirm(t('admin.msg_919014bc', 'Xóa keyword này?'))) return
   try {
     await apiFetch(`/shops/${props.currentShop.id}/keywords/${id}`, { method: 'DELETE' })
     await loadKeywords(props.currentShop.id)
@@ -1192,7 +1192,7 @@ async function addTemplate() {
 }
 
 async function deleteTemplate(id) {
-  if (!confirm('Xóa mẫu trả lời này?')) return
+  if (!confirm(t('admin.msg_d896930e', 'Xóa mẫu trả lời này?'))) return
   try {
     await apiFetch(`/shops/${props.currentShop.id}/templates/${id}`, { method: 'DELETE' })
     await loadTemplates(props.currentShop.id)
@@ -1211,7 +1211,7 @@ async function saveModerationConfig() {
         moderationMaxPerMinute: moderationConfig.value.maxPerMinute,
       }),
     })
-    showToast('Đã lưu cấu hình moderation', 'success')
+    showToast(t('admin.msg_1ed748', 'Đã lưu cấu hình moderation'), 'success')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
   }
@@ -1240,7 +1240,7 @@ async function toggleAutoReply() {
       method: 'PUT',
       body: JSON.stringify({ autoReplyEnabled: autoReplyEnabled.value }),
     })
-    showToast(autoReplyEnabled.value ? 'Auto-reply đã bật' : 'Auto-reply đã tắt', 'success')
+    showToast(autoReplyEnabled.value ? t('admin.msg_f13221fe', 'Auto-reply đã bật') : t('admin.msg_bd320e37', 'Auto-reply đã tắt'), 'success')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
     autoReplyEnabled.value = !autoReplyEnabled.value

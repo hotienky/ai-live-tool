@@ -1,52 +1,52 @@
 <template>
   <div class="category-form-page">
     <div class="form-page-header">
-      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> Quay lại</button>
-      <h3>{{ isEditing ? 'Sửa danh mục' : 'Thêm danh mục mới' }}</h3>
+      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> {{ t('admin.back', 'Quay lại') }}</button>
+      <h3>{{ isEditing ? t('admin.edit_category', 'Sửa danh mục') : t('admin.add_category', 'Thêm danh mục mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="!form.name">
-        {{ isEditing ? 'Cập nhật' : 'Tạo danh mục' }}
+        {{ isEditing ? t('admin.update', 'Cập nhật') : t('admin.create', 'Tạo danh mục') }}
       </button>
     </div>
 
     <div class="form-page-body">
       <!-- Left Column -->
       <div class="form-col form-col--main">
-        <LanguageTabs v-if="languagesInstalled" v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
+        <LanguageTabs v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
 
         <div class="form-card">
-          <h4>Thông tin cơ bản</h4>
+          <h4>{{ t('admin.basic_info', 'Thông tin cơ bản') }}</h4>
           <div class="form-row">
             <div class="form-group form-group--flex">
-              <label>Tên danh mục *</label>
+              <label>{{ t('admin.category_name', 'Tên danh mục') }} *</label>
               <input v-model="fName" :placeholder="t('admin.category_name', 'Tên danh mục')" />
             </div>
             <div class="form-group">
-              <label>Slug</label>
-              <input v-model="form.slug" placeholder="Tự tạo nếu để trống" />
+              <label>{{ t('admin.slug', 'Slug') }}</label>
+              <input v-model="form.slug" :placeholder="t('admin.slug_placeholder', 'Tự tạo nếu để trống')" />
             </div>
           </div>
           
           <div class="form-group">
             <label>{{ t('admin.description', 'Mô tả') }}</label>
-            <textarea v-model="fDescription" rows="3" placeholder="Mô tả..."></textarea>
+            <textarea v-model="fDescription" rows="3" :placeholder="t('admin.description_placeholder', 'Mô tả...')"></textarea>
           </div>
         </div>
 
         <div class="form-card">
-          <h4>🔍 SEO</h4>
-          <div class="form-group"><label>Meta Title</label><input v-model="fMetaTitle" placeholder="Tiêu đề SEO" /></div>
-          <div class="form-group"><label>Meta Description</label><textarea v-model="fMetaDesc" rows="2" placeholder="Mô tả SEO"></textarea></div>
+          <h4>🔍 {{ t('admin.seo', 'SEO') }}</h4>
+          <div class="form-group"><label>{{ t('admin.meta_title', 'Meta Title') }}</label><input v-model="fMetaTitle" :placeholder="t('admin.meta_title_placeholder', 'Tiêu đề SEO')" /></div>
+          <div class="form-group"><label>{{ t('admin.meta_description', 'Meta Description') }}</label><textarea v-model="fMetaDesc" rows="2" :placeholder="t('admin.meta_description_placeholder', 'Mô tả SEO')"></textarea></div>
         </div>
       </div>
 
       <!-- Right Column -->
       <div class="form-col form-col--side">
         <div class="form-card">
-          <h4>Cấu trúc</h4>
+          <h4>{{ t('admin.structure', 'Cấu trúc') }}</h4>
           <div class="form-group">
-            <label>Danh mục cha</label>
+            <label>{{ t('admin.parent_category', 'Danh mục cha') }}</label>
             <select v-model="form.parent_id">
-              <option :value="null">— Không có —</option>
+              <option :value="null">— {{ t('admin.none', 'Không có') }} —</option>
               <option v-for="pc in categories.filter(x => x.id !== editId)" :key="pc.id" :value="pc.id">{{ pc.name }}</option>
             </select>
           </div>
@@ -57,13 +57,10 @@
         </div>
 
         <div class="form-card">
-          <h4>Hình ảnh</h4>
+          <h4>{{ t('admin.image', 'Hình ảnh') }}</h4>
           <div class="form-group">
-            <label>Hình ảnh (URL)</label>
-            <input v-model="form.image" placeholder="https://..." />
-          </div>
-          <div class="form-group" v-if="form.image">
-            <div class="image-preview"><img :src="form.image" alt="Preview" @error="$event.target.style.display='none'" /></div>
+            <label>{{ t('admin.image', 'Hình ảnh') }}</label>
+            <MediaPicker v-model="form.image" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
           </div>
         </div>
       </div>
@@ -76,6 +73,7 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { ChevronLeft } from 'lucide-vue-next'
+import MediaPicker from './MediaPicker.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
@@ -128,7 +126,7 @@ async function loadCategoryForEdit(id) {
         meta_title: c.meta_title || '', meta_description: c.meta_description || '', translations: {} 
       }
     } else {
-      showToast('Không tìm thấy danh mục', 'error')
+      showToast(t('admin.msg_6dff93', 'Không tìm thấy danh mục'), 'error')
       emit('back')
       return
     }
@@ -145,7 +143,7 @@ async function loadCategoryForEdit(id) {
     }
 
   } catch (e) {
-    showToast('Lỗi tải danh mục', 'error')
+    showToast(t('admin.msg_04b6cc', 'Lỗi tải danh mục'), 'error')
     emit('back')
   }
 }
@@ -156,11 +154,11 @@ async function handleSave() {
     const body = { ...form.value }
     if (isEditing.value) {
       await apiFetch(`/categories/${props.editId}`, { method: 'PUT', body: JSON.stringify(body) })
-      showToast('Đã cập nhật danh mục', 'success')
+      showToast(t('admin.msg_e04ae9', 'Đã cập nhật danh mục'), 'success')
       emit('saved')
     } else {
       const res = await apiFetch('/categories', { method: 'POST', body: JSON.stringify(body) })
-      showToast('Đã thêm danh mục', 'success')
+      showToast(t('admin.msg_002465', 'Đã thêm danh mục'), 'success')
       emit('saved', res.id || res.data?.id)
     }
   } catch (e) { showToast('Lỗi: ' + (e.message || 'Unknown'), 'error') }

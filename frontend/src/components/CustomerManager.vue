@@ -5,10 +5,10 @@
   <!-- List view -->
   <div v-else class="customer-manager">
     <div class="cm-header">
-      <h3><Users :size="16" /> Khách hàng E-Commerce</h3>
+      <h3><Users :size="16" /> {{ t('admin.msg_91a24ef5', 'Khách hàng E-Commerce') }}</h3>
       <div class="cm-actions">
-        <input v-model="search" type="text" placeholder="Tìm theo tên, email, SĐT..." class="cm-search" @input="onSearch" />
-        <button class="btn-add" @click="openCreate">+ Thêm KH</button>
+        <input v-model="search" type="text" :placeholder="t('admin.search_customers', 'Tìm theo tên, email, SĐT...')" class="cm-search" @input="onSearch" />
+        <button class="btn-add" @click="openCreate">{{ t('admin.msg_17313f47', '+ Thêm KH') }}</button>
       </div>
     </div>
 
@@ -76,7 +76,7 @@ async function handleDelete(c) {
   if (!confirm(`Xóa khách hàng ${c.firstName} ${c.lastName}?`)) return
   await deleteCustomer(c.id)
   fetchCustomers({})
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 function formatDate(d) {

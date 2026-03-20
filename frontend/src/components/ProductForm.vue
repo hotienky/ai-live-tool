@@ -1,34 +1,34 @@
 <template>
   <div class="product-form-page">
     <div class="form-page-header">
-      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> Quay lại</button>
-      <h3>{{ isEditing ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới' }}</h3>
+      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
+      <h3>{{ isEditing ? t('admin.msg_0e0e4b4a', 'Sửa sản phẩm') : t('admin.msg_cece2ab1', 'Thêm sản phẩm mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="!form.name || !form.price">
-        {{ isEditing ? 'Cập nhật' : 'Tạo sản phẩm' }}
+        {{ isEditing ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_3eb7247a', 'Tạo sản phẩm') }}
       </button>
     </div>
 
     <div class="form-page-body">
       <!-- Left Column: Basic Info -->
       <div class="form-col form-col--main">
-        <LanguageTabs v-if="languagesInstalled" v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
+        <LanguageTabs v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
 
         <div class="form-card">
-          <h4>Thông tin cơ bản</h4>
+          <h4>{{ t('admin.msg_41100f72', 'Thông tin cơ bản') }}</h4>
           <div class="form-row">
             <div class="form-group form-group--flex">
-              <label>Tên sản phẩm *</label>
+              <label>{{ t('admin.msg_57ba303e', 'Tên sản phẩm *') }}</label>
               <input v-model="fName" :placeholder="t('admin.product_name', 'Tên sản phẩm')" />
             </div>
             <div class="form-group">
               <label>SKU</label>
-              <input v-model="form.sku" placeholder="Mã SKU" />
+              <input v-model="form.sku" :placeholder="t('admin.msg_e195ed', 'Mã SKU')" />
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label>Giá *</label>
+              <label>{{ t('admin.msg_0a3e406f', 'Giá *') }}</label>
               <CurrencyInput v-model="form.price" placeholder="0" input-class="form-input" />
             </div>
             <div class="form-group">
@@ -36,25 +36,25 @@
               <CurrencyInput v-model="form.promotion_price" placeholder="0" input-class="form-input" />
             </div>
             <div class="form-group">
-              <label>Số lượng tồn</label>
+              <label>{{ t('admin.msg_5cb7bf4f', 'Số lượng tồn') }}</label>
               <input v-model.number="form.stock" type="number" placeholder="0" />
             </div>
           </div>
 
           <div class="form-row" v-if="form.promotion_price">
             <div class="form-group">
-              <label>Bắt đầu KM</label>
+              <label>{{ t('admin.msg_d0292dd2', 'Bắt đầu KM') }}</label>
               <input v-model="form.promotion_start" type="datetime-local" />
             </div>
             <div class="form-group">
-              <label>Kết thúc KM</label>
+              <label>{{ t('admin.msg_e00580de', 'Kết thúc KM') }}</label>
               <input v-model="form.promotion_end" type="datetime-local" />
             </div>
           </div>
 
           <div class="form-group">
             <label>{{ t('admin.description', 'Mô tả') }}</label>
-            <textarea v-model="fDescription" rows="5" placeholder="Mô tả sản phẩm..."></textarea>
+            <textarea v-model="fDescription" rows="5" :placeholder="t('admin.msg_e64235', 'Mô tả sản phẩm...')"></textarea>
           </div>
         </div>
 
@@ -63,11 +63,11 @@
           <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700">🔍 SEO</h4>
           <div class="form-group">
             <label>Meta Title</label>
-            <input v-model="fMetaTitle" placeholder="Tiêu đề SEO (tự động nếu để trống)" />
+            <input v-model="fMetaTitle" :placeholder="t('admin.msg_073024', 'Tiêu đề SEO (tự động nếu để trống)')" />
           </div>
           <div class="form-group">
             <label>Meta Description</label>
-            <textarea v-model="fMetaDesc" rows="2" placeholder="Mô tả SEO (tự động nếu để trống)"></textarea>
+            <textarea v-model="fMetaDesc" rows="2" :placeholder="t('admin.msg_9de927', 'Mô tả SEO (tự động nếu để trống)')"></textarea>
           </div>
           <div class="form-group">
             <label>Meta Keywords</label>
@@ -79,14 +79,14 @@
         <div class="form-card">
           <div class="variants-header">
             <h4><Layers :size="14" /> Biến thể sản phẩm ({{ form.variants.length }})</h4>
-            <button type="button" class="btn-add-variant" @click="addVariant">+ Thêm biến thể</button>
+            <button type="button" class="btn-add-variant" @click="addVariant">{{ t('admin.msg_0f39aa4f', '+ Thêm biến thể') }}</button>
           </div>
 
           <!-- Smart sale toggle -->
           <div class="variant-sale-toggle" v-if="form.variants.length > 0 && form.promotion_price">
             <label class="toggle-label">
               <input type="checkbox" v-model="applyPromoToAll" @change="onPromoToggle" />
-              <span>Áp dụng KM cho tất cả biến thể</span>
+              <span>{{ t('admin.msg_7bdf99f2', 'Áp dụng KM cho tất cả biến thể') }}</span>
             </label>
             <span class="toggle-hint" v-if="applyPromoToAll && form.price && form.promotion_price">
               Giảm {{ Math.round((1 - form.promotion_price / form.price) * 100) }}% — tự động tính cho mỗi biến thể
@@ -97,12 +97,12 @@
             <div class="variant-card" v-for="(v, vi) in form.variants" :key="vi">
               <div class="variant-row">
                 <div class="form-group form-group--flex">
-                  <label>Tên biến thể</label>
-                  <input v-model="v.name" placeholder="VD: Đỏ - Size M" />
+                  <label>{{ t('admin.msg_435bb80e', 'Tên biến thể') }}</label>
+                  <input v-model="v.name" :placeholder="t('admin.msg_142d13', 'VD: Đỏ - Size M')" />
                 </div>
                 <div class="form-group">
                   <label>SKU</label>
-                  <input v-model="v.sku" placeholder="SKU biến thể" />
+                  <input v-model="v.sku" :placeholder="t('admin.msg_d88847', 'SKU biến thể')" />
                 </div>
                 <button class="btn-sm btn-del variant-del" @click="form.variants.splice(vi, 1)" type="button">
                   <Trash2 :size="13" />
@@ -110,11 +110,11 @@
               </div>
               <div class="variant-row">
                 <div class="form-group">
-                  <label>Giá</label>
+                  <label>{{ t('admin.msg_072c1a4b', 'Giá') }}</label>
                   <CurrencyInput v-model="v.price" placeholder="0" input-class="form-input" />
                 </div>
                 <div class="form-group">
-                  <label>Giá KM</label>
+                  <label>{{ t('admin.msg_8ad259c6', 'Giá KM') }}</label>
                   <CurrencyInput
                     v-model="v.promotion_price"
                     placeholder="0"
@@ -130,31 +130,31 @@
                   <input v-model.number="v.stock" type="number" placeholder="0" />
                 </div>
                 <div class="form-group form-group--flex">
-                  <label>Ảnh</label>
-                  <MediaPicker v-model="v.image" placeholder="Chọn ảnh biến thể..." accept="image/*" />
+                  <label>{{ t('admin.msg_3c6f3361', 'Ảnh') }}</label>
+                  <MediaPicker v-model="v.image" :placeholder="t('admin.msg_07d297', 'Chọn ảnh biến thể...')" accept="image/*" />
                 </div>
               </div>
             </div>
           </div>
-          <p v-else class="form-hint">Không có biến thể. Sản phẩm đơn giản sẽ dùng giá/tồn kho ở trên.</p>
+          <p v-else class="form-hint">{{ t('admin.msg_131ff082', 'Không có biến thể. Sản phẩm đơn giản sẽ dùng giá/tồn kho ở trên.') }}</p>
         </div>
       </div>
 
       <!-- Right Column: Metadata -->
       <div class="form-col form-col--side">
         <div class="form-card">
-          <h4>Phân loại</h4>
+          <h4>{{ t('admin.msg_099cc004', 'Phân loại') }}</h4>
           <div class="form-group">
-            <label>Danh mục</label>
+            <label>{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
             <select v-model="form.category">
-              <option value="">-- Chọn danh mục --</option>
+              <option value="">{{ t('admin.msg_223a13d3', '-- Chọn danh mục --') }}</option>
               <option v-for="c in categories" :key="c.id" :value="c.name">{{ c.name }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Thương hiệu</label>
+            <label>{{ t('admin.msg_161416d9', 'Thương hiệu') }}</label>
             <select v-model="form.brand">
-              <option value="">-- Chọn thương hiệu --</option>
+              <option value="">{{ t('admin.msg_9441744c', '-- Chọn thương hiệu --') }}</option>
               <option v-for="b in brands" :key="b.id" :value="b.name">{{ b.name }}</option>
             </select>
           </div>
@@ -165,25 +165,25 @@
         </div>
 
         <div class="form-card">
-          <h4>Hình ảnh sản phẩm</h4>
+          <h4>{{ t('admin.msg_a6e668c0', 'Hình ảnh sản phẩm') }}</h4>
           <div class="images-gallery">
             <div class="img-item" v-for="(img, idx) in form.images" :key="idx">
               <img :src="img" alt="" @error="$event.target.style.display='none'" />
               <button class="img-remove" @click="form.images.splice(idx, 1)" type="button">&times;</button>
-              <span class="img-main-badge" v-if="idx === 0">Chính</span>
+              <span class="img-main-badge" v-if="idx === 0">{{ t('admin.msg_e12d5116', 'Chính') }}</span>
             </div>
             <div class="img-add">
-              <MediaPicker v-model="newImageUrl" placeholder="Chọn ảnh từ Media..." accept="image/*" />
+              <MediaPicker v-model="newImageUrl" :placeholder="t('admin.msg_efcbcc', 'Chọn ảnh từ Media...')" accept="image/*" />
               <button type="button" @click="addImage" :disabled="!newImageUrl.trim()">+</button>
             </div>
           </div>
-          <p class="form-hint" v-if="form.images.length">Ảnh đầu tiên = ảnh chính.</p>
+          <p class="form-hint" v-if="form.images.length">{{ t('admin.msg_6c005081', 'Ảnh đầu tiên = ảnh chính.') }}</p>
         </div>
 
         <div class="form-card">
           <h4>{{ t('admin.install', 'Cài đặt') }}</h4>
           <div class="form-group">
-            <label>Ngưỡng cảnh báo hết hàng</label>
+            <label>{{ t('admin.msg_aab08b4e', 'Ngưỡng cảnh báo hết hàng') }}</label>
             <input v-model.number="form.low_stock_threshold" type="number" placeholder="5" />
           </div>
           <div class="form-group">
@@ -298,7 +298,7 @@ async function loadProductForEdit(id) {
     const res = await apiFetch(`/products/${id}`)
     const p = await res.json()
     if (!p || (p.type === 'error')) {
-      showToast('Không tìm thấy sản phẩm', 'error')
+      showToast(t('admin.msg_5e1cab', 'Không tìm thấy sản phẩm'), 'error')
       emit('back')
       return
     }
@@ -375,7 +375,7 @@ async function loadProductForEdit(id) {
     }
 
   } catch (e) {
-    showToast('Lỗi tải sản phẩm', 'error')
+    showToast(t('admin.msg_139d98', 'Lỗi tải sản phẩm'), 'error')
     emit('back')
   }
 }
@@ -397,12 +397,12 @@ async function handleSave() {
     if (isEditing.value) {
       const res = await apiFetch(`/products/${props.editId}`, { method: 'PUT', body: JSON.stringify(body) })
       await res.json() // throws if API returns type:error
-      showToast('Đã cập nhật sản phẩm', 'success')
+      showToast(t('admin.msg_287b0f', 'Đã cập nhật sản phẩm'), 'success')
       emit('saved')
     } else {
       const res = await apiFetch('/products', { method: 'POST', body: JSON.stringify(body) })
       const addedProduct = await res.json() // throws if API returns type:error
-      showToast('Đã thêm sản phẩm', 'success')
+      showToast(t('admin.msg_7a810a', 'Đã thêm sản phẩm'), 'success')
       emit('saved', addedProduct?.id)
     }
   } catch (e) {

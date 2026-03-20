@@ -136,7 +136,7 @@ async function onFileSelect(e) {
   uploading.value = true
   try {
     const results = await uploadMedia(files)
-    showToast(`Đã upload ${files.length} file`, 'success')
+    showToast(t('admin.msg_uploaded', 'Đã upload') + ` ${files.length} file`, 'success')
     // Auto-select the first uploaded file
     if (results?.length) {
       pickerSelectedUrl.value = results[0].url

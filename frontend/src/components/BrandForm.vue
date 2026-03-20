@@ -1,54 +1,51 @@
 <template>
   <div class="brand-form-page">
     <div class="form-page-header">
-      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> Quay lại</button>
-      <h3>{{ isEditing ? 'Sửa thương hiệu' : 'Thêm thương hiệu mới' }}</h3>
+      <button class="btn-back" @click="goBackToList"><ChevronLeft :size="16" /> {{ t('admin.back', 'Quay lại') }}</button>
+      <h3>{{ isEditing ? t('admin.edit_brand', 'Sửa thương hiệu') : t('admin.add_brand', 'Thêm thương hiệu mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="!form.name">
-        {{ isEditing ? 'Cập nhật' : 'Tạo thương hiệu' }}
+        {{ isEditing ? t('admin.update', 'Cập nhật') : t('admin.create', 'Tạo thương hiệu') }}
       </button>
     </div>
 
     <div class="form-page-body">
       <!-- Left Column -->
       <div class="form-col form-col--main">
-        <LanguageTabs v-if="languagesInstalled" v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
+        <LanguageTabs v-model="currentLang" :translations="form.translations" :fields="['name', 'description', 'meta_title', 'meta_description']" :baseData="form" />
 
         <div class="form-card">
-          <h4>Thông tin cơ bản</h4>
+          <h4>{{ t('admin.basic_info', 'Thông tin cơ bản') }}</h4>
           <div class="form-row">
             <div class="form-group form-group--flex">
-              <label>Tên thương hiệu *</label>
-              <input v-model="fName" placeholder="Tên thương hiệu" />
+              <label>{{ t('admin.brand_name', 'Tên thương hiệu') }} *</label>
+              <input v-model="fName" :placeholder="t('admin.brand_name_placeholder', 'Tên thương hiệu')" />
             </div>
             <div class="form-group">
-              <label>Slug</label>
-              <input v-model="form.slug" placeholder="Tự tạo nếu để trống" />
+              <label>{{ t('admin.slug', 'Slug') }}</label>
+              <input v-model="form.slug" :placeholder="t('admin.slug_placeholder', 'Tự tạo nếu để trống')" />
             </div>
           </div>
           
           <div class="form-group">
             <label>{{ t('admin.description', 'Mô tả') }}</label>
-            <textarea v-model="fDescription" rows="3" placeholder="Mô tả..."></textarea>
+            <textarea v-model="fDescription" rows="3" :placeholder="t('admin.description_placeholder', 'Mô tả...')"></textarea>
           </div>
         </div>
 
         <div class="form-card">
-          <h4>🔍 SEO</h4>
-          <div class="form-group"><label>Meta Title</label><input v-model="fMetaTitle" placeholder="Tiêu đề SEO" /></div>
-          <div class="form-group"><label>Meta Description</label><textarea v-model="fMetaDesc" rows="2" placeholder="Mô tả SEO"></textarea></div>
+          <h4>🔍 {{ t('admin.seo', 'SEO') }}</h4>
+          <div class="form-group"><label>{{ t('admin.meta_title', 'Meta Title') }}</label><input v-model="fMetaTitle" :placeholder="t('admin.meta_title_placeholder', 'Tiêu đề SEO')" /></div>
+          <div class="form-group"><label>{{ t('admin.meta_description', 'Meta Description') }}</label><textarea v-model="fMetaDesc" rows="2" :placeholder="t('admin.meta_description_placeholder', 'Mô tả SEO')"></textarea></div>
         </div>
       </div>
 
       <!-- Right Column -->
       <div class="form-col form-col--side">
         <div class="form-card">
-          <h4>Hình ảnh</h4>
+          <h4>{{ t('admin.image', 'Hình ảnh') }}</h4>
           <div class="form-group">
-            <label>Logo (URL)</label>
-            <input v-model="form.image" placeholder="https://..." />
-          </div>
-          <div class="form-group" v-if="form.image">
-            <div class="image-preview"><img :src="form.image" alt="Preview" @error="$event.target.style.display='none'" /></div>
+            <label>Logo</label>
+            <MediaPicker v-model="form.image" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
           </div>
         </div>
       </div>
@@ -61,6 +58,7 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { ChevronLeft } from 'lucide-vue-next'
+import MediaPicker from './MediaPicker.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
@@ -99,7 +97,7 @@ async function loadBrandForEdit(id) {
     const res = await apiFetch(`/brands/${id}`)
     const b = await res.json()
     if (!b) {
-      showToast('Không tìm thấy thương hiệu', 'error')
+      showToast(t('admin.msg_617b9f', 'Không tìm thấy thương hiệu'), 'error')
       emit('back')
       return
     }
@@ -121,7 +119,7 @@ async function loadBrandForEdit(id) {
     }
 
   } catch (e) {
-    showToast('Lỗi tải thương hiệu', 'error')
+    showToast(t('admin.msg_8ac155', 'Lỗi tải thương hiệu'), 'error')
     emit('back')
   }
 }
@@ -132,11 +130,11 @@ async function handleSave() {
     const body = { ...form.value }
     if (isEditing.value) {
       await apiFetch(`/brands/${props.editId}`, { method: 'PUT', body: JSON.stringify(body) })
-      showToast('Đã cập nhật thương hiệu', 'success')
+      showToast(t('admin.msg_a2f10f', 'Đã cập nhật thương hiệu'), 'success')
       emit('saved')
     } else {
       const res = await apiFetch('/brands', { method: 'POST', body: JSON.stringify(body) })
-      showToast('Đã thêm thương hiệu', 'success')
+      showToast(t('admin.msg_aaabca', 'Đã thêm thương hiệu'), 'success')
       emit('saved', res.id || res.data?.id)
     }
   } catch (e) { showToast('Lỗi: ' + (e.message || 'Unknown'), 'error') }

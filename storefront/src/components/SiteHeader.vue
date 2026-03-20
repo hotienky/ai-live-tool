@@ -49,7 +49,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          :placeholder="t('storefront.search_placeholder') || 'Tìm kiếm sản phẩm...'"
+          :placeholder="t('storefront.search_placeholder', 'Tìm kiếm sản phẩm...')"
           @focus="searchFocused = true; showSuggestions = true"
           @blur="onSearchBlur"
           @keyup.enter="onSearch"
@@ -60,7 +60,7 @@
         </button>
         <!-- Autocomplete Dropdown -->
         <div v-if="showSuggestions && (suggestions.length > 0 || searchLoading)" class="search-dropdown">
-          <div v-if="searchLoading" class="search-dropdown__loading">Tìm kiếm...</div>
+          <div v-if="searchLoading" class="search-dropdown__loading">{{ t('admin.msg_7efba30d', 'Tìm kiếm...') }}</div>
           <router-link
             v-for="item in suggestions" :key="item.id"
             :to="'/' + (item.slug || item.id)"
@@ -131,7 +131,7 @@
         </template>
 
         <!-- Theme Toggle -->
-        <button v-if="headerCfg.showThemeToggle" class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Chế độ sáng' : 'Chế độ tối'">
+        <button v-if="headerCfg.showThemeToggle" class="theme-toggle" @click="toggleTheme" :title="isDark ? t('admin.msg_6b0a910d', 'Chế độ sáng') : t('admin.msg_0fcc1fb8', 'Chế độ tối')">
           <Sun v-if="isDark" :size="16" />
           <Moon v-else :size="16" />
         </button>
@@ -170,7 +170,7 @@
         </template>
         <div class="site-header__mobile-search">
           <Search :size="16" />
-          <input v-model="searchQuery" :placeholder="t('storefront.search_short') || 'Tìm kiếm...'" @keyup.enter="onSearch(); mobileMenu = false" />
+          <input v-model="searchQuery" :placeholder="t('storefront.search_short', 'Tìm kiếm...')" @keyup.enter="onSearch(); mobileMenu = false" />
         </div>
       </div>
     </transition>

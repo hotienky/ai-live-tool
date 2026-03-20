@@ -1,7 +1,7 @@
 <template>
   <div class="sentiment-gauge">
     <div class="sentiment-gauge__header">
-      <span class="sentiment-gauge__label"><Target :size="14" /> Cảm xúc Livestream</span>
+      <span class="sentiment-gauge__label"><Target :size="14" /> {{ t('admin.msg_6b71ba86', 'Cảm xúc Livestream') }}</span>
       <button class="sentiment-gauge__refresh" @click="fetchSentiment" :disabled="loading">
         <Loader2 v-if="loading" :size="13" class="sentiment-gauge__spin" />
         <RefreshCw v-else :size="13" />
@@ -80,7 +80,7 @@ async function fetchSentiment() {
     const data = await res.json()
     sentiment.value = data
   } catch (err) {
-    sentiment.value = { score: 0, mood: 'neutral', summary: 'Lỗi kết nối' }
+    sentiment.value = { score: 0, mood: 'neutral', summary: t('admin.msg_d3880593', 'Lỗi kết nối') }
   } finally {
     loading.value = false
   }
@@ -106,9 +106,9 @@ const moodIcon = computed(() => {
 
 const moodLabel = computed(() => {
   const m = sentiment.value.mood
-  if (m === 'positive') return 'Tích cực'
-  if (m === 'negative') return 'Tiêu cực'
-  return 'Trung lập'
+  if (m === 'positive') return t('admin.msg_f124296f', 'Tích cực')
+  if (m === 'negative') return t('admin.msg_ff51c58a', 'Tiêu cực')
+  return t('admin.msg_9831afd8', 'Trung lập')
 })
 </script>
 

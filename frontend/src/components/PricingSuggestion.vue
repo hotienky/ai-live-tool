@@ -9,7 +9,7 @@
       >
         <Loader2 v-if="loading" :size="12" class="pricing-suggestion__spin" />
         <Search v-else :size="12" />
-        {{ loading ? 'Đang phân tích...' : 'Phân tích giá' }}
+        {{ loading ? t('admin.msg_f2866ccd', 'Đang phân tích...') : t('admin.msg_ca1cdece', 'Phân tích giá') }}
       </button>
     </div>
 
@@ -27,11 +27,11 @@
       <!-- Chi tiết -->
       <div class="pricing-suggestion__details">
         <div class="pricing-suggestion__metric">
-          <span class="pricing-suggestion__metric-label">Phản hồi giá:</span>
+          <span class="pricing-suggestion__metric-label">{{ t('admin.msg_48225a2e', 'Phản hồi giá:') }}</span>
           <span>{{ analysis.priceComments }}/{{ analysis.totalComments }} comments</span>
         </div>
         <div class="pricing-suggestion__metric">
-          <span class="pricing-suggestion__metric-label">Xu hướng:</span>
+          <span class="pricing-suggestion__metric-label">{{ t('admin.msg_eca1e771', 'Xu hướng:') }}</span>
           <span :style="{ color: trendColor }">{{ analysis.trend }}</span>
         </div>
       </div>
@@ -44,7 +44,7 @@
 
     <!-- Empty state -->
     <div class="pricing-suggestion__empty" v-else-if="!loading">
-      <p>Nhấn "Phân tích giá" khi có comments để AI đánh giá phản hồi về giá cả</p>
+      <p>{{ t('admin.msg_8bed0526', 'Nhấn "Phân tích giá" khi có comments để AI đánh giá phản hồi về giá cả') }}</p>
     </div>
   </div>
 </template>
@@ -106,28 +106,28 @@ async function analyzePricing() {
     const ratio = totalComments > 0 ? buyCount / totalComments : 0
 
     if (negativeCount > positiveCount && negativeCount > 2) {
-      verdict = 'Giá cao — nên điều chỉnh'
+      verdict = t('admin.msg_a699d93f', 'Giá cao — nên điều chỉnh')
       icon = '!'
       advice = `Có ${negativeCount} phản hồi tiêu cực về giá. Gợi ý: giảm 5-10% hoặc thêm quà tặng/voucher để tăng tỷ lệ chốt.`
-      trend = 'Giảm giá'
+      trend = t('admin.msg_6b272d01', 'Giảm giá')
       confidence = Math.min(90, 50 + negativeCount * 10)
     } else if (positiveCount > negativeCount && buyCount > 3) {
-      verdict = 'Giá hợp lý — giữ nguyên'
+      verdict = t('admin.msg_b44ad6ec', 'Giá hợp lý — giữ nguyên')
       icon = '✓'
       advice = `${buyCount} người chốt đơn, ${positiveCount} phản hồi tích cực. Giá đang ở sweet spot!`
-      trend = 'Giữ nguyên'
+      trend = t('admin.msg_1d08e73d', 'Giữ nguyên')
       confidence = Math.min(90, 50 + buyCount * 5)
     } else if (pricePct < 5) {
-      verdict = 'Chưa đủ dữ liệu'
+      verdict = t('admin.msg_b17c1733', 'Chưa đủ dữ liệu')
       icon = '~'
-      advice = 'Ít người hỏi giá. Thử nhắc giá/khuyến mãi trong live để thu thập phản hồi.'
-      trend = 'Chờ thêm'
+      advice = t('admin.msg_82bed0a3', 'Ít người hỏi giá. Thử nhắc giá/khuyến mãi trong live để thu thập phản hồi.')
+      trend = t('admin.msg_07e76545', 'Chờ thêm')
       confidence = 20
     } else {
-      verdict = 'Có thể tăng nhẹ'
+      verdict = t('admin.msg_162c87d2', 'Có thể tăng nhẹ')
       icon = '↑'
       advice = `Tỷ lệ chốt ${(ratio * 100).toFixed(0)}% với ít phàn nàn giá. Có thể thử tăng 5% và theo dõi.`
-      trend = 'Tăng nhẹ'
+      trend = t('admin.msg_7ac4acae', 'Tăng nhẹ')
       confidence = Math.min(70, 40 + positiveCount * 8)
     }
 
@@ -146,9 +146,9 @@ async function analyzePricing() {
     }
   } catch (err) {
     analysis.value = {
-      verdict: 'Lỗi kết nối',
+      verdict: t('admin.msg_d3880593', 'Lỗi kết nối'),
       icon: '✗',
-      advice: 'Không thể phân tích. Kiểm tra backend.',
+      advice: t('admin.msg_c83682bb', 'Không thể phân tích. Kiểm tra backend.'),
       trend: '-',
       confidence: 0,
       priceComments: 0,
@@ -162,16 +162,16 @@ async function analyzePricing() {
 const scoreClass = computed(() => {
   if (!analysis.value) return ''
   const v = analysis.value.verdict
-  if (v.includes('hợp lý') || v.includes('tăng')) return 'pricing-suggestion__score--good'
-  if (v.includes('cao') || v.includes('Lỗi')) return 'pricing-suggestion__score--bad'
+  if (v.includes(t('admin.msg_1f30e1a3', 'hợp lý')) || v.includes(t('admin.msg_6b7be1dc', 'tăng'))) return 'pricing-suggestion__score--good'
+  if (v.includes('cao') || v.includes(t('admin.msg_aaf377aa', 'Lỗi'))) return 'pricing-suggestion__score--bad'
   return 'pricing-suggestion__score--neutral'
 })
 
 const trendColor = computed(() => {
   if (!analysis.value) return '#9ca3af'
   const t = analysis.value.trend
-  if (t.includes('Giảm')) return '#ff3b5c'
-  if (t.includes('Tăng')) return '#10b981'
+  if (t.includes(t('admin.msg_1bb134c4', 'Giảm'))) return '#ff3b5c'
+  if (t.includes(t('admin.msg_63a83f36', 'Tăng'))) return '#10b981'
   return '#f59e0b'
 })
 </script>

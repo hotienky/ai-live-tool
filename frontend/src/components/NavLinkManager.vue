@@ -2,8 +2,8 @@
   <div class="nav-mgr">
     <!-- Page Title -->
     <div class="nm-page-title">
-      <h3><component :is="icons.Navigation" :size="18" /> Điều hướng</h3>
-      <p>Quản lý Header Menu và Footer cho storefront của bạn.</p>
+      <h3><component :is="icons.Navigation" :size="18" /> {{ t('admin.msg_5544c51e', 'Điều hướng') }}</h3>
+      <p>{{ t('admin.msg_3572d423', 'Quản lý Header Menu và Footer cho storefront của bạn.') }}</p>
     </div>
 
     <!-- Tabs: Header / Footer -->
@@ -79,7 +79,7 @@
       </div>
       <div v-else class="nm-empty">
         <component :is="icons.Link" :size="28" />
-        <p>Chưa có link nào trong Header Menu</p>
+        <p>{{ t('admin.msg_ce37bea8', 'Chưa có link nào trong Header Menu') }}</p>
         <button class="btn-add btn-add--ghost" @click="openCreate('menu')">
           <component :is="icons.Plus" :size="14" /> Thêm link Header
         </button>
@@ -90,8 +90,8 @@
     <div v-if="activeTab === 'footer'" class="nm-panel">
       <div class="nm-section__header">
         <div class="nm-section__info">
-          <h4>📎 Cấu hình Footer</h4>
-          <p class="nm-hint">Kéo thả để sắp xếp thứ tự các cột. Footer hiển thị ở cuối trang storefront.</p>
+          <h4>{{ t('admin.msg_4956c7bb', '📎 Cấu hình Footer') }}</h4>
+          <p class="nm-hint">{{ t('admin.msg_0019a4a0', 'Kéo thả để sắp xếp thứ tự các cột. Footer hiển thị ở cuối trang storefront.') }}</p>
         </div>
         <button class="btn-save-footer" @click="saveFooter" :disabled="savingFooter">
           <component :is="icons.Save" :size="14" />
@@ -126,14 +126,14 @@
             </button>
           </div>
           <input v-model="col.title" class="ft-input ft-input--wide"
-            :placeholder="'Tiêu đề cột ' + (ci + 1) + ' (VD: ' + (['Về chúng tôi', 'Hỗ trợ', 'Liên hệ', 'Chính sách'][ci] || 'Thêm') + ')'" />
+            :placeholder="t('admin.footer_col_title', 'Tiêu đề cột') + ' ' + (ci + 1)" />
 
           <div class="ft-param-row">
-            <label>Loại nội dung</label>
+            <label>{{ t('admin.msg_b6451e4f', 'Loại nội dung') }}</label>
             <select v-model="col.type" class="ft-select">
               <option value="links">🔗 Links</option>
-              <option value="contact">📞 Liên hệ</option>
-              <option value="text">📝 Nội dung tự do</option>
+              <option value="contact">{{ t('admin.msg_e281954b', '📞 Liên hệ') }}</option>
+              <option value="text">{{ t('admin.msg_5d783e26', '📝 Nội dung tự do') }}</option>
             </select>
           </div>
 
@@ -146,7 +146,7 @@
               @drop.prevent.stop="onFooterItemDrop(ci, li)"
             >
               <component :is="icons.GripVertical" :size="10" class="footer-link-row__grip" />
-              <input v-model="link.label" class="ft-input" placeholder="Nhãn" />
+              <input v-model="link.label" class="ft-input" :placeholder="t('admin.msg_ed5d37', 'Nhãn')" />
               <input v-model="link.url" class="ft-input" placeholder="/page/gioi-thieu" />
               <button class="btn-remove-item" @click="col.links.splice(li, 1)"><component :is="icons.X" :size="10" /></button>
             </div>
@@ -165,14 +165,14 @@
             >
               <component :is="icons.GripVertical" :size="10" class="footer-link-row__grip" />
               <select v-model="item.icon" class="ft-select ft-select--sm">
-                <option value="phone">📞 SĐT</option>
+                <option value="phone">{{ t('admin.msg_f8c3838a', '📞 SĐT') }}</option>
                 <option value="email">📧 Email</option>
-                <option value="address">📍 Địa chỉ</option>
-                <option value="clock">🕐 Giờ</option>
-                <option value="text">💬 Ghi chú</option>
+                <option value="address">{{ t('admin.msg_2696d719', '📍 Địa chỉ') }}</option>
+                <option value="clock">{{ t('admin.msg_d291a43e', '🕐 Giờ') }}</option>
+                <option value="text">{{ t('admin.msg_075c2f8b', '💬 Ghi chú') }}</option>
               </select>
-              <input v-model="item.label" class="ft-input" placeholder="Nhãn" />
-              <input v-model="item.value" class="ft-input" placeholder="Giá trị" />
+              <input v-model="item.label" class="ft-input" :placeholder="t('admin.msg_ed5d37', 'Nhãn')" />
+              <input v-model="item.value" class="ft-input" :placeholder="t('admin.msg_1fc558', 'Giá trị')" />
               <button class="btn-remove-item" @click="col.items.splice(ii, 1)"><component :is="icons.X" :size="10" /></button>
             </div>
             <button class="btn-add-item" @click="col.items.push({ icon: 'phone', label: '', value: '' })">
@@ -182,7 +182,7 @@
 
           <!-- Text Type -->
           <template v-if="col.type === 'text'">
-            <textarea v-model="col.content" class="ft-input ft-input--wide ft-textarea" rows="4" placeholder="Nội dung HTML tùy ý..."></textarea>
+            <textarea v-model="col.content" class="ft-input ft-input--wide ft-textarea" rows="4" :placeholder="t('admin.msg_fb5760', 'Nội dung HTML tùy ý...')"></textarea>
           </template>
         </div>
 
@@ -193,7 +193,7 @@
 
       <!-- Social Links -->
       <details class="ft-details" open>
-        <summary>🌐 Mạng xã hội</summary>
+        <summary>{{ t('admin.msg_d9fce95a', '🌐 Mạng xã hội') }}</summary>
         <div v-for="(s, si) in currentFooter.social" :key="si" class="footer-link-row">
           <select v-model="s.platform" class="ft-select ft-select--sm">
             <option value="facebook">Facebook</option>
@@ -215,7 +215,7 @@
 
       <!-- Payment Methods -->
       <details class="ft-details">
-        <summary>💳 Phương thức thanh toán</summary>
+        <summary>{{ t('admin.msg_cb525e58', '💳 Phương thức thanh toán') }}</summary>
         <div class="footer-badges-grid">
           <label v-for="pm in allPaymentMethods" :key="pm.code" class="footer-badge-check">
             <input type="checkbox" :value="pm.code" v-model="currentFooter.paymentMethods" />
@@ -226,10 +226,10 @@
 
       <!-- Badges -->
       <details class="ft-details">
-        <summary>🏅 Chứng nhận / Badge</summary>
+        <summary>{{ t('admin.msg_21b4fe91', '🏅 Chứng nhận / Badge') }}</summary>
         <div v-for="(b, bi) in currentFooter.badges" :key="bi" class="footer-link-row">
-          <input v-model="b.label" class="ft-input" placeholder="Tên" />
-          <input v-model="b.imageUrl" class="ft-input ft-input--wide" placeholder="URL hình ảnh" />
+          <input v-model="b.label" class="ft-input" :placeholder="t('admin.msg_2aa8ef', 'Tên')" />
+          <MediaPicker v-model="b.imageUrl" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
           <input v-model="b.url" class="ft-input" placeholder="Link" />
           <button class="btn-remove-item" @click="currentFooter.badges.splice(bi, 1)"><component :is="icons.X" :size="10" /></button>
         </div>
@@ -240,9 +240,9 @@
 
       <!-- Legal & Copyright -->
       <details class="ft-details">
-        <summary>📋 Thông tin pháp lý</summary>
+        <summary>{{ t('admin.msg_9a94c383', '📋 Thông tin pháp lý') }}</summary>
         <textarea v-model="currentFooter.legalText" class="ft-input ft-input--wide ft-textarea" rows="3"
-          placeholder="VD: Công Ty TNHH ABC&#10;Trụ sở: 123 Đường A, Quận B, TP.HCM&#10;MST: 0123456789"></textarea>
+          :placeholder="t('admin.msg_40e8f5', 'VD: Công Ty TNHH ABC\nTrụ sở: 123 Đường A, Quận B, TP.HCM\nMST: 0123456789')"></textarea>
         <div class="ft-param-row" style="margin-top:8px">
           <label>Copyright</label>
           <input type="text" v-model="currentFooter.copyrightText" class="ft-input ft-input--wide" placeholder="© 2026 Shop Name" />
@@ -251,10 +251,10 @@
 
       <!-- Footer Colors -->
       <div class="footer-colors">
-        <h5>🎨 Màu sắc Footer</h5>
+        <h5>{{ t('admin.msg_712a71f0', '🎨 Màu sắc Footer') }}</h5>
         <div class="footer-color-row">
           <div class="footer-color-item">
-            <label>Nền</label>
+            <label>{{ t('admin.msg_8821399e', 'Nền') }}</label>
             <div class="footer-color-pick">
               <input type="color" v-model="currentFooter.bgColor" class="ft-color" />
               <button v-if="currentFooter.bgColor" class="btn-remove-item" @click="currentFooter.bgColor = ''"><component :is="icons.X" :size="10" /></button>
@@ -268,7 +268,7 @@
             </div>
           </div>
           <div class="footer-color-item">
-            <label>Chữ</label>
+            <label>{{ t('admin.msg_aa2ec9a5', 'Chữ') }}</label>
             <div class="footer-color-pick">
               <input type="color" v-model="currentFooter.textColor" class="ft-color" />
               <button v-if="currentFooter.textColor" class="btn-remove-item" @click="currentFooter.textColor = ''"><component :is="icons.X" :size="10" /></button>
@@ -279,11 +279,11 @@
 
       <!-- Footer Preview -->
       <div class="ft-preview">
-        <h5>👁 Xem trước Footer</h5>
+        <h5>{{ t('admin.msg_caa072ec', '👁 Xem trước Footer') }}</h5>
         <div class="pv-footer" :style="footerPreviewStyle">
           <div class="pv-footer__cols">
             <div v-for="(col, ci) in currentFooter.columns" :key="ci" class="pv-footer__col">
-              <div class="pv-footer__col-title" :style="currentFooter.headingColor ? { color: currentFooter.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
+              <div class="pv-footer__col-title" :style="currentFooter.headingColor ? { color: currentFooter.headingColor } : {}">{{ col.title || t('admin.msg_20ec6f82', 'Cột ') + (ci + 1) }}</div>
               <template v-if="col.type === 'links'">
                 <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="currentFooter.textColor ? { color: currentFooter.textColor } : {}">{{ link.label || '—' }}</div>
               </template>
@@ -311,40 +311,40 @@
       <div class="nm-modal-overlay" v-if="showModal" @click.self="showModal = false">
         <div class="nm-modal">
           <div class="nm-modal__header">
-            <h3>{{ isEditing ? 'Chỉnh sửa liên kết' : 'Thêm liên kết mới' }}</h3>
+            <h3>{{ isEditing ? t('admin.msg_5cd8b1e3', 'Chỉnh sửa liên kết') : t('admin.msg_e8c48573', 'Thêm liên kết mới') }}</h3>
             <button class="nm-modal__close" @click="showModal = false"><component :is="icons.X" :size="16" /></button>
           </div>
           <div class="nm-modal__body">
             <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['name', 'url']" :baseData="form" />
 
             <div class="nm-form-group">
-              <label>Tên hiển thị <span class="req">*</span></label>
-              <input v-model="fName" placeholder="VD: Trang chủ, Sản phẩm..." />
+              <label>{{ t('admin.msg_6cccad8f', 'Tên hiển thị') }} <span class="req">*</span></label>
+              <input v-model="fName" :placeholder="t('admin.msg_92db95', 'VD: Trang chủ, Sản phẩm...')" />
             </div>
             <div class="nm-form-group">
-              <label>Đường dẫn (URL)</label>
-              <input v-model="fUrl" placeholder="/ hoặc /products" />
+              <label>{{ t('admin.msg_18903fae', 'Đường dẫn (URL)') }}</label>
+              <input v-model="fUrl" :placeholder="t('admin.msg_6d9634', '/ hoặc /products')" />
             </div>
             <div class="nm-form-row">
               <div class="nm-form-group">
-                <label>Kiểu liên kết</label>
+                <label>{{ t('admin.msg_544a96b7', 'Kiểu liên kết') }}</label>
                 <select v-model="form.type">
-                  <option value="single">Link đơn</option>
+                  <option value="single">{{ t('admin.msg_32b09a9c', 'Link đơn') }}</option>
                   <option value="collection">Dropdown</option>
                 </select>
               </div>
               <div class="nm-form-group">
-                <label>Mở trong</label>
+                <label>{{ t('admin.msg_df6e28e4', 'Mở trong') }}</label>
                 <select v-model="form.target">
-                  <option value="_self">Cùng tab</option>
-                  <option value="_blank">Tab mới ↗</option>
+                  <option value="_self">{{ t('admin.msg_160b89ab', 'Cùng tab') }}</option>
+                  <option value="_blank">{{ t('admin.msg_18ae60d3', 'Tab mới ↗') }}</option>
                 </select>
               </div>
             </div>
             <div class="nm-form-group" v-if="form.type === 'single'">
-              <label>Thuộc dropdown (tùy chọn)</label>
+              <label>{{ t('admin.msg_c8e45989', 'Thuộc dropdown (tùy chọn)') }}</label>
               <select v-model="form.collectionId">
-                <option :value="null">— Không —</option>
+                <option :value="null">{{ t('admin.msg_940a4799', '— Không —') }}</option>
                 <option v-for="cl in collectionLinks" :key="cl.id" :value="cl.id">{{ cl.name }}</option>
               </select>
             </div>
@@ -355,11 +355,11 @@
                   <button class="icon-picker__trigger" @click="iconDropOpen = !iconDropOpen" type="button">
                     <component v-if="form.icon && icons[form.icon]" :is="icons[form.icon]" :size="16" />
                     <component v-else :is="icons.CircleDashed" :size="16" class="icon-picker__placeholder" />
-                    <span>{{ form.icon || 'Chọn icon' }}</span>
+                    <span>{{ form.icon || t('admin.msg_86458b51', 'Chọn icon') }}</span>
                     <component :is="icons.ChevronDown" :size="12" />
                   </button>
                   <div v-if="iconDropOpen" class="icon-picker__dropdown">
-                    <input v-model="iconSearch" placeholder="Tìm icon..." class="icon-picker__search" />
+                    <input v-model="iconSearch" :placeholder="t('admin.msg_5674a4', 'Tìm icon...')" class="icon-picker__search" />
                     <div class="icon-picker__grid">
                       <button v-for="name in filteredIcons" :key="name" class="icon-picker__item" :class="{ active: form.icon === name }" @click="selectIcon(name)" type="button" :title="name">
                         <component :is="icons[name]" :size="18" />
@@ -377,7 +377,7 @@
           <div class="nm-modal__footer">
             <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
             <button class="btn-save" @click="handleSave">
-              <component :is="icons.Save" :size="14" /> {{ isEditing ? 'Cập nhật' : 'Tạo liên kết' }}
+              <component :is="icons.Save" :size="14" /> {{ isEditing ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_af40c066', 'Tạo liên kết') }}
             </button>
           </div>
 
@@ -395,6 +395,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useToast } from '../composables/useToast.js'
 import LanguageTabs from './LanguageTabs.vue'
+import MediaPicker from './MediaPicker.vue'
 import {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
   Search, Heart, User, Settings, Bell, Mail, MapPin, Globe,
@@ -491,14 +492,14 @@ async function openEdit(l) {
 }
 
 async function handleSave() {
-  if (!form.value.name) return showToast('Nhập tên link', 'error')
+  if (!form.value.name) return showToast(t('admin.msg_c2d389', 'Nhập tên link'), 'error')
   try {
     if (isEditing.value) {
       await updateLink(editId.value, form.value)
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createLink({ ...form.value })
-      showToast('Đã tạo link', 'success')
+      showToast(t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
     }
     showModal.value = false; fetchLinks()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
@@ -507,15 +508,15 @@ async function handleSave() {
 async function handleDelete(l) {
   if (!confirm(`Xóa link "${l.name}"?`)) return
   await deleteLink(l.id); fetchLinks()
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 // ── Footer Config ──
 const defaultFooterConfig = {
   columns: [
-    { title: 'Về chúng tôi', type: 'links', links: [{ label: 'Giới thiệu', url: '/page/gioi-thieu' }, { label: 'Chính sách bảo mật', url: '/page/chinh-sach-bao-mat' }] },
-    { title: 'Hỗ trợ', type: 'links', links: [{ label: 'Chính sách vận chuyển', url: '/page/chinh-sach-van-chuyen' }, { label: 'Đổi trả & Hoàn tiền', url: '/page/doi-tra' }] },
-    { title: 'Liên hệ', type: 'contact', items: [{ icon: 'phone', label: 'Hotline', value: '' }, { icon: 'email', label: 'Email', value: '' }] },
+    { title: t('admin.msg_1437f79c', 'Về chúng tôi'), type: 'links', links: [{ label: t('admin.msg_33f0741f', 'Giới thiệu'), url: '/page/gioi-thieu' }, { label: t('admin.msg_98b31963', 'Chính sách bảo mật'), url: '/page/chinh-sach-bao-mat' }] },
+    { title: t('admin.msg_c1513256', 'Hỗ trợ'), type: 'links', links: [{ label: t('admin.msg_6aba341e', 'Chính sách vận chuyển'), url: '/page/chinh-sach-van-chuyen' }, { label: t('admin.msg_0ea7d28b', 'Đổi trả & Hoàn tiền'), url: '/page/doi-tra' }] },
+    { title: t('admin.msg_9276b119', 'Liên hệ'), type: 'contact', items: [{ icon: 'phone', label: 'Hotline', value: '' }, { icon: 'email', label: 'Email', value: '' }] },
   ],
   social: [],
   paymentMethods: ['cod', 'bank'],
@@ -653,7 +654,7 @@ async function saveFooter() {
       body: JSON.stringify({ translations: transSave }),
     })
     
-    showToast('Đã lưu cấu hình Footer', 'success')
+    showToast(t('admin.msg_c28060', 'Đã lưu cấu hình Footer'), 'success')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
   finally { savingFooter.value = false }
 }

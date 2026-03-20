@@ -143,17 +143,16 @@ function typeColor(type) { return TYPE_COLOR[type] || 'var(--color-text-muted)' 
 // ─── Filter tabs ──────────────────────────────────────────────────
 
 const tabs = [
-  { label: 'Tất cả',    value: null },
-  { label: 'Đơn hàng',  value: 'order' },
-  { label: 'Sản phẩm',  value: 'product' },
-  { label: 'Hệ thống',  value: 'system' },
+  { label: t('admin.msg_d8586d08', 'Tất cả'),    value: null },
+  { label: t('admin.msg_adb21d16', 'Đơn hàng'),  value: 'order' },
+  { label: t('admin.msg_1d1aa192', 'Sản phẩm'),  value: 'product' },
+  { label: t('admin.msg_09cbc7cd', 'Hệ thống'),  value: 'system' },
 ]
 
 const activeTab = ref(null)
 
 function setTab(value) {
   activeTab.value = value
-  fetchNotifications(value)
 }
 
 const filteredNotifications = computed(() => {
@@ -175,7 +174,17 @@ function toggleDropdown() {
 async function handleClick(n) {
   if (!n.is_read) await markAsRead(n.id)
   showDropdown.value = false
-  if (n.link) emit('navigate', n.link)
+  if (n.link) {
+    // Map backend links to admin routes
+    // e.g. /orders/123 → orders/detail/123
+    const link = n.link.replace(/^\//, '') // remove leading slash
+    const orderMatch = link.match(/^orders\/(\d+)$/)
+    if (orderMatch) {
+      emit('navigate', `orders/detail/${orderMatch[1]}`)
+    } else {
+      emit('navigate', link)
+    }
+  }
 }
 
 async function handleMarkAll() {
@@ -199,7 +208,7 @@ function viewAll() {
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000
-  if (diff < 60)    return 'Vừa xong'
+  if (diff < 60)    return t('admin.msg_e92d1675', 'Vừa xong')
   if (diff < 3600)  return `${Math.floor(diff / 60)} phút trước`
   if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`
   return `${Math.floor(diff / 86400)} ngày trước`

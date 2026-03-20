@@ -5,10 +5,10 @@
   <!-- List view -->
   <div v-else class="supplier-mgr">
     <div class="sm-header">
-      <h2><Briefcase :size="20" style="vertical-align:middle" /> Nhà Cung Cấp</h2>
+      <h2><Briefcase :size="20" style="vertical-align:middle" /> {{ t('admin.msg_4c48806b', 'Nhà Cung Cấp') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm tên, SĐT, email..." @input="debouncedSearch" />
-        <button class="btn-primary" @click="openCreate"><Plus :size="14" /> Thêm NCC</button>
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_3a2d75', 'Tìm tên, SĐT, email...')" @input="debouncedSearch" />
+        <button class="btn-primary" @click="openCreate"><Plus :size="14" /> {{ t('admin.msg_808252ac', 'Thêm NCC') }}</button>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Tên NCC</th><th>{{ t('admin.phone_short', 'SĐT') }}</th><th>Email</th><th>{{ t('admin.address', 'Địa chỉ') }}</th><th>MST</th><th>TT</th><th>Thao tác</th>
+            <th>#</th><th>{{ t('admin.msg_a98ff863', 'Tên NCC') }}</th><th>{{ t('admin.phone_short', 'SĐT') }}</th><th>Email</th><th>{{ t('admin.address', 'Địa chỉ') }}</th><th>MST</th><th>TT</th><th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -39,7 +39,7 @@
             <td colspan="8" class="empty">
               <div class="empty-state">
                 <Briefcase :size="40" class="empty-state__icon" />
-                <p class="empty-state__title">Chưa có nhà cung cấp</p>
+                <p class="empty-state__title">{{ t('admin.msg_bcd379a7', 'Chưa có nhà cung cấp') }}</p>
               </div>
             </td>
           </tr>
@@ -87,9 +87,9 @@ async function deleteSupplier(s) {
   if (!confirm(`Xóa "${s.name}"?`)) return
   try {
     await apiFetch(`/suppliers/${s.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
     fetchSuppliers()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_9e5d62', 'Lỗi xóa'), 'error') }
 }
 </script>
 

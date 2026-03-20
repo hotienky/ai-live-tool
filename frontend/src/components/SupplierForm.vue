@@ -1,24 +1,24 @@
 <template>
   <div class="sf-page">
     <div class="sf-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="sf-header__center">
         <div class="sf-header__icon"><Briefcase :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_68e73ef7', 'Sửa nhà cung cấp') : t('admin.msg_a3cc6483', 'Thêm nhà cung cấp') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
-        {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Thêm') }}
+        {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : (props.editId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_d9cb420e', 'Thêm')) }}
       </button>
     </div>
 
     <div class="sf-body">
       <div class="sf-col sf-col--main">
         <div class="sf-card">
-          <h4><Briefcase :size="13" /> Thông tin nhà cung cấp</h4>
+          <h4><Briefcase :size="13" /> {{ t('admin.msg_f5e482a5', 'Thông tin nhà cung cấp') }}</h4>
           <div class="form-group">
-            <label>Tên NCC <span class="req">*</span></label>
-            <input v-model="form.name" class="form-input" placeholder="Công ty ABC" />
+            <label>{{ t('admin.msg_a98ff863', 'Tên NCC') }} <span class="req">*</span></label>
+            <input v-model="form.name" class="form-input" :placeholder="t('admin.msg_1113dd', 'Công ty ABC')" />
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -36,11 +36,11 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Mã số thuế</label>
+              <label>{{ t('admin.msg_05755dd6', 'Mã số thuế') }}</label>
               <input v-model="form.tax_id" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Người liên hệ</label>
+              <label>{{ t('admin.msg_3e65230f', 'Người liên hệ') }}</label>
               <input v-model="form.contact_person" class="form-input" />
             </div>
           </div>
@@ -52,9 +52,9 @@
       </div>
       <div class="sf-col sf-col--side">
         <div class="sf-card">
-          <h4>Trạng thái</h4>
+          <h4>{{ t('admin.msg_0fbc27f5', 'Trạng thái') }}</h4>
           <div class="form-group form-group--inline">
-            <span>Đang hoạt động</span>
+            <span>{{ t('admin.msg_cfaecd87', 'Đang hoạt động') }}</span>
             <label class="toggle">
               <input type="checkbox" v-model="form.is_active" />
               <span class="toggle__slider"></span>
@@ -88,11 +88,11 @@ onMounted(async () => {
     const data = await res.json()
     const s = data?.data || data
     form.value = { name: s.name || '', phone: s.phone || '', email: s.email || '', address: s.address || '', tax_id: s.tax_id || '', contact_person: s.contact_person || '', notes: s.notes || '', is_active: s.is_active ?? true }
-  } catch { showToast('Không tải được thông tin NCC', 'error') }
+  } catch { showToast(t('admin.msg_500842', 'Không tải được thông tin NCC'), 'error') }
 })
 
 async function handleSave() {
-  if (!form.value.name) return showToast('Tên NCC là bắt buộc', 'error')
+  if (!form.value.name) return showToast(t('admin.msg_cfaffe', 'Tên NCC là bắt buộc'), 'error')
   saving.value = true
   try {
     if (props.editId) {
@@ -100,7 +100,7 @@ async function handleSave() {
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await apiFetch('/suppliers', { method: 'POST', body: JSON.stringify(form.value) })
-      showToast('Đã thêm NCC', 'success')
+      showToast(t('admin.msg_038af2', 'Đã thêm NCC'), 'success')
     }
     emit('saved')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }

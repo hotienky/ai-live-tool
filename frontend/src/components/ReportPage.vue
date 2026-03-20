@@ -8,9 +8,9 @@
       </h2>
       <div class="report__controls">
         <select v-model="selectedDays" class="report__select" @change="loadAll">
-          <option :value="7">7 ngày</option>
-          <option :value="14">14 ngày</option>
-          <option :value="30">30 ngày</option>
+          <option :value="7">{{ t('admin.msg_d51ffbc9', '7 ngày') }}</option>
+          <option :value="14">{{ t('admin.msg_b9805682', '14 ngày') }}</option>
+          <option :value="30">{{ t('admin.msg_06199c63', '30 ngày') }}</option>
         </select>
         <button class="report__refresh" @click="loadAll" :disabled="loading">
           <RefreshCcw :size="14" :class="{ 'spin': loading }" />
@@ -27,7 +27,7 @@
         <div class="report__card-icon"><MessageSquare :size="20" /></div>
         <div class="report__card-data">
           <span class="report__card-value">{{ summary.totalComments?.toLocaleString() || 0 }}</span>
-          <span class="report__card-label">Tổng comments</span>
+          <span class="report__card-label">{{ t('admin.msg_8b6be5af', 'Tổng comments') }}</span>
         </div>
       </div>
       <div class="report__card report__card--hot">
@@ -48,7 +48,7 @@
         <div class="report__card-icon"><Calculator :size="20" /></div>
         <div class="report__card-data">
           <span class="report__card-value">{{ summary.avgCommentsPerDay || 0 }}</span>
-          <span class="report__card-label">TB/ngày</span>
+          <span class="report__card-label">{{ t('admin.msg_1056d8cc', 'TB/ngày') }}</span>
         </div>
       </div>
     </div>
@@ -56,7 +56,7 @@
     <div class="report__grid">
       <!-- Daily Chart -->
       <div class="report__section">
-        <h3 class="report__section-title"><BarChart3 :size="16" style="vertical-align:middle" /> Comments theo ngày</h3>
+        <h3 class="report__section-title"><BarChart3 :size="16" style="vertical-align:middle" /> {{ t('admin.msg_09656bc0', 'Comments theo ngày') }}</h3>
         <div class="report__chart">
           <div
             v-for="(day, i) in dailyData"
@@ -118,7 +118,7 @@
 
       <!-- Peak Hours -->
       <div class="report__section">
-        <h3 class="report__section-title"><Clock :size="16" style="vertical-align:middle" /> Peak Hours (hôm nay)</h3>
+        <h3 class="report__section-title"><Clock :size="16" style="vertical-align:middle" /> {{ t('admin.msg_78e11b6e', 'Peak Hours (hôm nay)') }}</h3>
         <div class="report__heatmap">
           <div
             v-for="h in hourlyData"
@@ -242,15 +242,15 @@ async function loadAll() {
 }
 
 function exportCSV() {
-  let csv = 'Ngày,Tổng,HOT,WARM,COLD\n'
+  let csv = t('admin.msg_40f4ae9b', 'Ngày,Tổng,HOT,WARM,COLD\n')
   dailyData.value.forEach(d => {
     csv += `${d.date},${d.total},${d.HOT || 0},${d.WARM || 0},${d.COLD || 0}\n`
   })
-  csv += '\nGiờ,Tổng,HOT\n'
+  csv += t('admin.msg_9f7e9acb', '\nGiờ,Tổng,HOT\n')
   hourlyData.value.forEach(h => {
     csv += `${h.hour}:00,${h.total},${h.HOT || 0}\n`
   })
-  csv += '\nKeyword,Số lần\n'
+  csv += t('admin.msg_1833ad40', '\nKeyword,Số lần\n')
   topKeywords.value.forEach(kw => {
     csv += `${kw.word},${kw.count}\n`
   })

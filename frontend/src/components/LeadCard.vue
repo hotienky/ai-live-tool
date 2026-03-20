@@ -72,11 +72,11 @@
     <!-- AI Reply Suggestion -->
     <div class="lead-card__reply" v-if="suggestedReply">
       <div class="lead-card__reply-header">
-        <span><Bot :size="13" /> AI gợi ý:</span>
+        <span><Bot :size="13" /> {{ t('admin.msg_c2aaaf28', 'AI gợi ý:') }}</span>
         <button class="lead-card__copy-btn" @click="copyReply">
           <Check v-if="copied" :size="11" />
           <Copy v-else :size="11" />
-          {{ copied ? 'Đã copy' : 'Copy' }}
+          {{ copied ? t('admin.msg_bd5a0d50', 'Đã copy') : 'Copy' }}
         </button>
       </div>
       <p class="lead-card__reply-text">{{ suggestedReply }}</p>
@@ -141,7 +141,7 @@ async function onSuggestReply() {
     const data = await res.json()
     suggestedReply.value = data.reply
   } catch {
-    suggestedReply.value = 'Lỗi kết nối AI. Thử lại sau.'
+    suggestedReply.value = t('admin.msg_ccbfbaab', 'Lỗi kết nối AI. Thử lại sau.')
   } finally { loadingReply.value = false }
 }
 

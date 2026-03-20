@@ -1,13 +1,13 @@
 <template>
   <div class="order-management">
     <div class="om-header">
-      <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Đơn Hàng</h2>
+      <h2><Package :size="20" style="vertical-align:middle" /> {{ t('admin.msg_6edbff43', 'Quản Lý Đơn Hàng') }}</h2>
       <div class="header-actions">
         <select v-model="filterStatus" class="filter-select">
           <option value="">{{ t('admin.all', 'Tất cả') }}</option>
           <option v-for="s in orderStatuses" :key="s.id" :value="s.name">{{ s.name }}</option>
         </select>
-        <button class="btn-add" @click="showCreateModal = true">+ Tạo đơn</button>
+        <button class="btn-add" @click="showCreateModal = true">{{ t('admin.msg_dfa3b14d', '+ Tạo đơn') }}</button>
       </div>
     </div>
 
@@ -16,7 +16,7 @@
       <div class="stat-card">
         <div class="stat-icon stat-icon--orders"><ShoppingBag :size="22" /></div>
         <div class="stat-value">{{ stats.totalOrders }}</div>
-        <div class="stat-label">Tổng đơn</div>
+        <div class="stat-label">{{ t('admin.msg_cf198bf6', 'Tổng đơn') }}</div>
       </div>
       <div class="stat-card revenue">
         <div class="stat-icon stat-icon--revenue"><DollarSign :size="22" /></div>
@@ -26,12 +26,12 @@
       <div class="stat-card paid">
         <div class="stat-icon stat-icon--paid"><CreditCard :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(stats.paidRevenue) }}</div>
-        <div class="stat-label">Đã thanh toán</div>
+        <div class="stat-label">{{ t('admin.msg_0c9c7bc3', 'Đã thanh toán') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--rate"><TrendingUp :size="22" /></div>
         <div class="stat-value">{{ stats.conversionRate }}%</div>
-        <div class="stat-label">Tỷ lệ giao</div>
+        <div class="stat-label">{{ t('admin.msg_7b9ebf98', 'Tỷ lệ giao') }}</div>
       </div>
     </div>
 
@@ -41,10 +41,10 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Khách hàng</th>
+            <th>{{ t('admin.msg_0caa5ce1', 'Khách hàng') }}</th>
             <th>{{ t('admin.phone_short', 'SĐT') }}</th>
-            <th>Tổng tiền</th>
-            <th>Thanh toán</th>
+            <th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
+            <th>{{ t('admin.msg_d555e4bc', 'Thanh toán') }}</th>
             <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
             <th>{{ t('admin.actions', 'Hành động') }}</th>
@@ -69,14 +69,14 @@
             <td>{{ formatDate(order.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" class="act-btn act-confirm"><CheckCircle :size="14" /> Xác nhận</button>
-                <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" class="act-btn act-ship"><Send :size="14" /> Vận đơn</button>
+                <button v-if="order.status === 'pending'" @click.stop="updateStatus(order, 'confirmed')" class="act-btn act-confirm"><CheckCircle :size="14" /> {{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</button>
+                <button v-if="order.status === 'confirmed'" @click.stop="emit('create-shipment', order.id)" class="act-btn act-ship"><Send :size="14" /> {{ t('admin.msg_ceaccf52', 'Vận đơn') }}</button>
                 <button v-if="order.status === 'confirmed'" @click.stop="updateStatus(order, 'shipping')" class="act-btn act-shipping"><Truck :size="14" /> Giao</button>
-                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" class="act-btn act-delivered"><Package :size="14" /> Đã giao</button>
-                <button v-if="order.paymentStatus === 'unpaid'" @click.stop="updatePayment(order, 'paid')" class="act-btn act-pay"><DollarSign :size="14" /> Thu tiền</button>
-                <button v-if="order.paymentStatus === 'paid'" @click.stop="updatePayment(order, 'refunded')" class="act-btn act-refund"><RotateCcw :size="14" /> Hoàn</button>
+                <button v-if="order.status === 'shipping'" @click.stop="updateStatus(order, 'delivered')" class="act-btn act-delivered"><Package :size="14" /> {{ t('admin.msg_fb72b8a4', 'Đã giao') }}</button>
+                <button v-if="order.paymentStatus === 'unpaid'" @click.stop="updatePayment(order, 'paid')" class="act-btn act-pay"><DollarSign :size="14" /> {{ t('admin.msg_1f853b2f', 'Thu tiền') }}</button>
+                <button v-if="order.paymentStatus === 'paid'" @click.stop="updatePayment(order, 'refunded')" class="act-btn act-refund"><RotateCcw :size="14" /> {{ t('admin.msg_0ab21287', 'Hoàn') }}</button>
                 <button @click.stop="printInvoice(order)" class="act-btn act-print"><Printer :size="14" /> In</button>
-                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" class="act-btn act-cancel"><XCircle :size="14" /> Hủy</button>
+                <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" @click.stop="updateStatus(order, 'cancelled')" class="act-btn act-cancel"><XCircle :size="14" /> {{ t('admin.msg_1e405035', 'Hủy') }}</button>
               </div>
             </td>
           </tr>
@@ -84,8 +84,8 @@
             <td colspan="8" class="empty">
               <div class="empty-state">
                 <Package :size="40" class="empty-state__icon" />
-                <p class="empty-state__title">Chưa có đơn hàng</p>
-                <p class="empty-state__sub">Đơn hàng sẽ hiển thị ở đây khi được tạo</p>
+                <p class="empty-state__title">{{ t('admin.msg_e044796b', 'Chưa có đơn hàng') }}</p>
+                <p class="empty-state__sub">{{ t('admin.msg_fac67f70', 'Đơn hàng sẽ hiển thị ở đây khi được tạo') }}</p>
               </div>
             </td>
           </tr>
@@ -96,29 +96,29 @@
     <!-- Create Order Modal -->
     <div class="modal-overlay" v-if="showCreateModal" @click.self="showCreateModal = false">
       <div class="modal modal--wide">
-        <h3><FileEdit :size="16" style="vertical-align:middle" /> Tạo đơn hàng mới</h3>
+        <h3><FileEdit :size="16" style="vertical-align:middle" /> {{ t('admin.msg_a4e37f3c', 'Tạo đơn hàng mới') }}</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Tên khách</label>
-            <input v-model="newOrder.customerName" placeholder="Nguyễn Văn A" />
+            <label>{{ t('admin.msg_2a67c2be', 'Tên khách') }}</label>
+            <input v-model="newOrder.customerName" :placeholder="t('admin.msg_48bfbf', 'Nguyễn Văn A')" />
           </div>
           <div class="form-group">
-            <label>SĐT</label>
+            <label>{{ t('admin.msg_5457a69f', 'SĐT') }}</label>
             <input v-model="newOrder.customerPhone" placeholder="0901234567" />
           </div>
         </div>
         <div class="form-group">
           <label>{{ t('admin.address', 'Địa chỉ') }}</label>
-          <input v-model="newOrder.customerAddress" placeholder="123 Đường ABC, Q1, HCM" />
+          <input v-model="newOrder.customerAddress" :placeholder="t('admin.msg_7007f7', '123 Đường ABC, Q1, HCM')" />
         </div>
 
         <!-- Product Line Items -->
         <div class="form-group">
-          <label><ShoppingBag :size="14" style="vertical-align:middle" /> Sản phẩm</label>
+          <label><ShoppingBag :size="14" style="vertical-align:middle" /> {{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</label>
           <div class="line-items">
             <div class="line-item" v-for="(item, idx) in newOrder.items" :key="idx">
               <select v-model="item.productId" @change="onProductSelect(idx)" class="line-item__select">
-                <option value="">-- Chọn sản phẩm --</option>
+                <option value="">{{ t('admin.msg_63b32e26', '-- Chọn sản phẩm --') }}</option>
                 <option v-for="p in products" :key="p.id" :value="p.id">
                   {{ p.name }} — {{ formatCurrency(p.price) }}/{{ p.unit }}
                 </option>
@@ -141,13 +141,13 @@
 
         <!-- Total -->
         <div class="order-total">
-          <span>Tổng cộng:</span>
+          <span>{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</span>
           <span class="order-total__amount">{{ formatCurrency(computedTotal) }}</span>
         </div>
 
         <div class="form-group">
           <label>{{ t('admin.notes', 'Ghi chú') }}</label>
-          <textarea v-model="newOrder.notes" rows="2" placeholder="Ghi chú đơn hàng..."></textarea>
+          <textarea v-model="newOrder.notes" rows="2" :placeholder="t('admin.msg_cafe09', 'Ghi chú đơn hàng...')"></textarea>
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showCreateModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
@@ -167,26 +167,26 @@
         </div>
 
         <div class="detail-info">
-          <div class="info-row"><span class="info-label">Khách hàng:</span> {{ detailOrder?.customerName || '—' }}</div>
-          <div class="info-row"><span class="info-label">SĐT:</span> {{ detailOrder?.customerPhone || '—' }}</div>
-          <div class="info-row"><span class="info-label">Địa chỉ:</span> {{ detailOrder?.customerAddress || '—' }}</div>
+          <div class="info-row"><span class="info-label">{{ t('admin.msg_5eb5774d', 'Khách hàng:') }}</span> {{ detailOrder?.customerName || '—' }}</div>
+          <div class="info-row"><span class="info-label">{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span> {{ detailOrder?.customerPhone || '—' }}</div>
+          <div class="info-row"><span class="info-label">{{ t('admin.msg_ce467846', 'Địa chỉ:') }}</span> {{ detailOrder?.customerAddress || '—' }}</div>
           <div class="info-row">
-            <span class="info-label">Trạng thái:</span>
+            <span class="info-label">{{ t('admin.msg_a6993480', 'Trạng thái:') }}</span>
             <span class="status-badge" :class="detailOrder?.status">{{ detailOrder?.status }}</span>
           </div>
 
           <!-- Price Breakdown -->
           <div class="detail-breakdown">
             <div class="breakdown-row" v-if="detailOrder?.subtotal">
-              <span>Tạm tính:</span>
+              <span>{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</span>
               <span>{{ formatCurrency(detailOrder.subtotal) }}</span>
             </div>
             <div class="breakdown-row" v-if="detailOrder?.discountAmount > 0">
-              <span>Giảm giá:</span>
+              <span>{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</span>
               <span class="discount-amount">-{{ formatCurrency(detailOrder.discountAmount) }}</span>
             </div>
             <div class="breakdown-row" v-if="detailOrder?.shippingFee > 0">
-              <span>Phí vận chuyển:</span>
+              <span>{{ t('admin.msg_12c89dbb', 'Phí vận chuyển:') }}</span>
               <span>{{ formatCurrency(detailOrder.shippingFee) }}</span>
             </div>
             <div class="breakdown-row" v-if="detailOrder?.taxAmount > 0">
@@ -199,7 +199,7 @@
               <span class="tax-amount-value">{{ formatCurrency(detailOrder.taxAmount) }}</span>
             </div>
             <div class="breakdown-row breakdown-row--total">
-              <span>Tổng thanh toán:</span>
+              <span>{{ t('admin.msg_380d212e', 'Tổng thanh toán:') }}</span>
               <span class="detail-amount">{{ formatCurrency(detailOrder?.totalAmount) }}</span>
             </div>
           </div>
@@ -230,12 +230,12 @@
               <div class="item-total">{{ formatCurrency(item.totalPrice) }}</div>
             </div>
           </div>
-          <p v-else class="empty-text">Không có chi tiết sản phẩm</p>
+          <p v-else class="empty-text">{{ t('admin.msg_4a7ec2cb', 'Không có chi tiết sản phẩm') }}</p>
         </div>
 
         <!-- Order Totals (S-Cart: ShopOrderTotal) -->
         <div class="detail-section" v-if="detailTotals.length">
-          <h4><Coins :size="14" /> Chi tiết thanh toán</h4>
+          <h4><Coins :size="14" /> {{ t('admin.msg_df3690c5', 'Chi tiết thanh toán') }}</h4>
           <div class="totals-breakdown">
             <div class="totals-row" v-for="t in detailTotals" :key="t.id" :class="{ 'totals-row--total': t.code === 'total' }">
               <span>{{ t.title }}</span>
@@ -246,7 +246,7 @@
 
         <!-- Order History Timeline (S-Cart: ShopOrderHistory) -->
         <div class="detail-section">
-          <h4>📜 Lịch sử trạng thái</h4>
+          <h4>{{ t('admin.msg_6776521b', '📜 Lịch sử trạng thái') }}</h4>
           <div class="timeline" v-if="detailHistory.length">
             <div class="timeline-item" v-for="h in detailHistory" :key="h.id">
               <div class="timeline-dot"></div>
@@ -259,7 +259,7 @@
               </div>
             </div>
           </div>
-          <p v-else class="empty-text">Chưa có lịch sử</p>
+          <p v-else class="empty-text">{{ t('admin.msg_03d58f64', 'Chưa có lịch sử') }}</p>
         </div>
       </div>
     </div>
@@ -304,15 +304,15 @@ function getStatusNameById(id) {
   const s = orderStatuses.value.find(s => s.id === id)
   return s ? s.name : `#${id}`
 }
-const paymentLabels = { unpaid: 'Chưa TT', paid: 'Đã TT', refunded: 'Hoàn tiền' }
+const paymentLabels = { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), paid: t('admin.msg_04b5eaed', 'Đã TT'), refunded: t('admin.msg_548fd02c', 'Hoàn tiền') }
 const statusLabels = {
-  pending: 'Chờ xác nhận',
-  confirmed: 'Đã xác nhận',
-  processing: 'Đang xử lý',
-  shipping: 'Đang giao',
-  delivered: 'Đã giao',
-  cancelled: 'Đã huỷ',
-  returned: 'Hoàn hàng',
+  pending: t('admin.msg_d0f4e750', 'Chờ xác nhận'),
+  confirmed: t('admin.msg_c6de124c', 'Đã xác nhận'),
+  processing: t('admin.msg_0f0c3d2a', 'Đang xử lý'),
+  shipping: t('admin.msg_e61e15e1', 'Đang giao'),
+  delivered: t('admin.msg_fb72b8a4', 'Đã giao'),
+  cancelled: t('admin.msg_9104eebc', 'Đã huỷ'),
+  returned: t('admin.msg_b398bb99', 'Hoàn hàng'),
 }
 
 // Detail modal
@@ -420,7 +420,7 @@ async function fetchStats() {
 async function createOrder() {
   const items = newOrder.value.items.filter(i => i.productId && i.price > 0)
   if (items.length === 0) {
-    showToast('Vui lòng chọn ít nhất 1 sản phẩm', 'error')
+    showToast(t('admin.msg_59cf5e', 'Vui lòng chọn ít nhất 1 sản phẩm'), 'error')
     return
   }
   try {
@@ -441,7 +441,7 @@ async function createOrder() {
     showCreateModal.value = false
     newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' }
     fetchOrders(); fetchStats()
-    showToast('Tạo đơn thành công!', 'success')
+    showToast(t('admin.msg_09da14', 'Tạo đơn thành công!'), 'success')
   } catch (err) { showToast('Lỗi tạo đơn: ' + err.message, 'error') }
 }
 
@@ -468,7 +468,7 @@ async function openDetail(order) {
 }
 
 async function changeStatus(statusId, statusName) {
-  if (statusName === 'Đã hủy' && !confirm('Hủy đơn hàng này?')) return
+  if (statusName === t('admin.msg_1a46e024', 'Đã hủy') && !confirm(t('admin.msg_fc0385c9', 'Hủy đơn hàng này?'))) return
   try {
     const res = await apiFetch(`/orders/${detailOrder.value.id}/status`, {
       method: 'PUT',
@@ -479,20 +479,20 @@ async function changeStatus(statusId, statusName) {
     const historyRes = await apiFetch(`/orders/${detailOrder.value.id}/history`)
     detailHistory.value = await historyRes.json()
     fetchOrders(); fetchStats()
-    showToast(`Đã cập nhật: ${statusName}`, 'success')
-  } catch { showToast('Lỗi cập nhật trạng thái', 'error') }
+    showToast(t('admin.msg_status_updated', 'Đã cập nhật') + ': ' + statusName, 'success')
+  } catch { showToast(t('admin.msg_35d19e', 'Lỗi cập nhật trạng thái'), 'error') }
 }
 
 async function updatePayment(order, paymentStatus) {
-  if (paymentStatus === 'refunded' && !confirm('Hoàn tiền đơn hàng này?')) return
+  if (paymentStatus === 'refunded' && !confirm(t('admin.msg_ff0c9b16', 'Hoàn tiền đơn hàng này?'))) return
   try {
     await apiFetch(`/orders/${order.id}`, {
       method: 'PUT',
       body: JSON.stringify({ paymentStatus })
     })
-    showToast(paymentStatus === 'paid' ? 'Đã xác nhận thanh toán' : 'Đã hoàn tiền', 'success')
+    showToast(paymentStatus === 'paid' ? t('admin.msg_69d8d6d0', 'Đã xác nhận thanh toán') : t('admin.msg_12add562', 'Đã hoàn tiền'), 'success')
     fetchOrders(); fetchStats()
-  } catch { showToast('Lỗi cập nhật thanh toán', 'error') }
+  } catch { showToast(t('admin.msg_2ca61f', 'Lỗi cập nhật thanh toán'), 'error') }
 }
 
 function formatCurrency(v) {
@@ -536,14 +536,14 @@ function printInvoice(order) {
     </div>
     <div class="info">
       <div class="row"><span class="label">Mã đơn:</span><strong>#${order.id}</strong></div>
-      <div class="row"><span class="label">Khách:</span><span>${order.customerName || 'Khách lẻ'}</span></div>
+      <div class="row"><span class="label">Khách:</span><span>${order.customerName || t('admin.msg_83e37a97', 'Khách lẻ')}</span></div>
       ${order.customerPhone ? `<div class="row"><span class="label">SĐT:</span><span>${order.customerPhone}</span></div>` : ''}
       ${order.customerAddress ? `<div class="row"><span class="label">Địa chỉ:</span><span>${order.customerAddress}</span></div>` : ''}
-      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'}</span></div>
+      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? t('admin.msg_04b5eaed', 'Đã TT') : t('admin.msg_e8a83705', 'Chưa TT')}</span></div>
     </div>
     <table>
       <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>
-      <tbody>${itemsHtml || '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>'}</tbody>
+      <tbody>${itemsHtml || t('admin.msg_b1bc2ffa', '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>')}</tbody>
     </table>
     <div class="total-section">
       ${order.subtotal ? `<div class="total-row"><span>Tạm tính:</span><span>${Number(order.subtotal || 0).toLocaleString('vi-VN')}đ</span></div>` : ''}

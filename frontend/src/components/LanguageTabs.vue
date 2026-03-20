@@ -10,7 +10,7 @@
     >
       <span class="lang-flag">{{ lang.flag || '🌐' }}</span>
       <span class="lang-name">{{ lang.name }}</span>
-      <span v-if="lang.is_default" class="lang-badge">Gốc</span>
+      <span v-if="lang.is_default" class="lang-badge">{{ t('admin.msg_3a73b238', 'Gốc') }}</span>
       <span v-else-if="fields && translations" class="lang-completeness" :class="{ done: getCompleteness(lang.code) === 100 }">
         {{ getCompleteness(lang.code) }}%
       </span>
@@ -21,7 +21,7 @@
         <span class="btn-ai-icon">
           <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ 'spin': isTranslating }" />
         </span>
-        <span class="btn-ai-text">{{ isTranslating ? 'Đang dịch...' : 'Dịch tự động' }}</span>
+        <span class="btn-ai-text">{{ isTranslating ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}</span>
         <span class="btn-ai-badge">AI</span>
         <span class="btn-shimmer"></span>
       </button>
@@ -30,8 +30,11 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: { type: String, required: true },
@@ -45,23 +48,33 @@ import { Sparkles, Loader2 } from 'lucide-vue-next'
 
 const emit = defineEmits(['update:modelValue'])
 
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useLanguages } from '../composables/useLanguages.js'
+
+const FLAG_MAP = {
+  vi: '🇻🇳', en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷', zh: '🇨🇳',
+  fr: '🇫🇷', de: '🇩🇪', es: '🇪🇸', it: '🇮🇹', pt: '🇵🇹',
+  ru: '🇷🇺', th: '🇹🇭', id: '🇮🇩', ms: '🇲🇾', ar: '🇸🇦',
+}
+
+const { languages: sharedLanguages, loadLanguages } = useLanguages()
+loadLanguages() // ensure loaded (cached, safe to call multiple times)
+
 const installedLanguages = ref([])
 
-onMounted(async () => {
-  try {
-    const res = await apiFetch('/languages')
-    const json = await res.json()
-    const data = Array.isArray(json) ? json : (json?.data || [])
-    // Move default language to the front
-    installedLanguages.value = data.sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0))
-    if (!props.modelValue && installedLanguages.value.length > 0) {
-      emit('update:modelValue', installedLanguages.value[0].code)
-    }
-  } catch (e) {
-    console.error('Failed to load languages in LanguageTabs', e)
+// Watch the shared reactive languages and sync with flag mapping
+watch(sharedLanguages, (langs) => {
+  if (!langs || !langs.length) return
+  const mapped = langs.map(l => ({
+    ...l,
+    flag: l.flag || l.icon || FLAG_MAP[l.code] || '🌐',
+  }))
+  // Move default language to the front
+  installedLanguages.value = mapped.sort((a, b) => (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0))
+  if (!props.modelValue && installedLanguages.value.length > 0) {
+    emit('update:modelValue', installedLanguages.value[0].code)
   }
-})
+}, { immediate: true })
 
 function hasError(code) {
   return props.errors.includes(code)

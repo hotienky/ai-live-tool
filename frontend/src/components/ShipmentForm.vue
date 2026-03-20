@@ -1,10 +1,10 @@
 <template>
   <div class="ship-form-page">
     <div class="ship-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="ship-header__center">
         <div class="ship-header__icon"><Truck :size="15" /></div>
-        <h3>Tạo Vận Đơn Mới</h3>
+        <h3>{{ t('admin.msg_0310b1a7', 'Tạo Vận Đơn Mới') }}</h3>
       </div>
       <div class="ship-actions">
         <!-- Actions here if needed -->
@@ -13,51 +13,51 @@
 
     <!-- Step indicator -->
     <div class="step-indicator">
-      <div class="step" :class="{ active: createStep === 1, done: createStep > 1 }"><span>1</span> Thông tin</div>
+      <div class="step" :class="{ active: createStep === 1, done: createStep > 1 }"><span>1</span> {{ t('admin.msg_93b23a08', 'Thông tin') }}</div>
       <div class="step-line"></div>
-      <div class="step" :class="{ active: createStep === 2, done: createStep > 2 }"><span>2</span> Vận chuyển</div>
+      <div class="step" :class="{ active: createStep === 2, done: createStep > 2 }"><span>2</span> {{ t('admin.msg_76776039', 'Vận chuyển') }}</div>
       <div class="step-line"></div>
-      <div class="step" :class="{ active: createStep === 3 }"><span>3</span> Xác nhận</div>
+      <div class="step" :class="{ active: createStep === 3 }"><span>3</span> {{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</div>
     </div>
 
     <div class="sf-body">
       <!-- Step 1: Order/Receiver Info -->
       <div v-if="createStep === 1" class="sf-card">
         <div class="form-group" style="margin-bottom:14px">
-          <label>Tạo từ đơn hàng (tùy chọn)</label>
+          <label>{{ t('admin.msg_a017c06c', 'Tạo từ đơn hàng (tùy chọn)') }}</label>
           <div class="order-lookup">
-            <input type="text" v-model="orderLookupId" class="form-input" placeholder="Nhập ID đơn hàng..." />
-            <button @click="lookupOrder" class="btn-lookup" :disabled="!orderLookupId">Tìm</button>
+            <input type="text" v-model="orderLookupId" class="form-input" :placeholder="t('admin.msg_592d36', 'Nhập ID đơn hàng...')" />
+            <button @click="lookupOrder" class="btn-lookup" :disabled="!orderLookupId">{{ t('admin.msg_92849db7', 'Tìm') }}</button>
           </div>
           <div v-if="orderLookupResult" class="order-found">
             <CheckCircle :size="14" style="color:#34d399" /> Đơn #{{ orderLookupResult.id }} — {{ orderLookupResult.customerName }} — {{ formatCurrency(orderLookupResult.totalAmount) }}
-            <button @click="fillFromOrder" class="btn-fill">Điền thông tin</button>
+            <button @click="fillFromOrder" class="btn-fill">{{ t('admin.msg_460b2fc1', 'Điền thông tin') }}</button>
           </div>
         </div>
         <div class="form-grid">
           <div class="form-group">
-            <label>Người nhận *</label>
-            <input v-model="shipForm.receiverName" class="form-input" placeholder="Nguyễn Văn A" />
+            <label>{{ t('admin.msg_bbd13696', 'Người nhận *') }}</label>
+            <input v-model="shipForm.receiverName" class="form-input" :placeholder="t('admin.msg_48bfbf', 'Nguyễn Văn A')" />
           </div>
           <div class="form-group">
-            <label>SĐT nhận *</label>
+            <label>{{ t('admin.msg_5f338fc2', 'SĐT nhận *') }}</label>
             <input v-model="shipForm.receiverPhone" class="form-input" placeholder="0901234567" />
           </div>
           <div class="form-group span-2">
-            <label>Địa chỉ nhận *</label>
-            <input v-model="shipForm.receiverAddress" class="form-input" placeholder="123 Đường ABC, Q1, HCM" />
+            <label>{{ t('admin.msg_b71fb900', 'Địa chỉ nhận *') }}</label>
+            <input v-model="shipForm.receiverAddress" class="form-input" :placeholder="t('admin.msg_7007f7', '123 Đường ABC, Q1, HCM')" />
           </div>
           <div class="form-group">
-            <label>Phường/Xã</label>
-            <input v-model="shipForm.receiverWard" class="form-input" placeholder="Phường 1" />
+            <label>{{ t('admin.msg_6678a04e', 'Phường/Xã') }}</label>
+            <input v-model="shipForm.receiverWard" class="form-input" :placeholder="t('admin.msg_467a72', 'Phường 1')" />
           </div>
           <div class="form-group">
-            <label>Quận/Huyện</label>
-            <input v-model="shipForm.receiverDistrict" class="form-input" placeholder="Quận 1" />
+            <label>{{ t('admin.msg_f2fcfd89', 'Quận/Huyện') }}</label>
+            <input v-model="shipForm.receiverDistrict" class="form-input" :placeholder="t('admin.msg_6e1f4d', 'Quận 1')" />
           </div>
           <div class="form-group span-2">
-            <label>Tỉnh/TP</label>
-            <input v-model="shipForm.receiverProvince" class="form-input" placeholder="Hồ Chí Minh" />
+            <label>{{ t('admin.msg_62f8a80e', 'Tỉnh/TP') }}</label>
+            <input v-model="shipForm.receiverProvince" class="form-input" :placeholder="t('admin.msg_55cb22', 'Hồ Chí Minh')" />
           </div>
         </div>
       </div>
@@ -75,54 +75,54 @@
         </div>
         <div class="form-grid" style="margin-top:16px">
           <div class="form-group">
-            <label>Phí ship (VNĐ)</label>
+            <label>{{ t('admin.msg_63453fb8', 'Phí ship (VNĐ)') }}</label>
             <input type="number" v-model.number="shipForm.shippingFee" class="form-input" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>COD (VNĐ)</label>
+            <label>{{ t('admin.msg_ee536412', 'COD (VNĐ)') }}</label>
             <input type="number" v-model.number="shipForm.codAmount" class="form-input" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>Khối lượng (gram)</label>
+            <label>{{ t('admin.msg_0bdd804e', 'Khối lượng (gram)') }}</label>
             <input type="number" v-model.number="shipForm.weight" class="form-input" placeholder="500" />
           </div>
           <div class="form-group">
-            <label>Phí bảo hiểm</label>
+            <label>{{ t('admin.msg_a279fa9a', 'Phí bảo hiểm') }}</label>
             <input type="number" v-model.number="shipForm.insuranceFee" class="form-input" placeholder="0" />
           </div>
           <div class="form-group span-2">
-            <label>Ghi chú</label>
-            <textarea v-model="shipForm.notes" class="form-input" rows="2" placeholder="Ghi chú vận đơn..."></textarea>
+            <label>{{ t('admin.msg_f481f91e', 'Ghi chú') }}</label>
+            <textarea v-model="shipForm.notes" class="form-input" rows="2" :placeholder="t('admin.msg_9cacdd', 'Ghi chú vận đơn...')"></textarea>
           </div>
         </div>
         <button v-if="shipForm.carrier !== 'manual'" class="btn-calc-fee" @click="calcFee" :disabled="calcingFee" :style="{ opacity: calcingFee ? 0.6 : 1 }">
-          <Calculator :size="14" v-if="!calcingFee" /> {{ calcingFee ? 'Đang tính...' : 'Tính phí tự động' }}
+          <Calculator :size="14" v-if="!calcingFee" /> {{ calcingFee ? t('admin.msg_60d12cae', 'Đang tính...') : t('admin.msg_8cf550e5', 'Tính phí tự động') }}
         </button>
       </div>
 
       <!-- Step 3: Confirm -->
       <div v-if="createStep === 3" class="sf-card">
         <div class="confirm-summary">
-          <h4>Xác nhận thông tin vận đơn</h4>
+          <h4>{{ t('admin.msg_c4505fb9', 'Xác nhận thông tin vận đơn') }}</h4>
           <div class="confirm-grid">
-            <div class="confirm-item"><span>Người nhận:</span><strong>{{ shipForm.receiverName }}</strong></div>
-            <div class="confirm-item"><span>SĐT:</span><strong>{{ shipForm.receiverPhone }}</strong></div>
-            <div class="confirm-item span-2"><span>Địa chỉ:</span><strong>{{ shipForm.receiverAddress }}, {{ shipForm.receiverWard }}, {{ shipForm.receiverDistrict }}, {{ shipForm.receiverProvince }}</strong></div>
-            <div class="confirm-item"><span>ĐVVC:</span><strong>{{ carrierLabels[shipForm.carrier] }}</strong></div>
-            <div class="confirm-item"><span>Phí ship:</span><strong class="price">{{ formatCurrency(shipForm.shippingFee) }}</strong></div>
+            <div class="confirm-item"><span>{{ t('admin.msg_0e5be3fb', 'Người nhận:') }}</span><strong>{{ shipForm.receiverName }}</strong></div>
+            <div class="confirm-item"><span>{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span><strong>{{ shipForm.receiverPhone }}</strong></div>
+            <div class="confirm-item span-2"><span>{{ t('admin.msg_ce467846', 'Địa chỉ:') }}</span><strong>{{ shipForm.receiverAddress }}, {{ shipForm.receiverWard }}, {{ shipForm.receiverDistrict }}, {{ shipForm.receiverProvince }}</strong></div>
+            <div class="confirm-item"><span>{{ t('admin.msg_9c09e658', 'ĐVVC:') }}</span><strong>{{ carrierLabels[shipForm.carrier] }}</strong></div>
+            <div class="confirm-item"><span>{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><strong class="price">{{ formatCurrency(shipForm.shippingFee) }}</strong></div>
             <div class="confirm-item"><span>COD:</span><strong class="price">{{ formatCurrency(shipForm.codAmount) }}</strong></div>
-            <div class="confirm-item"><span>Khối lượng:</span><strong>{{ shipForm.weight }}g</strong></div>
-            <div class="confirm-item span-2" v-if="shipForm.notes"><span>Ghi chú:</span><strong>{{ shipForm.notes }}</strong></div>
+            <div class="confirm-item"><span>{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><strong>{{ shipForm.weight }}g</strong></div>
+            <div class="confirm-item span-2" v-if="shipForm.notes"><span>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</span><strong>{{ shipForm.notes }}</strong></div>
           </div>
         </div>
       </div>
 
       <div class="sf-actions">
-        <button v-if="createStep > 1" class="btn-secondary" @click="createStep--">Quay lại</button>
-        <button v-if="createStep < 3" class="btn-primary" @click="nextStep">Tiếp theo</button>
+        <button v-if="createStep > 1" class="btn-secondary" @click="createStep--">{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
+        <button v-if="createStep < 3" class="btn-primary" @click="nextStep">{{ t('admin.msg_5758341c', 'Tiếp theo') }}</button>
         <button v-if="createStep === 3" class="btn-primary" @click="createShipment" :disabled="saving">
           <Truck :size="14" v-if="!saving" /><Loader2 :size="14" class="spin" v-else /> 
-          {{ saving ? 'Đang tạo...' : 'Tạo vận đơn' }}
+          {{ saving ? t('admin.msg_f2315cbc', 'Đang tạo...') : t('admin.msg_cbfa8f47', 'Tạo vận đơn') }}
         </button>
       </div>
     </div>
@@ -145,11 +145,11 @@ const createStep = ref(1)
 const orderLookupId = ref(props.initialOrderId)
 const orderLookupResult = ref(null)
 
-const carrierLabels = { manual: 'Thủ công', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
+const carrierLabels = { manual: t('admin.msg_a794b260', 'Thủ công'), ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
 const carriers = [
-  { key: 'manual', name: 'Thủ công', desc: 'Tự giao hoặc nhập tay' },
-  { key: 'ghn', name: 'GHN', desc: 'Giao Hàng Nhanh' },
-  { key: 'ghtk', name: 'GHTK', desc: 'Giao Hàng Tiết Kiệm' },
+  { key: 'manual', name: t('admin.msg_a794b260', 'Thủ công'), desc: t('admin.msg_4d320cca', 'Tự giao hoặc nhập tay') },
+  { key: 'ghn', name: 'GHN', desc: t('admin.msg_67d32558', 'Giao Hàng Nhanh') },
+  { key: 'ghtk', name: 'GHTK', desc: t('admin.msg_b0bd78a0', 'Giao Hàng Tiết Kiệm') },
   { key: 'viettel_post', name: 'Viettel Post', desc: 'Viettel Post' },
 ]
 
@@ -177,7 +177,7 @@ async function lookupOrder() {
     orderLookupResult.value = mapKeys(await res.json())
   } catch {
     orderLookupResult.value = null
-    showToast('Không tìm thấy đơn hàng', 'error')
+    showToast(t('admin.msg_8fad60', 'Không tìm thấy đơn hàng'), 'error')
   }
 }
 
@@ -189,13 +189,13 @@ function fillFromOrder() {
   shipForm.value.receiverPhone = o.customerPhone || ''
   shipForm.value.receiverAddress = o.customerAddress || ''
   shipForm.value.codAmount = o.totalAmount || 0
-  showToast('Đã điền thông tin từ đơn hàng', 'success')
+  showToast(t('admin.msg_fb88c1', 'Đã điền thông tin từ đơn hàng'), 'success')
 }
 
 function nextStep() {
   if (createStep.value === 1) {
     if (!shipForm.value.receiverName || !shipForm.value.receiverPhone || !shipForm.value.receiverAddress) {
-      return showToast('Vui lòng nhập tên, SĐT và địa chỉ người nhận', 'error')
+      return showToast(t('admin.msg_8b31c4', 'Vui lòng nhập tên, SĐT và địa chỉ người nhận'), 'error')
     }
   }
   createStep.value++
@@ -219,7 +219,7 @@ async function calcFee() {
       shipForm.value.shippingFee = data.fee
       showToast('Đã tính phí: ' + data.fee.toLocaleString('vi-VN') + 'đ', 'success')
     } else {
-      showToast(data.error || 'Không tính được phí', 'error')
+      showToast(data.error || t('admin.msg_23dfb463', 'Không tính được phí'), 'error')
     }
   } catch (e) {
     showToast('Lỗi tính phí: ' + e.message, 'error')
@@ -235,7 +235,7 @@ async function createShipment() {
       method: 'POST',
       body: JSON.stringify({ ...shipForm.value }),
     })
-    showToast('Đã tạo vận đơn', 'success')
+    showToast(t('admin.msg_51ddf0', 'Đã tạo vận đơn'), 'success')
     emit('saved')
   } catch (err) { 
     showToast('Lỗi: ' + err.message, 'error') 

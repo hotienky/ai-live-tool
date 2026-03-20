@@ -1,20 +1,13 @@
 import { reactive, computed } from 'vue'
 import { apiFetch } from '../api.js'
 
-// Import local locale files as base translations
-import viLocale from '../locales/vi.json'
-import enLocale from '../locales/en.json'
-import jaLocale from '../locales/ja.json'
-
 /**
  * useI18n — Storefront internationalization composable
- * Loads base translations from local JSON files,
- * then overlays API translations (DB) on top for per-tenant customization.
+ * All translations are loaded from the database via API.
+ * JSON seed files are only kept on the backend for initial seeding.
  */
 
 const LANG_KEY = 'sf_lang'
-
-const localLocales = { vi: viLocale, en: enLocale, ja: jaLocale }
 
 // Default language will be resolved from the API via loadLanguages(). 
 // Use localStorage value if available, otherwise leave empty to auto-detect from API.
@@ -67,16 +60,12 @@ export function useI18n() {
 
   async function loadTranslations(langCode) {
     const lang = langCode || state.currentLang || 'vi'
-    // Start with local locale file as base
-    const base = localLocales[lang] || localLocales.vi || {}
     try {
-      // Overlay API translations on top (per-tenant customization from DB)
       const res = await apiFetch(`/translations/${lang}`)
-      const apiTranslations = res && typeof res === 'object' ? res : {}
-      state.translations = { ...base, ...apiTranslations }
+      state.translations = res && typeof res === 'object' ? res : {}
     } catch (e) {
-      console.warn('Failed to load API translations, using local locale:', e)
-      state.translations = { ...base }
+      console.warn('Failed to load translations:', e)
+      state.translations = {}
     }
     state.loaded = true
   }

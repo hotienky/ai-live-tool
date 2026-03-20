@@ -77,7 +77,7 @@ function soldPercent(item) {
 }
 
 function formatPrice(p) {
-  return Number(p || 0).toLocaleString('vi-VN') + 'đ'
+  return Number(p || 0).toLocaleString('vi-VN') + t('admin.msg_b5407dfd', 'đ')
 }
 
 function updateCountdown() {

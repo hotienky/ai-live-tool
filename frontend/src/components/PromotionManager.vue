@@ -5,31 +5,31 @@
   <!-- List view -->
   <div v-else class="promo-manager">
     <div class="pm-header">
-      <h3><Tag :size="16" /> Khuyến mãi &amp; Mã giảm giá</h3>
+      <h3><Tag :size="16" /> {{ t('admin.msg_f4593f51', 'Khuyến mãi &amp; Mã giảm giá') }}</h3>
     </div>
 
     <!-- Sub-tabs -->
     <div class="pm-tabs">
-      <button :class="{ active: subTab === 'promotions' }" @click="subTab = 'promotions'">🏷️ Giá KM sản phẩm</button>
-      <button :class="{ active: subTab === 'coupons' }" @click="subTab = 'coupons'">🎟️ Mã giảm giá</button>
-      <button class="btn-add-right" @click="openCreate">+ {{ subTab === 'coupons' ? 'Tạo mã' : 'Thêm KM' }}</button>
+      <button :class="{ active: subTab === 'promotions' }" @click="subTab = 'promotions'">{{ t('admin.msg_bef41a50', '🏷️ Giá KM sản phẩm') }}</button>
+      <button :class="{ active: subTab === 'coupons' }" @click="subTab = 'coupons'">{{ t('admin.msg_0aff132a', '🎟️ Mã giảm giá') }}</button>
+      <button class="btn-add-right" @click="openCreate">+ {{ subTab === 'coupons' ? t('admin.msg_340587e4', 'Tạo mã') : t('admin.msg_98689f8e', 'Thêm KM') }}</button>
     </div>
 
     <!-- Product Promotions list -->
     <div v-if="subTab === 'promotions'">
       <table class="pm-table" v-if="promotions.length">
-        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.original_price', 'Giá gốc') }}</th><th>Giá KM</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.original_price', 'Giá gốc') }}</th><th>{{ t('admin.msg_8ad259c6', 'Giá KM') }}</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
         <tbody>
           <tr v-for="p in promotions" :key="p.productId">
             <td>{{ p.product?.name || '—' }}</td>
             <td>{{ formatCurrency(p.product?.price) }}</td>
             <td class="promo-price">{{ formatCurrency(p.pricePromotion) }}</td>
             <td class="date-range">{{ p.dateStart?.slice(0,10) || '∞' }} → {{ p.dateEnd?.slice(0,10) || '∞' }}</td>
-            <td><button class="btn-sm btn-del" @click="handleDeletePromo(p.productId)">×</button></td>
+            <td><button class="btn-sm btn-del" @click="handleDeletePromo(p.productId)">{{ t('admin.msg_63922286', '×') }}</button></td>
           </tr>
         </tbody>
       </table>
-      <p v-else class="empty">Chưa có khuyến mãi. <button class="link-btn" @click="openCreate">+ Thêm ngay</button></p>
+      <p v-else class="empty">{{ t('admin.msg_f445e325', 'Chưa có khuyến mãi.') }} <button class="link-btn" @click="openCreate">{{ t('admin.msg_68fb957c', '+ Thêm ngay') }}</button></p>
     </div>
 
     <!-- Coupons list -->
@@ -39,19 +39,19 @@
         <tbody>
           <tr v-for="c in coupons" :key="c.id">
             <td class="coupon-code">{{ c.code }}</td>
-            <td>{{ c.type === 'percent' ? '%' : 'VNĐ' }}</td>
+            <td>{{ c.type === 'percent' ? '%' : t('admin.msg_7c9af3bb', 'VNĐ') }}</td>
             <td>{{ c.type === 'percent' ? c.value + '%' : formatCurrency(c.value) }}</td>
             <td>{{ formatCurrency(c.minOrder) }}</td>
             <td>{{ c.usedCount }}/{{ c.maxUses || '∞' }}</td>
             <td class="date-range">{{ c.dateStart?.slice(0,10) || '∞' }} → {{ c.dateEnd?.slice(0,10) || '∞' }}</td>
             <td class="actions-cell">
-              <button class="btn-sm btn-edit" @click="editCoupon(c)">Sửa</button>
-              <button class="btn-sm btn-del" @click="handleDeleteCoupon(c.id)">×</button>
+              <button class="btn-sm btn-edit" @click="editCoupon(c)">{{ t('admin.msg_9026a724', 'Sửa') }}</button>
+              <button class="btn-sm btn-del" @click="handleDeleteCoupon(c.id)">{{ t('admin.msg_63922286', '×') }}</button>
             </td>
           </tr>
         </tbody>
       </table>
-      <p v-else class="empty">Chưa có mã giảm giá. <button class="link-btn" @click="openCreate">+ Tạo ngay</button></p>
+      <p v-else class="empty">{{ t('admin.msg_3e36e25f', 'Chưa có mã giảm giá.') }} <button class="link-btn" @click="openCreate">{{ t('admin.msg_62f81d1b', '+ Tạo ngay') }}</button></p>
     </div>
   </div>
 </template>
@@ -98,17 +98,17 @@ function onSaved() {
 }
 
 async function handleDeletePromo(productId) {
-  if (!confirm('Xóa khuyến mãi?')) return
+  if (!confirm(t('admin.msg_95d234ff', 'Xóa khuyến mãi?'))) return
   await deletePromotion(productId)
   fetchPromotions({})
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 async function handleDeleteCoupon(id) {
-  if (!confirm('Xóa mã giảm giá?')) return
+  if (!confirm(t('admin.msg_69b3f275', 'Xóa mã giảm giá?'))) return
   await deleteCoupon(id)
   fetchCoupons({})
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 function formatCurrency(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }

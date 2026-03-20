@@ -7,11 +7,11 @@
     <div class="sc-layout">
       <!-- Sidebar Filters -->
       <aside class="sc-sidebar">
-        <h3 class="sc-sidebar__title"><SlidersHorizontal :size="14" /> Bộ lọc</h3>
+        <h3 class="sc-sidebar__title"><SlidersHorizontal :size="14" /> {{ t('admin.msg_2762c063', 'Bộ lọc') }}</h3>
 
         <!-- Categories -->
         <div class="sc-filter-group" v-if="categories.length">
-          <label class="sc-filter-label">Danh mục</label>
+          <label class="sc-filter-label">{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
           <button v-for="c in categories" :key="c.id" class="sc-filter-btn"
             :class="{ active: selectedCat === c.id }"
             @click="selectedCat = selectedCat === c.id ? null : c.id; reload()">
@@ -21,7 +21,7 @@
 
         <!-- Brands -->
         <div class="sc-filter-group" v-if="brands.length">
-          <label class="sc-filter-label">Thương hiệu</label>
+          <label class="sc-filter-label">{{ t('admin.msg_161416d9', 'Thương hiệu') }}</label>
           <button v-for="b in brands" :key="b.id" class="sc-filter-btn"
             :class="{ active: selectedBrand === b.id }"
             @click="selectedBrand = selectedBrand === b.id ? null : b.id; reload()">
@@ -34,8 +34,8 @@
           <label class="sc-filter-label">{{ t('admin.sort', 'Sắp xếp') }}</label>
           <select v-model="sortBy" @change="reload()" class="sc-select">
             <option value="created_at:desc">{{ t('admin.newest', 'Mới nhất') }}</option>
-            <option value="price:asc">Giá thấp → cao</option>
-            <option value="price:desc">Giá cao → thấp</option>
+            <option value="price:asc">{{ t('admin.msg_364441dc', 'Giá thấp → cao') }}</option>
+            <option value="price:desc">{{ t('admin.msg_ba874bca', 'Giá cao → thấp') }}</option>
             <option value="name:asc">{{ t('admin.name_az', 'Tên A-Z') }}</option>
           </select>
         </div>
@@ -51,7 +51,7 @@
           <h2>{{ headerTitle }} <span class="sc-count">({{ total }})</span></h2>
           <div class="sc-search">
             <Search :size="14" />
-            <input v-model="search" type="text" placeholder="Tìm sản phẩm..." @input="debouncedSearch" />
+            <input v-model="search" type="text" :placeholder="t('admin.search_products', 'Tìm sản phẩm...')" @input="debouncedSearch" />
           </div>
         </div>
 
@@ -73,7 +73,7 @@
             </div>
           </div>
         </div>
-        <p v-else class="sc-empty">Không tìm thấy sản phẩm</p>
+        <p v-else class="sc-empty">{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>
 
         <div class="sc-pagination" v-if="lastPage > 1">
           <button :disabled="page <= 1" @click="page--; reload()"><ChevronLeft :size="14" /></button>
@@ -111,9 +111,9 @@ const lastPage = ref(1)
 const headerTitle = computed(() => {
   if (selectedCat.value) {
     const c = categories.value.find(x => x.id === selectedCat.value)
-    return c ? c.name : 'Sản phẩm'
+    return c ? c.name : t('admin.msg_1d1aa192', 'Sản phẩm')
   }
-  return 'Tất cả sản phẩm'
+  return t('admin.msg_af6dcdae', 'Tất cả sản phẩm')
 })
 
 async function api(path) {

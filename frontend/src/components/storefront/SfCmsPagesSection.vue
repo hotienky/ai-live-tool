@@ -1,6 +1,6 @@
 <template>
   <section class="sf-section" v-if="pages.length > 0">
-    <h3 class="sf-section__title"><FileText :size="16" /> Trang thông tin</h3>
+    <h3 class="sf-section__title"><FileText :size="16" /> {{ t('admin.msg_8b773e3c', 'Trang thông tin') }}</h3>
     <div class="sf-pages" :class="config.layout === 'list' ? 'sf-pages--list' : 'sf-pages--grid'">
       <div v-for="pg in displayPages" :key="pg.id" class="sf-page-card" @click="$emit('viewPage', pg.id)">
         <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="sf-page-img" />

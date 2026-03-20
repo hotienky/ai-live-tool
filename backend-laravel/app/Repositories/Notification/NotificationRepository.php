@@ -20,7 +20,8 @@ class NotificationRepository extends BaseEloquentRepository implements Notificat
             ->orderByDesc('created_at');
 
         if ($type) {
-            $query->where('type', $type);
+            // Prefix match: 'order' → matches 'order.placed', 'order.cancelled', etc.
+            $query->where('type', 'LIKE', $type . '.%');
         }
 
         return $query->paginate($perPage);

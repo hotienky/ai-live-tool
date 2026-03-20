@@ -1,7 +1,7 @@
 <template>
   <div class="layout-builder__preview">
     <div class="preview-toolbar">
-      <h4 class="lb-section__title"><Eye :size="14" /> Xem trước</h4>
+      <h4 class="lb-section__title"><Eye :size="14" /> {{ t('admin.msg_1507b51c', 'Xem trước') }}</h4>
       <div class="preview-responsive" v-if="previewMode === 'live'">
         <button :class="{ active: previewWidth === '100%' }" @click="emit('update:previewWidth', '100%')" title="Desktop"><Monitor :size="12" /></button>
         <button :class="{ active: previewWidth === '768px' }" @click="emit('update:previewWidth', '768px')" title="Tablet"><Tablet :size="12" /></button>
@@ -56,7 +56,7 @@
             <div class="pv-section__visual" style="height:40px"></div>
           </div>
           <div class="pv-section pv-section--reviews" v-if="pageConfigs.productDetail?.showReviews">
-            <div class="pv-section__label">Đánh giá</div>
+            <div class="pv-section__label">{{ t('admin.msg_b4292de3', 'Đánh giá') }}</div>
             <div class="pv-section__visual" style="height:30px"></div>
           </div>
         </template>
@@ -81,7 +81,7 @@
       <div class="pv-footer" :style="footerPreviewStyle">
         <div class="pv-footer__cols">
           <div v-for="(col, ci) in footerConfig.columns" :key="ci" class="pv-footer__col">
-            <div class="pv-footer__col-title" :style="footerConfig.headingColor ? { color: footerConfig.headingColor } : {}">{{ col.title || 'Cột ' + (ci + 1) }}</div>
+            <div class="pv-footer__col-title" :style="footerConfig.headingColor ? { color: footerConfig.headingColor } : {}">{{ col.title || t('admin.msg_20ec6f82', 'Cột ') + (ci + 1) }}</div>
             <template v-if="col.type === 'links'">
               <div v-for="(link, li) in col.links" :key="li" class="pv-footer__link" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">{{ link.label || '—' }}</div>
             </template>
@@ -113,7 +113,7 @@
       ></iframe>
       <div v-else class="preview-no-url">
         <AlertCircle :size="24" />
-        <p>Nhập URL storefront để sử dụng Live Preview</p>
+        <p>{{ t('admin.msg_c8a05e33', 'Nhập URL storefront để sử dụng Live Preview') }}</p>
         <div class="preview-url-input">
           <input
             :value="storefrontUrl"

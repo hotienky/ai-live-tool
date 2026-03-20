@@ -41,7 +41,7 @@
             :class="tagClass(tag)"
           >
             {{ tag }}
-            <button class="customer-modal__tag-remove" @click="removeTag(i)">×</button>
+            <button class="customer-modal__tag-remove" @click="removeTag(i)">{{ t('admin.msg_63922286', '×') }}</button>
           </span>
           <div class="customer-modal__tag-add" v-if="!addingTag">
             <button class="customer-modal__tag-btn" @click="addingTag = true">
@@ -72,7 +72,7 @@
         <textarea
           v-model="notes"
           class="customer-modal__notes"
-          placeholder="Ghi chú về khách hàng này..."
+          :placeholder="t('admin.msg_c34750', 'Ghi chú về khách hàng này...')"
           rows="3"
         ></textarea>
         <button
@@ -83,7 +83,7 @@
           <Save :size="13" />
           {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu thông tin' }}
         </button>
-        <span v-if="saveSuccess" class="customer-modal__save-ok"><Check :size="14" /> Đã lưu!</span>
+        <span v-if="saveSuccess" class="customer-modal__save-ok"><Check :size="14" /> {{ t('admin.msg_e1c9fcf4', 'Đã lưu!') }}</span>
       </div>
 
       <!-- Timeline -->
@@ -105,7 +105,7 @@
               <Lightbulb :size="12" /> {{ log.aiSummary || log.ai_summary }}
             </p>
           </div>
-          <p v-if="chatLogs.length === 0" class="customer-modal__empty">Chưa có bình luận nào</p>
+          <p v-if="chatLogs.length === 0" class="customer-modal__empty">{{ t('admin.msg_aa89f6e8', 'Chưa có bình luận nào') }}</p>
         </div>
       </div>
 
@@ -145,7 +145,7 @@ const tagInputRef = ref(null)
 const saving = ref(false)
 const saveSuccess = ref(false)
 
-const tagPresets = ['VIP', 'Mua nhiều', 'Hay hỏi', 'Tiềm năng', 'Đã chốt', 'Cần follow-up']
+const tagPresets = ['VIP', t('admin.msg_7fee36f4', 'Mua nhiều'), t('admin.msg_a463b2cf', 'Hay hỏi'), t('admin.msg_307c78e2', 'Tiềm năng'), t('admin.msg_d44b7141', 'Đã chốt'), t('admin.msg_846f2600', 'Cần follow-up')]
 
 watch(() => props.visible, async (v) => {
   if (v && props.customer) {
@@ -196,11 +196,11 @@ function removeTag(index) {
 function tagClass(tag) {
   const map = {
     'VIP': 'tag--vip',
-    'Mua nhiều': 'tag--buyer',
-    'Hay hỏi': 'tag--asker',
-    'Tiềm năng': 'tag--potential',
-    'Đã chốt': 'tag--closed',
-    'Cần follow-up': 'tag--followup',
+    [t('admin.msg_7fee36f4', 'Mua nhiều')]: 'tag--buyer',
+    [t('admin.msg_a463b2cf', 'Hay hỏi')]: 'tag--asker',
+    [t('admin.msg_307c78e2', 'Tiềm năng')]: 'tag--potential',
+    [t('admin.msg_d44b7141', 'Đã chốt')]: 'tag--closed',
+    [t('admin.msg_846f2600', 'Cần follow-up')]: 'tag--followup',
   }
   return map[tag] || 'tag--default'
 }

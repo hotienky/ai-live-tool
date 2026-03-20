@@ -6,27 +6,27 @@
   <!-- List view -->
   <div v-else class="po-mgr">
     <div class="po-header">
-      <h2><ShoppingCart :size="20" style="vertical-align:middle" /> Đơn Mua Hàng</h2>
+      <h2><ShoppingCart :size="20" style="vertical-align:middle" /> {{ t('admin.msg_b01962ee', 'Đơn Mua Hàng') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm mã PO, ghi chú..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_8e2a27', 'Tìm mã PO, ghi chú...')" @input="debouncedSearch" />
         <select v-model="filterStatus" class="filter-select">
-          <option value="">Tất cả TT</option>
-          <option value="draft">Nháp</option>
-          <option value="ordered">Đã đặt</option>
-          <option value="partial">Nhận 1 phần</option>
-          <option value="received">Đã nhận</option>
-          <option value="cancelled">Đã hủy</option>
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
+          <option value="draft">{{ t('admin.msg_867cf3b9', 'Nháp') }}</option>
+          <option value="ordered">{{ t('admin.msg_e9b9aa84', 'Đã đặt') }}</option>
+          <option value="partial">{{ t('admin.msg_da42ebfc', 'Nhận 1 phần') }}</option>
+          <option value="received">{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</option>
+          <option value="cancelled">{{ t('admin.msg_1a46e024', 'Đã hủy') }}</option>
         </select>
-        <button class="btn-primary" @click="openCreate"><Plus :size="14" /> Tạo đơn</button>
+        <button class="btn-primary" @click="openCreate"><Plus :size="14" /> {{ t('admin.msg_23275279', 'Tạo đơn') }}</button>
       </div>
     </div>
 
     <!-- Stats -->
     <div class="po-stats">
-      <div class="stat-card"><div class="stat-icon"><ShoppingCart :size="20" /></div><div class="stat-value">{{ poStats.total_orders || 0 }}</div><div class="stat-label">Tổng đơn</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(poStats.total_value || 0) }}</div><div class="stat-label">Tổng giá trị</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--warn"><Clock :size="20" /></div><div class="stat-value">{{ poStats.pending || 0 }}</div><div class="stat-label">Đang chờ</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--red"><AlertCircle :size="20" /></div><div class="stat-value">{{ poStats.unpaid || 0 }}</div><div class="stat-label">Chưa thanh toán</div></div>
+      <div class="stat-card"><div class="stat-icon"><ShoppingCart :size="20" /></div><div class="stat-value">{{ poStats.total_orders || 0 }}</div><div class="stat-label">{{ t('admin.msg_cf198bf6', 'Tổng đơn') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(poStats.total_value || 0) }}</div><div class="stat-label">{{ t('admin.msg_b71668e4', 'Tổng giá trị') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--warn"><Clock :size="20" /></div><div class="stat-value">{{ poStats.pending || 0 }}</div><div class="stat-label">{{ t('admin.msg_2bfffc09', 'Đang chờ') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--red"><AlertCircle :size="20" /></div><div class="stat-value">{{ poStats.unpaid || 0 }}</div><div class="stat-label">{{ t('admin.msg_956718c7', 'Chưa thanh toán') }}</div></div>
     </div>
 
     <!-- Table -->
@@ -34,8 +34,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã PO</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>Tổng tiền</th>
-            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>Thanh toán</th><th>Ngày đặt</th><th>Ngày nhận dự kiến</th><th>Thao tác</th>
+            <th>{{ t('admin.msg_177be34e', 'Mã PO') }}</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>{{ t('admin.msg_d555e4bc', 'Thanh toán') }}</th><th>{{ t('admin.msg_6f83adc9', 'Ngày đặt') }}</th><th>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</th><th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -51,15 +51,15 @@
             <td>
               <div class="action-btns">
                 <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
-                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> Đặt hàng</button>
-                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> Nhận hàng</button>
-                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> Hủy</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> {{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> {{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
+                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> {{ t('admin.msg_1e405035', 'Hủy') }}</button>
                 <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
           <tr v-if="orders.length === 0">
-            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">Chưa có đơn mua hàng</p></div></td>
+            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_258ce7bb', 'Chưa có đơn mua hàng') }}</p></div></td>
           </tr>
         </tbody>
       </table>
@@ -104,10 +104,10 @@ const editId = ref(null)
 const detailId = ref(null)
 
 function statusLabel(s) {
-  return { draft: 'Nháp', ordered: 'Đã đặt', partial: 'Nhận 1 phần', received: 'Đã nhận', cancelled: 'Đã hủy' }[s] || s
+  return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s
 }
 function payLabel(p) {
-  return { unpaid: 'Chưa TT', partial: 'TT 1 phần', paid: 'Đã TT' }[p] || p
+  return { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), partial: t('admin.msg_ee9c77ad', 'TT 1 phần'), paid: t('admin.msg_04b5eaed', 'Đã TT') }[p] || p
 }
 
 onMounted(() => { fetchOrders(); fetchStats(); fetchSuppliers() })
@@ -167,7 +167,7 @@ async function sendPO(po) {
   if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái "Đã đặt"?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
-    showToast('Đã chuyển sang Đã đặt', 'success')
+    showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')
     fetchOrders(); fetchStats()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
@@ -177,7 +177,7 @@ async function cancelPO(po) {
   if (!confirm(`Hủy đơn ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
-    showToast('Đã hủy', 'success')
+    showToast(t('admin.msg_1a46e0', 'Đã hủy'), 'success')
     fetchOrders(); fetchStats()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
@@ -186,9 +186,9 @@ async function deletePO(po) {
   if (!confirm(`Xóa đơn ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
     fetchOrders(); fetchStats()
-  } catch { showToast('Lỗi xóa', 'error') }
+  } catch { showToast(t('admin.msg_9e5d62', 'Lỗi xóa'), 'error') }
 }
 
 function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }

@@ -8,11 +8,15 @@ RUN apk add --no-cache \
     libzip-dev \
     icu-dev \
     oniguruma-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    freetype-dev \
     autoconf \
     gcc \
     g++ \
     make \
     linux-headers \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
     pdo_pgsql \
     pgsql \
@@ -22,6 +26,7 @@ RUN apk add --no-cache \
     intl \
     opcache \
     pcntl \
+    gd \
     && pecl install redis \
     && docker-php-ext-enable redis \
     && apk del autoconf gcc g++ make linux-headers

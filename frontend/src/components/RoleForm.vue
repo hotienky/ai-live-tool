@@ -1,10 +1,10 @@
 <template>
   <div class="rf-page">
     <div class="rf-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="rf-header__center">
         <div class="rf-header__icon"><ShieldCheck :size="15" /></div>
-        <h3>{{ props.roleId ? 'Chỉnh sửa Phân quyền' : 'Tạo Phân quyền mới' }}</h3>
+        <h3>{{ props.roleId ? t('admin.msg_e9538b18', 'Chỉnh sửa Phân quyền') : t('admin.msg_5e43a894', 'Tạo Phân quyền mới') }}</h3>
       </div>
       <div class="rf-actions">
         <button v-if="props.roleId && !isSuperAdmin" class="btn-delete" @click="deleteRole">
@@ -12,28 +12,28 @@
         </button>
         <button class="btn-save" @click="saveRole" :disabled="saving">
           <Loader2 v-if="saving" :size="13" class="spin" />
-          {{ saving ? 'Đang lưu...' : 'Lưu quyền' }}
+          {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : t('admin.msg_ecf0a713', 'Lưu quyền') }}
         </button>
       </div>
     </div>
 
     <div class="rf-body">
       <div class="rf-card info-card">
-        <h4>Thông tin chung</h4>
+        <h4>{{ t('admin.msg_0464c91b', 'Thông tin chung') }}</h4>
         <div class="form-row">
           <div class="form-group">
-            <label>Tên hiển thị <span class="req">*</span></label>
-            <input v-model="editForm.display_name" class="form-input" placeholder="VD: Quản lý cửa hàng" />
+            <label>{{ t('admin.msg_6cccad8f', 'Tên hiển thị') }} <span class="req">*</span></label>
+            <input v-model="editForm.display_name" class="form-input" :placeholder="t('admin.msg_df8eb0', 'VD: Quản lý cửa hàng')" />
           </div>
           <div class="form-group">
-            <label>Mã (slug) <span class="req">*</span></label>
+            <label>{{ t('admin.msg_4bc40106', 'Mã (slug)') }} <span class="req">*</span></label>
             <input v-model="editForm.name" class="form-input" placeholder="VD: store_manager" :disabled="isSuperAdmin" />
           </div>
         </div>
       </div>
 
       <div class="rf-card matrix-card">
-        <h4><CheckSquare :size="14" /> Phân quyền chi tiết</h4>
+        <h4><CheckSquare :size="14" /> {{ t('admin.msg_06dd9b95', 'Phân quyền chi tiết') }}</h4>
         <p v-if="isSuperAdmin" class="super-note">
           <AlertCircle :size="14" /> Super Admin có toàn quyền - không thể thay đổi chi tiết phân quyền.
         </p>
@@ -89,9 +89,9 @@ const isSuperAdmin = ref(false)
 const editForm = ref({ name: '', display_name: '', permissionIds: [] })
 
 const moduleLabels = {
-  products: 'Sản phẩm', orders: 'Đơn hàng', customers: 'Khách hàng',
-  cms: 'Trang CMS', banners: 'Banner', promotions: 'Khuyến mãi',
-  settings: 'Cài đặt', system: 'Hệ thống',
+  products: t('admin.msg_1d1aa192', 'Sản phẩm'), orders: t('admin.msg_adb21d16', 'Đơn hàng'), customers: t('admin.msg_0caa5ce1', 'Khách hàng'),
+  cms: 'Trang CMS', banners: 'Banner', promotions: t('admin.msg_c073d6e5', 'Khuyến mãi'),
+  settings: t('admin.msg_1a691070', 'Cài đặt'), system: t('admin.msg_09cbc7cd', 'Hệ thống'),
 }
 
 const permissionsByModule = computed(() => {
@@ -136,7 +136,7 @@ onMounted(async () => {
         permissionIds: perms.map(p => typeof p === 'object' ? p.id : p),
       }
     } catch {
-      showToast('Lỗi tải role', 'error')
+      showToast(t('admin.msg_ed1380', 'Lỗi tải role'), 'error')
       emit('back')
     }
   }
@@ -144,7 +144,7 @@ onMounted(async () => {
 
 async function saveRole() {
   if (!editForm.value.name || !editForm.value.display_name) {
-    showToast('Vui lòng nhập đầy đủ tên và mã', 'warning')
+    showToast(t('admin.msg_bd282d', 'Vui lòng nhập đầy đủ tên và mã'), 'warning')
     return
   }
   saving.value = true
@@ -159,10 +159,10 @@ async function saveRole() {
     
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      const msg = err?.errors ? Object.values(err.errors).flat().join(', ') : (err?.message || 'Không thể lưu role')
+      const msg = err?.errors ? Object.values(err.errors).flat().join(', ') : (err?.message || t('admin.msg_06286663', 'Không thể lưu role'))
       throw new Error(msg)
     }
-    showToast(props.roleId ? 'Cập nhật role thành công!' : 'Tạo role thành công!', 'success')
+    showToast(props.roleId ? t('admin.msg_f4388709', 'Cập nhật role thành công!') : t('admin.msg_e79132f4', 'Tạo role thành công!'), 'success')
     emit('saved')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
@@ -172,10 +172,10 @@ async function saveRole() {
 }
 
 async function deleteRole() {
-  if (!confirm('Xóa role này? Hành động này không thể hoàn tác.')) return
+  if (!confirm(t('admin.msg_13ad8039', 'Xóa role này? Hành động này không thể hoàn tác.'))) return
   try {
     await apiFetch(`/roles/${props.roleId}`, { method: 'DELETE' })
-    showToast('Đã xóa role', 'success')
+    showToast(t('admin.msg_c5d2b9', 'Đã xóa role'), 'success')
     emit('saved')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')

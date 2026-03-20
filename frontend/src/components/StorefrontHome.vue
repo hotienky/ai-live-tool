@@ -196,12 +196,12 @@ function onLocaleChange() {
 
 // ── UI Translations ──
 const defaultUiStrings = {
-  search_placeholder: 'Tìm sản phẩm...',
-  cart: 'Giỏ hàng',
-  account: 'Tài khoản',
-  loading: 'Đang tải...',
-  featured_products: 'Sản phẩm nổi bật',
-  new_arrivals: 'Hàng mới về',
+  search_placeholder: t('admin.msg_d6ded351', 'Tìm sản phẩm...'),
+  cart: t('admin.msg_6b413a7c', 'Giỏ hàng'),
+  account: t('admin.msg_7bd53616', 'Tài khoản'),
+  loading: t('admin.msg_d5fe42f6', 'Đang tải...'),
+  featured_products: t('admin.msg_c90c3bbc', 'Sản phẩm nổi bật'),
+  new_arrivals: t('admin.msg_f0676ad7', 'Hàng mới về'),
 }
 const uiStrings = ref({ ...defaultUiStrings })
 

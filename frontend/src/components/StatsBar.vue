@@ -60,7 +60,7 @@
     <!-- Comments per minute -->
     <div class="stats-bar__item stats-bar__rate" v-if="commentsPerMinute > 0">
       <span class="stats-bar__rate-value">{{ commentsPerMinute }}</span>
-      <span class="stats-bar__rate-unit">msg/phút</span>
+      <span class="stats-bar__rate-unit">{{ t('admin.msg_630a2965', 'msg/phút') }}</span>
     </div>
 
     <!-- Conversion rate bar -->

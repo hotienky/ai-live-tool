@@ -2,13 +2,13 @@
   <div class="theme-customizer">
     <div class="tc-header">
       <Palette :size="18" />
-      <h3 class="tc-title">Tuỳ chỉnh giao diện Cửa Hàng</h3>
-      <span class="tc-subtitle">Chọn màu nhấn → tất cả màu sẽ tự động điều chỉnh</span>
+      <h3 class="tc-title">{{ t('admin.msg_b85df848', 'Tuỳ chỉnh giao diện Cửa Hàng') }}</h3>
+      <span class="tc-subtitle">{{ t('admin.msg_6556e1b8', 'Chọn màu nhấn → tất cả màu sẽ tự động điều chỉnh') }}</span>
     </div>
 
     <!-- Accent Color Presets -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><Sparkles :size="14" /> Màu nhấn</h4>
+      <h4 class="tc-section__title"><Sparkles :size="14" /> {{ t('admin.msg_232a7945', 'Màu nhấn') }}</h4>
       <div class="tc-accent-grid">
         <button
           v-for="preset in accentPresets" :key="preset.name"
@@ -24,7 +24,7 @@
 
       <!-- Custom color picker -->
       <div class="tc-custom-color">
-        <label class="tc-label">Hoặc chọn màu tùy ý:</label>
+        <label class="tc-label">{{ t('admin.msg_b9036bc1', 'Hoặc chọn màu tùy ý:') }}</label>
         <div class="tc-color-group">
           <input type="color" v-model="customAccent" @input="applyCustomAccent" class="tc-color" />
           <input type="text" v-model="customAccent" @change="applyCustomAccent" class="tc-color-text" maxlength="7" />
@@ -33,7 +33,7 @@
 
       <!-- Suggested complementary colors -->
       <div v-if="suggestedColors.length" class="tc-suggestions">
-        <span class="tc-suggestions__label">Gợi ý màu phối hợp:</span>
+        <span class="tc-suggestions__label">{{ t('admin.msg_3733cef1', 'Gợi ý màu phối hợp:') }}</span>
         <div class="tc-suggestions__list">
           <button
             v-for="(c, i) in suggestedColors" :key="i"
@@ -60,7 +60,7 @@
 
     <!-- Theme Presets -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><LayoutGrid :size="14" /> Bộ giao diện</h4>
+      <h4 class="tc-section__title"><LayoutGrid :size="14" /> {{ t('admin.msg_1e9067ab', 'Bộ giao diện') }}</h4>
       <div class="tc-presets">
         <button
           v-for="preset in themePresets" :key="preset.key"
@@ -78,7 +78,7 @@
 
     <!-- Typography -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><Type :size="14" /> Font chữ</h4>
+      <h4 class="tc-section__title"><Type :size="14" /> {{ t('admin.msg_d3d86c3a', 'Font chữ') }}</h4>
       <div class="tc-row">
         <label class="tc-label">Font Family</label>
         <select v-model="form.font" class="tc-select">
@@ -89,13 +89,13 @@
 
     <!-- Layout -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><LayoutGrid :size="14" /> Bố cục</h4>
+      <h4 class="tc-section__title"><LayoutGrid :size="14" /> {{ t('admin.msg_bb9e2508', 'Bố cục') }}</h4>
       <div class="tc-row">
         <label class="tc-label">Bo góc ({{ form.radius }}px)</label>
         <input type="range" v-model="form.radius" min="4" max="24" class="tc-range" />
       </div>
       <div class="tc-row">
-        <label class="tc-label">Kiểu card</label>
+        <label class="tc-label">{{ t('admin.msg_1ab99d45', 'Kiểu card') }}</label>
         <div class="tc-btn-group">
           <button
             v-for="s in cardStyles" :key="s.key"
@@ -109,7 +109,7 @@
 
     <!-- Default Mode -->
     <section class="tc-section">
-      <h4 class="tc-section__title"><Moon :size="14" /> Chế độ mặc định</h4>
+      <h4 class="tc-section__title"><Moon :size="14" /> {{ t('admin.msg_fc1bf9f1', 'Chế độ mặc định') }}</h4>
       <div class="tc-btn-group tc-btn-group--wide">
         <button class="tc-btn-option" :class="{ active: form.mode === 'dark' }" @click="form.mode = 'dark'">
           <Moon :size="13" /> Tối
@@ -155,18 +155,18 @@ const cardStyles = [
 
 // ── Accent Color Presets (12 beautiful colors) ──
 const accentPresets = [
-  { name: 'Tím', dark: '#7c3aed', light: '#6d28d9' },
-  { name: 'Xanh dương', dark: '#3b82f6', light: '#2563eb' },
-  { name: 'Xanh lá', dark: '#10b981', light: '#059669' },
-  { name: 'Đỏ san hô', dark: '#f43f5e', light: '#e11d48' },
+  { name: t('admin.msg_f5fd15ab', 'Tím'), dark: '#7c3aed', light: '#6d28d9' },
+  { name: t('admin.msg_66711ac0', 'Xanh dương'), dark: '#3b82f6', light: '#2563eb' },
+  { name: t('admin.msg_5ed48951', 'Xanh lá'), dark: '#10b981', light: '#059669' },
+  { name: t('admin.msg_194746c9', 'Đỏ san hô'), dark: '#f43f5e', light: '#e11d48' },
   { name: 'Cam', dark: '#f59e0b', light: '#d97706' },
-  { name: 'Xanh ngọc', dark: '#06b6d4', light: '#0891b2' },
-  { name: 'Hồng', dark: '#ec4899', light: '#db2777' },
+  { name: t('admin.msg_49b55ba4', 'Xanh ngọc'), dark: '#06b6d4', light: '#0891b2' },
+  { name: t('admin.msg_f605c271', 'Hồng'), dark: '#ec4899', light: '#db2777' },
   { name: 'Xanh navy', dark: '#6366f1', light: '#4f46e5' },
-  { name: 'Đỏ rượu', dark: '#be123c', light: '#9f1239' },
-  { name: 'Xanh rêu', dark: '#65a30d', light: '#4d7c0f' },
-  { name: 'Vàng gold', dark: '#eab308', light: '#ca8a04' },
-  { name: 'Tím đậm', dark: '#9333ea', light: '#7e22ce' },
+  { name: t('admin.msg_da71c8e0', 'Đỏ rượu'), dark: '#be123c', light: '#9f1239' },
+  { name: t('admin.msg_8c6d9157', 'Xanh rêu'), dark: '#65a30d', light: '#4d7c0f' },
+  { name: t('admin.msg_b1374fac', 'Vàng gold'), dark: '#eab308', light: '#ca8a04' },
+  { name: t('admin.msg_2e08e01b', 'Tím đậm'), dark: '#9333ea', light: '#7e22ce' },
 ]
 
 // ── Theme Presets ──
@@ -250,12 +250,12 @@ const suggestedColors = computed(() => {
   if (!hex || hex.length < 7) return []
   const hsl = hexToHSL(hex)
   return [
-    { label: 'Tương phản', hex: hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l) },
-    { label: 'Bổ sung 1', hex: hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l) },
-    { label: 'Bổ sung 2', hex: hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l) },
-    { label: 'Nhạt hơn', hex: hslToHex(hsl.h, Math.max(hsl.s - 15, 0), Math.min(hsl.l + 20, 85)) },
-    { label: 'Đậm hơn', hex: hslToHex(hsl.h, Math.min(hsl.s + 10, 100), Math.max(hsl.l - 15, 20)) },
-    { label: 'Ấm hơn', hex: hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l) },
+    { label: t('admin.msg_62996aff', 'Tương phản'), hex: hslToHex((hsl.h + 180) % 360, hsl.s, hsl.l) },
+    { label: t('admin.msg_87c2ed54', 'Bổ sung 1'), hex: hslToHex((hsl.h + 120) % 360, hsl.s, hsl.l) },
+    { label: t('admin.msg_4086114b', 'Bổ sung 2'), hex: hslToHex((hsl.h + 240) % 360, hsl.s, hsl.l) },
+    { label: t('admin.msg_7045db86', 'Nhạt hơn'), hex: hslToHex(hsl.h, Math.max(hsl.s - 15, 0), Math.min(hsl.l + 20, 85)) },
+    { label: t('admin.msg_8d5c2620', 'Đậm hơn'), hex: hslToHex(hsl.h, Math.min(hsl.s + 10, 100), Math.max(hsl.l - 15, 20)) },
+    { label: t('admin.msg_10343733', 'Ấm hơn'), hex: hslToHex((hsl.h + 30) % 360, hsl.s, hsl.l) },
   ]
 })
 
@@ -345,10 +345,10 @@ async function saveTheme() {
       body: JSON.stringify({ items }),
     })
     if (!res.ok) throw new Error('Save failed')
-    showToast('Đã lưu giao diện thành công!', 'success')
+    showToast(t('admin.msg_7a0bef', 'Đã lưu giao diện thành công!'), 'success')
     emit('saved')
   } catch (e) {
-    showToast('Lỗi lưu giao diện', 'error')
+    showToast(t('admin.msg_f2f4cc', 'Lỗi lưu giao diện'), 'error')
   } finally {
     saving.value = false
   }

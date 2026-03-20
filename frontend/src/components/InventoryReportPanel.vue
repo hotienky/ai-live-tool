@@ -1,7 +1,7 @@
 <template>
   <div class="inv-report">
     <div class="rpt-header">
-      <h2><BarChart3 :size="20" style="vertical-align:middle" /> Báo Cáo Kho & Giá Vốn</h2>
+      <h2><BarChart3 :size="20" style="vertical-align:middle" /> {{ t('admin.msg_c66b2e53', 'Báo Cáo Kho & Giá Vốn') }}</h2>
       <div class="tab-bar">
         <button v-for="t in tabs" :key="t.key" :class="['tab-btn', { active: activeTab === t.key }]" @click="activeTab = t.key">
           <component :is="t.icon" :size="14" /> {{ t.label }}
@@ -12,18 +12,18 @@
     <!-- ═══ Tab: Tồn kho ═══ -->
     <div v-if="activeTab === 'stock'" class="tab-panel">
       <div class="rpt-stats">
-        <div class="stat-card"><div class="stat-icon"><Package :size="20" /></div><div class="stat-value">{{ stockSummary.total_products || 0 }}</div><div class="stat-label">Sản phẩm</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--green"><Layers :size="20" /></div><div class="stat-value">{{ (stockSummary.total_stock || 0).toLocaleString() }}</div><div class="stat-label">Tổng tồn kho</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--blue"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(stockSummary.total_stock_value || 0) }}</div><div class="stat-label">Giá trị kho (vốn)</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--warn"><AlertTriangle :size="20" /></div><div class="stat-value">{{ stockSummary.low_stock_count || 0 }}</div><div class="stat-label">Sắp hết / Hết hàng</div></div>
+        <div class="stat-card"><div class="stat-icon"><Package :size="20" /></div><div class="stat-value">{{ stockSummary.total_products || 0 }}</div><div class="stat-label">{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--green"><Layers :size="20" /></div><div class="stat-value">{{ (stockSummary.total_stock || 0).toLocaleString() }}</div><div class="stat-label">{{ t('admin.msg_a7c5477b', 'Tổng tồn kho') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--blue"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(stockSummary.total_stock_value || 0) }}</div><div class="stat-label">{{ t('admin.msg_dbedc4c1', 'Giá trị kho (vốn)') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--warn"><AlertTriangle :size="20" /></div><div class="stat-value">{{ stockSummary.low_stock_count || 0 }}</div><div class="stat-label">{{ t('admin.msg_da63ad05', 'Sắp hết / Hết hàng') }}</div></div>
       </div>
       <div class="filter-bar">
-        <input v-model="stockSearch" class="search-input" placeholder="Tìm SP, SKU..." @input="debouncedStockSearch" />
-        <label class="toggle-label"><input type="checkbox" v-model="showLowOnly" @change="fetchStock" /> Chỉ hàng sắp hết</label>
-        <button class="btn-export" @click="exportCSV('stock')"><Download :size="13" /> Xuất CSV</button>
+        <input v-model="stockSearch" class="search-input" :placeholder="t('admin.msg_56a2d1', 'Tìm SP, SKU...')" @input="debouncedStockSearch" />
+        <label class="toggle-label"><input type="checkbox" v-model="showLowOnly" @change="fetchStock" /> {{ t('admin.msg_8aa7d3f1', 'Chỉ hàng sắp hết') }}</label>
+        <button class="btn-export" @click="exportCSV('stock')"><Download :size="13" /> {{ t('admin.msg_47bfce15', 'Xuất CSV') }}</button>
       </div>
       <table>
-        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>Tối thiểu</th><th>Giá vốn</th><th>{{ t('admin.selling_price', 'Giá bán') }}</th><th>Giá trị kho</th><th>TT</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>{{ t('admin.msg_8d0583c6', 'Tối thiểu') }}</th><th>{{ t('admin.msg_66a3ea84', 'Giá vốn') }}</th><th>{{ t('admin.selling_price', 'Giá bán') }}</th><th>{{ t('admin.msg_ba2a45b1', 'Giá trị kho') }}</th><th>TT</th></tr></thead>
         <tbody>
           <tr v-for="p in stockProducts" :key="p.id" :class="{ 'row-warn': p.is_low, 'row-danger': p.is_out }">
             <td><strong>{{ p.name }}</strong></td>
@@ -34,12 +34,12 @@
             <td>{{ formatCurrency(p.price) }}</td>
             <td class="amount">{{ formatCurrency(p.stock_value) }}</td>
             <td>
-              <span v-if="p.is_out" class="badge badge--danger">Hết hàng</span>
-              <span v-else-if="p.is_low" class="badge badge--warn">Sắp hết</span>
+              <span v-if="p.is_out" class="badge badge--danger">{{ t('admin.msg_c95536d3', 'Hết hàng') }}</span>
+              <span v-else-if="p.is_low" class="badge badge--warn">{{ t('admin.msg_5b0d7341', 'Sắp hết') }}</span>
               <span v-else class="badge badge--ok">OK</span>
             </td>
           </tr>
-          <tr v-if="stockProducts.length === 0"><td colspan="8" class="empty">Không có dữ liệu</td></tr>
+          <tr v-if="stockProducts.length === 0"><td colspan="8" class="empty">{{ t('admin.msg_89903ba3', 'Không có dữ liệu') }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -48,20 +48,20 @@
     <div v-if="activeTab === 'movement'" class="tab-panel">
       <div class="filter-bar">
         <div class="date-range">
-          <label>Từ</label><input type="date" v-model="mvFrom" />
-          <label>Đến</label><input type="date" v-model="mvTo" />
+          <label>{{ t('admin.msg_0cdc2c70', 'Từ') }}</label><input type="date" v-model="mvFrom" />
+          <label>{{ t('admin.msg_0845f164', 'Đến') }}</label><input type="date" v-model="mvTo" />
           <button class="btn-filter" @click="fetchMovement"><RefreshCw :size="14" /> Xem</button>
           <button class="btn-export" @click="exportCSV('movement')"><Download :size="13" /> CSV</button>
         </div>
       </div>
       <div class="rpt-stats">
-        <div class="stat-card"><div class="stat-icon"><ArrowDownToLine :size="20" /></div><div class="stat-value">{{ (mvSummary.total_import_qty || 0).toLocaleString() }}</div><div class="stat-label">SL nhập</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(mvSummary.total_import_value || 0) }}</div><div class="stat-label">Giá trị nhập</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--red"><ArrowUpFromLine :size="20" /></div><div class="stat-value">{{ (mvSummary.total_export_qty || 0).toLocaleString() }}</div><div class="stat-label">SL xuất</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--warn"><Package :size="20" /></div><div class="stat-value">{{ mvSummary.products_moved || 0 }}</div><div class="stat-label">SP có biến động</div></div>
+        <div class="stat-card"><div class="stat-icon"><ArrowDownToLine :size="20" /></div><div class="stat-value">{{ (mvSummary.total_import_qty || 0).toLocaleString() }}</div><div class="stat-label">{{ t('admin.msg_cb383bdb', 'SL nhập') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(mvSummary.total_import_value || 0) }}</div><div class="stat-label">{{ t('admin.msg_68f38aee', 'Giá trị nhập') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--red"><ArrowUpFromLine :size="20" /></div><div class="stat-value">{{ (mvSummary.total_export_qty || 0).toLocaleString() }}</div><div class="stat-label">{{ t('admin.msg_c7e70392', 'SL xuất') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--warn"><Package :size="20" /></div><div class="stat-value">{{ mvSummary.products_moved || 0 }}</div><div class="stat-label">{{ t('admin.msg_0e013d4d', 'SP có biến động') }}</div></div>
       </div>
       <table>
-        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>Đầu kỳ</th><th>Nhập</th><th>GT nhập</th><th>Xuất</th><th>GT xuất</th><th>Cuối kỳ</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.msg_fea5d4f7', 'Đầu kỳ') }}</th><th>{{ t('admin.msg_9b9d9310', 'Nhập') }}</th><th>{{ t('admin.msg_296fd4c2', 'GT nhập') }}</th><th>{{ t('admin.msg_e1339200', 'Xuất') }}</th><th>{{ t('admin.msg_4bbd5c52', 'GT xuất') }}</th><th>{{ t('admin.msg_160547e0', 'Cuối kỳ') }}</th></tr></thead>
         <tbody>
           <tr v-for="m in mvItems" :key="m.product_id">
             <td><strong>{{ m.product_name }}</strong></td>
@@ -73,7 +73,7 @@
             <td class="amount">{{ formatCurrency(m.export_value) }}</td>
             <td class="qty"><strong>{{ m.end_stock }}</strong></td>
           </tr>
-          <tr v-if="mvItems.length === 0"><td colspan="8" class="empty">Không có biến động trong kỳ</td></tr>
+          <tr v-if="mvItems.length === 0"><td colspan="8" class="empty">{{ t('admin.msg_350e4184', 'Không có biến động trong kỳ') }}</td></tr>
         </tbody>
         <tfoot v-if="mvItems.length > 0">
           <tr class="total-row">
@@ -93,16 +93,16 @@
     <div v-if="activeTab === 'cogs'" class="tab-panel">
       <div class="filter-bar">
         <div class="date-range">
-          <label>Từ</label><input type="date" v-model="cogsFrom" />
-          <label>Đến</label><input type="date" v-model="cogsTo" />
+          <label>{{ t('admin.msg_0cdc2c70', 'Từ') }}</label><input type="date" v-model="cogsFrom" />
+          <label>{{ t('admin.msg_0845f164', 'Đến') }}</label><input type="date" v-model="cogsTo" />
           <button class="btn-filter" @click="fetchCogs"><RefreshCw :size="14" /> Xem</button>
         </div>
       </div>
       <div class="rpt-stats">
         <div class="stat-card"><div class="stat-icon stat-icon--green"><TrendingUp :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_revenue || 0) }}</div><div class="stat-label">{{ t('admin.revenue', 'Doanh thu') }}</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--red"><TrendingDown :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_cogs || 0) }}</div><div class="stat-label">Giá vốn (COGS)</div></div>
-        <div class="stat-card"><div class="stat-icon" :class="cogsSummary.gross_profit >= 0 ? 'stat-icon--green' : 'stat-icon--red'"><DollarSign :size="20" /></div><div class="stat-value" :class="cogsSummary.gross_profit >= 0 ? 'text-green' : 'text-red'">{{ formatCurrency(cogsSummary.gross_profit || 0) }}</div><div class="stat-label">Lợi nhuận gộp</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--blue"><Percent :size="20" /></div><div class="stat-value">{{ cogsSummary.gross_margin || 0 }}%</div><div class="stat-label">Biên lợi nhuận gộp</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--red"><TrendingDown :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_cogs || 0) }}</div><div class="stat-label">{{ t('admin.msg_4b50770c', 'Giá vốn (COGS)') }}</div></div>
+        <div class="stat-card"><div class="stat-icon" :class="cogsSummary.gross_profit >= 0 ? 'stat-icon--green' : 'stat-icon--red'"><DollarSign :size="20" /></div><div class="stat-value" :class="cogsSummary.gross_profit >= 0 ? 'text-green' : 'text-red'">{{ formatCurrency(cogsSummary.gross_profit || 0) }}</div><div class="stat-label">{{ t('admin.msg_0489c93f', 'Lợi nhuận gộp') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--blue"><Percent :size="20" /></div><div class="stat-value">{{ cogsSummary.gross_margin || 0 }}%</div><div class="stat-label">{{ t('admin.msg_a2b10ba0', 'Biên lợi nhuận gộp') }}</div></div>
       </div>
 
       <!-- Gross margin visual bar -->
@@ -117,9 +117,9 @@
         </div>
       </div>
 
-      <h4 style="margin:20px 0 12px">Chi tiết bút toán COGS</h4>
+      <h4 style="margin:20px 0 12px">{{ t('admin.msg_2d002604', 'Chi tiết bút toán COGS') }}</h4>
       <table>
-        <thead><tr><th>Ngày</th><th>{{ t('admin.description', 'Mô tả') }}</th><th>Đơn hàng</th><th>Giá vốn</th></tr></thead>
+        <thead><tr><th>{{ t('admin.msg_b9474a12', 'Ngày') }}</th><th>{{ t('admin.description', 'Mô tả') }}</th><th>{{ t('admin.msg_adb21d16', 'Đơn hàng') }}</th><th>{{ t('admin.msg_66a3ea84', 'Giá vốn') }}</th></tr></thead>
         <tbody>
           <tr v-for="e in cogsEntries" :key="e.id">
             <td class="date">{{ formatDate(e.entry_date) }}</td>
@@ -127,7 +127,7 @@
             <td class="mono">#{{ e.reference_id }}</td>
             <td class="amount text-red">{{ formatCurrency(e.amount) }}</td>
           </tr>
-          <tr v-if="cogsEntries.length === 0"><td colspan="4" class="empty">Chưa có bút toán COGS</td></tr>
+          <tr v-if="cogsEntries.length === 0"><td colspan="4" class="empty">{{ t('admin.msg_5cba0492', 'Chưa có bút toán COGS') }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -135,20 +135,20 @@
     <!-- ═══ Tab: Cảnh báo ═══ -->
     <div v-if="activeTab === 'alerts'" class="tab-panel">
       <div class="rpt-stats">
-        <div class="stat-card"><div class="stat-icon stat-icon--warn"><AlertTriangle :size="20" /></div><div class="stat-value">{{ alertData.total || 0 }}</div><div class="stat-label">Sản phẩm cảnh báo</div></div>
-        <div class="stat-card"><div class="stat-icon stat-icon--red"><XCircle :size="20" /></div><div class="stat-value">{{ alertData.out_of_stock || 0 }}</div><div class="stat-label">Hết hàng</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--warn"><AlertTriangle :size="20" /></div><div class="stat-value">{{ alertData.total || 0 }}</div><div class="stat-label">{{ t('admin.msg_04da6f71', 'Sản phẩm cảnh báo') }}</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--red"><XCircle :size="20" /></div><div class="stat-value">{{ alertData.out_of_stock || 0 }}</div><div class="stat-label">{{ t('admin.msg_c95536d3', 'Hết hàng') }}</div></div>
       </div>
       <table>
-        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>Tối thiểu</th><th>{{ t('admin.status', 'Trạng thái') }}</th></tr></thead>
+        <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.stock', 'Tồn kho') }}</th><th>{{ t('admin.msg_8d0583c6', 'Tối thiểu') }}</th><th>{{ t('admin.status', 'Trạng thái') }}</th></tr></thead>
         <tbody>
           <tr v-for="a in alertItems" :key="a.id" :class="{ 'row-danger': a.is_out }">
             <td><strong>{{ a.name }}</strong></td>
             <td class="mono">{{ a.sku || '—' }}</td>
             <td class="qty" :class="{ 'text-danger': a.is_out }">{{ a.stock }}</td>
             <td class="qty">{{ a.min_stock }}</td>
-            <td><span class="badge" :class="a.is_out ? 'badge--danger' : 'badge--warn'">{{ a.is_out ? 'HẾT HÀNG' : 'SẮP HẾT' }}</span></td>
+            <td><span class="badge" :class="a.is_out ? 'badge--danger' : 'badge--warn'">{{ a.is_out ? t('admin.msg_76b2ed43', 'HẾT HÀNG') : t('admin.msg_f388ec40', 'SẮP HẾT') }}</span></td>
           </tr>
-          <tr v-if="alertItems.length === 0"><td colspan="5" class="empty">Không có cảnh báo 🎉</td></tr>
+          <tr v-if="alertItems.length === 0"><td colspan="5" class="empty">{{ t('admin.msg_af3f5939', 'Không có cảnh báo 🎉') }}</td></tr>
         </tbody>
       </table>
     </div>
@@ -168,10 +168,10 @@ import {
 const { t } = useI18n()
 
 const tabs = [
-  { key: 'stock', label: 'Tồn kho', icon: Package },
-  { key: 'movement', label: 'Xuất nhập tồn', icon: ArrowDownToLine },
-  { key: 'cogs', label: 'Giá vốn', icon: TrendingDown },
-  { key: 'alerts', label: 'Cảnh báo', icon: AlertTriangle },
+  { key: 'stock', label: t('admin.msg_fea4ef8a', 'Tồn kho'), icon: Package },
+  { key: 'movement', label: t('admin.msg_4d69e63c', 'Xuất nhập tồn'), icon: ArrowDownToLine },
+  { key: 'cogs', label: t('admin.msg_66a3ea84', 'Giá vốn'), icon: TrendingDown },
+  { key: 'alerts', label: t('admin.msg_4ceac211', 'Cảnh báo'), icon: AlertTriangle },
 ]
 const activeTab = ref('stock')
 

@@ -2,8 +2,8 @@
   <div class="mod-admin">
     <div class="mod-admin__header">
       <div>
-        <h2><Puzzle :size="20" style="vertical-align:middle" /> Quản Lý Module</h2>
-        <p class="mod-admin__subtitle">Thêm, sửa, bật/tắt module và config giá cho tenant</p>
+        <h2><Puzzle :size="20" style="vertical-align:middle" /> {{ t('admin.msg_690deacc', 'Quản Lý Module') }}</h2>
+        <p class="mod-admin__subtitle">{{ t('admin.msg_058b337b', 'Thêm, sửa, bật/tắt module và config giá cho tenant') }}</p>
       </div>
       <button class="mod-admin__add-btn" @click="showForm = true; resetForm()">
         <Plus :size="14" /> Thêm Module
@@ -21,9 +21,9 @@
             <th>ID</th>
             <th>Category</th>
             <th>Version</th>
-            <th>Giá (VNĐ)</th>
+            <th>{{ t('admin.msg_b8b501f4', 'Giá (VNĐ)') }}</th>
             <th>{{ t('admin.status', 'Trạng thái') }}</th>
-            <th>Thao tác</th>
+            <th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -37,16 +37,16 @@
             <td><code>{{ m.module_id }}</code></td>
             <td>{{ catLabels[m.category] || m.category }}</td>
             <td>{{ m.version }}</td>
-            <td>{{ m.price > 0 ? formatPrice(m.price) : 'Miễn phí' }}</td>
+            <td>{{ m.price > {{ t('admin.msg_94dbea5f', '0 ? formatPrice(m.price) : 'Miễn phí' }}') }}</td>
             <td>
               <span :class="['status-badge', m.is_active ? 'status-badge--active' : 'status-badge--off']">
-                {{ m.is_active ? 'Bật' : 'Tắt' }}
+                {{ m.is_active ? t('admin.msg_9eae5130', 'Bật') : t('admin.msg_258f00b2', 'Tắt') }}
               </span>
             </td>
             <td>
               <div class="mod-admin__actions">
                 <button class="action-btn" :title="t('admin.edit', 'Sửa')" @click="editModule(m)"><Edit :size="14" /></button>
-                <button class="action-btn" :title="m.is_active ? 'Tắt' : 'Bật'" @click="toggleModule(m)">
+                <button class="action-btn" :title="m.is_active ? t('admin.msg_258f00b2', 'Tắt') : t('admin.msg_9eae5130', 'Bật')" @click="toggleModule(m)">
                   <ToggleLeft v-if="!m.is_active" :size="14" />
                   <ToggleRight v-else :size="14" />
                 </button>
@@ -61,7 +61,7 @@
     <!-- Create/Edit Form Modal -->
     <div v-if="showForm" class="mod-admin__overlay" @click.self="showForm = false">
       <div class="mod-admin__modal">
-        <h3>{{ editId ? 'Sửa Module' : 'Thêm Module Mới' }}</h3>
+        <h3>{{ editId ? t('admin.msg_2aac2218', 'Sửa Module') : t('admin.msg_65b7c407', 'Thêm Module Mới') }}</h3>
         <div class="mod-admin__form">
           <div class="form-row" v-if="!editId">
             <label>Module ID</label>
@@ -69,11 +69,11 @@
           </div>
           <div class="form-row">
             <label>{{ t('admin.last_name', 'Tên') }}</label>
-            <input v-model="form.name" placeholder="Tên hiển thị" />
+            <input v-model="form.name" :placeholder="t('admin.msg_6cccad', 'Tên hiển thị')" />
           </div>
           <div class="form-row">
             <label>{{ t('admin.description', 'Mô tả') }}</label>
-            <textarea v-model="form.description" rows="2" placeholder="Mô tả ngắn"></textarea>
+            <textarea v-model="form.description" rows="2" :placeholder="t('admin.msg_337634', 'Mô tả ngắn')"></textarea>
           </div>
           <div class="form-row-2col">
             <div class="form-row">
@@ -81,14 +81,14 @@
               <input v-model="form.icon" placeholder="Package" />
             </div>
             <div class="form-row">
-              <label>Phân loại</label>
+              <label>{{ t('admin.msg_099cc004', 'Phân loại') }}</label>
               <select v-model="form.category">
-                <option value="operations">Vận hành</option>
-                <option value="finance">Tài chính</option>
+                <option value="operations">{{ t('admin.msg_8ae3233c', 'Vận hành') }}</option>
+                <option value="finance">{{ t('admin.msg_7add65a1', 'Tài chính') }}</option>
                 <option value="marketing">Marketing</option>
                 <option value="content">{{ t('admin.content', 'Nội dung') }}</option>
-                <option value="sales">Bán hàng</option>
-                <option value="other">Khác</option>
+                <option value="sales">{{ t('admin.msg_cc0e5c0c', 'Bán hàng') }}</option>
+                <option value="other">{{ t('admin.msg_06c1f85a', 'Khác') }}</option>
               </select>
             </div>
           </div>
@@ -98,13 +98,13 @@
               <input v-model="form.version" placeholder="1.0.0" />
             </div>
             <div class="form-row">
-              <label>Giá (VNĐ)</label>
-              <input v-model.number="form.price" type="number" min="0" step="10000" placeholder="0 = miễn phí" />
+              <label>{{ t('admin.msg_b8b501f4', 'Giá (VNĐ)') }}</label>
+              <input v-model.number="form.price" type="number" min="0" step="10000" :placeholder="t('admin.msg_9ba5cd', '0 = miễn phí')" />
             </div>
           </div>
         </div>
         <div class="mod-admin__modal-footer">
-          <button class="btn btn--cancel" @click="showForm = false">Huỷ</button>
+          <button class="btn btn--cancel" @click="showForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
           <button class="btn btn--save" :disabled="saving" @click="saveModule">
             {{ saving ? t('admin.saving', 'Đang lưu...') : (editId ? 'Cập nhật' : 'Tạo mới') }}
           </button>
@@ -132,7 +132,7 @@ const editId = ref(null)
 
 const form = ref({ module_id: '', name: '', description: '', icon: 'Package', category: 'other', version: '1.0.0', price: 0 })
 
-const catLabels = { operations: 'Vận hành', finance: 'Tài chính', marketing: 'Marketing', content: 'Nội dung', sales: 'Bán hàng' }
+const catLabels = { operations: t('admin.msg_8ae3233c', 'Vận hành'), finance: t('admin.msg_7add65a1', 'Tài chính'), marketing: 'Marketing', content: t('admin.msg_ee7ca513', 'Nội dung'), sales: t('admin.msg_cc0e5c0c', 'Bán hàng') }
 
 function formatPrice(p) { return new Intl.NumberFormat('vi-VN').format(p) + 'đ' }
 
@@ -153,7 +153,7 @@ async function fetchModules() {
     const res = await apiFetch('/master/modules')
     const data = await res.json()
     modules.value = data?.modules || data || []
-  } catch (e) { showToast('Lỗi tải modules', 'error') }
+  } catch (e) { showToast(t('admin.msg_65808f', 'Lỗi tải modules'), 'error') }
   finally { loading.value = false }
 }
 
@@ -168,8 +168,8 @@ async function saveModule() {
       showToast(data.message || t('admin.saved', 'Đã lưu'), 'success')
       showForm.value = false
       fetchModules()
-    } else { showToast(data.message || 'Lỗi', 'error') }
-  } catch (e) { showToast('Lỗi lưu module', 'error') }
+    } else { showToast(data.message || t('admin.msg_aaf377aa', 'Lỗi'), 'error') }
+  } catch (e) { showToast(t('admin.msg_3c6c19', 'Lỗi lưu module'), 'error') }
   finally { saving.value = false }
 }
 
@@ -179,7 +179,7 @@ async function toggleModule(m) {
     const data = await res.json()
     showToast(data.message || t('admin.updated', 'Đã cập nhật'), 'success')
     fetchModules()
-  } catch (e) { showToast('Lỗi', 'error') }
+  } catch (e) { showToast(t('admin.msg_aaf377', 'Lỗi'), 'error') }
 }
 
 async function deleteModule(m) {
@@ -187,9 +187,9 @@ async function deleteModule(m) {
   try {
     const res = await apiFetch(`/master/modules/${m.id}`, { method: 'DELETE' })
     const data = await res.json()
-    showToast(data.message || 'Đã xoá', 'success')
+    showToast(data.message || t('admin.msg_4ef74b85', 'Đã xoá'), 'success')
     fetchModules()
-  } catch (e) { showToast('Lỗi xoá', 'error') }
+  } catch (e) { showToast(t('admin.msg_78bfe3', 'Lỗi xoá'), 'error') }
 }
 
 onMounted(fetchModules)

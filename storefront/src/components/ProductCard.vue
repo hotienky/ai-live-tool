@@ -63,7 +63,7 @@ const discountPercent = computed(() => {
 })
 
 function formatPrice(v) {
-  return Number(v || 0).toLocaleString('vi-VN') + 'đ'
+  return Number(v || 0).toLocaleString('vi-VN') + t('admin.msg_b5407dfd', 'đ')
 }
 
 function formatSoldCount(n) {

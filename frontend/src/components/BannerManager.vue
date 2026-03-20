@@ -1,7 +1,7 @@
 <template>
   <div class="banner-mgr">
     <div class="bm-header">
-      <h3><ImageIcon :size="16" /> Banner quảng cáo</h3>
+      <h3><ImageIcon :size="16" /> {{ t('admin.msg_66d97cb3', 'Banner quảng cáo') }}</h3>
       <div class="bm-actions">
         <select v-model="filterType" @change="reload" class="bm-filter">
           <option value="">{{ t('admin.all', 'Tất cả') }}</option>
@@ -9,7 +9,7 @@
           <option value="background">Background</option>
           <option value="breadcrumb">Breadcrumb</option>
         </select>
-        <button class="btn-add" @click="openCreate">+ Thêm</button>
+        <button class="btn-add" @click="openCreate">{{ t('admin.msg_5f1b8012', '+ Thêm') }}</button>
       </div>
     </div>
 
@@ -44,7 +44,7 @@
           </button>
         </div>
         <div class="bm-card__info">
-          <strong>{{ b.title || '(Chưa đặt tên)' }}</strong>
+          <strong>{{ b.title || t('admin.msg_7ebd7bc2', '(Chưa đặt tên)') }}</strong>
           <a v-if="b.url" :href="b.url" target="_blank" class="bm-url">{{ b.url }}</a>
         </div>
         <div class="bm-card__actions">
@@ -58,23 +58,23 @@
     <!-- Modal -->
     <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
       <div class="modal">
-        <h3>{{ isEditing ? 'Sửa banner' : 'Thêm banner' }}</h3>
+        <h3>{{ isEditing ? t('admin.msg_ebb0aa53', 'Sửa banner') : t('admin.msg_5c1c1260', 'Thêm banner') }}</h3>
 
         <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['title', 'description']" :baseData="form" />
 
         <div class="form-group"><label>{{ t('admin.title', 'Tiêu đề') }}</label><input v-model="fTitle" /></div>
-        <div class="form-group"><label>{{ t('admin.description', 'Mô tả') }}</label><textarea v-model="fDescription" rows="2" placeholder="Tùy chọn mô tả..."></textarea></div>
-        <div class="form-group"><label>Hình ảnh</label><MediaPicker v-model="form.image" placeholder="Chọn hoặc nhập URL hình ảnh..." /></div>
+        <div class="form-group"><label>{{ t('admin.description', 'Mô tả') }}</label><textarea v-model="fDescription" rows="2" :placeholder="t('admin.msg_4e3175', 'Tùy chọn mô tả...')"></textarea></div>
+        <div class="form-group"><label>{{ t('admin.msg_d0bc4c87', 'Hình ảnh') }}</label><MediaPicker v-model="form.image" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" /></div>
 
         <!-- Image Preview -->
         <div class="bm-img-preview" v-if="form.image">
           <img :src="form.image" alt="Preview" @error="$event.target.style.display='none'" @load="$event.target.style.display='block'" />
         </div>
 
-        <div class="form-group"><label>Link đích (URL)</label><input v-model="form.url" placeholder="https://..." /></div>
+        <div class="form-group"><label>{{ t('admin.msg_c19442f4', 'Link đích (URL)') }}</label><input v-model="form.url" placeholder="https://..." /></div>
         <div class="form-row">
           <div class="form-group">
-            <label>Kiểu</label>
+            <label>{{ t('admin.msg_37b1db11', 'Kiểu') }}</label>
             <select v-model="form.type"><option value="banner">Banner</option><option value="background">Background</option><option value="breadcrumb">Breadcrumb</option></select>
           </div>
           <div class="form-group"><label>{{ t('admin.order', 'Thứ tự') }}</label><input v-model.number="form.sort" type="number" /></div>
@@ -85,7 +85,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-save" @click="handleSave">{{ isEditing ? 'Cập nhật' : 'Tạo' }}</button>
+          <button class="btn-save" @click="handleSave">{{ isEditing ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_808b9546', 'Tạo') }}</button>
         </div>
       </div>
     </div>
@@ -176,7 +176,7 @@ async function onDrop(targetIndex) {
   try {
     const updates = list.map((b, i) => updateBanner(b.id, { sort: i }))
     await Promise.all(updates)
-    showToast('Đã sắp xếp lại', 'success')
+    showToast(t('admin.msg_654d75', 'Đã sắp xếp lại'), 'success')
     reload()
   } catch (e) {
     showToast('Lỗi sắp xếp: ' + e.message, 'error')
@@ -217,14 +217,14 @@ async function toggleStatus(b) {
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 async function handleSave() {
-  if (!form.value.image) return showToast('Nhập URL hình ảnh', 'error')
+  if (!form.value.image) return showToast(t('admin.msg_b263b8', 'Nhập URL hình ảnh'), 'error')
   try {
     if (isEditing.value) {
       await updateBanner(editId.value, form.value)
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createBanner({ ...form.value })
-      showToast('Đã tạo banner', 'success')
+      showToast(t('admin.msg_370f6c', 'Đã tạo banner'), 'success')
     }
     showModal.value = false; reload()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
@@ -232,7 +232,7 @@ async function handleSave() {
 async function handleDelete(b) {
   if (!confirm(`Xóa banner "${b.title}"?`)) return
   await deleteBanner(b.id); reload()
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 </script>
 

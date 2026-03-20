@@ -16,7 +16,7 @@
           class="chat-stream__scroll-btn"
           :class="{ 'chat-stream__scroll-btn--paused': !autoScroll }"
           @click="toggleAutoScroll"
-          :title="autoScroll ? 'Tạm dừng auto-scroll' : 'Bật auto-scroll'"
+          :title="autoScroll ? t('admin.msg_fa92f9e5', 'Tạm dừng auto-scroll') : t('admin.msg_3d08b473', 'Bật auto-scroll')"
         >
           <ArrowDown v-if="autoScroll" :size="14" />
           <Pause v-else :size="14" />
@@ -31,7 +31,7 @@
         <input
           ref="searchInputRef"
           v-model="searchQuery"
-          placeholder="Tìm kiếm bình luận..."
+          :placeholder="t('admin.msg_791ff9', 'Tìm kiếm bình luận...')"
           class="search-input"
           @keydown.escape="showSearch = false"
         />

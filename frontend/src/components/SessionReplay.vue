@@ -6,7 +6,7 @@
         Session Replay
       </h2>
       <select v-model="selectedSessionId" class="session-replay__select" @change="loadSession">
-        <option value="">Chọn phiên live...</option>
+        <option value="">{{ t('admin.msg_622fd924', 'Chọn phiên live...') }}</option>
         <option v-for="s in sessions" :key="s.id" :value="s.id">
           {{ s.title || `Session #${s.id}` }} — {{ formatDate(s.created_at || s.createdAt) }}
         </option>
@@ -17,8 +17,8 @@
       <div class="session-replay__empty-icon-wrap">
         <Film :size="40" />
       </div>
-      <p class="session-replay__empty-title">Chọn một phiên live để xem lại</p>
-      <p class="session-replay__empty-sub">Bạn có thể xem lại toàn bộ bình luận và phân tích AI của các phiên trước</p>
+      <p class="session-replay__empty-title">{{ t('admin.msg_0d730722', 'Chọn một phiên live để xem lại') }}</p>
+      <p class="session-replay__empty-sub">{{ t('admin.msg_035f6211', 'Bạn có thể xem lại toàn bộ bình luận và phân tích AI của các phiên trước') }}</p>
     </div>
 
     <div v-else class="session-replay__content">
@@ -49,7 +49,7 @@
           <div class="session-replay__stat-icon"><Clock :size="20" /></div>
           <div class="session-replay__stat-data">
             <span class="session-replay__stat-val">{{ duration }}</span>
-            <span class="session-replay__stat-lbl">Thời lượng</span>
+            <span class="session-replay__stat-lbl">{{ t('admin.msg_77d9bdc6', 'Thời lượng') }}</span>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@
           <span class="session-replay__log-user">{{ log.nickname }}:</span>
           <span class="session-replay__log-text">{{ log.comment_text || log.commentText }}</span>
         </div>
-        <p v-if="chatLogs.length === 0" class="session-replay__no-logs">Không có bình luận</p>
+        <p v-if="chatLogs.length === 0" class="session-replay__no-logs">{{ t('admin.msg_209cdcb9', 'Không có bình luận') }}</p>
       </div>
 
       <!-- Export -->

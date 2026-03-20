@@ -6,7 +6,7 @@
         <input type="date" v-model="dateFrom" class="acc-input" />
         <span class="acc-filter__sep">→</span>
         <input type="date" v-model="dateTo" class="acc-input" />
-        <button class="acc-btn acc-btn--sm" @click="loadAll">Áp dụng</button>
+        <button class="acc-btn acc-btn--sm" @click="loadAll">{{ t('admin.msg_3b00fe35', 'Áp dụng') }}</button>
       </div>
       <div class="acc-filter__tabs">
         <button v-for="t in tabs" :key="t.key" :class="['acc-tab', { active: activeTab === t.key }]" @click="activeTab = t.key">
@@ -28,21 +28,21 @@
         <div class="acc-card acc-card--expense">
           <div class="acc-card__icon"><TrendingDown :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">COGS (Giá vốn)</span>
+            <span class="acc-card__label">{{ t('admin.msg_ca482423', 'COGS (Giá vốn)') }}</span>
             <span class="acc-card__value">{{ formatPrice(summary.cogs || 0) }}</span>
           </div>
         </div>
         <div class="acc-card acc-card--profit">
           <div class="acc-card__icon"><DollarSign :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Lợi nhuận gộp</span>
+            <span class="acc-card__label">{{ t('admin.msg_0489c93f', 'Lợi nhuận gộp') }}</span>
             <span class="acc-card__value" :style="{ color: (summary.gross_profit || 0) >= 0 ? '#34d399' : '#f87171' }">{{ formatPrice(summary.gross_profit || 0) }}</span>
           </div>
         </div>
         <div class="acc-card acc-card--tax">
           <div class="acc-card__icon"><Receipt :size="20" /></div>
           <div class="acc-card__body">
-            <span class="acc-card__label">Lợi nhuận ròng</span>
+            <span class="acc-card__label">{{ t('admin.msg_1fe3aa98', 'Lợi nhuận ròng') }}</span>
             <span class="acc-card__value" :style="{ color: (summary.profit || 0) >= 0 ? '#34d399' : '#f87171' }">{{ formatPrice(summary.profit) }}</span>
           </div>
         </div>
@@ -63,17 +63,17 @@
         </div>
         <div class="acc-cogs-bar__legend">
           <span><span class="acc-legend__dot" style="background:#f87171"></span> COGS</span>
-          <span><span class="acc-legend__dot" style="background:#fbbf24"></span> Chi phí VH</span>
-          <span><span class="acc-legend__dot" style="background:#34d399"></span> Lợi nhuận</span>
+          <span><span class="acc-legend__dot" style="background:#fbbf24"></span> {{ t('admin.msg_60c56fe0', 'Chi phí VH') }}</span>
+          <span><span class="acc-legend__dot" style="background:#34d399"></span> {{ t('admin.msg_44eb540c', 'Lợi nhuận') }}</span>
         </div>
       </div>
 
       <!-- Tax Status Info -->
       <div v-if="taxConfig.enabled" class="acc-tax-info">
         <div class="acc-tax-info__left">
-          <span class="acc-badge acc-badge--paid">Thuế đang bật</span>
+          <span class="acc-badge acc-badge--paid">{{ t('admin.msg_2f8fb0a4', 'Thuế đang bật') }}</span>
           <span class="acc-tax-info__label">{{ taxConfig.label || 'VAT' }}</span>
-          <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">Giá đã gồm thuế</span>
+          <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">{{ t('admin.msg_2cc981ee', 'Giá đã gồm thuế') }}</span>
         </div>
         <div class="acc-tax-info__rates">
           <span v-for="r in activeTaxRates" :key="r.id" class="acc-badge acc-badge--issued">
@@ -82,7 +82,7 @@
         </div>
       </div>
       <div v-else class="acc-tax-info">
-        <span class="acc-badge acc-badge--cancelled">Thuế chưa bật</span>
+        <span class="acc-badge acc-badge--cancelled">{{ t('admin.msg_1824c072', 'Thuế chưa bật') }}</span>
         <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
           Bật cấu hình thuế →
         </button>
@@ -90,21 +90,21 @@
 
       <!-- Monthly Chart (simple bar visualization) -->
       <div class="acc-section">
-        <h4 class="acc-section__title"><BarChart2 :size="14" /> Biểu đồ theo tháng</h4>
+        <h4 class="acc-section__title"><BarChart2 :size="14" /> {{ t('admin.msg_f7dd7d95', 'Biểu đồ theo tháng') }}</h4>
         <div class="acc-chart">
           <div v-for="m in monthly" :key="m.month" class="acc-chart__bar-group">
             <div class="acc-chart__bars">
               <div class="acc-chart__bar acc-chart__bar--revenue" :style="{ height: barH(m.revenue) }" :title="'DT: ' + formatPrice(m.revenue)"></div>
               <div class="acc-chart__bar acc-chart__bar--expense" :style="{ height: barH(m.expenses) }" :title="'CP: ' + formatPrice(m.expenses)"></div>
-              <div class="acc-chart__bar acc-chart__bar--tax" :style="{ height: barH(m.tax) }" :title="'Thuế: ' + formatPrice(m.tax)"></div>
+              <div class="acc-chart__bar acc-chart__bar--tax" :style="{ height: barH(m.tax) }" :title="t('admin.msg_f725f73e', 'Thuế: ') + formatPrice(m.tax)"></div>
             </div>
             <span class="acc-chart__label">T{{ m.month }}</span>
           </div>
         </div>
         <div class="acc-chart__legend">
           <span class="acc-legend"><span class="acc-legend__dot" style="background:#10b981"></span> Doanh thu</span>
-          <span class="acc-legend"><span class="acc-legend__dot" style="background:#ef4444"></span> Chi phí</span>
-          <span class="acc-legend"><span class="acc-legend__dot" style="background:#8b5cf6"></span> Thuế</span>
+          <span class="acc-legend"><span class="acc-legend__dot" style="background:#ef4444"></span> {{ t('admin.msg_7c203ff2', 'Chi phí') }}</span>
+          <span class="acc-legend"><span class="acc-legend__dot" style="background:#8b5cf6"></span> {{ t('admin.msg_500aedd2', 'Thuế') }}</span>
         </div>
       </div>
     </template>
@@ -125,13 +125,13 @@
         <table class="acc-table" v-if="taxReport.length">
           <thead>
             <tr>
-              <th>Tháng</th>
+              <th>{{ t('admin.msg_5703304d', 'Tháng') }}</th>
               <th>{{ t('admin.revenue', 'Doanh thu') }}</th>
-              <th>Thuế thu</th>
-              <th>Thuế hoàn</th>
-              <th>Thuế phải nộp</th>
-              <th>Đơn hàng</th>
-              <th>Hoàn trả</th>
+              <th>{{ t('admin.msg_5f4eb02f', 'Thuế thu') }}</th>
+              <th>{{ t('admin.msg_8c1b2179', 'Thuế hoàn') }}</th>
+              <th>{{ t('admin.msg_c335377a', 'Thuế phải nộp') }}</th>
+              <th>{{ t('admin.msg_adb21d16', 'Đơn hàng') }}</th>
+              <th>{{ t('admin.msg_94280c8b', 'Hoàn trả') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -147,7 +147,7 @@
           </tbody>
           <tfoot>
             <tr>
-              <td><strong>Tổng</strong></td>
+              <td><strong>{{ t('admin.msg_195075fe', 'Tổng') }}</strong></td>
               <td><strong>{{ formatPrice(taxReport.reduce((s,r) => s + r.total_sales, 0)) }}</strong></td>
               <td class="acc-cell--green"><strong>{{ formatPrice(taxReport.reduce((s,r) => s + r.tax_collected, 0)) }}</strong></td>
               <td class="acc-cell--red"><strong>{{ formatPrice(taxReport.reduce((s,r) => s + r.tax_refunded, 0)) }}</strong></td>
@@ -164,10 +164,10 @@
     <template v-if="activeTab === 'entries'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><BookOpen :size="14" /> Sổ thu chi</h4>
+          <h4 class="acc-section__title"><BookOpen :size="14" /> {{ t('admin.msg_9df87a66', 'Sổ thu chi') }}</h4>
           <div style="display:flex;gap:6px">
             <button class="acc-btn acc-btn--sm" @click="exportExcel('entries')" title="Xuất Excel"><Download :size="12" /> Excel</button>
-            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất tổng hợp"><Download :size="12" /> Tổng hợp</button>
+            <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất tổng hợp"><Download :size="12" /> {{ t('admin.msg_8e4e2737', 'Tổng hợp') }}</button>
             <button class="acc-btn acc-btn--sm" @click="exportEntriesCSV" title="Xuất CSV"><Download :size="12" /> CSV</button>
             <button class="acc-btn acc-btn--primary acc-btn--sm" @click="openEntryForm()">
               <Plus :size="13" /> Thêm bút toán
@@ -177,23 +177,23 @@
 
         <div class="acc-entries-filter">
           <select v-model="entryFilter.type" class="acc-select" @change="loadEntries">
-            <option value="">Tất cả loại</option>
+            <option value="">{{ t('admin.msg_ca84e246', 'Tất cả loại') }}</option>
             <option value="revenue">Thu</option>
             <option value="expense">Chi</option>
-            <option value="adjustment">Điều chỉnh</option>
+            <option value="adjustment">{{ t('admin.msg_6a48ef4e', 'Điều chỉnh') }}</option>
           </select>
         </div>
 
         <table class="acc-table" v-if="entries.length">
           <thead>
             <tr>
-              <th>Ngày</th>
+              <th>{{ t('admin.msg_b9474a12', 'Ngày') }}</th>
               <th>{{ t('admin.type', 'Loại') }}</th>
-              <th>Danh mục</th>
+              <th>{{ t('admin.msg_53d8de58', 'Danh mục') }}</th>
               <th>{{ t('admin.description', 'Mô tả') }}</th>
-              <th>Số tiền</th>
-              <th>Thuế</th>
-              <th>Tham chiếu</th>
+              <th>{{ t('admin.msg_8cde2607', 'Số tiền') }}</th>
+              <th>{{ t('admin.msg_500aedd2', 'Thuế') }}</th>
+              <th>{{ t('admin.msg_557d70a8', 'Tham chiếu') }}</th>
               <th></th>
             </tr>
           </thead>
@@ -202,7 +202,7 @@
               <td>{{ formatDate(e.entry_date) }}</td>
               <td>
                 <span class="acc-badge" :class="'acc-badge--' + e.type">
-                  {{ { revenue: 'Thu', expense: 'Chi', adjustment: 'Đ/C' }[e.type] }}
+                  {{ { revenue: 'Thu', expense: 'Chi', adjustment: t('admin.msg_6cdd7e54', 'Đ/C') }[e.type] }}
                 </span>
               </td>
               <td>{{ categoryLabel(e.category) }}</td>
@@ -224,7 +224,7 @@
             </tr>
           </tbody>
         </table>
-        <div v-else class="acc-empty">Chưa có bút toán nào.</div>
+        <div v-else class="acc-empty">{{ t('admin.msg_898dd800', 'Chưa có bút toán nào.') }}</div>
       </div>
     </template>
 
@@ -232,15 +232,15 @@
     <template v-if="activeTab === 'invoices'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><FileText :size="14" /> Hoá đơn</h4>
+          <h4 class="acc-section__title"><FileText :size="14" /> {{ t('admin.msg_ee8632be', 'Hoá đơn') }}</h4>
         </div>
         <table class="acc-table" v-if="invoices.length">
           <thead>
             <tr>
-              <th>Số HĐ</th>
-              <th>Khách hàng</th>
-              <th>Tổng tiền</th>
-              <th>Thuế</th>
+              <th>{{ t('admin.msg_080b58bf', 'Số HĐ') }}</th>
+              <th>{{ t('admin.msg_0caa5ce1', 'Khách hàng') }}</th>
+              <th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
+              <th>{{ t('admin.msg_500aedd2', 'Thuế') }}</th>
               <th>{{ t('admin.status', 'Trạng thái') }}</th>
               <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
               <th></th>
@@ -265,7 +265,7 @@
             </tr>
           </tbody>
         </table>
-        <div v-else class="acc-empty">Chưa có hoá đơn nào.</div>
+        <div v-else class="acc-empty">{{ t('admin.msg_31d2fd91', 'Chưa có hoá đơn nào.') }}</div>
       </div>
     </template>
 
@@ -273,7 +273,7 @@
     <template v-if="activeTab === 'pnl'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><TrendingUp :size="14" /> Báo cáo lãi lỗ</h4>
+          <h4 class="acc-section__title"><TrendingUp :size="14" /> {{ t('admin.msg_32cd6d1a', 'Báo cáo lãi lỗ') }}</h4>
           <button class="acc-btn acc-btn--sm" @click="exportExcel('combined')" title="Xuất Excel"><Download :size="12" /> Excel</button>
         </div>
         <div v-if="pnlData" class="acc-pnl">
@@ -285,38 +285,38 @@
               <span class="acc-cell--green">{{ formatPrice(cat.amount) }}</span>
             </div>
             <div class="acc-pnl__subtotal">
-              <span>Tổng doanh thu</span>
+              <span>{{ t('admin.msg_d5da9a6a', 'Tổng doanh thu') }}</span>
               <span>{{ formatPrice(pnlData.revenue?.total) }}</span>
             </div>
           </div>
 
           <!-- Expenses -->
           <div class="acc-pnl__section">
-            <h5 class="acc-pnl__title acc-pnl__title--red">CHI PHÍ</h5>
+            <h5 class="acc-pnl__title acc-pnl__title--red">{{ t('admin.msg_32df3811', 'CHI PHÍ') }}</h5>
             <div v-for="cat in pnlData.expenses?.by_category" :key="cat.category" class="acc-pnl__row">
               <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} bút toán)</small></span>
               <span class="acc-cell--red">{{ formatPrice(cat.amount) }}</span>
             </div>
             <div class="acc-pnl__subtotal">
-              <span>Tổng chi phí</span>
+              <span>{{ t('admin.msg_0fe77f32', 'Tổng chi phí') }}</span>
               <span>{{ formatPrice(pnlData.expenses?.total) }}</span>
             </div>
           </div>
 
           <!-- Summary -->
           <div class="acc-pnl__section acc-pnl__section--summary">
-            <div class="acc-pnl__row"><span>Điều chỉnh (hoàn trả)</span><span>{{ formatPrice(pnlData.adjustments) }}</span></div>
-            <div class="acc-pnl__row"><span>Thuế phải nộp</span><span class="acc-cell--purple">{{ formatPrice(pnlData.tax_payable) }}</span></div>
+            <div class="acc-pnl__row"><span>{{ t('admin.msg_dac5e917', 'Điều chỉnh (hoàn trả)') }}</span><span>{{ formatPrice(pnlData.adjustments) }}</span></div>
+            <div class="acc-pnl__row"><span>{{ t('admin.msg_c335377a', 'Thuế phải nộp') }}</span><span class="acc-cell--purple">{{ formatPrice(pnlData.tax_payable) }}</span></div>
             <div class="acc-pnl__subtotal acc-pnl__subtotal--big">
-              <span>Lợi nhuận gộp</span>
+              <span>{{ t('admin.msg_0489c93f', 'Lợi nhuận gộp') }}</span>
               <span :class="pnlData.gross_profit >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(pnlData.gross_profit) }}</span>
             </div>
             <div class="acc-pnl__subtotal acc-pnl__subtotal--big">
-              <span>Lợi nhuận ròng</span>
+              <span>{{ t('admin.msg_1fe3aa98', 'Lợi nhuận ròng') }}</span>
               <span :class="pnlData.net_profit >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(pnlData.net_profit) }}</span>
             </div>
             <div class="acc-pnl__row">
-              <span>Biên lợi nhuận</span>
+              <span>{{ t('admin.msg_14899507', 'Biên lợi nhuận') }}</span>
               <span :class="pnlData.margin >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ pnlData.margin }}%</span>
             </div>
           </div>
@@ -329,28 +329,28 @@
     <template v-if="activeTab === 'balance'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><DollarSign :size="14" /> Bảng cân đối kế toán</h4>
+          <h4 class="acc-section__title"><DollarSign :size="14" /> {{ t('admin.msg_40c88349', 'Bảng cân đối kế toán') }}</h4>
           <div class="acc-section__actions">
             <span class="acc-balance-date">Tại ngày: {{ formatDate(balanceData?.as_of) }}</span>
           </div>
         </div>
         <div v-if="balanceData" class="acc-balance">
           <div class="acc-balance__group">
-            <h5 class="acc-balance__title acc-balance__title--blue">TÀI SẢN</h5>
-            <div class="acc-balance__row"><span>Tiền mặt</span><span>{{ formatPrice(balanceData.assets?.cash_on_hand) }}</span></div>
-            <div class="acc-balance__row"><span>Phải thu (HĐ chưa TT)</span><span>{{ formatPrice(balanceData.assets?.accounts_receivable) }}</span></div>
-            <div class="acc-balance__total"><span>Tổng tài sản</span><span>{{ formatPrice(balanceData.assets?.total) }}</span></div>
+            <h5 class="acc-balance__title acc-balance__title--blue">{{ t('admin.msg_613d3333', 'TÀI SẢN') }}</h5>
+            <div class="acc-balance__row"><span>{{ t('admin.msg_047caf53', 'Tiền mặt') }}</span><span>{{ formatPrice(balanceData.assets?.cash_on_hand) }}</span></div>
+            <div class="acc-balance__row"><span>{{ t('admin.msg_d77fbcba', 'Phải thu (HĐ chưa TT)') }}</span><span>{{ formatPrice(balanceData.assets?.accounts_receivable) }}</span></div>
+            <div class="acc-balance__total"><span>{{ t('admin.msg_484d9e65', 'Tổng tài sản') }}</span><span>{{ formatPrice(balanceData.assets?.total) }}</span></div>
           </div>
           <div class="acc-balance__group">
-            <h5 class="acc-balance__title acc-balance__title--red">NỢ PHẢI TRẢ</h5>
-            <div class="acc-balance__row"><span>Thuế phải nộp</span><span>{{ formatPrice(balanceData.liabilities?.tax_payable) }}</span></div>
-            <div class="acc-balance__row"><span>HĐ quá hạn</span><span>{{ formatPrice(balanceData.liabilities?.overdue_invoices) }}</span></div>
-            <div class="acc-balance__total"><span>Tổng nợ</span><span>{{ formatPrice(balanceData.liabilities?.total) }}</span></div>
+            <h5 class="acc-balance__title acc-balance__title--red">{{ t('admin.msg_4f385a76', 'NỢ PHẢI TRẢ') }}</h5>
+            <div class="acc-balance__row"><span>{{ t('admin.msg_c335377a', 'Thuế phải nộp') }}</span><span>{{ formatPrice(balanceData.liabilities?.tax_payable) }}</span></div>
+            <div class="acc-balance__row"><span>{{ t('admin.msg_df55beb8', 'HĐ quá hạn') }}</span><span>{{ formatPrice(balanceData.liabilities?.overdue_invoices) }}</span></div>
+            <div class="acc-balance__total"><span>{{ t('admin.msg_bc11fe25', 'Tổng nợ') }}</span><span>{{ formatPrice(balanceData.liabilities?.total) }}</span></div>
           </div>
           <div class="acc-balance__group">
-            <h5 class="acc-balance__title acc-balance__title--green">VỐN CHỦ SỞ HỮU</h5>
+            <h5 class="acc-balance__title acc-balance__title--green">{{ t('admin.msg_e5aa2663', 'VỐN CHỦ SỞ HỮU') }}</h5>
             <div class="acc-balance__total acc-balance__total--big">
-              <span>Vốn chủ sở hữu</span>
+              <span>{{ t('admin.msg_080a344b', 'Vốn chủ sở hữu') }}</span>
               <span :class="balanceData.equity >= 0 ? 'acc-cell--green' : 'acc-cell--red'">{{ formatPrice(balanceData.equity) }}</span>
             </div>
           </div>
@@ -367,7 +367,7 @@
     <template v-if="activeTab === 'settings'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><Settings :size="14" /> Cài đặt kế toán</h4>
+          <h4 class="acc-section__title"><Settings :size="14" /> {{ t('admin.msg_584ca27a', 'Cài đặt kế toán') }}</h4>
           <button class="acc-btn acc-btn--primary acc-btn--sm" @click="saveConfig" :disabled="savingConfig">
             <Save :size="13" /> {{ savingConfig ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
           </button>
@@ -376,34 +376,34 @@
         <div class="acc-settings">
           <!-- Auto Email -->
           <div class="acc-settings-group">
-            <h5 class="acc-settings-group__title">Hoá đơn & Email</h5>
+            <h5 class="acc-settings-group__title">{{ t('admin.msg_c5f30546', 'Hoá đơn & Email') }}</h5>
             <div class="acc-form-grid">
               <div class="acc-form-row">
-                <label>Tự động gửi email hoá đơn</label>
+                <label>{{ t('admin.msg_964d0650', 'Tự động gửi email hoá đơn') }}</label>
                 <select v-model="accConfig.auto_email" class="acc-select">
-                  <option value="true">Bật — gửi khi đơn delivered</option>
-                  <option value="false">Tắt</option>
+                  <option value="true">{{ t('admin.msg_09507128', 'Bật — gửi khi đơn delivered') }}</option>
+                  <option value="false">{{ t('admin.msg_258f00b2', 'Tắt') }}</option>
                 </select>
               </div>
               <div class="acc-form-row">
-                <label>Tiền tố hoá đơn</label>
+                <label>{{ t('admin.msg_795cc2fe', 'Tiền tố hoá đơn') }}</label>
                 <input type="text" v-model="accConfig.invoice_prefix" class="acc-input" placeholder="INV" />
                 <span class="acc-form-hint">VD: INV → INV-2026-00001, HD → HD-2026-00001</span>
               </div>
             </div>
             <div class="acc-form-grid">
               <div class="acc-form-row">
-                <label>Hạn thanh toán mặc định</label>
+                <label>{{ t('admin.msg_36c65cb3', 'Hạn thanh toán mặc định') }}</label>
                 <select v-model="accConfig.payment_terms" class="acc-select">
-                  <option value="0">Không có hạn</option>
-                  <option value="7">7 ngày</option>
-                  <option value="14">14 ngày</option>
-                  <option value="30">30 ngày</option>
+                  <option value="0">{{ t('admin.msg_a4f770ff', 'Không có hạn') }}</option>
+                  <option value="7">{{ t('admin.msg_d51ffbc9', '7 ngày') }}</option>
+                  <option value="14">{{ t('admin.msg_b9805682', '14 ngày') }}</option>
+                  <option value="30">{{ t('admin.msg_06199c63', '30 ngày') }}</option>
                 </select>
               </div>
               <div class="acc-form-row">
-                <label>Nội dung footer hoá đơn</label>
-                <input type="text" v-model="accConfig.footer_text" class="acc-input" placeholder="Cảm ơn quý khách!" />
+                <label>{{ t('admin.msg_465cb713', 'Nội dung footer hoá đơn') }}</label>
+                <input type="text" v-model="accConfig.footer_text" class="acc-input" :placeholder="t('admin.msg_52e445', 'Cảm ơn quý khách!')" />
               </div>
             </div>
           </div>
@@ -411,20 +411,20 @@
           <!-- Tax Integration -->
           <div class="acc-settings-group">
             <div class="acc-settings-group__header">
-              <h5 class="acc-settings-group__title">Cấu hình thuế GTGT</h5>
+              <h5 class="acc-settings-group__title">{{ t('admin.msg_f0bbcc74', 'Cấu hình thuế GTGT') }}</h5>
               <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
                 <Settings :size="12" /> Quản lý thuế →
               </button>
             </div>
             <div v-if="taxConfig.enabled" class="acc-tax-status">
               <div class="acc-tax-status__row">
-                <span class="acc-badge acc-badge--paid">Bật</span>
-                <span>Nhãn: <strong>{{ taxConfig.label || 'VAT' }}</strong></span>
-                <span>Hiển thị: <strong>{{ taxConfig.display_mode === 'inclusive' ? 'Giá đã gồm thuế' : taxConfig.display_mode === 'exclusive' ? 'Giá + thuế riêng' : 'Cả hai' }}</strong></span>
-                <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">Giá gồm thuế</span>
+                <span class="acc-badge acc-badge--paid">{{ t('admin.msg_9eae5130', 'Bật') }}</span>
+                <span>{{ t('admin.msg_a273899d', 'Nhãn:') }} <strong>{{ taxConfig.label || 'VAT' }}</strong></span>
+                <span>{{ t('admin.msg_cea0c32e', 'Hiển thị:') }} <strong>{{ taxConfig.display_mode === 'inclusive' ? 'Giá đã gồm thuế' : taxConfig.display_mode === 'exclusive' ? 'Giá + thuế riêng' : 'Cả hai' }}</strong></span>
+                <span v-if="taxConfig.price_includes_tax" class="acc-badge acc-badge--draft">{{ t('admin.msg_f503a745', 'Giá gồm thuế') }}</span>
               </div>
               <div v-if="activeTaxRates.length" class="acc-tax-status__rates">
-                <span class="acc-form-hint">Thuế suất đang áp dụng:</span>
+                <span class="acc-form-hint">{{ t('admin.msg_c04d344c', 'Thuế suất đang áp dụng:') }}</span>
                 <div class="acc-tax-rates-list">
                   <div v-for="r in activeTaxRates" :key="r.id" class="acc-tax-rate-chip">
                     <span class="acc-tax-rate-chip__pct">{{ r.rate }}%</span>
@@ -432,21 +432,21 @@
                   </div>
                 </div>
               </div>
-              <div v-else class="acc-form-hint" style="margin-top:8px">Chưa có thuế suất nào. <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">Thêm thuế suất →</a></div>
+              <div v-else class="acc-form-hint" style="margin-top:8px">{{ t('admin.msg_4b1acf92', 'Chưa có thuế suất nào.') }} <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">{{ t('admin.msg_3a814db3', 'Thêm thuế suất →') }}</a></div>
             </div>
             <div v-else class="acc-tax-status">
-              <span class="acc-badge acc-badge--cancelled">Thuế chưa bật</span>
-              <span class="acc-form-hint" style="margin-left:8px">Bật thuế trong trang <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">{{ t('admin.tax_management', 'Quản lý thuế') }}</a> để tích hợp với kế toán.</span>
+              <span class="acc-badge acc-badge--cancelled">{{ t('admin.msg_1824c072', 'Thuế chưa bật') }}</span>
+              <span class="acc-form-hint" style="margin-left:8px">{{ t('admin.msg_34691806', 'Bật thuế trong trang') }} <a href="#" @click.prevent="emit('navigate-to-tax')" style="color:var(--color-accent-primary)">{{ t('admin.tax_management', 'Quản lý thuế') }}</a> {{ t('admin.msg_f659f4dd', 'để tích hợp với kế toán.') }}</span>
             </div>
           </div>
 
           <!-- Custom Categories -->
           <div class="acc-settings-group">
-            <h5 class="acc-settings-group__title">Danh mục kế toán tuỳ chỉnh</h5>
-            <p class="acc-form-hint" style="margin-bottom:10px">Thêm danh mục ngoài mặc định (Doanh thu ĐH, Phí VC, Hoàn trả...)</p>
+            <h5 class="acc-settings-group__title">{{ t('admin.msg_1c846665', 'Danh mục kế toán tuỳ chỉnh') }}</h5>
+            <p class="acc-form-hint" style="margin-bottom:10px">{{ t('admin.msg_45363757', 'Thêm danh mục ngoài mặc định (Doanh thu ĐH, Phí VC, Hoàn trả...)') }}</p>
             <div v-for="(cat, ci) in customCategories" :key="ci" class="acc-custom-cat">
               <input type="text" v-model="cat.key" class="acc-input" placeholder="key (vd: office)" style="flex:1" />
-              <input type="text" v-model="cat.label" class="acc-input" placeholder="Tên (vd: Văn phòng)" style="flex:1.5" />
+              <input type="text" v-model="cat.label" class="acc-input" :placeholder="t('admin.msg_a205de', 'Tên (vd: Văn phòng)')" style="flex:1.5" />
               <button class="acc-action-btn acc-action-btn--danger" @click="customCategories.splice(ci, 1)">
                 <Trash2 :size="13" />
               </button>
@@ -458,20 +458,20 @@
 
           <!-- Seller Info -->
           <div class="acc-settings-group">
-            <h5 class="acc-settings-group__title">Thông tin người bán (hiển trên hoá đơn)</h5>
+            <h5 class="acc-settings-group__title">{{ t('admin.msg_5cc2e9af', 'Thông tin người bán (hiển trên hoá đơn)') }}</h5>
             <div class="acc-form-grid">
               <div class="acc-form-row">
-                <label>Tên cửa hàng / Công ty</label>
+                <label>{{ t('admin.msg_c9c58407', 'Tên cửa hàng / Công ty') }}</label>
                 <input type="text" v-model="accConfig.seller_name" class="acc-input" />
               </div>
               <div class="acc-form-row">
-                <label>Mã số thuế</label>
+                <label>{{ t('admin.msg_05755dd6', 'Mã số thuế') }}</label>
                 <input type="text" v-model="accConfig.seller_tax_id" class="acc-input" placeholder="VD: 0123456789" />
               </div>
             </div>
             <div class="acc-form-grid">
               <div class="acc-form-row">
-                <label>SĐT</label>
+                <label>{{ t('admin.msg_5457a69f', 'SĐT') }}</label>
                 <input type="text" v-model="accConfig.seller_phone" class="acc-input" />
               </div>
               <div class="acc-form-row">
@@ -494,55 +494,55 @@
         <div v-if="showEntryForm" class="acc-modal-overlay" @click.self="showEntryForm = false">
           <div class="acc-modal">
             <div class="acc-modal__header">
-              <h4>Thêm bút toán</h4>
+              <h4>{{ t('admin.msg_9e1b88d0', 'Thêm bút toán') }}</h4>
               <button class="acc-modal__close" @click="showEntryForm = false"><X :size="16" /></button>
             </div>
             <div class="acc-modal__body">
               <div class="acc-form-row">
-                <label>Loại *</label>
+                <label>{{ t('admin.msg_568d862e', 'Loại *') }}</label>
                 <select v-model="entryForm.type" class="acc-select">
                   <option value="revenue">Thu (revenue)</option>
                   <option value="expense">Chi (expense)</option>
-                  <option value="adjustment">Điều chỉnh</option>
+                  <option value="adjustment">{{ t('admin.msg_6a48ef4e', 'Điều chỉnh') }}</option>
                 </select>
               </div>
               <div class="acc-form-grid">
                 <div class="acc-form-row">
-                  <label>Danh mục *</label>
+                  <label>{{ t('admin.msg_685b6c36', 'Danh mục *') }}</label>
                   <select v-model="entryForm.category" class="acc-select">
-                    <option value="order_revenue">Doanh thu đơn hàng</option>
-                    <option value="cogs">Giá vốn hàng bán (COGS)</option>
+                    <option value="order_revenue">{{ t('admin.msg_c4f7fae9', 'Doanh thu đơn hàng') }}</option>
+                    <option value="cogs">{{ t('admin.msg_534a0154', 'Giá vốn hàng bán (COGS)') }}</option>
                     <option value="shipping_cost">{{ t('admin.shipping_fee', 'Phí vận chuyển') }}</option>
-                    <option value="refund">Hoàn trả</option>
+                    <option value="refund">{{ t('admin.msg_94280c8b', 'Hoàn trả') }}</option>
                     <option value="marketing">Marketing</option>
-                    <option value="salary">Lương</option>
-                    <option value="rent">Thuê mặt bằng</option>
-                    <option value="supplies">Vật tư</option>
-                    <option value="other">Khác</option>
+                    <option value="salary">{{ t('admin.msg_0931b128', 'Lương') }}</option>
+                    <option value="rent">{{ t('admin.msg_9a2b203a', 'Thuê mặt bằng') }}</option>
+                    <option value="supplies">{{ t('admin.msg_a9274621', 'Vật tư') }}</option>
+                    <option value="other">{{ t('admin.msg_06c1f85a', 'Khác') }}</option>
                   </select>
                 </div>
                 <div class="acc-form-row">
-                  <label>Ngày *</label>
+                  <label>{{ t('admin.msg_ec04e223', 'Ngày *') }}</label>
                   <input type="date" v-model="entryForm.entry_date" class="acc-input" />
                 </div>
               </div>
               <div class="acc-form-grid">
                 <div class="acc-form-row">
-                  <label>Số tiền *</label>
+                  <label>{{ t('admin.msg_b203db75', 'Số tiền *') }}</label>
                   <input type="number" v-model.number="entryForm.amount" class="acc-input" step="1000" />
                 </div>
                 <div class="acc-form-row">
-                  <label>Thuế</label>
+                  <label>{{ t('admin.msg_500aedd2', 'Thuế') }}</label>
                   <input type="number" v-model.number="entryForm.tax_amount" class="acc-input" step="100" />
                 </div>
               </div>
               <div class="acc-form-row">
                 <label>{{ t('admin.description', 'Mô tả') }}</label>
-                <input type="text" v-model="entryForm.description" class="acc-input" placeholder="VD: Chi phí quảng cáo T3/2026" />
+                <input type="text" v-model="entryForm.description" class="acc-input" :placeholder="t('admin.msg_237d9f', 'VD: Chi phí quảng cáo T3/2026')" />
               </div>
             </div>
             <div class="acc-modal__footer">
-              <button class="acc-btn" @click="showEntryForm = false">Huỷ</button>
+              <button class="acc-btn" @click="showEntryForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
               <button class="acc-btn acc-btn--primary" @click="saveEntry" :disabled="savingEntry">
                 <Save :size="13" /> {{ savingEntry ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
               </button>
@@ -579,13 +579,13 @@ const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()
 
 const tabs = [
-  { key: 'overview', label: 'Tổng quan', icon: BarChart2 },
-  { key: 'tax', label: 'Báo cáo thuế', icon: Receipt },
-  { key: 'entries', label: 'Sổ thu chi', icon: BookOpen },
-  { key: 'invoices', label: 'Hoá đơn', icon: FileText },
-  { key: 'pnl', label: 'Lãi lỗ', icon: TrendingUp },
-  { key: 'balance', label: 'Cân đối', icon: DollarSign },
-  { key: 'settings', label: 'Cài đặt', icon: Settings },
+  { key: 'overview', label: t('admin.msg_09c0fd66', 'Tổng quan'), icon: BarChart2 },
+  { key: 'tax', label: t('admin.msg_06015044', 'Báo cáo thuế'), icon: Receipt },
+  { key: 'entries', label: t('admin.msg_9df87a66', 'Sổ thu chi'), icon: BookOpen },
+  { key: 'invoices', label: t('admin.msg_ee8632be', 'Hoá đơn'), icon: FileText },
+  { key: 'pnl', label: t('admin.msg_4b74a5d2', 'Lãi lỗ'), icon: TrendingUp },
+  { key: 'balance', label: t('admin.msg_f4b1279c', 'Cân đối'), icon: DollarSign },
+  { key: 'settings', label: t('admin.msg_1a691070', 'Cài đặt'), icon: Settings },
 ]
 const activeTab = ref('overview')
 
@@ -617,7 +617,7 @@ const accConfig = ref({
   invoice_prefix: 'INV',
   payment_terms: '0',
   tax_label: 'VAT',
-  footer_text: 'Cảm ơn quý khách!',
+  footer_text: t('admin.msg_52e4453a', 'Cảm ơn quý khách!'),
   custom_categories: '[]',
   seller_name: '',
   seller_phone: '',
@@ -641,13 +641,13 @@ function formatDate(d) {
 }
 
 const catLabels = {
-  order_revenue: 'Doanh thu ĐH', shipping_cost: 'Phí VC', refund: 'Hoàn trả', cogs: 'Giá vốn (COGS)',
-  inventory_purchase: 'Nhập kho', inventory_export: 'Xuất kho', inventory_return: 'Trả NCC', inventory_adjust: 'Kiểm kê',
-  marketing: 'Marketing', salary: 'Lương', rent: 'Thuê MB', supplies: 'Vật tư', other: 'Khác', tax: 'Thuế',
+  order_revenue: t('admin.msg_898ab6cf', 'Doanh thu ĐH'), shipping_cost: t('admin.msg_7960dd56', 'Phí VC'), refund: t('admin.msg_94280c8b', 'Hoàn trả'), cogs: t('admin.msg_4b50770c', 'Giá vốn (COGS)'),
+  inventory_purchase: t('admin.msg_94e97353', 'Nhập kho'), inventory_export: t('admin.msg_25af27c7', 'Xuất kho'), inventory_return: t('admin.msg_67702abb', 'Trả NCC'), inventory_adjust: t('admin.msg_cd34d41d', 'Kiểm kê'),
+  marketing: 'Marketing', salary: t('admin.msg_0931b128', 'Lương'), rent: t('admin.msg_3fa5ac09', 'Thuê MB'), supplies: t('admin.msg_a9274621', 'Vật tư'), other: t('admin.msg_06c1f85a', 'Khác'), tax: t('admin.msg_500aedd2', 'Thuế'),
 }
 function categoryLabel(c) { return catLabels[c] || c }
 
-const statusLabels = { draft: 'Nháp', issued: 'Đã xuất', paid: 'Đã TT', cancelled: 'Huỷ' }
+const statusLabels = { draft: t('admin.msg_867cf3b9', 'Nháp'), issued: t('admin.msg_3d064afb', 'Đã xuất'), paid: t('admin.msg_04b5eaed', 'Đã TT'), cancelled: t('admin.msg_9daba04f', 'Huỷ') }
 function statusLabel(s) { return statusLabels[s] || s }
 
 function barH(val) {
@@ -735,7 +735,7 @@ function openEntryForm() {
 
 async function saveEntry() {
   if (!entryForm.value.amount || !entryForm.value.entry_date) {
-    showToast('Vui lòng nhập số tiền và ngày', 'error'); return
+    showToast(t('admin.msg_04c8a0', 'Vui lòng nhập số tiền và ngày'), 'error'); return
   }
   savingEntry.value = true
   try {
@@ -744,10 +744,10 @@ async function saveEntry() {
       body: JSON.stringify(entryForm.value),
     })
     if (!res.ok) throw new Error()
-    showToast('Đã tạo bút toán', 'success')
+    showToast(t('admin.msg_687d3a', 'Đã tạo bút toán'), 'success')
     showEntryForm.value = false
     loadAll()
-  } catch { showToast('Lỗi tạo bút toán', 'error') }
+  } catch { showToast(t('admin.msg_8262f5', 'Lỗi tạo bút toán'), 'error') }
   savingEntry.value = false
 }
 
@@ -756,9 +756,9 @@ async function deleteEntry(e) {
   try {
     const res = await apiFetch(`/accounting/entries/${e.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()
-    showToast('Đã xoá', 'success')
+    showToast(t('admin.msg_4ef74b', 'Đã xoá'), 'success')
     loadAll()
-  } catch { showToast('Lỗi xoá', 'error') }
+  } catch { showToast(t('admin.msg_78bfe3', 'Lỗi xoá'), 'error') }
 }
 
 function getApiBaseUrl() {
@@ -833,8 +833,8 @@ async function saveConfig() {
       body: JSON.stringify(accConfig.value),
     })
     if (!res.ok) throw new Error()
-    showToast('Đã lưu cấu hình kế toán', 'success')
-  } catch { showToast('Lỗi lưu cấu hình', 'error') }
+    showToast(t('admin.msg_390420', 'Đã lưu cấu hình kế toán'), 'success')
+  } catch { showToast(t('admin.msg_166445', 'Lỗi lưu cấu hình'), 'error') }
   savingConfig.value = false
 }
 

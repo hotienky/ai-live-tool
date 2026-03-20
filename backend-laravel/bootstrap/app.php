@@ -8,6 +8,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
         \App\Providers\RepositoryServiceProvider::class,
         \App\Providers\EventServiceProvider::class,
+        \App\Providers\HorizonServiceProvider::class,
     ])
     ->withRouting(
         web: __DIR__.'/../routes/web.php',

@@ -4,7 +4,7 @@
       <div class="lsm">
         <!-- Header -->
         <div class="lsm__header">
-          <h3><Radio :size="16" style="color:#ff3b5c;vertical-align:middle" /> Bắt đầu phiên Live</h3>
+          <h3><Radio :size="16" style="color:#ff3b5c;vertical-align:middle" /> {{ t('admin.msg_26f7b4e2', 'Bắt đầu phiên Live') }}</h3>
           <button class="lsm__close" @click="$emit('close')"><X :size="16" /></button>
         </div>
 
@@ -31,7 +31,7 @@
             ref="identifierInput"
           />
 
-          <label class="lsm__label">Tên phiên <span class="lsm__optional">(optional)</span></label>
+          <label class="lsm__label">{{ t('admin.msg_c6e41ea0', 'Tên phiên') }} <span class="lsm__optional">(optional)</span></label>
           <input
             v-model="sessionName"
             class="lsm__input"
@@ -53,7 +53,7 @@
 
         <!-- Recent Sessions -->
         <div class="lsm__recent" v-if="recentSessions.length > 0">
-          <div class="lsm__recent-title">Phiên gần đây</div>
+          <div class="lsm__recent-title">{{ t('admin.msg_68e39d66', 'Phiên gần đây') }}</div>
           <div
             v-for="s in recentSessions" :key="s.id"
             class="lsm__recent-item"
@@ -108,7 +108,7 @@ const inputLabel = computed(() => {
 const inputPlaceholder = computed(() => {
   const ph = {
     tiktok: '@username',
-    facebook: 'Page ID hoặc tên Page',
+    facebook: t('admin.msg_a2e0c9bc', 'Page ID hoặc tên Page'),
     youtube: 'https://youtube.com/watch?v=xxx',
     shopee: 'Shop ID',
   }

@@ -1,8 +1,8 @@
 <template>
   <div class="bm">
     <div class="bm-header">
-      <h3><Award :size="16" /> Quản lý thương hiệu <span class="bm-count">({{ brands.length }})</span></h3>
-      <button class="btn-add" @click="$emit('create')">+ Thêm thương hiệu</button>
+      <h3><Award :size="16" /> {{ t('admin.msg_a2bf4697', 'Quản lý thương hiệu') }} <span class="bm-count">({{ brands.length }})</span></h3>
+      <button class="btn-add" @click="$emit('create')">{{ t('admin.msg_5a6d36a6', '+ Thêm thương hiệu') }}</button>
     </div>
 
     <div class="bm-grid" v-if="brands.length">
@@ -45,7 +45,7 @@ async function fetchBrands() {
 
 async function handleDelete(b) {
   if (!confirm(`Xóa "${b.name}"?`)) return
-  try { await apiFetch(`/brands/${b.id}`, { method: 'DELETE' }); showToast('Đã xóa', 'success'); await fetchBrands() }
+  try { await apiFetch(`/brands/${b.id}`, { method: 'DELETE' }); showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success'); await fetchBrands() }
   catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 

@@ -4,16 +4,16 @@
 
     <!-- Generate new key -->
     <div class="key-add-row">
-      <input v-model="newName" placeholder="Tên API key (ví dụ: Mobile App)" class="key-input key-input--flex" />
+      <input v-model="newName" :placeholder="t('admin.msg_d2b41b', 'Tên API key (ví dụ: Mobile App)')" class="key-input key-input--flex" />
       <button class="key-gen-btn" @click="generateKey" :disabled="!newName || generating">
-        <Plus :size="14" /> {{ generating ? 'Đang tạo...' : 'Tạo key' }}
+        <Plus :size="14" /> {{ generating ? t('admin.msg_f2315cbc', 'Đang tạo...') : t('admin.msg_004f1f31', 'Tạo key') }}
       </button>
     </div>
 
     <!-- Newly generated key (show once) -->
     <div v-if="newlyGenerated" class="key-reveal">
       <div class="key-reveal__header">
-        <ShieldCheck :size="16" /> API Key đã tạo — <strong>Lưu lại ngay, sẽ không hiển thị lại!</strong>
+        <ShieldCheck :size="16" /> {{ t('admin.msg_474c6e32', 'API Key đã tạo —') }} <strong>{{ t('admin.msg_840a47fe', 'Lưu lại ngay, sẽ không hiển thị lại!') }}</strong>
       </div>
       <div class="key-reveal__token">
         <code>{{ newlyGenerated }}</code>
@@ -31,8 +31,8 @@
     <!-- Empty -->
     <div v-else-if="apiKeys.length === 0" class="empty-state">
       <KeyRound :size="36" />
-      <p>Chưa có API key nào</p>
-      <small>Tạo API key để tích hợp với hệ thống bên ngoài</small>
+      <p>{{ t('admin.msg_d1fca11f', 'Chưa có API key nào') }}</p>
+      <small>{{ t('admin.msg_496aeaee', 'Tạo API key để tích hợp với hệ thống bên ngoài') }}</small>
     </div>
 
     <!-- List -->
@@ -110,43 +110,43 @@ async function generateKey() {
     })
     if (res?.key) {
       newlyGenerated.value = res.key
-      showToast('API key đã tạo thành công', 'success')
+      showToast(t('admin.msg_6e6d0f', 'API key đã tạo thành công'), 'success')
       newName.value = ''
       loadKeys()
     }
   } catch (e) {
-    showToast('Lỗi tạo API key', 'error')
+    showToast(t('admin.msg_50484b', 'Lỗi tạo API key'), 'error')
   } finally {
     generating.value = false
   }
 }
 
 async function revokeKey(id) {
-  if (!confirm('Thu hồi API key này? Key sẽ không thể sử dụng nữa.')) return
+  if (!confirm(t('admin.msg_1ae336e5', 'Thu hồi API key này? Key sẽ không thể sử dụng nữa.'))) return
   try {
     await apiFetch(`/api-keys/${id}/revoke`, { method: 'PUT' })
     const key = apiKeys.value.find(k => k.id === id)
     if (key) key.status = 'revoked'
-    showToast('Đã thu hồi API key', 'success')
+    showToast(t('admin.msg_064ce1', 'Đã thu hồi API key'), 'success')
   } catch (e) {
-    showToast('Lỗi thu hồi', 'error')
+    showToast(t('admin.msg_1dfdfe', 'Lỗi thu hồi'), 'error')
   }
 }
 
 async function deleteKey(id) {
-  if (!confirm('Xóa API key này vĩnh viễn?')) return
+  if (!confirm(t('admin.msg_023e8bab', 'Xóa API key này vĩnh viễn?'))) return
   try {
     await apiFetch(`/api-keys/${id}`, { method: 'DELETE' })
     apiKeys.value = apiKeys.value.filter(k => k.id !== id)
-    showToast('Đã xóa API key', 'success')
+    showToast(t('admin.msg_a28dd6', 'Đã xóa API key'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa', 'error')
+    showToast(t('admin.msg_9e5d62', 'Lỗi xóa'), 'error')
   }
 }
 
 function copyKey(key) {
   navigator.clipboard.writeText(key)
-  showToast('Đã copy API key', 'success')
+  showToast(t('admin.msg_0478f4', 'Đã copy API key'), 'success')
 }
 
 function formatDate(ts) {

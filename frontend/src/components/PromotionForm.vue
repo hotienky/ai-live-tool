@@ -28,11 +28,11 @@
           
           <div class="form-group">
             <label>{{ t('admin.promotion.name', 'Tên CTKM') }} <span v-if="currentLangPromotion !== defaultLangCode" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
-            <input v-model="promoName" class="form-input" placeholder="VD: Khuyến mãi Hè" />
+            <input v-model="promoName" class="form-input" :placeholder="t('admin.msg_92ed5b', 'VD: Khuyến mãi Hè')" />
           </div>
           <div class="form-group">
             <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangPromotion !== defaultLangCode" class="lang-badge">{{ currentLangPromotion.toUpperCase() }}</span></label>
-            <textarea v-model="promoDesc" class="form-input" rows="2" placeholder="Chi tiết..."></textarea>
+            <textarea v-model="promoDesc" class="form-input" rows="2" :placeholder="t('admin.msg_dfa3f5', 'Chi tiết...')"></textarea>
           </div>
 
           <div class="form-group">
@@ -70,11 +70,11 @@
 
           <div class="form-group">
             <label>{{ t('admin.promotion.code_name', 'Tên mã') }} <span v-if="currentLangCoupon !== defaultLangCode" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
-            <input v-model="couponName" class="form-input" placeholder="VD: Ưu đãi tân binh" />
+            <input v-model="couponName" class="form-input" :placeholder="t('admin.msg_84ca07', 'VD: Ưu đãi tân binh')" />
           </div>
           <div class="form-group">
             <label>{{ t('admin.description', 'Mô tả') }} <span v-if="currentLangCoupon !== defaultLangCode" class="lang-badge">{{ currentLangCoupon.toUpperCase() }}</span></label>
-            <textarea v-model="couponDesc" class="form-input" rows="2" placeholder="Chi tiết..."></textarea>
+            <textarea v-model="couponDesc" class="form-input" rows="2" :placeholder="t('admin.msg_dfa3f5', 'Chi tiết...')"></textarea>
           </div>
 
           <div class="form-group">
@@ -101,7 +101,7 @@
             </div>
             <div class="form-group">
               <label>{{ t('admin.max_uses', 'Dùng tối đa') }}</label>
-              <input v-model.number="couponForm.maxUses" type="number" class="form-input" placeholder="Không giới hạn" />
+              <input v-model.number="couponForm.maxUses" type="number" class="form-input" :placeholder="t('admin.msg_07de0c', 'Không giới hạn')" />
             </div>
           </div>
           <div class="form-row">

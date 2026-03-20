@@ -1,8 +1,8 @@
 <template>
   <div class="mod-manager">
     <div class="mod-header">
-      <h2><Puzzle :size="20" style="vertical-align:middle" /> Quản Lý Module</h2>
-      <p class="mod-subtitle">Cài đặt hoặc gỡ bỏ các tính năng mở rộng cho cửa hàng</p>
+      <h2><Puzzle :size="20" style="vertical-align:middle" /> {{ t('admin.msg_690deacc', 'Quản Lý Module') }}</h2>
+      <p class="mod-subtitle">{{ t('admin.msg_883266f9', 'Cài đặt hoặc gỡ bỏ các tính năng mở rộng cho cửa hàng') }}</p>
     </div>
 
     <div v-if="loading" class="mod-loading">{{ t('admin.loading', 'Đang tải...') }}</div>
@@ -20,23 +20,23 @@
             <h3>{{ m.name }}</h3>
             <span class="mod-card__version">v{{ m.version }}</span>
           </div>
-          <span v-if="m.is_installed" class="mod-badge mod-badge--active">Đã cài</span>
-          <span v-else class="mod-badge mod-badge--available">Có sẵn</span>
+          <span v-if="m.is_installed" class="mod-badge mod-badge--active">{{ t('admin.msg_f6dd9c8a', 'Đã cài') }}</span>
+          <span v-else class="mod-badge mod-badge--available">{{ t('admin.msg_c90e2dcc', 'Có sẵn') }}</span>
         </div>
 
         <p class="mod-card__desc">{{ m.description }}</p>
 
         <div class="mod-card__price">
           <span v-if="m.price > 0" class="price-tag">{{ formatPrice(m.price) }}</span>
-          <span v-else class="price-tag price-tag--free">Miễn phí</span>
+          <span v-else class="price-tag price-tag--free">{{ t('admin.msg_c5918647', 'Miễn phí') }}</span>
         </div>
 
         <div v-if="m.requires?.length" class="mod-card__deps">
-          <span class="dep-label">Yêu cầu:</span>
+          <span class="dep-label">{{ t('admin.msg_93e018a3', 'Yêu cầu:') }}</span>
           <span
             v-for="dep in m.requires" :key="dep"
             :class="['dep-badge', isDepInstalled(dep) ? 'dep-badge--ok' : 'dep-badge--missing']"
-            :title="isDepInstalled(dep) ? 'Đã cài' : 'Chưa cài — cần cài trước'"
+            :title="isDepInstalled(dep) ? t('admin.msg_f6dd9c8a', 'Đã cài') : t('admin.msg_a182d7a9', 'Chưa cài — cần cài trước')"
           >
             <component :is="isDepInstalled(dep) ? CheckCircle2 : AlertCircle" :size="11" />
             {{ getModuleName(dep) }}
@@ -60,7 +60,7 @@
             @click="uninstallModule(m.id)"
           >
             <Trash2 :size="13" />
-            {{ actionLoading === m.id ? 'Đang gỡ...' : 'Gỡ cài đặt' }}
+            {{ actionLoading === m.id ? t('admin.msg_0c30f9fb', 'Đang gỡ...') : t('admin.msg_ca016666', 'Gỡ cài đặt') }}
           </button>
 
           <!-- Pending → Show waiting badge -->
@@ -86,7 +86,7 @@
             @click="installModule(m.id)"
           >
             <Download :size="13" />
-            {{ actionLoading === m.id ? 'Đang cài...' : 'Cài đặt lại' }}
+            {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_4d4542e9', 'Cài đặt lại') }}
           </button>
 
           <!-- Paid + Never approved → Request button -->
@@ -97,7 +97,7 @@
             @click="requestModule(m.id)"
           >
             <Send :size="13" />
-            {{ actionLoading === m.id ? 'Đang gửi...' : 'Yêu cầu cài đặt' }}
+            {{ actionLoading === m.id ? t('admin.msg_6b22c83e', 'Đang gửi...') : t('admin.msg_3ba3fad4', 'Yêu cầu cài đặt') }}
           </button>
 
           <!-- Free + Not installed → Install button -->
@@ -108,7 +108,7 @@
             @click="installModule(m.id)"
           >
             <Download :size="13" />
-            {{ actionLoading === m.id ? 'Đang cài...' : 'Cài đặt' }}
+            {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_1a691070', 'Cài đặt') }}
           </button>
         </div>
 
@@ -120,7 +120,7 @@
 
     <div v-if="!loading && modules.length === 0" class="mod-empty">
       <Package :size="48" />
-      <p>Chưa có module nào</p>
+      <p>{{ t('admin.msg_4184d885', 'Chưa có module nào') }}</p>
     </div>
   </div>
 </template>
@@ -161,11 +161,11 @@ const catIcons = {
 }
 
 const catLabels = {
-  operations: 'Vận hành',
-  finance: 'Tài chính',
+  operations: t('admin.msg_8ae3233c', 'Vận hành'),
+  finance: t('admin.msg_7add65a1', 'Tài chính'),
   marketing: 'Marketing',
-  content: 'Nội dung',
-  sales: 'Bán hàng',
+  content: t('admin.msg_ee7ca513', 'Nội dung'),
+  sales: t('admin.msg_cc0e5c0c', 'Bán hàng'),
 }
 
 async function fetchModules() {
@@ -175,7 +175,7 @@ async function fetchModules() {
     const data = await res.json()
     modules.value = data?.modules || data || []
   } catch (e) {
-    showToast('Lỗi tải modules', 'error')
+    showToast(t('admin.msg_65808f', 'Lỗi tải modules'), 'error')
   } finally {
     loading.value = false
   }
@@ -207,14 +207,14 @@ async function installModule(moduleId) {
     })
     const data = await res.json()
     if (res.ok) {
-      showToast(data.message || 'Đã cài đặt', 'success')
+      showToast(data.message || t('admin.msg_14f0c73d', 'Đã cài đặt'), 'success')
       modules.value = data?.modules || modules.value
       emit('modulesChanged', data?.installed || [])
     } else {
-      showToast(data.message || 'Lỗi cài đặt', 'error')
+      showToast(data.message || t('admin.msg_a1a3a271', 'Lỗi cài đặt'), 'error')
     }
   } catch (e) {
-    showToast('Lỗi cài đặt module', 'error')
+    showToast(t('admin.msg_7e9f0f', 'Lỗi cài đặt module'), 'error')
   } finally {
     actionLoading.value = null
   }
@@ -230,20 +230,20 @@ async function requestModule(moduleId) {
     })
     const data = await res.json()
     if (res.ok) {
-      showToast(data.message || 'Đã gửi yêu cầu', 'success')
+      showToast(data.message || t('admin.msg_447e9f03', 'Đã gửi yêu cầu'), 'success')
       modules.value = data?.modules || modules.value
     } else {
-      showToast(data.message || 'Lỗi gửi yêu cầu', 'error')
+      showToast(data.message || t('admin.msg_4bd99115', 'Lỗi gửi yêu cầu'), 'error')
     }
   } catch (e) {
-    showToast('Lỗi gửi yêu cầu module', 'error')
+    showToast(t('admin.msg_7ec795', 'Lỗi gửi yêu cầu module'), 'error')
   } finally {
     actionLoading.value = null
   }
 }
 
 async function uninstallModule(moduleId) {
-  if (!confirm('Gỡ cài đặt module này? Dữ liệu sẽ được giữ lại.')) return
+  if (!confirm(t('admin.msg_0ea1758d', 'Gỡ cài đặt module này? Dữ liệu sẽ được giữ lại.'))) return
   actionLoading.value = moduleId
   try {
     const res = await apiFetch('/modules/uninstall', {
@@ -253,14 +253,14 @@ async function uninstallModule(moduleId) {
     })
     const data = await res.json()
     if (res.ok) {
-      showToast(data.message || 'Đã gỡ', 'success')
+      showToast(data.message || t('admin.msg_e888fab8', 'Đã gỡ'), 'success')
       modules.value = data?.modules || modules.value
       emit('modulesChanged', data?.installed || [])
     } else {
-      showToast(data.message || 'Lỗi gỡ cài đặt', 'error')
+      showToast(data.message || t('admin.msg_8a3ea096', 'Lỗi gỡ cài đặt'), 'error')
     }
   } catch (e) {
-    showToast('Lỗi gỡ cài đặt', 'error')
+    showToast(t('admin.msg_8a3ea0', 'Lỗi gỡ cài đặt'), 'error')
   } finally {
     actionLoading.value = null
   }

@@ -20,8 +20,8 @@
         <!-- Empty -->
         <div v-else-if="sessions.length === 0" class="session-history__empty">
           <Radio :size="36" />
-          <p>Chưa có phiên live nào</p>
-          <p class="session-history__empty-sub">Phiên live sẽ tự động lưu khi bắt đầu kết nối</p>
+          <p>{{ t('admin.msg_468ae07b', 'Chưa có phiên live nào') }}</p>
+          <p class="session-history__empty-sub">{{ t('admin.msg_77647d3f', 'Phiên live sẽ tự động lưu khi bắt đầu kết nối') }}</p>
         </div>
 
         <!-- Session List -->
@@ -38,7 +38,7 @@
                 {{ session.shop_name || 'Unknown' }}
               </div>
               <span class="session-card__badge" :class="statusClass(session.status)">
-                {{ session.status === 'Active' ? 'Đang live' : 'Kết thúc' }}
+                {{ session.status === 'Active' ? t('admin.msg_6c2a7081', 'Đang live') : t('admin.msg_144f8bdc', 'Kết thúc') }}
               </span>
             </div>
 
@@ -153,7 +153,7 @@ async function fetchSessions() {
 }
 
 async function onDelete(id) {
-  if (!confirm('Xóa phiên live này?')) return
+  if (!confirm(t('admin.msg_e19bdcfe', 'Xóa phiên live này?'))) return
   try {
     await apiFetch(`/sessions/${id}`, { method: 'DELETE' })
     sessions.value = sessions.value.filter(s => s.id !== id)

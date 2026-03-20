@@ -1,7 +1,7 @@
 <template>
   <div class="srd-page">
     <div class="srd-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="srd-header__center">
         <h3 v-if="receipt">
           <span class="type-badge" :class="receipt.type">{{ typeLabel(receipt.type) }}</span>
@@ -10,23 +10,23 @@
         </h3>
       </div>
       <div class="header-actions" v-if="receipt">
-        <button v-if="receipt.status === 'draft'" class="btn-confirm" @click="confirmReceipt"><Check :size="13" /> Xác nhận</button>
-        <button v-if="receipt.status !== 'cancelled'" class="btn-cancel-action" @click="cancelReceipt"><X :size="13" /> Hủy phiếu</button>
+        <button v-if="receipt.status === 'draft'" class="btn-confirm" @click="confirmReceipt"><Check :size="13" /> {{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</button>
+        <button v-if="receipt.status !== 'cancelled'" class="btn-cancel-action" @click="cancelReceipt"><X :size="13" /> {{ t('admin.msg_f1274bf2', 'Hủy phiếu') }}</button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-hint">Đang tải...</div>
+    <div v-if="loading" class="loading-hint">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div v-else-if="receipt">
       <div class="srd-info-grid">
         <div v-if="receipt.supplier"><strong>NCC:</strong> {{ receipt.supplier?.name }}</div>
-        <div><strong>Ngày tạo:</strong> {{ formatDate(receipt.created_at) }}</div>
-        <div v-if="receipt.confirmed_at"><strong>Xác nhận:</strong> {{ formatDate(receipt.confirmed_at) }}</div>
-        <div v-if="receipt.notes" class="srd-notes"><strong>Ghi chú:</strong> {{ receipt.notes }}</div>
+        <div><strong>{{ t('admin.msg_664cb320', 'Ngày tạo:') }}</strong> {{ formatDate(receipt.created_at) }}</div>
+        <div v-if="receipt.confirmed_at"><strong>{{ t('admin.msg_884bbb91', 'Xác nhận:') }}</strong> {{ formatDate(receipt.confirmed_at) }}</div>
+        <div v-if="receipt.notes" class="srd-notes"><strong>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</strong> {{ receipt.notes }}</div>
       </div>
 
       <div class="srd-table-wrap">
         <table class="srd-table">
-          <thead><tr><th>#</th><th>Sản phẩm</th><th>SKU</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+          <thead><tr><th>#</th><th>{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</th><th>SKU</th><th>SL</th><th>{{ t('admin.msg_ba2fb8fb', 'Đơn giá') }}</th><th>{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in (receipt.items || [])" :key="idx">
               <td>{{ idx+1 }}</td>
@@ -38,7 +38,7 @@
             </tr>
           </tbody>
           <tfoot>
-            <tr><td colspan="5" class="text-right fw-800">Tổng cộng:</td><td class="amount fw-800">{{ formatCurrency(receipt.total_amount) }}</td></tr>
+            <tr><td colspan="5" class="text-right fw-800">{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</td><td class="amount fw-800">{{ formatCurrency(receipt.total_amount) }}</td></tr>
           </tfoot>
         </table>
       </div>
@@ -67,7 +67,7 @@ async function loadReceipt() {
     const res = await apiFetch(`/stock-receipts/${props.editId}`)
     const data = await res.json()
     receipt.value = data.data || data
-  } catch { showToast('Không tải được phiếu', 'error') }
+  } catch { showToast(t('admin.msg_e34bf9', 'Không tải được phiếu'), 'error') }
   loading.value = false
 }
 
@@ -75,7 +75,7 @@ async function confirmReceipt() {
   if (!confirm(`Xác nhận phiếu ${receipt.value.receipt_number}? Kho sẽ được cập nhật.`)) return
   try {
     await apiFetch(`/stock-receipts/${props.editId}/confirm`, { method: 'POST' })
-    showToast('Đã xác nhận — Kho và kế toán đã cập nhật', 'success')
+    showToast(t('admin.msg_757b90', 'Đã xác nhận — Kho và kế toán đã cập nhật'), 'success')
     loadReceipt(); emit('refresh')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
@@ -84,13 +84,13 @@ async function cancelReceipt() {
   if (!confirm(`Hủy phiếu ${receipt.value.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${props.editId}/cancel`, { method: 'POST' })
-    showToast('Đã hủy phiếu', 'success')
+    showToast(t('admin.msg_578e8a', 'Đã hủy phiếu'), 'success')
     loadReceipt(); emit('refresh')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
-function typeLabel(t) { return { import: 'Nhập kho', export: 'Xuất kho', return: 'Trả hàng', adjust: 'Kiểm kê' }[t] || t }
-function statusLabel(s) { return { draft: 'Nháp', confirmed: 'Đã xác nhận', cancelled: 'Đã hủy' }[s] || s }
+function typeLabel(t) { return { import: t('admin.msg_94e97353', 'Nhập kho'), export: t('admin.msg_25af27c7', 'Xuất kho'), return: t('admin.msg_4d38cf36', 'Trả hàng'), adjust: t('admin.msg_cd34d41d', 'Kiểm kê') }[t] || t }
+function statusLabel(s) { return { draft: t('admin.msg_867cf3b9', 'Nháp'), confirmed: t('admin.msg_c6de124c', 'Đã xác nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s }
 function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
 function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }
 </script>

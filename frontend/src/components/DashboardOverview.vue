@@ -54,7 +54,7 @@
         <div v-if="activeLives.length === 0" class="dashboard__empty">
           <Radio :size="32" class="dashboard__empty-icon" />
           <span>{{ t('admin.no_live_sessions', 'Không có phiên live nào') }}</span>
-          <span class="dashboard__empty-hint">Bắt đầu phiên live từ <strong>Live Monitor</strong></span>
+          <span class="dashboard__empty-hint">{{ t('admin.msg_597c6531', 'Bắt đầu phiên live từ') }} <strong>Live Monitor</strong></span>
         </div>
         <div v-for="live in activeLives" :key="live.shopId" class="dashboard__live-item" @click="$emit('goLive', live)" style="cursor:pointer">
           <div class="dashboard__live-dot"></div>
@@ -82,7 +82,7 @@
         <div v-if="recentLeads.length === 0" class="dashboard__empty">
           <Flame :size="32" class="dashboard__empty-icon" />
           <span>{{ t('admin.no_leads', 'Chưa có leads nào') }}</span>
-          <span class="dashboard__empty-hint">Leads sẽ xuất hiện khi AI phân loại comments</span>
+          <span class="dashboard__empty-hint">{{ t('admin.msg_5e4fb1ea', 'Leads sẽ xuất hiện khi AI phân loại comments') }}</span>
         </div>
         <div v-for="lead in recentLeads.slice(0, 10)" :key="lead.id || lead.timestamp" class="dashboard__lead-item" @click="$emit('goLead', lead)" style="cursor:pointer">
           <div class="dashboard__lead-avatar" :class="{

@@ -57,13 +57,13 @@
       <div v-else-if="!loading" class="ml-empty">
         <Upload :size="36" />
         <p>{{ t('admin.no_media', 'Chưa có media nào') }}</p>
-        <p class="ml-empty__hint">Kéo thả file vào đây hoặc click nút Upload</p>
+        <p class="ml-empty__hint">{{ t('admin.msg_a6511995', 'Kéo thả file vào đây hoặc click nút Upload') }}</p>
       </div>
 
       <!-- Drag overlay -->
       <div v-if="isDragOver" class="ml-drop-overlay">
         <Upload :size="40" />
-        <p>Thả file để upload</p>
+        <p>{{ t('admin.msg_320d4d1f', 'Thả file để upload') }}</p>
       </div>
     </div>
 
@@ -98,11 +98,11 @@
 
         <div class="form-group">
           <label>Alt Text</label>
-          <input v-model="editAlt" placeholder="Mô tả ảnh cho SEO" @blur="saveDetail" />
+          <input v-model="editAlt" :placeholder="t('admin.msg_7d6f4e', 'Mô tả ảnh cho SEO')" @blur="saveDetail" />
         </div>
         <div class="form-group">
           <label>Title</label>
-          <input v-model="editTitle" placeholder="Tiêu đề" @blur="saveDetail" />
+          <input v-model="editTitle" :placeholder="t('admin.msg_ae4b89', 'Tiêu đề')" @blur="saveDetail" />
         </div>
 
         <div class="form-group">
@@ -189,7 +189,7 @@ async function handleDelete(item) {
   if (!confirm(`Xóa "${item.filename}"?`)) return
   try {
     await deleteMedia(item.id)
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
     selected.value = null
     selectedId.value = null
     reload()
@@ -219,7 +219,7 @@ async function doUpload(files) {
     if (f.size > MAX_FILE_SIZE) {
       rejected.push(`"${f.name}" vượt quá 10MB (${humanSize(f.size)})`)
     } else if (!ALLOWED_TYPES.includes(f.type)) {
-      rejected.push(`"${f.name}" — định dạng "${f.type || 'không rõ'}" không được hỗ trợ`)
+      rejected.push(`"${f.name}" — định dạng "${f.type || t('admin.msg_ffd4a4f2', 'không rõ')}" không được hỗ trợ`)
     } else {
       valid.push(f)
     }
@@ -237,11 +237,11 @@ async function doUpload(files) {
     const errors = (result?.data || []).filter(r => r.error)
     const successes = (result?.data || []).filter(r => !r.error)
     if (successes.length) {
-      showToast(`Đã upload ${successes.length} file thành công`, 'success')
+      showToast(t('admin.msg_upload_success', 'Đã upload') + ` ${successes.length} file`, 'success')
     }
     if (errors.length) {
       const msgs = errors.map(e => `"${e.filename}": ${e.message}`).join('\n')
-      showToast(`Lỗi upload:\n${msgs}`, 'error')
+      showToast(t('admin.msg_upload_error', 'Lỗi upload') + ':\n' + msgs, 'error')
     }
     reload()
   } catch (e) {
@@ -252,7 +252,7 @@ async function doUpload(files) {
 
 function copyUrl(url) {
   navigator.clipboard.writeText(url)
-  showToast('Đã copy URL', 'success')
+  showToast(t('admin.msg_5079fd', 'Đã copy URL'), 'success')
 }
 
 function isImage(item) {

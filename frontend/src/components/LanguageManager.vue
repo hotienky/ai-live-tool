@@ -1,6 +1,11 @@
 <template>
   <div class="lang-mgr">
-    <h3 class="section-title"><Globe :size="16" /> {{ t('admin.language_management', 'Quản lý ngôn ngữ') }} ({{ languages.length }})</h3>
+    <div class="lang-mgr__header">
+      <h3 class="section-title"><Globe :size="16" /> {{ t('admin.language_management', 'Quản lý ngôn ngữ') }} ({{ languages.length }})</h3>
+      <button class="lang-sync-btn" @click="syncDefaults" :disabled="syncing">
+        <RefreshCw :size="13" :class="{ spin: syncing }" /> {{ syncing ? t('admin.msg_97d2385a', 'Đang đồng bộ...') : t('admin.msg_1c7a3a28', 'Đồng bộ mặc định') }}
+      </button>
+    </div>
 
     <!-- Add language -->
     <div class="lang-add-row">
@@ -130,7 +135,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { Globe, Plus, Trash2, Star, FileText, Search, Save, Loader2, X, Lock } from 'lucide-vue-next'
+import { Globe, Plus, Trash2, Star, FileText, Search, Save, Loader2, X, Lock, RefreshCw } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -159,6 +164,7 @@ const newTransValue = ref('')
 const hasTransChanges = ref(false)
 const savingTrans = ref(false)
 const pendingTransChanges = ref({})
+const syncing = ref(false)
 
 function getFlagEmoji(code) {
   const found = allSupportedLanguages.value.find(l => l.code === code)
@@ -322,6 +328,30 @@ async function saveTranslations() {
   }
 }
 
+async function syncDefaults() {
+  syncing.value = true
+  try {
+    const res = await apiFetch('/languages/sync-defaults', { method: 'POST' })
+    const json = await res.json()
+    const data = json?.data || json
+    const total = Object.values(data).reduce((a, b) => a + b, 0)
+    if (total > 0) {
+      showToast(t('admin.msg_synced', 'Đã đồng bộ') + ` ${total} translations`, 'success')
+      // Reload translations if a language is selected
+      if (selectedLangId.value) {
+        const lang = languages.value.find(l => l.id === selectedLangId.value)
+        if (lang) await selectLanguage(lang)
+      }
+    } else {
+      showToast(t('admin.msg_865009', 'Tất cả translations đã được đồng bộ'), 'info')
+    }
+  } catch (e) {
+    showToast('Lỗi đồng bộ: ' + e.message, 'error')
+  } finally {
+    syncing.value = false
+  }
+}
+
 onMounted(async () => {
   await loadLanguages()
   await Promise.all([loadAvailableLanguages(), loadAllSupportedLanguages()])
@@ -330,7 +360,16 @@ onMounted(async () => {
 
 <style scoped>
 .lang-mgr { margin-top:0; }
-.section-title { display:flex; align-items:center; gap:8px; font-size:15px; margin:0 0 16px; color:var(--color-text-primary); }
+.lang-mgr__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.section-title { display:flex; align-items:center; gap:8px; font-size:15px; margin:0; color:var(--color-text-primary); }
+.lang-sync-btn {
+  background:none; border:1px solid var(--color-border); border-radius:8px;
+  padding:7px 14px; font-size:12px; cursor:pointer;
+  color:var(--color-text-muted); display:inline-flex; align-items:center; gap:5px;
+  transition:all 0.2s;
+}
+.lang-sync-btn:hover { border-color:var(--color-accent-primary); color:var(--color-accent-primary); }
+.lang-sync-btn:disabled { opacity:0.5; cursor:wait; }
 
 .lang-add-row { margin-bottom:16px; }
 .lang-select-wrap { display:flex; align-items:center; gap:10px; }

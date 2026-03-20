@@ -1,7 +1,7 @@
 <template>
   <div class="pod-page">
     <div class="pod-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="pod-header__center">
         <h3 v-if="po">
           {{ po.po_number }}
@@ -10,24 +10,24 @@
         </h3>
       </div>
       <div v-if="po" class="header-actions">
-        <button v-if="po.status === 'draft'" class="btn-order" @click="sendPO"><Send :size="13" /> Đặt hàng</button>
-        <button v-if="['ordered','partial'].includes(po.status)" class="btn-receive" @click="showReceiveModal = true"><PackageCheck :size="13" /> Nhận hàng</button>
+        <button v-if="po.status === 'draft'" class="btn-order" @click="sendPO"><Send :size="13" /> {{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+        <button v-if="['ordered','partial'].includes(po.status)" class="btn-receive" @click="showReceiveModal = true"><PackageCheck :size="13" /> {{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-hint">Đang tải...</div>
+    <div v-if="loading" class="loading-hint">{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div v-else-if="po">
       <div class="pod-info-grid">
         <div><strong>NCC:</strong> {{ po.supplier?.name }}</div>
-        <div><strong>Ngày đặt:</strong> {{ formatDate(po.order_date) }}</div>
-        <div v-if="po.expected_date"><strong>Dự kiến:</strong> {{ formatDate(po.expected_date) }}</div>
-        <div v-if="po.received_date"><strong>Đã nhận:</strong> {{ formatDate(po.received_date) }}</div>
-        <div v-if="po.notes" class="pod-notes"><strong>Ghi chú:</strong> {{ po.notes }}</div>
+        <div><strong>{{ t('admin.msg_ab0e5d07', 'Ngày đặt:') }}</strong> {{ formatDate(po.order_date) }}</div>
+        <div v-if="po.expected_date"><strong>{{ t('admin.msg_516a4bdf', 'Dự kiến:') }}</strong> {{ formatDate(po.expected_date) }}</div>
+        <div v-if="po.received_date"><strong>{{ t('admin.msg_8f5ec689', 'Đã nhận:') }}</strong> {{ formatDate(po.received_date) }}</div>
+        <div v-if="po.notes" class="pod-notes"><strong>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</strong> {{ po.notes }}</div>
       </div>
 
       <div class="pod-table-wrap">
         <table class="pod-table">
-          <thead><tr><th>#</th><th>Sản phẩm</th><th>SKU</th><th>SL đặt</th><th>Đã nhận</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+          <thead><tr><th>#</th><th>{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_ba2fb8fb', 'Đơn giá') }}</th><th>{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in (po.items || [])" :key="idx">
               <td>{{ idx+1 }}</td>
@@ -40,10 +40,10 @@
             </tr>
           </tbody>
           <tfoot>
-            <tr><td colspan="6" class="text-right fw-700">Tạm tính:</td><td class="amount">{{ formatCurrency(po.subtotal) }}</td></tr>
-            <tr v-if="po.tax_amount"><td colspan="6" class="text-right">Thuế:</td><td>{{ formatCurrency(po.tax_amount) }}</td></tr>
-            <tr v-if="po.discount_amount"><td colspan="6" class="text-right">Giảm giá:</td><td>-{{ formatCurrency(po.discount_amount) }}</td></tr>
-            <tr><td colspan="6" class="text-right fw-800">Tổng cộng:</td><td class="amount fw-800">{{ formatCurrency(po.total_amount) }}</td></tr>
+            <tr><td colspan="6" class="text-right fw-700">{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</td><td class="amount">{{ formatCurrency(po.subtotal) }}</td></tr>
+            <tr v-if="po.tax_amount"><td colspan="6" class="text-right">{{ t('admin.msg_f725f73e', 'Thuế:') }}</td><td>{{ formatCurrency(po.tax_amount) }}</td></tr>
+            <tr v-if="po.discount_amount"><td colspan="6" class="text-right">{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</td><td>-{{ formatCurrency(po.discount_amount) }}</td></tr>
+            <tr><td colspan="6" class="text-right fw-800">{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</td><td class="amount fw-800">{{ formatCurrency(po.total_amount) }}</td></tr>
           </tfoot>
         </table>
       </div>
@@ -53,9 +53,9 @@
     <div class="modal-overlay" v-if="showReceiveModal" @click.self="showReceiveModal = false">
       <div class="modal">
         <h3><PackageCheck :size="16" style="vertical-align:middle" /> Nhận hàng — {{ po?.po_number }}</h3>
-        <p class="receive-hint">Nhập số lượng thực nhận:</p>
+        <p class="receive-hint">{{ t('admin.msg_73bd505c', 'Nhập số lượng thực nhận:') }}</p>
         <table class="receive-table">
-          <thead><tr><th>Sản phẩm</th><th>SL đặt</th><th>Đã nhận</th><th>Còn lại</th><th style="width:100px">Nhận lần này</th></tr></thead>
+          <thead><tr><th>{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_b95a3ecb', 'Còn lại') }}</th><th style="width:100px">{{ t('admin.msg_fd2a54c9', 'Nhận lần này') }}</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in receiveItems" :key="idx">
               <td>{{ item.product_name }}</td><td>{{ item.qty }}</td><td>{{ item.received_qty }}</td><td>{{ item.remaining }}</td>
@@ -63,10 +63,10 @@
             </tr>
           </tbody>
         </table>
-        <div class="form-group" style="margin-top:12px"><label>Ghi chú</label><input v-model="receiveNotes" class="form-input" placeholder="Ghi chú nhận hàng..." /></div>
+        <div class="form-group" style="margin-top:12px"><label>{{ t('admin.msg_f481f91e', 'Ghi chú') }}</label><input v-model="receiveNotes" class="form-input" :placeholder="t('admin.msg_87cb2f', 'Ghi chú nhận hàng...')" /></div>
         <div class="modal-actions">
-          <button class="btn-cancel" @click="showReceiveModal = false">Hủy</button>
-          <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" /> Xác nhận nhận hàng</button>
+          <button class="btn-cancel" @click="showReceiveModal = false">{{ t('admin.msg_1e405035', 'Hủy') }}</button>
+          <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" /> {{ t('admin.msg_dc8ea8a6', 'Xác nhận nhận hàng') }}</button>
         </div>
       </div>
     </div>
@@ -97,7 +97,7 @@ async function loadPO() {
     const res = await apiFetch(`/purchase-orders/${props.editId}`)
     const data = await res.json()
     po.value = data.data || data
-  } catch { showToast('Không tải được đơn hàng', 'error') }
+  } catch { showToast(t('admin.msg_6d78fa', 'Không tải được đơn hàng'), 'error') }
   loading.value = false
 }
 
@@ -111,26 +111,26 @@ async function sendPO() {
   if (!confirm(`Đặt hàng ${po.value.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${props.editId}/send`, { method: 'POST' })
-    showToast('Đã chuyển sang Đã đặt', 'success')
+    showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')
     loadPO()
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
 async function submitReceive() {
   const items = receiveItems.value.filter(i => i.receive_qty > 0).map(i => ({ product_id: i.product_id, receive_qty: Math.min(i.receive_qty, i.remaining) }))
-  if (items.length === 0) return showToast('Nhập số lượng nhận', 'error')
+  if (items.length === 0) return showToast(t('admin.msg_7c30b2', 'Nhập số lượng nhận'), 'error')
   try {
     const res = await apiFetch(`/purchase-orders/${props.editId}/receive`, { method: 'POST', body: JSON.stringify({ items, notes: receiveNotes.value }) })
     const data = await res.json()
-    showToast(data.message || 'Đã nhận hàng', 'success')
+    showToast(data.message || t('admin.msg_c6dad012', 'Đã nhận hàng'), 'success')
     showReceiveModal.value = false
     loadPO()
     emit('refresh')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
-function statusLabel(s) { return { draft: 'Nháp', ordered: 'Đã đặt', partial: 'Nhận 1 phần', received: 'Đã nhận', cancelled: 'Đã hủy' }[s] || s }
-function payLabel(p) { return { unpaid: 'Chưa TT', partial: 'TT 1 phần', paid: 'Đã TT' }[p] || p }
+function statusLabel(s) { return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s }
+function payLabel(p) { return { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), partial: t('admin.msg_ee9c77ad', 'TT 1 phần'), paid: t('admin.msg_04b5eaed', 'Đã TT') }[p] || p }
 function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
 function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 </script>

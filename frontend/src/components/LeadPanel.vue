@@ -18,7 +18,7 @@
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="Tìm tên, username, nội dung..."
+          :placeholder="t('admin.search_leads', 'Tìm tên, username, nội dung...')"
           class="lead-panel__search-input"
         />
         <button
@@ -76,7 +76,7 @@
         <p v-else>{{ t('admin.listening_comments', 'Đang lắng nghe bình luận...') }}</p>
         <p class="lead-panel__empty-sub">
           <template v-if="searchQuery || activeKeyword">
-            Thử từ khóa khác hoặc <a href="#" @click.prevent="clearAllFilters">xóa bộ lọc</a>
+            Thử từ khóa khác hoặc <a href="#" @click.prevent="clearAllFilters">{{ t('admin.msg_99764c34', 'xóa bộ lọc') }}</a>
           </template>
           <template v-else>
             Các khách hàng tiềm năng sẽ hiện ở đây
@@ -115,7 +115,7 @@ const activeKeyword = useUrlParam('kw', '')
 const listRef = ref(null)
 
 const tabs = [
-  { key: 'all', label: 'Tất cả', icon: List },
+  { key: 'all', label: t('admin.msg_d8586d08', 'Tất cả'), icon: List },
   { key: '[HOT]', label: 'HOT', icon: Flame },
   { key: '[WARM]', label: 'WARM', icon: CircleDot },
 ]

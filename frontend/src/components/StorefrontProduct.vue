@@ -38,20 +38,20 @@
               <span class="sp-meta-value">{{ product.sku }}</span>
             </div>
             <div class="sp-meta-item" v-if="product.category">
-              <span class="sp-meta-label">Danh mục</span>
+              <span class="sp-meta-label">{{ t('admin.msg_53d8de58', 'Danh mục') }}</span>
               <span class="sp-meta-value">{{ product.category }}</span>
             </div>
             <div class="sp-meta-item">
-              <span class="sp-meta-label">Tình trạng</span>
+              <span class="sp-meta-label">{{ t('admin.msg_d841d3ec', 'Tình trạng') }}</span>
               <span class="sp-meta-value" :class="product.stock > 0 ? 'in-stock' : 'out-stock'">
-                {{ product.stock > 0 ? `Còn hàng (${product.stock})` : 'Hết hàng' }}
+                {{ product.stock > 0 ? `Còn hàng (${product.stock})` : t('admin.msg_c95536d3', 'Hết hàng') }}
               </span>
             </div>
           </div>
 
           <!-- Quantity -->
           <div class="sp-qty">
-            <label>Số lượng</label>
+            <label>{{ t('admin.msg_61012ba9', 'Số lượng') }}</label>
             <div class="sp-qty-ctrl">
               <button @click="qty = Math.max(1, qty - 1)"><Minus :size="14" /></button>
               <input v-model.number="qty" type="number" min="1" :max="product.stock || 99" />
@@ -74,7 +74,7 @@
 
           <!-- Description -->
           <div class="sp-desc" v-if="product.description">
-            <h3>Mô tả sản phẩm</h3>
+            <h3>{{ t('admin.msg_168e3133', 'Mô tả sản phẩm') }}</h3>
             <div class="sp-desc-content" v-html="product.description"></div>
           </div>
         </div>
@@ -87,7 +87,7 @@
     </div>
     <div class="sp-error" v-else>
       <PackageX :size="40" />
-      <p>Không tìm thấy sản phẩm</p>
+      <p>{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>
     </div>
   </div>
 </template>

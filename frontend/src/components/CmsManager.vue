@@ -1,8 +1,8 @@
 <template>
   <div class="cms-mgr">
     <div class="cm-header">
-      <h3><FileText :size="16" /> Trang nội dung CMS</h3>
-      <button class="btn-add" @click="$emit('navigate', 'shop/cms/create')">+ Thêm trang</button>
+      <h3><FileText :size="16" /> {{ t('admin.msg_a503d10c', 'Trang nội dung CMS') }}</h3>
+      <button class="btn-add" @click="$emit('navigate', 'shop/cms/create')">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
     </div>
 
     <div class="cm-list" v-if="pages.length">
@@ -19,19 +19,19 @@
         </div>
         <div class="cm-card__actions">
           <button class="btn-sm btn-preview" @click="previewPage(p)">⊙</button>
-          <button class="btn-sm btn-edit" @click="$emit('navigate', `shop/cms/edit/${p.id}`)">Sửa</button>
-          <button class="btn-sm btn-del" @click="handleDelete(p)">×</button>
+          <button class="btn-sm btn-edit" @click="$emit('navigate', `shop/cms/edit/${p.id}`)">{{ t('admin.msg_9026a724', 'Sửa') }}</button>
+          <button class="btn-sm btn-del" @click="handleDelete(p)">{{ t('admin.msg_63922286', '×') }}</button>
         </div>
       </div>
     </div>
-    <p v-else class="empty">Chưa có trang CMS nào</p>
+    <p v-else class="empty">{{ t('admin.msg_6d9fee60', 'Chưa có trang CMS nào') }}</p>
 
     <!-- Preview Modal (keep this one since it's just a quick view) -->
     <div class="modal-overlay" v-if="showPreview" @click.self="showPreview = false">
       <div class="modal modal--wide">
         <div class="preview-header">
           <h3>{{ previewData.title }}</h3>
-          <button class="btn-close" @click="showPreview = false">×</button>
+          <button class="btn-close" @click="showPreview = false">{{ t('admin.msg_63922286', '×') }}</button>
         </div>
         <div class="preview-meta">
           <span class="cm-slug">/{{ previewData.alias }}</span>
@@ -85,7 +85,7 @@ async function handleDelete(p) {
   if (!confirm(`Xóa trang "${p.title}"?`)) return
   await deletePage(p.id)
   fetchPages({})
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 </script>
 

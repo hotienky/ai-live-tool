@@ -2,7 +2,7 @@
   <div class="layout-builder">
     <div class="layout-builder__header">
       <div style="display: flex; align-items: center; gap: 16px;">
-        <h3><LayoutDashboard :size="16" /> Bố cục Cửa Hàng</h3>
+        <h3><LayoutDashboard :size="16" /> {{ t('admin.msg_a5e87377', 'Bố cục Cửa Hàng') }}</h3>
         <!-- Custom page picker dropdown -->
         <div class="page-picker" tabindex="-1" @focusout="handlePickerFocusout">
           <button class="page-picker__trigger" @click="pageDropdownOpen = !pageDropdownOpen">
@@ -16,7 +16,7 @@
               <Home :size="14" /> Trang Chủ (Global)
             </button>
             <!-- System pages -->
-            <div class="page-picker__group">Trang hệ thống</div>
+            <div class="page-picker__group">{{ t('admin.msg_34dfec84', 'Trang hệ thống') }}</div>
             <button v-for="pg in builtinPageOptions" :key="pg.id"
               class="page-picker__item" :class="{ active: activePageId === pg.id }"
               @click="selectPage(pg.id)">
@@ -25,7 +25,7 @@
             </button>
             <!-- CMS dynamic pages -->
             <template v-if="dynamicPages.length">
-              <div class="page-picker__group">Trang CMS động</div>
+              <div class="page-picker__group">{{ t('admin.msg_a4de04ad', 'Trang CMS động') }}</div>
               <button v-for="p in dynamicPages" :key="p.id"
                 class="page-picker__item" :class="{ active: activePageId === p.id }"
                 @click="selectPage(p.id)">
@@ -59,7 +59,7 @@
 
         <!-- Templates -->
         <div class="lb-section" v-show="!activePageId">
-          <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục</h4>
+          <h4 class="lb-section__title"><Palette :size="14" /> {{ t('admin.msg_34b3019f', 'Mẫu bố cục') }}</h4>
           <div class="template-grid">
             <button
               v-for="tpl in templates"
@@ -77,7 +77,7 @@
 
         <!-- Sections heading -->
         <div class="lb-section">
-          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? 'Cấu hình trang' : (activePageId ? 'Sections trong trang' : 'Sections trang chủ') }}</h4>
+          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? t('admin.msg_ff9d51ad', 'Cấu hình trang') : (activePageId ? 'Sections trong trang' : t('admin.msg_f6791831', 'Sections trang chủ')) }}</h4>
           <!-- Builtin page config panel: shown instead of sections list -->
           <div v-if="activeBuiltinPage" class="builtin-page-config">
             <!-- Language Tabs for i18n -->
@@ -85,29 +85,29 @@
               :translations="pageConfigs[activeBuiltinPage]?.translations || {}"
               :base-data="{ pageTitle: pageConfigs[activeBuiltinPage]?.pageTitle || '', pageDescription: pageConfigs[activeBuiltinPage]?.pageDescription || '' }" />
             <!-- i18n Fields: Page Title & Description -->
-            <div class="param-row"><label>Tiêu đề trang</label>
+            <div class="param-row"><label>{{ t('admin.msg_6a336630', 'Tiêu đề trang') }}</label>
               <input type="text" class="param-input param-input--wide"
                 :value="getPageConfigI18n(activeBuiltinPage, 'pageTitle')"
                 @input="setPageConfigI18n(activeBuiltinPage, 'pageTitle', $event.target.value)"
-                placeholder="Nhập tiêu đề trang..." />
+                :placeholder="t('admin.msg_4ee531', 'Nhập tiêu đề trang...')" />
             </div>
-            <div class="param-row"><label>Mô tả trang</label>
+            <div class="param-row"><label>{{ t('admin.msg_4271c430', 'Mô tả trang') }}</label>
               <input type="text" class="param-input param-input--wide"
                 :value="getPageConfigI18n(activeBuiltinPage, 'pageDescription')"
                 @input="setPageConfigI18n(activeBuiltinPage, 'pageDescription', $event.target.value)"
-                placeholder="Nhập mô tả trang (tuỳ chọn)..." />
+                :placeholder="t('admin.msg_a5e916', 'Nhập mô tả trang (tuỳ chọn)...')" />
             </div>
             <div class="param-divider"></div>
             <!-- Products -->
             <template v-if="activeBuiltinPage === 'products'">
               <div class="param-row"><label>Sidebar</label>
                 <select v-model="pageConfigs.products.sidebarPosition" class="param-select">
-                  <option value="left">Bên trái</option>
-                  <option value="right">Bên phải</option>
+                  <option value="left">{{ t('admin.msg_c8b3d56a', 'Bên trái') }}</option>
+                  <option value="right">{{ t('admin.msg_5fe4c314', 'Bên phải') }}</option>
                   <option value="hidden">{{ t('admin.hidden', 'Ẩn') }}</option>
                 </select>
               </div>
-              <div class="param-row"><label>Cột sản phẩm</label>
+              <div class="param-row"><label>{{ t('admin.msg_70c4bd9c', 'Cột sản phẩm') }}</label>
                 <input type="range" v-model.number="pageConfigs.products.gridColumns" min="2" max="5" class="param-range" />
                 <span class="param-value">{{ pageConfigs.products.gridColumns }}</span>
               </div>
@@ -119,19 +119,19 @@
                   <option :value="24">24</option>
                 </select>
               </div>
-              <div class="param-row"><label>Filter danh mục</label>
+              <div class="param-row"><label>{{ t('admin.msg_8b94f081', 'Filter danh mục') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.products.showFilters.category" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Filter thương hiệu</label>
+              <div class="param-row"><label>{{ t('admin.msg_f1e9d92a', 'Filter thương hiệu') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.products.showFilters.brand" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Filter giá</label>
+              <div class="param-row"><label>{{ t('admin.msg_5911a898', 'Filter giá') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.products.showFilters.price" />
                   <span class="toggle-slider"></span>
@@ -146,7 +146,7 @@
                   <option value="grid">Grid</option>
                 </select>
               </div>
-              <div class="param-row"><label>Tỷ lệ layout</label>
+              <div class="param-row"><label>{{ t('admin.msg_ccb9de7c', 'Tỷ lệ layout') }}</label>
                 <select v-model="pageConfigs.productDetail.layoutRatio" class="param-select">
                   <option value="50-50">50 / 50</option>
                   <option value="60-40">60 / 40</option>
@@ -159,17 +159,17 @@
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>SP liên quan</label>
+              <div class="param-row"><label>{{ t('admin.msg_e13f0279', 'SP liên quan') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.productDetail.showRelatedProducts" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row" v-if="pageConfigs.productDetail.showRelatedProducts"><label>Số SP liên quan</label>
+              <div class="param-row" v-if="pageConfigs.productDetail.showRelatedProducts"><label>{{ t('admin.msg_ec3a77bd', 'Số SP liên quan') }}</label>
                 <input type="range" v-model.number="pageConfigs.productDetail.relatedCount" min="4" max="8" class="param-range" />
                 <span class="param-value">{{ pageConfigs.productDetail.relatedCount }}</span>
               </div>
-              <div class="param-row"><label>Đánh giá</label>
+              <div class="param-row"><label>{{ t('admin.msg_b4292de3', 'Đánh giá') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.productDetail.showReviews" />
                   <span class="toggle-slider"></span>
@@ -180,8 +180,8 @@
             <template v-else-if="activeBuiltinPage === 'checkout'">
               <div class="param-row"><label>Layout</label>
                 <select v-model="pageConfigs.checkout.layout" class="param-select">
-                  <option value="two-column">2 cột (Form + Tóm tắt)</option>
-                  <option value="single-column">1 cột</option>
+                  <option value="two-column">{{ t('admin.msg_74022a2a', '2 cột (Form + Tóm tắt)') }}</option>
+                  <option value="single-column">{{ t('admin.msg_af1ea0d8', '1 cột') }}</option>
                 </select>
               </div>
               <div class="param-row"><label>{{ t('admin.coupons', 'Mã giảm giá') }}</label>
@@ -190,13 +190,13 @@
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Ghi chú đơn hàng</label>
+              <div class="param-row"><label>{{ t('admin.msg_4112edd6', 'Ghi chú đơn hàng') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.checkout.showNotes" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Thanh tiến trình</label>
+              <div class="param-row"><label>{{ t('admin.msg_d45a2712', 'Thanh tiến trình') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.checkout.showSteps" />
                   <span class="toggle-slider"></span>
@@ -205,7 +205,7 @@
             </template>
             <!-- Auth -->
             <template v-else-if="activeBuiltinPage === 'auth'">
-              <div class="param-row"><label>Cho phép đăng ký</label>
+              <div class="param-row"><label>{{ t('admin.msg_ae6ecd90', 'Cho phép đăng ký') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.auth.allowRegister" />
                   <span class="toggle-slider"></span>
@@ -217,7 +217,7 @@
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Chiều rộng card (px)</label>
+              <div class="param-row"><label>{{ t('admin.msg_cc7930fc', 'Chiều rộng card (px)') }}</label>
                 <input type="range" v-model.number="pageConfigs.auth.cardMaxWidth" min="360" max="600" step="20" class="param-range" />
                 <span class="param-value">{{ pageConfigs.auth.cardMaxWidth }}px</span>
               </div>
@@ -226,23 +226,23 @@
             <template v-else-if="activeBuiltinPage === 'account'">
               <div class="param-row"><label>Sidebar</label>
                 <select v-model="pageConfigs.account.sidebarPosition" class="param-select">
-                  <option value="left">Bên trái</option>
-                  <option value="right">Bên phải</option>
+                  <option value="left">{{ t('admin.msg_c8b3d56a', 'Bên trái') }}</option>
+                  <option value="right">{{ t('admin.msg_5fe4c314', 'Bên phải') }}</option>
                 </select>
               </div>
-              <div class="param-row"><label>Tab đơn hàng</label>
+              <div class="param-row"><label>{{ t('admin.msg_d2cb3ed8', 'Tab đơn hàng') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.account.showOrders" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Tab địa chỉ</label>
+              <div class="param-row"><label>{{ t('admin.msg_af2289fd', 'Tab địa chỉ') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.account.showAddresses" />
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-              <div class="param-row"><label>Tab đổi mật khẩu</label>
+              <div class="param-row"><label>{{ t('admin.msg_62376787', 'Tab đổi mật khẩu') }}</label>
                 <label class="toggle-switch toggle-switch--sm" @click.stop>
                   <input type="checkbox" v-model="pageConfigs.account.showPasswordChange" />
                   <span class="toggle-slider"></span>
@@ -252,7 +252,7 @@
             <!-- Other built-in pages: just show a note -->
             <template v-else>
               <div class="builtin-page-note">
-                <span>Trang này hiện không có cấu hình tuỳ chỉnh.<br/>Bật/tắt trang trong <strong>Trang Chủ (Global)</strong> → Trang sẵn có.</span>
+                <span>{{ t('admin.msg_b2562e29', 'Trang này hiện không có cấu hình tuỳ chỉnh.') }}<br/>{{ t('admin.msg_5548b9fe', 'Bật/tắt trang trong') }} <strong>{{ t('admin.msg_af830e1f', 'Trang Chủ (Global)') }}</strong> {{ t('admin.msg_ee37e787', '→ Trang sẵn có.') }}</span>
               </div>
             </template>
             <button class="btn-save" style="margin-top:16px;width:100%" @click="saveLayout" :disabled="saving">
@@ -275,7 +275,7 @@
 
         <!-- Page Toggles -->
         <div class="lb-section" v-show="!activePageId">
-          <h4 class="lb-section__title"><FileStack :size="14" /> Trang sẵn có</h4>
+          <h4 class="lb-section__title"><FileStack :size="14" /> {{ t('admin.msg_6a466765', 'Trang sẵn có') }}</h4>
           <div class="page-toggle-list">
             <div v-for="pg in pageList" :key="pg.key" class="page-toggle-item">
               <div class="page-toggle-item__info">
@@ -301,25 +301,25 @@
         <!-- PromoBar Config -->
         <div v-if="activePageId === null" class="layout-section layout-section--global">
           <div class="layout-section__header" @click="promoOpen = !promoOpen">
-            <span>🎉 Thanh thông báo (Promo Bar)</span>
+            <span>{{ t('admin.msg_223e2d8a', '🎉 Thanh thông báo (Promo Bar)') }}</span>
             <ChevronDown :size="14" :class="{ 'rotate-180': promoOpen }" />
           </div>
           <div v-if="promoOpen" class="layout-section__body">
             <label class="toggle-row">
               <input type="checkbox" v-model="promoConfig.enabled" />
-              <span>Hiển thị thanh thông báo</span>
+              <span>{{ t('admin.msg_59d67c84', 'Hiển thị thanh thông báo') }}</span>
             </label>
             <div class="form-group" v-if="promoConfig.enabled">
-              <label>Nội dung</label>
-              <input v-model="promoConfig.text" placeholder="🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!" />
+              <label>{{ t('admin.msg_ee7ca513', 'Nội dung') }}</label>
+              <input v-model="promoConfig.text" :placeholder="t('admin.msg_7d1920', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!')" />
             </div>
             <div class="form-group" v-if="promoConfig.enabled">
               <label>Link</label>
               <input v-model="promoConfig.link" placeholder="/products" />
             </div>
             <div class="form-group" v-if="promoConfig.enabled">
-              <label>Nút CTA</label>
-              <input v-model="promoConfig.ctaText" placeholder="Mua sắm" />
+              <label>{{ t('admin.msg_f4c6e2c7', 'Nút CTA') }}</label>
+              <input v-model="promoConfig.ctaText" :placeholder="t('admin.msg_5176f4', 'Mua sắm')" />
             </div>
           </div>
         </div>
@@ -340,7 +340,7 @@
 
         <!-- Custom CSS -->
         <div class="lb-section">
-          <h4 class="lb-section__title"><Code :size="14" /> CSS tùy chỉnh</h4>
+          <h4 class="lb-section__title"><Code :size="14" /> {{ t('admin.msg_95723574', 'CSS tùy chỉnh') }}</h4>
           <textarea
             v-model="customCss"
             class="css-editor"
@@ -374,7 +374,7 @@
     <div class="modal-overlay" v-if="showLibrary" @click.self="showLibrary = false">
       <div class="modal modal--library">
         <div class="modal__header">
-          <h3><Layers :size="16" /> Thư viện Section</h3>
+          <h3><Layers :size="16" /> {{ t('admin.msg_c989002c', 'Thư viện Section') }}</h3>
           <button class="btn-close" @click="showLibrary = false"><X :size="18" /></button>
         </div>
         <div class="library-grid">
@@ -388,7 +388,7 @@
             <component :is="lib.icon" :size="24" />
             <strong>{{ lib.label }}</strong>
             <span>{{ lib.desc }}</span>
-            <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">Đã thêm</span>
+            <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
           </button>
         </div>
       </div>
@@ -442,24 +442,24 @@ const pageDropdownOpen = ref(false)
 
 // Builtin page options with proper lucide icons
 const builtinPageOptions = [
-  { id: '__products',       label: 'Trang sản phẩm',    icon: ShoppingBag },
-  { id: '__productDetail',  label: 'Chi tiết sản phẩm', icon: Package },
-  { id: '__checkout',       label: 'Thanh toán',          icon: CreditCard },
-  { id: '__auth',           label: 'Đăng nhập / Đăng ký', icon: Lock },
-  { id: '__account',        label: 'Tài khoản',           icon: User },
-  { id: '__wishlist',       label: 'Yêu thích',          icon: Heart },
-  { id: '__cart',           label: 'Giỏ hàng',           icon: ShoppingCart },
-  { id: '__order_tracking', label: 'Tra cứu đơn',        icon: Truck },
+  { id: '__products',       label: t('admin.msg_4c779e64', 'Trang sản phẩm'),    icon: ShoppingBag },
+  { id: '__productDetail',  label: t('admin.msg_6055caf1', 'Chi tiết sản phẩm'), icon: Package },
+  { id: '__checkout',       label: t('admin.msg_d555e4bc', 'Thanh toán'),          icon: CreditCard },
+  { id: '__auth',           label: t('admin.msg_50e04c81', 'Đăng nhập / Đăng ký'), icon: Lock },
+  { id: '__account',        label: t('admin.msg_7bd53616', 'Tài khoản'),           icon: User },
+  { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
+  { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
+  { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
 ]
 
 // Computed: current active page display (icon + label)
 const activePage = computed(() => {
-  if (activePageId.value === null) return { icon: Home, label: 'Trang Chủ (Global)' }
+  if (activePageId.value === null) return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
   const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
   if (builtin) return builtin
   const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
   if (dyn) return { icon: FileText, label: dyn.title }
-  return { icon: Home, label: 'Trang Chủ (Global)' }
+  return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
 })
 
 // Extracts 'products'/'productDetail'/etc from '__products'/'__productDetail'
@@ -505,9 +505,9 @@ const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: 
 const headerConfig = ref({ ...defaultHeaderConfig })
 const defaultFooterConfig = {
   columns: [
-    { title: 'Về chúng tôi', type: 'links', links: [{ label: 'Giới thiệu', url: '/page/gioi-thieu' }, { label: 'Chính sách bảo mật', url: '/page/chinh-sach-bao-mat' }] },
-    { title: 'Hỗ trợ', type: 'links', links: [{ label: 'Chính sách vận chuyển', url: '/page/chinh-sach-van-chuyen' }, { label: 'Đổi trả & Hoàn tiền', url: '/page/doi-tra' }] },
-    { title: 'Liên hệ', type: 'contact', items: [{ icon: 'phone', label: 'Hotline', value: '' }, { icon: 'email', label: 'Email', value: '' }] },
+    { title: t('admin.msg_1437f79c', 'Về chúng tôi'), type: 'links', links: [{ label: t('admin.msg_33f0741f', 'Giới thiệu'), url: '/page/gioi-thieu' }, { label: t('admin.msg_98b31963', 'Chính sách bảo mật'), url: '/page/chinh-sach-bao-mat' }] },
+    { title: t('admin.msg_c1513256', 'Hỗ trợ'), type: 'links', links: [{ label: t('admin.msg_6aba341e', 'Chính sách vận chuyển'), url: '/page/chinh-sach-van-chuyen' }, { label: t('admin.msg_0ea7d28b', 'Đổi trả & Hoàn tiền'), url: '/page/doi-tra' }] },
+    { title: t('admin.msg_9276b119', 'Liên hệ'), type: 'contact', items: [{ icon: 'phone', label: 'Hotline', value: '' }, { icon: 'email', label: 'Email', value: '' }] },
   ],
   social: [],
   paymentMethods: ['cod', 'bank'],
@@ -596,7 +596,7 @@ const defaultPageConfigs = {
     gridColumns: 4,
     itemsPerPage: 12,
     showFilters: { category: true, brand: true, price: true },
-    pageTitle: 'Sản phẩm',
+    pageTitle: t('admin.msg_1d1aa192', 'Sản phẩm'),
     pageDescription: '',
     translations: {},
   },
@@ -607,7 +607,7 @@ const defaultPageConfigs = {
     showRelatedProducts: true,
     relatedCount: 6,
     showReviews: true,
-    pageTitle: 'Chi tiết sản phẩm',
+    pageTitle: t('admin.msg_6055caf1', 'Chi tiết sản phẩm'),
     pageDescription: '',
     translations: {},
   },
@@ -616,7 +616,7 @@ const defaultPageConfigs = {
     showNotes: true,
     showSteps: true,
     layout: 'two-column',
-    pageTitle: 'Thanh toán',
+    pageTitle: t('admin.msg_d555e4bc', 'Thanh toán'),
     pageDescription: '',
     translations: {},
   },
@@ -625,7 +625,7 @@ const defaultPageConfigs = {
     allowForgotPassword: true,
     showSocialLogin: false,
     cardMaxWidth: 440,
-    pageTitle: 'Đăng nhập / Đăng ký',
+    pageTitle: t('admin.msg_50e04c81', 'Đăng nhập / Đăng ký'),
     pageDescription: '',
     translations: {},
   },
@@ -634,7 +634,7 @@ const defaultPageConfigs = {
     showAddresses: true,
     showPasswordChange: true,
     sidebarPosition: 'left',
-    pageTitle: 'Tài khoản',
+    pageTitle: t('admin.msg_7bd53616', 'Tài khoản'),
     pageDescription: '',
     translations: {},
   },
@@ -725,54 +725,54 @@ async function loadCategories() {
 // ─── Section Meta ───
 const sectionMeta = {
   banner: { label: 'Banner', icon: Image, pvHeight: '50px' },
-  categories: { label: 'Danh mục', icon: Grid3x3, pvHeight: '25px' },
+  categories: { label: t('admin.msg_53d8de58', 'Danh mục'), icon: Grid3x3, pvHeight: '25px' },
   flash_sale: { label: 'Flash Sale', icon: Zap, pvHeight: '35px' },
-  featured_products: { label: 'Sản phẩm nổi bật', icon: Sparkles, pvHeight: '60px' },
-  new_arrivals: { label: 'Hàng mới về', icon: Clock, pvHeight: '60px' },
+  featured_products: { label: t('admin.msg_c90c3bbc', 'Sản phẩm nổi bật'), icon: Sparkles, pvHeight: '60px' },
+  new_arrivals: { label: t('admin.msg_f0676ad7', 'Hàng mới về'), icon: Clock, pvHeight: '60px' },
   cms_pages: { label: 'Trang CMS', icon: BookOpen, pvHeight: '30px' },
   // Library sections (Phase 3)
-  testimonials: { label: 'Đánh giá KH', icon: MessageSquareQuote, pvHeight: '45px' },
+  testimonials: { label: t('admin.msg_a4e1b16a', 'Đánh giá KH'), icon: MessageSquareQuote, pvHeight: '45px' },
   faq: { label: 'FAQ', icon: HelpCircle, pvHeight: '40px' },
-  image_gallery: { label: 'Thư viện ảnh', icon: Images, pvHeight: '50px' },
+  image_gallery: { label: t('admin.msg_c1962630', 'Thư viện ảnh'), icon: Images, pvHeight: '50px' },
   video_embed: { label: 'Video', icon: Video, pvHeight: '55px' },
-  text_block: { label: 'Khối văn bản', icon: Type, pvHeight: '35px' },
-  newsletter: { label: 'Đăng ký email', icon: Mail, pvHeight: '30px' },
-  social_feed: { label: 'Mạng xã hội', icon: Share2, pvHeight: '25px' },
-  brands_slider: { label: 'Thương hiệu', icon: Award, pvHeight: '30px' },
+  text_block: { label: t('admin.msg_ec4344e3', 'Khối văn bản'), icon: Type, pvHeight: '35px' },
+  newsletter: { label: t('admin.msg_26a469cd', 'Đăng ký email'), icon: Mail, pvHeight: '30px' },
+  social_feed: { label: t('admin.msg_0f1252b7', 'Mạng xã hội'), icon: Share2, pvHeight: '25px' },
+  brands_slider: { label: t('admin.msg_161416d9', 'Thương hiệu'), icon: Award, pvHeight: '30px' },
 }
 
 const defaultParams = {
   banner: { autoplay: true, interval: 4000, height: 'md' },
   categories: { columns: 6, showDescription: false, layoutStyle: 'grid', showCount: false, selectedCategoryIds: [] },
   flash_sale: { showTimer: true, showProgress: true, count: 8, columns: 4 },
-  featured_products: { title: 'Sản phẩm nổi bật', count: 8, columns: 4, filterCategory: '', sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 4000 },
-  new_arrivals: { title: 'Hàng mới về', count: 6, columns: 4, sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 5000 },
+  featured_products: { title: t('admin.msg_c90c3bbc', 'Sản phẩm nổi bật'), count: 8, columns: 4, filterCategory: '', sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 4000 },
+  new_arrivals: { title: t('admin.msg_f0676ad7', 'Hàng mới về'), count: 6, columns: 4, sortOrder: 'newest', slidesPerView: 2, autoplay: true, autoplaySpeed: 5000 },
   cms_pages: { layout: 'grid', maxPages: 6 },
-  testimonials: { title: 'Khách hàng nói gì', columns: 3 },
-  faq: { title: 'Câu hỏi thường gặp' },
-  image_gallery: { title: 'Thư viện ảnh', columns: 3 },
+  testimonials: { title: t('admin.msg_e7334e0f', 'Khách hàng nói gì'), columns: 3 },
+  faq: { title: t('admin.msg_65b83ce0', 'Câu hỏi thường gặp') },
+  image_gallery: { title: t('admin.msg_c1962630', 'Thư viện ảnh'), columns: 3 },
   video_embed: { title: 'Video' },
   text_block: { title: '' },
-  newsletter: { title: 'Đăng ký nhận tin', subtitle: 'Nhận thông tin khuyến mãi và sản phẩm mới nhất', buttonText: 'Đăng ký' },
-  social_feed: { title: 'Theo dõi chúng tôi' },
-  brands_slider: { title: 'Thương hiệu', animationSpeed: 20 },
+  newsletter: { title: t('admin.msg_9a76bcab', 'Đăng ký nhận tin'), subtitle: t('admin.msg_e3809562', 'Nhận thông tin khuyến mãi và sản phẩm mới nhất'), buttonText: t('admin.msg_0bb0951d', 'Đăng ký') },
+  social_feed: { title: t('admin.msg_d4a4c495', 'Theo dõi chúng tôi') },
+  brands_slider: { title: t('admin.msg_161416d9', 'Thương hiệu'), animationSpeed: 20 },
 }
 
 // ─── Library ───
 const libraryItems = [
-  { type: 'testimonials', label: 'Đánh giá KH', desc: 'Hiện testimonials khách hàng', icon: MessageSquareQuote },
-  { type: 'faq', label: 'FAQ', desc: 'Câu hỏi thường gặp', icon: HelpCircle },
-  { type: 'image_gallery', label: 'Thư viện ảnh', desc: 'Gallery ảnh sản phẩm', icon: Images },
+  { type: 'testimonials', label: t('admin.msg_a4e1b16a', 'Đánh giá KH'), desc: t('admin.msg_ef583317', 'Hiện testimonials khách hàng'), icon: MessageSquareQuote },
+  { type: 'faq', label: 'FAQ', desc: t('admin.msg_65b83ce0', 'Câu hỏi thường gặp'), icon: HelpCircle },
+  { type: 'image_gallery', label: t('admin.msg_c1962630', 'Thư viện ảnh'), desc: t('admin.msg_7820dd0c', 'Gallery ảnh sản phẩm'), icon: Images },
   { type: 'video_embed', label: 'Video', desc: 'Embed YouTube/TikTok', icon: Video },
-  { type: 'text_block', label: 'Khối văn bản', desc: 'Nội dung HTML tùy ý', icon: Type },
-  { type: 'newsletter', label: 'Đăng ký email', desc: 'Form đăng ký nhận tin', icon: Mail },
-  { type: 'social_feed', label: 'Mạng xã hội', desc: 'Links social media', icon: Share2 },
-  { type: 'brands_slider', label: 'Thương hiệu', desc: 'Logo thương hiệu', icon: Award },
+  { type: 'text_block', label: t('admin.msg_ec4344e3', 'Khối văn bản'), desc: t('admin.msg_da610ca2', 'Nội dung HTML tùy ý'), icon: Type },
+  { type: 'newsletter', label: t('admin.msg_26a469cd', 'Đăng ký email'), desc: t('admin.msg_7538695d', 'Form đăng ký nhận tin'), icon: Mail },
+  { type: 'social_feed', label: t('admin.msg_0f1252b7', 'Mạng xã hội'), desc: 'Links social media', icon: Share2 },
+  { type: 'brands_slider', label: t('admin.msg_161416d9', 'Thương hiệu'), desc: t('admin.msg_6c5566ff', 'Logo thương hiệu'), icon: Award },
 ]
 
 function addLibrarySection(lib) {
   if (sections.value.some(s => s.type === lib.type)) {
-    showToast('Section đã tồn tại', 'error')
+    showToast(t('admin.msg_7dfff8', 'Section đã tồn tại'), 'error')
     return
   }
   sections.value.push({
@@ -788,18 +788,18 @@ function addLibrarySection(lib) {
 
 // ─── Page List ───
 const pageList = [
-  { key: 'products', label: 'Sản phẩm', icon: ShoppingBag, path: '/products' },
-  { key: 'cart', label: 'Giỏ hàng', icon: ShoppingCart, path: '/cart' },
-  { key: 'account', label: 'Tài khoản', icon: User, path: '/account' },
-  { key: 'auth', label: 'Đăng nhập', icon: User, path: '/auth' },
-  { key: 'order_tracking', label: 'Tra cứu đơn', icon: Truck, path: '/order-tracking' },
+  { key: 'products', label: t('admin.msg_1d1aa192', 'Sản phẩm'), icon: ShoppingBag, path: '/products' },
+  { key: 'cart', label: t('admin.msg_6b413a7c', 'Giỏ hàng'), icon: ShoppingCart, path: '/cart' },
+  { key: 'account', label: t('admin.msg_7bd53616', 'Tài khoản'), icon: User, path: '/account' },
+  { key: 'auth', label: t('admin.msg_9a192725', 'Đăng nhập'), icon: User, path: '/auth' },
+  { key: 'order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'), icon: Truck, path: '/order-tracking' },
 ]
 
 // ─── Templates ───
 const templates = [
-  { key: 'full_store', name: 'Full Store', desc: 'Tất cả sections', icon: Store },
-  { key: 'catalog', name: 'Catalog', desc: 'Danh mục + SP', icon: Package },
-  { key: 'minimal', name: 'Minimal', desc: 'Banner + SP nổi bật', icon: Target },
+  { key: 'full_store', name: 'Full Store', desc: t('admin.msg_49c6f2e0', 'Tất cả sections'), icon: Store },
+  { key: 'catalog', name: 'Catalog', desc: t('admin.msg_c6498131', 'Danh mục + SP'), icon: Package },
+  { key: 'minimal', name: 'Minimal', desc: t('admin.msg_f6c79663', 'Banner + SP nổi bật'), icon: Target },
   { key: 'landing', name: 'Landing Page', desc: 'Banner + CMS', icon: BookOpen },
 ]
 const templatePresets = {
@@ -954,7 +954,7 @@ async function saveLayout() {
         method: 'PUT',
         body: JSON.stringify({ layout_data: sections.value }),
       })
-      showToast('Đã lưu bố cục trang CMS', 'success')
+      showToast(t('admin.msg_a593a4', 'Đã lưu bố cục trang CMS'), 'success')
       saving.value = false
       return
     }
@@ -978,7 +978,7 @@ async function saveLayout() {
         ],
       }),
     })
-    showToast('Đã xuất bản bố cục Cửa Hàng', 'success')
+    showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
   } catch (e) {
     showToast('Lỗi lưu: ' + e.message, 'error')
   }
@@ -994,7 +994,7 @@ async function saveDraft() {
         method: 'PUT',
         body: JSON.stringify({ layout_data: sections.value }),
       })
-      showToast('Đã lưu nháp bố cục trang CMS', 'success')
+      showToast(t('admin.msg_d1cb5f', 'Đã lưu nháp bố cục trang CMS'), 'success')
       saving.value = false
       return
     }
@@ -1012,7 +1012,7 @@ async function saveDraft() {
         ],
       }),
     })
-    showToast('Đã lưu nháp', 'success')
+    showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
   } catch (e) {
     showToast('Lỗi lưu nháp: ' + e.message, 'error')
   }
@@ -1058,14 +1058,14 @@ function openEditNavLink(link) {
   showNavLinkModal.value = true
 }
 async function saveNavLink() {
-  if (!navLinkForm.value.name) { showToast('Nhập tên link', 'error'); return }
+  if (!navLinkForm.value.name) { showToast(t('admin.msg_c2d389', 'Nhập tên link'), 'error'); return }
   try {
     if (navLinkEditing.value) {
       await updateNavLink(navLinkEditing.value, navLinkForm.value)
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createNavLink(navLinkForm.value)
-      showToast('Đã tạo link', 'success')
+      showToast(t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
     }
     showNavLinkModal.value = false
     fetchNavLinks()
@@ -1075,7 +1075,7 @@ async function deleteNavLink(link) {
   if (!confirm(`Xóa link "${link.name}"?`)) return
   await deleteNavLinkApi(link.id)
   fetchNavLinks()
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLinks(); fetchCmsPageList() })

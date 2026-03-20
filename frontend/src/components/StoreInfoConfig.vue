@@ -1,6 +1,6 @@
 <template>
   <div class="store-info-panel">
-    <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> Thông tin cửa hàng</h3>
+    <h3 class="settings__panel-title"><Store :size="16" style="vertical-align:middle" /> {{ t('admin.msg_e9a1b334', 'Thông tin cửa hàng') }}</h3>
     <p class="settings__panel-desc">Cấu hình thông tin cơ bản, liên hệ và mạng xã hội cho cửa hàng của bạn. Thông tin này sẽ được hiển thị ở Footer và các trang liên hệ.</p>
 
     <div v-if="loading" class="loading-state">
@@ -12,52 +12,48 @@
 
       <!-- Cơ bản -->
       <div class="si-section">
-        <h4 class="si-section-title">Thông tin cơ bản</h4>
+        <h4 class="si-section-title">{{ t('admin.msg_41100f72', 'Thông tin cơ bản') }}</h4>
         <div class="si-grid">
           <div class="settings__section">
             <label class="settings__field-label">{{ t('admin.store_name', 'Tên cửa hàng') }}</label>
             <input v-model="fShopName" type="text" class="swp-input" placeholder="VD: Fashion VN" />
           </div>
           <div class="settings__section">
-            <label class="settings__field-label">Slogan / Tagline (Ngành nghề)</label>
-            <input v-model="fShopTagline" type="text" class="swp-input" placeholder="VD: Chuyên sỉ lẻ quần áo / Thế giới đồ chơi / Đồ ăn vặt" />
-            <small class="si-help">Mô tả ngắn về ngành nghề hoặc slogan của bạn để tự động thích ứng với trang web.</small>
+            <label class="settings__field-label">{{ t('admin.msg_9cc5bbbf', 'Slogan / Tagline (Ngành nghề)') }}</label>
+            <input v-model="fShopTagline" type="text" class="swp-input" :placeholder="t('admin.msg_f30c7a', 'VD: Chuyên sỉ lẻ quần áo / Thế giới đồ chơi / Đồ ăn vặt')" />
+            <small class="si-help">{{ t('admin.msg_2d113f22', 'Mô tả ngắn về ngành nghề hoặc slogan của bạn để tự động thích ứng với trang web.') }}</small>
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
-            <label class="settings__field-label">Mô tả cửa hàng</label>
-            <textarea v-model="fDescription" class="swp-input" rows="3" placeholder="VD: Chuyên cung cấp quần áo thời trang chất lượng cao với mức giá hợp lý..."></textarea>
-            <small class="si-help">Mô tả ngắn về cửa hàng, hiển thị ở Footer và SEO meta.</small>
+            <label class="settings__field-label">{{ t('admin.msg_2615276a', 'Mô tả cửa hàng') }}</label>
+            <textarea v-model="fDescription" class="swp-input" rows="3" :placeholder="t('admin.msg_216ffc', 'VD: Chuyên cung cấp quần áo thời trang chất lượng cao với mức giá hợp lý...')"></textarea>
+            <small class="si-help">{{ t('admin.msg_776d179b', 'Mô tả ngắn về cửa hàng, hiển thị ở Footer và SEO meta.') }}</small>
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
-            <label class="settings__field-label">Logo URL</label>
-            <div class="si-logo-row">
-              <img v-if="form.logo" :src="form.logo" class="si-logo-preview" alt="Logo preview" />
-              <div v-else class="si-logo-empty"><Image :size="24" /></div>
-              <input v-model="form.logo" type="text" class="swp-input" placeholder="https://vd.com/logo.png" style="flex:1" />
-            </div>
-            <small class="si-help">Cung cấp đường dẫn tới hình ảnh logo của bạn.</small>
+            <label class="settings__field-label">Logo</label>
+            <MediaPicker v-model="form.logo" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
+            <small class="si-help">{{ t('admin.msg_4f75c40f', 'Cung cấp đường dẫn tới hình ảnh logo của bạn.') }}</small>
           </div>
         </div>
       </div>
 
       <!-- Liên hệ -->
       <div class="si-section">
-        <h4 class="si-section-title">Thông tin liên hệ</h4>
+        <h4 class="si-section-title">{{ t('admin.msg_9253b4a4', 'Thông tin liên hệ') }}</h4>
         <div class="si-grid">
           <div class="settings__section">
             <label class="settings__field-label">{{ t('admin.phone', 'Số điện thoại') }}</label>
             <input v-model="form.phone" type="text" class="swp-input" placeholder="VD: 0912 345 678" />
           </div>
           <div class="settings__section">
-            <label class="settings__field-label">Email hỗ trợ</label>
+            <label class="settings__field-label">{{ t('admin.msg_9034770f', 'Email hỗ trợ') }}</label>
             <input v-model="form.email" type="email" class="swp-input" placeholder="VD: support@shop.com" />
           </div>
           <div class="settings__section" style="grid-column: 1 / -1;">
             <label class="settings__field-label">{{ t('admin.address', 'Địa chỉ') }}</label>
-            <input v-model="fAddress" type="text" class="swp-input" placeholder="VD: 123 Đường A, Quận B, TP. C" />
+            <input v-model="fAddress" type="text" class="swp-input" :placeholder="t('admin.msg_c3f171', 'VD: 123 Đường A, Quận B, TP. C')" />
           </div>
           <div class="settings__section">
-            <label class="settings__field-label">Giờ làm việc</label>
+            <label class="settings__field-label">{{ t('admin.msg_db2974eb', 'Giờ làm việc') }}</label>
             <input v-model="fWorkingHours" type="text" class="swp-input" placeholder="VD: 8:00 - 21:00 (T2 - CN)" />
           </div>
         </div>
@@ -65,7 +61,7 @@
 
       <!-- Mạng xã hội -->
       <div class="si-section">
-        <h4 class="si-section-title">Mạng xã hội</h4>
+        <h4 class="si-section-title">{{ t('admin.msg_0f1252b7', 'Mạng xã hội') }}</h4>
         <div class="si-grid">
           <div class="settings__section">
             <label class="settings__field-label">Facebook</label>
@@ -84,12 +80,12 @@
             <input v-model="form.youtube" type="text" class="swp-input" placeholder="https://youtube.com/c/..." />
           </div>
           <div class="settings__section">
-            <label class="settings__field-label">Zalo (SĐT hoặc Zalo.me)</label>
+            <label class="settings__field-label">{{ t('admin.msg_435da1db', 'Zalo (SĐT hoặc Zalo.me)') }}</label>
             <input v-model="form.zalo" type="text" class="swp-input" placeholder="VD: 0912345678" />
           </div>
           <div class="settings__section">
             <label class="settings__field-label">Copyright (Footer)</label>
-            <input v-model="fCopyright" type="text" class="swp-input" placeholder="VD: © 2026 Shop. Bản quyền thuộc về..." />
+            <input v-model="fCopyright" type="text" class="swp-input" :placeholder="t('admin.msg_fa7d3b', 'VD: © 2026 Shop. Bản quyền thuộc về...')" />
           </div>
         </div>
       </div>
@@ -108,6 +104,7 @@ import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { Store, Save, Loader2, Image } from 'lucide-vue-next'
+import MediaPicker from './MediaPicker.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import { useI18n } from '../composables/useI18n.js'
 
@@ -202,10 +199,10 @@ async function save() {
       body: JSON.stringify({ translations: translations || {} })
     })
 
-    showToast('Đã lưu thông tin cửa hàng', 'success')
+    showToast(t('admin.msg_373752', 'Đã lưu thông tin cửa hàng'), 'success')
   } catch (e) {
     console.error('Failed to save store info:', e)
-    showToast('Lỗi khi lưu thông tin', 'error')
+    showToast(t('admin.msg_95d254', 'Lỗi khi lưu thông tin'), 'error')
   } finally {
     saving.value = false
   }

@@ -1,6 +1,6 @@
 <template>
   <section class="sf-section" v-if="categories.length > 0">
-    <h3 class="sf-section__title"><Grid :size="16" /> Danh mục</h3>
+    <h3 class="sf-section__title"><Grid :size="16" /> {{ t('admin.msg_53d8de58', 'Danh mục') }}</h3>
     <div class="sf-categories" :class="{ 'sf-categories--carousel': layoutStyle === 'carousel' }">
       <button v-for="cat in displayCategories" :key="cat.id" class="sf-cat-card" @click="$emit('select', cat)">
         <img v-if="cat.image" :src="cat.image" :alt="cat.name" class="sf-cat-img" />

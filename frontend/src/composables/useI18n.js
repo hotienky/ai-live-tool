@@ -3,8 +3,8 @@ import { apiFetch } from './useApi.js'
 
 /**
  * useI18n — Admin Frontend internationalization composable
- * Loads translations from /api/translations/:lang
- * Stores selected language in localStorage
+ * All translations are loaded from the database via API.
+ * JSON seed files are only kept on the backend for initial seeding.
  */
 
 const LANG_KEY = 'admin_lang'
@@ -49,15 +49,16 @@ export function useI18n() {
   }
 
   async function loadTranslations(langCode) {
+    const code = langCode || state.currentLang
     try {
-      const res = await apiFetch(`/translations/${langCode || state.currentLang}`)
+      const res = await apiFetch(`/translations/${code}`)
       const json = await res.json()
       state.translations = json && typeof json === 'object' ? json : {}
-      state.loaded = true
     } catch (e) {
       console.warn('Failed to load admin translations:', e)
       state.translations = {}
     }
+    state.loaded = true
   }
 
   async function setLang(code) {

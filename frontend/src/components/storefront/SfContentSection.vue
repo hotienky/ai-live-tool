@@ -46,10 +46,10 @@
     <div v-else-if="type === 'newsletter'" class="sf-newsletter">
       <p class="sf-newsletter-sub" v-if="config.subtitle">{{ config.subtitle }}</p>
       <form class="sf-newsletter-form" @submit.prevent="onSubscribe">
-        <input type="email" v-model="email" placeholder="Email của bạn..." required />
-        <button type="submit">{{ config.buttonText || 'Đăng ký' }}</button>
+        <input type="email" v-model="email" :placeholder="t('admin.msg_1bd44d', 'Email của bạn...')" required />
+        <button type="submit">{{ config.buttonText || t('admin.msg_0bb0951d', 'Đăng ký') }}</button>
       </form>
-      <p v-if="subscribed" class="sf-newsletter-ok">✓ Đăng ký thành công!</p>
+      <p v-if="subscribed" class="sf-newsletter-ok">{{ t('admin.msg_15d03db9', '✓ Đăng ký thành công!') }}</p>
     </div>
 
     <!-- Brands Slider -->

@@ -6,11 +6,11 @@
         Kịch bản Live
       </h3>
       <div class="prompter__controls">
-        <button type="button" class="prompter__btn" @click="toggleExpand" :title="isExpanded ? 'Thu nhỏ' : 'Mở rộng'">
+        <button type="button" class="prompter__btn" @click="toggleExpand" :title="isExpanded ? t('admin.msg_0c1405ed', 'Thu nhỏ') : t('admin.msg_302fd48e', 'Mở rộng')">
           <Shrink v-if="isExpanded" :size="14" />
           <Expand v-else :size="14" />
         </button>
-        <button type="button" class="prompter__btn" @click="isMini = !isMini" :title="isMini ? 'Hiện nội dung' : 'Ẩn nội dung'">
+        <button type="button" class="prompter__btn" @click="isMini = !isMini" :title="isMini ? t('admin.msg_9c2e1545', 'Hiện nội dung') : t('admin.msg_e6ff6b8c', 'Ẩn nội dung')">
           <ChevronDown v-if="isMini" :size="14" />
           <ChevronUp v-else :size="14" />
         </button>
@@ -26,18 +26,18 @@
           ref="textareaRef"
           class="prompter__textarea"
           :rows="isExpanded ? 20 : 12"
-          placeholder="Nhập kịch bản live ở đây...
+          :placeholder="t('admin.msg_1748ff', 'Nhập kịch bản live ở đây...
 
 📋 Mẫu:
 ▶ Chào mọi người! Hôm nay mình giới thiệu sản phẩm ABC
 💰 Giá gốc 500k, hôm nay chỉ 299k
 🔥 Comment &quot;MUANGAY&quot; để được tư vấn
-⏰ Flash sale trong 15 phút nữa!"
+⏰ Flash sale trong 15 phút nữa!')"
         ></textarea>
         <div class="prompter__editor-actions">
           <select v-model="scrollSpeed" class="prompter__speed-select">
-            <option :value="1">Chậm</option>
-            <option :value="2">Vừa</option>
+            <option :value="1">{{ t('admin.msg_12a9258f', 'Chậm') }}</option>
+            <option :value="2">{{ t('admin.msg_74ffe0a7', 'Vừa') }}</option>
             <option :value="3">Nhanh</option>
           </select>
           <button type="button" class="prompter__play-btn" @click="startPrompter" :disabled="!scriptText.trim()">

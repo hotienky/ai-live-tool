@@ -6,21 +6,21 @@
 
     <div v-else class="shipping-list">
       <div class="ship-header">
-        <h2><Truck :size="20" style="vertical-align:middle" /> Quản Lý Vận Chuyển</h2>
+        <h2><Truck :size="20" style="vertical-align:middle" /> {{ t('admin.msg_38d15714', 'Quản Lý Vận Chuyển') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="🔍 Tìm mã VĐ, người nhận..." />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_30e675', '🔍 Tìm mã VĐ, người nhận...')" />
         <select v-model="filterStatus" class="filter-select">
-          <option value="">Tất cả TT</option>
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
           <option v-for="(label, key) in statusLabels" :key="key" :value="key">{{ label }}</option>
         </select>
         <select v-model="filterCarrier" class="filter-select">
-          <option value="">Tất cả ĐVVC</option>
-          <option value="manual">Thủ công</option>
+          <option value="">{{ t('admin.msg_81041910', 'Tất cả ĐVVC') }}</option>
+          <option value="manual">{{ t('admin.msg_a794b260', 'Thủ công') }}</option>
           <option value="ghn">GHN</option>
           <option value="ghtk">GHTK</option>
           <option value="viettel_post">Viettel Post</option>
         </select>
-        <button class="btn-add" @click="openCreateModal(null)"><Plus :size="14" /> Tạo vận đơn</button>
+        <button class="btn-add" @click="openCreateModal(null)"><Plus :size="14" /> {{ t('admin.msg_cbfa8f47', 'Tạo vận đơn') }}</button>
       </div>
     </div>
 
@@ -29,17 +29,17 @@
       <div class="stat-card">
         <div class="stat-icon stat-icon--total"><Package :size="22" /></div>
         <div class="stat-value">{{ shipStats.total }}</div>
-        <div class="stat-label">Tổng vận đơn</div>
+        <div class="stat-label">{{ t('admin.msg_a1d98b7d', 'Tổng vận đơn') }}</div>
       </div>
       <div class="stat-card revenue">
         <div class="stat-icon stat-icon--fee"><DollarSign :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(shipStats.totalFees) }}</div>
-        <div class="stat-label">Tổng phí ship</div>
+        <div class="stat-label">{{ t('admin.msg_58f93102', 'Tổng phí ship') }}</div>
       </div>
       <div class="stat-card warning">
         <div class="stat-icon stat-icon--transit"><Truck :size="22" /></div>
         <div class="stat-value">{{ shipStats.statusCounts?.in_transit || 0 }}</div>
-        <div class="stat-label">Đang vận chuyển</div>
+        <div class="stat-label">{{ t('admin.msg_6603a16a', 'Đang vận chuyển') }}</div>
       </div>
       <div class="stat-card" style="--accent-color: #34d399;">
         <div class="stat-icon stat-icon--delivered"><CheckCircle :size="22" /></div>
@@ -49,7 +49,7 @@
       <div class="stat-card" style="--accent-color: #60a5fa;">
         <div class="stat-icon stat-icon--rate"><TrendingUp :size="22" /></div>
         <div class="stat-value" style="color:#60a5fa">{{ deliveryRate }}%</div>
-        <div class="stat-label">Tỷ lệ giao TC</div>
+        <div class="stat-label">{{ t('admin.msg_0d33669f', 'Tỷ lệ giao TC') }}</div>
       </div>
     </div>
 
@@ -59,12 +59,12 @@
         <thead>
           <tr>
             <th>#</th>
-            <th>Đơn hàng</th>
-            <th>Người nhận</th>
+            <th>{{ t('admin.msg_adb21d16', 'Đơn hàng') }}</th>
+            <th>{{ t('admin.msg_6d8b1e4a', 'Người nhận') }}</th>
             <th>{{ t('admin.phone_short', 'SĐT') }}</th>
-            <th>ĐVVC</th>
+            <th>{{ t('admin.msg_bd277c59', 'ĐVVC') }}</th>
             <th>{{ t('admin.tracking_code', 'Mã vận đơn') }}</th>
-            <th>Phí ship</th>
+            <th>{{ t('admin.msg_a06b5f8d', 'Phí ship') }}</th>
             <th>COD</th>
             <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
@@ -87,9 +87,9 @@
             <td>{{ formatDate(s.createdAt) }}</td>
             <td>
               <div class="action-btns">
-                <button class="act-btn act-edit" @click="openDetail(s)"><RefreshCw :size="13" /> Chi tiết</button>
+                <button class="act-btn act-edit" @click="openDetail(s)"><RefreshCw :size="13" /> {{ t('admin.msg_0475320c', 'Chi tiết') }}</button>
                 <button class="act-btn act-print" @click="printShipmentLabel(s)"><Printer :size="13" /> In</button>
-                <button v-if="!['delivered','cancelled'].includes(s.status)" class="act-btn act-cancel" @click="cancelShipment(s)"><XCircle :size="13" /> Hủy</button>
+                <button v-if="!['delivered','cancelled'].includes(s.status)" class="act-btn act-cancel" @click="cancelShipment(s)"><XCircle :size="13" /> {{ t('admin.msg_1e405035', 'Hủy') }}</button>
                 <button v-if="s.status === 'draft'" class="act-btn act-cancel" @click="deleteShipment(s)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
@@ -98,8 +98,8 @@
             <td colspan="11" class="empty">
               <div class="empty-state">
                 <Truck :size="40" class="empty-state__icon" />
-                <p class="empty-state__title">Chưa có vận đơn</p>
-                <p class="empty-state__sub">Tạo vận đơn mới từ đơn hàng hoặc thủ công</p>
+                <p class="empty-state__title">{{ t('admin.msg_af6b8aff', 'Chưa có vận đơn') }}</p>
+                <p class="empty-state__sub">{{ t('admin.msg_1930d603', 'Tạo vận đơn mới từ đơn hàng hoặc thủ công') }}</p>
               </div>
             </td>
           </tr>
@@ -141,17 +141,17 @@ const selectedShipmentId = ref(null)
 const orderLookupId = ref(null)
 
 const statusLabels = {
-  draft: 'Nháp',
-  pending: 'Chờ lấy',
-  picked_up: 'Đã lấy',
-  in_transit: 'Đang chuyển',
-  out_for_delivery: 'Đang giao',
-  delivered: 'Đã giao',
-  returned: 'Hoàn hàng',
-  cancelled: 'Đã hủy',
+  draft: t('admin.msg_867cf3b9', 'Nháp'),
+  pending: t('admin.msg_48b30936', 'Chờ lấy'),
+  picked_up: t('admin.msg_77c36744', 'Đã lấy'),
+  in_transit: t('admin.msg_eea9a1cc', 'Đang chuyển'),
+  out_for_delivery: t('admin.msg_e61e15e1', 'Đang giao'),
+  delivered: t('admin.msg_fb72b8a4', 'Đã giao'),
+  returned: t('admin.msg_b398bb99', 'Hoàn hàng'),
+  cancelled: t('admin.msg_1a46e024', 'Đã hủy'),
 }
 
-const carrierLabels = { manual: 'Thủ công', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
+const carrierLabels = { manual: t('admin.msg_a794b260', 'Thủ công'), ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
 
 const deliveryRate = computed(() => {
   const total = shipStats.value.total || 0
@@ -232,22 +232,22 @@ async function cancelShipment(s) {
   try {
     await apiFetch(`/shipments/${s.id}/status`, {
       method: 'PUT',
-      body: JSON.stringify({ status: 'cancelled', description: 'Hủy vận đơn' }),
+      body: JSON.stringify({ status: 'cancelled', description: t('admin.msg_a9eae200', 'Hủy vận đơn') }),
     })
-    showToast('Đã hủy vận đơn', 'success')
+    showToast(t('admin.msg_f31f2c', 'Đã hủy vận đơn'), 'success')
     fetchShipments()
     fetchStats()
-  } catch { showToast('Lỗi hủy vận đơn', 'error') }
+  } catch { showToast(t('admin.msg_0859ac', 'Lỗi hủy vận đơn'), 'error') }
 }
 
 async function deleteShipment(s) {
   if (!confirm(`Xóa vận đơn #${s.id}?`)) return
   try {
     await apiFetch(`/shipments/${s.id}`, { method: 'DELETE' })
-    showToast('Đã xóa vận đơn', 'success')
+    showToast(t('admin.msg_776619', 'Đã xóa vận đơn'), 'success')
     fetchShipments()
     fetchStats()
-  } catch { showToast('Lỗi xóa vận đơn', 'error') }
+  } catch { showToast(t('admin.msg_3f456e', 'Lỗi xóa vận đơn'), 'error') }
 }
 
 function printShipmentLabel(s) {

@@ -6,20 +6,20 @@
     <!-- Loading state -->
     <div v-else-if="isLoading" class="plugin-renderer__loading">
       <div class="plugin-renderer__spinner"></div>
-      <p>Đang tải module <strong>{{ moduleId }}</strong>...</p>
+      <p>{{ t('admin.msg_10762b73', 'Đang tải module') }} <strong>{{ moduleId }}</strong>...</p>
     </div>
 
     <!-- Error state -->
     <div v-else-if="error" class="plugin-renderer__error">
       <AlertCircle :size="32" />
       <p>{{ error }}</p>
-      <button @click="retry" class="plugin-renderer__retry">Thử lại</button>
+      <button @click="retry" class="plugin-renderer__retry">{{ t('admin.msg_4dffdf1d', 'Thử lại') }}</button>
     </div>
 
     <!-- Not installed -->
     <div v-else class="plugin-renderer__empty">
       <Package :size="48" />
-      <p>Module chưa được cài đặt</p>
+      <p>{{ t('admin.msg_845d0b59', 'Module chưa được cài đặt') }}</p>
     </div>
   </div>
 </template>
@@ -58,7 +58,7 @@ async function loadComponent() {
       error.value = `Component "${props.tabKey}" không tìm thấy trong module "${props.moduleId}"`
     }
   } catch (e) {
-    error.value = e.message || 'Lỗi tải module'
+    error.value = e.message || t('admin.msg_e27c9027', 'Lỗi tải module')
   } finally {
     isLoading.value = false
   }

@@ -3,7 +3,7 @@
     <div class="profile-modal">
       <!-- Header -->
       <div class="pm-header">
-        <h3><UserCircle :size="18" /> Hồ Sơ Cá Nhân</h3>
+        <h3><UserCircle :size="18" /> {{ t('admin.msg_952b5b12', 'Hồ Sơ Cá Nhân') }}</h3>
         <button class="pm-close" @click="$emit('close')"><X :size="18" /></button>
       </div>
 
@@ -24,12 +24,12 @@
 
         <!-- Update Name -->
         <div class="pm-section">
-          <h4><PenLine :size="14" /> Đổi tên hiển thị</h4>
+          <h4><PenLine :size="14" /> {{ t('admin.msg_4fb25875', 'Đổi tên hiển thị') }}</h4>
           <div class="pm-field-row">
             <div class="pm-input-wrap">
               <input
                 v-model="fullName"
-                placeholder="Nhập tên hiển thị..."
+                :placeholder="t('admin.msg_3cd1fa', 'Nhập tên hiển thị...')"
                 class="pm-input"
                 @keyup.enter="updateProfile"
               />
@@ -43,13 +43,13 @@
 
         <!-- Change Password -->
         <div class="pm-section">
-          <h4><Lock :size="14" /> Đổi mật khẩu</h4>
+          <h4><Lock :size="14" /> {{ t('admin.msg_ff6fe7b1', 'Đổi mật khẩu') }}</h4>
           <div class="pm-input-wrap">
             <Lock :size="14" class="pm-input-icon" />
             <input
               v-model="currentPassword"
               :type="showCurrentPw ? 'text' : 'password'"
-              placeholder="Mật khẩu hiện tại"
+              :placeholder="t('admin.msg_d94873', 'Mật khẩu hiện tại')"
               class="pm-input pm-input--icon pm-input--eye"
             />
             <button type="button" class="pm-eye-btn" @click="showCurrentPw = !showCurrentPw" tabindex="-1">
@@ -61,7 +61,7 @@
             <input
               v-model="newPassword"
               :type="showNewPw ? 'text' : 'password'"
-              placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
+              :placeholder="t('admin.msg_9da358', 'Mật khẩu mới (tối thiểu 6 ký tự)')"
               class="pm-input pm-input--icon pm-input--eye"
               @keyup.enter="changePassword"
             />
@@ -75,7 +75,7 @@
             :disabled="savingPw || !currentPassword || !newPassword || newPassword.length < 6"
           >
             <RefreshCw :size="14" />
-            {{ savingPw ? 'Đang đổi...' : 'Đổi mật khẩu' }}
+            {{ savingPw ? t('admin.msg_bf5f465f', 'Đang đổi...') : t('admin.msg_ff6fe7b1', 'Đổi mật khẩu') }}
           </button>
         </div>
 
@@ -163,7 +163,7 @@ async function updateProfile() {
     })
     const data = await res.json()
     if (res.ok) {
-      showMsg('Đã cập nhật tên thành công')
+      showMsg(t('admin.msg_7a35b020', 'Đã cập nhật tên thành công'))
       // Update localStorage with new user data
       const stored = JSON.parse(localStorage.getItem('auth_user') || '{}')
       stored.full_name = fullName.value.trim()
@@ -171,10 +171,10 @@ async function updateProfile() {
       localStorage.setItem('auth_user', JSON.stringify(stored))
       emit('updated', { ...stored, ...data })
     } else {
-      showMsg(data?.message || data?.error || 'Lỗi cập nhật', 'error')
+      showMsg(data?.message || data?.error || t('admin.msg_50ae86d6', 'Lỗi cập nhật'), 'error')
     }
   } catch (e) {
-    showMsg('Lỗi kết nối: ' + e.message, 'error')
+    showMsg(t('admin.msg_984102cd', 'Lỗi kết nối: ') + e.message, 'error')
   }
   saving.value = false
 }
@@ -192,14 +192,14 @@ async function changePassword() {
     })
     const data = await res.json()
     if (res.ok) {
-      showMsg('Đổi mật khẩu thành công')
+      showMsg(t('admin.msg_d753e306', 'Đổi mật khẩu thành công'))
       currentPassword.value = ''
       newPassword.value = ''
     } else {
-      showMsg(data?.message || data?.error || 'Lỗi đổi mật khẩu', 'error')
+      showMsg(data?.message || data?.error || t('admin.msg_bffc54d5', 'Lỗi đổi mật khẩu'), 'error')
     }
   } catch (e) {
-    showMsg('Lỗi kết nối: ' + e.message, 'error')
+    showMsg(t('admin.msg_984102cd', 'Lỗi kết nối: ') + e.message, 'error')
   }
   savingPw.value = false
 }

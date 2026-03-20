@@ -1,13 +1,13 @@
 <template>
   <div class="ship-detail-page">
     <div class="sd-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="sd-header__center">
         <div class="sd-header__icon"><MapPin :size="15" /></div>
         <h3>Chi tiết Vận đơn #{{ shipment?.id || shipmentId }}</h3>
       </div>
       <div class="sd-actions">
-        <button class="btn-print" @click="printShipmentLabel"><Printer :size="14" /> In phiếu</button>
+        <button class="btn-print" @click="printShipmentLabel"><Printer :size="14" /> {{ t('admin.msg_378e9242', 'In phiếu') }}</button>
         <button v-if="shipment && !['delivered','cancelled'].includes(shipment.status)" class="btn-cancel" @click="cancelShipment">
           <XCircle :size="14" /> Hủy Đơn
         </button>
@@ -15,7 +15,7 @@
     </div>
 
     <div v-if="loading" class="sd-loading">
-      <Loader2 :size="24" class="spin" /> <p>Đang tải dữ liệu...</p>
+      <Loader2 :size="24" class="spin" /> <p>{{ t('admin.msg_54033c7f', 'Đang tải dữ liệu...') }}</p>
     </div>
 
     <div v-else-if="shipment" class="sd-content">
@@ -23,21 +23,21 @@
       <div class="sd-col sd-col--left">
         <!-- Info Card -->
         <div class="sd-card">
-          <h4><Package :size="16" /> Thông tin Vận đơn</h4>
+          <h4><Package :size="16" /> {{ t('admin.msg_2838f5b1', 'Thông tin Vận đơn') }}</h4>
           <div class="info-grid">
-            <div class="info-item"><span>Người nhận</span><strong>{{ shipment.receiverName }}</strong></div>
-            <div class="info-item"><span>Điện thoại</span><strong>{{ shipment.receiverPhone }}</strong></div>
-            <div class="info-item span-2"><span>Địa chỉ</span><strong>{{ shipment.receiverAddress }}, {{ shipment.receiverWard }}, {{ shipment.receiverDistrict }}, {{ shipment.receiverProvince }}</strong></div>
-            <div class="info-item"><span>ĐVVC</span><strong>{{ carrierLabels[shipment.carrier] || shipment.carrier }}</strong></div>
-            <div class="info-item"><span>Mã VĐ</span><strong class="tracking-code">{{ shipment.trackingCode || '—' }}</strong></div>
-            <div class="info-item"><span>Phí ship</span><strong class="price">{{ formatCurrency(shipment.shippingFee) }}</strong></div>
+            <div class="info-item"><span>{{ t('admin.msg_6d8b1e4a', 'Người nhận') }}</span><strong>{{ shipment.receiverName }}</strong></div>
+            <div class="info-item"><span>{{ t('admin.msg_f1501d24', 'Điện thoại') }}</span><strong>{{ shipment.receiverPhone }}</strong></div>
+            <div class="info-item span-2"><span>{{ t('admin.msg_7db5b909', 'Địa chỉ') }}</span><strong>{{ shipment.receiverAddress }}, {{ shipment.receiverWard }}, {{ shipment.receiverDistrict }}, {{ shipment.receiverProvince }}</strong></div>
+            <div class="info-item"><span>{{ t('admin.msg_bd277c59', 'ĐVVC') }}</span><strong>{{ carrierLabels[shipment.carrier] || shipment.carrier }}</strong></div>
+            <div class="info-item"><span>{{ t('admin.msg_1fa209c9', 'Mã VĐ') }}</span><strong class="tracking-code">{{ shipment.trackingCode || '—' }}</strong></div>
+            <div class="info-item"><span>{{ t('admin.msg_a06b5f8d', 'Phí ship') }}</span><strong class="price">{{ formatCurrency(shipment.shippingFee) }}</strong></div>
             <div class="info-item"><span>COD</span><strong class="price">{{ formatCurrency(shipment.codAmount) }}</strong></div>
           </div>
         </div>
 
         <!-- Update Status Card -->
         <div class="sd-card">
-          <h4><RefreshCw :size="16" /> Cập nhật trạng thái</h4>
+          <h4><RefreshCw :size="16" /> {{ t('admin.msg_46b3144b', 'Cập nhật trạng thái') }}</h4>
           <div class="status-flow">
             <button
               v-for="(label, key) in statusLabels"
@@ -49,17 +49,17 @@
           </div>
           <div class="form-grid" style="margin-top:16px">
             <div class="form-group span-2">
-              <label>Mô tả / Ghi chú</label>
-              <input v-model="statusDescription" class="form-input" placeholder="VD: Đã nhập kho phân loại..." />
+              <label>{{ t('admin.msg_43c8ab83', 'Mô tả / Ghi chú') }}</label>
+              <input v-model="statusDescription" class="form-input" :placeholder="t('admin.status_description_placeholder', 'VD: Đã nhập kho phân loại...')" />
             </div>
             <div class="form-group span-2">
-              <label>Vị trí</label>
-              <input v-model="statusLocation" class="form-input" placeholder="VD: Kho Tân Bình, HCM" />
+              <label>{{ t('admin.msg_69ea36f3', 'Vị trí') }}</label>
+              <input v-model="statusLocation" class="form-input" :placeholder="t('admin.msg_0fc412', 'VD: Kho Tân Bình, HCM')" />
             </div>
           </div>
           <button class="btn-primary" style="margin-top: 16px; width: 100%; justify-content: center;" @click="submitStatus" :disabled="saving">
             <Loader2 v-if="saving" :size="14" class="spin" />
-            {{ saving ? 'Đang cập nhật...' : 'Cập nhật trạng thái' }}
+            {{ saving ? t('admin.msg_f4c11756', 'Đang cập nhật...') : t('admin.msg_46b3144b', 'Cập nhật trạng thái') }}
           </button>
         </div>
       </div>
@@ -67,7 +67,7 @@
       <div class="sd-col sd-col--right">
         <!-- Timeline Card -->
         <div class="sd-card timeline-card">
-          <h4><Clock :size="16" /> Lịch sử hành trình</h4>
+          <h4><Clock :size="16" /> {{ t('admin.msg_ae3d64e6', 'Lịch sử hành trình') }}</h4>
           
           <div class="tracking-timeline" v-if="trackingHistory.length > 0">
             <div v-for="entry in trackingHistory" :key="entry.id" class="tracking-item">
@@ -85,7 +85,7 @@
           </div>
           <div v-else class="empty-state">
             <MapPin :size="32" class="empty-state__icon" />
-            <p class="empty-state__title">Chưa có lịch sử</p>
+            <p class="empty-state__title">{{ t('admin.msg_03d58f64', 'Chưa có lịch sử') }}</p>
           </div>
         </div>
       </div>
@@ -113,16 +113,16 @@ const statusDescription = ref('')
 const statusLocation = ref('')
 
 const statusLabels = {
-  draft: 'Nháp',
-  pending: 'Chờ lấy',
-  picked_up: 'Đã lấy',
-  in_transit: 'Đang chuyển',
-  out_for_delivery: 'Đang giao',
-  delivered: 'Đã giao',
-  returned: 'Hoàn hàng',
-  cancelled: 'Đã hủy',
+  draft: t('admin.msg_867cf3b9', 'Nháp'),
+  pending: t('admin.msg_48b30936', 'Chờ lấy'),
+  picked_up: t('admin.msg_77c36744', 'Đã lấy'),
+  in_transit: t('admin.msg_eea9a1cc', 'Đang chuyển'),
+  out_for_delivery: t('admin.msg_e61e15e1', 'Đang giao'),
+  delivered: t('admin.msg_fb72b8a4', 'Đã giao'),
+  returned: t('admin.msg_b398bb99', 'Hoàn hàng'),
+  cancelled: t('admin.msg_1a46e024', 'Đã hủy'),
 }
-const carrierLabels = { manual: 'Thủ công', ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
+const carrierLabels = { manual: t('admin.msg_a794b260', 'Thủ công'), ghn: 'GHN', ghtk: 'GHTK', viettel_post: 'Viettel Post' }
 
 onMounted(() => {
   loadData()
@@ -160,7 +160,7 @@ async function loadData() {
       statusNewValue.value = shipment.value.status
     }
   } catch (error) {
-    showToast('Lỗi tải dữ liệu', 'error')
+    showToast(t('admin.msg_bb18b8', 'Lỗi tải dữ liệu'), 'error')
   } finally {
     loading.value = false
   }
@@ -177,7 +177,7 @@ async function submitStatus() {
         location: statusLocation.value,
       }),
     })
-    showToast(`Đã cập nhật: ${statusLabels[statusNewValue.value]}`, 'success')
+    showToast(t('admin.msg_status_updated', 'Đã cập nhật') + ': ' + statusLabels[statusNewValue.value], 'success')
     statusDescription.value = ''
     statusLocation.value = ''
     await loadData() // Refresh
@@ -194,12 +194,12 @@ async function cancelShipment() {
   try {
     await apiFetch(`/shipments/${props.shipmentId}/status`, {
       method: 'PUT',
-      body: JSON.stringify({ status: 'cancelled', description: 'Hủy vận đơn qua hệ thống' }),
+      body: JSON.stringify({ status: 'cancelled', description: t('admin.msg_4d1a1bf2', 'Hủy vận đơn qua hệ thống') }),
     })
-    showToast('Đã hủy vận đơn', 'success')
+    showToast(t('admin.msg_f31f2c', 'Đã hủy vận đơn'), 'success')
     await loadData()
     emit('updated')
-  } catch { showToast('Lỗi hủy vận đơn', 'error') }
+  } catch { showToast(t('admin.msg_0859ac', 'Lỗi hủy vận đơn'), 'error') }
 }
 
 function printShipmentLabel() {

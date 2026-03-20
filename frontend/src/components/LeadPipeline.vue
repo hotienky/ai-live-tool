@@ -88,10 +88,10 @@
           <div v-if="getColumnLeads(col.key).length === 0" class="pipeline__empty"
             :class="{ 'pipeline__empty--active': dragOverCol === col.key && dragSourceCol !== col.key }">
             <GripVertical v-if="dragOverCol === col.key && dragSourceCol !== col.key" :size="20" style="opacity:0.5" />
-            <span v-if="dragOverCol === col.key && dragSourceCol !== col.key">Thả vào đây</span>
+            <span v-if="dragOverCol === col.key && dragSourceCol !== col.key">{{ t('admin.msg_7e688f5b', 'Thả vào đây') }}</span>
             <template v-else>
               <Users :size="24" class="pipeline__empty-icon" />
-              <span>Chưa có lead</span>
+              <span>{{ t('admin.msg_0931abd8', 'Chưa có lead') }}</span>
             </template>
           </div>
         </div>
@@ -102,7 +102,7 @@
     <div v-if="selectedLead" class="pipeline__modal-overlay" @click.self="selectedLead = null">
       <div class="pipeline__modal">
         <div class="pipeline__modal-header">
-          <h3>Chi tiết Lead</h3>
+          <h3>{{ t('admin.msg_26c9343c', 'Chi tiết Lead') }}</h3>
           <button @click="selectedLead = null" class="pipeline__modal-close">
             <X :size="18" />
           </button>
@@ -126,32 +126,32 @@
             </div>
           </div>
           <div class="pipeline__modal-comment">
-            <label><MessageCircle :size="14" style="vertical-align:middle" /> Bình luận:</label>
+            <label><MessageCircle :size="14" style="vertical-align:middle" /> {{ t('admin.msg_df6e6d46', 'Bình luận:') }}</label>
             <p>"{{ selectedLead.comment || selectedLead.commentText || '' }}"</p>
           </div>
           <div class="pipeline__modal-field">
-            <label><BarChart3 :size="14" style="vertical-align:middle" /> Trạng thái:</label>
+            <label><BarChart3 :size="14" style="vertical-align:middle" /> {{ t('admin.msg_a6993480', 'Trạng thái:') }}</label>
             <select v-model="editStatus" class="pipeline__modal-select">
-              <option value="New">Mới</option>
-              <option value="Contacting">Đã liên hệ</option>
+              <option value="New">{{ t('admin.msg_cd5dc8cc', 'Mới') }}</option>
+              <option value="Contacting">{{ t('admin.msg_0e0e8508', 'Đã liên hệ') }}</option>
               <option value="Done">Xong</option>
             </select>
           </div>
           <div class="pipeline__modal-field">
-            <label><ShoppingBag :size="14" style="vertical-align:middle" /> Sản phẩm quan tâm:</label>
+            <label><ShoppingBag :size="14" style="vertical-align:middle" /> {{ t('admin.msg_322d850f', 'Sản phẩm quan tâm:') }}</label>
             <input
               v-model="editProductIntent"
               type="text"
-              placeholder="Nhập sản phẩm khách quan tâm..."
+              :placeholder="t('admin.msg_3a28ed', 'Nhập sản phẩm khách quan tâm...')"
               class="pipeline__modal-input"
             />
           </div>
           <div class="pipeline__modal-field">
-            <label><FileText :size="14" style="vertical-align:middle" /> Ghi chú nhân viên:</label>
+            <label><FileText :size="14" style="vertical-align:middle" /> {{ t('admin.msg_d620caea', 'Ghi chú nhân viên:') }}</label>
             <textarea
               v-model="editNotes"
               rows="2"
-              placeholder="Ghi chú về khách hàng này..."
+              :placeholder="t('admin.msg_c34750', 'Ghi chú về khách hàng này...')"
               class="pipeline__modal-textarea"
             />
           </div>
@@ -208,8 +208,8 @@ const orderTotal = computed(() => orderItems.value.reduce((s, i) => s + (Number(
 const pipeStats = computed(() => leadStats.value)
 
 const columns = [
-  { key: 'New', label: 'Mới', color: '#3b82f6', icon: CircleDot },
-  { key: 'Contacting', label: 'Đã liên hệ', color: '#f59e0b', icon: PhoneCall },
+  { key: 'New', label: t('admin.msg_cd5dc8cc', 'Mới'), color: '#3b82f6', icon: CircleDot },
+  { key: 'Contacting', label: t('admin.msg_0e0e8508', 'Đã liên hệ'), color: '#f59e0b', icon: PhoneCall },
   { key: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
 ]
 
@@ -229,14 +229,14 @@ function detectPhone(text) {
 function getActions(currentStatus) {
   const actions = {
     New: [
-      { target: 'Contacting', label: 'Liên hệ', color: '#f59e0b', icon: PhoneCall },
+      { target: 'Contacting', label: t('admin.msg_9276b119', 'Liên hệ'), color: '#f59e0b', icon: PhoneCall },
       { target: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
     ],
     Contacting: [
       { target: 'Done', label: 'Xong', color: '#10b981', icon: CheckCircle },
     ],
     Done: [
-      { target: 'New', label: 'Mở lại', color: '#3b82f6', icon: ArrowRight },
+      { target: 'New', label: t('admin.msg_47f263a7', 'Mở lại'), color: '#3b82f6', icon: ArrowRight },
     ],
   }
   return actions[currentStatus] || []
@@ -299,10 +299,10 @@ async function onDrop(colKey) {
   try {
     await updateLead(leadId, { status: colKey })
     await fetchLeadStats()
-    showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
+    showToast(t('admin.msg_lead_moved', 'Đã chuyển lead sang') + ' "' + toLabel + '"', 'success')
   } catch (e) {
     console.error('drop moveLead error:', e)
-    showToast('Lỗi khi chuyển lead', 'error')
+    showToast(t('admin.msg_2d40fa', 'Lỗi khi chuyển lead'), 'error')
   }
 }
 
@@ -311,10 +311,10 @@ async function moveLead(leadId, newStatus) {
   try {
     await updateLead(leadId, { status: newStatus })
     await fetchLeadStats()
-    showToast(`Đã chuyển lead sang "${toLabel}"`, 'success')
+    showToast(t('admin.msg_lead_moved', 'Đã chuyển lead sang') + ' "' + toLabel + '"', 'success')
   } catch (e) {
     console.error('moveLead error:', e)
-    showToast('Lỗi khi chuyển lead', 'error')
+    showToast(t('admin.msg_2d40fa', 'Lỗi khi chuyển lead'), 'error')
   }
 }
 
@@ -373,7 +373,7 @@ function copyLeadInfo() {
     editNotes.value ? `Ghi chú: ${editNotes.value}` : '',
   ].filter(Boolean).join('\n')
   navigator.clipboard.writeText(info)
-  showToast('Đã copy thông tin khách hàng!', 'success')
+  showToast(t('admin.msg_9f0d44', 'Đã copy thông tin khách hàng!'), 'success')
 }
 
 async function fetchProducts() {

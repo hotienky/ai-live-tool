@@ -15,14 +15,14 @@
       <div class="lucky-draw__setup" v-if="!isRunning && !winner">
         <div class="lucky-draw__field">
           <label><Target :size="13" style="vertical-align:middle" /> Keyword tham gia</label>
-          <input v-model="config.keyword" placeholder="Ví dụ: muatui, freeship..." class="lucky-draw__input" />
+          <input v-model="config.keyword" :placeholder="t('admin.msg_b1f487', 'Ví dụ: muatui, freeship...')" class="lucky-draw__input" />
         </div>
         <div class="lucky-draw__field">
-          <label><Trophy :size="13" style="vertical-align:middle" /> Số người trúng</label>
+          <label><Trophy :size="13" style="vertical-align:middle" /> {{ t('admin.msg_bf78655a', 'Số người trúng') }}</label>
           <input v-model.number="config.winnerCount" type="number" min="1" max="10" class="lucky-draw__input lucky-draw__input--sm" />
         </div>
         <div class="lucky-draw__field">
-          <label><Timer :size="13" style="vertical-align:middle" /> Thời gian nhận (giây)</label>
+          <label><Timer :size="13" style="vertical-align:middle" /> {{ t('admin.msg_38972d56', 'Thời gian nhận (giây)') }}</label>
           <input v-model.number="config.duration" type="number" min="10" max="300" class="lucky-draw__input lucky-draw__input--sm" />
         </div>
         <button class="lucky-draw__start" @click="startDraw">
@@ -35,7 +35,7 @@
       <div class="lucky-draw__running" v-if="isRunning">
         <div class="lucky-draw__countdown">
           <span class="lucky-draw__timer">{{ timeLeft }}s</span>
-          <p>Đang nhận comment chứa "<strong>{{ config.keyword }}</strong>"</p>
+          <p>{{ t('admin.msg_8a8c1b65', 'Đang nhận comment chứa "') }}<strong>{{ config.keyword }}</strong>"</p>
         </div>
         <div class="lucky-draw__participants">
           <p class="lucky-draw__count">
@@ -55,7 +55,7 @@
       <!-- Winners -->
       <div class="lucky-draw__result" v-if="winner">
         <div class="lucky-draw__confetti"><PartyPopper :size="48" style="color:#f59e0b" /></div>
-        <h3 class="lucky-draw__winners-title">Chúc mừng!</h3>
+        <h3 class="lucky-draw__winners-title">{{ t('admin.msg_ed0ab155', 'Chúc mừng!') }}</h3>
         <div class="lucky-draw__winner-list">
           <div v-for="w in winners" :key="w.uniqueId" class="lucky-draw__winner-card">
             <Trophy :size="18" style="color: #f59e0b" />

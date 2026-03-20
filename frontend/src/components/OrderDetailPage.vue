@@ -6,7 +6,7 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="loading" class="od-loading">Đang tải đơn hàng...</div>
+    <div v-if="loading" class="od-loading">{{ t('admin.msg_9eaf4e74', 'Đang tải đơn hàng...') }}</div>
 
     <template v-else-if="order">
       <!-- Header -->
@@ -17,12 +17,12 @@
           <span class="od-badge" :class="'od-badge--pay-' + order.paymentStatus">{{ paymentLabels[order.paymentStatus] || order.paymentStatus }}</span>
         </div>
         <div class="od-header__right">
-          <button class="od-btn" @click="printInvoice"><Printer :size="14" /> In hóa đơn</button>
-          <button v-if="order.status === 'pending'" class="od-btn od-btn--primary" @click="updateStatus('confirmed')"><CheckCircle :size="14" /> Xác nhận</button>
-          <button v-if="order.status === 'confirmed'" class="od-btn od-btn--primary" @click="$emit('create-shipment', order.id)"><Send :size="14" /> Tạo vận đơn</button>
-          <button v-if="order.status === 'confirmed'" class="od-btn od-btn--ship" @click="updateStatus('shipping')"><Truck :size="14" /> Giao hàng</button>
-          <button v-if="order.status === 'shipping'" class="od-btn od-btn--success" @click="updateStatus('delivered')"><Package :size="14" /> Đã giao</button>
-          <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" class="od-btn od-btn--danger" @click="updateStatus('cancelled')"><XCircle :size="14" /> Hủy đơn</button>
+          <button class="od-btn" @click="printInvoice"><Printer :size="14" /> {{ t('admin.msg_a026a3cb', 'In hóa đơn') }}</button>
+          <button v-if="order.status === 'pending'" class="od-btn od-btn--primary" @click="updateStatus('confirmed')"><CheckCircle :size="14" /> {{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</button>
+          <button v-if="order.status === 'confirmed'" class="od-btn od-btn--primary" @click="$emit('create-shipment', order.id)"><Send :size="14" /> {{ t('admin.msg_cbfa8f47', 'Tạo vận đơn') }}</button>
+          <button v-if="order.status === 'confirmed'" class="od-btn od-btn--ship" @click="updateStatus('shipping')"><Truck :size="14" /> {{ t('admin.msg_0cc68993', 'Giao hàng') }}</button>
+          <button v-if="order.status === 'shipping'" class="od-btn od-btn--success" @click="updateStatus('delivered')"><Package :size="14" /> {{ t('admin.msg_fb72b8a4', 'Đã giao') }}</button>
+          <button v-if="order.status !== 'cancelled' && order.status !== 'delivered'" class="od-btn od-btn--danger" @click="updateStatus('cancelled')"><XCircle :size="14" /> {{ t('admin.msg_380ade01', 'Hủy đơn') }}</button>
         </div>
       </div>
 
@@ -55,14 +55,14 @@
             </div>
             <div class="od-card__body od-empty" v-else>
               <ShoppingBag :size="32" class="od-empty__icon" />
-              <p>Không có sản phẩm</p>
+              <p>{{ t('admin.msg_e44c91a9', 'Không có sản phẩm') }}</p>
             </div>
           </div>
 
           <!-- Payment Breakdown -->
           <div class="od-card">
             <div class="od-card__header">
-              <h3><CreditCard :size="16" /> Chi tiết thanh toán</h3>
+              <h3><CreditCard :size="16" /> {{ t('admin.msg_df3690c5', 'Chi tiết thanh toán') }}</h3>
             </div>
             <div class="od-card__body">
               <div class="od-totals">
@@ -71,7 +71,7 @@
                   <span>{{ formatCurrency(order.subtotal) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.discountAmount > 0">
-                  <span>Giảm giá</span>
+                  <span>{{ t('admin.msg_6b272d01', 'Giảm giá') }}</span>
                   <span class="od-text--discount">-{{ formatCurrency(order.discountAmount) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.shippingFee > 0">
@@ -79,7 +79,7 @@
                   <span>{{ formatCurrency(order.shippingFee) }}</span>
                 </div>
                 <div class="od-totals__row" v-if="order.taxAmount > 0">
-                  <span>Thuế</span>
+                  <span>{{ t('admin.msg_500aedd2', 'Thuế') }}</span>
                   <span>{{ formatCurrency(order.taxAmount) }}</span>
                 </div>
                 <!-- Extra totals from order_totals table -->
@@ -113,11 +113,11 @@
           <!-- Customer Info -->
           <div class="od-card">
             <div class="od-card__header">
-              <h3><User :size="16" /> Thông tin khách hàng</h3>
+              <h3><User :size="16" /> {{ t('admin.msg_1d20cfc4', 'Thông tin khách hàng') }}</h3>
             </div>
             <div class="od-card__body">
               <div class="od-info-row">
-                <span class="od-info-label">Khách hàng</span>
+                <span class="od-info-label">{{ t('admin.msg_0caa5ce1', 'Khách hàng') }}</span>
                 <span class="od-info-value">{{ order.customerName || '—' }}</span>
               </div>
               <div class="od-info-row">
@@ -138,7 +138,7 @@
           <!-- Order Info -->
           <div class="od-card">
             <div class="od-card__header">
-              <h3><FileText :size="16" /> Thông tin đơn hàng</h3>
+              <h3><FileText :size="16" /> {{ t('admin.msg_9fb34cdb', 'Thông tin đơn hàng') }}</h3>
             </div>
             <div class="od-card__body">
               <div class="od-info-row">
@@ -154,7 +154,7 @@
                 <span class="od-info-value">{{ formatDate(order.confirmedAt || order.confirmed_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.shippedAt || order.shipped_at">
-                <span class="od-info-label">Giao hàng</span>
+                <span class="od-info-label">{{ t('admin.msg_0cc68993', 'Giao hàng') }}</span>
                 <span class="od-info-value">{{ formatDate(order.shippedAt || order.shipped_at) }}</span>
               </div>
               <div class="od-info-row" v-if="order.deliveredAt || order.delivered_at">
@@ -175,11 +175,11 @@
           <!-- Shipping Info -->
           <div class="od-card" v-if="order.shippingMethod || order.shipping_method || order.trackingNumber || order.tracking_number">
             <div class="od-card__header">
-              <h3><Truck :size="16" /> Vận chuyển</h3>
+              <h3><Truck :size="16" /> {{ t('admin.msg_76776039', 'Vận chuyển') }}</h3>
             </div>
             <div class="od-card__body">
               <div class="od-info-row" v-if="order.shippingMethod || order.shipping_method">
-                <span class="od-info-label">Đơn vị</span>
+                <span class="od-info-label">{{ t('admin.msg_64d47504', 'Đơn vị') }}</span>
                 <span class="od-info-value">{{ order.shippingMethod || order.shipping_method }}</span>
               </div>
               <div class="od-info-row" v-if="order.trackingNumber || order.tracking_number">
@@ -192,7 +192,7 @@
           <!-- History Timeline -->
           <div class="od-card">
             <div class="od-card__header">
-              <h3><Clock :size="16" /> Lịch sử</h3>
+              <h3><Clock :size="16" /> {{ t('admin.msg_3061f544', 'Lịch sử') }}</h3>
             </div>
             <div class="od-card__body" v-if="history.length">
               <div class="od-timeline">
@@ -206,14 +206,14 @@
               </div>
             </div>
             <div class="od-card__body od-empty" v-else>
-              <p>Chưa có lịch sử</p>
+              <p>{{ t('admin.msg_03d58f64', 'Chưa có lịch sử') }}</p>
             </div>
           </div>
         </div>
       </div>
     </template>
 
-    <div v-else class="od-loading">Không tìm thấy đơn hàng</div>
+    <div v-else class="od-loading">{{ t('admin.msg_8fad60d3', 'Không tìm thấy đơn hàng') }}</div>
   </div>
 </template>
 
@@ -242,10 +242,10 @@ const totals = ref([])
 const history = ref([])
 
 const statusLabels = {
-  pending: 'Chờ xác nhận', confirmed: 'Đã xác nhận', processing: 'Đang xử lý',
-  shipping: 'Đang giao', delivered: 'Đã giao', cancelled: 'Đã hủy',
+  pending: t('admin.msg_d0f4e750', 'Chờ xác nhận'), confirmed: t('admin.msg_c6de124c', 'Đã xác nhận'), processing: t('admin.msg_0f0c3d2a', 'Đang xử lý'),
+  shipping: t('admin.msg_e61e15e1', 'Đang giao'), delivered: t('admin.msg_fb72b8a4', 'Đã giao'), cancelled: t('admin.msg_1a46e024', 'Đã hủy'),
 }
-const paymentLabels = { unpaid: 'Chưa thanh toán', paid: 'Đã thanh toán', refunded: 'Đã hoàn tiền' }
+const paymentLabels = { unpaid: t('admin.msg_956718c7', 'Chưa thanh toán'), paid: t('admin.msg_0c9c7bc3', 'Đã thanh toán'), refunded: t('admin.msg_12add562', 'Đã hoàn tiền') }
 
 function formatCurrency(v) {
   return new Intl.NumberFormat('vi-VN').format(v || 0) + ' đ'
@@ -317,7 +317,7 @@ async function loadOrder() {
 }
 
 async function updateStatus(newStatus) {
-  if (newStatus === 'cancelled' && !confirm('Bạn có chắc muốn hủy đơn này?')) return
+  if (newStatus === 'cancelled' && !confirm(t('admin.msg_0ac73757', 'Bạn có chắc muốn hủy đơn này?'))) return
   try {
     const res = await apiFetch(`/orders/${props.orderId}/status`, {
       method: 'PUT',
@@ -325,10 +325,10 @@ async function updateStatus(newStatus) {
     })
     const data = await res.json()
     order.value = data.data || data
-    showToast?.('Cập nhật trạng thái thành công', 'success')
+    showToast?.(t('admin.msg_0575df04', 'Cập nhật trạng thái thành công'), 'success')
     loadOrder()
   } catch (err) {
-    showToast?.('Cập nhật thất bại: ' + err.message, 'error')
+    showToast?.(t('admin.msg_98cd02e4', 'Cập nhật thất bại: ') + err.message, 'error')
   }
 }
 
@@ -343,7 +343,7 @@ async function updatePayment(newStatus) {
     showToast?.(`Đã cập nhật thanh toán: ${paymentLabels[newStatus]}`, 'success')
     loadOrder()
   } catch (err) {
-    showToast?.('Cập nhật thất bại', 'error')
+    showToast?.(t('admin.msg_e009e9b3', 'Cập nhật thất bại'), 'error')
   }
 }
 

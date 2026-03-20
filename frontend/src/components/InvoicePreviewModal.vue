@@ -5,7 +5,7 @@
         <div class="inv-modal">
           <!-- Header -->
           <div class="inv-modal__header">
-            <h3>Hoá đơn <code>{{ invoice?.invoice_number }}</code></h3>
+            <h3>{{ t('admin.msg_ee8632be', 'Hoá đơn') }} <code>{{ invoice?.invoice_number }}</code></h3>
             <div class="inv-modal__actions">
               <button class="inv-btn inv-btn--outline" @click="printInvoice" title="In hoá đơn">
                 <Printer :size="14" /> In
@@ -15,7 +15,7 @@
               </button>
               <button v-if="invoice?.customer_email" class="inv-btn inv-btn--outline"
                 @click="sendEmail" :disabled="sending" title="Gửi email">
-                <Mail :size="14" /> {{ sending ? 'Đang gửi...' : 'Email' }}
+                <Mail :size="14" /> {{ sending ? t('admin.msg_6b22c83e', 'Đang gửi...') : 'Email' }}
               </button>
               <button class="inv-btn inv-btn--close" @click="$emit('close')">
                 <X :size="16" />
@@ -30,10 +30,10 @@
             </span>
             <select v-if="invoice?.status !== 'cancelled'" class="inv-select"
               :value="invoice?.status" @change="updateStatus($event.target.value)">
-              <option value="draft">Nháp</option>
-              <option value="issued">Đã xuất</option>
-              <option value="paid">Đã thanh toán</option>
-              <option value="cancelled">Huỷ</option>
+              <option value="draft">{{ t('admin.msg_867cf3b9', 'Nháp') }}</option>
+              <option value="issued">{{ t('admin.msg_3d064afb', 'Đã xuất') }}</option>
+              <option value="paid">{{ t('admin.msg_0c9c7bc3', 'Đã thanh toán') }}</option>
+              <option value="cancelled">{{ t('admin.msg_9daba04f', 'Huỷ') }}</option>
             </select>
           </div>
 
@@ -42,26 +42,26 @@
             <!-- Invoice Header -->
             <div class="inv-doc__header">
               <div>
-                <h1 class="inv-doc__title">HÓA ĐƠN</h1>
+                <h1 class="inv-doc__title">{{ t('admin.msg_cfecfcd1', 'HÓA ĐƠN') }}</h1>
                 <div class="inv-doc__number">#{{ invoice?.invoice_number }}</div>
               </div>
               <div class="inv-doc__meta">
-                <div><span class="inv-doc__label">Ngày xuất:</span> {{ formatDate(invoice?.issued_at || invoice?.created_at) }}</div>
-                <div v-if="invoice?.due_date"><span class="inv-doc__label">Hạn TT:</span> {{ formatDate(invoice?.due_date) }}</div>
+                <div><span class="inv-doc__label">{{ t('admin.msg_b0aa8a6c', 'Ngày xuất:') }}</span> {{ formatDate(invoice?.issued_at || invoice?.created_at) }}</div>
+                <div v-if="invoice?.due_date"><span class="inv-doc__label">{{ t('admin.msg_108f4046', 'Hạn TT:') }}</span> {{ formatDate(invoice?.due_date) }}</div>
               </div>
             </div>
 
             <!-- Parties -->
             <div class="inv-doc__parties">
               <div class="inv-doc__party">
-                <h4>Khách hàng</h4>
+                <h4>{{ t('admin.msg_0caa5ce1', 'Khách hàng') }}</h4>
                 <p class="inv-doc__name">{{ invoice?.customer_name }}</p>
                 <p v-if="invoice?.customer_phone">SĐT: {{ invoice?.customer_phone }}</p>
                 <p v-if="invoice?.customer_email">{{ invoice?.customer_email }}</p>
                 <p v-if="invoice?.customer_address">{{ invoice?.customer_address }}</p>
               </div>
               <div class="inv-doc__party inv-doc__party--right" v-if="seller?.name">
-                <h4>Người bán</h4>
+                <h4>{{ t('admin.msg_e07c1d51', 'Người bán') }}</h4>
                 <p class="inv-doc__name">{{ seller?.name }}</p>
                 <p v-if="seller?.phone">SĐT: {{ seller?.phone }}</p>
                 <p v-if="seller?.email">{{ seller?.email }}</p>
@@ -76,9 +76,9 @@
                 <tr>
                   <th>#</th>
                   <th>{{ t('admin.product', 'Sản phẩm') }}</th>
-                  <th class="right">Đơn giá</th>
+                  <th class="right">{{ t('admin.msg_ba2fb8fb', 'Đơn giá') }}</th>
                   <th class="right">SL</th>
-                  <th class="right">Thành tiền</th>
+                  <th class="right">{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,15 +95,15 @@
             <!-- Totals -->
             <div class="inv-doc__totals">
               <div class="inv-doc__totals-row">
-                <span>Tạm tính:</span>
+                <span>{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</span>
                 <span>{{ formatPrice(invoice?.subtotal || 0) }}</span>
               </div>
               <div v-if="Number(invoice?.discount_amount) > 0" class="inv-doc__totals-row">
-                <span>Giảm giá:</span>
+                <span>{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</span>
                 <span class="green">-{{ formatPrice(invoice?.discount_amount) }}</span>
               </div>
               <div v-if="Number(invoice?.shipping_fee) > 0" class="inv-doc__totals-row">
-                <span>Phí giao hàng:</span>
+                <span>{{ t('admin.msg_381c23f1', 'Phí giao hàng:') }}</span>
                 <span>{{ formatPrice(invoice?.shipping_fee) }}</span>
               </div>
               <div v-if="Number(invoice?.tax_amount) > 0" class="inv-doc__totals-row">
@@ -111,14 +111,14 @@
                 <span class="purple">{{ formatPrice(invoice?.tax_amount) }}</span>
               </div>
               <div class="inv-doc__totals-row inv-doc__totals-row--grand">
-                <span>TỔNG CỘNG:</span>
+                <span>{{ t('admin.msg_91abc33d', 'TỔNG CỘNG:') }}</span>
                 <span>{{ formatPrice(invoice?.total_amount || 0) }}</span>
               </div>
             </div>
 
             <!-- Notes -->
             <div v-if="invoice?.notes" class="inv-doc__notes">
-              <strong>Ghi chú:</strong> {{ invoice?.notes }}
+              <strong>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</strong> {{ invoice?.notes }}
             </div>
           </div>
         </div>
@@ -164,7 +164,7 @@ watch(() => props.invoiceId, async (id) => {
 }, { immediate: true })
 
 function statusLabel(s) {
-  return { draft: 'Nháp', issued: 'Đã xuất', paid: 'Đã TT', cancelled: 'Huỷ' }[s] || s
+  return { draft: t('admin.msg_867cf3b9', 'Nháp'), issued: t('admin.msg_3d064afb', 'Đã xuất'), paid: t('admin.msg_04b5eaed', 'Đã TT'), cancelled: t('admin.msg_9daba04f', 'Huỷ') }[s] || s
 }
 
 function formatPrice(v) {

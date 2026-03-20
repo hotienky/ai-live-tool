@@ -13,7 +13,7 @@
 
     <!-- Table of Contents -->
     <nav class="guide-toc">
-      <h3 class="guide-toc__title"><List :size="16" /> Mục lục</h3>
+      <h3 class="guide-toc__title"><List :size="16" /> {{ t('admin.msg_aaa93a05', 'Mục lục') }}</h3>
       <div class="guide-toc__grid">
         <button
           v-for="s in sections"
@@ -74,7 +74,7 @@
 
       <!-- Features List -->
       <div class="guide-features">
-        <h4><Zap :size="14" /> Chức năng chính</h4>
+        <h4><Zap :size="14" /> {{ t('admin.msg_1ac93d5a', 'Chức năng chính') }}</h4>
         <ul>
           <li v-for="f in s.features" :key="f">{{ f }}</li>
         </ul>
@@ -82,7 +82,7 @@
 
       <!-- Steps -->
       <div class="guide-steps">
-        <h4><ListOrdered :size="14" /> Các bước sử dụng</h4>
+        <h4><ListOrdered :size="14" /> {{ t('admin.msg_0ace5e2b', 'Các bước sử dụng') }}</h4>
         <ol>
           <li v-for="st in s.steps" :key="st">{{ st }}</li>
         </ol>
@@ -90,7 +90,7 @@
 
       <!-- Screenshots -->
       <div class="guide-media" v-if="s.screenshots?.length">
-        <h4><Image :size="14" /> Minh họa</h4>
+        <h4><Image :size="14" /> {{ t('admin.msg_ac416ce8', 'Minh họa') }}</h4>
         <div class="guide-gallery">
           <div
             v-for="(img, idx) in s.screenshots"
@@ -219,7 +219,7 @@ const sections = [
     ],
     steps: [
       "Chọn Shop từ dropdown ở header",
-      'Click \"Phiên Live\" → kết nối TikTok Live hoặc chạy Mock Data',
+      t('admin.msg_b98003b4', 'Click \"Phiên Live\" → kết nối TikTok Live hoặc chạy Mock Data'),
       "Bình luận sẽ hiện lên realtime ở Chat Stream bên phải",
       "AI tự động phân loại lead → hiển thị ở Lead Panel bên trái",
       "Click vào lead để xem chi tiết khách hàng",
@@ -276,10 +276,10 @@ const sections = [
     steps: [
       "Trong Live Monitor → click nút 🎁 (Gift) ở FAB góc dưới phải",
       "Panel Lucky Draw mở ra bên phải",
-      'Nhập từ khóa (VD: \"free\", \"mua\")',
+      t('admin.msg_19423a8a', 'Nhập từ khóa (VD: \"free\", \"mua\")'),
       "Chọn số người trúng thưởng",
       "Đặt thời gian (giây)",
-      'Click \"Bắt đầu\" → hệ thống tự quay số',
+      t('admin.msg_4d3c0362', 'Click \"Bắt đầu\" → hệ thống tự quay số'),
       "Kết quả hiển thị danh sách người thắng",
     ],
     screenshots: [
@@ -415,7 +415,7 @@ const sections = [
       "Click vào card lead → mở modal chi tiết",
       "Xem thông tin khách, lịch sử comment, sản phẩm quan tâm",
       "Kéo thả card giữa các cột để chuyển trạng thái",
-      'Click "Tạo đơn" → chọn sản phẩm → xác nhận → đơn tự tạo',
+      t('admin.msg_1e8c4459', 'Click "Tạo đơn" → chọn sản phẩm → xác nhận → đơn tự tạo'),
     ],
     screenshots: [
       { src: "/guide-assets/crm.png", alt: "CRM — Kanban Pipeline Board" },
@@ -443,7 +443,7 @@ const sections = [
     steps: [
       "Vào Orders từ navigation",
       "Xem thống kê qua 4 card (Tổng đơn, Revenue, Paid, Delivery Rate)",
-      'Click "Tạo vận đơn mới" → nhập tên, SĐT, địa chỉ',
+      t('admin.msg_73ac111d', 'Click "Tạo vận đơn mới" → nhập tên, SĐT, địa chỉ'),
       "Chọn sản phẩm và số lượng → tổng tiền tự tính",
       "Xác nhận tạo đơn → đơn xuất hiện trong danh sách",
       "Click vào đơn → xem Invoice Preview chi tiết",
@@ -481,9 +481,9 @@ const sections = [
       "Vào Kho từ navigation",
       "Xem danh sách sản phẩm với tồn kho hiện tại",
       "Gõ tên/mã sản phẩm vào ô tìm kiếm → lọc realtime",
-      'Click "Điều chỉnh kho" trên sản phẩm cần thay đổi',
+      t('admin.msg_5ea2b974', 'Click "Điều chỉnh kho" trên sản phẩm cần thay đổi'),
       "Chọn loại (Nhập thêm / Xuất bớt), nhập số lượng và lý do",
-      'Click "Xác nhận" → tồn kho cập nhật ngay lập tức',
+      t('admin.msg_c4b09c38', 'Click "Xác nhận" → tồn kho cập nhật ngay lập tức'),
     ],
     screenshots: [
       { src: "/guide-assets/inventory.png", alt: "Kho — Danh sách sản phẩm" },
@@ -511,11 +511,11 @@ const sections = [
     steps: [
       "Vào Ship từ navigation",
       "Xem thống kê tổng quan qua 5 card",
-      'Click "Tạo vận đơn" → Bước 1: Nhập thông tin người nhận',
+      t('admin.msg_f2c08907', 'Click "Tạo vận đơn" → Bước 1: Nhập thông tin người nhận'),
       "Bước 2: Chọn hãng vận chuyển (GHN, GHTK, Viettel Post)",
       "Bước 3: Xác nhận và tạo vận đơn",
       "Lọc vận đơn theo trạng thái qua dropdown filter",
-      'Click "Track" để xem lộ trình hoặc "Print" để in vận đơn',
+      t('admin.msg_b745ab29', 'Click "Track" để xem lộ trình hoặc "Print" để in vận đơn'),
     ],
     screenshots: [
       { src: "/guide-assets/shipping.png", alt: "Ship — Danh sách vận đơn" },
@@ -542,11 +542,11 @@ const sections = [
     steps: [
       "Vào Schedule từ navigation",
       "Xem danh sách lịch đã lên (hiển thị grid card)",
-      'Click "+ Lên lịch" → nhập tiêu đề (VD: "Live bán hàng 20/03")',
+      t('admin.msg_d46a907e', 'Click "+ Lên lịch" → nhập tiêu đề (VD: "Live bán hàng 20/03")'),
       "Chọn ngày giờ, thời lượng, nền tảng (TikTok/Facebook/YouTube/Shopee)",
       "Viết kịch bản/script cho buổi live",
-      'Click "Tạo lịch" để lưu',
-      'Khi đến giờ → click "Go Live" để bắt đầu buổi live',
+      t('admin.msg_27df04a0', 'Click "Tạo lịch" để lưu'),
+      t('admin.msg_16c47354', 'Khi đến giờ → click "Go Live" để bắt đầu buổi live'),
     ],
     screenshots: [
       {
@@ -576,7 +576,7 @@ const sections = [
       "Chọn khoảng thời gian (7 ngày / 30 ngày / tùy chỉnh)",
       "Xem biểu đồ bar chart hiển thị xu hướng engagement",
       "Cuộn xuống xem Conversion Funnel (New → Closed) và tỷ lệ chuyển đổi",
-      'Click "Xuất CSV" để download dữ liệu',
+      t('admin.msg_ab329cae', 'Click "Xuất CSV" để download dữ liệu'),
     ],
     screenshots: [
       {
@@ -604,7 +604,7 @@ const sections = [
       "Vào Settings từ navigation",
       "Chọn tab từ sidebar trái (Kết nối, Sản phẩm, Keywords...)",
       "Tab Kết nối: Toggle on/off từng platform, nhập API key",
-      'Tab Sản phẩm: "Thêm sản phẩm" → nhập tên, giá, mô tả',
+      t('admin.msg_bb080802', 'Tab Sản phẩm: "Thêm sản phẩm" → nhập tên, giá, mô tả'),
       "Tab Keywords: Thêm từ khóa cần cảnh báo, chọn loại alert",
       "Tab Giao diện: Chuyển đổi Dark/Light mode",
     ],

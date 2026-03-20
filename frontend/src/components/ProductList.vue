@@ -1,13 +1,13 @@
 <template>
   <div class="pm">
     <div class="pm-header">
-      <h3><ShoppingBag :size="16" /> Quản lý sản phẩm <span class="pm-count">({{ pagination.total }})</span></h3>
+      <h3><ShoppingBag :size="16" /> {{ t('admin.msg_332c1caa', 'Quản lý sản phẩm') }} <span class="pm-count">({{ pagination.total }})</span></h3>
       <div class="pm-header__actions">
         <div class="pm-search">
           <Search :size="14" />
-          <input v-model="searchQuery" type="text" placeholder="Tìm sản phẩm..." @input="debouncedSearch" />
+          <input v-model="searchQuery" type="text" :placeholder="t('admin.search_products', 'Tìm sản phẩm...')" @input="debouncedSearch" />
         </div>
-        <button class="btn-add" @click="$emit('create')">+ Thêm sản phẩm</button>
+        <button class="btn-add" @click="$emit('create')">{{ t('admin.msg_68d6598c', '+ Thêm sản phẩm') }}</button>
       </div>
     </div>
 
@@ -16,14 +16,14 @@
       <table class="pm-table">
         <thead>
           <tr>
-            <th class="th-img">Ảnh</th>
+            <th class="th-img">{{ t('admin.msg_3c6f3361', 'Ảnh') }}</th>
             <th>{{ t('admin.product_name', 'Tên sản phẩm') }}</th>
             <th>SKU</th>
-            <th>Giá</th>
+            <th>{{ t('admin.msg_072c1a4b', 'Giá') }}</th>
             <th>Kho</th>
-            <th>Danh mục</th>
+            <th>{{ t('admin.msg_53d8de58', 'Danh mục') }}</th>
             <th class="th-status">{{ t('admin.status', 'Trạng thái') }}</th>
-            <th class="th-actions">Thao tác</th>
+            <th class="th-actions">{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -56,7 +56,7 @@
             <td class="td-status">
               <span class="status-dot" :class="p.is_active !== false ? 'active' : 'inactive'"
                 @click="toggleStatus(p)">
-                {{ p.is_active !== false ? 'Active' : 'Ẩn' }}
+                {{ p.is_active !== false ? 'Active' : t('admin.msg_f7bc96f2', 'Ẩn') }}
               </span>
             </td>
             <td class="td-actions">
@@ -153,7 +153,7 @@ async function handleDelete(p) {
   if (!confirm(`Xóa "${p.name}"?`)) return
   try {
     await apiFetch(`/products/${p.id}`, { method: 'DELETE' })
-    showToast('Đã xóa sản phẩm', 'success')
+    showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
     await fetchProducts()
   } catch (e) {
     showToast('Lỗi: ' + (e.message || 'Unknown'), 'error')
@@ -165,7 +165,7 @@ async function toggleStatus(p) {
     const newActive = !p.is_active
     await apiFetch(`/products/${p.id}`, { method: 'PUT', body: JSON.stringify({ is_active: newActive }) })
     p.is_active = newActive
-    showToast(newActive ? 'Đã kích hoạt' : 'Đã ẩn', 'success')
+    showToast(newActive ? t('admin.msg_35776a2b', 'Đã kích hoạt') : t('admin.msg_b0f5126e', 'Đã ẩn'), 'success')
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
   }
@@ -182,7 +182,7 @@ async function adjustStock(productId, action, quantity) {
     if (idx !== -1 && updated) products.value[idx].stock = updated.stock
     showToast(action === 'add' ? `+${quantity} tồn kho` : `-${quantity} tồn kho`, 'success')
   } catch (e) {
-    showToast(e.message || 'Lỗi', 'error')
+    showToast(e.message || t('admin.msg_aaf377aa', 'Lỗi'), 'error')
   }
 }
 

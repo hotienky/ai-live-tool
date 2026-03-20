@@ -10,7 +10,7 @@
     <div v-if="isOpen" class="notif-center__panel">
       <div class="notif-center__header">
         <h3>{{ t('admin.notifications', 'Thông báo') }}</h3>
-        <button v-if="notifications.length > 0" class="notif-center__clear" @click="clearAll">Xóa tất cả</button>
+        <button v-if="notifications.length > 0" class="notif-center__clear" @click="clearAll">{{ t('admin.msg_c159f61a', 'Xóa tất cả') }}</button>
       </div>
       <div class="notif-center__list">
         <div v-for="n in notifications" :key="n.id" class="notif-center__item" :class="{ 'notif-center__item--unread': !n.read }" @click="markRead(n)">
@@ -68,7 +68,7 @@ function clearAll() {
 
 function timeAgo(date) {
   const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-  if (seconds < 60) return 'Vừa xong'
+  if (seconds < 60) return t('admin.msg_e92d1675', 'Vừa xong')
   if (seconds < 3600) return `${Math.floor(seconds / 60)} phút trước`
   if (seconds < 86400) return `${Math.floor(seconds / 3600)} giờ trước`
   return `${Math.floor(seconds / 86400)} ngày trước`

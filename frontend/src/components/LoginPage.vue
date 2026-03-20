@@ -22,12 +22,12 @@
 
         <!-- Password -->
         <div class="login-card__field">
-          <label><Lock :size="14" /> Mật khẩu</label>
+          <label><Lock :size="14" /> {{ t('admin.password', 'Mật khẩu') }}</label>
           <div class="login-card__password-wrap">
             <input
               v-model="password"
               :type="showPassword ? 'text' : 'password'"
-              placeholder="Nhập mật khẩu"
+              :placeholder="t('admin.password_placeholder', 'Nhập mật khẩu')"
               class="login-card__input"
               required
             />
@@ -56,7 +56,7 @@
         >
           <Loader2 v-if="loading" :size="16" class="spin" />
           <LogIn v-else :size="16" />
-          Đăng nhập
+          {{ t('admin.login_button', 'Đăng nhập') }}
         </button>
       </form>
     </div>

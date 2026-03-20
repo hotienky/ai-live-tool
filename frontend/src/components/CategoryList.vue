@@ -1,8 +1,8 @@
 <template>
   <div class="cm">
     <div class="cm-header">
-      <h3><FolderOpen :size="16" /> Quản lý danh mục <span class="cm-count">({{ categories.length }})</span></h3>
-      <button class="btn-add" @click="$emit('create')">+ Thêm danh mục</button>
+      <h3><FolderOpen :size="16" /> {{ t('admin.msg_78a6ea2d', 'Quản lý danh mục') }} <span class="cm-count">({{ categories.length }})</span></h3>
+      <button class="btn-add" @click="$emit('create')">{{ t('admin.msg_2fb39036', '+ Thêm danh mục') }}</button>
     </div>
 
     <div class="cm-list" v-if="categories.length">
@@ -20,7 +20,7 @@
           <span class="cm-sort">Sort: {{ c.sort ?? 0 }}</span>
           <span class="status-dot" :class="c.is_active || c.is_active === undefined ? 'active' : 'inactive'"
             @click="toggleActive(c)">
-            {{ c.is_active || c.is_active === undefined ? 'Active' : 'Ẩn' }}
+            {{ c.is_active || c.is_active === undefined ? 'Active' : t('admin.msg_f7bc96f2', 'Ẩn') }}
           </span>
         </div>
         <div class="cm-card__actions">
@@ -58,7 +58,7 @@ async function handleDelete(c) {
   if (!confirm(`Xóa danh mục "${c.name}"?`)) return
   try {
     await apiFetch(`/categories/${c.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
     await fetchCategories()
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')

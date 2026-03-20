@@ -1,15 +1,15 @@
 <template>
   <div class="shipping-cfg">
-    <h3 class="shipping-cfg__title"><Truck :size="16" /> Cấu hình vận chuyển</h3>
+    <h3 class="shipping-cfg__title"><Truck :size="16" /> {{ t('admin.msg_76b97ece', 'Cấu hình vận chuyển') }}</h3>
     <p class="shipping-cfg__desc">Cấu hình API key cho các đơn vị vận chuyển. Bật đơn vị nào thì khách hàng sẽ thấy tùy chọn đó khi checkout.</p>
 
     <!-- GHN -->
     <div class="provider-card" :class="{ active: form.shipping_ghn_enabled === '1' }">
       <div class="provider-card__header">
         <div class="provider-card__info">
-          <strong>Giao Hàng Nhanh (GHN)</strong>
+          <strong>{{ t('admin.msg_1335ac29', 'Giao Hàng Nhanh (GHN)') }}</strong>
           <span class="provider-card__badge" :class="form.shipping_ghn_enabled === '1' ? 'badge--green' : 'badge--gray'">
-            {{ form.shipping_ghn_enabled === '1' ? '✓ Đang bật' : '○ Tắt' }}
+            {{ form.shipping_ghn_enabled === '1' ? t('admin.msg_cc7df86c', '✓ Đang bật') : t('admin.msg_6b9b46ed', '○ Tắt') }}
           </span>
         </div>
         <label class="toggle-switch">
@@ -20,7 +20,7 @@
       <div v-if="form.shipping_ghn_enabled === '1'" class="provider-card__body">
         <div class="form-group">
           <label>API Token</label>
-          <input v-model="form.shipping_ghn_token" type="password" placeholder="Token từ GHN" />
+          <input v-model="form.shipping_ghn_token" type="password" :placeholder="t('admin.msg_52a78c', 'Token từ GHN')" />
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -37,15 +37,15 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>District ID kho hàng</label>
+            <label>{{ t('admin.msg_ad0e1310', 'District ID kho hàng') }}</label>
             <input v-model="form.shipping_ghn_from_district" placeholder="VD: 1454" />
           </div>
           <div class="form-group">
-            <label>Ward Code kho hàng</label>
+            <label>{{ t('admin.msg_2bcbc477', 'Ward Code kho hàng') }}</label>
             <input v-model="form.shipping_ghn_from_ward" placeholder="VD: 21211" />
           </div>
         </div>
-        <p class="provider-card__hint">Lấy Token + Shop ID tại: <a href="https://dev.ghn.vn" target="_blank">dev.ghn.vn</a></p>
+        <p class="provider-card__hint">{{ t('admin.msg_0c03933b', 'Lấy Token + Shop ID tại:') }} <a href="https://dev.ghn.vn" target="_blank">dev.ghn.vn</a></p>
       </div>
     </div>
 
@@ -53,9 +53,9 @@
     <div class="provider-card" :class="{ active: form.shipping_ghtk_enabled === '1' }">
       <div class="provider-card__header">
         <div class="provider-card__info">
-          <strong>Giao Hàng Tiết Kiệm (GHTK)</strong>
+          <strong>{{ t('admin.msg_92428506', 'Giao Hàng Tiết Kiệm (GHTK)') }}</strong>
           <span class="provider-card__badge" :class="form.shipping_ghtk_enabled === '1' ? 'badge--green' : 'badge--gray'">
-            {{ form.shipping_ghtk_enabled === '1' ? '✓ Đang bật' : '○ Tắt' }}
+            {{ form.shipping_ghtk_enabled === '1' ? t('admin.msg_cc7df86c', '✓ Đang bật') : t('admin.msg_6b9b46ed', '○ Tắt') }}
           </span>
         </div>
         <label class="toggle-switch">
@@ -66,16 +66,16 @@
       <div v-if="form.shipping_ghtk_enabled === '1'" class="provider-card__body">
         <div class="form-group">
           <label>API Token</label>
-          <input v-model="form.shipping_ghtk_token" type="password" placeholder="Token từ GHTK" />
+          <input v-model="form.shipping_ghtk_token" type="password" :placeholder="t('admin.msg_8dea92', 'Token từ GHTK')" />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Tỉnh/Thành kho hàng</label>
-            <input v-model="form.shipping_ghtk_pick_province" placeholder="VD: TP. Hồ Chí Minh" />
+            <label>{{ t('admin.msg_bde87a4d', 'Tỉnh/Thành kho hàng') }}</label>
+            <input v-model="form.shipping_ghtk_pick_province" :placeholder="t('admin.msg_dde842', 'VD: TP. Hồ Chí Minh')" />
           </div>
           <div class="form-group">
-            <label>Quận/Huyện kho hàng</label>
-            <input v-model="form.shipping_ghtk_pick_district" placeholder="VD: Quận 1" />
+            <label>{{ t('admin.msg_500fcfd9', 'Quận/Huyện kho hàng') }}</label>
+            <input v-model="form.shipping_ghtk_pick_district" :placeholder="t('admin.msg_1bcd02', 'VD: Quận 1')" />
           </div>
         </div>
         <div class="form-group">
@@ -84,7 +84,7 @@
             Dùng môi trường test (sandbox)
           </label>
         </div>
-        <p class="provider-card__hint">Lấy Token tại: <a href="https://khachhang.giaohangtietkiem.vn" target="_blank">khachhang.giaohangtietkiem.vn</a> → Thông tin shop → API Token</p>
+        <p class="provider-card__hint">{{ t('admin.msg_96e78221', 'Lấy Token tại:') }} <a href="https://khachhang.giaohangtietkiem.vn" target="_blank">khachhang.giaohangtietkiem.vn</a> {{ t('admin.msg_ff324d52', '→ Thông tin shop → API Token') }}</p>
       </div>
     </div>
 
@@ -94,7 +94,7 @@
         <div class="provider-card__info">
           <strong>Viettel Post</strong>
           <span class="provider-card__badge" :class="form.shipping_vtp_enabled === '1' ? 'badge--green' : 'badge--gray'">
-            {{ form.shipping_vtp_enabled === '1' ? '✓ Đang bật' : '○ Tắt' }}
+            {{ form.shipping_vtp_enabled === '1' ? t('admin.msg_cc7df86c', '✓ Đang bật') : t('admin.msg_6b9b46ed', '○ Tắt') }}
           </span>
         </div>
         <label class="toggle-switch">
@@ -105,19 +105,19 @@
       <div v-if="form.shipping_vtp_enabled === '1'" class="provider-card__body">
         <div class="form-group">
           <label>API Token</label>
-          <input v-model="form.shipping_vtp_token" type="password" placeholder="Token từ Viettel Post" />
+          <input v-model="form.shipping_vtp_token" type="password" :placeholder="t('admin.msg_91bef7', 'Token từ Viettel Post')" />
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Province ID kho hàng</label>
+            <label>{{ t('admin.msg_9dda1e90', 'Province ID kho hàng') }}</label>
             <input v-model="form.shipping_vtp_sender_province" placeholder="VD: 2" />
           </div>
           <div class="form-group">
-            <label>District ID kho hàng</label>
+            <label>{{ t('admin.msg_ad0e1310', 'District ID kho hàng') }}</label>
             <input v-model="form.shipping_vtp_sender_district" placeholder="VD: 35" />
           </div>
         </div>
-        <p class="provider-card__hint">Lấy Token tại: <a href="https://partner.viettelpost.vn" target="_blank">partner.viettelpost.vn</a></p>
+        <p class="provider-card__hint">{{ t('admin.msg_96e78221', 'Lấy Token tại:') }} <a href="https://partner.viettelpost.vn" target="_blank">partner.viettelpost.vn</a></p>
       </div>
     </div>
 
@@ -125,18 +125,18 @@
     <div class="provider-card active">
       <div class="provider-card__header">
         <div class="provider-card__info">
-          <strong><Map :size="14" /> VietMap (Địa chỉ autocomplete)</strong>
+          <strong><Map :size="14" /> {{ t('admin.msg_9301edd2', 'VietMap (Địa chỉ autocomplete)') }}</strong>
           <span class="provider-card__badge" :class="form.shipping_vietmap_api_key ? 'badge--green' : 'badge--gray'">
-            {{ form.shipping_vietmap_api_key ? '✓ Đã cấu hình' : '○ Chưa có key' }}
+            {{ form.shipping_vietmap_api_key ? t('admin.msg_d97ea39a', '✓ Đã cấu hình') : t('admin.msg_2a34202c', '○ Chưa có key') }}
           </span>
         </div>
       </div>
       <div class="provider-card__body">
         <div class="form-group">
           <label>VietMap API Key</label>
-          <input v-model="form.shipping_vietmap_api_key" type="password" placeholder="API Key từ VietMap" />
+          <input v-model="form.shipping_vietmap_api_key" type="password" :placeholder="t('admin.msg_42ed56', 'API Key từ VietMap')" />
         </div>
-        <p class="provider-card__hint">Dùng cho tính năng autocomplete địa chỉ trên storefront. Đăng ký tại: <a href="https://maps.vietmap.vn" target="_blank">maps.vietmap.vn</a></p>
+        <p class="provider-card__hint">{{ t('admin.msg_0212fe75', 'Dùng cho tính năng autocomplete địa chỉ trên storefront. Đăng ký tại:') }} <a href="https://maps.vietmap.vn" target="_blank">maps.vietmap.vn</a></p>
       </div>
     </div>
 
@@ -198,7 +198,7 @@ async function save() {
       method: 'POST',
       body: JSON.stringify({ items }),
     })
-    showToast('Đã lưu cấu hình vận chuyển', 'success')
+    showToast(t('admin.msg_b3e281', 'Đã lưu cấu hình vận chuyển'), 'success')
   } catch (e) {
     showToast('Lỗi lưu: ' + (e.message || 'Unknown'), 'error')
   }

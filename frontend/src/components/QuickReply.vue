@@ -4,7 +4,7 @@
       <h3>{{ t('admin.compose_message', 'Soạn tin nhắn') }}</h3>
       <button class="close-btn" @click="$emit('close')">✕</button>
     </div>
-    <p class="panel-hint">Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách</p>
+    <p class="panel-hint">{{ t('admin.msg_8397f34f', 'Copy tin nhắn bên dưới rồi paste vào TikTok / Zalo để gửi cho khách') }}</p>
 
     <!-- Comment being replied to -->
     <div class="reply-target" v-if="targetComment">
@@ -19,12 +19,12 @@
     <div class="reply-content">
       <div v-if="loading" class="loading-reply">
         <div class="spinner"></div>
-        <span>AI đang soạn câu trả lời...</span>
+        <span>{{ t('admin.msg_f14ee553', 'AI đang soạn câu trả lời...') }}</span>
       </div>
       <div v-else>
         <textarea
           v-model="replyText"
-          placeholder="Nhập câu trả lời hoặc chờ AI gợi ý..."
+          :placeholder="t('admin.quick_reply_placeholder', 'Nhập câu trả lời hoặc chờ AI gợi ý...')"
           rows="3"
         ></textarea>
         <div class="reply-actions">
@@ -82,16 +82,16 @@ const toast = ref('')
 const detectedPhone = ref('')
 
 const templates = [
-  { icon: 'wave', name: 'Chào hỏi', text: 'Dạ cảm ơn {{name}} đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️' },
-  { icon: 'price', name: 'Báo giá', text: 'Dạ {{name}} inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁' },
-  { icon: 'order', name: 'Chốt đơn', text: 'Dạ em ghi nhận đơn cho {{name}} ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦' },
-  { icon: 'consult', name: 'Tư vấn', text: 'Dạ để em tư vấn chi tiết cho {{name}} nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶' },
-  { icon: 'remind', name: 'Hẹn lại', text: 'Dạ {{name}} ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️' },
-  { icon: 'promo', name: 'Khuyến mãi', text: 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉 {{name}} inbox mình nhé!' },
+  { icon: 'wave', name: t('admin.msg_0ac7b8e2', 'Chào hỏi'), text: t('admin.msg_0fdf8318', 'Dạ cảm ơn {{name}} đã quan tâm ạ! Mình hỗ trợ bạn ngay nhé ❤️') },
+  { icon: 'price', name: t('admin.msg_bf559421', 'Báo giá'), text: t('admin.msg_2ae7aa9e', 'Dạ {{name}} inbox mình để được báo giá chi tiết và ưu đãi đặc biệt nhé ạ 🎁') },
+  { icon: 'order', name: t('admin.msg_02c56e2c', 'Chốt đơn'), text: t('admin.msg_4ce29e04', 'Dạ em ghi nhận đơn cho {{name}} ngay ạ! Mình inbox SĐT + địa chỉ ship giúp em nhé 📦') },
+  { icon: 'consult', name: t('admin.msg_bd0f486a', 'Tư vấn'), text: t('admin.msg_9b376728', 'Dạ để em tư vấn chi tiết cho {{name}} nhé! Bé nhà mình bao nhiêu tháng/kg ạ? 👶') },
+  { icon: 'remind', name: t('admin.msg_e97f52ee', 'Hẹn lại'), text: t('admin.msg_96ea901a', 'Dạ {{name}} ơi, sản phẩm này sẽ có lại trong vài ngày tới. Mình follow shop để nhận thông báo nhé ❤️') },
+  { icon: 'promo', name: t('admin.msg_c073d6e5', 'Khuyến mãi'), text: t('admin.msg_76691848', 'Hôm nay shop có ưu đãi đặc biệt cho live! Mua 2 giảm thêm 10% ạ 🎉 {{name}} inbox mình nhé!') },
 ]
 
 function applyTemplate(tpl) {
-  const name = props.targetComment?.nickname || props.targetComment?.uniqueId || 'bạn'
+  const name = props.targetComment?.nickname || props.targetComment?.uniqueId || t('admin.msg_5c0d1a90', 'bạn')
   replyText.value = tpl.text.replace(/\{\{name\}\}/g, name)
 }
 
@@ -133,7 +133,7 @@ async function generateAIReply() {
 
 function copyReply() {
   navigator.clipboard.writeText(replyText.value)
-  showToast('Đã copy tin nhắn!')
+  showToast(t('admin.msg_0507cb', 'Đã copy tin nhắn!'))
 }
 
 function copyPhone() {

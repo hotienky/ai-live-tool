@@ -1,34 +1,34 @@
 <template>
   <div class="pof-page">
     <div class="pof-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="pof-header__center">
         <div class="pof-header__icon"><ShoppingCart :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa đơn mua hàng' : 'Tạo đơn mua hàng' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_f373c2cc', 'Sửa đơn mua hàng') : t('admin.msg_d379a7f1', 'Tạo đơn mua hàng') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
-        <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Tạo đơn') }}
+        <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : (props.editId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_23275279', 'Tạo đơn')) }}
       </button>
     </div>
 
     <div class="pof-body">
       <div class="pof-col pof-col--main">
         <div class="pof-card">
-          <h4><ShoppingCart :size="13" /> Thông tin đơn hàng</h4>
+          <h4><ShoppingCart :size="13" /> {{ t('admin.msg_9fb34cdb', 'Thông tin đơn hàng') }}</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Nhà cung cấp <span class="req">*</span></label>
+              <label>{{ t('admin.msg_8f46887f', 'Nhà cung cấp') }} <span class="req">*</span></label>
               <select v-model="form.supplier_id" class="form-input">
-                <option :value="null" disabled>— Chọn NCC —</option>
+                <option :value="null" disabled>{{ t('admin.msg_435bf321', '— Chọn NCC —') }}</option>
                 <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Ngày đặt</label>
+              <label>{{ t('admin.msg_6f83adc9', 'Ngày đặt') }}</label>
               <input type="date" v-model="form.order_date" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Ngày nhận dự kiến</label>
+              <label>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</label>
               <input type="date" v-model="form.expected_date" class="form-input" />
             </div>
           </div>
@@ -36,9 +36,9 @@
 
         <!-- Product search -->
         <div class="pof-card">
-          <h4>Thêm sản phẩm</h4>
+          <h4>{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</h4>
           <div class="product-search-wrap">
-            <input v-model="productSearch" class="form-input" placeholder="Tìm tên SP, SKU..." @input="searchProducts" />
+            <input v-model="productSearch" class="form-input" :placeholder="t('admin.msg_c20e39', 'Tìm tên SP, SKU...')" @input="searchProducts" />
             <div class="product-dropdown" v-if="productResults.length > 0">
               <div v-for="p in productResults" :key="p.id" class="product-result" @click="addProduct(p)">
                 <span class="pr-name">{{ p.name }}</span>
@@ -50,7 +50,7 @@
 
           <div class="items-table" v-if="form.items.length > 0">
             <table>
-              <thead><tr><th>Sản phẩm</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">Đơn giá</th><th style="width:110px">Thành tiền</th><th style="width:40px"></th></tr></thead>
+              <thead><tr><th>{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">{{ t('admin.msg_ba2fb8fb', 'Đơn giá') }}</th><th style="width:110px">{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th><th style="width:40px"></th></tr></thead>
               <tbody>
                 <tr v-for="(item, idx) in form.items" :key="idx">
                   <td>{{ item.product_name }}</td>
@@ -63,16 +63,16 @@
               </tbody>
             </table>
           </div>
-          <p v-else class="empty-hint">Chưa có sản phẩm. Tìm và thêm ở trên.</p>
+          <p v-else class="empty-hint">{{ t('admin.msg_95859a1d', 'Chưa có sản phẩm. Tìm và thêm ở trên.') }}</p>
         </div>
 
         <div class="pof-card">
           <div class="form-row">
-            <div class="form-group"><label>Thuế</label><input type="number" v-model.number="form.tax_amount" min="0" class="form-input" @change="recalcTotal" /></div>
-            <div class="form-group"><label>Giảm giá</label><input type="number" v-model.number="form.discount_amount" min="0" class="form-input" @change="recalcTotal" /></div>
-            <div class="form-group"><label>Tổng tiền</label><input type="number" v-model.number="form.total_amount" readonly class="form-input total-input" /></div>
+            <div class="form-group"><label>{{ t('admin.msg_500aedd2', 'Thuế') }}</label><input type="number" v-model.number="form.tax_amount" min="0" class="form-input" @change="recalcTotal" /></div>
+            <div class="form-group"><label>{{ t('admin.msg_6b272d01', 'Giảm giá') }}</label><input type="number" v-model.number="form.discount_amount" min="0" class="form-input" @change="recalcTotal" /></div>
+            <div class="form-group"><label>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</label><input type="number" v-model.number="form.total_amount" readonly class="form-input total-input" /></div>
           </div>
-          <div class="form-group"><label>Ghi chú</label><textarea v-model="form.notes" class="form-input" rows="3"></textarea></div>
+          <div class="form-group"><label>{{ t('admin.msg_f481f91e', 'Ghi chú') }}</label><textarea v-model="form.notes" class="form-input" rows="3"></textarea></div>
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@ onMounted(async () => {
       const data = await res.json()
       const po = data.data || data
       form.value = { supplier_id: po.supplier_id, items: po.items || [], tax_amount: po.tax_amount || 0, discount_amount: po.discount_amount || 0, total_amount: po.total_amount || 0, order_date: po.order_date?.slice(0,10) || '', expected_date: po.expected_date?.slice(0,10) || '', notes: po.notes || '' }
-    } catch { showToast('Không tải được đơn hàng', 'error') }
+    } catch { showToast(t('admin.msg_6d78fa', 'Không tải được đơn hàng'), 'error') }
   }
 })
 
@@ -130,7 +130,7 @@ async function searchProducts() {
 }
 
 function addProduct(p) {
-  if (form.value.items.find(i => i.product_id === p.id)) { showToast('Đã có trong danh sách', 'warning'); return }
+  if (form.value.items.find(i => i.product_id === p.id)) { showToast(t('admin.msg_4016fc', 'Đã có trong danh sách'), 'warning'); return }
   form.value.items.push({ product_id: p.id, product_name: p.name, variant_id: null, sku: p.sku || '', qty: 1, unit_price: p.cost_price || p.price || 0 })
   productSearch.value = ''; productResults.value = []
   recalcTotal()
@@ -142,8 +142,8 @@ function recalcTotal() {
 }
 
 async function handleSave() {
-  if (!form.value.supplier_id) return showToast('Chọn nhà cung cấp', 'error')
-  if (form.value.items.length === 0) return showToast('Thêm sản phẩm', 'error')
+  if (!form.value.supplier_id) return showToast(t('admin.msg_86a6a6', 'Chọn nhà cung cấp'), 'error')
+  if (form.value.items.length === 0) return showToast(t('admin.msg_98b9f1', 'Thêm sản phẩm'), 'error')
   saving.value = true
   try {
     if (props.editId) {
@@ -151,7 +151,7 @@ async function handleSave() {
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await apiFetch('/purchase-orders', { method: 'POST', body: JSON.stringify(form.value) })
-      showToast('Đã tạo đơn mua hàng', 'success')
+      showToast(t('admin.msg_9ae9d5', 'Đã tạo đơn mua hàng'), 'success')
     }
     emit('saved')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }

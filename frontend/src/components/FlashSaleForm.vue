@@ -22,7 +22,6 @@
 
         <!-- Language Tabs -->
         <LanguageTabs
-          v-if="languagesInstalled"
           v-model="currentLang"
           :translations="form.translations"
           :fields="['name']"
@@ -367,12 +366,12 @@ async function handleSave() {
     })
     if (!res.ok) {
       const err = await res.json().catch(() => null)
-      throw new Error(err?.message || 'Có lỗi xảy ra')
+      throw new Error(err?.message || t('admin.msg_ea728f61', 'Có lỗi xảy ra'))
     }
     showToast(isEditing.value ? t('admin.flash_sale.updated', 'Đã cập nhật Flash Sale') : t('admin.flash_sale.created', 'Đã tạo Flash Sale mới'), 'success')
     emit('saved')
   } catch (e) {
-    showToast(e?.message || 'Có lỗi xảy ra', 'error')
+    showToast(e?.message || t('admin.msg_ea728f61', 'Có lỗi xảy ra'), 'error')
   }
   saving.value = false
 }

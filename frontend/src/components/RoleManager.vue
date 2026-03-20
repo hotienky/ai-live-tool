@@ -23,7 +23,7 @@
         <div class="role-mgr__header">
           <div class="role-mgr__search-wrap">
             <ShieldCheck :size="16" />
-            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-text-primary)">Danh sách Phân quyền</h3>
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700; color: var(--color-text-primary)">{{ t('admin.msg_b4781084', 'Danh sách Phân quyền') }}</h3>
           </div>
           <button class="role-mgr__add-btn" @click="startCreateRole">
             <Plus :size="14" /> Tạo role mới
@@ -52,7 +52,7 @@
       <div class="user-mgr__header">
         <div class="user-mgr__search-wrap">
           <Search :size="14" class="user-mgr__search-icon" />
-          <input v-model="userSearch" class="user-mgr__search" placeholder="Tìm theo tên, email..." />
+          <input v-model="userSearch" class="user-mgr__search" :placeholder="t('admin.msg_6453a4', 'Tìm theo tên, email...')" />
         </div>
         <button class="user-mgr__add-btn" @click="openUserModal()">
           <UserPlus :size="14" /> Thêm user
@@ -74,7 +74,7 @@
           </thead>
           <tbody>
             <tr v-if="loadingUsers"><td colspan="6" class="user-mgr__loading">{{ t('admin.loading', 'Đang tải...') }}</td></tr>
-            <tr v-else-if="filteredUsers.length === 0"><td colspan="6" class="user-mgr__empty-row">Chưa có user nào</td></tr>
+            <tr v-else-if="filteredUsers.length === 0"><td colspan="6" class="user-mgr__empty-row">{{ t('admin.msg_54608204', 'Chưa có user nào') }}</td></tr>
             <tr v-for="u in filteredUsers" :key="u.id" class="user-mgr__row">
               <td class="user-mgr__name-cell">
                 <div class="user-mgr__avatar">{{ (u.name || u.email)[0].toUpperCase() }}</div>
@@ -85,17 +85,17 @@
                 <span class="user-mgr__role-badge" v-if="u.role_display_name || u.role_name">
                   {{ u.role_display_name || u.role_name }}
                 </span>
-                <span v-else class="user-mgr__no-role">Chưa có</span>
+                <span v-else class="user-mgr__no-role">{{ t('admin.msg_cf792037', 'Chưa có') }}</span>
               </td>
               <td>
                 <button
                   class="user-mgr__status-btn"
                   :class="u.is_active ? 'active' : 'inactive'"
                   @click="toggleActive(u)"
-                  :title="u.is_active ? 'Đang hoạt động — click để khoá' : 'Đang khoá — click để mở'"
+                  :title="u.is_active ? t('admin.msg_eaf765a7', 'Đang hoạt động — click để khoá') : t('admin.msg_0fca68b8', 'Đang khoá — click để mở')"
                 >
                   <span class="user-mgr__status-dot"></span>
-                  {{ u.is_active ? 'Hoạt động' : 'Đã khoá' }}
+                  {{ u.is_active ? t('admin.msg_2c21bcd9', 'Hoạt động') : t('admin.msg_2c02db54', 'Đã khoá') }}
                 </button>
               </td>
               <td class="user-mgr__date">{{ formatDate(u.created_at) }}</td>
@@ -114,31 +114,31 @@
       <div v-if="showUserModal" class="modal-overlay" @click.self="showUserModal = false">
         <div class="modal-box">
           <div class="modal-box__header">
-            <h3>{{ userModalMode === 'create' ? 'Thêm người dùng mới' : 'Chỉnh sửa người dùng' }}</h3>
+            <h3>{{ userModalMode === 'create' ? t('admin.msg_85febf26', 'Thêm người dùng mới') : t('admin.msg_63fbe2ff', 'Chỉnh sửa người dùng') }}</h3>
             <button class="modal-box__close" @click="showUserModal = false"><X :size="16" /></button>
           </div>
           <div class="modal-box__body">
             <div class="form-row">
-              <label>Họ tên <span class="req">*</span></label>
-              <input v-model="userForm.name" class="form-input" placeholder="Nguyễn Văn A" />
+              <label>{{ t('admin.msg_39faf8ac', 'Họ tên') }} <span class="req">*</span></label>
+              <input v-model="userForm.name" class="form-input" :placeholder="t('admin.msg_48bfbf', 'Nguyễn Văn A')" />
             </div>
             <div class="form-row">
               <label>Email <span class="req">*</span></label>
               <input v-model="userForm.email" type="email" class="form-input" placeholder="email@example.com" :disabled="userModalMode === 'edit'" />
             </div>
             <div class="form-row">
-              <label>{{ userModalMode === 'create' ? 'Mật khẩu *' : 'Mật khẩu mới (để trống = giữ nguyên)' }}</label>
+              <label>{{ userModalMode === 'create' ? t('admin.msg_6fa57410', 'Mật khẩu *') : t('admin.msg_a3bf3933', 'Mật khẩu mới (để trống = giữ nguyên)') }}</label>
               <div class="form-input-wrap">
-                <input v-model="userForm.password" :type="showPw ? 'text' : 'password'" class="form-input" placeholder="Tối thiểu 6 ký tự" />
+                <input v-model="userForm.password" :type="showPw ? 'text' : 'password'" class="form-input" :placeholder="t('admin.msg_159f57', 'Tối thiểu 6 ký tự')" />
                 <button type="button" class="form-pw-toggle" @click="showPw = !showPw">
                   <Eye v-if="!showPw" :size="14" /><EyeOff v-else :size="14" />
                 </button>
               </div>
             </div>
             <div class="form-row">
-              <label>Vai trò</label>
+              <label>{{ t('admin.msg_66ab1dca', 'Vai trò') }}</label>
               <select v-model="userForm.role_id" class="form-input form-input--select">
-                <option :value="null">-- Chọn role --</option>
+                <option :value="null">{{ t('admin.msg_b2d480c3', '-- Chọn role --') }}</option>
                 <option v-for="r in roles" :key="r.id" :value="r.id">{{ r.display_name || r.name }}</option>
               </select>
             </div>
@@ -147,13 +147,13 @@
               <label class="toggle-switch">
                 <input type="checkbox" v-model="userForm.is_active" />
                 <span class="toggle-track"><span class="toggle-thumb"></span></span>
-                <span>{{ userForm.is_active ? 'Đang hoạt động' : 'Đã khoá' }}</span>
+                <span>{{ userForm.is_active ? t('admin.msg_cfaecd87', 'Đang hoạt động') : t('admin.msg_2c02db54', 'Đã khoá') }}</span>
               </label>
             </div>
             <p v-if="userFormError" class="form-error">{{ userFormError }}</p>
           </div>
           <div class="modal-box__footer">
-            <button class="btn-cancel" @click="showUserModal = false">Huỷ</button>
+            <button class="btn-cancel" @click="showUserModal = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
             <button class="btn-save" @click="submitUserForm" :disabled="savingUser">
               <Loader2 v-if="savingUser" :size="14" class="spin" />
               {{ savingUser ? t('admin.saving', 'Đang lưu...') : (userModalMode === 'create' ? 'Tạo user' : 'Lưu thay đổi') }}
@@ -259,9 +259,9 @@ function openUserModal(user = null) {
 
 async function submitUserForm() {
   userFormError.value = ''
-  if (!userForm.value.name.trim()) { userFormError.value = 'Vui lòng nhập họ tên'; return }
-  if (!userForm.value.email.trim()) { userFormError.value = 'Vui lòng nhập email'; return }
-  if (userModalMode.value === 'create' && !userForm.value.password) { userFormError.value = 'Vui lòng nhập mật khẩu'; return }
+  if (!userForm.value.name.trim()) { userFormError.value = t('admin.msg_f4459eb2', 'Vui lòng nhập họ tên'); return }
+  if (!userForm.value.email.trim()) { userFormError.value = t('admin.msg_a50b1323', 'Vui lòng nhập email'); return }
+  if (userModalMode.value === 'create' && !userForm.value.password) { userFormError.value = t('admin.msg_cce22c24', 'Vui lòng nhập mật khẩu'); return }
 
   savingUser.value = true
   try {
@@ -277,12 +277,12 @@ async function submitUserForm() {
 
     if (!res.ok) {
       const err = await res.json()
-      const firstError = err?.errors ? Object.values(err.errors)[0][0] : (err?.message || 'Lỗi không xác định')
+      const firstError = err?.errors ? Object.values(err.errors)[0][0] : (err?.message || t('admin.msg_99fd705f', 'Lỗi không xác định'))
       userFormError.value = firstError
       return
     }
 
-    showToast(userModalMode.value === 'create' ? 'Đã tạo user thành công!' : 'Đã cập nhật user!', 'success')
+    showToast(userModalMode.value === 'create' ? t('admin.msg_1b18dd2f', 'Đã tạo user thành công!') : t('admin.msg_76ffed27', 'Đã cập nhật user!'), 'success')
     showUserModal.value = false
     await loadUsers()
   } catch (e) { userFormError.value = e.message }
@@ -294,7 +294,7 @@ async function toggleActive(user) {
     const res = await apiFetch(`/users/${user.id}/toggle-active`, { method: 'PATCH' })
     if (!res.ok) throw new Error('Failed')
     user.is_active = !user.is_active
-    showToast(user.is_active ? 'Đã mở khoá user' : 'Đã khoá user', 'success')
+    showToast(user.is_active ? t('admin.msg_d8b606d4', 'Đã mở khoá user') : t('admin.msg_60d1c6da', 'Đã khoá user'), 'success')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }
 
@@ -303,7 +303,7 @@ async function deleteUser(user) {
   try {
     const res = await apiFetch(`/users/${user.id}`, { method: 'DELETE' })
     if (!res.ok) { const d = await res.json(); throw new Error(d?.message || 'Error') }
-    showToast('Đã xóa user', 'success')
+    showToast(t('admin.msg_1f2807', 'Đã xóa user'), 'success')
     users.value = users.value.filter(u => u.id !== user.id)
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
 }

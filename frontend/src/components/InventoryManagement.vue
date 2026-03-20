@@ -4,22 +4,22 @@
 
     <div v-else class="inventory-list">
       <div class="inv-header">
-        <h2><Package :size="20" style="vertical-align:middle" /> Quản Lý Kho</h2>
+        <h2><Package :size="20" style="vertical-align:middle" /> {{ t('admin.msg_d35d3aa5', 'Quản Lý Kho') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm tên, SKU, barcode..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_a1f893', 'Tìm tên, SKU, barcode...')" @input="debouncedSearch" />
         <select v-model="filterCategory" class="filter-select">
-          <option value="">Tất cả danh mục</option>
+          <option value="">{{ t('admin.msg_006d83c6', 'Tất cả danh mục') }}</option>
           <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
         </select>
         <select v-model="filterStock" class="filter-select">
-          <option value="">Tất cả TT</option>
-          <option value="in_stock">Còn hàng</option>
-          <option value="low_stock">Sắp hết</option>
-          <option value="out_of_stock">Hết hàng</option>
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
+          <option value="in_stock">{{ t('admin.msg_127ae1b3', 'Còn hàng') }}</option>
+          <option value="low_stock">{{ t('admin.msg_5b0d7341', 'Sắp hết') }}</option>
+          <option value="out_of_stock">{{ t('admin.msg_c95536d3', 'Hết hàng') }}</option>
         </select>
-        <button class="btn-secondary" @click="exportProducts"><Download :size="14" /> Xuất CSV</button>
-        <button class="btn-secondary" @click="showImportModal = true"><Upload :size="14" /> Nhập CSV</button>
-        <button class="btn-add" @click="openCreateModal"><Plus :size="14" /> Thêm SP</button>
+        <button class="btn-secondary" @click="exportProducts"><Download :size="14" /> {{ t('admin.msg_47bfce15', 'Xuất CSV') }}</button>
+        <button class="btn-secondary" @click="showImportModal = true"><Upload :size="14" /> {{ t('admin.msg_47e6c73d', 'Nhập CSV') }}</button>
+        <button class="btn-add" @click="openCreateModal"><Plus :size="14" /> {{ t('admin.msg_dc69084f', 'Thêm SP') }}</button>
       </div>
     </div>
 
@@ -28,22 +28,22 @@
       <div class="stat-card">
         <div class="stat-icon stat-icon--total"><Package :size="22" /></div>
         <div class="stat-value">{{ invStats.totalProducts }}</div>
-        <div class="stat-label">Tổng sản phẩm</div>
+        <div class="stat-label">{{ t('admin.msg_2b7a813f', 'Tổng sản phẩm') }}</div>
       </div>
       <div class="stat-card revenue">
         <div class="stat-icon stat-icon--value"><DollarSign :size="22" /></div>
         <div class="stat-value">{{ formatCurrency(invStats.totalStockValue) }}</div>
-        <div class="stat-label">Giá trị kho</div>
+        <div class="stat-label">{{ t('admin.msg_ba2a45b1', 'Giá trị kho') }}</div>
       </div>
       <div class="stat-card warning">
         <div class="stat-icon stat-icon--low"><AlertTriangle :size="22" /></div>
         <div class="stat-value">{{ invStats.lowStockCount }}</div>
-        <div class="stat-label">Sắp hết hàng</div>
+        <div class="stat-label">{{ t('admin.msg_0e487209', 'Sắp hết hàng') }}</div>
       </div>
       <div class="stat-card danger">
         <div class="stat-icon stat-icon--out"><XCircle :size="22" /></div>
         <div class="stat-value">{{ invStats.outOfStockCount }}</div>
-        <div class="stat-label">Hết hàng</div>
+        <div class="stat-label">{{ t('admin.msg_c95536d3', 'Hết hàng') }}</div>
       </div>
     </div>
 
@@ -55,9 +55,9 @@
             <th>#</th>
             <th>{{ t('admin.product_name', 'Tên sản phẩm') }}</th>
             <th>SKU</th>
-            <th>Danh mục</th>
+            <th>{{ t('admin.msg_53d8de58', 'Danh mục') }}</th>
             <th>{{ t('admin.selling_price', 'Giá bán') }}</th>
-            <th>Giá nhập</th>
+            <th>{{ t('admin.msg_0ffdf67d', 'Giá nhập') }}</th>
             <th>{{ t('admin.stock', 'Tồn kho') }}</th>
             <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th>{{ t('admin.actions', 'Hành động') }}</th>
@@ -77,7 +77,7 @@
             <td class="cost">{{ product.costPrice ? formatCurrency(product.costPrice) : '—' }}</td>
             <td class="stock-cell">
               <span class="stock-num" :class="stockClass(product)">{{ product.stock }}</span>
-              <span class="stock-unit">{{ product.unit || 'cái' }}</span>
+              <span class="stock-unit">{{ product.unit || t('admin.msg_50c7e101', 'cái') }}</span>
             </td>
             <td>
               <span class="stock-badge" :class="stockClass(product)">{{ stockLabel(product) }}</span>
@@ -85,8 +85,8 @@
             <td>
               <div class="action-btns">
                 <button class="act-btn act-edit" @click="openEditModal(product)"><Edit :size="13" /> {{ t('admin.edit', 'Sửa') }}</button>
-                <button class="act-btn act-confirm" @click="openAdjustModal(product)"><BarChart3 :size="13" /> Điều chỉnh</button>
-                <button class="act-btn act-view" @click="openHistoryModal(product)"><History :size="13" /> Lịch sử</button>
+                <button class="act-btn act-confirm" @click="openAdjustModal(product)"><BarChart3 :size="13" /> {{ t('admin.msg_6a48ef4e', 'Điều chỉnh') }}</button>
+                <button class="act-btn act-view" @click="openHistoryModal(product)"><History :size="13" /> {{ t('admin.msg_3061f544', 'Lịch sử') }}</button>
                 <button class="act-btn act-cancel" @click="deleteProduct(product)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
@@ -95,8 +95,8 @@
             <td colspan="9" class="empty">
               <div class="empty-state">
                 <Package :size="40" class="empty-state__icon" />
-                <p class="empty-state__title">Chưa có sản phẩm</p>
-                <p class="empty-state__sub">Thêm sản phẩm hoặc nhập từ CSV</p>
+                <p class="empty-state__title">{{ t('admin.msg_3ea51b61', 'Chưa có sản phẩm') }}</p>
+                <p class="empty-state__sub">{{ t('admin.msg_6a1bb1ba', 'Thêm sản phẩm hoặc nhập từ CSV') }}</p>
               </div>
             </td>
           </tr>
@@ -118,11 +118,11 @@
     <!-- Create/Edit Product Modal -->
     <div class="modal-overlay" v-if="showProductModal" @click.self="showProductModal = false">
       <div class="modal modal--wide">
-        <h3><Edit :size="16" style="vertical-align:middle" /> {{ editingProduct ? 'Sửa sản phẩm' : 'Thêm sản phẩm' }}</h3>
+        <h3><Edit :size="16" style="vertical-align:middle" /> {{ editingProduct ? t('admin.msg_0e0e4b4a', 'Sửa sản phẩm') : t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</h3>
         <div class="form-grid">
           <div class="form-group span-2">
-            <label>Tên sản phẩm *</label>
-            <input v-model="productForm.name" placeholder="Áo thun nam" />
+            <label>{{ t('admin.msg_57ba303e', 'Tên sản phẩm *') }}</label>
+            <input v-model="productForm.name" :placeholder="t('admin.msg_8c827efe', 'Áo thun nam')" />
           </div>
           <div class="form-group">
             <label>SKU</label>
@@ -133,11 +133,11 @@
             <input v-model="productForm.barcode" placeholder="8901234567890" />
           </div>
           <div class="form-group">
-            <label>Giá bán (VNĐ)</label>
+            <label>{{ t('admin.msg_37d50113', 'Giá bán (VNĐ)') }}</label>
             <CurrencyInput v-model="productForm.price" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>Giá nhập (VNĐ)</label>
+            <label>{{ t('admin.msg_8f639df5', 'Giá nhập (VNĐ)') }}</label>
             <CurrencyInput v-model="productForm.costPrice" placeholder="0" />
           </div>
           <div class="form-group">
@@ -145,24 +145,24 @@
             <input type="number" v-model.number="productForm.stock" placeholder="0" />
           </div>
           <div class="form-group">
-            <label>Ngưỡng cảnh báo</label>
+            <label>{{ t('admin.msg_e3d62f65', 'Ngưỡng cảnh báo') }}</label>
             <input type="number" v-model.number="productForm.lowStockThreshold" placeholder="5" />
           </div>
           <div class="form-group">
-            <label>Danh mục</label>
-            <input v-model="productForm.category" placeholder="Áo" />
+            <label>{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
+            <input v-model="productForm.category" :placeholder="t('admin.msg_2e384758', 'Áo')" />
           </div>
           <div class="form-group">
             <label>{{ t('admin.unit', 'Đơn vị') }}</label>
-            <input v-model="productForm.unit" placeholder="cái" />
+            <input v-model="productForm.unit" :placeholder="t('admin.msg_50c7e1', 'cái')" />
           </div>
           <div class="form-group span-2">
-            <label>Hình ảnh (URL)</label>
-            <input v-model="productForm.imageUrl" placeholder="https://..." />
+            <label>{{ t('admin.image', 'Hình ảnh') }}</label>
+            <MediaPicker v-model="productForm.imageUrl" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
           </div>
           <div class="form-group span-2">
             <label>Keywords</label>
-            <input v-model="productForm.keywords" placeholder="mua, áo, thun" />
+            <input v-model="productForm.keywords" :placeholder="t('admin.msg_c4c013', 'mua, áo, thun')" />
           </div>
         </div>
 
@@ -175,22 +175,22 @@
           </div>
           <div v-if="showVariants" style="margin-bottom:12px">
             <div v-for="(v, i) in variants" :key="v.id || i" class="variant-row" style="display:grid;grid-template-columns:1fr 100px 100px 80px 40px;gap:8px;align-items:center;margin-bottom:6px">
-              <input v-model="v.name" placeholder="Tên (VD: Đỏ - XL)" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
+              <input v-model="v.name" :placeholder="t('admin.msg_e8ea3a', 'Tên (VD: Đỏ - XL)')" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
               <input v-model="v.sku" placeholder="SKU" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
-              <CurrencyInput v-model="v.price" placeholder="Giá" suffix="" />
+              <CurrencyInput v-model="v.price" :placeholder="t('admin.msg_072c1a', 'Giá')" suffix="" />
               <input v-model.number="v.stock" type="number" placeholder="Kho" style="padding:6px 10px;border-radius:6px;border:1px solid var(--glass-border);background:var(--color-input-bg, transparent);color:inherit;font-size:13px" />
               <button @click="deleteVariant(v, i)" style="background:rgba(239,68,68,0.1);border:none;color:#ef4444;border-radius:6px;padding:6px;cursor:pointer" :title="t('admin.delete', 'Xóa')"><Trash2 :size="14" /></button>
             </div>
             <div style="display:flex;gap:8px;margin-top:8px">
-              <button @click="addVariantRow" style="flex:1;padding:8px;border:1px dashed var(--glass-border);background:transparent;color:var(--color-text-muted);border-radius:8px;cursor:pointer;font-size:13px">+ Thêm biến thể</button>
-              <button @click="saveVariants" style="padding:8px 16px;background:var(--accent-gradient);border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">Lưu</button>
+              <button @click="addVariantRow" style="flex:1;padding:8px;border:1px dashed var(--glass-border);background:transparent;color:var(--color-text-muted);border-radius:8px;cursor:pointer;font-size:13px">{{ t('admin.msg_0f39aa4f', '+ Thêm biến thể') }}</button>
+              <button @click="saveVariants" style="padding:8px 16px;background:var(--accent-gradient);border:none;color:#fff;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px">{{ t('admin.msg_49fac1fe', 'Lưu') }}</button>
             </div>
           </div>
         </div>
 
         <div class="modal-actions">
           <button class="btn-cancel" @click="showProductModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="saveProduct">{{ editingProduct ? 'Lưu' : 'Thêm' }}</button>
+          <button class="btn-create" @click="saveProduct">{{ editingProduct ? t('admin.msg_49fac1fe', 'Lưu') : t('admin.msg_d9cb420e', 'Thêm') }}</button>
         </div>
       </div>
     </div>
@@ -200,13 +200,13 @@
     <!-- Import CSV Modal -->
     <div class="modal-overlay" v-if="showImportModal" @click.self="showImportModal = false">
       <div class="modal modal--wide">
-        <h3><Upload :size="16" style="vertical-align:middle" /> Nhập sản phẩm từ CSV</h3>
+        <h3><Upload :size="16" style="vertical-align:middle" /> {{ t('admin.msg_117b4675', 'Nhập sản phẩm từ CSV') }}</h3>
         <div class="import-zone" @dragover.prevent @drop.prevent="handleDrop">
           <input type="file" accept=".csv" @change="handleFileSelect" ref="fileInput" style="display:none" />
           <div class="drop-area" @click="$refs.fileInput.click()">
             <Upload :size="32" />
-            <p>Kéo thả file CSV hoặc nhấn để chọn</p>
-            <small>Cần có cột: name, sku, price, stock</small>
+            <p>{{ t('admin.msg_d104d19d', 'Kéo thả file CSV hoặc nhấn để chọn') }}</p>
+            <small>{{ t('admin.msg_724ea47b', 'Cần có cột: name, sku, price, stock') }}</small>
           </div>
         </div>
         <div v-if="importPreview.length > 0" class="import-preview">
@@ -214,7 +214,7 @@
           <table class="preview-table">
             <thead>
               <tr>
-                <th>{{ t('admin.name', 'Tên') }}</th><th>SKU</th><th>Giá</th><th>{{ t('admin.stock', 'Tồn kho') }}</th>
+                <th>{{ t('admin.name', 'Tên') }}</th><th>SKU</th><th>{{ t('admin.msg_072c1a4b', 'Giá') }}</th><th>{{ t('admin.stock', 'Tồn kho') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -251,6 +251,7 @@ import {
 } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 import StockAdjustForm from './StockAdjustForm.vue'
+import MediaPicker from './MediaPicker.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -281,16 +282,16 @@ const fileInput = ref(null)
 
 const defaultForm = () => ({
   name: '', sku: '', barcode: '', price: 0, costPrice: 0,
-  stock: 0, lowStockThreshold: 5, category: '', unit: 'cái', keywords: '', imageUrl: '',
+  stock: 0, lowStockThreshold: 5, category: '', unit: t('admin.msg_50c7e101', 'cái'), keywords: '', imageUrl: '',
 })
 const productForm = ref(defaultForm())
 
 const actionLabels = {
-  add: 'Nhập kho',
-  deduct: 'Xuất kho',
-  adjust: 'Điều chỉnh',
-  order_confirmed: 'Đơn xác nhận',
-  order_cancelled: 'Đơn hủy',
+  add: t('admin.msg_94e97353', 'Nhập kho'),
+  deduct: t('admin.msg_25af27c7', 'Xuất kho'),
+  adjust: t('admin.msg_6a48ef4e', 'Điều chỉnh'),
+  order_confirmed: t('admin.msg_f5e439b9', 'Đơn xác nhận'),
+  order_cancelled: t('admin.msg_e978b912', 'Đơn hủy'),
 }
 
 const categories = computed(() => {
@@ -344,9 +345,9 @@ function stockClass(p) {
   return 'ok'
 }
 function stockLabel(p) {
-  if (p.stock <= 0) return 'Hết hàng'
-  if (p.stock <= p.lowStockThreshold) return 'Sắp hết'
-  return 'Còn hàng'
+  if (p.stock <= 0) return t('admin.msg_c95536d3', 'Hết hàng')
+  if (p.stock <= p.lowStockThreshold) return t('admin.msg_5b0d7341', 'Sắp hết')
+  return t('admin.msg_127ae1b3', 'Còn hàng')
 }
 
 onMounted(() => { fetchProducts(); fetchStats() })
@@ -381,7 +382,7 @@ function openEditModal(product) {
     name: product.name, sku: product.sku || '', barcode: product.barcode || '',
     price: product.price || 0, costPrice: product.costPrice || 0,
     stock: product.stock, lowStockThreshold: product.lowStockThreshold || 5,
-    category: product.category || '', unit: product.unit || 'cái',
+    category: product.category || '', unit: product.unit || t('admin.msg_50c7e101', 'cái'),
     keywords: product.keywords || '', imageUrl: product.imageUrl || '',
   }
   showProductModal.value = true
@@ -421,7 +422,7 @@ async function saveVariants() {
         })
       }
     }
-    showToast('Đã lưu biến thể', 'success')
+    showToast(t('admin.msg_9a6831', 'Đã lưu biến thể'), 'success')
   } catch (e) { showToast('Lỗi lưu biến thể: ' + e.message, 'error') }
 }
 
@@ -435,20 +436,20 @@ async function deleteVariant(v, idx) {
 }
 
 async function saveProduct() {
-  if (!productForm.value.name) return showToast('Tên sản phẩm là bắt buộc', 'error')
+  if (!productForm.value.name) return showToast(t('admin.msg_73e410', 'Tên sản phẩm là bắt buộc'), 'error')
   try {
     if (editingProduct.value) {
       await apiFetch(`/products/${editingProduct.value.id}`, {
         method: 'PUT',
         body: JSON.stringify(productForm.value),
       })
-      showToast('Đã cập nhật sản phẩm', 'success')
+      showToast(t('admin.msg_287b0f', 'Đã cập nhật sản phẩm'), 'success')
     } else {
       await apiFetch('/products', {
         method: 'POST',
         body: JSON.stringify({ ...productForm.value }),
       })
-      showToast('Đã thêm sản phẩm', 'success')
+      showToast(t('admin.msg_7a810a', 'Đã thêm sản phẩm'), 'success')
     }
     showProductModal.value = false
     fetchProducts()
@@ -460,10 +461,10 @@ async function deleteProduct(product) {
   if (!confirm(`Xóa "${product.name}"?`)) return
   try {
     await apiFetch(`/products/${product.id}`, { method: 'DELETE' })
-    showToast('Đã xóa sản phẩm', 'success')
+    showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
     fetchProducts()
     fetchStats()
-  } catch { showToast('Lỗi xóa sản phẩm', 'error') }
+  } catch { showToast(t('admin.msg_b2efb4', 'Lỗi xóa sản phẩm'), 'error') }
 }
 
 function openAdjustModal(product) {
@@ -491,8 +492,8 @@ async function exportProducts() {
     a.href = URL.createObjectURL(blob)
     a.download = `products_${Date.now()}.csv`
     a.click()
-    showToast('Đã xuất CSV', 'success')
-  } catch { showToast('Lỗi xuất CSV', 'error') }
+    showToast(t('admin.msg_94a655', 'Đã xuất CSV'), 'success')
+  } catch { showToast(t('admin.msg_b10c7d', 'Lỗi xuất CSV'), 'error') }
 }
 
 function handleFileSelect(e) {
@@ -507,7 +508,7 @@ function parseCsv(file) {
   const reader = new FileReader()
   reader.onload = (e) => {
     const lines = e.target.result.split('\n').filter(l => l.trim())
-    if (lines.length < 2) return showToast('File CSV trống', 'error')
+    if (lines.length < 2) return showToast(t('admin.msg_35f707', 'File CSV trống'), 'error')
     const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase())
     const rows = lines.slice(1).map(line => {
       const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''))
@@ -532,7 +533,7 @@ async function submitImport() {
       body: JSON.stringify({ products: importPreview.value }),
     })
     const result = await res.json()
-    showToast(`Đã nhập ${result.created} sản phẩm (${result.errors} lỗi)`, result.errors > 0 ? 'warning' : 'success')
+    showToast(t('admin.msg_imported', 'Đã nhập') + ` ${result.created} ` + t('admin.msg_products', 'sản phẩm') + ` (${result.errors} ` + t('admin.msg_errors', 'lỗi') + ')', result.errors > 0 ? 'warning' : 'success')
     showImportModal.value = false
     importPreview.value = []
     fetchProducts()

@@ -23,8 +23,8 @@
 
     <div v-else-if="webhooks.length === 0" class="empty-state">
       <Globe :size="36" />
-      <p>Chưa có webhook nào</p>
-      <small>Webhook sẽ gửi POST request khi có sự kiện mới</small>
+      <p>{{ t('admin.msg_155c4b75', 'Chưa có webhook nào') }}</p>
+      <small>{{ t('admin.msg_77910b21', 'Webhook sẽ gửi POST request khi có sự kiện mới') }}</small>
     </div>
 
     <div v-else class="webhook-list">
@@ -101,10 +101,10 @@ async function addWebhook() {
     if (wh) {
       webhooks.value.unshift(wh)
       newUrl.value = ''
-      showToast('Đã thêm webhook', 'success')
+      showToast(t('admin.msg_faabb4', 'Đã thêm webhook'), 'success')
     }
   } catch (e) {
-    showToast('Lỗi thêm webhook', 'error')
+    showToast(t('admin.msg_1589da', 'Lỗi thêm webhook'), 'error')
   }
 }
 
@@ -118,18 +118,18 @@ async function toggleWebhook(wh) {
     wh.isActive = active
     wh.is_active = active
   } catch (e) {
-    showToast('Lỗi cập nhật', 'error')
+    showToast(t('admin.msg_50ae86', 'Lỗi cập nhật'), 'error')
   }
 }
 
 async function removeWebhook(id) {
-  if (!confirm('Xóa webhook này?')) return
+  if (!confirm(t('admin.msg_36160cb4', 'Xóa webhook này?'))) return
   try {
     await apiFetch(`/api/webhooks/${id}`, { method: 'DELETE' })
     webhooks.value = webhooks.value.filter(w => w.id !== id)
-    showToast('Đã xóa webhook', 'success')
+    showToast(t('admin.msg_5372c0', 'Đã xóa webhook'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa', 'error')
+    showToast(t('admin.msg_9e5d62', 'Lỗi xóa'), 'error')
   }
 }
 

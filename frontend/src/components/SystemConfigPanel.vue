@@ -1,6 +1,6 @@
 <template>
   <div class="sys-config">
-    <h3 class="section-title"><Cog :size="16" /> Cấu hình hệ thống</h3>
+    <h3 class="section-title"><Cog :size="16" /> {{ t('admin.msg_31f9476f', 'Cấu hình hệ thống') }}</h3>
 
     <!-- Group selector -->
     <div class="config-groups">
@@ -25,8 +25,8 @@
     <div v-else class="config-list">
       <div v-if="configs.length === 0" class="empty-state">
         <Database :size="36" />
-        <p>Chưa có cấu hình nào</p>
-        <small>Thêm cấu hình mới bên dưới</small>
+        <p>{{ t('admin.msg_f29a3f95', 'Chưa có cấu hình nào') }}</p>
+        <small>{{ t('admin.msg_c9f17576', 'Thêm cấu hình mới bên dưới') }}</small>
       </div>
 
       <div v-for="item in configs" :key="item.key" class="config-item">
@@ -101,17 +101,17 @@ const pendingChanges = ref({})
 
 // Descriptions for common config keys
 const configDescriptions = {
-  site_name: 'Tên website hiển thị',
-  site_email: 'Email liên hệ chính',
-  timezone: 'Múi giờ hệ thống',
-  cache_driver: 'Driver lưu cache (database, redis, file)',
-  cache_ttl: 'Thời gian cache tồn tại (giây)',
-  mail_driver: 'Phương thức gửi mail (smtp, ses, log)',
+  site_name: t('admin.msg_e3857603', 'Tên website hiển thị'),
+  site_email: t('admin.msg_9db5ad8c', 'Email liên hệ chính'),
+  timezone: t('admin.msg_03b941b5', 'Múi giờ hệ thống'),
+  cache_driver: t('admin.msg_6fcd244d', 'Driver lưu cache (database, redis, file)'),
+  cache_ttl: t('admin.msg_ac93fec4', 'Thời gian cache tồn tại (giây)'),
+  mail_driver: t('admin.msg_0e9fcdb9', 'Phương thức gửi mail (smtp, ses, log)'),
   mail_host: 'SMTP host',
   mail_port: 'SMTP port',
-  mail_from: 'Email gửi mặc định',
-  queue_driver: 'Driver xử lý queue (database, redis, sync)',
-  queue_retry_after: 'Thời gian retry (giây)',
+  mail_from: t('admin.msg_72e74684', 'Email gửi mặc định'),
+  queue_driver: t('admin.msg_d607ba02', 'Driver xử lý queue (database, redis, sync)'),
+  queue_retry_after: t('admin.msg_405916ed', 'Thời gian retry (giây)'),
 }
 
 const configOptions = {
@@ -153,11 +153,11 @@ async function saveAll() {
       body: JSON.stringify({ items }),
     })
     if (!res.ok) throw new Error('Save failed')
-    showToast('Đã lưu cấu hình', 'success')
+    showToast(t('admin.msg_3d4b90', 'Đã lưu cấu hình'), 'success')
     hasChanges.value = false
     pendingChanges.value = {}
   } catch (e) {
-    showToast('Lỗi lưu cấu hình', 'error')
+    showToast(t('admin.msg_166445', 'Lỗi lưu cấu hình'), 'error')
   } finally {
     saving.value = false
   }
@@ -172,12 +172,12 @@ async function addConfig() {
       body: JSON.stringify({ items: [{ key: newKey.value, value: newValue.value, group_name: activeGroup.value }] }),
     })
     if (!res.ok) throw new Error('Add failed')
-    showToast('Đã thêm cấu hình', 'success')
+    showToast(t('admin.msg_555f03', 'Đã thêm cấu hình'), 'success')
     newKey.value = ''
     newValue.value = ''
     loadConfigs()
   } catch (e) {
-    showToast('Lỗi thêm cấu hình', 'error')
+    showToast(t('admin.msg_4f748c', 'Lỗi thêm cấu hình'), 'error')
   }
 }
 

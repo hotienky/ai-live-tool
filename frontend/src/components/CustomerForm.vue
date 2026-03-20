@@ -7,11 +7,11 @@
       </button>
       <div class="cf-header__center">
         <div class="cf-header__icon"><Users :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa khách hàng' : 'Thêm khách hàng' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_982998a9', 'Sửa khách hàng') : t('admin.msg_e0014d2e', 'Thêm khách hàng') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
-        {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Tạo') }}
+        {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : (props.editId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_808b9546', 'Tạo')) }}
       </button>
     </div>
 
@@ -20,15 +20,15 @@
       <!-- Main form -->
       <div class="cf-col cf-col--main">
         <div class="cf-card">
-          <h4><Users :size="13" /> Thông tin cơ bản</h4>
+          <h4><Users :size="13" /> {{ t('admin.msg_41100f72', 'Thông tin cơ bản') }}</h4>
           <div class="form-row">
             <div class="form-group">
               <label>{{ t('admin.first_name', 'Họ') }} <span class="req">*</span></label>
-              <input v-model="form.firstName" class="form-input" placeholder="Nguyễn" />
+              <input v-model="form.firstName" class="form-input" :placeholder="t('admin.msg_de6a75', 'Nguyễn')" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.last_name', 'Tên') }} <span class="req">*</span></label>
-              <input v-model="form.lastName" class="form-input" placeholder="Văn A" />
+              <input v-model="form.lastName" class="form-input" :placeholder="t('admin.msg_947faa', 'Văn A')" />
             </div>
           </div>
           <div class="form-row">
@@ -43,13 +43,13 @@
           </div>
           <div class="form-group" v-if="!props.editId">
             <label>{{ t('admin.password', 'Mật khẩu') }}</label>
-            <input v-model="form.password" type="password" class="form-input" placeholder="Để trống nếu không đặt" />
+            <input v-model="form.password" type="password" class="form-input" :placeholder="t('admin.msg_11611c', 'Để trống nếu không đặt')" />
           </div>
         </div>
 
         <!-- Addresses (only on edit) -->
         <div class="cf-card" v-if="props.editId">
-          <h4><MapPin :size="13" /> Sổ địa chỉ</h4>
+          <h4><MapPin :size="13" /> {{ t('admin.msg_3229e287', 'Sổ địa chỉ') }}</h4>
           <div class="address-list" v-if="addresses.length">
             <div class="address-card" v-for="a in addresses" :key="a.id">
               <div class="address-info">
@@ -59,9 +59,9 @@
               <button class="btn-icon btn-icon--danger" @click="handleDeleteAddress(a.id)"><X :size="12" /></button>
             </div>
           </div>
-          <p v-else class="empty-hint">Chưa có địa chỉ nào</p>
+          <p v-else class="empty-hint">{{ t('admin.msg_e826b58f', 'Chưa có địa chỉ nào') }}</p>
 
-          <div class="addr-form-title">+ Thêm địa chỉ mới</div>
+          <div class="addr-form-title">{{ t('admin.msg_16e8d40f', '+ Thêm địa chỉ mới') }}</div>
           <div class="form-row">
             <div class="form-group">
               <label>{{ t('admin.first_name', 'Họ') }}</label>
@@ -74,40 +74,40 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>SĐT</label>
+              <label>{{ t('admin.msg_5457a69f', 'SĐT') }}</label>
               <input v-model="addrForm.phone" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Mã bưu điện</label>
+              <label>{{ t('admin.msg_fe2a438f', 'Mã bưu điện') }}</label>
               <input v-model="addrForm.postcode" class="form-input" />
             </div>
           </div>
           <div class="form-group">
             <label>{{ t('admin.address', 'Địa chỉ') }}</label>
-            <input v-model="addrForm.address1" class="form-input" placeholder="Số nhà, đường..." />
+            <input v-model="addrForm.address1" class="form-input" :placeholder="t('admin.msg_e9c8fd', 'Số nhà, đường...')" />
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Quận/Huyện</label>
+              <label>{{ t('admin.msg_f2fcfd89', 'Quận/Huyện') }}</label>
               <input v-model="addrForm.district" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Thành phố</label>
+              <label>{{ t('admin.msg_936210fe', 'Thành phố') }}</label>
               <input v-model="addrForm.city" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Tỉnh</label>
+              <label>{{ t('admin.msg_a2b3b5e8', 'Tỉnh') }}</label>
               <input v-model="addrForm.province" class="form-input" />
             </div>
           </div>
-          <button class="btn-add-addr" @click="handleAddAddress">+ Thêm địa chỉ</button>
+          <button class="btn-add-addr" @click="handleAddAddress">{{ t('admin.msg_1a70d44d', '+ Thêm địa chỉ') }}</button>
         </div>
       </div>
 
       <!-- Sidebar -->
       <div class="cf-col cf-col--side">
         <div class="cf-card">
-          <h4>Cài đặt</h4>
+          <h4>{{ t('admin.msg_1a691070', 'Cài đặt') }}</h4>
           <div class="form-group">
             <label>{{ t('admin.status', 'Trạng thái') }}</label>
             <select v-model="form.status" class="form-input">
@@ -152,12 +152,12 @@ onMounted(async () => {
         email: c.email || '', phone: c.phone || '', status: c.status ?? 1,
       }
       addresses.value = await fetchAddressesApi(props.editId) || []
-    } catch { showToast('Không tải được thông tin khách hàng', 'error') }
+    } catch { showToast(t('admin.msg_c26913', 'Không tải được thông tin khách hàng'), 'error') }
   }
 })
 
 async function handleSave() {
-  if (!form.value.firstName) return showToast('Vui lòng nhập họ tên', 'error')
+  if (!form.value.firstName) return showToast(t('admin.msg_f4459e', 'Vui lòng nhập họ tên'), 'error')
   saving.value = true
   try {
     if (props.editId) {
@@ -165,7 +165,7 @@ async function handleSave() {
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await createCustomer(form.value)
-      showToast('Đã tạo khách hàng', 'success')
+      showToast(t('admin.msg_8f038f', 'Đã tạo khách hàng'), 'success')
     }
     emit('saved')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
@@ -173,18 +173,18 @@ async function handleSave() {
 }
 
 async function handleAddAddress() {
-  if (!addrForm.value.address1) return showToast('Vui lòng nhập địa chỉ', 'error')
+  if (!addrForm.value.address1) return showToast(t('admin.msg_47b988', 'Vui lòng nhập địa chỉ'), 'error')
   await addAddress(props.editId, addrForm.value)
   addresses.value = await fetchAddressesApi(props.editId) || []
   addrForm.value = { firstName: '', lastName: '', phone: '', address1: '', district: '', city: '', province: '', postcode: '' }
-  showToast('Đã thêm địa chỉ', 'success')
+  showToast(t('admin.msg_9a5fe9', 'Đã thêm địa chỉ'), 'success')
 }
 
 async function handleDeleteAddress(addrId) {
-  if (!confirm('Xóa địa chỉ này?')) return
+  if (!confirm(t('admin.msg_4298dba8', 'Xóa địa chỉ này?'))) return
   await deleteAddressApi(props.editId, addrId)
   addresses.value = await fetchAddressesApi(props.editId) || []
-  showToast('Đã xóa địa chỉ', 'success')
+  showToast(t('admin.msg_a2c448', 'Đã xóa địa chỉ'), 'success')
 }
 </script>
 

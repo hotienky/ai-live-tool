@@ -5,7 +5,7 @@
         <div class="report-header">
           <div class="report-title">
             <BarChart3 :size="22" />
-            <h2>Báo cáo phiên Live</h2>
+            <h2>{{ t('admin.msg_f626ac86', 'Báo cáo phiên Live') }}</h2>
           </div>
           <button class="close-btn" @click="$emit('close')">
             <X :size="18" />
@@ -19,7 +19,7 @@
               <div class="card-icon icon-blue"><Clock :size="18" /></div>
               <div class="card-info">
                 <div class="card-value">{{ report.duration }}</div>
-                <div class="card-label">Thời lượng</div>
+                <div class="card-label">{{ t('admin.msg_77d9bdc6', 'Thời lượng') }}</div>
               </div>
             </div>
             <div class="summary-card">
@@ -47,7 +47,7 @@
 
           <!-- Lead Stats -->
           <div class="lead-stats">
-            <h4><Flame :size="16" /> Phân loại Lead</h4>
+            <h4><Flame :size="16" /> {{ t('admin.msg_6b49570c', 'Phân loại Lead') }}</h4>
             <div class="lead-bars">
               <div class="lead-bar">
                 <span class="lead-label hot">HOT</span>

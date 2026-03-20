@@ -1,32 +1,32 @@
 <template>
   <div class="activity-log">
     <div class="activity-header">
-      <h3><Activity :size="18" /> Lịch sử hoạt động</h3>
+      <h3><Activity :size="18" /> {{ t('admin.msg_de1bcbd4', 'Lịch sử hoạt động') }}</h3>
       <select v-model="filterAction" class="action-filter" @change="loadLogs">
         <option value="">{{ t('admin.all', 'Tất cả') }}</option>
         <option value="user.login">{{ t('admin.login', 'Đăng nhập') }}</option>
-        <option value="order.created">Tạo đơn</option>
-        <option value="order.updated">Cập nhật đơn</option>
-        <option value="order.deleted">Xóa đơn</option>
-        <option value="product.created">Thêm sản phẩm</option>
-        <option value="product.updated">Cập nhật sản phẩm</option>
-        <option value="product.deleted">Xóa sản phẩm</option>
-        <option value="user.created">Tạo người dùng</option>
-        <option value="user.updated">Cập nhật người dùng</option>
-        <option value="user.deleted">Xóa người dùng</option>
-        <option value="cms.created">Tạo trang CMS</option>
-        <option value="cms.published">Xuất bản trang</option>
-        <option value="category.created">Tạo danh mục</option>
-        <option value="banner.created">Tạo banner</option>
-        <option value="settings.updated">Cập nhật cài đặt</option>
-        <option value="tax_config.updated">Cập nhật thuế</option>
-        <option value="tax_rate.created">Tạo thuế suất</option>
-        <option value="theme.updated">Cập nhật giao diện</option>
-        <option value="shipping.updated">Cập nhật vận chuyển</option>
-        <option value="payment.updated">Cập nhật thanh toán</option>
-        <option value="promotion.created">Tạo khuyến mãi</option>
-        <option value="role.created">Tạo vai trò</option>
-        <option value="webhook.created">Tạo webhook</option>
+        <option value="order.created">{{ t('admin.msg_23275279', 'Tạo đơn') }}</option>
+        <option value="order.updated">{{ t('admin.msg_c7488e1d', 'Cập nhật đơn') }}</option>
+        <option value="order.deleted">{{ t('admin.msg_c885393e', 'Xóa đơn') }}</option>
+        <option value="product.created">{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</option>
+        <option value="product.updated">{{ t('admin.msg_22dbba18', 'Cập nhật sản phẩm') }}</option>
+        <option value="product.deleted">{{ t('admin.msg_333c41f7', 'Xóa sản phẩm') }}</option>
+        <option value="user.created">{{ t('admin.msg_9ff8c321', 'Tạo người dùng') }}</option>
+        <option value="user.updated">{{ t('admin.msg_d948cb9a', 'Cập nhật người dùng') }}</option>
+        <option value="user.deleted">{{ t('admin.msg_44226bec', 'Xóa người dùng') }}</option>
+        <option value="cms.created">{{ t('admin.msg_e9aa668a', 'Tạo trang CMS') }}</option>
+        <option value="cms.published">{{ t('admin.msg_9068c2a8', 'Xuất bản trang') }}</option>
+        <option value="category.created">{{ t('admin.msg_1189ffef', 'Tạo danh mục') }}</option>
+        <option value="banner.created">{{ t('admin.msg_250d7787', 'Tạo banner') }}</option>
+        <option value="settings.updated">{{ t('admin.msg_6ca806c4', 'Cập nhật cài đặt') }}</option>
+        <option value="tax_config.updated">{{ t('admin.msg_c94aa630', 'Cập nhật thuế') }}</option>
+        <option value="tax_rate.created">{{ t('admin.msg_d7dd5cff', 'Tạo thuế suất') }}</option>
+        <option value="theme.updated">{{ t('admin.msg_b6063d1a', 'Cập nhật giao diện') }}</option>
+        <option value="shipping.updated">{{ t('admin.msg_e22f8157', 'Cập nhật vận chuyển') }}</option>
+        <option value="payment.updated">{{ t('admin.msg_67f8347a', 'Cập nhật thanh toán') }}</option>
+        <option value="promotion.created">{{ t('admin.msg_415f576e', 'Tạo khuyến mãi') }}</option>
+        <option value="role.created">{{ t('admin.msg_2e3dea54', 'Tạo vai trò') }}</option>
+        <option value="webhook.created">{{ t('admin.msg_2eb246b9', 'Tạo webhook') }}</option>
       </select>
     </div>
 
@@ -36,7 +36,7 @@
 
     <div v-else-if="logs.length === 0" class="empty-state">
       <ClipboardList :size="40" />
-      <p>Chưa có hoạt động nào</p>
+      <p>{{ t('admin.msg_70af3bd1', 'Chưa có hoạt động nào') }}</p>
     </div>
 
     <div v-else class="activity-timeline">
@@ -121,61 +121,61 @@ function changePage(page) {
 }
 
 const actionLabels = {
-  'user.login': 'Đăng nhập hệ thống',
-  'session.started': 'Bắt đầu phiên live',
-  'session.ended': 'Kết thúc phiên live',
-  'lead.status_changed': 'Thay đổi trạng thái lead',
-  'lead.created': 'Lead mới được tạo',
-  'order.created': 'Tạo đơn hàng',
-  'order.updated': 'Cập nhật đơn hàng',
-  'order.deleted': 'Xóa đơn hàng',
-  'product.created': 'Thêm sản phẩm',
-  'product.updated': 'Cập nhật sản phẩm',
-  'product.deleted': 'Xóa sản phẩm',
-  'product.stock_low': 'Cảnh báo tồn kho thấp',
-  'product.stock_deducted': 'Trừ tồn kho',
-  'user.created': 'Tạo người dùng mới',
-  'user.updated': 'Cập nhật người dùng',
-  'user.deleted': 'Xóa người dùng',
-  'cms.created': 'Tạo trang CMS',
-  'cms.updated': 'Cập nhật trang CMS',
-  'cms.deleted': 'Xóa trang CMS',
-  'cms.published': 'Xuất bản trang CMS',
-  'banner.created': 'Tạo banner',
-  'banner.updated': 'Cập nhật banner',
-  'banner.deleted': 'Xóa banner',
-  'category.created': 'Tạo danh mục',
-  'category.updated': 'Cập nhật danh mục',
-  'category.deleted': 'Xóa danh mục',
-  'role.created': 'Tạo vai trò',
-  'role.updated': 'Cập nhật vai trò',
-  'role.deleted': 'Xóa vai trò',
-  'webhook.created': 'Tạo webhook mới',
-  'webhook.updated': 'Cập nhật webhook',
-  'webhook.deleted': 'Xóa webhook',
-  'settings.updated': 'Cập nhật cài đặt',
-  'tax_config.updated': 'Cập nhật cấu hình thuế',
-  'tax_rate.created': 'Tạo thuế suất mới',
-  'tax_rate.updated': 'Cập nhật thuế suất',
-  'tax_rate.deleted': 'Xóa thuế suất',
-  'theme.updated': 'Cập nhật giao diện',
-  'layout.updated': 'Cập nhật bố cục',
-  'layout.published': 'Xuất bản bố cục',
-  'nav_link.created': 'Tạo liên kết menu',
-  'nav_link.updated': 'Cập nhật liên kết menu',
-  'nav_link.deleted': 'Xóa liên kết menu',
-  'shipping.updated': 'Cập nhật vận chuyển',
-  'payment.updated': 'Cập nhật thanh toán',
-  'promotion.created': 'Tạo khuyến mãi',
-  'promotion.updated': 'Cập nhật khuyến mãi',
-  'promotion.deleted': 'Xóa khuyến mãi',
-  'flash_sale.created': 'Tạo Flash Sale',
-  'flash_sale.updated': 'Cập nhật Flash Sale',
-  'flash_sale.deleted': 'Xóa Flash Sale',
-  'coupon.created': 'Tạo mã giảm giá',
-  'coupon.used': 'Sử dụng mã giảm giá',
-  'store_info.updated': 'Cập nhật thông tin cửa hàng',
-  'system_config.updated': 'Cập nhật cấu hình hệ thống',
+  'user.login': t('admin.msg_26d81d9f', 'Đăng nhập hệ thống'),
+  'session.started': t('admin.msg_468bd2ff', 'Bắt đầu phiên live'),
+  'session.ended': t('admin.msg_ca7a354a', 'Kết thúc phiên live'),
+  'lead.status_changed': t('admin.msg_264916e4', 'Thay đổi trạng thái lead'),
+  'lead.created': t('admin.msg_9fa644f5', 'Lead mới được tạo'),
+  'order.created': t('admin.msg_095823c8', 'Tạo đơn hàng'),
+  'order.updated': t('admin.msg_272e8fcc', 'Cập nhật đơn hàng'),
+  'order.deleted': t('admin.msg_c5fa8426', 'Xóa đơn hàng'),
+  'product.created': t('admin.msg_98b9f1c4', 'Thêm sản phẩm'),
+  'product.updated': t('admin.msg_22dbba18', 'Cập nhật sản phẩm'),
+  'product.deleted': t('admin.msg_333c41f7', 'Xóa sản phẩm'),
+  'product.stock_low': t('admin.msg_d3a5d6d7', 'Cảnh báo tồn kho thấp'),
+  'product.stock_deducted': t('admin.msg_c467ad17', 'Trừ tồn kho'),
+  'user.created': t('admin.msg_d7845035', 'Tạo người dùng mới'),
+  'user.updated': t('admin.msg_d948cb9a', 'Cập nhật người dùng'),
+  'user.deleted': t('admin.msg_44226bec', 'Xóa người dùng'),
+  'cms.created': t('admin.msg_e9aa668a', 'Tạo trang CMS'),
+  'cms.updated': t('admin.msg_a1e80365', 'Cập nhật trang CMS'),
+  'cms.deleted': t('admin.msg_6de04e5d', 'Xóa trang CMS'),
+  'cms.published': t('admin.msg_32bbff5f', 'Xuất bản trang CMS'),
+  'banner.created': t('admin.msg_250d7787', 'Tạo banner'),
+  'banner.updated': t('admin.msg_acc86fd7', 'Cập nhật banner'),
+  'banner.deleted': t('admin.msg_571815d6', 'Xóa banner'),
+  'category.created': t('admin.msg_1189ffef', 'Tạo danh mục'),
+  'category.updated': t('admin.msg_2c994a20', 'Cập nhật danh mục'),
+  'category.deleted': t('admin.msg_5f94897a', 'Xóa danh mục'),
+  'role.created': t('admin.msg_2e3dea54', 'Tạo vai trò'),
+  'role.updated': t('admin.msg_2bba1eec', 'Cập nhật vai trò'),
+  'role.deleted': t('admin.msg_eab5cdd9', 'Xóa vai trò'),
+  'webhook.created': t('admin.msg_92be85fc', 'Tạo webhook mới'),
+  'webhook.updated': t('admin.msg_f571ba8d', 'Cập nhật webhook'),
+  'webhook.deleted': t('admin.msg_efe92fcd', 'Xóa webhook'),
+  'settings.updated': t('admin.msg_6ca806c4', 'Cập nhật cài đặt'),
+  'tax_config.updated': t('admin.msg_d66363d9', 'Cập nhật cấu hình thuế'),
+  'tax_rate.created': t('admin.msg_defcd171', 'Tạo thuế suất mới'),
+  'tax_rate.updated': t('admin.msg_09e3db37', 'Cập nhật thuế suất'),
+  'tax_rate.deleted': t('admin.msg_8e3edfd7', 'Xóa thuế suất'),
+  'theme.updated': t('admin.msg_b6063d1a', 'Cập nhật giao diện'),
+  'layout.updated': t('admin.msg_333b3000', 'Cập nhật bố cục'),
+  'layout.published': t('admin.msg_db1ee5e4', 'Xuất bản bố cục'),
+  'nav_link.created': t('admin.msg_0f1731c6', 'Tạo liên kết menu'),
+  'nav_link.updated': t('admin.msg_bc8d8259', 'Cập nhật liên kết menu'),
+  'nav_link.deleted': t('admin.msg_6336cd05', 'Xóa liên kết menu'),
+  'shipping.updated': t('admin.msg_e22f8157', 'Cập nhật vận chuyển'),
+  'payment.updated': t('admin.msg_67f8347a', 'Cập nhật thanh toán'),
+  'promotion.created': t('admin.msg_415f576e', 'Tạo khuyến mãi'),
+  'promotion.updated': t('admin.msg_72174316', 'Cập nhật khuyến mãi'),
+  'promotion.deleted': t('admin.msg_84c6487c', 'Xóa khuyến mãi'),
+  'flash_sale.created': t('admin.msg_9d9407dd', 'Tạo Flash Sale'),
+  'flash_sale.updated': t('admin.msg_802aa97c', 'Cập nhật Flash Sale'),
+  'flash_sale.deleted': t('admin.msg_5c755c32', 'Xóa Flash Sale'),
+  'coupon.created': t('admin.msg_835ac40c', 'Tạo mã giảm giá'),
+  'coupon.used': t('admin.msg_86a8f384', 'Sử dụng mã giảm giá'),
+  'store_info.updated': t('admin.msg_098c4d37', 'Cập nhật thông tin cửa hàng'),
+  'system_config.updated': t('admin.msg_486d98f8', 'Cập nhật cấu hình hệ thống'),
 }
 
 function formatAction(action) {
@@ -191,7 +191,7 @@ function formatDetails(action, details) {
   if (action === 'session.ended') return `Comments: ${details.totalComments}, Hot: ${details.hotLeads}`
   if (action === 'lead.status_changed') return `${details.from} → ${details.to}`
   if (action === 'tax_config.updated') return details.tax_enabled !== undefined ? `Thuế: ${details.tax_enabled ? 'Bật' : 'Tắt'}` : 'Cập nhật cấu hình thuế'
-  if (action === 'tax_rate.created' || action === 'tax_rate.updated') return details.rate ? `${details.name || 'Thuế'}: ${details.rate}%` : (details.name || '')
+  if (action === 'tax_rate.created' || action === 'tax_rate.updated') return details.rate ? `${details.name || t('admin.msg_500aedd2', 'Thuế')}: ${details.rate}%` : (details.name || '')
   if (action === 'theme.updated') return details.preset || details.accent || ''
   if (action === 'layout.updated' || action === 'layout.published') return details.page || ''
   if (details.name) return details.name
@@ -281,7 +281,7 @@ function formatTime(ts) {
   const d = new Date(ts)
   const now = new Date()
   const diff = now.getTime() - d.getTime()
-  if (diff < 60000) return 'Vừa xong'
+  if (diff < 60000) return t('admin.msg_e92d1675', 'Vừa xong')
   if (diff < 3600000) return `${Math.floor(diff / 60000)} phút trước`
   if (diff < 86400000) return `${Math.floor(diff / 3600000)} giờ trước`
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })

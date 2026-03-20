@@ -1,7 +1,7 @@
 <template>
   <div class="stats-chart">
     <div class="stats-chart__header">
-      <h3 class="stats-chart__title"><TrendingUp :size="16" /> Thống kê theo thời gian</h3>
+      <h3 class="stats-chart__title"><TrendingUp :size="16" /> {{ t('admin.msg_0cc05649', 'Thống kê theo thời gian') }}</h3>
       <button class="stats-chart__close" @click="$emit('close')">
         <X :size="16" />
       </button>
@@ -29,7 +29,7 @@
 
       <!-- Timeline Chart -->
       <div class="stats-chart__timeline-section">
-        <h4 class="stats-chart__subtitle">Leads / phút</h4>
+        <h4 class="stats-chart__subtitle">{{ t('admin.msg_afabcbd7', 'Leads / phút') }}</h4>
         <canvas ref="timelineCanvas" width="500" height="160"></canvas>
       </div>
     </div>

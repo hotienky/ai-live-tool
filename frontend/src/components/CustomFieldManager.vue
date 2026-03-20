@@ -18,7 +18,7 @@
     <!-- Add field form -->
     <div class="cf-add-form">
       <div class="cf-add-row">
-        <input v-model="newField.name" placeholder="Tên trường" class="cf-input cf-input--name" />
+        <input v-model="newField.name" :placeholder="t('admin.msg_450eeb', 'Tên trường')" class="cf-input cf-input--name" />
         <select v-model="newField.fieldType" class="cf-input cf-input--type">
           <option v-for="ft in fieldTypes" :key="ft.value" :value="ft.value">{{ ft.label }}</option>
         </select>
@@ -32,7 +32,7 @@
       <div v-if="newField.fieldType === 'select'" class="cf-options-row">
         <input
           v-model="newField.optionsText"
-          placeholder="Các tùy chọn (phân cách bằng dấu phẩy: Đỏ, Xanh, Vàng)"
+          :placeholder="t('admin.msg_7a6faf', 'Các tùy chọn (phân cách bằng dấu phẩy: Đỏ, Xanh, Vàng)')"
           class="cf-input cf-input--full"
         />
       </div>
@@ -47,7 +47,7 @@
     <div v-else-if="filteredFields.length === 0" class="empty-state">
       <LayoutList :size="36" />
       <p>{{ t('admin.no_custom_fields', 'Chưa có custom field nào') }}</p>
-      <small>Tạo trường tùy chỉnh để mở rộng dữ liệu sản phẩm, danh mục, khách hàng...</small>
+      <small>{{ t('admin.msg_dcff5205', 'Tạo trường tùy chỉnh để mở rộng dữ liệu sản phẩm, danh mục, khách hàng...') }}</small>
     </div>
 
     <!-- Field list -->
@@ -87,8 +87,8 @@
         <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="form.translations" :fields="['label']" :baseData="form" />
         
         <div class="form-group">
-          <label>Tên hiển thị (Label) *</label>
-          <input v-model="fLabel" placeholder="Tên hiển thị..." class="cf-input cf-input--full" />
+          <label>{{ t('admin.msg_afcc0d3d', 'Tên hiển thị (Label) *') }}</label>
+          <input v-model="fLabel" :placeholder="t('admin.msg_a7e2e3', 'Tên hiển thị...')" class="cf-input cf-input--full" />
         </div>
         
         <div class="modal-actions">
@@ -114,20 +114,20 @@ const { t } = useI18n()
 const { showToast } = useToast()
 
 const entityTypes = [
-  { key: 'all', label: 'Tất cả', icon: LayoutList },
-  { key: 'product', label: 'Sản phẩm', icon: ShoppingBag },
-  { key: 'category', label: 'Danh mục', icon: FolderTree },
-  { key: 'customer', label: 'Khách hàng', icon: Users },
+  { key: 'all', label: t('admin.msg_d8586d08', 'Tất cả'), icon: LayoutList },
+  { key: 'product', label: t('admin.msg_1d1aa192', 'Sản phẩm'), icon: ShoppingBag },
+  { key: 'category', label: t('admin.msg_53d8de58', 'Danh mục'), icon: FolderTree },
+  { key: 'customer', label: t('admin.msg_0caa5ce1', 'Khách hàng'), icon: Users },
   { key: 'page', label: 'Trang CMS', icon: FileText },
 ]
 
 const fieldTypes = [
-  { value: 'text', label: 'Văn bản' },
-  { value: 'number', label: 'Số' },
-  { value: 'select', label: 'Danh sách chọn' },
+  { value: 'text', label: t('admin.msg_61e90d97', 'Văn bản') },
+  { value: 'number', label: t('admin.msg_5c2b190c', 'Số') },
+  { value: 'select', label: t('admin.msg_154538ad', 'Danh sách chọn') },
   { value: 'checkbox', label: 'Checkbox' },
-  { value: 'date', label: 'Ngày tháng' },
-  { value: 'textarea', label: 'Văn bản dài' },
+  { value: 'date', label: t('admin.msg_c87e59e6', 'Ngày tháng') },
+  { value: 'textarea', label: t('admin.msg_44aaf662', 'Văn bản dài') },
 ]
 
 const fields = ref([])
@@ -196,10 +196,10 @@ async function addField() {
     if (field) {
       fields.value.unshift(field)
       newField.value = { name: '', fieldType: 'text', entityType: 'product', optionsText: '' }
-      showToast('Đã thêm custom field', 'success')
+      showToast(t('admin.msg_a5fa92', 'Đã thêm custom field'), 'success')
     }
   } catch (e) {
-    showToast('Lỗi thêm field', 'error')
+    showToast(t('admin.msg_6e62ce', 'Lỗi thêm field'), 'error')
   }
 }
 
@@ -231,10 +231,10 @@ async function handleSave() {
     const idx = fields.value.findIndex(f => f.id === editId.value)
     if (idx !== -1) fields.value[idx] = updated
     showModal.value = false
-    showToast('Đã cập nhật', 'success')
+    showToast(t('admin.msg_c0c3aa', 'Đã cập nhật'), 'success')
     loadFields()
   } catch (e) {
-    showToast('Lỗi cập nhật', 'error')
+    showToast(t('admin.msg_50ae86', 'Lỗi cập nhật'), 'error')
   }
 }
 
@@ -248,18 +248,18 @@ async function toggleField(field) {
     field.isActive = isActive
     field.is_active = isActive
   } catch (e) {
-    showToast('Lỗi cập nhật', 'error')
+    showToast(t('admin.msg_50ae86', 'Lỗi cập nhật'), 'error')
   }
 }
 
 async function deleteField(id) {
-  if (!confirm('Xóa custom field này? Dữ liệu liên quan sẽ bị mất.')) return
+  if (!confirm(t('admin.msg_f6f3bd17', 'Xóa custom field này? Dữ liệu liên quan sẽ bị mất.'))) return
   try {
     await apiFetch(`/custom-fields/${id}`, { method: 'DELETE' })
     fields.value = fields.value.filter(f => f.id !== id)
-    showToast('Đã xóa custom field', 'success')
+    showToast(t('admin.msg_dfdf03', 'Đã xóa custom field'), 'success')
   } catch (e) {
-    showToast('Lỗi xóa', 'error')
+    showToast(t('admin.msg_9e5d62', 'Lỗi xóa'), 'error')
   }
 }
 

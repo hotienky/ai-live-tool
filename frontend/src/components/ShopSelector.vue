@@ -47,7 +47,7 @@
 
       <!-- Manage hint -->
       <div class="shop-selector__hint">
-        Nhấn <strong>Phiên Live</strong> để bắt đầu phiên mới
+        Nhấn <strong>{{ t('admin.msg_9e9087b1', 'Phiên Live') }}</strong> để bắt đầu phiên mới
       </div>
     </div>
   </div>

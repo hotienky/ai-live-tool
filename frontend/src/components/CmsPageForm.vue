@@ -4,7 +4,7 @@
       <button class="btn-back" @click="goBack">
         <ArrowLeft :size="16" /> Quay lại
       </button>
-      <h3>{{ isEditing ? 'Sửa trang CMS' : 'Tạo trang CMS mới' }}</h3>
+      <h3>{{ isEditing ? t('admin.msg_72f5b421', 'Sửa trang CMS') : t('admin.msg_4ae8d81c', 'Tạo trang CMS mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="16" class="spin" />
         {{ saving ? t('admin.saving', 'Đang lưu...') : (isEditing ? 'Cập nhật' : 'Tạo trang') }}
@@ -17,18 +17,18 @@
         <LanguageTabs v-model="currentLang" style="margin-bottom: 20px;" :translations="form.translations" :fields="['title', 'content', 'meta_title', 'meta_description']" :baseData="form" />
 
         <div class="form-card">
-          <h4>Nội dung trang</h4>
+          <h4>{{ t('admin.msg_1f4f57cd', 'Nội dung trang') }}</h4>
           
           <div class="form-group">
-            <label>Tiêu đề <span class="required">*</span></label>
-            <input v-model="fTitle" type="text" placeholder="Nhập tiêu đề trang..." class="input-lg" />
+            <label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }} <span class="required">*</span></label>
+            <input v-model="fTitle" type="text" :placeholder="t('admin.msg_4ee531', 'Nhập tiêu đề trang...')" class="input-lg" />
           </div>
 
           <div class="form-group">
             <label>Alias (slug)</label>
             <div class="input-prefix">
               <span class="prefix">/</span>
-              <input v-model="form.alias" type="text" placeholder="Tự tạo từ tiêu đề nếu để trống" />
+              <input v-model="form.alias" type="text" :placeholder="t('admin.msg_ab966e', 'Tự tạo từ tiêu đề nếu để trống')" />
             </div>
           </div>
 
@@ -36,16 +36,16 @@
           <div class="form-group" style="margin-top: 16px;">
             <label class="checkbox-label">
               <input type="checkbox" v-model="form.is_dynamic" />
-              <span>Sử dụng Storefront Layout Builder (Kéo thả section)</span>
+              <span>{{ t('admin.msg_ea032500', 'Sử dụng Storefront Layout Builder (Kéo thả section)') }}</span>
             </label>
 
             <div v-if="form.is_dynamic" class="info-box">
-              Trang này sẽ được thiết kế bằng Layout Builder. Hãy lưu lại và chuyển sang tab "Bố cục Cửa Hàng" để thiết kế kéo thả.
+              {{ t('admin.msg_layout_builder_info', 'Trang này sẽ được thiết kế bằng Layout Builder. Lưu lại để tự động chuyển sang trang thiết kế kéo thả.') }}
             </div>
 
             <div v-else class="form-group" style="margin-top: 12px;">
-              <label>Nội dung (HTML)</label>
-              <textarea v-model="fContent" rows="18" class="textarea-code" placeholder="<h1>{{ t('admin.title', 'Tiêu đề') }}</h1><p>Nội dung...</p>"></textarea>
+              <label>{{ t('admin.msg_d4c057ac', 'Nội dung') }}</label>
+              <RichTextEditor v-model="fContent" :placeholder="t('admin.msg_html_placeholder', 'Nhập nội dung trang...')" />
             </div>
           </div>
         </div>
@@ -55,11 +55,11 @@
           <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700">🔍 SEO</h4>
           <div class="form-group">
             <label>Meta Title</label>
-            <input v-model="fMetaTitle" placeholder="Tiêu đề SEO (tự động nếu để trống)" />
+            <input v-model="fMetaTitle" :placeholder="t('admin.msg_073024', 'Tiêu đề SEO (tự động nếu để trống)')" />
           </div>
           <div class="form-group">
             <label>Meta Description</label>
-            <textarea v-model="fMetaDesc" rows="3" placeholder="Mô tả SEO (tự động nếu để trống)"></textarea>
+            <textarea v-model="fMetaDesc" rows="3" :placeholder="t('admin.msg_9de927', 'Mô tả SEO (tự động nếu để trống)')"></textarea>
           </div>
         </div>
       </div>
@@ -77,19 +77,16 @@
           </div>
 
           <div class="form-group">
-            <label>Thứ tự hiển thị</label>
+            <label>{{ t('admin.msg_6345aae2', 'Thứ tự hiển thị') }}</label>
             <input v-model.number="form.sort" type="number" min="0" />
           </div>
         </div>
 
         <div class="form-card">
-          <h4>Hình đại diện</h4>
+          <h4>{{ t('admin.msg_74aa5931', 'Hình đại diện') }}</h4>
           <div class="form-group">
-            <label>Hình ảnh (URL)</label>
-            <input v-model="form.image" type="text" placeholder="https://..." />
-            <div class="image-preview" v-if="form.image">
-              <img :src="form.image" alt="Preview" @error="$event.target.style.display='none'" />
-            </div>
+            <label>{{ t('admin.image', 'Hình ảnh') }}</label>
+            <MediaPicker v-model="form.image" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
           </div>
         </div>
       </div>
@@ -100,6 +97,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { ArrowLeft, Loader2 } from 'lucide-vue-next'
+import MediaPicker from './MediaPicker.vue'
+import RichTextEditor from './RichTextEditor.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useToast } from '../composables/useToast.js'
@@ -180,17 +179,22 @@ onMounted(async () => {
 })
 
 async function handleSave() {
-  if (!form.value.title) return showToast('Nhập tiêu đề', 'error')
+  if (!form.value.title) return showToast(t('admin.msg_d49775', 'Nhập tiêu đề'), 'error')
   saving.value = true
   try {
     if (isEditing.value && props.pageId) {
       await updatePage(props.pageId, form.value)
-      showToast('Đã cập nhật trang', 'success')
+      showToast(t('admin.msg_ca320b', 'Đã cập nhật trang'), 'success')
     } else {
       await createPage(form.value)
-      showToast('Đã tạo trang', 'success')
+      showToast(t('admin.msg_d46570', 'Đã tạo trang'), 'success')
     }
-    goBack()
+    // If dynamic page, navigate to Layout Builder
+    if (form.value.is_dynamic) {
+      emit('navigate', 'storefront-layout')
+    } else {
+      goBack()
+    }
   } catch (e) {
     showToast('Lỗi: ' + e.message, 'error')
   } finally {

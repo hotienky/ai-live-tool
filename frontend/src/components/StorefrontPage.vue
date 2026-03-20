@@ -20,7 +20,7 @@
     </div>
     <div class="spage-error" v-else>
       <FileX :size="40" />
-      <p>Không tìm thấy trang</p>
+      <p>{{ t('admin.msg_ed43e4a6', 'Không tìm thấy trang') }}</p>
     </div>
   </div>
 </template>

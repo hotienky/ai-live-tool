@@ -46,7 +46,7 @@
       <!-- Initial loading -->
       <div v-if="isPageLoading && items.length === 0" class="notif-page__empty">
         <span class="notif-page__spinner" />
-        <span>Đang tải...</span>
+        <span>{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</span>
       </div>
 
       <!-- Empty state -->
@@ -138,10 +138,10 @@ const hasMore = computed(() => items.value.length < totalItems.value)
 // ─── Filter tabs ──────────────────────────────────────────────────
 
 const tabs = [
-  { label: 'Tất cả',    value: null },
-  { label: 'Đơn hàng',  value: 'order' },
-  { label: 'Sản phẩm',  value: 'product' },
-  { label: 'Hệ thống',  value: 'system' },
+  { label: t('admin.msg_d8586d08', 'Tất cả'),    value: null },
+  { label: t('admin.msg_adb21d16', 'Đơn hàng'),  value: 'order' },
+  { label: t('admin.msg_1d1aa192', 'Sản phẩm'),  value: 'product' },
+  { label: t('admin.msg_09cbc7cd', 'Hệ thống'),  value: 'system' },
 ]
 
 // ─── Type → Icon / Color ──────────────────────────────────────────
@@ -250,7 +250,7 @@ async function handleDelete(id) {
 
 function timeAgo(dateStr) {
   const diff = (Date.now() - new Date(dateStr).getTime()) / 1000
-  if (diff < 60)    return 'Vừa xong'
+  if (diff < 60)    return t('admin.msg_e92d1675', 'Vừa xong')
   if (diff < 3600)  return `${Math.floor(diff / 60)} phút trước`
   if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`
   return `${Math.floor(diff / 86400)} ngày trước`

@@ -1,17 +1,17 @@
 <template>
   <div class="stock-adjust-page">
     <div class="sa-header">
-      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
+      <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="sa-header__center">
         <div class="sa-header__icon"><Package :size="15" /></div>
-        <h3>Quản lý Tồn Kho — {{ product?.name || 'Đang tải...' }}</h3>
+        <h3>Quản lý Tồn Kho — {{ product?.name || t('admin.msg_d5fe42f6', 'Đang tải...') }}</h3>
       </div>
       <div class="sa-actions">
       </div>
     </div>
 
     <div v-if="loading" class="sa-loading">
-      <Loader2 :size="24" class="spin" /> <p>Đang tải dữ liệu...</p>
+      <Loader2 :size="24" class="spin" /> <p>{{ t('admin.msg_54033c7f', 'Đang tải dữ liệu...') }}</p>
     </div>
 
     <div v-else-if="product" class="sa-content">
@@ -19,15 +19,15 @@
       <div class="sa-col sa-col--left">
         <!-- Info & Adjust Card -->
         <div class="sa-card">
-          <h4><BarChart3 :size="16" /> Điều chỉnh tồn kho</h4>
+          <h4><BarChart3 :size="16" /> {{ t('admin.msg_e96b5359', 'Điều chỉnh tồn kho') }}</h4>
           
           <div class="product-summary">
             <div class="ps-row"><span>SKU:</span> <strong>{{ product.sku || '—' }}</strong></div>
-            <div class="ps-row"><span>Giá bán:</span> <strong>{{ formatCurrency(product.price) }}</strong></div>
-            <div class="ps-row"><span>Tồn kho hiện tại:</span><strong class="stock-highlight">{{ product.stock }} {{ product.unit || 'cái' }}</strong></div>
+            <div class="ps-row"><span>{{ t('admin.msg_43c21243', 'Giá bán:') }}</span> <strong>{{ formatCurrency(product.price) }}</strong></div>
+            <div class="ps-row"><span>{{ t('admin.msg_c062022e', 'Tồn kho hiện tại:') }}</span><strong class="stock-highlight">{{ product.stock }} {{ product.unit || 'cái' }}</strong></div>
           </div>
 
-          <div class="form-divider">Thực hiện điều chỉnh</div>
+          <div class="form-divider">{{ t('admin.msg_9905427a', 'Thực hiện điều chỉnh') }}</div>
 
           <div class="adjust-mode">
             <button class="mode-btn" :class="{ active: adjustMode === 'add' }" @click="setMode('add')">
@@ -42,7 +42,7 @@
           </div>
 
           <div class="adjust-preview">
-            <div class="adjust-current">Hiện tại: <strong>{{ product.stock }}</strong></div>
+            <div class="adjust-current">{{ t('admin.msg_e8b0a14d', 'Hiện tại:') }} <strong>{{ product.stock }}</strong></div>
             <div class="adjust-arrow">→</div>
             <div class="adjust-new" :class="{ positive: adjustFinalStock > product.stock, negative: adjustFinalStock < product.stock }">
               Sau điều chỉnh: <strong>{{ adjustFinalStock }}</strong>
@@ -51,19 +51,19 @@
 
           <div class="form-grid" style="margin-top:16px">
             <div class="form-group span-2">
-              <label>{{ adjustMode === 'set' ? 'Số lượng mới' : 'Biến động' }} ({{ product.unit || 'cái' }})</label>
+              <label>{{ adjustMode === 'set' ? t('admin.msg_08ca32d1', 'Số lượng mới') : t('admin.msg_8585140c', 'Biến động') }} ({{ product.unit || t('admin.msg_50c7e101', 'cái') }})</label>
               <input type="number" v-model.number="adjustQty" min="0" class="form-input" />
             </div>
             <div class="form-group span-2">
-              <label>Lý do điều chỉnh *</label>
-              <input v-model="adjustReason" class="form-input" placeholder="VD: Nhập hàng mới, trả hàng, lỗi..." @keyup.enter="submitAdjust" />
+              <label>{{ t('admin.msg_f14e1365', 'Lý do điều chỉnh *') }}</label>
+              <input v-model="adjustReason" class="form-input" :placeholder="t('admin.msg_ca2bdd', 'VD: Nhập hàng mới, trả hàng, lỗi...')" @keyup.enter="submitAdjust" />
             </div>
           </div>
 
           <button class="btn-primary" style="margin-top: 20px; width: 100%; justify-content: center;" @click="submitAdjust" :disabled="saving || !adjustReason">
             <Loader2 v-if="saving" :size="14" class="spin" />
             <CheckCircle v-else :size="14" />
-            {{ saving ? 'Đang lưu...' : 'Xác nhận điều chỉnh' }}
+            {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : t('admin.msg_749d5fbf', 'Xác nhận điều chỉnh') }}
           </button>
         </div>
       </div>
@@ -71,7 +71,7 @@
       <div class="sa-col sa-col--right">
         <!-- History Card -->
         <div class="sa-card history-card">
-          <h4><History :size="16" /> Lịch sử biến động</h4>
+          <h4><History :size="16" /> {{ t('admin.msg_6fb3f53d', 'Lịch sử biến động') }}</h4>
           
           <div class="history-timeline" v-if="stockHistoryData.length > 0">
             <div v-for="entry in stockHistoryData" :key="entry.id" class="history-item">
@@ -83,7 +83,7 @@
                     {{ entry.quantityChange > 0 ? '+' : '' }}{{ entry.quantityChange }}
                   </span>
                 </div>
-                <div class="history-detail">{{ entry.stockBefore }} → {{ entry.stockAfter }} {{ product.unit || 'cái' }}</div>
+                <div class="history-detail">{{ entry.stockBefore }} → {{ entry.stockAfter }} {{ product.unit || t('admin.msg_50c7e101', 'cái') }}</div>
                 <div class="history-reason" v-if="entry.reason">{{ entry.reason }}</div>
                 <div class="history-time">{{ formatDate(entry.createdAt) }}</div>
               </div>
@@ -91,7 +91,7 @@
           </div>
           <div v-else class="empty-state">
             <History :size="32" class="empty-state__icon" />
-            <p class="empty-state__title">Chưa có biến động kho</p>
+            <p class="empty-state__title">{{ t('admin.msg_912f855b', 'Chưa có biến động kho') }}</p>
           </div>
         </div>
       </div>
@@ -119,11 +119,11 @@ const adjustQty = ref(0)
 const adjustReason = ref('')
 
 const actionLabels = {
-  add: 'Nhập kho',
-  deduct: 'Xuất kho',
-  adjust: 'Điều chỉnh',
-  order_confirmed: 'Đơn xác nhận',
-  order_cancelled: 'Đơn hủy',
+  add: t('admin.msg_94e97353', 'Nhập kho'),
+  deduct: t('admin.msg_25af27c7', 'Xuất kho'),
+  adjust: t('admin.msg_6a48ef4e', 'Điều chỉnh'),
+  order_confirmed: t('admin.msg_f5e439b9', 'Đơn xác nhận'),
+  order_cancelled: t('admin.msg_e978b912', 'Đơn hủy'),
 }
 
 onMounted(() => {
@@ -152,7 +152,7 @@ async function loadData() {
     const histData = await histRes.json()
     stockHistoryData.value = mapKeys(histData.data || histData || [])
   } catch (error) {
-    showToast('Lỗi tải dữ liệu kho', 'error')
+    showToast(t('admin.msg_6b6071', 'Lỗi tải dữ liệu kho'), 'error')
   } finally {
     loading.value = false
   }
@@ -177,14 +177,14 @@ function setMode(mode) {
 }
 
 async function submitAdjust() {
-  if (!adjustReason.value.trim()) return showToast('Vui lòng nhập lý do', 'error')
+  if (!adjustReason.value.trim()) return showToast(t('admin.msg_7e0532', 'Vui lòng nhập lý do'), 'error')
   saving.value = true
   try {
     await apiFetch(`/products/${props.productId}/adjust-stock`, {
       method: 'POST',
       body: JSON.stringify({ newStock: adjustFinalStock.value, reason: adjustReason.value }),
     })
-    showToast(`Đã điều chỉnh kho thành công!`, 'success')
+    showToast(t('admin.msg_stock_adjusted', 'Đã điều chỉnh kho thành công!'), 'success')
     adjustReason.value = ''
     adjustQty.value = 0
     await loadData() // Refresh
