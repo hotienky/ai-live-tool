@@ -44,7 +44,9 @@
         >
           <div class="ml-item__preview">
             <img v-if="isImage(item)" :src="item.thumbnail_url || item.url" :alt="item.alt || item.title" loading="lazy" />
+            <video v-else-if="isVideo(item)" :src="item.url" muted preload="metadata" class="ml-item__video" />
             <div v-else class="ml-item__icon"><Film :size="28" /></div>
+            <div v-if="isVideo(item)" class="ml-item__video-badge"><Film :size="10" /> Video</div>
           </div>
           <div class="ml-item__name">{{ item.title || item.filename }}</div>
           <div class="ml-item__meta">{{ humanSize(item.size) }}</div>
@@ -82,6 +84,7 @@
       <div class="ml-detail__close" @click="selected = null">&times;</div>
       <div class="ml-detail__preview">
         <img v-if="isImage(selected)" :src="selected.medium_url || selected.url" :alt="selected.alt" />
+        <video v-else-if="isVideo(selected)" :src="selected.url" controls class="ml-detail__video" />
         <div v-else class="ml-detail__icon"><Film :size="48" /></div>
       </div>
       <div class="ml-detail__info">
@@ -110,6 +113,9 @@
           </div>
         </div>
 
+        <button class="act-btn act-primary ml-update-btn" @click="saveDetail" :disabled="!hasDetailChanges">
+          <Save :size="13" /> Cập nhật
+        </button>
         <button class="act-btn act-cancel ml-delete-btn" @click="handleDelete(selected)">
           <Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}
         </button>
@@ -119,12 +125,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useMedia } from '../composables/useMedia.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import {
-  Image as ImageIcon, Search, Upload, Film, Trash2, Copy,
+  Image as ImageIcon, Search, Upload, Film, Trash2, Copy, Save,
   ChevronLeft, ChevronRight, Loader2,
 } from 'lucide-vue-next'
 
@@ -253,6 +259,15 @@ function isImage(item) {
   return item.mime_type?.startsWith('image/')
 }
 
+function isVideo(item) {
+  return item.mime_type?.startsWith('video/')
+}
+
+const hasDetailChanges = computed(() => {
+  if (!selected.value) return false
+  return editAlt.value !== (selected.value.alt || '') || editTitle.value !== (selected.value.title || '')
+})
+
 function humanSize(bytes) {
   if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB'
   if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB'
@@ -369,5 +384,20 @@ onMounted(() => reload())
 .ml-copy-btn { display: flex; align-items: center; justify-content: center; width: 30px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-bg-card); cursor: pointer; color: var(--color-text-muted); transition: all 0.15s; }
 .ml-copy-btn:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
 
-.ml-delete-btn { margin-top: 16px; width: 100%; justify-content: center; padding: 8px; }
+.ml-update-btn { margin-top: 16px; width: 100%; justify-content: center; padding: 8px; }
+.ml-update-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ml-delete-btn { margin-top: 8px; width: 100%; justify-content: center; padding: 8px; }
+
+/* Video in detail panel */
+.ml-detail__video { width: 100%; max-height: 240px; border-radius: 6px; background: #000; }
+
+/* Video in grid */
+.ml-item__video { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+.ml-item__preview { position: relative; }
+.ml-item__video-badge {
+  position: absolute; bottom: 4px; left: 4px;
+  background: rgba(0,0,0,0.7); color: #fff;
+  font-size: 10px; padding: 2px 6px; border-radius: 4px;
+  display: flex; align-items: center; gap: 3px;
+}
 </style>

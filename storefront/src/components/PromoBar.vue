@@ -6,7 +6,7 @@
           <Sparkles :size="14" />
           {{ displayText }}
         </span>
-        <router-link v-if="link" :to="link" class="promo-bar__cta">
+        <router-link v-if="promoLink" :to="promoLink" class="promo-bar__cta">
           {{ displayCta }} →
         </router-link>
         <button class="promo-bar__close" @click="dismiss">
@@ -18,25 +18,31 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { Sparkles, X } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
+const layoutConfig = inject('layoutConfig', ref(null))
 
 const props = defineProps({
   text: { type: String, default: '' },
-  link: { type: String, default: '/products' },
+  link: { type: String, default: '' },
   ctaText: { type: String, default: '' },
   storageKey: { type: String, default: 'sf_promo_dismissed' },
 })
 
-const displayText = computed(() => props.text || t('storefront.promo.default_text', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!'))
-const displayCta = computed(() => props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
+// Read promo config from layout config (CMS) → props → i18n fallback
+const promoConfig = computed(() => layoutConfig?.value?.promoBar || {})
+const isEnabled = computed(() => promoConfig.value.enabled !== false) // default true
+const displayText = computed(() => promoConfig.value.text || props.text || t('storefront.promo.default_text', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!'))
+const displayCta = computed(() => promoConfig.value.ctaText || props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
+const promoLink = computed(() => promoConfig.value.link || props.link || '/products')
 
 const visible = ref(false)
 
 onMounted(() => {
+  if (!isEnabled.value) return
   const dismissed = sessionStorage.getItem(props.storageKey)
   if (!dismissed) visible.value = true
 })

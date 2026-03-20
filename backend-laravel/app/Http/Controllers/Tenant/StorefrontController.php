@@ -287,6 +287,7 @@ class StorefrontController extends Controller
                 'customCss' => $layoutMap['layout_custom_css'] ?? '',
                 'headerConfig' => json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
                 'footerConfig' => json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
+                'promoBar' => json_decode($layoutMap['layout_promo_config'] ?? 'null', true) ?: ['enabled' => true, 'text' => '', 'link' => '/products', 'ctaText' => ''],
             ],
             'navLinks' => $nestedLinks->values(),
             'categories' => $categories,

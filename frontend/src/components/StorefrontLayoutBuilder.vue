@@ -298,6 +298,32 @@
           @update:page-configs="v => pageConfigs = v"
         />
 
+        <!-- PromoBar Config -->
+        <div v-if="activePageId === null" class="layout-section layout-section--global">
+          <div class="layout-section__header" @click="promoOpen = !promoOpen">
+            <span>🎉 Thanh thông báo (Promo Bar)</span>
+            <ChevronDown :size="14" :class="{ 'rotate-180': promoOpen }" />
+          </div>
+          <div v-if="promoOpen" class="layout-section__body">
+            <label class="toggle-row">
+              <input type="checkbox" v-model="promoConfig.enabled" />
+              <span>Hiển thị thanh thông báo</span>
+            </label>
+            <div class="form-group" v-if="promoConfig.enabled">
+              <label>Nội dung</label>
+              <input v-model="promoConfig.text" placeholder="🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!" />
+            </div>
+            <div class="form-group" v-if="promoConfig.enabled">
+              <label>Link</label>
+              <input v-model="promoConfig.link" placeholder="/products" />
+            </div>
+            <div class="form-group" v-if="promoConfig.enabled">
+              <label>Nút CTA</label>
+              <input v-model="promoConfig.ctaText" placeholder="Mua sắm" />
+            </div>
+          </div>
+        </div>
+
         <!-- Header Config (sub-component) -->
         <LayoutHeaderConfig
           :header-config="headerConfig"
@@ -460,7 +486,7 @@ function handlePickerFocusout(e) {
 const undoStack = ref([])
 const MAX_UNDO = 20
 function pushUndo() {
-  const snap = JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value })
+  const snap = JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value, promoConfig: promoConfig.value })
   undoStack.value.push(snap)
   if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
 }
@@ -471,6 +497,7 @@ function undo() {
   if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
   if (snap.headerConfig) headerConfig.value = snap.headerConfig
   if (snap.footerConfig) footerConfig.value = snap.footerConfig
+  if (snap.promoConfig) promoConfig.value = snap.promoConfig
 }
 
 // Header / Footer config
@@ -492,6 +519,9 @@ const defaultFooterConfig = {
   headingColor: '',
 }
 const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
+const defaultPromoConfig = { enabled: true, text: '', link: '/products', ctaText: '' }
+const promoConfig = ref({ ...defaultPromoConfig })
+const promoOpen = ref(false)
 
 const footerPreviewStyle = computed(() => {
   const s = {}
@@ -819,7 +849,7 @@ const livePreviewUrl = computed(() => {
 // Debounced preview refresh
 let previewTimer
 let undoTimer
-watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs], () => {
+watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs, promoConfig], () => {
   clearTimeout(previewTimer)
   previewTimer = setTimeout(() => { previewKey.value++ }, 800)
   // Push undo snapshot on changes (debounced)
@@ -882,6 +912,8 @@ async function loadLayout() {
     }
     const parsedHC = map.layout_header_config ? JSON.parse(map.layout_header_config) : null
     if (parsedHC) headerConfig.value = { ...defaultHeaderConfig, ...parsedHC }
+    const parsedPC2 = map.layout_promo_config ? JSON.parse(map.layout_promo_config) : null
+    if (parsedPC2) promoConfig.value = { ...defaultPromoConfig, ...parsedPC2 }
     const parsedFC = map.layout_footer_config ? JSON.parse(map.layout_footer_config) : null
     if (parsedFC) {
       // Backward compat: old format had columns as a number
@@ -941,6 +973,7 @@ async function saveLayout() {
           { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
           { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
           { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
+          { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
           { key: 'storefront_url', value: storefrontUrl.value },
         ],
       }),
@@ -975,6 +1008,7 @@ async function saveDraft() {
           { key: 'layout_draft_page_configs', value: JSON.stringify(pageConfigs.value) },
           { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
           { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
+          { key: 'layout_draft_promo_config', value: JSON.stringify(promoConfig.value) },
         ],
       }),
     })
