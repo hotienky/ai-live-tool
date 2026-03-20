@@ -37,6 +37,21 @@ class NotificationService
         }
 
         $now = now();
+
+        // Deduplication: skip users who already have a notification with same type+link in last 60s
+        $existingUserIds = Notification::where('type', $type)
+            ->where('link', $link)
+            ->whereIn('user_id', $userIds)
+            ->where('created_at', '>=', $now->copy()->subSeconds(60))
+            ->pluck('user_id')
+            ->toArray();
+
+        $newUserIds = array_diff($userIds, $existingUserIds);
+
+        if (empty($newUserIds)) {
+            return;
+        }
+
         $rows = array_map(fn(int $uid) => [
             'user_id'    => $uid,
             'type'       => $type,
@@ -48,7 +63,7 @@ class NotificationService
             'channel'    => $channel,
             'is_read'    => false,
             'created_at' => $now,
-        ], $userIds);
+        ], $newUserIds);
 
         // Bulk insert
         Notification::insert($rows);

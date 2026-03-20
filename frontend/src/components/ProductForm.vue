@@ -28,7 +28,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label>{{ t('admin.msg_0a3e406f', 'Giá *') }}</label>
+              <label>{{ t('admin.cost_price', 'Giá nhập') }}</label>
+              <CurrencyInput v-model="form.cost_price" placeholder="0" input-class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>{{ t('admin.msg_0a3e406f', 'Giá bán *') }}</label>
               <CurrencyInput v-model="form.price" placeholder="0" input-class="form-input" />
             </div>
             <div class="form-group">
@@ -39,6 +43,13 @@
               <label>{{ t('admin.msg_5cb7bf4f', 'Số lượng tồn') }}</label>
               <input v-model.number="form.stock" type="number" placeholder="0" />
             </div>
+          </div>
+          <div class="profit-summary" v-if="form.cost_price && form.price">
+            <span class="profit-label">Lợi nhuận:</span>
+            <span class="profit-value" :class="{ 'profit-positive': form.price > form.cost_price, 'profit-negative': form.price <= form.cost_price }">
+              {{ formatPrice(form.price - form.cost_price) }}
+              ({{ Math.round((form.price - form.cost_price) / form.cost_price * 100) }}%)
+            </span>
           </div>
 
           <div class="form-row" v-if="form.promotion_price">
@@ -110,7 +121,11 @@
               </div>
               <div class="variant-row">
                 <div class="form-group">
-                  <label>{{ t('admin.msg_072c1a4b', 'Giá') }}</label>
+                  <label>{{ t('admin.cost_price', 'Giá nhập') }}</label>
+                  <CurrencyInput v-model="v.cost_price" placeholder="0" input-class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label>{{ t('admin.msg_072c1a4b', 'Giá bán') }}</label>
                   <CurrencyInput v-model="v.price" placeholder="0" input-class="form-input" />
                 </div>
                 <div class="form-group">
@@ -241,7 +256,7 @@ const applyPromoToAll = ref(true)
 
 function defaultForm() {
   return {
-    name: '', sku: '', price: '', promotion_price: '', promotion_start: '', promotion_end: '', stock: 0, category: '', brand: '',
+    name: '', sku: '', cost_price: '', price: '', promotion_price: '', promotion_start: '', promotion_end: '', stock: 0, category: '', brand: '',
     keywords: '', description: '', low_stock_threshold: 5, is_active: true,
     meta_title: '', meta_description: '', meta_keywords: '',
     images: [],
@@ -259,7 +274,7 @@ function addImage() {
 }
 
 function addVariant() {
-  form.value.variants.push({ name: '', sku: '', price: '', promotion_price: '', stock: 0, image: '' })
+  form.value.variants.push({ name: '', sku: '', cost_price: '', price: '', promotion_price: '', stock: 0, image: '' })
 }
 
 function onPromoToggle() {
@@ -335,7 +350,7 @@ async function loadProductForEdit(id) {
       : (typeof p.keywords === 'string' ? p.keywords : '')
 
     form.value = {
-      name: p.name || '', sku: p.sku || '', price: p.price || 0,
+      name: p.name || '', sku: p.sku || '', cost_price: p.cost_price || '', price: p.price || 0,
       promotion_price: p.promotion_price || '', promotion_start: p.promotion_start || '', promotion_end: p.promotion_end || '', stock: p.stock || 0,
       category: categoryName, brand: brandName,
       keywords: keywordsStr,
@@ -347,6 +362,7 @@ async function loadProductForEdit(id) {
       translations: {},
       variants: vars.map(v => ({
         ...v,
+        cost_price: v.cost_price || '',
         promotion_price: v.promotion_price || '',
       })),
     }
@@ -506,6 +522,16 @@ onMounted(async () => {
 .toggle-label input[type="checkbox"] { accent-color: var(--color-accent-primary); width: 16px; height: 16px; cursor: pointer; }
 .toggle-hint { display: block; font-size: 11px; color: var(--color-accent-primary); margin-top: 4px; font-weight: 500; }
 .variant-promo-hint { color: var(--color-accent-primary); font-weight: 600; }
+
+.profit-summary {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px;
+  background: var(--color-bg-primary); border: 1px solid var(--color-border); margin-bottom: 14px;
+  font-size: 12px;
+}
+.profit-label { color: var(--color-text-muted); font-weight: 600; }
+.profit-value { font-weight: 700; }
+.profit-positive { color: #16a34a; }
+.profit-negative { color: #ef4444; }
 
 .btn-save { padding: 8px 20px; border-radius: 8px; border: none; background: var(--color-accent-primary); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }

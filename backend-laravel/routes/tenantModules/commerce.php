@@ -145,3 +145,13 @@ Route::get('/inventory/movement-report', [InventoryReportController::class, 'mov
 Route::get('/inventory/cogs-report', [InventoryReportController::class, 'cogsReport'])->middleware('permission:orders.view');
 Route::get('/inventory/low-stock-alerts', [InventoryReportController::class, 'lowStockAlerts'])->middleware('permission:products.view');
 Route::get('/inventory/export-csv', [InventoryReportController::class, 'exportCsv'])->middleware('permission:products.view');
+
+// Shipments (Vận đơn)
+use App\Http\Controllers\Tenant\ShipmentsController;
+Route::get('/shipments', [ShipmentsController::class, 'index'])->middleware('permission:orders.view');
+Route::get('/shipments/stats', [ShipmentsController::class, 'stats'])->middleware('permission:orders.view');
+Route::post('/shipments', [ShipmentsController::class, 'store'])->middleware('permission:orders.edit');
+Route::get('/shipments/{id}', [ShipmentsController::class, 'show'])->middleware('permission:orders.view');
+Route::put('/shipments/{id}/status', [ShipmentsController::class, 'updateStatus'])->middleware('permission:orders.edit');
+Route::delete('/shipments/{id}', [ShipmentsController::class, 'destroy'])->middleware('permission:orders.edit');
+Route::get('/shipments/{id}/tracking', [ShipmentsController::class, 'tracking'])->middleware('permission:orders.view');

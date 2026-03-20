@@ -446,12 +446,12 @@
 
       <!-- ═══ Tab: Orders ═══ -->
       <div v-if="activeTab === 'orders'" class="settings__panel">
-        <OrderManagement @view-order="viewOrderDetail" />
+        <OrderManagement @view-order="viewOrderDetail" @create-shipment="createShipmentFromOrder" />
       </div>
 
       <!-- ═══ Tab: Order Detail ═══ -->
       <div v-if="activeTab === 'order-detail'" class="settings__panel">
-        <OrderDetailPage :orderId="orderDetailId" @back="goBackToOrders" />
+        <OrderDetailPage :orderId="orderDetailId" @back="goBackToOrders" @create-shipment="createShipmentFromOrder" />
       </div>
 
       <!-- ═══ Tab: Webhooks ═══ -->
@@ -474,9 +474,9 @@
         <PaymentSettings />
       </div>
 
-      <!-- ═══ Tab: Shipping Settings ═══ -->
+      <!-- ═══ Tab: Shipping / Shipments ═══ -->
       <div v-if="activeTab === 'shipping'" class="settings__panel">
-        <ShippingSettings />
+        <ShippingManagement ref="shippingMgmtRef" />
       </div>
 
       <!-- ═══ Tab: Tax (Plugin) ═══ -->
@@ -525,7 +525,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
@@ -560,7 +560,7 @@ import WebhookManager from './WebhookManager.vue'
 import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
-import ShippingSettings from './ShippingSettings.vue'
+import ShippingManagement from './ShippingManagement.vue'
 // TaxManagement + AccountingDashboard removed — loaded via plugin bundles
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
 import StoreInfoConfig from './StoreInfoConfig.vue'
@@ -744,6 +744,13 @@ function viewOrderDetail(orderId) {
 function goBackToOrders() {
   history.pushState({}, '', '/orders')
   activeTab.value = 'orders'
+}
+const shippingMgmtRef = ref(null)
+function createShipmentFromOrder(orderId) {
+  activeTab.value = 'shipping'
+  nextTick(() => {
+    shippingMgmtRef.value?.openCreateModal(orderId)
+  })
 }
 function navigateTab(tabKey) {
   activeTab.value = tabKey
