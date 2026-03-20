@@ -25,9 +25,9 @@
       <!-- Cảnh báo chưa cấu hình -->
       <div v-if="isUnconfigured" class="config-warning">
         <AlertTriangle :size="15" />
-        <span>{{ t('admin.msg_1578dded', 'Nhóm') }}<strong>{{ currentSchema.label }}</strong> chưa được cấu hình.
-          Hệ thống đang dùng giá trị mặc định từ server (<code>.env</code>).
-          Hãy chọn dịch vụ và điền thông tin để áp dụng cho tenant này.
+        <span>{{ t('admin.msg_1578dded', 'Nhóm') }}<strong>{{ currentSchema.label }}</strong> {{ t('admin.msg_not_configured', 'chưa được cấu hình') }}.
+          {{ t('admin.msg_using_defaults', 'Hệ thống đang dùng giá trị mặc định từ server') }} (<code>.env</code>).
+          {{ t('admin.msg_select_service', 'Hãy chọn dịch vụ và điền thông tin để áp dụng cho tenant này') }}.
         </span>
       </div>
 
@@ -109,7 +109,7 @@
       <!-- No fields needed -->
       <div v-else class="no-fields-note">
         <CheckCircle2 :size="20" />
-        <span>Không cần cấu hình thêm — chọn <strong>{{ t('admin.save', 'Lưu') }}</strong> để áp dụng</span>
+        <span>{{ t('admin.msg_no_config_needed', 'Không cần cấu hình thêm') }} — chọn <strong>{{ t('admin.save', 'Lưu') }}</strong> {{ t('admin.msg_to_apply', 'để áp dụng') }}</span>
       </div>
 
       <!-- Actions -->
@@ -292,7 +292,7 @@ async function saveAll() {
     hasChanges.value = false
     showToast('Đã lưu cấu hình', 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' khi lưu cấu hình', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_d6a0f5f4', 'khi lưu cấu hình'), 'error')
   } finally {
     saving.value = false
   }

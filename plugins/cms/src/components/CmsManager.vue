@@ -84,7 +84,7 @@ async function handleDelete(p) {
   if (!confirm(`${t('admin.delete', 'Xóa')} trang "${p.title}"?`)) return
   await deletePage(p.id)
   fetchPages({})
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
 }
 </script>
 

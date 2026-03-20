@@ -5,7 +5,7 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Settings :size="14" />{{ t('admin.msg_48dde21d', 'Cài đặt thuế') }}</h4>
         <button class="tax-btn tax-btn--primary tax-btn--sm" @click="saveConfig" :disabled="savingConfig">
-          <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
+          <Save :size="13" /> {{ savingConfig ? t('admin.msg_4d30b6f8', 'Đang lưu...') : t('admin.msg_ceea0141', 'Lưu cấu hình') }}
         </button>
       </div>
 
@@ -67,7 +67,7 @@
           <div class="tax-vn-rate"><span class="tax-vn-rate__pct">10%</span><span>{{ t('admin.msg_8aeaf18f', 'Tiêu chuẩn') }}</span></div>
         </div>
         <button class="tax-btn tax-btn--primary" @click="applyVN2026Rates" :disabled="applyingVN">
-          <Flag :size="13" /> {{ applyingVN ? 'Đang tạo...' : 'Áp dụng thuế suất VN 2026' }}
+          <Flag :size="13" /> {{ applyingVN ? t('admin.msg_f2315cbc', 'Đang tạo...') : t('admin.msg_08385a8a', 'Áp dụng thuế suất VN 2026') }}
         </button>
         <p class="tax-vn-legal">{{ t('admin.msg_533ec8d7', 'Theo Luật Thuế GTGT 2024 (hiệu lực 01/07/2025) &amp; Nghị định 174/2025/NĐ-CP') }}</p>
       </div>
@@ -78,11 +78,11 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Percent :size="14" />{{ t('admin.msg_5cd320ba', 'Danh sách thuế suất') }}</h4>
         <div style="display:flex;gap:6px">
-          <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" title="Thêm các mức thuế VN 2026 còn thiếu">
+          <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" :title="t('admin.msg_81c0e55e', 'Thêm các mức thuế VN 2026 còn thiếu')">
             <Flag :size="12" /> VN 2026
           </button>
           <button class="tax-btn tax-btn--sm" @click="openForm(null)">
-            <Plus :size="13" /> Thêm thuế suất
+            <Plus :size="13" /> {{ t('admin.msg_41b63097', 'Thêm thuế suất') }}
           </button>
         </div>
       </div>
@@ -110,7 +110,7 @@
                 {{ rate.type === 'percentage' ? rate.rate + '%' : formatCurrency(rate.rate) }}
               </span>
             </td>
-            <td>{{ rate.type === 'percentage' ? 'Phần trăm' : 'Cố định' }}</td>
+            <td>{{ rate.type === 'percentage' ? t('admin.msg_77305f6f', 'Phần trăm') : t('admin.msg_ddf09107', 'Cố định') }}</td>
             <td>
               <span class="tax-badge" :class="'tax-badge--' + rate.scope">
                 {{ scopeLabel(rate.scope) }}
@@ -140,7 +140,7 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Receipt :size="14" />{{ t('admin.msg_06015044', 'Báo cáo thuế') }}</h4>
         <button class="tax-btn tax-btn--sm" @click="emit('navigate-to-accounting')">
-          <BarChart2 :size="13" /> Xem báo cáo kế toán →
+          <BarChart2 :size="13" /> {{ t('admin.msg_e53b9779', 'Xem báo cáo kế toán →') }}
         </button>
       </div>
       <div class="tax-config">
@@ -154,7 +154,7 @@
         <div v-if="showForm" class="tax-modal-overlay" @click.self="showForm = false">
           <div class="tax-modal">
             <div class="tax-modal__header">
-              <h4>{{ editingRate ? 'Sửa thuế suất' : 'Thêm thuế suất' }}</h4>
+              <h4>{{ editingRate ? t('admin.msg_bc0b44af', 'Sửa thuế suất') : t('admin.msg_41b63097', 'Thêm thuế suất') }}</h4>
               <button class="tax-modal__close" @click="showForm = false"><X :size="16" /></button>
             </div>
 
@@ -208,7 +208,7 @@
                 <div class="tax-form-row">
                   <label class="tax-checkbox-label">
                     <input type="checkbox" v-model="form.is_compound" />
-                    Thuế chồng thuế (tính trên giá + thuế trước)
+                    {{ t('admin.msg_b7d6a85e', 'Thuế chồng thuế (tính trên giá + thuế trước)') }}
                   </label>
                 </div>
                 <div class="tax-form-row">
@@ -223,7 +223,7 @@
             <div class="tax-modal__footer">
               <button class="tax-btn" @click="showForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
               <button class="tax-btn tax-btn--primary" @click="saveRate" :disabled="savingRate">
-                <Save :size="13" /> {{ savingRate ? 'Đang lưu...' : 'Lưu' }}
+                <Save :size="13" /> {{ savingRate ? t('admin.msg_4d30b6f8', 'Đang lưu...') : t('admin.msg_49fac1fe', 'Lưu') }}
               </button>
             </div>
           </div>
@@ -305,7 +305,7 @@ async function saveConfig() {
     if (!res.ok) throw new Error()
     showToast('Đã lưu cấu hình thuế', 'success')
   } catch {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu cấu hình', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_c2982f43', 'lưu cấu hình'), 'error')
   } finally {
     savingConfig.value = false
   }
@@ -363,21 +363,21 @@ async function saveRate() {
     showForm.value = false
     await loadRates()
   } catch {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu thuế suất', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_c50b5bb5', 'lưu thuế suất'), 'error')
   } finally {
     savingRate.value = false
   }
 }
 
 async function deleteRate(rate) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} thuế suất "${rate.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_1020aa26', 'thuế suất')} \"${rate.name}"?`)) return
   try {
     const res = await apiFetch(`/tax-rates/${rate.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()
-    showToast('Đã xoá', 'success')
+    showToast(t('admin.msg_4ef74b85', 'Đã xoá'), 'success')
     await loadRates()
   } catch {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xoá', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_0d25733f', 'xoá'), 'error')
   }
 }
 
@@ -399,13 +399,13 @@ async function applyVN2026Rates() {
       if (res.ok) created++
     }
     if (created > 0) {
-      showToast(`Đã tạo ${created} thuế suất VN 2026`, 'success')
+      showToast(`${t('admin.msg_1a51f8b2', 'Đã tạo')} ${created} ${t('admin.msg_1020aa26', 'thuế suất')} VN 2026`, 'success')
       await loadRates()
     } else {
       showToast('Tất cả thuế suất VN 2026 đã tồn tại', 'info')
     }
   } catch {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tạo thuế suất', 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_2dfca3da', 'tạo thuế suất'), 'error')
   }
   applyingVN.value = false
 }

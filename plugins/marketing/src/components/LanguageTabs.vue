@@ -21,7 +21,7 @@
         <span class="btn-ai-icon">
           <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ 'spin': isTranslating }" />
         </span>
-        <span class="btn-ai-text">{{ isTranslating ? 'Đang dịch...' : 'Dịch tự động' }}</span>
+        <span class="btn-ai-text">{{ isTranslating ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}</span>
         <span class="btn-ai-badge">AI</span>
         <span class="btn-shimmer"></span>
       </button>

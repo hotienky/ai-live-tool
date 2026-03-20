@@ -172,7 +172,7 @@ onMounted(async () => {
         }
       }
     } catch (e) {
-      showToast('Không tải được trang: ' + e.message, 'error')
+      showToast(t('admin.msg_load_page_err', 'Không tải được trang') + ': ' + e.message, 'error')
     }
   }
 })

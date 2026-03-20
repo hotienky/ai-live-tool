@@ -248,7 +248,7 @@ function onFormSaved() {
 
 
 async function cancelReceipt(r) {
-  if (!confirm(`Hủy phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.msg_f1274bf2', 'Hủy phiếu')} ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_578e8a', 'Đã hủy phiếu'), 'success')
@@ -258,7 +258,7 @@ async function cancelReceipt(r) {
 }
 
 async function deleteReceipt(r) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_5a419b0e', 'phiếu')} ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_853940', 'Đã xóa phiếu'), 'success')

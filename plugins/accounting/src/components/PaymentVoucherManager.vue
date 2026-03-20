@@ -22,12 +22,12 @@
       <div class="stat-card income">
         <div class="stat-icon"><ArrowDownToLine :size="20" /></div>
         <div class="stat-value">{{ formatCurrency(pvStats.total_receipts || 0) }}</div>
-        <div class="stat-label">Tổng thu ({{ pvStats.receipt_count || 0 }} phiếu)</div>
+        <div class="stat-label">{{ t('admin.msg_34a9b937', 'Tổng thu') }} ({{ pvStats.receipt_count || 0 }} {{ t('admin.msg_5a419b0e', 'phiếu') }})</div>
       </div>
       <div class="stat-card expense">
         <div class="stat-icon stat-icon--red"><ArrowUpFromLine :size="20" /></div>
         <div class="stat-value">{{ formatCurrency(pvStats.total_payments || 0) }}</div>
-        <div class="stat-label">Tổng chi ({{ pvStats.payment_count || 0 }} phiếu)</div>
+        <div class="stat-label">{{ t('admin.msg_26bc199f', 'Tổng chi') }} ({{ pvStats.payment_count || 0 }} {{ t('admin.msg_5a419b0e', 'phiếu') }})</div>
       </div>
       <div class="stat-card net">
         <div class="stat-icon stat-icon--blue"><Scale :size="20" /></div>
@@ -166,7 +166,7 @@ function onSaved() {
 }
 
 async function confirmVoucher(v) {
-  if (!confirm(`Xác nhận phiếu ${v.voucher_number}?`)) return
+  if (!confirm(`${t('admin.msg_9782e1e2', 'Xác nhận phiếu')} ${v.voucher_number}?`)) return
   try {
     await apiFetch(`/payment-vouchers/${v.id}/confirm`, { method: 'POST' })
     showToast('Đã xác nhận — Bút toán đã tạo', 'success')
@@ -175,7 +175,7 @@ async function confirmVoucher(v) {
 }
 
 async function cancelVoucher(v) {
-  if (!confirm(`Hủy phiếu ${v.voucher_number}?`)) return
+  if (!confirm(`${t('admin.msg_f1274bf2', 'Hủy phiếu')} ${v.voucher_number}?`)) return
   try {
     await apiFetch(`/payment-vouchers/${v.id}/cancel`, { method: 'POST' })
     showToast('Đã hủy', 'success')
@@ -184,12 +184,12 @@ async function cancelVoucher(v) {
 }
 
 async function deleteVoucher(v) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${v.voucher_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_5a419b0e', 'phiếu')} ${v.voucher_number}?`)) return
   try {
     await apiFetch(`/payment-vouchers/${v.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
     fetchVouchers(); fetchStats()
-  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_66d6a761', 'xóa'), 'error') }
 }
 
 // formatCurrency provided by useI18n

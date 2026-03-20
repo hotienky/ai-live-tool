@@ -4,7 +4,7 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="pvf-header__center">
         <div class="pvf-header__icon"><Wallet :size="15" /></div>
-        <h3>{{ form.type === 'receipt' ? 'Phiếu Thu' : 'Phiếu Chi' }}</h3>
+        <h3>{{ form.type === 'receipt' ? t('admin.msg_c908ffde', 'Phiếu Thu') : t('admin.msg_3656c9c8', 'Phiếu Chi') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />

@@ -73,7 +73,7 @@ function openEdit(c) { editId.value = c.id; showForm.value = true }
 function onSaved() { showForm.value = false; fetchCustomers({}) }
 
 async function handleDelete(c) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} khách hàng ${c.firstName} ${c.lastName}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_customer', 'khách hàng')} ${c.firstName} ${c.lastName}?`)) return
   await deleteCustomer(c.id)
   fetchCustomers({})
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

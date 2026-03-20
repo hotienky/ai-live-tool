@@ -128,12 +128,14 @@ class InitializeTenancyBySlug
     {
         $cacheKey = "tenant_slug:{$slug}";
 
-        // Cache hit: rebuild Tenant object từ array để tránh serialize model phức tạp
+        // Cache hit: rebuild Tenant từ các column cần thiết
         $cached = Cache::get($cacheKey);
         if ($cached === 'not_found') {
             return null;
         }
         if (is_array($cached)) {
+            // db_name là column custom của Tenant model (xem getCustomColumns()),
+            // dùng bởi DatabaseConfig::generateDatabaseNamesUsing()
             return (new \App\Models\Tenant)->forceFill($cached);
         }
 
@@ -144,8 +146,8 @@ class InitializeTenancyBySlug
             return null;
         }
 
-        // Chỉ cache các trường cần thiết (id, slug, status, tenancy_db_name)
-        Cache::put($cacheKey, $tenant->only(['id', 'slug', 'status', 'tenancy_db_name']), 600);
+        // Cache đủ các column mà DatabaseTenancyBootstrapper cần
+        Cache::put($cacheKey, $tenant->only(['id', 'slug', 'name', 'db_name', 'status', 'plan']), 600);
 
         return $tenant;
     }

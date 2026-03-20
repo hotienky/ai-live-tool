@@ -55,7 +55,7 @@ async function fetchCategories() {
 }
 
 async function handleDelete(c) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} danh mục "${c.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_category', 'danh mục')} \"${c.name}\"?`)) return
   try {
     await apiFetch(`/categories/${c.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

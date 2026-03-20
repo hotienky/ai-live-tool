@@ -65,8 +65,7 @@
 
           <!-- Pending → Show waiting badge -->
           <span v-else-if="m.status === 'pending'" class="mod-btn mod-btn--pending" disabled>
-            <Clock :size="13" /> Chờ duyệt
-          </span>
+            <Clock :size="13" />{{ t('admin.msg_acb8dc96', 'Chờ duyệt') }}</span>
 
           <!-- Rejected → Show rejected badge + retry -->
           <button

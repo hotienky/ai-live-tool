@@ -4,7 +4,7 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="sf-header__center">
         <div class="sf-header__icon"><Briefcase :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa nhà cung cấp' : 'Thêm nhà cung cấp' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_68e73ef7', 'Sửa nhà cung cấp') : t('admin.msg_a3cc6483', 'Thêm nhà cung cấp') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />

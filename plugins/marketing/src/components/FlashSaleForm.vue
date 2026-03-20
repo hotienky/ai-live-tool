@@ -6,7 +6,7 @@
         <ChevronLeft :size="15" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="fsf-header__center">
         <div class="fsf-header__icon"><Zap :size="15" /></div>
-        <h3>{{ editId ? 'Chỉnh sửa Flash Sale' : 'Tạo Flash Sale mới' }}</h3>
+        <h3>{{ editId ? t('admin.msg_76da1ad0', 'Chỉnh sửa Flash Sale') : t('admin.msg_92c7fccf', 'Tạo Flash Sale mới') }}</h3>
       </div>
       <button class="btn-save-top" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
@@ -137,11 +137,11 @@
         <!-- Preview -->
         <div class="fsf-card fsf-card--preview" v-if="formName || form.start_date">
           <h4>{{ t('admin.preview', 'Xem trước') }}</h4>
-          <div class="preview-name">{{ formName || '(Chưa đặt tên)' }}</div>
+          <div class="preview-name">{{ formName || t('admin.msg_7ebd7bc2', '(Chưa đặt tên)') }}</div>
           <div class="preview-time" v-if="form.start_date">
             <Clock :size="11" /> {{ fmtDate(form.start_date) }} → {{ fmtDate(form.end_date) }}
           </div>
-          <div class="preview-count">{{ form.items.length }} sản phẩm</div>
+          <div class="preview-count">{{ form.items.length }} {{ t('admin.msg_bbdf19a3', 'sản phẩm') }}</div>
         </div>
       </div>
     </div>
@@ -269,7 +269,7 @@ async function loadForEdit() {
       if (td?.grouped && !Array.isArray(td.grouped)) form.value.translations = td.grouped
     } catch { /* ok */ }
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tải Flash Sale', 'error'); emit('back')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_a327321f', 'tải Flash Sale'), 'error'); emit('back')
   }
 }
 

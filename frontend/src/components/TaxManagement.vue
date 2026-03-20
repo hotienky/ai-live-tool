@@ -78,11 +78,11 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Percent :size="14" /> {{ t('admin.msg_5cd320ba', 'Danh sách thuế suất') }}</h4>
         <div style="display:flex;gap:6px">
-          <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" title="Thêm các mức thuế VN 2026 còn thiếu">
+          <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" :title="t('admin.msg_81c0e55e', 'Thêm các mức thuế VN 2026 còn thiếu')">
             <Flag :size="12" /> VN 2026
           </button>
           <button class="tax-btn tax-btn--sm" @click="openForm(null)">
-            <Plus :size="13" /> Thêm thuế suất
+            <Plus :size="13" /> {{ t('admin.msg_41b63097', 'Thêm thuế suất') }}
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@
       <div class="tax-section__header">
         <h4 class="tax-section__title"><Receipt :size="14" /> {{ t('admin.msg_06015044', 'Báo cáo thuế') }}</h4>
         <button class="tax-btn tax-btn--sm" @click="emit('navigate-to-accounting')">
-          <BarChart2 :size="13" /> Xem báo cáo kế toán →
+          <BarChart2 :size="13" /> {{ t('admin.msg_e53b9779', 'Xem báo cáo kế toán →') }}
         </button>
       </div>
       <div class="tax-config">
@@ -208,7 +208,7 @@
                 <div class="tax-form-row">
                   <label class="tax-checkbox-label">
                     <input type="checkbox" v-model="form.is_compound" />
-                    Thuế chồng thuế (tính trên giá + thuế trước)
+                    {{ t('admin.msg_b7d6a85e', 'Thuế chồng thuế (tính trên giá + thuế trước)') }}
                   </label>
                 </div>
                 <div class="tax-form-row">
@@ -223,7 +223,7 @@
             <div class="tax-modal__footer">
               <button class="tax-btn" @click="showForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
               <button class="tax-btn tax-btn--primary" @click="saveRate" :disabled="savingRate">
-                <Save :size="13" /> {{ savingRate ? t('admin.saving', 'Đang lưu...') : 'Lưu' }}
+                <Save :size="13" /> {{ savingRate ? t('admin.saving', 'Đang lưu...') : t('admin.msg_49fac1fe', 'Lưu') }}
               </button>
             </div>
           </div>
@@ -371,7 +371,7 @@ async function saveRate() {
 }
 
 async function deleteRate(rate) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} thuế suất "${rate.name}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_1020aa26', 'thuế suất')} \"${rate.name}"?`)) return
   try {
     const res = await apiFetch(`/tax-rates/${rate.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()

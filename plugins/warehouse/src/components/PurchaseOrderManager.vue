@@ -75,10 +75,10 @@
     <!-- Create PO Modal -->
     <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
       <div class="modal modal--wide">
-        <h3><ShoppingCart :size="16" style="vertical-align:middle" /> {{ editingId ? 'Sửa Đơn Nhập Hàng' : 'Tạo Đơn Nhập Hàng' }}</h3>
+        <h3><ShoppingCart :size="16" style="vertical-align:middle" /> {{ editingId ? t('admin.msg_013bf51f', 'Sửa Đơn Nhập Hàng') : t('admin.msg_805c1530', 'Tạo Đơn Nhập Hàng') }}</h3>
         <div class="form-row">
           <div class="form-group">
-            <label>Nhà cung cấp *</label>
+            <label>{{ t('admin.msg_9c58fc66', 'Nhà cung cấp *') }}</label>
             <select v-model="form.supplier_id">
               <option :value="null" disabled>{{ t('admin.msg_435bf321', '— Chọn NCC —') }}</option>
               <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -132,7 +132,7 @@
         <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" rows="2"></textarea></div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="savePO">{{ editingId ? 'Cập nhật' : 'Tạo đơn' }}</button>
+          <button class="btn-create" @click="savePO">{{ editingId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_23275279', 'Tạo đơn') }}</button>
         </div>
       </div>
     </div>
@@ -171,7 +171,7 @@
           </tbody>
           <tfoot>
             <tr><td colspan="6" style="text-align:right;font-weight:700">{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</td><td class="amount">{{ formatCurrency(detailPO.subtotal) }}</td></tr>
-            <tr v-if="detailPO.tax_amount"><td colspan="6" style="text-align:right">Thuế:</td><td>{{ formatCurrency(detailPO.tax_amount) }}</td></tr>
+            <tr v-if="detailPO.tax_amount"><td colspan="6" style="text-align:right">{{ t('admin.msg_500aedd2', 'Thuế') }}:</td><td>{{ formatCurrency(detailPO.tax_amount) }}</td></tr>
             <tr v-if="detailPO.discount_amount"><td colspan="6" style="text-align:right">{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</td><td>-{{ formatCurrency(detailPO.discount_amount) }}</td></tr>
             <tr><td colspan="6" style="text-align:right;font-weight:800">{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</td><td class="amount" style="font-weight:800;font-size:15px">{{ formatCurrency(detailPO.total_amount) }}</td></tr>
           </tfoot>
@@ -187,8 +187,8 @@
     <!-- Receive Modal -->
     <div class="modal-overlay" v-if="showReceiveModal" @click.self="showReceiveModal = false">
       <div class="modal modal--wide">
-        <h3><PackageCheck :size="16" style="vertical-align:middle" /> Nhận hàng — {{ receivePO?.po_number }}</h3>
-        <p class="receive-hint">Nhập số lượng thực nhận cho từng sản phẩm:</p>
+        <h3><PackageCheck :size="16" style="vertical-align:middle" /> {{ t('admin.msg_9a66ac4c', 'Nhận hàng') }} — {{ receivePO?.po_number }}</h3>
+        <p class="receive-hint">{{ t('admin.msg_593dbed2', 'Nhập số lượng thực nhận cho từng sản phẩm:') }}</p>
         <table class="receive-table">
           <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_b95a3ecb', 'Còn lại') }}</th><th style="width:100px">{{ t('admin.msg_fd2a54c9', 'Nhận lần này') }}</th></tr></thead>
           <tbody>
@@ -330,7 +330,7 @@ function viewPO(po) {
 }
 
 async function sendPO(po) {
-  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
+  if (!confirm(`${t('admin.msg_f15a8810', 'Đặt hàng')} ${po.po_number} — ${t('admin.msg_1bd55351', 'chuyển sang trạng thái')} t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast('Đã chuyển sang Đã đặt', 'success')
@@ -340,7 +340,7 @@ async function sendPO(po) {
 
 
 async function cancelPO(po) {
-  if (!confirm(`Hủy đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.msg_380ade01', 'Hủy đơn')} ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
     showToast('Đã hủy', 'success')
@@ -349,12 +349,12 @@ async function cancelPO(po) {
 }
 
 async function deletePO(po) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_395bb28e', 'đơn')} ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
     fetchOrders(); fetchStats()
-  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_66d6a761', 'xóa'), 'error') }
 }
 
 // formatCurrency provided by useI18n

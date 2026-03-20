@@ -87,9 +87,9 @@ async function deleteSupplier(s) {
   if (!confirm(`${t('admin.delete', 'Xóa')} "${s.name}"?`)) return
   try {
     await apiFetch(`/suppliers/${s.id}`, { method: 'DELETE' })
-    showToast('Đã xóa', 'success')
+    showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
     fetchSuppliers()
-  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_66d6a761', 'xóa'), 'error') }
 }
 </script>
 

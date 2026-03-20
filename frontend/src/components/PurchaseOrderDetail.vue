@@ -52,7 +52,7 @@
     <!-- Receive Modal (simple action, keep as modal per audit spec) -->
     <div class="modal-overlay" v-if="showReceiveModal" @click.self="showReceiveModal = false">
       <div class="modal">
-        <h3><PackageCheck :size="16" style="vertical-align:middle" /> Nhận hàng — {{ po?.po_number }}</h3>
+        <h3><PackageCheck :size="16" style="vertical-align:middle" /> {{ t('admin.msg_9a66ac4c', 'Nhận hàng') }} — {{ po?.po_number }}</h3>
         <p class="receive-hint">{{ t('admin.msg_73bd505c', 'Nhập số lượng thực nhận:') }}</p>
         <table class="receive-table">
           <thead><tr><th>{{ t('admin.msg_1d1aa192', 'Sản phẩm') }}</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_b95a3ecb', 'Còn lại') }}</th><th style="width:100px">{{ t('admin.msg_fd2a54c9', 'Nhận lần này') }}</th></tr></thead>
@@ -108,7 +108,7 @@ function openReceive() {
 }
 
 async function sendPO() {
-  if (!confirm(`Đặt hàng ${po.value.po_number}?`)) return
+  if (!confirm(`${t('admin.msg_f15a8810', 'Đặt hàng')} ${po.value.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${props.editId}/send`, { method: 'POST' })
     showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')

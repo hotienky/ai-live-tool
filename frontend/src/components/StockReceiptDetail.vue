@@ -72,7 +72,7 @@ async function loadReceipt() {
 }
 
 async function confirmReceipt() {
-  if (!confirm(`Xác nhận phiếu ${receipt.value.receipt_number}? Kho sẽ được cập nhật.`)) return
+  if (!confirm(`${t('admin.msg_9782e1e2', 'Xác nhận phiếu')} ${receipt.value.receipt_number}? ${t('admin.msg_030b9d6f', 'Kho sẽ được cập nhật.')}`)) return
   try {
     await apiFetch(`/stock-receipts/${props.editId}/confirm`, { method: 'POST' })
     showToast(t('admin.msg_757b90', 'Đã xác nhận — Kho và kế toán đã cập nhật'), 'success')
@@ -81,7 +81,7 @@ async function confirmReceipt() {
 }
 
 async function cancelReceipt() {
-  if (!confirm(`Hủy phiếu ${receipt.value.receipt_number}?`)) return
+  if (!confirm(`${t('admin.msg_f1274bf2', 'Hủy phiếu')} ${receipt.value.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${props.editId}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_578e8a', 'Đã hủy phiếu'), 'success')

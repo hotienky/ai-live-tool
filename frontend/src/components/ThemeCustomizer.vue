@@ -91,7 +91,7 @@
     <section class="tc-section">
       <h4 class="tc-section__title"><LayoutGrid :size="14" /> {{ t('admin.msg_bb9e2508', 'Bố cục') }}</h4>
       <div class="tc-row">
-        <label class="tc-label">Bo góc ({{ form.radius }}px)</label>
+        <label class="tc-label">{{ t('admin.msg_02097c07', 'Bo góc') }} ({{ form.radius }}px)</label>
         <input type="range" v-model="form.radius" min="4" max="24" class="tc-range" />
       </div>
       <div class="tc-row">
@@ -121,7 +121,7 @@
     <!-- Save -->
     <div class="tc-actions">
       <button class="tc-save" @click="saveTheme" :disabled="saving">
-        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : 'Lưu giao diện' }}
+        <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.msg_6085f91b', 'Lưu giao diện') }}
       </button>
       <button class="tc-reset" @click="resetToDefault">
         <RotateCcw :size="14" /> Đặt lại mặc định

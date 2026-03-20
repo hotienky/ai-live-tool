@@ -4,10 +4,10 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="pof-header__center">
         <div class="pof-header__icon"><ShoppingCart :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa Đơn Nhập Hàng' : 'Tạo Đơn Nhập Hàng' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_013bf51f', 'Sửa Đơn Nhập Hàng') : t('admin.msg_805c1530', 'Tạo Đơn Nhập Hàng') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
-        <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Tạo đơn') }}
+        <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : (props.editId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_23275279', 'Tạo đơn')) }}
       </button>
     </div>
 

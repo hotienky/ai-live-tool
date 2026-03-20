@@ -99,7 +99,7 @@
         </div>
       </div>
       <div class="rpt-stats">
-        <div class="stat-card"><div class="stat-icon stat-icon--green"><TrendingUp :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_revenue || 0) }}</div><div class="stat-label">Doanh thu</div></div>
+        <div class="stat-card"><div class="stat-icon stat-icon--green"><TrendingUp :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_revenue || 0) }}</div><div class="stat-label">{{ t('admin.msg_d43a8636', 'Doanh thu') }}</div></div>
         <div class="stat-card"><div class="stat-icon stat-icon--red"><TrendingDown :size="20" /></div><div class="stat-value">{{ formatCurrency(cogsSummary.total_cogs || 0) }}</div><div class="stat-label">{{ t('admin.msg_4b50770c', 'Giá vốn (COGS)') }}</div></div>
         <div class="stat-card"><div class="stat-icon" :class="cogsSummary.gross_profit >= 0 ? 'stat-icon--green' : 'stat-icon--red'"><DollarSign :size="20" /></div><div class="stat-value" :class="cogsSummary.gross_profit >= 0 ? 'text-green' : 'text-red'">{{ formatCurrency(cogsSummary.gross_profit || 0) }}</div><div class="stat-label">{{ t('admin.msg_0489c93f', 'Lợi nhuận gộp') }}</div></div>
         <div class="stat-card"><div class="stat-icon stat-icon--blue"><Percent :size="20" /></div><div class="stat-value">{{ cogsSummary.gross_margin || 0 }}%</div><div class="stat-label">{{ t('admin.msg_a2b10ba0', 'Biên lợi nhuận gộp') }}</div></div>
@@ -112,7 +112,7 @@
             <span>COGS {{ Math.round(cogsSummary.total_cogs / cogsSummary.total_revenue * 100) }}%</span>
           </div>
           <div class="margin-bar__profit">
-            <span>Lợi nhuận {{ cogsSummary.gross_margin }}%</span>
+            <span>{{ t('admin.msg_44eb540c', 'Lợi nhuận') }} {{ cogsSummary.gross_margin }}%</span>
           </div>
         </div>
       </div>
@@ -146,7 +146,7 @@
             <td class="mono">{{ a.sku || '—' }}</td>
             <td class="qty" :class="{ 'text-danger': a.is_out }">{{ a.stock }}</td>
             <td class="qty">{{ a.min_stock }}</td>
-            <td><span class="badge" :class="a.is_out ? 'badge--danger' : 'badge--warn'">{{ a.is_out ? 'HẾT HÀNG' : 'SẮP HẾT' }}</span></td>
+            <td><span class="badge" :class="a.is_out ? 'badge--danger' : 'badge--warn'">{{ a.is_out ? t('admin.msg_76b2ed43', 'HẾT HÀNG') : t('admin.msg_f388ec40', 'SẮP HẾT') }}</span></td>
           </tr>
           <tr v-if="alertItems.length === 0"><td colspan="5" class="empty">{{ t('admin.msg_af3f5939', 'Không có cảnh báo 🎉') }}</td></tr>
         </tbody>

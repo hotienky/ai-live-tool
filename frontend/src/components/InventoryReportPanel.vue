@@ -112,7 +112,7 @@
             <span>COGS {{ Math.round(cogsSummary.total_cogs / cogsSummary.total_revenue * 100) }}%</span>
           </div>
           <div class="margin-bar__profit">
-            <span>Lợi nhuận {{ cogsSummary.gross_margin }}%</span>
+            <span>{{ t('admin.msg_44eb540c', 'Lợi nhuận') }} {{ cogsSummary.gross_margin }}%</span>
           </div>
         </div>
       </div>

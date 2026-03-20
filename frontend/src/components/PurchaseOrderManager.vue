@@ -164,7 +164,7 @@ function viewPO(po) {
 }
 
 async function sendPO(po) {
-  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
+  if (!confirm(`${t('admin.msg_f15a8810', 'Đặt hàng')} ${po.po_number} — ${t('admin.msg_1bd55351', 'chuyển sang trạng thái')} t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')
@@ -174,7 +174,7 @@ async function sendPO(po) {
 
 
 async function cancelPO(po) {
-  if (!confirm(`Hủy đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.msg_380ade01', 'Hủy đơn')} ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
     showToast(t('admin.msg_1a46e0', 'Đã hủy'), 'success')
@@ -183,7 +183,7 @@ async function cancelPO(po) {
 }
 
 async function deletePO(po) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} đơn ${po.po_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_395bb28e', 'đơn')} ${po.po_number}?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
     showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

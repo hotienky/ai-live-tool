@@ -151,7 +151,7 @@
         <div class="modal-actions">
           <button class="btn-cancel" @click="showCreateModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
           <button class="btn-create" @click="createOrder" :disabled="computedTotal === 0">
-            <ShoppingCart :size="14" /> Tạo đơn — {{ formatCurrency(computedTotal) }}
+            <ShoppingCart :size="14" /> {{ t('admin.msg_create_order', 'Tạo đơn') }} — {{ formatCurrency(computedTotal) }}
           </button>
         </div>
       </div>
@@ -439,7 +439,7 @@ async function createOrder() {
     newOrder.value = { customerName: '', customerPhone: '', customerAddress: '', items: [emptyItem()], notes: '' }
     fetchOrders(); fetchStats()
     showToast(t('admin.msg_09da14', 'Tạo đơn thành công!'), 'success')
-  } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' tạo đơn: ' + err.message, 'error') }
+  } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_create_order_err', 'tạo đơn') + ': ' + err.message, 'error') }
 }
 
 async function fetchStatuses() {

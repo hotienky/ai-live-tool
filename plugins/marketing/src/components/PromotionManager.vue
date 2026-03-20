@@ -52,7 +52,7 @@
     <!-- Coupons -->
     <div v-if="subTab === 'coupons'">
       <div class="pm-form">
-        <h4>{{ editCouponId ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá' }}</h4>
+        <h4>{{ editCouponId ? t('admin.msg_c2558906', 'Sửa mã giảm giá') : t('admin.msg_835ac40c', 'Tạo mã giảm giá') }}</h4>
         <div class="form-row">
           <div class="form-group"><label>{{ t('admin.coupon_code', 'Mã code') }}</label><input v-model="couponForm.code" placeholder="VD: SALE20" style="text-transform: uppercase" /></div>
           <div class="form-group">
@@ -69,7 +69,7 @@
           <div class="form-group"><label>{{ t('admin.start', 'Bắt đầu') }}</label><input v-model="couponForm.dateStart" type="date" /></div>
           <div class="form-group"><label>{{ t('admin.msg_144f8bdc', 'Kết thúc') }}</label><input v-model="couponForm.dateEnd" type="date" /></div>
           <div class="form-group"><label>&nbsp;</label>
-            <button class="btn-save" @click="handleSaveCoupon">{{ editCouponId ? 'Cập nhật' : 'Tạo mã' }}</button>
+            <button class="btn-save" @click="handleSaveCoupon">{{ editCouponId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_340587e4', 'Tạo mã') }}</button>
           </div>
         </div>
       </div>
@@ -142,10 +142,10 @@ async function handleSavePromo() {
 }
 
 async function handleDeletePromo(productId) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} khuyến mãi?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_c8564ef4', 'khuyến mãi')}?`)) return
   await deletePromotion(productId)
   fetchPromotions({  })
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
 }
 
 async function handleSaveCoupon() {
@@ -153,7 +153,7 @@ async function handleSaveCoupon() {
   try {
     if (editCouponId.value) {
       await updateCoupon(editCouponId.value, couponForm.value)
-      showToast('Đã cập nhật', 'success')
+      showToast(t('admin.msg_c0c3aa30', 'Đã cập nhật'), 'success')
     } else {
       await createCoupon({ ...couponForm.value,  })
       showToast('Đã tạo mã', 'success')
@@ -170,10 +170,10 @@ function editCoupon(c) {
 }
 
 async function handleDeleteCoupon(id) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} mã giảm giá?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_85d56471', 'mã giảm giá')}?`)) return
   await deleteCoupon(id)
   fetchCoupons({  })
-  showToast('Đã xóa', 'success')
+  showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
 }
 
 // formatCurrency from useI18n

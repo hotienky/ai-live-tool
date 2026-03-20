@@ -312,7 +312,7 @@
           </button>
         </div>
         <p class="settings__variable-hint">
-          Biến hỗ trợ: <code>{{nickname}}</code> <code>{{product}}</code> <code>{{shop}}</code>
+          {{ t('admin.msg_vars_support', 'Biến hỗ trợ') }}: <code>{{nickname}}</code> <code>{{product}}</code> <code>{{shop}}</code>
           — Cooldown: 1 reply/user/5 phút
         </p>
         <div class="settings__list">
@@ -358,7 +358,7 @@
         <div class="settings__field">
           <label>
             <input type="checkbox" v-model="moderationConfig.rateLimitEnabled" />
-            Giới hạn tốc độ comment (max {{ moderationConfig.maxPerMinute }}/phút/user)
+            {{ t('admin.msg_rate_limit', 'Giới hạn tốc độ comment') }} (max {{ moderationConfig.maxPerMinute }}/{{ t('admin.msg_min_user', 'phút/user') }})
           </label>
           <input v-if="moderationConfig.rateLimitEnabled" v-model.number="moderationConfig.maxPerMinute" type="number" min="1" max="30" class="settings__input settings__input--sm" style="margin-top:4px" />
         </div>
@@ -1089,7 +1089,7 @@ async function addProduct() {
     await loadProducts()
     showToast(t('admin.msg_7a810a', 'Đã thêm sản phẩm'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm sản phẩm: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_add_product_err', 'thêm sản phẩm') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1100,7 +1100,7 @@ async function deleteProduct(id) {
     await loadProducts()
     showToast(t('admin.msg_e2ef8d', 'Đã xóa sản phẩm'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa sản phẩm: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_del_product_err', 'xóa sản phẩm') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1112,7 +1112,7 @@ async function addCategory() {
     newCategory.value = { name: '', description: '' }
     showToast(t('admin.msg_002465', 'Đã thêm danh mục'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm danh mục: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_add_cat_err', 'thêm danh mục') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeCategory(id) {
@@ -1121,7 +1121,7 @@ async function removeCategory(id) {
     await deleteCategoryApi(id)
     showToast(t('admin.msg_2c1fe2', 'Đã xóa danh mục'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa danh mục: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_del_cat_err', 'xóa danh mục') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 
@@ -1133,7 +1133,7 @@ async function addBrand() {
     newBrand.value = { name: '', description: '' }
     showToast(t('admin.msg_aaabca', 'Đã thêm thương hiệu'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' thêm thương hiệu: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_add_brand_err', 'thêm thương hiệu') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 async function removeBrand(id) {
@@ -1142,7 +1142,7 @@ async function removeBrand(id) {
     await deleteBrandApi(id)
     showToast(t('admin.msg_b05808', 'Đã xóa thương hiệu'), 'success')
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa thương hiệu: ' + (e.message || 'Unknown'), 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_del_brand_err', 'xóa thương hiệu') + ': ' + (e.message || 'Unknown'), 'error')
   }
 }
 

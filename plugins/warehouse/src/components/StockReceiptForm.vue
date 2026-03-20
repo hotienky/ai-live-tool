@@ -4,7 +4,7 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.go_back', 'Quay lại') }}</button>
       <div class="srf-header__center">
         <div class="srf-header__icon"><ClipboardList :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa phiếu kho' : 'Tạo phiếu kho' }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_721e3384', 'Sửa phiếu kho') : t('admin.msg_e89421b8', 'Tạo phiếu kho') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />

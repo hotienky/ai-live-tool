@@ -7,15 +7,15 @@
           <div class="inv-modal__header">
             <h3>{{ t('admin.msg_ee8632be', 'Hoá đơn') }}<code>{{ invoice?.invoice_number }}</code></h3>
             <div class="inv-modal__actions">
-              <button class="inv-btn inv-btn--outline" @click="printInvoice" title="In hoá đơn">
+              <button class="inv-btn inv-btn--outline" @click="printInvoice" :title="t('admin.msg_1323347b', 'In hoá đơn')">
                 <Printer :size="14" /> In
               </button>
               <button class="inv-btn inv-btn--outline" @click="downloadPdf" :title="t('admin.msg_34de7842', 'Tải PDF')" >
                 <Download :size="14" /> PDF
               </button>
               <button v-if="invoice?.customer_email" class="inv-btn inv-btn--outline"
-                @click="sendEmail" :disabled="sending" title="Gửi email">
-                <Mail :size="14" /> {{ sending ? 'Đang gửi...' : 'Email' }}
+                @click="sendEmail" :disabled="sending" :title="t('admin.msg_bef1559f', 'Gửi email')">
+                <Mail :size="14" /> {{ sending ? t('admin.msg_6b22c83e', 'Đang gửi...') : 'Email' }}
               </button>
               <button class="inv-btn inv-btn--close" @click="$emit('close')">
                 <X :size="16" />
@@ -56,14 +56,14 @@
               <div class="inv-doc__party">
                 <h4>{{ t('admin.msg_0caa5ce1', 'Khách hàng') }}</h4>
                 <p class="inv-doc__name">{{ invoice?.customer_name }}</p>
-                <p v-if="invoice?.customer_phone">SĐT: {{ invoice?.customer_phone }}</p>
+                <p v-if="invoice?.customer_phone">{{ t('admin.phone_short', 'SĐT') }}: {{ invoice?.customer_phone }}</p>
                 <p v-if="invoice?.customer_email">{{ invoice?.customer_email }}</p>
                 <p v-if="invoice?.customer_address">{{ invoice?.customer_address }}</p>
               </div>
               <div class="inv-doc__party inv-doc__party--right" v-if="seller?.name">
                 <h4>{{ t('admin.msg_e07c1d51', 'Người bán') }}</h4>
                 <p class="inv-doc__name">{{ seller?.name }}</p>
-                <p v-if="seller?.phone">SĐT: {{ seller?.phone }}</p>
+                <p v-if="seller?.phone">{{ t('admin.phone_short', 'SĐT') }}: {{ seller?.phone }}</p>
                 <p v-if="seller?.email">{{ seller?.email }}</p>
                 <p v-if="seller?.address">{{ seller?.address }}</p>
                 <p v-if="seller?.tax_id">MST: {{ seller?.tax_id }}</p>
@@ -107,7 +107,7 @@
                 <span>{{ formatPrice(invoice?.shipping_fee) }}</span>
               </div>
               <div v-if="Number(invoice?.tax_amount) > 0" class="inv-doc__totals-row">
-                <span>Thuế{{ taxDetailLabel }}:</span>
+                <span>{{ t('admin.msg_500aedd2', 'Thuế') }}{{ taxDetailLabel }}:</span>
                 <span class="purple">{{ formatPrice(invoice?.tax_amount) }}</span>
               </div>
               <div class="inv-doc__totals-row inv-doc__totals-row--grand">
@@ -191,7 +191,7 @@ function printInvoice() {
   if (!printArea) return
   const win = window.open('', '_blank')
   win.document.write(`<!DOCTYPE html><html><head>
-    <meta charset="utf-8"><title>Hoá đơn ${invoice.value?.invoice_number}</title>
+    <meta charset="utf-8"><title>${t('admin.msg_ee8632be', 'Hoá đơn')} ${invoice.value?.invoice_number}</title>
     <style>
       * { margin:0; padding:0; box-sizing:border-box; }
       body { font-family:'Segoe UI',Arial,sans-serif; font-size:12px; color:#1f2937; padding:32px; }
@@ -228,9 +228,9 @@ async function sendEmail() {
   sending.value = true
   try {
     await apiFetch(`/invoices/${invoice.value.id}/send-email`, { method: 'POST' })
-    alert('✅ Đã gửi email hoá đơn!')
+    alert('✅ ' + t('admin.msg_6072e399', 'Đã gửi email hoá đơn!'))
   } catch (e) {
-    alert('❌ Gửi email thất bại')
+    alert('❌ ' + t('admin.msg_e93661fa', 'Gửi email thất bại'))
   } finally {
     sending.value = false
   }

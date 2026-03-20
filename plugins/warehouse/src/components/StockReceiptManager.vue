@@ -248,7 +248,7 @@ function onFormSaved() {
 
 
 async function cancelReceipt(r) {
-  if (!confirm(`Hủy phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.msg_f1274bf2', 'Hủy phiếu')} ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}/cancel`, { method: 'POST' })
     showToast('Đã hủy phiếu', 'success')
@@ -258,13 +258,13 @@ async function cancelReceipt(r) {
 }
 
 async function deleteReceipt(r) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} phiếu ${r.receipt_number}?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_5a419b0e', 'phiếu')} ${r.receipt_number}?`)) return
   try {
     await apiFetch(`/stock-receipts/${r.id}`, { method: 'DELETE' })
     showToast('Đã xóa phiếu', 'success')
     fetchReceipts()
     fetchStats()
-  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_66d6a761', 'xóa'), 'error') }
 }
 
 // formatCurrency provided by useI18n

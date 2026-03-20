@@ -179,7 +179,7 @@ async function onDrop(targetIndex) {
     showToast(t('admin.msg_654d75', 'Đã sắp xếp lại'), 'success')
     reload()
   } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' sắp xếp: ' + e.message, 'error')
+    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_sort_err', 'sắp xếp') + ': ' + e.message, 'error')
     reload()
   }
 }

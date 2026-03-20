@@ -186,7 +186,7 @@ function formatDetails(action, details) {
     try { details = JSON.parse(details) } catch { return '' }
   }
   if (!details) return ''
-  if (action === 'product.stock_deducted') return `Số lượng: ${details.quantity}, Còn lại: ${details.remaining}`
+  if (action === 'product.stock_deducted') return `${t('admin.msg_stock_qty', 'Số lượng')}: ${details.quantity}, ${t('admin.msg_remaining', 'Còn lại')}: ${details.remaining}`
   if (action === 'session.ended') return `Comments: ${details.totalComments}, Hot: ${details.hotLeads}`
   if (action === 'lead.status_changed') return `${details.from} → ${details.to}`
   if (action === 'tax_config.updated') return details.tax_enabled !== undefined ? `Thuế: ${details.tax_enabled ? t('admin.msg_9eae5130', 'Bật') : t('admin.msg_258f00b2', 'Tắt')}` : t('admin.msg_d66363d9', 'Cập nhật cấu hình thuế')
@@ -197,7 +197,7 @@ function formatDetails(action, details) {
   if (details.title) return details.title
   if (details.email) return details.email
   if (details.order_number) return `#${details.order_number}`
-  if (details.group) return `Nhóm: ${details.group}`
+  if (details.group) return `${t('admin.msg_group', 'Nhóm')}: ${details.group}`
   if (details.rate) return `${details.rate}%`
   return ''
 }

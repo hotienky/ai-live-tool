@@ -58,7 +58,7 @@
             <span v-if="(summary.operating_expenses || 0) / summary.revenue > 0.15">Chi phí {{ Math.round((summary.operating_expenses || 0) / summary.revenue * 100) }}%</span>
           </div>
           <div class="acc-cogs-bar__segment acc-cogs-bar__segment--profit">
-            <span v-if="(summary.profit || 0) / summary.revenue > 0.1">LN {{ Math.round((summary.profit || 0) / summary.revenue * 100) }}%</span>
+            <span v-if="(summary.profit || 0) / summary.revenue > 0.1">{{ t('admin.msg_profit_abbr', 'LN') }} {{ Math.round((summary.profit || 0) / summary.revenue * 100) }}%</span>
           </div>
         </div>
         <div class="acc-cogs-bar__legend">
@@ -83,7 +83,7 @@
       </div>
       <div v-else class="acc-tax-info">
         <span class="acc-badge acc-badge--cancelled">{{ t('admin.msg_1824c072', 'Thuế chưa bật') }}</span>
-        <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">{{ t('admin.msg_e8af0d80', 'Bật cấu hình thuế →') }}</button>
+        <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">{{ t('admin.msg_e8af0d80', '{{ t('admin.msg_enable_tax', 'Bật cấu hình thuế →') }}') }}</button>
       </div>
 
       <!-- Monthly Chart (simple bar visualization) -->
@@ -111,7 +111,7 @@
     <template v-if="activeTab === 'tax'">
       <div class="acc-section">
         <div class="acc-section__header">
-          <h4 class="acc-section__title"><Receipt :size="14" /> Báo cáo thuế năm {{ taxYear }}</h4>
+          <h4 class="acc-section__title"><Receipt :size="14" /> {{ t('admin.msg_tax_report_year', 'Báo cáo thuế năm') }} {{ taxYear }}</h4>
           <div class="acc-section__actions">
             <button class="acc-btn acc-btn--sm" @click="exportExcel('tax')" :title="t('admin.msg_17760def', 'Xuất Excel')" ><Download :size="12" /> Excel</button>
             <button class="acc-btn acc-btn--sm" @click="exportTaxCSV" :title="t('admin.msg_47bfce15', 'Xuất CSV')" ><Download :size="12" /> CSV</button>
@@ -134,7 +134,7 @@
           </thead>
           <tbody>
             <tr v-for="r in taxReport" :key="r.month">
-              <td>Tháng {{ r.month }}</td>
+              <td>{{ t('admin.msg_month', 'Tháng') }} {{ r.month }}</td>
               <td>{{ formatPrice(r.total_sales) }}</td>
               <td class="acc-cell--green">{{ formatPrice(r.tax_collected) }}</td>
               <td class="acc-cell--red">{{ formatPrice(r.tax_refunded) }}</td>
@@ -211,7 +211,7 @@
               <td>{{ e.tax_amount > 0 ? formatPrice(e.tax_amount) : '—' }}</td>
               <td>
                 <a v-if="e.reference_type === 'order'" href="#" class="acc-ref-link" @click.prevent="$emit('navigate-to-order', e.reference_id)">
-                  ĐH #{{ e.reference_id }}
+                  {{ t('admin.msg_order_abbr', 'ĐH') }} #{{ e.reference_id }}
                 </a>
                 <span v-else-if="e.reference_type">{{ e.reference_type }}#{{ e.reference_id }}</span>
                 <span v-else>—</span>
@@ -279,7 +279,7 @@
           <div class="acc-pnl__section">
             <h5 class="acc-pnl__title acc-pnl__title--green">DOANH THU</h5>
             <div v-for="cat in pnlData.revenue?.by_category" :key="cat.category" class="acc-pnl__row">
-              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} bút toán)</small></span>
+              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} {{ t('admin.msg_entries', 'bút toán') }})</small></span>
               <span class="acc-cell--green">{{ formatPrice(cat.amount) }}</span>
             </div>
             <div class="acc-pnl__subtotal">
@@ -292,7 +292,7 @@
           <div class="acc-pnl__section">
             <h5 class="acc-pnl__title acc-pnl__title--red">{{ t('admin.msg_32df3811', 'CHI PHÍ') }}</h5>
             <div v-for="cat in pnlData.expenses?.by_category" :key="cat.category" class="acc-pnl__row">
-              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} bút toán)</small></span>
+              <span>{{ categoryLabel(cat.category) }} <small>({{ cat.count }} {{ t('admin.msg_entries', 'bút toán') }})</small></span>
               <span class="acc-cell--red">{{ formatPrice(cat.amount) }}</span>
             </div>
             <div class="acc-pnl__subtotal">
@@ -329,7 +329,7 @@
         <div class="acc-section__header">
           <h4 class="acc-section__title"><DollarSign :size="14" /> {{ t('admin.msg_40c88349', 'Bảng cân đối kế toán') }}</h4>
           <div class="acc-section__actions">
-            <span class="acc-balance-date">Tại ngày: {{ formatDate(balanceData?.as_of) }}</span>
+            <span class="acc-balance-date">{{ t('admin.msg_as_of', 'Tại ngày') }}: {{ formatDate(balanceData?.as_of) }}</span>
           </div>
         </div>
         <div v-if="balanceData" class="acc-balance">
@@ -353,8 +353,8 @@
             </div>
           </div>
           <div class="acc-balance__info">
-            <span>Tổng HĐ: {{ balanceData.summary?.invoice_count || 0 }}</span>
-            <span>Đã TT: {{ balanceData.summary?.paid_invoice_count || 0 }}</span>
+            <span>{{ t('admin.msg_total_inv', 'Tổng HĐ') }}: {{ balanceData.summary?.invoice_count || 0 }}</span>
+            <span>{{ t('admin.msg_paid_abbr', 'Đã TT') }}: {{ balanceData.summary?.paid_invoice_count || 0 }}</span>
           </div>
         </div>
         <div v-else class="acc-empty">{{ t('admin.loading', 'Đang tải...') }}</div>
@@ -411,7 +411,7 @@
             <div class="acc-settings-group__header">
               <h5 class="acc-settings-group__title">{{ t('admin.msg_f0bbcc74', 'Cấu hình thuế GTGT') }}</h5>
               <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
-                <Settings :size="12" /> Quản lý thuế →
+                <Settings :size="12" /> {{ t('admin.msg_manage_tax', 'Quản lý thuế →') }}
               </button>
             </div>
             <div v-if="taxConfig.enabled" class="acc-tax-status">
@@ -750,7 +750,7 @@ async function saveEntry() {
 }
 
 async function deleteEntry(e) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} bút toán "${e.description}"?`)) return
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_4beeb88d', 'bút toán')} \"${e.description}"?`)) return
   try {
     const res = await apiFetch(`/accounting/entries/${e.id}`, { method: 'DELETE' })
     if (!res.ok) throw new Error()
