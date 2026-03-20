@@ -2,8 +2,7 @@
   <div class="sp">
     <!-- Back button -->
     <button class="sp-back" @click="$emit('back')">
-      <ArrowLeft :size="16" /> Quay lại
-    </button>
+      <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
 
     <div class="sp-content" v-if="product">
       <div class="sp-grid">
@@ -83,8 +82,7 @@
 
     <!-- Loading -->
     <div class="sp-loading" v-else-if="loading">
-      <Loader2 :size="24" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="24" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div class="sp-error" v-else>
       <PackageX :size="40" />
       <p>{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>

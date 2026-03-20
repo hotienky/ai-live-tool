@@ -65,8 +65,7 @@
         </div>
         <div class="lucky-draw__actions">
           <button class="lucky-draw__reset" @click="reset">
-            <RotateCcw :size="14" /> Quay lại
-          </button>
+            <RotateCcw :size="14" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
         </div>
       </div>
     </div>

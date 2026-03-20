@@ -2,8 +2,7 @@
   <div class="cms-form-page">
     <div class="form-page-header">
       <button class="btn-back" @click="goBack">
-        <ArrowLeft :size="16" /> Quay lại
-      </button>
+        <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <h3>{{ isEditing ? t('admin.msg_72f5b421', 'Sửa trang CMS') : t('admin.msg_4ae8d81c', 'Tạo trang CMS mới') }}</h3>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="16" class="spin" />

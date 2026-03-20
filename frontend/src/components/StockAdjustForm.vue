@@ -31,11 +31,9 @@
 
           <div class="adjust-mode">
             <button class="mode-btn" :class="{ active: adjustMode === 'add' }" @click="setMode('add')">
-              <Plus :size="14" /> Nhập kho
-            </button>
+              <Plus :size="14" />{{ t('admin.msg_94e97353', 'Nhập kho') }}</button>
             <button class="mode-btn" :class="{ active: adjustMode === 'deduct' }" @click="setMode('deduct')">
-              <Minus :size="14" /> Xuất kho
-            </button>
+              <Minus :size="14" />{{ t('admin.msg_25af27c7', 'Xuất kho') }}</button>
             <button class="mode-btn" :class="{ active: adjustMode === 'set' }" @click="setMode('set')">
               <Edit :size="14" /> Đặt số lượng
             </button>

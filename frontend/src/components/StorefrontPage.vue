@@ -1,8 +1,7 @@
 <template>
   <div class="spage">
     <button class="spage-back" @click="$emit('back')">
-      <ArrowLeft :size="16" /> Quay lại
-    </button>
+      <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
 
     <article class="spage-article" v-if="page">
       <div class="spage-header">
@@ -16,8 +15,7 @@
     </article>
 
     <div class="spage-loading" v-else-if="loading">
-      <Loader2 :size="24" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="24" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
     <div class="spage-error" v-else>
       <FileX :size="40" />
       <p>{{ t('admin.msg_ed43e4a6', 'Không tìm thấy trang') }}</p>

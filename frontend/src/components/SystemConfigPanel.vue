@@ -25,8 +25,7 @@
       <!-- Cảnh báo chưa cấu hình -->
       <div v-if="isUnconfigured" class="config-warning">
         <AlertTriangle :size="15" />
-        <span>
-          Nhóm <strong>{{ currentSchema.label }}</strong> chưa được cấu hình.
+        <span>{{ t('admin.msg_1578dded', 'Nhóm') }}<strong>{{ currentSchema.label }}</strong> chưa được cấu hình.
           Hệ thống đang dùng giá trị mặc định từ server (<code>.env</code>).
           Hãy chọn dịch vụ và điền thông tin để áp dụng cho tenant này.
         </span>
@@ -131,16 +130,6 @@
           {{ testing ? t('admin.msg_testing', 'Đang test...') : t('admin.msg_test_conn', 'Test kết nối') }}
         </button>
 
-        <!-- Test redis button — chỉ hiện khi chọn Redis -->
-        <button
-          v-if="(activeGroup === 'cache' || activeGroup === 'queue') && selectedService === 'redis'"
-          class="cfg-test-btn"
-          @click="testRedis"
-          :disabled="testing"
-        >
-          <FlaskConical :size="14" />
-          {{ testing ? t('admin.msg_testing', 'Đang test...') : t('admin.msg_test_redis', 'Test kết nối Redis') }}
-        </button>
 
         <span v-if="hasChanges" class="unsaved-hint">{{ t('admin.msg_unsaved', 'Có thay đổi chưa lưu') }}</span>
       </div>
@@ -186,7 +175,7 @@ import {
   getFieldKeys,
 } from '../composables/useSystemConfigSchema.js'
 import {
-  Cog, Save, Loader2, Mail, Database, ListTodo, MessageSquare,
+  Cog, Save, Loader2, Mail, MessageSquare,
   CheckCircle2, XCircle, Eye, EyeOff, FlaskConical, Send, AlertTriangle,
 } from 'lucide-vue-next'
 
@@ -194,7 +183,7 @@ const { t } = useI18n()
 const { showToast } = useToast()
 
 // ─── Icon map per group ───────────────────────────────────────────────────────
-const groupIcons = { mail: Mail, cache: Database, queue: ListTodo, sms: MessageSquare }
+const groupIcons = { mail: Mail, sms: MessageSquare }
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const activeGroup    = ref('mail')
@@ -336,26 +325,6 @@ async function confirmTestMail() {
   }
 }
 
-// ─── Test Redis ───────────────────────────────────────────────────────────────
-async function testRedis() {
-  testing.value = true
-  testResult.value = null
-  try {
-    const payload = {
-      redis_host:     formValues.value.redis_host,
-      redis_port:     formValues.value.redis_port,
-      redis_password: formValues.value.redis_password,
-      redis_db:       formValues.value.redis_db,
-    }
-    const res  = await apiFetch('/system-config/test-redis', { method: 'POST', body: JSON.stringify(payload) })
-    const data = await res.json()
-    testResult.value = { ok: res.ok, message: data.message ?? (res.ok ? t('admin.msg_conn_success', 'Kết nối thành công') : t('admin.msg_failed', 'Thất bại')) }
-  } catch (e) {
-    testResult.value = { ok: false, message: t('admin.msg_conn_error', 'Lỗi kết nối tới server') }
-  } finally {
-    testing.value = false
-  }
-}
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 onMounted(() => loadGroup(activeGroup.value))

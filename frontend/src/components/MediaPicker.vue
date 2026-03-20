@@ -40,8 +40,7 @@
 
             <!-- Upload progress -->
             <div class="mp-uploading" v-if="uploading">
-              <Loader2 :size="14" class="spin" /> Đang upload...
-            </div>
+              <Loader2 :size="14" class="spin" />{{ t('admin.uploading', 'Đang upload...') }}</div>
 
             <!-- Grid -->
             <div class="mp-grid" v-if="mediaList.length">

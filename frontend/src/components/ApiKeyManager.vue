@@ -25,8 +25,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="20" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
     <!-- Empty -->
     <div v-else-if="apiKeys.length === 0" class="empty-state">
@@ -61,8 +60,7 @@
             @click="revokeKey(key.id)"
             :title="t('admin.msg_b8c669f9', 'Thu hồi')" 
           >
-            <Ban :size="13" /> Thu hồi
-          </button>
+            <Ban :size="13" />{{ t('admin.msg_b8c669f9', 'Thu hồi') }}</button>
           <button class="key-action-btn key-action-btn--delete" @click="deleteKey(key.id)" :title="t('admin.delete', 'Xóa')">
             <Trash2 :size="13" />
           </button>

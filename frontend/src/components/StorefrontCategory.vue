@@ -1,8 +1,7 @@
 <template>
   <div class="sc">
     <button class="sc-back" @click="$emit('back')">
-      <ArrowLeft :size="16" /> Quay lại
-    </button>
+      <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
 
     <div class="sc-layout">
       <!-- Sidebar Filters -->

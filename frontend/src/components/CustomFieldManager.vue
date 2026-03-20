@@ -26,8 +26,7 @@
           <option v-for="et in entityTypes" :key="et.key" :value="et.key">{{ et.label }}</option>
         </select>
         <button class="cf-add-btn" @click="addField" :disabled="!newField.name">
-          <Plus :size="14" /> Thêm
-        </button>
+          <Plus :size="14" />{{ t('admin.msg_d9cb420e', 'Thêm') }}</button>
       </div>
       <div v-if="newField.fieldType === 'select'" class="cf-options-row">
         <input
@@ -40,8 +39,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="20" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
     <!-- Empty -->
     <div v-else-if="filteredFields.length === 0" class="empty-state">

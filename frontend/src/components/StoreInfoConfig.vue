@@ -4,8 +4,7 @@
     <p class="settings__panel-desc">Cấu hình thông tin cơ bản, liên hệ và mạng xã hội cho cửa hàng của bạn. Thông tin này sẽ được hiển thị ở Footer và các trang liên hệ.</p>
 
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải dữ liệu...
-    </div>
+      <Loader2 :size="20" class="spin" />{{ t('admin.msg_54033c7f', 'Đang tải dữ liệu...') }}</div>
 
     <div v-else class="si-content">
       <LanguageTabs v-model="currentLang" style="margin-bottom: 24px" :translations="form.translations" :fields="['shop_name', 'address', 'contact_email', 'contact_phone', 'contact_time']" :baseData="form" />

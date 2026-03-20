@@ -16,8 +16,7 @@
           <RefreshCcw :size="14" :class="{ 'spin': loading }" />
         </button>
         <button class="report__export" @click="exportCSV" :disabled="!dailyData.length">
-          <FileSpreadsheet :size="14" style="vertical-align:middle" /> Xuất CSV
-        </button>
+          <FileSpreadsheet :size="14" style="vertical-align:middle" />{{ t('admin.msg_47bfce15', 'Xuất CSV') }}</button>
       </div>
     </div>
 

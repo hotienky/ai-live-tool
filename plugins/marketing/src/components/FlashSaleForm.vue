@@ -3,8 +3,7 @@
     <!-- Header -->
     <div class="fsf-header">
       <button class="btn-back" @click="$emit('back')">
-        <ChevronLeft :size="15" /> Quay lại
-      </button>
+        <ChevronLeft :size="15" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="fsf-header__center">
         <div class="fsf-header__icon"><Zap :size="15" /></div>
         <h3>{{ editId ? 'Chỉnh sửa Flash Sale' : 'Tạo Flash Sale mới' }}</h3>

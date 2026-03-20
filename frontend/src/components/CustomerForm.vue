@@ -3,8 +3,7 @@
     <!-- Header -->
     <div class="cf-header">
       <button class="btn-back" @click="emit('back')">
-        <ChevronLeft :size="15" /> Quay lại
-      </button>
+        <ChevronLeft :size="15" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="cf-header__center">
         <div class="cf-header__icon"><Users :size="15" /></div>
         <h3>{{ props.editId ? t('admin.msg_982998a9', 'Sửa khách hàng') : t('admin.msg_e0014d2e', 'Thêm khách hàng') }}</h3>

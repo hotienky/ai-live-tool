@@ -10,8 +10,7 @@
         </div>
       </div>
       <button class="btn-add" @click="openCreate">
-        <Plus :size="15" /> Tạo Flash Sale
-      </button>
+        <Plus :size="15" />{{ t('admin.msg_9d9407dd', 'Tạo Flash Sale') }}</button>
     </div>
 
     <!-- Skeleton loading -->

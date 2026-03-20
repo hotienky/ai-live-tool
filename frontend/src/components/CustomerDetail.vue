@@ -67,8 +67,7 @@
       <!-- Notes Section -->
       <div class="customer-modal__section">
         <h4 class="customer-modal__section-title">
-          <FileText :size="14" /> Ghi chú
-        </h4>
+          <FileText :size="14" />{{ t('admin.notes', 'Ghi chú') }}</h4>
         <textarea
           v-model="notes"
           class="customer-modal__notes"

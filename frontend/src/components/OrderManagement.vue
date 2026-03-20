@@ -134,8 +134,7 @@
               </button>
             </div>
             <button @click="addItem" class="btn-add-item">
-              <Plus :size="14" /> Thêm sản phẩm
-            </button>
+              <Plus :size="14" />{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</button>
           </div>
         </div>
 
@@ -190,9 +189,7 @@
               <span>{{ formatCurrency(detailOrder.shippingFee) }}</span>
             </div>
             <div class="breakdown-row" v-if="detailOrder?.taxAmount > 0">
-              <span>
-                Thuế
-                <template v-if="parsedTaxDetails.length">
+              <span>{{ t('admin.msg_tax', 'Thuế') }}<template v-if="parsedTaxDetails.length">
                   <span class="tax-detail-names">({{ parsedTaxDetails.map(d => d.name).join(', ') }})</span>
                 </template>
               </span>

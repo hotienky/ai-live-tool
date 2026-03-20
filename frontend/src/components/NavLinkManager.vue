@@ -51,8 +51,7 @@
           </div>
           <div class="nm-item__actions">
             <button class="nm-action nm-action--edit" @click="openEdit(link)" :title="t('admin.msg_e1504e01', 'Chỉnh sửa')" >
-              <component :is="icons.Pencil" :size="13" /> Sửa
-            </button>
+              <component :is="icons.Pencil" :size="13" />{{ t('admin.msg_9026a724', 'Sửa') }}</button>
             <button class="nm-action nm-action--delete" @click="handleDelete(link)" :title="t('admin.delete', 'Xóa')">
               <component :is="icons.Trash2" :size="13" />
             </button>

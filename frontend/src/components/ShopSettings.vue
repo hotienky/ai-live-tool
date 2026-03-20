@@ -363,8 +363,7 @@
           <input v-if="moderationConfig.rateLimitEnabled" v-model.number="moderationConfig.maxPerMinute" type="number" min="1" max="30" class="settings__input settings__input--sm" style="margin-top:4px" />
         </div>
         <button class="settings__save-btn" @click="saveModerationConfig">
-          <Save :size="14" /> Lưu cấu hình
-        </button>
+          <Save :size="14" />{{ t('admin.msg_save_config', 'Lưu cấu hình') }}</button>
       </div>
 
       <!-- ═══ Tab: Shop Customers ═══ -->

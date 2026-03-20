@@ -12,14 +12,12 @@
         <option value="order.created">Order Created</option>
       </select>
       <button class="wh-add-btn" @click="addWebhook" :disabled="!newUrl">
-        <Plus :size="14" /> Thêm
-      </button>
+        <Plus :size="14" />{{ t('admin.msg_d9cb420e', 'Thêm') }}</button>
     </div>
 
     <!-- List -->
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="20" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
     <div v-else-if="webhooks.length === 0" class="empty-state">
       <Globe :size="36" />

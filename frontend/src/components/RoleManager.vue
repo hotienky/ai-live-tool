@@ -3,8 +3,7 @@
     <!-- Tab switcher -->
     <div class="rbac__tabs">
       <button class="rbac__tab" :class="{ active: activeTab === 'roles' }" @click="activeTab = 'roles'">
-        <ShieldCheck :size="14" /> Phân quyền
-      </button>
+        <ShieldCheck :size="14" />{{ t('admin.roles', 'Phân quyền') }}</button>
       <button class="rbac__tab" :class="{ active: activeTab === 'users' }" @click="activeTab = 'users'; loadUsers()">
         <Users :size="14" /> Quản lý Users
       </button>

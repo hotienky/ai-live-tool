@@ -41,8 +41,7 @@
             <option :value="3">Nhanh</option>
           </select>
           <button type="button" class="prompter__play-btn" @click="startPrompter" :disabled="!scriptText.trim()">
-            <Play :size="14" /> Bắt đầu
-          </button>
+            <Play :size="14" />{{ t('admin.start', 'Bắt đầu') }}</button>
         </div>
       </div>
 

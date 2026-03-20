@@ -83,9 +83,7 @@
       </div>
       <div v-else class="acc-tax-info">
         <span class="acc-badge acc-badge--cancelled">{{ t('admin.msg_1824c072', 'Thuế chưa bật') }}</span>
-        <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">
-          Bật cấu hình thuế →
-        </button>
+        <button class="acc-btn acc-btn--sm" @click="emit('navigate-to-tax')">{{ t('admin.msg_e8af0d80', 'Bật cấu hình thuế →') }}</button>
       </div>
 
       <!-- Monthly Chart (simple bar visualization) -->

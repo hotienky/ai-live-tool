@@ -112,11 +112,9 @@
       <h4 class="tc-section__title"><Moon :size="14" /> {{ t('admin.msg_fc1bf9f1', 'Chế độ mặc định') }}</h4>
       <div class="tc-btn-group tc-btn-group--wide">
         <button class="tc-btn-option" :class="{ active: form.mode === 'dark' }" @click="form.mode = 'dark'">
-          <Moon :size="13" /> Tối
-        </button>
+          <Moon :size="13" />{{ t('admin.dark', 'Tối') }}</button>
         <button class="tc-btn-option" :class="{ active: form.mode === 'light' }" @click="form.mode = 'light'">
-          <Sun :size="13" /> Sáng
-        </button>
+          <Sun :size="13" />{{ t('admin.light', 'Sáng') }}</button>
       </div>
     </section>
 

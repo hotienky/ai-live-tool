@@ -19,22 +19,15 @@ class SystemConfigBootstrapper implements TenancyBootstrapper
     public function bootstrap(Tenant $_tenant): void
     {
         try {
-            // groupBy group_name trước để tránh xung đột key trùng tên
-            // (vd: redis_host tồn tại ở cả group 'cache' lẫn 'queue')
-            $byGroup = DB::table('system_configs')
-                ->whereIn('group_name', ['mail', 'cache', 'queue'])
-                ->get(['key', 'value', 'group_name'])
-                ->groupBy('group_name')
-                ->map(fn($rows) => $rows->pluck('value', 'key'));
+                // Chỉ load mail — cache/queue dùng .env của server (infrastructure chung)
+            $mailRows = DB::table('system_configs')
+                ->where('group_name', 'mail')
+                ->get(['key', 'value'])
+                ->pluck('value', 'key');
 
-            // Tạo getter riêng cho từng group
-            $getFor = fn(string $group) =>
-                fn(string $key, mixed $default = null) =>
-                    $byGroup->get($group)?->get($key) ?? $default;
+            $get = fn(string $key, mixed $default = null) => $mailRows->get($key) ?? $default;
 
-            $this->applyMail($getFor('mail'));
-            $this->applyCache($getFor('cache'));
-            $this->applyQueue($getFor('queue'));
+            $this->applyMail($get);
         } catch (\Throwable) {
             // Bảng chưa migrate hoặc tenant mới — bỏ qua, dùng .env
         }
@@ -139,75 +132,6 @@ class SystemConfigBootstrapper implements TenancyBootstrapper
                 'password'   => $key,
             ]);
         }
-    }
-
-    // ─── Cache ────────────────────────────────────────────────────────────────
-
-    private function applyCache(callable $get): void
-    {
-        $driver = $get('cache_driver');
-        if (!$driver) return;
-
-        $this->set('cache.default', $driver);
-
-        if ($ttl = $get('cache_ttl')) {
-            // Áp dụng TTL vào đúng store đang dùng
-            $this->set("cache.stores.{$driver}.ttl", (int) $ttl);
-        }
-
-        if ($driver === 'redis') {
-            $this->applyRedis($get, 'cache');
-        }
-    }
-
-    // ─── Queue ────────────────────────────────────────────────────────────────
-
-    private function applyQueue(callable $get): void
-    {
-        $driver = $get('queue_driver');
-        if (!$driver) return;
-
-        $this->set('queue.default', $driver);
-
-        if ($retry = $get('queue_retry_after')) {
-            $this->set('queue.connections.database.retry_after', (int) $retry);
-            $this->set('queue.connections.redis.retry_after',    (int) $retry);
-        }
-
-        if ($driver === 'redis') {
-            $this->applyRedis($get, 'queue');
-        }
-
-        if ($driver === 'sqs') {
-            $map = [
-                'sqs_key'       => 'queue.connections.sqs.key',
-                'sqs_secret'    => 'queue.connections.sqs.secret',
-                'sqs_region'    => 'queue.connections.sqs.region',
-                'sqs_queue_url' => 'queue.connections.sqs.queue',
-            ];
-            foreach ($map as $dbKey => $configKey) {
-                if (($v = $get($dbKey)) !== null) $this->set($configKey, $v);
-            }
-        }
-    }
-
-    // ─── Redis (dùng chung cho cả cache & queue) ──────────────────────────────
-
-    private function applyRedis(callable $get, string $context): void
-    {
-        $host     = $get('redis_host');
-        $port     = $get('redis_port');
-        $password = $get('redis_password');
-        $db       = $get('redis_db', 0);
-
-        $connection = $context === 'cache' ? 'cache' : 'default';
-
-        if ($host) $this->set("database.redis.{$connection}.host",     $host);
-        if ($port) $this->set("database.redis.{$connection}.port",     (int) $port);
-        if ($password !== null && $password !== '') {
-            $this->set("database.redis.{$connection}.password", $password);
-        }
-        $this->set("database.redis.{$connection}.database", (int) $db);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

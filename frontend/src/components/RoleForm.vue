@@ -8,8 +8,7 @@
       </div>
       <div class="rf-actions">
         <button v-if="props.roleId && !isSuperAdmin" class="btn-delete" @click="deleteRole">
-          <Trash2 :size="13" /> Xóa
-        </button>
+          <Trash2 :size="13" />{{ t('admin.msg_4ed187a8', 'Xóa') }}</button>
         <button class="btn-save" @click="saveRole" :disabled="saving">
           <Loader2 v-if="saving" :size="13" class="spin" />
           {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : t('admin.msg_ecf0a713', 'Lưu quyền') }}

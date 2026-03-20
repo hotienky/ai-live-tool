@@ -114,8 +114,7 @@
         </div>
 
         <button class="act-btn act-primary ml-update-btn" @click="saveDetail" :disabled="!hasDetailChanges">
-          <Save :size="13" /> Cập nhật
-        </button>
+          <Save :size="13" />{{ t('admin.update', 'Cập nhật') }}</button>
         <button class="act-btn act-cancel ml-delete-btn" @click="handleDelete(selected)">
           <Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}
         </button>

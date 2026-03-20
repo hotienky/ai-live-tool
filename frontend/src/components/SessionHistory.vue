@@ -14,8 +14,7 @@
       <div class="session-history__body">
         <!-- Loading -->
         <div v-if="loading" class="session-history__loading">
-          <Loader2 :size="20" class="session-history__spin" /> Đang tải...
-        </div>
+          <Loader2 :size="20" class="session-history__spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
         <!-- Empty -->
         <div v-else-if="sessions.length === 0" class="session-history__empty">

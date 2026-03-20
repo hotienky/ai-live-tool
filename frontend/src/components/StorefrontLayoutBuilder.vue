@@ -13,8 +13,7 @@
           <div v-if="pageDropdownOpen" class="page-picker__menu">
             <!-- Homepage -->
             <button class="page-picker__item" :class="{ active: activePageId === null }" @click="selectPage(null)">
-              <Home :size="14" /> Trang Chủ (Global)
-            </button>
+              <Home :size="14" />{{ t('admin.msg_af830e1f', 'Trang Chủ (Global)') }}</button>
             <!-- System pages -->
             <div class="page-picker__group">{{ t('admin.msg_34dfec84', 'Trang hệ thống') }}</div>
             <button v-for="pg in builtinPageOptions" :key="pg.id"

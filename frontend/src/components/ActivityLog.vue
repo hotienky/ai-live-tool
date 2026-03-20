@@ -31,8 +31,7 @@
     </div>
 
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="24" class="spin" /> Đang tải...
-    </div>
+      <Loader2 :size="24" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
 
     <div v-else-if="logs.length === 0" class="empty-state">
       <ClipboardList :size="40" />
