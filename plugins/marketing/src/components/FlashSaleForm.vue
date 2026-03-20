@@ -11,7 +11,7 @@
       </div>
       <button class="btn-save-top" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
-        {{ saving ? 'Đang lưu...' : (editId ? 'Cập nhật' : 'Tạo Flash Sale') }}
+        {{ saving ? t('admin.saving', 'Đang lưu...') : (editId ? t('admin.update', 'Cập nhật') : t('admin.msg_9d9407dd', 'Tạo Flash Sale')) }}
       </button>
     </div>
 
@@ -30,10 +30,10 @@
 
         <!-- Basic info -->
         <div class="fsf-card">
-          <h4><Zap :size="13" /> Thông tin chương trình</h4>
+          <h4><Zap :size="13" />{{ t('admin.flash_sale.program_info', 'Thông tin chương trình') }}</h4>
 
           <div class="form-group">
-            <label>Tên chương trình <span class="req">*</span>
+            <label>{{ t('admin.flash_sale.name', 'Tên chương trình') }}<span class="req">*</span>
               <span v-if="currentLang !== 'vi'" class="lang-badge">{{ currentLang.toUpperCase() }}</span>
             </label>
             <input
@@ -45,11 +45,11 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label>Bắt đầu <span class="req">*</span></label>
+              <label>{{ t('admin.start', 'Bắt đầu') }}<span class="req">*</span></label>
               <input v-model="form.start_date" type="datetime-local" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Kết thúc <span class="req">*</span></label>
+              <label>{{ t('admin.msg_144f8bdc', 'Kết thúc') }}<span class="req">*</span></label>
               <input v-model="form.end_date" type="datetime-local" class="form-input" />
             </div>
           </div>
@@ -57,14 +57,14 @@
 
         <!-- Products -->
         <div class="fsf-card">
-          <h4><Package :size="13" /> Danh sách sản phẩm</h4>
+          <h4><Package :size="13" />{{ t('admin.flash_sale.product_list', 'Danh sách sản phẩm') }}</h4>
 
           <div class="product-search" ref="searchWrap">
             <Search :size="13" class="product-search__icon" />
             <input
               v-model="productSearch"
               class="product-search__input"
-              placeholder="Tìm sản phẩm để thêm vào Flash Sale..."
+              placeholder=t('admin.flash_sale.search_products', "Tìm sản phẩm để thêm vào Flash Sale...")
               @input="onSearch"
               @focus="onFocus"
             />
@@ -90,10 +90,10 @@
             <table class="items-table">
               <thead>
                 <tr>
-                  <th>Sản phẩm</th>
-                  <th>Giá gốc (đ)</th>
-                  <th>Giá sale (đ)</th>
-                  <th>SL giới hạn</th>
+                  <th>{{ t('admin.promotion.product', 'Sản phẩm') }}</th>
+                  <th>{{ t('admin.flash_sale.original_price', 'Giá gốc (đ)') }}</th>
+                  <th>{{ t('admin.flash_sale.sale_price', 'Giá sale (đ)') }}</th>
+                  <th>{{ t('admin.flash_sale.stock_limit', 'SL giới hạn') }}</th>
                   <th></th>
                 </tr>
               </thead>
@@ -117,7 +117,7 @@
           </div>
           <div v-else class="items-empty">
             <Package :size="24" style="opacity:.3" />
-            <span>Tìm và thêm sản phẩm từ ô tìm kiếm phía trên</span>
+            <span>{{ t('admin.flash_sale.add_products_hint', 'Tìm và thêm sản phẩm từ ô tìm kiếm phía trên') }}</span>
           </div>
         </div>
       </div>
@@ -125,9 +125,9 @@
       <!-- Side column -->
       <div class="fsf-col fsf-col--side">
         <div class="fsf-card">
-          <h4>Cài đặt</h4>
+          <h4>{{ t('admin.settings', 'Cài đặt') }}</h4>
           <div class="toggle-row">
-            <span>Kích hoạt ngay</span>
+            <span>{{ t('admin.flash_sale.activate_now', 'Kích hoạt ngay') }}</span>
             <label class="toggle">
               <input type="checkbox" v-model="form.is_active" />
               <span class="toggle__dot"></span>
@@ -137,7 +137,7 @@
 
         <!-- Preview -->
         <div class="fsf-card fsf-card--preview" v-if="formName || form.start_date">
-          <h4>Xem trước</h4>
+          <h4>{{ t('admin.preview', 'Xem trước') }}</h4>
           <div class="preview-name">{{ formName || '(Chưa đặt tên)' }}</div>
           <div class="preview-time" v-if="form.start_date">
             <Clock :size="11" /> {{ fmtDate(form.start_date) }} → {{ fmtDate(form.end_date) }}
@@ -301,12 +301,12 @@ async function handleSave() {
     })
     if (!res.ok) {
       const err = await res.json().catch(() => null)
-      throw new Error(err?.message || 'Có lỗi xảy ra')
+      throw new Error(err?.message || t('admin.msg_ea728f61', 'Có lỗi xảy ra'))
     }
-    showToast(props.editId ? 'Đã cập nhật Flash Sale' : 'Đã tạo Flash Sale mới', 'success')
+    showToast(props.editId ? t('admin.flash_sale.updated', 'Đã cập nhật Flash Sale') : t('admin.flash_sale.created', 'Đã tạo Flash Sale mới'), 'success')
     emit('saved')
   } catch (e) {
-    showToast(e?.message || 'Có lỗi xảy ra', 'error')
+    showToast(e?.message || t('admin.msg_ea728f61', 'Có lỗi xảy ra'), 'error')
   }
   saving.value = false
 }

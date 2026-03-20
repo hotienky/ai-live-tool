@@ -4,16 +4,16 @@
   <!-- List view -->
   <div v-else class="pv-mgr">
     <div class="pv-header">
-      <h2><Wallet :size="20" style="vertical-align:middle" /> Phiếu Thu / Chi</h2>
+      <h2><Wallet :size="20" style="vertical-align:middle" />{{ t('admin.msg_9d24fa83', 'Phiếu Thu / Chi') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, đối tác..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_ba3e0e', 'Tìm mã phiếu, đối tác...')"  @input="debouncedSearch" />
         <select v-model="filterType" class="filter-select">
           <option value="">{{ t('admin.all', 'Tất cả') }}</option>
           <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
           <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
         </select>
-        <button class="btn-primary" @click="openCreate('receipt')"><Plus :size="14" /> Phiếu thu</button>
-        <button class="btn-secondary" @click="openCreate('payment')"><Minus :size="14" /> Phiếu chi</button>
+        <button class="btn-primary" @click="openCreate('receipt')"><Plus :size="14" />{{ t('admin.receipt_voucher', 'Phiếu thu') }}</button>
+        <button class="btn-secondary" @click="openCreate('payment')"><Minus :size="14" />{{ t('admin.payment_voucher', 'Phiếu chi') }}</button>
       </div>
     </div>
 
@@ -32,12 +32,12 @@
       <div class="stat-card net">
         <div class="stat-icon stat-icon--blue"><Scale :size="20" /></div>
         <div class="stat-value" :class="netAmount >= 0 ? 'positive' : 'negative'">{{ formatCurrency(netAmount) }}</div>
-        <div class="stat-label">Chênh lệch</div>
+        <div class="stat-label">{{ t('admin.msg_3629b20a', 'Chênh lệch') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--warn"><FileText :size="20" /></div>
         <div class="stat-value">{{ pvStats.pending_drafts || 0 }}</div>
-        <div class="stat-label">Phiếu nháp</div>
+        <div class="stat-label">{{ t('admin.msg_d17e885a', 'Phiếu nháp') }}</div>
       </div>
     </div>
 
@@ -46,8 +46,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã phiếu</th><th>{{ t('admin.type', 'Loại') }}</th><th>Đối tác</th><th>Danh mục</th>
-            <th>Số tiền</th><th>PT thanh toán</th><th>{{ t('admin.status', 'Trạng thái') }}</th><th>Ngày</th><th>Thao tác</th>
+            <th>{{ t('admin.msg_86e59d7e', 'Mã phiếu') }}</th><th>{{ t('admin.type', 'Loại') }}</th><th>{{ t('admin.msg_03255a94', 'Đối tác') }}</th><th>{{ t('admin.msg_53d8de58', 'Danh mục') }}</th>
+            <th>{{ t('admin.msg_8cde2607', 'Số tiền') }}</th><th>{{ t('admin.msg_38fa9e3f', 'PT thanh toán') }}</th><th>{{ t('admin.status', 'Trạng thái') }}</th><th>{{ t('admin.msg_b9474a12', 'Ngày') }}</th><th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -64,14 +64,14 @@
             <td class="date">{{ formatDate(v.voucher_date) }}</td>
             <td>
               <div class="action-btns">
-                <button v-if="v.status === 'draft'" class="act-btn act-confirm" @click="confirmVoucher(v)"><Check :size="13" /> Xác nhận</button>
+                <button v-if="v.status === 'draft'" class="act-btn act-confirm" @click="confirmVoucher(v)"><Check :size="13" />{{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</button>
                 <button v-if="v.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelVoucher(v)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="v.status === 'draft'" class="act-btn act-cancel" @click="deleteVoucher(v)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
           <tr v-if="vouchers.length === 0">
-            <td colspan="9" class="empty"><div class="empty-state"><Wallet :size="40" class="empty-state__icon" /><p class="empty-state__title">Chưa có phiếu thu/chi</p></div></td>
+            <td colspan="9" class="empty"><div class="empty-state"><Wallet :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_a9fa97a4', 'Chưa có phiếu thu/chi') }}</p></div></td>
           </tr>
         </tbody>
       </table>
@@ -110,8 +110,8 @@ const showForm = ref(false)
 const formType = ref('receipt')
 
 const categories = [
-  'Tiền hàng', 'Vận chuyển', 'Marketing', 'Lương', 'Thuê mặt bằng',
-  'Điện nước', 'Dụng cụ', 'Sửa chữa', 'Hoàn trả', 'Khác',
+  t('admin.msg_59471fe2', 'Tiền hàng'), t('admin.shipping', 'Vận chuyển'), 'Marketing', t('admin.msg_0931b128', 'Lương'), t('admin.msg_9a2b203a', 'Thuê mặt bằng'),
+  t('admin.msg_e8a642ef', 'Điện nước'), t('admin.msg_07123c29', 'Dụng cụ'), t('admin.msg_faf5c20b', 'Sửa chữa'), t('admin.msg_94280c8b', 'Hoàn trả'), t('admin.msg_06c1f85a', 'Khác'),
 ]
 
 const form = ref({
@@ -122,8 +122,8 @@ const form = ref({
 
 const netAmount = computed(() => (pvStats.value.total_receipts || 0) - (pvStats.value.total_payments || 0))
 
-function statusLabel(s) { return { draft: 'Nháp', confirmed: 'Đã xác nhận', cancelled: 'Đã hủy' }[s] || s }
-function paymentMethodLabel(m) { return { cash: 'Tiền mặt', bank: 'CK', wallet: 'Ví', other: 'Khác' }[m] || m }
+function statusLabel(s) { return { draft: t('admin.msg_867cf3b9', 'Nháp'), confirmed: t('admin.msg_c6de124c', 'Đã xác nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s }
+function paymentMethodLabel(m) { return { cash: t('admin.msg_047caf53', 'Tiền mặt'), bank: 'CK', wallet: t('admin.msg_2bc16e2a', 'Ví'), other: t('admin.msg_06c1f85a', 'Khác') }[m] || m }
 
 onMounted(() => { fetchVouchers(); fetchStats() })
 watch([filterType, currentPage], fetchVouchers)

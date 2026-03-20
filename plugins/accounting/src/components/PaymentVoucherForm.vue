@@ -8,33 +8,33 @@
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
-        {{ saving ? 'Đang lưu...' : 'Tạo phiếu' }}
+        {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.msg_f030cb22', 'Tạo phiếu') }}
       </button>
     </div>
 
     <div class="pvf-body">
       <div class="pvf-card">
-        <h4>Thông tin phiếu</h4>
+        <h4>{{ t('admin.msg_dd5d2c8b', 'Thông tin phiếu') }}</h4>
         <div class="form-row">
           <div class="form-group">
-            <label>Loại</label>
+            <label>{{ t('admin.type', 'Loại') }}</label>
             <select v-model="form.type" class="form-input">
-              <option value="receipt">Phiếu thu</option>
-              <option value="payment">Phiếu chi</option>
+              <option value="receipt">{{ t('admin.receipt_voucher', 'Phiếu thu') }}</option>
+              <option value="payment">{{ t('admin.payment_voucher', 'Phiếu chi') }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Ngày</label>
+            <label>{{ t('admin.msg_b9474a12', 'Ngày') }}</label>
             <input type="date" v-model="form.voucher_date" class="form-input" />
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Số tiền <span class="req">*</span></label>
+            <label>{{ t('admin.msg_8cde2607', 'Số tiền') }}<span class="req">*</span></label>
             <input type="number" v-model.number="form.amount" min="0" class="form-input" />
           </div>
           <div class="form-group">
-            <label>Danh mục <span class="req">*</span></label>
+            <label>{{ t('admin.msg_53d8de58', 'Danh mục') }}<span class="req">*</span></label>
             <select v-model="form.category" class="form-input">
               <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
             </select>
@@ -42,22 +42,22 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>PT thanh toán</label>
+            <label>{{ t('admin.msg_38fa9e3f', 'PT thanh toán') }}</label>
             <select v-model="form.payment_method" class="form-input">
-              <option value="cash">Tiền mặt</option>
-              <option value="bank">Chuyển khoản</option>
-              <option value="wallet">Ví điện tử</option>
-              <option value="other">Khác</option>
+              <option value="cash">{{ t('admin.msg_047caf53', 'Tiền mặt') }}</option>
+              <option value="bank">{{ t('admin.msg_8ea82051', 'Chuyển khoản') }}</option>
+              <option value="wallet">{{ t('admin.msg_b0950a5e', 'Ví điện tử') }}</option>
+              <option value="other">{{ t('admin.msg_06c1f85a', 'Khác') }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Đối tác</label>
-            <input v-model="form.counterparty" class="form-input" placeholder="Tên đối tác/KH..." />
+            <label>{{ t('admin.msg_03255a94', 'Đối tác') }}</label>
+            <input v-model="form.counterparty" class="form-input" :placeholder="t('admin.msg_cfa7bd', 'Tên đối tác/KH...')"  />
           </div>
         </div>
         <div class="form-group">
-          <label>Mô tả</label>
-          <textarea v-model="form.description" rows="3" class="form-input" placeholder="Chi tiết..."></textarea>
+          <label>{{ t('admin.msg_e9c02d54', 'Mô tả') }}</label>
+          <textarea v-model="form.description" rows="3" class="form-input" :placeholder="t('admin.msg_dfa3f5', 'Chi tiết...')" ></textarea>
         </div>
       </div>
     </div>
@@ -76,7 +76,7 @@ const emit = defineEmits(['saved', 'back'])
 const props = defineProps({ initialType: { type: String, default: 'receipt' } })
 
 const saving = ref(false)
-const categories = ['Tiền hàng', 'Vận chuyển', 'Marketing', 'Lương', 'Thuê mặt bằng', 'Điện nước', 'Dụng cụ', 'Sửa chữa', 'Hoàn trả', 'Khác']
+const categories = [t('admin.msg_59471fe2', 'Tiền hàng'), t('admin.shipping', 'Vận chuyển'), 'Marketing', t('admin.msg_0931b128', 'Lương'), t('admin.msg_9a2b203a', 'Thuê mặt bằng'), t('admin.msg_e8a642ef', 'Điện nước'), t('admin.msg_07123c29', 'Dụng cụ'), t('admin.msg_faf5c20b', 'Sửa chữa'), t('admin.msg_94280c8b', 'Hoàn trả'), t('admin.msg_06c1f85a', 'Khác')]
 const form = ref({
   type: props.initialType || 'receipt', amount: 0, category: 'Tiền hàng',
   description: '', payment_method: 'cash', counterparty: '',

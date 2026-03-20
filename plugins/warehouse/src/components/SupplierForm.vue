@@ -8,17 +8,17 @@
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" />
-        {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Thêm') }}
+        {{ saving ? t('admin.saving', 'Đang lưu...') : (props.editId ? t('admin.update', 'Cập nhật') : t('admin.msg_d9cb420e', 'Thêm')) }}
       </button>
     </div>
 
     <div class="sf-body">
       <div class="sf-col sf-col--main">
         <div class="sf-card">
-          <h4><Briefcase :size="13" /> Thông tin nhà cung cấp</h4>
+          <h4><Briefcase :size="13" />{{ t('admin.msg_f5e482a5', 'Thông tin nhà cung cấp') }}</h4>
           <div class="form-group">
-            <label>Tên NCC <span class="req">*</span></label>
-            <input v-model="form.name" class="form-input" placeholder="Công ty ABC" />
+            <label>{{ t('admin.msg_a98ff863', 'Tên NCC') }}<span class="req">*</span></label>
+            <input v-model="form.name" class="form-input" :placeholder="t('admin.msg_1113dd', 'Công ty ABC')"  />
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -36,11 +36,11 @@
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label>Mã số thuế</label>
+              <label>{{ t('admin.msg_05755dd6', 'Mã số thuế') }}</label>
               <input v-model="form.tax_id" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Người liên hệ</label>
+              <label>{{ t('admin.msg_3e65230f', 'Người liên hệ') }}</label>
               <input v-model="form.contact_person" class="form-input" />
             </div>
           </div>
@@ -52,9 +52,9 @@
       </div>
       <div class="sf-col sf-col--side">
         <div class="sf-card">
-          <h4>Trạng thái</h4>
+          <h4>{{ t('admin.status', 'Trạng thái') }}</h4>
           <div class="form-group form-group--inline">
-            <span>Đang hoạt động</span>
+            <span>{{ t('admin.msg_cfaecd87', 'Đang hoạt động') }}</span>
             <label class="toggle">
               <input type="checkbox" v-model="form.is_active" />
               <span class="toggle__slider"></span>

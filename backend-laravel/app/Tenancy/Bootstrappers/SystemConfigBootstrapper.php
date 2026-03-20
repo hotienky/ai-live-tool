@@ -55,7 +55,14 @@ class SystemConfigBootstrapper implements TenancyBootstrapper
     private function applyMail(callable $get): void
     {
         $driver = $get('mail_driver');
-        if (!$driver) return;
+
+        // Chưa config → tắt mail hoàn toàn (dùng 'array' driver: emails bị discard, không lỗi)
+        // Không fallback về .env vì .env là cấu hình của server, không phải của tenant này
+        if (!$driver) {
+            $this->set('mail.default', 'array');
+            $this->forgetResolvedInstances();
+            return;
+        }
 
         $this->set('mail.default', $driver);
 

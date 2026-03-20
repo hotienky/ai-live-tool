@@ -18,7 +18,7 @@
 
     <!-- Loading -->
     <div v-if="loading" class="loading-state">
-      <Loader2 :size="20" class="spin" /> Đang tải...
+      <Loader2 :size="20" class="spin" /> {{ t('admin.msg_d5fe42f6', 'Đang tải...') }}
     </div>
 
     <template v-else>
@@ -62,8 +62,8 @@
           <div class="config-field__label-row">
             <label class="config-field__label">
               {{ field.label }}
-              <span v-if="field.required" class="badge-required">Bắt buộc</span>
-              <span v-else class="badge-optional">Tuỳ chọn</span>
+              <span v-if="field.required" class="badge-required">{{ t('admin.required', 'Bắt buộc') }}</span>
+              <span v-else class="badge-optional">{{ t('admin.msg_optional', 'Tuỳ chọn') }}</span>
             </label>
             <code class="config-field__key">{{ field.key }}</code>
           </div>
@@ -76,7 +76,7 @@
             :value="formValues[field.key] ?? ''"
             @change="setValue(field.key, $event.target.value)"
           >
-            <option value="" disabled>-- Chọn --</option>
+            <option value="" disabled>{{ t('admin.msg_d5555988', '-- Chọn --') }}</option>
             <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
           </select>
 
@@ -117,7 +117,7 @@
       <div class="config-actions">
         <button class="cfg-save-btn" @click="saveAll" :disabled="saving || !hasChanges">
           <Save :size="14" />
-          {{ saving ? 'Đang lưu...' : 'Lưu cấu hình' }}
+          {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
         </button>
 
         <!-- Test mail button — chỉ hiện với mail drivers có thể test -->
@@ -128,7 +128,7 @@
           :disabled="testing"
         >
           <FlaskConical :size="14" />
-          {{ testing ? 'Đang test...' : 'Test kết nối' }}
+          {{ testing ? t('admin.msg_testing', 'Đang test...') : t('admin.msg_test_conn', 'Test kết nối') }}
         </button>
 
         <!-- Test redis button — chỉ hiện khi chọn Redis -->
@@ -139,10 +139,10 @@
           :disabled="testing"
         >
           <FlaskConical :size="14" />
-          {{ testing ? 'Đang test...' : 'Test kết nối Redis' }}
+          {{ testing ? t('admin.msg_testing', 'Đang test...') : t('admin.msg_test_redis', 'Test kết nối Redis') }}
         </button>
 
-        <span v-if="hasChanges" class="unsaved-hint">Có thay đổi chưa lưu</span>
+        <span v-if="hasChanges" class="unsaved-hint">{{ t('admin.msg_unsaved', 'Có thay đổi chưa lưu') }}</span>
       </div>
 
       <!-- Kết quả test -->
@@ -155,7 +155,7 @@
     <!-- Modal nhập email nhận thử -->
     <div v-if="showTestModal" class="modal-overlay" @click.self="showTestModal = false">
       <div class="modal-box">
-        <h4 class="modal-title"><FlaskConical :size="15" /> Gửi email thử</h4>
+        <h4 class="modal-title"><FlaskConical :size="15" /> {{ t('admin.msg_send_test_email', 'Gửi email thử') }}</h4>
         <p class="modal-desc">Hệ thống sẽ dùng thông tin bạn đã nhập để gửi một email tới địa chỉ dưới đây.</p>
         <input
           v-model="testEmail"
@@ -166,9 +166,9 @@
         />
         <div class="modal-actions">
           <button class="cfg-save-btn" @click="confirmTestMail" :disabled="!testEmail || testing">
-            <Send :size="14" /> {{ testing ? 'Đang gửi...' : 'Gửi email thử' }}
+            <Send :size="14" /> {{ testing ? t('admin.msg_sending', 'Đang gửi...') : t('admin.msg_send_test_email', 'Gửi email thử') }}
           </button>
-          <button class="cfg-cancel-btn" @click="showTestModal = false">Huỷ</button>
+          <button class="cfg-cancel-btn" @click="showTestModal = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
         </div>
       </div>
     </div>
@@ -328,9 +328,9 @@ async function confirmTestMail() {
     }
     const res  = await apiFetch('/system-config/test-mail', { method: 'POST', body: JSON.stringify(payload) })
     const data = await res.json()
-    testResult.value = { ok: res.ok, message: data.message ?? (res.ok ? 'Thành công' : 'Thất bại') }
+    testResult.value = { ok: res.ok, message: data.message ?? (res.ok ? t('admin.success', 'Thành công') : t('admin.msg_failed', 'Thất bại')) }
   } catch (e) {
-    testResult.value = { ok: false, message: 'Lỗi kết nối tới server' }
+    testResult.value = { ok: false, message: t('admin.msg_conn_error', 'Lỗi kết nối tới server') }
   } finally {
     testing.value = false
   }
@@ -349,9 +349,9 @@ async function testRedis() {
     }
     const res  = await apiFetch('/system-config/test-redis', { method: 'POST', body: JSON.stringify(payload) })
     const data = await res.json()
-    testResult.value = { ok: res.ok, message: data.message ?? (res.ok ? 'Kết nối thành công' : 'Thất bại') }
+    testResult.value = { ok: res.ok, message: data.message ?? (res.ok ? t('admin.msg_conn_success', 'Kết nối thành công') : t('admin.msg_failed', 'Thất bại')) }
   } catch (e) {
-    testResult.value = { ok: false, message: 'Lỗi kết nối tới server' }
+    testResult.value = { ok: false, message: t('admin.msg_conn_error', 'Lỗi kết nối tới server') }
   } finally {
     testing.value = false
   }

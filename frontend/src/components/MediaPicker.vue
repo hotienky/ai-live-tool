@@ -10,7 +10,7 @@
         <button type="button" class="mp-browse-btn" @click="openPicker" :title="t('admin.choose_media', 'Chọn từ Media')">
           <ImageIcon :size="14" />
         </button>
-        <button type="button" class="mp-clear-btn" @click="$emit('update:modelValue', '')" v-if="modelValue" title="Xóa">
+        <button type="button" class="mp-clear-btn" @click="$emit('update:modelValue', '')" v-if="modelValue" :title="t('admin.msg_4ed187a8', 'Xóa')" >
           &times;
         </button>
       </div>

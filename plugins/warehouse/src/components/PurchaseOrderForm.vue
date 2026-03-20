@@ -14,21 +14,21 @@
     <div class="pof-body">
       <div class="pof-col pof-col--main">
         <div class="pof-card">
-          <h4><ShoppingCart :size="13" /> Thông tin đơn hàng</h4>
+          <h4><ShoppingCart :size="13" />{{ t('admin.msg_9fb34cdb', 'Thông tin đơn hàng') }}</h4>
           <div class="form-row">
             <div class="form-group">
-              <label>Nhà cung cấp <span class="req">*</span></label>
+              <label>{{ t('admin.suppliers', 'Nhà cung cấp') }}<span class="req">*</span></label>
               <select v-model="form.supplier_id" class="form-input">
-                <option :value="null" disabled>— Chọn NCC —</option>
+                <option :value="null" disabled>{{ t('admin.msg_435bf321', '— Chọn NCC —') }}</option>
                 <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
               </select>
             </div>
             <div class="form-group">
-              <label>Ngày đặt</label>
+              <label>{{ t('admin.order_date', 'Ngày đặt') }}</label>
               <input type="date" v-model="form.order_date" class="form-input" />
             </div>
             <div class="form-group">
-              <label>Ngày nhận dự kiến</label>
+              <label>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</label>
               <input type="date" v-model="form.expected_date" class="form-input" />
             </div>
           </div>
@@ -36,9 +36,9 @@
 
         <!-- Product search -->
         <div class="pof-card">
-          <h4>Thêm sản phẩm</h4>
+          <h4>{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</h4>
           <div class="product-search-wrap">
-            <input v-model="productSearch" class="form-input" placeholder="Tìm tên SP, SKU..." @input="searchProducts" />
+            <input v-model="productSearch" class="form-input" :placeholder="t('admin.msg_c20e39', 'Tìm tên SP, SKU...')"  @input="searchProducts" />
             <div class="product-dropdown" v-if="productResults.length > 0">
               <div v-for="p in productResults" :key="p.id" class="product-result" @click="addProduct(p)">
                 <span class="pr-name">{{ p.name }}</span>
@@ -50,7 +50,7 @@
 
           <div class="items-table" v-if="form.items.length > 0">
             <table>
-              <thead><tr><th>Sản phẩm</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">Đơn giá</th><th style="width:110px">Thành tiền</th><th style="width:40px"></th></tr></thead>
+              <thead><tr><th>{{ t('admin.promotion.product', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">{{ t('admin.unit_price', 'Đơn giá') }}</th><th style="width:110px">{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th><th style="width:40px"></th></tr></thead>
               <tbody>
                 <tr v-for="(item, idx) in form.items" :key="idx">
                   <td>{{ item.product_name }}</td>
@@ -63,16 +63,16 @@
               </tbody>
             </table>
           </div>
-          <p v-else class="empty-hint">Chưa có sản phẩm. Tìm và thêm ở trên.</p>
+          <p v-else class="empty-hint">{{ t('admin.msg_95859a1d', 'Chưa có sản phẩm. Tìm và thêm ở trên.') }}</p>
         </div>
 
         <div class="pof-card">
           <div class="form-row">
-            <div class="form-group"><label>Thuế</label><input type="number" v-model.number="form.tax_amount" min="0" class="form-input" @change="recalcTotal" /></div>
-            <div class="form-group"><label>Giảm giá</label><input type="number" v-model.number="form.discount_amount" min="0" class="form-input" @change="recalcTotal" /></div>
-            <div class="form-group"><label>Tổng tiền</label><input type="number" v-model.number="form.total_amount" readonly class="form-input total-input" /></div>
+            <div class="form-group"><label>{{ t('admin.tax', 'Thuế') }}</label><input type="number" v-model.number="form.tax_amount" min="0" class="form-input" @change="recalcTotal" /></div>
+            <div class="form-group"><label>{{ t('admin.msg_6b272d01', 'Giảm giá') }}</label><input type="number" v-model.number="form.discount_amount" min="0" class="form-input" @change="recalcTotal" /></div>
+            <div class="form-group"><label>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</label><input type="number" v-model.number="form.total_amount" readonly class="form-input total-input" /></div>
           </div>
-          <div class="form-group"><label>Ghi chú</label><textarea v-model="form.notes" class="form-input" rows="3"></textarea></div>
+          <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" class="form-input" rows="3"></textarea></div>
         </div>
       </div>
     </div>

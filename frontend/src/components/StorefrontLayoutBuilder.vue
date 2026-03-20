@@ -44,7 +44,7 @@
           <Eye v-else :size="14" />
           {{ previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe' }}
         </button>
-        <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" title="Lưu nháp">
+        <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
           <FileEdit :size="14" /> Nháp
         </button>
         <button class="btn-save" @click="saveLayout" :disabled="saving">

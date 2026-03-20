@@ -6,24 +6,24 @@
   <!-- List view -->
   <div v-else class="stock-receipt-mgr">
     <div class="sr-header">
-      <h2><ClipboardList :size="20" style="vertical-align:middle" /> Phiếu Nhập/Xuất Kho</h2>
+      <h2><ClipboardList :size="20" style="vertical-align:middle" />{{ t('admin.msg_dfe4f7c2', 'Phiếu Nhập/Xuất Kho') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm mã phiếu, ghi chú..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_0f994a', 'Tìm mã phiếu, ghi chú...')"  @input="debouncedSearch" />
         <select v-model="filterType" class="filter-select">
-          <option value="">Tất cả loại</option>
+          <option value="">{{ t('admin.msg_ca84e246', 'Tất cả loại') }}</option>
           <option value="import">{{ t('admin.import_stock', 'Nhập kho') }}</option>
           <option value="export">{{ t('admin.export_stock', 'Xuất kho') }}</option>
-          <option value="return">Trả hàng</option>
-          <option value="adjust">Kiểm kê</option>
+          <option value="return">{{ t('admin.msg_4d38cf36', 'Trả hàng') }}</option>
+          <option value="adjust">{{ t('admin.msg_cd34d41d', 'Kiểm kê') }}</option>
         </select>
         <select v-model="filterStatus" class="filter-select">
-          <option value="">Tất cả TT</option>
-          <option value="draft">Nháp</option>
-          <option value="confirmed">Đã xác nhận</option>
-          <option value="cancelled">Đã hủy</option>
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
+          <option value="draft">{{ t('admin.msg_867cf3b9', 'Nháp') }}</option>
+          <option value="confirmed">{{ t('admin.msg_c6de124c', 'Đã xác nhận') }}</option>
+          <option value="cancelled">{{ t('admin.msg_1a46e024', 'Đã hủy') }}</option>
         </select>
-        <button class="btn-primary" @click="openCreate('import')"><Plus :size="14" /> Nhập kho</button>
-        <button class="btn-secondary" @click="openCreate('export')"><Minus :size="14" /> Xuất kho</button>
+        <button class="btn-primary" @click="openCreate('import')"><Plus :size="14" />{{ t('admin.msg_94e97353', 'Nhập kho') }}</button>
+        <button class="btn-secondary" @click="openCreate('export')"><Minus :size="14" />{{ t('admin.msg_25af27c7', 'Xuất kho') }}</button>
       </div>
     </div>
 
@@ -32,22 +32,22 @@
       <div class="stat-card">
         <div class="stat-icon"><ArrowDownToLine :size="20" /></div>
         <div class="stat-value">{{ stats.total_imports || 0 }}</div>
-        <div class="stat-label">Phiếu nhập</div>
+        <div class="stat-label">{{ t('admin.msg_4234c463', 'Phiếu nhập') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--export"><ArrowUpFromLine :size="20" /></div>
         <div class="stat-value">{{ formatCurrency(stats.import_value || 0) }}</div>
-        <div class="stat-label">Giá trị nhập</div>
+        <div class="stat-label">{{ t('admin.msg_68f38aee', 'Giá trị nhập') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--warn"><ArrowUpFromLine :size="20" /></div>
         <div class="stat-value">{{ stats.total_exports || 0 }}</div>
-        <div class="stat-label">Phiếu xuất</div>
+        <div class="stat-label">{{ t('admin.msg_e048acd6', 'Phiếu xuất') }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon stat-icon--info"><FileText :size="20" /></div>
         <div class="stat-value">{{ stats.pending_drafts || 0 }}</div>
-        <div class="stat-label">Chờ xác nhận</div>
+        <div class="stat-label">{{ t('admin.msg_d0f4e750', 'Chờ xác nhận') }}</div>
       </div>
     </div>
 
@@ -56,14 +56,14 @@
       <table>
         <thead>
           <tr>
-            <th>Mã phiếu</th>
+            <th>{{ t('admin.msg_86e59d7e', 'Mã phiếu') }}</th>
             <th>{{ t('admin.type', 'Loại') }}</th>
             <th>NCC</th>
             <th>SP</th>
-            <th>Tổng tiền</th>
+            <th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
             <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th>{{ t('admin.created_at', 'Ngày tạo') }}</th>
-            <th>Thao tác</th>
+            <th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +78,7 @@
             <td>
               <div class="action-btns">
                 <button class="act-btn act-view" @click="viewReceipt(r)"><Eye :size="13" /> Xem</button>
-                <button v-if="r.status === 'draft'" class="act-btn act-confirm" @click="confirmReceipt(r)"><Check :size="13" /> Xác nhận</button>
+                <button v-if="r.status === 'draft'" class="act-btn act-confirm" @click="confirmReceipt(r)"><Check :size="13" />{{ t('admin.msg_1e2eb2de', 'Xác nhận') }}</button>
                 <button v-if="r.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelReceipt(r)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="r.status === 'draft'" class="act-btn act-cancel" @click="deleteReceipt(r)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
@@ -88,8 +88,8 @@
             <td colspan="8" class="empty">
               <div class="empty-state">
                 <ClipboardList :size="40" class="empty-state__icon" />
-                <p class="empty-state__title">Chưa có phiếu kho</p>
-                <p class="empty-state__sub">Tạo phiếu nhập/xuất kho đầu tiên</p>
+                <p class="empty-state__title">{{ t('admin.msg_348f74ea', 'Chưa có phiếu kho') }}</p>
+                <p class="empty-state__sub">{{ t('admin.msg_a5e47f61', 'Tạo phiếu nhập/xuất kho đầu tiên') }}</p>
               </div>
             </td>
           </tr>
@@ -143,10 +143,10 @@ const initialType = ref('import')
 
 // Labels
 function typeLabel(t) {
-  return { import: 'Nhập kho', export: 'Xuất kho', return: 'Trả hàng', adjust: 'Kiểm kê' }[t] || t
+  return { import: t('admin.msg_94e97353', 'Nhập kho'), export: t('admin.msg_25af27c7', 'Xuất kho'), return: t('admin.msg_4d38cf36', 'Trả hàng'), adjust: t('admin.msg_cd34d41d', 'Kiểm kê') }[t] || t
 }
 function statusLabel(s) {
-  return { draft: 'Nháp', confirmed: 'Đã xác nhận', cancelled: 'Đã hủy' }[s] || s
+  return { draft: t('admin.msg_867cf3b9', 'Nháp'), confirmed: t('admin.msg_c6de124c', 'Đã xác nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s
 }
 
 // Fetch

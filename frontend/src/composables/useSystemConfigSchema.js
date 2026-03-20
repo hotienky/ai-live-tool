@@ -205,9 +205,17 @@ export const CONFIG_SCHEMA = {
     },
   },
 
+  // Cache và Queue là infrastructure của server — lấy từ .env, không cấu hình per-tenant.
+
   // ─── CACHE ───────────────────────────────────────────────────────────────────
-  cache: {
-    label: 'Cache',
+  // (đã bỏ — dùng .env)
+
+  // ─── QUEUE ───────────────────────────────────────────────────────────────────
+  // (đã bỏ — dùng .env)
+
+  // ─── SMS ─────────────────────────────────────────────────────────────────────
+  sms_PLACEHOLDER: {
+    label: 'placeholder',
     icon: 'Database',
     description: 'Cấu hình lưu cache để tăng tốc độ tải trang và giảm tải database',
     driverKey: 'cache_driver',

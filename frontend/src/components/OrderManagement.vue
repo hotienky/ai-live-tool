@@ -531,29 +531,29 @@ function printInvoice(order) {
     </style>
   </head><body>
     <div class="header">
-      <h1>HÓA ĐƠN BÁN HÀNG</h1>
+      <h1>${t('admin.msg_invoice_title', 'HÓA ĐƠN BÁN HÀNG')}</h1>
       <div class="date">${new Date(order.createdAt).toLocaleString('vi-VN')}</div>
     </div>
     <div class="info">
-      <div class="row"><span class="label">Mã đơn:</span><strong>#${order.id}</strong></div>
-      <div class="row"><span class="label">Khách:</span><span>${order.customerName || t('admin.msg_83e37a97', 'Khách lẻ')}</span></div>
-      ${order.customerPhone ? `<div class="row"><span class="label">SĐT:</span><span>${order.customerPhone}</span></div>` : ''}
-      ${order.customerAddress ? `<div class="row"><span class="label">Địa chỉ:</span><span>${order.customerAddress}</span></div>` : ''}
-      <div class="row"><span class="label">TT Toán:</span><span>${order.paymentStatus === 'paid' ? t('admin.msg_04b5eaed', 'Đã TT') : t('admin.msg_e8a83705', 'Chưa TT')}</span></div>
+      <div class="row"><span class="label">${t('admin.msg_order_code', 'Mã đơn')}:</span><strong>#${order.id}</strong></div>
+      <div class="row"><span class="label">${t('admin.msg_customer_label', 'Khách')}:</span><span>${order.customerName || t('admin.msg_83e37a97', 'Khách lẻ')}</span></div>
+      ${order.customerPhone ? `<div class="row"><span class="label">${t('admin.msg_phone_label', 'SĐT')}:</span><span>${order.customerPhone}</span></div>` : ''}
+      ${order.customerAddress ? `<div class="row"><span class="label">${t('admin.msg_address_label', 'Địa chỉ')}:</span><span>${order.customerAddress}</span></div>` : ''}
+      <div class="row"><span class="label">${t('admin.msg_payment_status', 'TT Toán')}:</span><span>${order.paymentStatus === 'paid' ? t('admin.msg_04b5eaed', 'Đã TT') : t('admin.msg_e8a83705', 'Chưa TT')}</span></div>
     </div>
     <table>
-      <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th style="text-align:center">SL</th><th style="text-align:right">Giá</th></tr></thead>
-      <tbody>${itemsHtml || t('admin.msg_b1bc2ffa', '<tr><td colspan="4" style="text-align:center; color:#999">Không có sản phẩm</td></tr>')}</tbody>
+      <thead><tr><th>#</th><th>${t('admin.product', 'Sản phẩm')}</th><th style="text-align:center">${t('admin.msg_qty_short', 'SL')}</th><th style="text-align:right">${t('admin.price', 'Giá')}</th></tr></thead>
+      <tbody>${itemsHtml || `<tr><td colspan="4" style="text-align:center; color:#999">${t('admin.msg_e44c91a9', 'Không có sản phẩm')}</td></tr>`}</tbody>
     </table>
     <div class="total-section">
-      ${order.subtotal ? `<div class="total-row"><span>Tạm tính:</span><span>${Number(order.subtotal || 0).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.discountAmount > 0 ? `<div class="total-row"><span>Giảm giá:</span><span style="color:#16a34a">-${Number(order.discountAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.shippingFee > 0 ? `<div class="total-row"><span>Phí giao hàng:</span><span>${Number(order.shippingFee).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.taxAmount > 0 ? `<div class="total-row"><span>Thuế:</span><span>${Number(order.taxAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      <div class="total-row grand"><span>TỔNG CỘNG:</span><span>${Number(order.totalAmount || 0).toLocaleString('vi-VN')}đ</span></div>
+      ${order.subtotal ? `<div class="total-row"><span>${t('admin.msg_e014dd77', 'Tạm tính')}:</span><span>${Number(order.subtotal || 0).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.discountAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_1286d2de', 'Giảm giá')}:</span><span style="color:#16a34a">-${Number(order.discountAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.shippingFee > 0 ? `<div class="total-row"><span>${t('admin.msg_381c23f1', 'Phí giao hàng')}:</span><span>${Number(order.shippingFee).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      ${order.taxAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_tax', 'Thuế')}:</span><span>${Number(order.taxAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
+      <div class="total-row grand"><span>${t('admin.msg_91abc33d', 'TỔNG CỘNG')}:</span><span>${Number(order.totalAmount || 0).toLocaleString('vi-VN')}đ</span></div>
     </div>
-    ${order.notes ? `<div style="margin-top:8px;font-size:11px"><strong>Ghi chú:</strong> ${order.notes}</div>` : ''}
-    <div class="footer">Cảm ơn quý khách!<br/>In lúc ${new Date().toLocaleString('vi-VN')}</div>
+    ${order.notes ? `<div style="margin-top:8px;font-size:11px"><strong>${t('admin.msg_1f871388', 'Ghi chú')}:</strong> ${order.notes}</div>` : ''}
+    <div class="footer">${t('admin.msg_52e4453a', 'Cảm ơn quý khách!')}<br/>In lúc ${new Date().toLocaleString('vi-VN')}</div>
   </body></html>`)
   win.document.close()
   setTimeout(() => win.print(), 300)

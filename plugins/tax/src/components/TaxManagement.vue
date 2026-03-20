@@ -3,7 +3,7 @@
     <!-- Tax Config Section -->
     <section class="tax-section">
       <div class="tax-section__header">
-        <h4 class="tax-section__title"><Settings :size="14" /> Cài đặt thuế</h4>
+        <h4 class="tax-section__title"><Settings :size="14" />{{ t('admin.msg_48dde21d', 'Cài đặt thuế') }}</h4>
         <button class="tax-btn tax-btn--primary tax-btn--sm" @click="saveConfig" :disabled="savingConfig">
           <Save :size="13" /> {{ savingConfig ? 'Đang lưu...' : 'Lưu cấu hình' }}
         </button>
@@ -11,7 +11,7 @@
 
       <div class="tax-config">
         <div class="tax-row">
-          <label class="tax-label">Bật thuế</label>
+          <label class="tax-label">{{ t('admin.msg_d35fa5cc', 'Bật thuế') }}</label>
           <label class="tax-switch">
             <input type="checkbox" v-model="config.enabled" />
             <span class="tax-switch__slider"></span>
@@ -20,7 +20,7 @@
 
         <template v-if="config.enabled">
           <div class="tax-row">
-            <label class="tax-label">Giá đã bao gồm thuế</label>
+            <label class="tax-label">{{ t('admin.msg_2c44de99', 'Giá đã bao gồm thuế') }}</label>
             <label class="tax-switch">
               <input type="checkbox" v-model="config.price_includes_tax" />
               <span class="tax-switch__slider"></span>
@@ -28,25 +28,25 @@
           </div>
 
           <div class="tax-row">
-            <label class="tax-label">Nhãn hiển thị</label>
+            <label class="tax-label">{{ t('admin.msg_591cb50e', 'Nhãn hiển thị') }}</label>
             <input type="text" v-model="config.label" class="tax-input tax-input--sm" placeholder="VAT" />
           </div>
 
           <div class="tax-row">
-            <label class="tax-label">Hiển thị trên storefront</label>
+            <label class="tax-label">{{ t('admin.msg_950f2f3d', 'Hiển thị trên storefront') }}</label>
             <select v-model="config.display_mode" class="tax-select">
-              <option value="exclusive">Giá chưa gồm thuế + dòng thuế riêng</option>
-              <option value="inclusive">Giá đã gồm thuế</option>
-              <option value="both">Cả hai (giá + dòng thuế)</option>
+              <option value="exclusive">{{ t('admin.msg_5939c788', 'Giá chưa gồm thuế + dòng thuế riêng') }}</option>
+              <option value="inclusive">{{ t('admin.msg_2cc981ee', 'Giá đã gồm thuế') }}</option>
+              <option value="both">{{ t('admin.msg_0ff4616b', 'Cả hai (giá + dòng thuế)') }}</option>
             </select>
           </div>
 
           <div class="tax-row">
-            <label class="tax-label">Cách làm tròn</label>
+            <label class="tax-label">{{ t('admin.msg_be44f748', 'Cách làm tròn') }}</label>
             <select v-model="config.rounding" class="tax-select tax-select--sm">
-              <option value="round">Làm tròn</option>
-              <option value="ceil">Làm tròn lên</option>
-              <option value="floor">Làm tròn xuống</option>
+              <option value="round">{{ t('admin.msg_3fdd03ae', 'Làm tròn') }}</option>
+              <option value="ceil">{{ t('admin.msg_964963d7', 'Làm tròn lên') }}</option>
+              <option value="floor">{{ t('admin.msg_f241ee20', 'Làm tròn xuống') }}</option>
             </select>
           </div>
         </template>
@@ -56,27 +56,27 @@
     <!-- Vietnam 2026 Quick Apply -->
     <section v-if="config.enabled && !rates.length" class="tax-section tax-section--vn">
       <div class="tax-section__header">
-        <h4 class="tax-section__title"><Flag :size="14" /> Thuế suất Việt Nam 2026</h4>
+        <h4 class="tax-section__title"><Flag :size="14" />{{ t('admin.msg_df2061ed', 'Thuế suất Việt Nam 2026') }}</h4>
       </div>
       <div class="tax-vn-apply">
-        <p class="tax-vn-apply__desc">Áp dụng nhanh 4 mức thuế GTGT theo quy định Việt Nam hiện hành:</p>
+        <p class="tax-vn-apply__desc">{{ t('admin.msg_72d9529a', 'Áp dụng nhanh 4 mức thuế GTGT theo quy định Việt Nam hiện hành:') }}</p>
         <div class="tax-vn-rates">
-          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">0%</span><span>Xuất khẩu</span></div>
-          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">5%</span><span>Thiết yếu</span></div>
-          <div class="tax-vn-rate"><span class="tax-vn-rate__pct tax-vn-rate__pct--highlight">8%</span><span>Giảm thuế <small>(đến 31/12/2026)</small></span></div>
-          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">10%</span><span>Tiêu chuẩn</span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">0%</span><span>{{ t('admin.msg_3ba3a67d', 'Xuất khẩu') }}</span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">5%</span><span>{{ t('admin.msg_cd979a3d', 'Thiết yếu') }}</span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct tax-vn-rate__pct--highlight">8%</span><span>{{ t('admin.msg_9055b6ae', 'Giảm thuế') }}<small>{{ t('admin.msg_6508065b', '(đến 31/12/2026)') }}</small></span></div>
+          <div class="tax-vn-rate"><span class="tax-vn-rate__pct">10%</span><span>{{ t('admin.msg_8aeaf18f', 'Tiêu chuẩn') }}</span></div>
         </div>
         <button class="tax-btn tax-btn--primary" @click="applyVN2026Rates" :disabled="applyingVN">
           <Flag :size="13" /> {{ applyingVN ? 'Đang tạo...' : 'Áp dụng thuế suất VN 2026' }}
         </button>
-        <p class="tax-vn-legal">Theo Luật Thuế GTGT 2024 (hiệu lực 01/07/2025) &amp; Nghị định 174/2025/NĐ-CP</p>
+        <p class="tax-vn-legal">{{ t('admin.msg_533ec8d7', 'Theo Luật Thuế GTGT 2024 (hiệu lực 01/07/2025) &amp; Nghị định 174/2025/NĐ-CP') }}</p>
       </div>
     </section>
 
     <!-- Tax Rates Section -->
     <section v-if="config.enabled" class="tax-section">
       <div class="tax-section__header">
-        <h4 class="tax-section__title"><Percent :size="14" /> Danh sách thuế suất</h4>
+        <h4 class="tax-section__title"><Percent :size="14" />{{ t('admin.msg_5cd320ba', 'Danh sách thuế suất') }}</h4>
         <div style="display:flex;gap:6px">
           <button v-if="rates.length" class="tax-btn tax-btn--sm" @click="applyVN2026Rates" :disabled="applyingVN" title="Thêm các mức thuế VN 2026 còn thiếu">
             <Flag :size="12" /> VN 2026
@@ -92,12 +92,12 @@
       <table v-else-if="rates.length" class="tax-table">
         <thead>
           <tr>
-            <th>Tên</th>
-            <th>Mã</th>
-            <th>Thuế suất</th>
-            <th>Loại</th>
-            <th>Phạm vi</th>
-            <th>Trạng thái</th>
+            <th>{{ t('admin.name', 'Tên') }}</th>
+            <th>{{ t('admin.code', 'Mã') }}</th>
+            <th>{{ t('admin.msg_a97e5ea3', 'Thuế suất') }}</th>
+            <th>{{ t('admin.type', 'Loại') }}</th>
+            <th>{{ t('admin.msg_6ffecb76', 'Phạm vi') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -118,7 +118,7 @@
             </td>
             <td>
               <span class="tax-status" :class="{ active: rate.is_active }">
-                {{ rate.is_active ? '✓ Hoạt động' : '○ Tắt' }}
+                {{ rate.is_active ? t('admin.msg_87fe9b79', '✓ Hoạt động') : t('admin.msg_6b9b46ed', '○ Tắt') }}
               </span>
             </td>
             <td class="tax-cell--actions">
@@ -131,20 +131,20 @@
 
       <div v-else class="tax-empty">
         <Percent :size="28" />
-        <p>Chưa có thuế suất nào. Bấm "Thêm thuế suất" hoặc "Áp dụng thuế suất VN 2026".</p>
+        <p>{{ t('admin.msg_ea227e40', 'Chưa có thuế suất nào. Bấm "Thêm thuế suất" hoặc "Áp dụng thuế suất VN 2026".') }}</p>
       </div>
     </section>
 
     <!-- Cross-navigation to Accounting -->
     <section v-if="config.enabled" class="tax-section">
       <div class="tax-section__header">
-        <h4 class="tax-section__title"><Receipt :size="14" /> Báo cáo thuế</h4>
+        <h4 class="tax-section__title"><Receipt :size="14" />{{ t('admin.msg_06015044', 'Báo cáo thuế') }}</h4>
         <button class="tax-btn tax-btn--sm" @click="emit('navigate-to-accounting')">
           <BarChart2 :size="13" /> Xem báo cáo kế toán →
         </button>
       </div>
       <div class="tax-config">
-        <p class="tax-vn-legal">Xem báo cáo thuế thu, thuế hoàn, và thuế phải nộp theo tháng trong phần Kế toán.</p>
+        <p class="tax-vn-legal">{{ t('admin.msg_a4577d62', 'Xem báo cáo thuế thu, thuế hoàn, và thuế phải nộp theo tháng trong phần Kế toán.') }}</p>
       </div>
     </section>
 
@@ -160,47 +160,47 @@
 
             <div class="tax-modal__body">
               <div class="tax-form-row">
-                <label>Tên thuế suất *</label>
+                <label>{{ t('admin.msg_3d02f68c', 'Tên thuế suất *') }}</label>
                 <input v-model="form.name" type="text" class="tax-input" placeholder="VD: VAT 10%" />
               </div>
               <div class="tax-form-row">
-                <label>Mã (code) *</label>
+                <label>{{ t('admin.msg_14ce8bcb', 'Mã (code) *') }}</label>
                 <input v-model="form.code" type="text" class="tax-input" placeholder="VD: vat_10" />
               </div>
               <div class="tax-form-grid">
                 <div class="tax-form-row">
-                  <label>Thuế suất *</label>
+                  <label>{{ t('admin.msg_72d515ea', 'Thuế suất *') }}</label>
                   <input v-model.number="form.rate" type="number" step="0.01" min="0" class="tax-input" placeholder="10" />
                 </div>
                 <div class="tax-form-row">
-                  <label>Loại</label>
+                  <label>{{ t('admin.type', 'Loại') }}</label>
                   <select v-model="form.type" class="tax-select">
-                    <option value="percentage">Phần trăm (%)</option>
-                    <option value="fixed">Cố định (₫)</option>
+                    <option value="percentage">{{ t('admin.msg_f372a8f3', 'Phần trăm (%)') }}</option>
+                    <option value="fixed">{{ t('admin.msg_45cdd251', 'Cố định (₫)') }}</option>
                   </select>
                 </div>
               </div>
               <div class="tax-form-grid">
                 <div class="tax-form-row">
-                  <label>Phạm vi áp dụng</label>
+                  <label>{{ t('admin.msg_f535ec45', 'Phạm vi áp dụng') }}</label>
                   <select v-model="form.scope" class="tax-select">
-                    <option value="global">Toàn bộ sản phẩm</option>
-                    <option value="category">Theo danh mục</option>
-                    <option value="product">Theo sản phẩm</option>
-                    <option value="region">Theo khu vực</option>
+                    <option value="global">{{ t('admin.msg_5d23406d', 'Toàn bộ sản phẩm') }}</option>
+                    <option value="category">{{ t('admin.msg_9746a68a', 'Theo danh mục') }}</option>
+                    <option value="product">{{ t('admin.msg_225bbeec', 'Theo sản phẩm') }}</option>
+                    <option value="region">{{ t('admin.msg_c799dd20', 'Theo khu vực') }}</option>
                   </select>
                 </div>
                 <div class="tax-form-row">
-                  <label>Ưu tiên</label>
+                  <label>{{ t('admin.priority', 'Ưu tiên') }}</label>
                   <input v-model.number="form.priority" type="number" min="0" class="tax-input" />
                 </div>
               </div>
 
               <div v-if="form.scope !== 'global'" class="tax-form-row">
-                <label>Áp dụng cho (IDs, cách nhau bằng dấu phẩy)</label>
+                <label>{{ t('admin.msg_e442a72f', 'Áp dụng cho (IDs, cách nhau bằng dấu phẩy)') }}</label>
                 <input v-model="form.applies_to_text" type="text" class="tax-input" placeholder="VD: 1, 2, 5" />
                 <span class="tax-hint">
-                  {{ form.scope === 'category' ? 'ID danh mục' : form.scope === 'product' ? 'ID sản phẩm' : 'ID tỉnh thành' }}
+                  {{ form.scope === 'category' ? t('admin.msg_0aea7a50', 'ID danh mục') : form.scope === 'product' ? t('admin.msg_5c5fd81c', 'ID sản phẩm') : t('admin.msg_8cb98c70', 'ID tỉnh thành') }}
                 </span>
               </div>
 
@@ -221,7 +221,7 @@
             </div>
 
             <div class="tax-modal__footer">
-              <button class="tax-btn" @click="showForm = false">Huỷ</button>
+              <button class="tax-btn" @click="showForm = false">{{ t('admin.msg_9daba04f', 'Huỷ') }}</button>
               <button class="tax-btn tax-btn--primary" @click="saveRate" :disabled="savingRate">
                 <Save :size="13" /> {{ savingRate ? 'Đang lưu...' : 'Lưu' }}
               </button>
@@ -268,7 +268,7 @@ const defaultForm = {
 const form = ref({ ...defaultForm })
 
 function scopeLabel(scope) {
-  return { global: 'Toàn bộ', category: 'Danh mục', product: 'Sản phẩm', region: 'Khu vực' }[scope] || scope
+  return { global: t('admin.msg_f3d0baa3', 'Toàn bộ'), category: t('admin.msg_53d8de58', 'Danh mục'), product: t('admin.promotion.product', 'Sản phẩm'), region: t('admin.msg_6c7b7d31', 'Khu vực') }[scope] || scope
 }
 
 function formatCurrency(v) {
@@ -361,7 +361,7 @@ async function saveRate() {
     const method = editingRate.value ? 'PUT' : 'POST'
     const res = await apiFetch(url, { method, body: JSON.stringify(payload) })
     if (!res.ok) throw new Error()
-    showToast(editingRate.value ? 'Đã cập nhật' : 'Đã thêm thuế suất', 'success')
+    showToast(editingRate.value ? t('admin.updated', 'Đã cập nhật') : 'Đã thêm thuế suất', 'success')
     showForm.value = false
     await loadRates()
   } catch {
@@ -384,10 +384,10 @@ async function deleteRate(rate) {
 }
 
 const VN_2026_RATES = [
-  { name: 'GTGT 0% — Xuất khẩu', code: 'vat_0_export', rate: 0, type: 'percentage', scope: 'global', is_active: true, priority: 0 },
-  { name: 'GTGT 5% — Thiết yếu', code: 'vat_5_essential', rate: 5, type: 'percentage', scope: 'global', is_active: true, priority: 1 },
-  { name: 'GTGT 8% — Giảm thuế (NĐ 174/2025)', code: 'vat_8_reduced', rate: 8, type: 'percentage', scope: 'global', is_active: true, priority: 2 },
-  { name: 'GTGT 10% — Tiêu chuẩn', code: 'vat_10_standard', rate: 10, type: 'percentage', scope: 'global', is_active: true, priority: 3 },
+  { name: t('admin.msg_0039d2ef', 'GTGT 0% — Xuất khẩu'), code: 'vat_0_export', rate: 0, type: 'percentage', scope: 'global', is_active: true, priority: 0 },
+  { name: t('admin.msg_dcae2704', 'GTGT 5% — Thiết yếu'), code: 'vat_5_essential', rate: 5, type: 'percentage', scope: 'global', is_active: true, priority: 1 },
+  { name: t('admin.msg_f760a797', 'GTGT 8% — Giảm thuế (NĐ 174/2025)'), code: 'vat_8_reduced', rate: 8, type: 'percentage', scope: 'global', is_active: true, priority: 2 },
+  { name: t('admin.msg_90262cc9', 'GTGT 10% — Tiêu chuẩn'), code: 'vat_10_standard', rate: 10, type: 'percentage', scope: 'global', is_active: true, priority: 3 },
 ]
 
 async function applyVN2026Rates() {

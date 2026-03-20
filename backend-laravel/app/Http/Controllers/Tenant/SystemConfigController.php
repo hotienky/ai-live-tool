@@ -116,7 +116,6 @@ class SystemConfigController extends Controller
             }
 
             if ($driver === 'ses') {
-                // Kiểm tra credentials bằng SES SendEmail API
                 $key    = $request->input('mail_ses_key');
                 $secret = $request->input('mail_ses_secret');
                 $region = $request->input('mail_ses_region', 'ap-southeast-1');
@@ -126,20 +125,22 @@ class SystemConfigController extends Controller
                     return $this->errorResponse('Thiếu thông tin: Access Key, Secret Key hoặc From Email');
                 }
 
-                $client = new \Aws\Ses\SesClient([
-                    'region'      => $region,
-                    'version'     => 'latest',
-                    'credentials' => ['key' => $key, 'secret' => $secret],
-                ]);
+                // SES hỗ trợ SMTP — derive SMTP password từ IAM Secret Key (không cần AWS SDK)
+                $smtpPassword = $this->deriveSesSmtpPassword($secret, $region);
+                $smtpHost     = "email-smtp.{$region}.amazonaws.com";
 
-                $client->sendEmail([
-                    'Source'      => $from,
-                    'Destination' => ['ToAddresses' => [$to]],
-                    'Message'     => [
-                        'Subject' => ['Data' => '[Test] Kết nối Amazon SES thành công'],
-                        'Body'    => ['Html' => ['Data' => '<p>Email test từ hệ thống qua Amazon SES.</p>']],
-                    ],
-                ]);
+                $transport = new EsmtpTransport($smtpHost, 587, false);
+                $transport->setUsername($key);          // SMTP username = Access Key ID
+                $transport->setPassword($smtpPassword);
+
+                $mailer  = new \Symfony\Component\Mailer\Mailer($transport);
+                $message = (new \Symfony\Component\Mime\Email())
+                    ->from(new \Symfony\Component\Mime\Address($from, 'System Test'))
+                    ->to($to)
+                    ->subject('[Test] Kết nối Amazon SES thành công')
+                    ->html('<p>Email test từ hệ thống qua Amazon SES.</p>');
+
+                $mailer->send($message);
 
                 return $this->successResponse(null, "Đã gửi email test tới {$to} qua Amazon SES.");
             }
@@ -197,6 +198,21 @@ class SystemConfigController extends Controller
         } catch (\Exception $e) {
             return $this->errorResponse('Kết nối thất bại: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Derive SMTP password từ IAM Secret Access Key của Amazon SES.
+     * @see https://docs.aws.amazon.com/ses/latest/dg/smtp-credentials.html
+     */
+    private function deriveSesSmtpPassword(string $secretKey, string $region): string
+    {
+        $date    = gmdate('Ymd');
+        $key     = hash_hmac('sha256', $date,           'AWS4' . $secretKey, true);
+        $key     = hash_hmac('sha256', $region,          $key,               true);
+        $key     = hash_hmac('sha256', 'ses',            $key,               true);
+        $key     = hash_hmac('sha256', 'aws4_request',   $key,               true);
+        $key     = hash_hmac('sha256', 'SendRawEmail',   $key,               true);
+        return base64_encode(chr(4) . $key);
     }
 
     /**

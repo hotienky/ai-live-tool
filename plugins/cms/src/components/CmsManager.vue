@@ -1,8 +1,8 @@
 <template>
   <div class="cms-mgr">
     <div class="cm-header">
-      <h3><FileText :size="16" /> Trang nội dung CMS</h3>
-      <button class="btn-add" @click="$emit('navigate', 'shop/cms/create')">+ Thêm trang</button>
+      <h3><FileText :size="16" />{{ t('admin.msg_a503d10c', 'Trang nội dung CMS') }}</h3>
+      <button class="btn-add" @click="$emit('navigate', 'shop/cms/create')">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
     </div>
 
     <div class="cm-list" v-if="pages.length">
@@ -24,7 +24,7 @@
         </div>
       </div>
     </div>
-    <p v-else class="empty">Chưa có trang CMS nào</p>
+    <p v-else class="empty">{{ t('admin.msg_6d9fee60', 'Chưa có trang CMS nào') }}</p>
 
     <!-- Preview Modal (keep this one since it's just a quick view) -->
     <div class="modal-overlay" v-if="showPreview" @click.self="showPreview = false">

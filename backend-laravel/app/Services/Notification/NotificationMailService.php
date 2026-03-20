@@ -26,6 +26,11 @@ class NotificationMailService
             return;
         }
 
+        // Chưa cấu hình mail driver cho tenant này → bỏ qua, không queue job vô ích
+        if (!$this->isMailConfigured()) {
+            return;
+        }
+
         $emails = $this->getAdminEmailsByRoles($roles);
 
         foreach ($emails as $email) {
@@ -71,6 +76,18 @@ class NotificationMailService
             'phone' => $configs['shop_phone'] ?? '',
             'logo'  => $configs['shop_logo']  ?? '',
         ];
+    }
+
+    private function isMailConfigured(): bool
+    {
+        return (bool) Cache::remember('notif.mail_configured', 300, fn () =>
+            DB::table('system_configs')
+                ->where('key', 'mail_driver')
+                ->where('group_name', 'mail')
+                ->whereNotNull('value')
+                ->where('value', '!=', '')
+                ->exists()
+        );
     }
 
     private function isEmailEnabled(): bool

@@ -10,7 +10,7 @@
     >
       <span class="lang-flag">{{ lang.flag || '🌐' }}</span>
       <span class="lang-name">{{ lang.name }}</span>
-      <span v-if="lang.is_default || lang.code === 'vi'" class="lang-badge">Gốc</span>
+      <span v-if="lang.is_default || lang.code === 'vi'" class="lang-badge">{{ t('admin.msg_3a73b238', 'Gốc') }}</span>
       <span v-else-if="fields && translations" class="lang-completeness" :class="{ done: getCompleteness(lang.code) === 100 }">
         {{ getCompleteness(lang.code) }}%
       </span>

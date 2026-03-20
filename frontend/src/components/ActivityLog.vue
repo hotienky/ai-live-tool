@@ -190,7 +190,7 @@ function formatDetails(action, details) {
   if (action === 'product.stock_deducted') return `Số lượng: ${details.quantity}, Còn lại: ${details.remaining}`
   if (action === 'session.ended') return `Comments: ${details.totalComments}, Hot: ${details.hotLeads}`
   if (action === 'lead.status_changed') return `${details.from} → ${details.to}`
-  if (action === 'tax_config.updated') return details.tax_enabled !== undefined ? `Thuế: ${details.tax_enabled ? 'Bật' : 'Tắt'}` : 'Cập nhật cấu hình thuế'
+  if (action === 'tax_config.updated') return details.tax_enabled !== undefined ? `Thuế: ${details.tax_enabled ? t('admin.msg_9eae5130', 'Bật') : t('admin.msg_258f00b2', 'Tắt')}` : t('admin.msg_d66363d9', 'Cập nhật cấu hình thuế')
   if (action === 'tax_rate.created' || action === 'tax_rate.updated') return details.rate ? `${details.name || t('admin.msg_500aedd2', 'Thuế')}: ${details.rate}%` : (details.name || '')
   if (action === 'theme.updated') return details.preset || details.accent || ''
   if (action === 'layout.updated' || action === 'layout.published') return details.page || ''

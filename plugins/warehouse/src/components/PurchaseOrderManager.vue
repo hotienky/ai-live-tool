@@ -6,27 +6,27 @@
   <!-- List view -->
   <div v-else class="po-mgr">
     <div class="po-header">
-      <h2><ShoppingCart :size="20" style="vertical-align:middle" /> Đơn Nhập Hàng</h2>
+      <h2><ShoppingCart :size="20" style="vertical-align:middle" />{{ t('admin.purchase_orders', 'Đơn Nhập Hàng') }}</h2>
       <div class="header-actions">
-        <input v-model="searchTerm" class="search-input" placeholder="Tìm mã PO, ghi chú..." @input="debouncedSearch" />
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_8e2a27', 'Tìm mã PO, ghi chú...')"  @input="debouncedSearch" />
         <select v-model="filterStatus" class="filter-select">
-          <option value="">Tất cả TT</option>
-          <option value="draft">Nháp</option>
-          <option value="ordered">Đã đặt</option>
-          <option value="partial">Nhận 1 phần</option>
-          <option value="received">Đã nhận</option>
-          <option value="cancelled">Đã hủy</option>
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
+          <option value="draft">{{ t('admin.msg_867cf3b9', 'Nháp') }}</option>
+          <option value="ordered">{{ t('admin.msg_e9b9aa84', 'Đã đặt') }}</option>
+          <option value="partial">{{ t('admin.msg_da42ebfc', 'Nhận 1 phần') }}</option>
+          <option value="received">{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</option>
+          <option value="cancelled">{{ t('admin.msg_1a46e024', 'Đã hủy') }}</option>
         </select>
-        <button class="btn-primary" @click="openCreate"><Plus :size="14" /> Tạo đơn</button>
+        <button class="btn-primary" @click="openCreate"><Plus :size="14" />{{ t('admin.msg_23275279', 'Tạo đơn') }}</button>
       </div>
     </div>
 
     <!-- Stats -->
     <div class="po-stats">
-      <div class="stat-card"><div class="stat-icon"><ShoppingCart :size="20" /></div><div class="stat-value">{{ poStats.total_orders || 0 }}</div><div class="stat-label">Tổng đơn</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(poStats.total_value || 0) }}</div><div class="stat-label">Tổng giá trị</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--warn"><Clock :size="20" /></div><div class="stat-value">{{ poStats.pending || 0 }}</div><div class="stat-label">Đang chờ</div></div>
-      <div class="stat-card"><div class="stat-icon stat-icon--red"><AlertCircle :size="20" /></div><div class="stat-value">{{ poStats.unpaid || 0 }}</div><div class="stat-label">Chưa thanh toán</div></div>
+      <div class="stat-card"><div class="stat-icon"><ShoppingCart :size="20" /></div><div class="stat-value">{{ poStats.total_orders || 0 }}</div><div class="stat-label">{{ t('admin.order_total', 'Tổng đơn') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(poStats.total_value || 0) }}</div><div class="stat-label">{{ t('admin.msg_b71668e4', 'Tổng giá trị') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--warn"><Clock :size="20" /></div><div class="stat-value">{{ poStats.pending || 0 }}</div><div class="stat-label">{{ t('admin.msg_2bfffc09', 'Đang chờ') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--red"><AlertCircle :size="20" /></div><div class="stat-value">{{ poStats.unpaid || 0 }}</div><div class="stat-label">{{ t('admin.msg_956718c7', 'Chưa thanh toán') }}</div></div>
     </div>
 
     <!-- Table -->
@@ -34,8 +34,8 @@
       <table>
         <thead>
           <tr>
-            <th>Mã PO</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>Tổng tiền</th>
-            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>Thanh toán</th><th>Ngày đặt</th><th>Ngày nhận dự kiến</th><th>Thao tác</th>
+            <th>{{ t('admin.msg_177be34e', 'Mã PO') }}</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>{{ t('admin.payment', 'Thanh toán') }}</th><th>{{ t('admin.order_date', 'Ngày đặt') }}</th><th>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</th><th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -51,15 +51,15 @@
             <td>
               <div class="action-btns">
                 <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
-                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" /> Đặt hàng</button>
-                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" /> Nhận hàng</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" />{{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" />{{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
                 <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
                 <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
               </div>
             </td>
           </tr>
           <tr v-if="orders.length === 0">
-            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">Chưa có Đơn Nhập Hàng</p></div></td>
+            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_258ce7bb', 'Chưa có Đơn Nhập Hàng') }}</p></div></td>
           </tr>
         </tbody>
       </table>
@@ -80,24 +80,24 @@
           <div class="form-group">
             <label>Nhà cung cấp *</label>
             <select v-model="form.supplier_id">
-              <option :value="null" disabled>— Chọn NCC —</option>
+              <option :value="null" disabled>{{ t('admin.msg_435bf321', '— Chọn NCC —') }}</option>
               <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Ngày đặt</label>
+            <label>{{ t('admin.order_date', 'Ngày đặt') }}</label>
             <input type="date" v-model="form.order_date" />
           </div>
           <div class="form-group">
-            <label>Ngày nhận dự kiến</label>
+            <label>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</label>
             <input type="date" v-model="form.expected_date" />
           </div>
         </div>
 
         <div class="form-group">
-          <label>Thêm sản phẩm</label>
+          <label>{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</label>
           <div class="product-search-wrap">
-            <input v-model="productSearch" class="product-search" placeholder="Tìm tên SP, SKU..." @input="searchProducts" />
+            <input v-model="productSearch" class="product-search" :placeholder="t('admin.msg_c20e39', 'Tìm tên SP, SKU...')"  @input="searchProducts" />
             <div class="product-dropdown" v-if="productResults.length > 0">
               <div v-for="p in productResults" :key="p.id" class="product-result" @click="addProduct(p)">
                 <span class="pr-name">{{ p.name }}</span>
@@ -110,7 +110,7 @@
 
         <div class="items-table" v-if="form.items.length > 0">
           <table>
-            <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">Đơn giá</th><th style="width:110px">Thành tiền</th><th style="width:40px"></th></tr></thead>
+            <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">{{ t('admin.unit_price', 'Đơn giá') }}</th><th style="width:110px">{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th><th style="width:40px"></th></tr></thead>
             <tbody>
               <tr v-for="(item, idx) in form.items" :key="idx">
                 <td>{{ item.product_name }}</td>
@@ -125,9 +125,9 @@
         </div>
 
         <div class="form-row" style="margin-top:12px">
-          <div class="form-group"><label>Thuế</label><input type="number" v-model.number="form.tax_amount" min="0" @change="recalcTotal" /></div>
-          <div class="form-group"><label>Giảm giá</label><input type="number" v-model.number="form.discount_amount" min="0" @change="recalcTotal" /></div>
-          <div class="form-group"><label>Tổng tiền</label><input type="number" v-model.number="form.total_amount" readonly class="total-input" /></div>
+          <div class="form-group"><label>{{ t('admin.tax', 'Thuế') }}</label><input type="number" v-model.number="form.tax_amount" min="0" @change="recalcTotal" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_6b272d01', 'Giảm giá') }}</label><input type="number" v-model.number="form.discount_amount" min="0" @change="recalcTotal" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</label><input type="number" v-model.number="form.total_amount" readonly class="total-input" /></div>
         </div>
         <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" rows="2"></textarea></div>
         <div class="modal-actions">
@@ -147,13 +147,13 @@
         </h3>
         <div class="detail-info">
           <div><strong>NCC:</strong> {{ detailPO.supplier?.name }}</div>
-          <div><strong>Ngày đặt:</strong> {{ formatDate(detailPO.order_date) }}</div>
-          <div v-if="detailPO.expected_date"><strong>Dự kiến:</strong> {{ formatDate(detailPO.expected_date) }}</div>
-          <div v-if="detailPO.received_date"><strong>Đã nhận:</strong> {{ formatDate(detailPO.received_date) }}</div>
-          <div v-if="detailPO.notes"><strong>Ghi chú:</strong> {{ detailPO.notes }}</div>
+          <div><strong>{{ t('admin.msg_ab0e5d07', 'Ngày đặt:') }}</strong> {{ formatDate(detailPO.order_date) }}</div>
+          <div v-if="detailPO.expected_date"><strong>{{ t('admin.msg_516a4bdf', 'Dự kiến:') }}</strong> {{ formatDate(detailPO.expected_date) }}</div>
+          <div v-if="detailPO.received_date"><strong>{{ t('admin.msg_8f5ec689', 'Đã nhận:') }}</strong> {{ formatDate(detailPO.received_date) }}</div>
+          <div v-if="detailPO.notes"><strong>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</strong> {{ detailPO.notes }}</div>
         </div>
         <table class="detail-table">
-          <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>SL đặt</th><th>Đã nhận</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+          <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.unit_price', 'Đơn giá') }}</th><th>{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in (detailPO.items || [])" :key="idx">
               <td>{{ idx + 1 }}</td>
@@ -170,16 +170,16 @@
             </tr>
           </tbody>
           <tfoot>
-            <tr><td colspan="6" style="text-align:right;font-weight:700">Tạm tính:</td><td class="amount">{{ formatCurrency(detailPO.subtotal) }}</td></tr>
+            <tr><td colspan="6" style="text-align:right;font-weight:700">{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</td><td class="amount">{{ formatCurrency(detailPO.subtotal) }}</td></tr>
             <tr v-if="detailPO.tax_amount"><td colspan="6" style="text-align:right">Thuế:</td><td>{{ formatCurrency(detailPO.tax_amount) }}</td></tr>
-            <tr v-if="detailPO.discount_amount"><td colspan="6" style="text-align:right">Giảm giá:</td><td>-{{ formatCurrency(detailPO.discount_amount) }}</td></tr>
-            <tr><td colspan="6" style="text-align:right;font-weight:800">Tổng cộng:</td><td class="amount" style="font-weight:800;font-size:15px">{{ formatCurrency(detailPO.total_amount) }}</td></tr>
+            <tr v-if="detailPO.discount_amount"><td colspan="6" style="text-align:right">{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</td><td>-{{ formatCurrency(detailPO.discount_amount) }}</td></tr>
+            <tr><td colspan="6" style="text-align:right;font-weight:800">{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</td><td class="amount" style="font-weight:800;font-size:15px">{{ formatCurrency(detailPO.total_amount) }}</td></tr>
           </tfoot>
         </table>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showDetail = false">{{ t('admin.close', 'Đóng') }}</button>
-          <button v-if="detailPO.status === 'draft'" class="btn-send-lg" @click="showDetail = false; sendPO(detailPO)"><Send :size="14" /> Đặt hàng</button>
-          <button v-if="['ordered','partial'].includes(detailPO.status)" class="btn-create" @click="showDetail = false; openReceive(detailPO)"><PackageCheck :size="14" /> Nhận hàng</button>
+          <button v-if="detailPO.status === 'draft'" class="btn-send-lg" @click="showDetail = false; sendPO(detailPO)"><Send :size="14" />{{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+          <button v-if="['ordered','partial'].includes(detailPO.status)" class="btn-create" @click="showDetail = false; openReceive(detailPO)"><PackageCheck :size="14" />{{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
         </div>
       </div>
     </div>
@@ -190,7 +190,7 @@
         <h3><PackageCheck :size="16" style="vertical-align:middle" /> Nhận hàng — {{ receivePO?.po_number }}</h3>
         <p class="receive-hint">Nhập số lượng thực nhận cho từng sản phẩm:</p>
         <table class="receive-table">
-          <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SL đặt</th><th>Đã nhận</th><th>Còn lại</th><th style="width:100px">Nhận lần này</th></tr></thead>
+          <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_b95a3ecb', 'Còn lại') }}</th><th style="width:100px">{{ t('admin.msg_fd2a54c9', 'Nhận lần này') }}</th></tr></thead>
           <tbody>
             <tr v-for="(item, idx) in receiveItems" :key="idx">
               <td>{{ item.product_name }}</td>
@@ -201,10 +201,10 @@
             </tr>
           </tbody>
         </table>
-        <div class="form-group" style="margin-top:12px"><label>{{ t('admin.notes', 'Ghi chú') }}</label><input v-model="receiveNotes" placeholder="Ghi chú nhận hàng..." /></div>
+        <div class="form-group" style="margin-top:12px"><label>{{ t('admin.notes', 'Ghi chú') }}</label><input v-model="receiveNotes" :placeholder="t('admin.msg_87cb2f', 'Ghi chú nhận hàng...')"  /></div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showReceiveModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
-          <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" /> Xác nhận nhận hàng</button>
+          <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" />{{ t('admin.msg_dc8ea8a6', 'Xác nhận nhận hàng') }}</button>
         </div>
       </div>
     </div>
@@ -240,10 +240,10 @@ const editId = ref(null)
 const detailId = ref(null)
 
 function statusLabel(s) {
-  return { draft: 'Nháp', ordered: 'Đã đặt', partial: 'Nhận 1 phần', received: 'Đã nhận', cancelled: 'Đã hủy' }[s] || s
+  return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s
 }
 function payLabel(p) {
-  return { unpaid: 'Chưa TT', partial: 'TT 1 phần', paid: 'Đã TT' }[p] || p
+  return { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), partial: t('admin.msg_ee9c77ad', 'TT 1 phần'), paid: t('admin.msg_04b5eaed', 'Đã TT') }[p] || p
 }
 
 onMounted(() => { fetchOrders(); fetchStats(); fetchSuppliers() })
@@ -330,7 +330,7 @@ function viewPO(po) {
 }
 
 async function sendPO(po) {
-  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái "Đã đặt"?`)) return
+  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast('Đã chuyển sang Đã đặt', 'success')

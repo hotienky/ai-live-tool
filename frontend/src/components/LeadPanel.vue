@@ -121,14 +121,14 @@ const tabs = [
 ]
 
 const STOP_WORDS = new Set([
-  'của', 'và', 'là', 'có', 'cho', 'với', 'được', 'các', 'từ', 'trong',
-  'này', 'đó', 'những', 'một', 'không', 'cũng', 'như', 'thì', 'mà',
+  t('admin.msg_d124b032', 'của'), t('admin.msg_baf9f096', 'và'), t('admin.msg_7c9ac3d1', 'là'), t('admin.msg_0094b901', 'có'), 'cho', t('admin.msg_ed6f95ec', 'với'), t('admin.msg_d26e0d90', 'được'), t('admin.msg_a239e1e6', 'các'), t('admin.msg_ac61d482', 'từ'), 'trong',
+  t('admin.msg_f133851d', 'này'), t('admin.msg_379f9fc4', 'đó'), t('admin.msg_39182019', 'những'), t('admin.msg_80e46150', 'một'), t('admin.msg_f2baa228', 'không'), t('admin.msg_d905be25', 'cũng'), t('admin.msg_73465369', 'như'), t('admin.msg_d3c30e6c', 'thì'), t('admin.msg_9aa53147', 'mà'),
   'khi', 'ở', 'đã', 'sẽ', 'đang', 'bị', 'vì', 'nên', 'hay', 'hoặc',
-  'nhưng', 'nếu', 'vậy', 'rồi', 'lại', 'còn', 'em', 'anh', 'chị',
-  'mình', 'ơi', 'nhé', 'nha', 'ạ', 'vậy', 'thế', 'quá', 'rất',
-  'lắm', 'gì', 'nào', 'đâu', 'sao', 'bao', 'mấy', 'tôi', 'bạn',
-  'bé', 'con', 'cái', 'đi', 'về', 'ra', 'vào', 'lên', 'xuống',
-  'hỏi', 'xin', 'dạ', 'vâng', 'ok', 'ko', 'k', 'dc', 'đc', 'mn',
+  t('admin.msg_917400f9', 'nhưng'), t('admin.msg_8aeb3684', 'nếu'), t('admin.msg_5c5771f5', 'vậy'), t('admin.msg_1569fba8', 'rồi'), t('admin.msg_fe1693fe', 'lại'), t('admin.msg_8a870e6a', 'còn'), 'em', 'anh', t('admin.msg_669cc08a', 'chị'),
+  t('admin.msg_9d296296', 'mình'), t('admin.msg_2b8182d2', 'ơi'), t('admin.msg_56f11540', 'nhé'), 'nha', 'ạ', 'vậy', 'thế', 'quá', 'rất',
+  t('admin.msg_12d79096', 'lắm'), t('admin.msg_91050d75', 'gì'), t('admin.msg_ffae385a', 'nào'), t('admin.msg_f7e41b57', 'đâu'), 'sao', 'bao', t('admin.msg_a7ec0514', 'mấy'), t('admin.msg_10957d7e', 'tôi'), t('admin.msg_5c0d1a90', 'bạn'),
+  t('admin.msg_a8494937', 'bé'), 'con', t('admin.msg_50c7e101', 'cái'), t('admin.msg_5ed4502b', 'đi'), t('admin.msg_0cb1b3aa', 'về'), 'ra', t('admin.msg_07ae1095', 'vào'), t('admin.msg_fca1f056', 'lên'), t('admin.msg_dca2a67b', 'xuống'),
+  t('admin.msg_24aff1dd', 'hỏi'), 'xin', t('admin.msg_7f0b2d99', 'dạ'), t('admin.msg_bac1ec8a', 'vâng'), 'ok', 'ko', 'k', 'dc', 'đc', 'mn',
   'ah', 'à', 'uh', 'hả', 'hen', 'the', 'and', 'a', 'an', 'of', 'to',
   'in', 'is', 'it', 'for', 'on', 'with', 'at', 'by', 'be', 'this',
 ])

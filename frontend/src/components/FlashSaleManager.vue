@@ -73,7 +73,7 @@
               </label>
             </td>
             <td class="fsm-table__actions">
-              <button class="btn-icon" @click="openEdit(sale)" title="Chỉnh sửa"><Pencil :size="14" /></button>
+              <button class="btn-icon" @click="openEdit(sale)" :title="t('admin.msg_e1504e01', 'Chỉnh sửa')" ><Pencil :size="14" /></button>
               <button class="btn-icon btn-icon--danger" @click="confirmDelete(sale)" :title="t('admin.delete', 'Xóa')"><Trash2 :size="14" /></button>
             </td>
           </tr>

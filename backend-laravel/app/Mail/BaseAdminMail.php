@@ -27,20 +27,16 @@ abstract class BaseAdminMail extends Mailable
         ]);
 
         try {
+            // Schema: id (bigint auto), user_id, type, title, message, link, is_read, created_at
             DB::table('notifications')->insert([
-                'id'              => \Illuminate\Support\Str::uuid(),
-                'type'            => 'mail_job_failed',
-                'title'           => 'Gửi email thất bại',
-                'message'         => 'Không thể gửi email ' . class_basename(static::class) . '. Lỗi: ' . $e->getMessage(),
-                'data'            => json_encode([
-                    'mailable' => static::class,
-                    'error'    => $e->getMessage(),
-                    'hint'     => 'Kiểm tra lại cấu hình email tại Cài đặt → Cấu hình hệ thống',
-                ]),
-                'is_read'         => false,
-                'target_roles'    => json_encode(['admin', 'super_admin']),
-                'created_at'      => now(),
-                'updated_at'      => now(),
+                'type'       => 'mail_job_failed',
+                'title'      => 'Gửi email thất bại',
+                'message'    => 'Không thể gửi email ' . class_basename(static::class)
+                    . '. Lỗi: ' . $e->getMessage()
+                    . ' — Kiểm tra lại Cài đặt → Cấu hình hệ thống',
+                'link'       => '/shop/config',
+                'is_read'    => false,
+                'created_at' => now(),
             ]);
         } catch (\Throwable $dbError) {
             Log::error('[BaseAdminMail] Could not create failure notification: ' . $dbError->getMessage());

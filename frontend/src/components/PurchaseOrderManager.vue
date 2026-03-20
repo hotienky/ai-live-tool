@@ -164,7 +164,7 @@ function viewPO(po) {
 }
 
 async function sendPO(po) {
-  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái "Đã đặt"?`)) return
+  if (!confirm(`Đặt hàng ${po.po_number} — chuyển sang trạng thái t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
   try {
     await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
     showToast(t('admin.msg_52aec4', 'Đã chuyển sang Đã đặt'), 'success')

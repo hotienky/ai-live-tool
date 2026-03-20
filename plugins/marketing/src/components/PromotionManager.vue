@@ -1,41 +1,41 @@
 <template>
   <div class="promo-manager">
     <div class="pm-header">
-      <h3><Tag :size="16" /> Khuyến mãi & Mã giảm giá</h3>
+      <h3><Tag :size="16" />{{ t('admin.msg_58d08e12', 'Khuyến mãi & Mã giảm giá') }}</h3>
     </div>
 
     <!-- Tabs: Promotions / Coupons -->
     <div class="pm-tabs">
-      <button :class="{ active: subTab === 'promotions' }" @click="subTab = 'promotions'">🏷️ Giá KM sản phẩm</button>
-      <button :class="{ active: subTab === 'coupons' }" @click="subTab = 'coupons'">🎟️ Mã giảm giá</button>
+      <button :class="{ active: subTab === 'promotions' }" @click="subTab = 'promotions'">{{ t('admin.msg_bef41a50', '🏷️ Giá KM sản phẩm') }}</button>
+      <button :class="{ active: subTab === 'coupons' }" @click="subTab = 'coupons'">{{ t('admin.msg_0aff132a', '🎟️ Mã giảm giá') }}</button>
     </div>
 
     <!-- Product Promotions -->
     <div v-if="subTab === 'promotions'">
       <div class="pm-form">
-        <h4>Thêm/Sửa giá khuyến mãi</h4>
+        <h4>{{ t('admin.msg_6e01affe', 'Thêm/Sửa giá khuyến mãi') }}</h4>
         <div class="form-row">
           <div class="form-group" style="flex:2">
-            <label>Sản phẩm</label>
+            <label>{{ t('admin.promotion.product', 'Sản phẩm') }}</label>
             <select v-model="promoForm.productId">
-              <option value="">-- Chọn sản phẩm --</option>
+              <option value="">{{ t('admin.msg_63b32e26', '-- Chọn sản phẩm --') }}</option>
               <option v-for="p in products" :key="p.id" :value="p.id">{{ p.name }} ({{ formatCurrency(p.price) }})</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Giá KM</label>
+            <label>{{ t('admin.msg_8ad259c6', 'Giá KM') }}</label>
             <CurrencyInput v-model="promoForm.pricePromotion" placeholder="0" input-class="form-input" />
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bắt đầu</label><input v-model="promoForm.dateStart" type="date" /></div>
-          <div class="form-group"><label>Kết thúc</label><input v-model="promoForm.dateEnd" type="date" /></div>
-          <div class="form-group"><label>&nbsp;</label><button class="btn-save" @click="handleSavePromo">Lưu KM</button></div>
+          <div class="form-group"><label>{{ t('admin.start', 'Bắt đầu') }}</label><input v-model="promoForm.dateStart" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_144f8bdc', 'Kết thúc') }}</label><input v-model="promoForm.dateEnd" type="date" /></div>
+          <div class="form-group"><label>&nbsp;</label><button class="btn-save" @click="handleSavePromo">{{ t('admin.msg_c949b760', 'Lưu KM') }}</button></div>
         </div>
       </div>
 
       <table class="pm-table" v-if="promotions.length">
-        <thead><tr><th>Sản phẩm</th><th>Giá gốc</th><th>Giá KM</th><th>Thời gian</th><th></th></tr></thead>
+        <thead><tr><th>{{ t('admin.promotion.product', 'Sản phẩm') }}</th><th>{{ t('admin.original_price', 'Giá gốc') }}</th><th>{{ t('admin.msg_8ad259c6', 'Giá KM') }}</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
         <tbody>
           <tr v-for="p in promotions" :key="p.productId">
             <td>{{ p.product?.name || '—' }}</td>
@@ -46,7 +46,7 @@
           </tr>
         </tbody>
       </table>
-      <p v-else class="empty">Chưa có khuyến mãi</p>
+      <p v-else class="empty">{{ t('admin.msg_47d3d2f1', 'Chưa có khuyến mãi') }}</p>
     </div>
 
     <!-- Coupons -->
@@ -54,20 +54,20 @@
       <div class="pm-form">
         <h4>{{ editCouponId ? 'Sửa mã giảm giá' : 'Tạo mã giảm giá' }}</h4>
         <div class="form-row">
-          <div class="form-group"><label>Mã code</label><input v-model="couponForm.code" placeholder="VD: SALE20" style="text-transform: uppercase" /></div>
+          <div class="form-group"><label>{{ t('admin.coupon_code', 'Mã code') }}</label><input v-model="couponForm.code" placeholder="VD: SALE20" style="text-transform: uppercase" /></div>
           <div class="form-group">
-            <label>Loại</label>
-            <select v-model="couponForm.type"><option value="percent">% Phần trăm</option><option value="fixed">Cố định (VNĐ)</option></select>
+            <label>{{ t('admin.type', 'Loại') }}</label>
+            <select v-model="couponForm.type"><option value="percent">{{ t('admin.percent', '% Phần trăm') }}</option><option value="fixed">{{ t('admin.fixed_vnd', 'Cố định (VNĐ)') }}</option></select>
           </div>
-          <div class="form-group"><label>Giá trị</label><input v-model.number="couponForm.value" type="number" /></div>
+          <div class="form-group"><label>{{ t('admin.value', 'Giá trị') }}</label><input v-model.number="couponForm.value" type="number" /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Đơn tối thiểu</label><input v-model.number="couponForm.minOrder" type="number" placeholder="0" /></div>
-          <div class="form-group"><label>Dùng tối đa</label><input v-model.number="couponForm.maxUses" type="number" placeholder="Không giới hạn" /></div>
+          <div class="form-group"><label>{{ t('admin.min_order', 'Đơn tối thiểu') }}</label><input v-model.number="couponForm.minOrder" type="number" placeholder="0" /></div>
+          <div class="form-group"><label>{{ t('admin.max_uses', 'Dùng tối đa') }}</label><input v-model.number="couponForm.maxUses" type="number" :placeholder="t('admin.msg_07de0c', 'Không giới hạn')"  /></div>
         </div>
         <div class="form-row">
-          <div class="form-group"><label>Bắt đầu</label><input v-model="couponForm.dateStart" type="date" /></div>
-          <div class="form-group"><label>Kết thúc</label><input v-model="couponForm.dateEnd" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.start', 'Bắt đầu') }}</label><input v-model="couponForm.dateStart" type="date" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_144f8bdc', 'Kết thúc') }}</label><input v-model="couponForm.dateEnd" type="date" /></div>
           <div class="form-group"><label>&nbsp;</label>
             <button class="btn-save" @click="handleSaveCoupon">{{ editCouponId ? 'Cập nhật' : 'Tạo mã' }}</button>
           </div>
@@ -75,7 +75,7 @@
       </div>
 
       <table class="pm-table" v-if="coupons.length">
-        <thead><tr><th>Mã</th><th>Loại</th><th>Giá trị</th><th>Đơn tối thiểu</th><th>Đã dùng</th><th>Thời gian</th><th></th></tr></thead>
+        <thead><tr><th>{{ t('admin.code', 'Mã') }}</th><th>{{ t('admin.type', 'Loại') }}</th><th>{{ t('admin.value', 'Giá trị') }}</th><th>{{ t('admin.min_order', 'Đơn tối thiểu') }}</th><th>{{ t('admin.used', 'Đã dùng') }}</th><th>{{ t('admin.time', 'Thời gian') }}</th><th></th></tr></thead>
         <tbody>
           <tr v-for="c in coupons" :key="c.id">
             <td class="coupon-code">{{ c.code }}</td>
@@ -91,7 +91,7 @@
           </tr>
         </tbody>
       </table>
-      <p v-else class="empty">Chưa có mã giảm giá</p>
+      <p v-else class="empty">{{ t('admin.msg_2a949349', 'Chưa có mã giảm giá') }}</p>
     </div>
   </div>
 </template>

@@ -278,21 +278,21 @@ function printShipmentLabel(s) {
     <div class="section">
       <div class="section-title">Người gửi</div>
       <div class="row"><span class="label">Tên:</span><span class="value">${s.senderName || 'Shop'}</span></div>
-      <div class="row"><span class="label">SĐT:</span><span class="value">${s.senderPhone || '—'}</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span><span class="value">${s.senderPhone || '—'}</span></div>
     </div>
     <div class="section">
-      <div class="section-title">Người nhận</div>
+      <div class="section-title">{{ t('admin.msg_6d8b1e4a', 'Người nhận') }}</div>
       <div class="row"><span class="label">Tên:</span><span class="value">${s.receiverName || '—'}</span></div>
-      <div class="row"><span class="label">SĐT:</span><span class="value">${s.receiverPhone || '—'}</span></div>
-      <div class="row"><span class="label">Địa chỉ:</span><span class="value">${s.receiverAddress || '—'}</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_c60e8c30', 'SĐT:') }}</span><span class="value">${s.receiverPhone || '—'}</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_ce467846', 'Địa chỉ:') }}</span><span class="value">${s.receiverAddress || '—'}</span></div>
     </div>
     <div class="section">
       <div class="section-title">Thông tin gói hàng</div>
-      <div class="row"><span class="label">Khối lượng:</span><span class="value">${s.weight || 500}g</span></div>
-      <div class="row"><span class="label">Phí ship:</span><span class="value">${Number(s.shippingFee || 0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><span class="value">${s.weight || 500}g</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${Number(s.shippingFee || 0).toLocaleString('vi-VN')}đ</span></div>
       <div class="row"><span class="label">COD:</span><span class="value">${Number(s.codAmount || 0).toLocaleString('vi-VN')}đ</span></div>
     </div>
-    ${s.notes ? `<div class="section"><div class="section-title">Ghi chú</div><p>${s.notes}</p></div>` : ''}
+    ${s.notes ? `<div class="section"><div class="section-title">{{ t('admin.notes', 'Ghi chú') }}</div><p>${s.notes}</p></div>` : ''}
     <div class="footer">In lúc ${new Date().toLocaleString('vi-VN')} — AI Live Tool</div>
   </body></html>`)
   win.document.close()
