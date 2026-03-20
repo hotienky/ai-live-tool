@@ -73,7 +73,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const props = defineProps({ editId: { type: [String, Number], default: null } })
 const emit = defineEmits(['saved', 'back'])

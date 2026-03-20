@@ -39,7 +39,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Bell, Flame, KeyRound, Radio, Dices, Info } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const isOpen = ref(false)
 const notifications = ref([])

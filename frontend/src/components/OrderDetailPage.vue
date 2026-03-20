@@ -227,7 +227,7 @@ import {
   CheckCircle, Send, XCircle, Printer, DollarSign, RotateCcw
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -247,9 +247,7 @@ const statusLabels = {
 }
 const paymentLabels = { unpaid: t('admin.msg_956718c7', 'Chưa thanh toán'), paid: t('admin.msg_0c9c7bc3', 'Đã thanh toán'), refunded: t('admin.msg_12add562', 'Đã hoàn tiền') }
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN').format(v || 0) + ' đ'
-}
+// formatCurrency from useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })

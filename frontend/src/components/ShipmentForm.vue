@@ -162,7 +162,7 @@ const shipForm = ref({
 
 if (props.initialOrderId) lookupOrder()
 
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
 function mapKeys(obj) {
   if (!obj || typeof obj !== 'object') return obj
@@ -217,7 +217,7 @@ async function calcFee() {
     const data = await res.json()
     if (data.fee !== undefined) {
       shipForm.value.shippingFee = data.fee
-      showToast('Đã tính phí: ' + data.fee.toLocaleString('vi-VN') + 'đ', 'success')
+      showToast(t('admin.msg_fee_calculated', 'Đã tính phí') + ': ' + formatCurrency(data.fee), 'success')
     } else {
       showToast(data.error || t('admin.msg_23dfb463', 'Không tính được phí'), 'error')
     }

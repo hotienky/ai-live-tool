@@ -102,7 +102,7 @@ import LanguageTabs from './LanguageTabs.vue'
 import MediaPicker from './MediaPicker.vue'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
 const props = defineProps({

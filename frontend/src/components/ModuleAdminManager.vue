@@ -121,7 +121,7 @@ import { useToast } from '../composables/useToast.js'
 import { Puzzle, Plus, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
 const modules = ref([])

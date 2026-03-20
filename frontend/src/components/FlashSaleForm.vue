@@ -174,7 +174,7 @@ import { useContentTranslations } from '../composables/useContentTranslations.js
 import { useLanguages } from '../composables/useLanguages.js'
 import LanguageTabs from './LanguageTabs.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({
@@ -224,7 +224,7 @@ function formatDate(d) {
   return new Date(d).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 function formatPrice(p) {
-  return Number(p || 0).toLocaleString('vi-VN') + 'đ'
+  return formatCurrency(p || 0)
 }
 function toLocalDatetime(d) {
   if (!d) return ''

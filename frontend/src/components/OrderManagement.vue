@@ -289,7 +289,7 @@ const newOrder = ref({ customerName: '', customerPhone: '', customerAddress: '',
 import { computed } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const computedTotal = computed(() => {
   return newOrder.value.items.reduce((sum, i) => sum + (Number(i.price) || 0) * (i.qty || 1), 0)
 })
@@ -492,9 +492,7 @@ async function updatePayment(order, paymentStatus) {
   } catch { showToast(t('admin.msg_2ca61f', 'Lỗi cập nhật thanh toán'), 'error') }
 }
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
-}
+// formatCurrency provided by useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -503,7 +501,7 @@ function formatDate(d) {
 function printInvoice(order) {
   const items = Array.isArray(order.items) ? order.items : []
   const itemsHtml = items.map((it, i) => `
-    <tr><td>${i+1}</td><td>${it.name || '—'}</td><td style="text-align:center">${it.qty || 1}</td><td style="text-align:right">${Number(it.price || 0).toLocaleString('vi-VN')}đ</td></tr>
+    <tr><td>${i+1}</td><td>${it.name || '—'}</td><td style="text-align:center">${it.qty || 1}</td><td style="text-align:right">${formatCurrency(it.price || 0)}</td></tr>
   `).join('')
 
   const win = window.open('', '_blank', 'width=400,height=600')
@@ -543,11 +541,11 @@ function printInvoice(order) {
       <tbody>${itemsHtml || `<tr><td colspan="4" style="text-align:center; color:#999">${t('admin.msg_e44c91a9', 'Không có sản phẩm')}</td></tr>`}</tbody>
     </table>
     <div class="total-section">
-      ${order.subtotal ? `<div class="total-row"><span>${t('admin.msg_e014dd77', 'Tạm tính')}:</span><span>${Number(order.subtotal || 0).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.discountAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_1286d2de', 'Giảm giá')}:</span><span style="color:#16a34a">-${Number(order.discountAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.shippingFee > 0 ? `<div class="total-row"><span>${t('admin.msg_381c23f1', 'Phí giao hàng')}:</span><span>${Number(order.shippingFee).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      ${order.taxAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_tax', 'Thuế')}:</span><span>${Number(order.taxAmount).toLocaleString('vi-VN')}đ</span></div>` : ''}
-      <div class="total-row grand"><span>${t('admin.msg_91abc33d', 'TỔNG CỘNG')}:</span><span>${Number(order.totalAmount || 0).toLocaleString('vi-VN')}đ</span></div>
+      ${order.subtotal ? `<div class="total-row"><span>${t('admin.msg_e014dd77', 'Tạm tính')}:</span><span>${formatCurrency(order.subtotal || 0)}</span></div>` : ''}
+      ${order.discountAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_1286d2de', 'Giảm giá')}:</span><span style="color:#16a34a">-${formatCurrency(order.discountAmount)}</span></div>` : ''}
+      ${order.shippingFee > 0 ? `<div class="total-row"><span>${t('admin.msg_381c23f1', 'Phí giao hàng')}:</span><span>${formatCurrency(order.shippingFee)}</span></div>` : ''}
+      ${order.taxAmount > 0 ? `<div class="total-row"><span>${t('admin.msg_tax', 'Thuế')}:</span><span>${formatCurrency(order.taxAmount)}</span></div>` : ''}
+      <div class="total-row grand"><span>${t('admin.msg_91abc33d', 'TỔNG CỘNG')}:</span><span>${formatCurrency(order.totalAmount || 0)}</span></div>
     </div>
     ${order.notes ? `<div style="margin-top:8px;font-size:11px"><strong>${t('admin.msg_1f871388', 'Ghi chú')}:</strong> ${order.notes}</div>` : ''}
     <div class="footer">${t('admin.msg_52e4453a', 'Cảm ơn quý khách!')}<br/>In lúc ${new Date().toLocaleString('vi-VN')}</div>

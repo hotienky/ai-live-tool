@@ -115,7 +115,7 @@ const isOnPromotion = computed(() => {
   return true
 })
 
-function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+function formatPrice(v) { return formatCurrency(v || 0) }
 
 async function loadProduct() {
   loading.value = true

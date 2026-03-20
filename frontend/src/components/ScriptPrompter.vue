@@ -85,7 +85,7 @@ import {
   Square, ChevronUp, ChevronDown
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 defineEmits(['close'])
 

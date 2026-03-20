@@ -2018,5 +2018,8 @@
   "admin.msg_failed": "失敗",
   "admin.msg_conn_success": "接続成功",
   "admin.msg_conn_error": "サーバー接続エラー",
-  "admin.msg_save_config": "設定を保存"
+  "admin.msg_save_config": "設定を保存",
+  "admin.msg_3efd9389": "不明",
+  "admin.msg_1922c670": "インポート コンテンツ...",
+  "admin.msg_752396ef": "輸出税が追加されました"
 }

@@ -81,7 +81,7 @@ import { apiFetch } from '../helpers.js'
 import { useToast } from '../helpers.js'
 
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const props = defineProps({ editId: { type: [String, Number], required: true } })
 const emit = defineEmits(['back', 'refresh'])
 
@@ -133,7 +133,7 @@ async function submitReceive() {
 
 function statusLabel(s) { return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s }
 function payLabel(p) { return { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), partial: t('admin.msg_ee9c77ad', 'TT 1 phần'), paid: t('admin.msg_04b5eaed', 'Đã TT') }[p] || p }
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 </script>
 

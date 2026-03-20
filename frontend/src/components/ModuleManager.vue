@@ -137,7 +137,7 @@ import {
   CheckCircle2, AlertTriangle,
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
 const emit = defineEmits(['modulesChanged'])

@@ -52,7 +52,7 @@ import { Users } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 import CustomerForm from './CustomerForm.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const { customers, fetchCustomers, deleteCustomer } = useShopCustomers(apiFetch)
 

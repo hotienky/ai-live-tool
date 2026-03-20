@@ -121,7 +121,7 @@ const emit = defineEmits(['navigate'])
 
 // ─── Shared state (unread count, mark-read, clear-read) ──────────
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { unreadCount, markAllRead, clearReadNotifications, deleteNotification } = useAdminNotifications()
 
 // ─── Local page state ─────────────────────────────────────────────

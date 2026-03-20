@@ -132,7 +132,7 @@ import { useLanguages } from '../composables/useLanguages.js'
 import LanguageTabs from './LanguageTabs.vue'
 import CurrencyInput from './CurrencyInput.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const { savePromotion, createCoupon, updateCoupon } = usePromotions(apiFetch)
 
@@ -232,7 +232,7 @@ async function handleSave() {
   saving.value = false
 }
 
-function formatCurrency(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+// formatCurrency from useI18n
 </script>
 
 <style scoped>

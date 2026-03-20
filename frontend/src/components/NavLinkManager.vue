@@ -410,7 +410,7 @@ import {
   GripVertical, PanelBottom
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const icons = {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,

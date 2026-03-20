@@ -152,7 +152,7 @@ import {
   CheckCircle, Hourglass, RefreshCw, XCircle, Circle
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const emit = defineEmits(['goLive', 'goLead', 'goCustomer'])
 

@@ -72,7 +72,7 @@ import {
   AlertCircle, Loader2, LogIn
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const emit = defineEmits(['loginSuccess'])
 

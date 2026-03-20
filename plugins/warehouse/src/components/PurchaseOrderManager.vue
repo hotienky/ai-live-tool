@@ -223,7 +223,7 @@ import {
 import PurchaseOrderForm from './PurchaseOrderForm.vue'
 import PurchaseOrderDetail from './PurchaseOrderDetail.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const orders = ref([])
@@ -357,7 +357,7 @@ async function deletePO(po) {
   } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 </script>
 

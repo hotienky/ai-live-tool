@@ -133,7 +133,7 @@ import {
   ChevronLeft, ChevronRight, Loader2,
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const { mediaList, loading, pagination, fetchMedia, uploadMedia, updateMedia, deleteMedia } = useMedia()
 
@@ -244,7 +244,7 @@ async function doUpload(files) {
     }
     reload()
   } catch (e) {
-    showToast('Upload lỗi: ' + (e.message || 'Không xác định'), 'error')
+    showToast('Upload lỗi: ' + (e.message || t('admin.msg_3efd9389', 'Không xác định')), 'error')
   }
   uploading.value = false
 }

@@ -58,7 +58,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Store, ChevronDown } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   shops: { type: Array, default: () => [] },

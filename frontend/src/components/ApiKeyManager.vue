@@ -77,7 +77,7 @@ import { useToast } from '../composables/useToast.js'
 import { KeyRound, Plus, Copy, ShieldCheck, Clock, Ban, Trash2, Loader2 } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
 const apiKeys = ref([])

@@ -90,7 +90,7 @@ import {
 import { useAdminNotifications } from '../composables/useAdminNotifications.js'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const emit  = defineEmits(['navigate'])
 
 const {

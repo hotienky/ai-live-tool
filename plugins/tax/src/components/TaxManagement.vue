@@ -242,7 +242,7 @@ import { useToast } from '../helpers.js'
 
 const emit = defineEmits(['navigate-to-accounting'])
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const loading = ref(false)
 const savingConfig = ref(false)
@@ -271,9 +271,7 @@ function scopeLabel(scope) {
   return { global: t('admin.msg_f3d0baa3', 'Toàn bộ'), category: t('admin.msg_53d8de58', 'Danh mục'), product: t('admin.promotion.product', 'Sản phẩm'), region: t('admin.msg_6c7b7d31', 'Khu vực') }[scope] || scope
 }
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v)
-}
+// formatCurrency provided by useI18n
 
 async function loadConfig() {
   try {
@@ -361,7 +359,7 @@ async function saveRate() {
     const method = editingRate.value ? 'PUT' : 'POST'
     const res = await apiFetch(url, { method, body: JSON.stringify(payload) })
     if (!res.ok) throw new Error()
-    showToast(editingRate.value ? t('admin.updated', 'Đã cập nhật') : 'Đã thêm thuế suất', 'success')
+    showToast(editingRate.value ? t('admin.updated', 'Đã cập nhật') : t('admin.msg_752396ef', 'Đã thêm thuế suất'), 'success')
     showForm.value = false
     await loadRates()
   } catch {

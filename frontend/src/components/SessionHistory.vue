@@ -100,7 +100,7 @@ import {
   Music, ShoppingCart, Facebook, Youtube
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

@@ -57,7 +57,7 @@ import { useToast } from '../helpers.js'
 import { FileText } from 'lucide-vue-next'
 
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { pages, loading, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)
 
 const emit = defineEmits(['navigate'])

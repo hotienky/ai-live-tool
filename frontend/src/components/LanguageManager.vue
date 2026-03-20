@@ -138,7 +138,7 @@ import { useToast } from '../composables/useToast.js'
 import { Globe, Plus, Trash2, Star, FileText, Search, Save, Loader2, X, Lock, RefreshCw } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 function isBase(lang) {
   return lang.is_default || lang.isDefault

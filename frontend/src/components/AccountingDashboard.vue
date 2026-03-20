@@ -571,7 +571,7 @@ import InvoicePreviewModal from './InvoicePreviewModal.vue'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()

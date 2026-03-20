@@ -97,6 +97,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            // pgBouncer transaction mode: PDO phải emulate prepared statements
+            // vì pgBouncer không giữ state giữa các transaction
+            'options' => env('PGBOUNCER', false) ? [PDO::ATTR_EMULATE_PREPARES => true] : [],
         ],
 
         'master' => env('MASTER_DB_DRIVER', env('DB_CONNECTION', 'pgsql')) === 'sqlite' ? [
@@ -116,6 +119,7 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+            'options' => env('PGBOUNCER', false) ? [PDO::ATTR_EMULATE_PREPARES => true] : [],
         ],
 
         'sqlsrv' => [

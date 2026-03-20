@@ -666,7 +666,7 @@
   "admin.msg_4b50770c": "Cost price (COGS)",
   "admin.msg_4b74a5d2": "P&L",
   "admin.msg_4bbd5c52": "Value out",
-  "admin.msg_4bc40106": "Mã (slug)",
+  "admin.msg_4bc40106": "code (slug)",
   "admin.msg_4bd99115": "Request send error",
   "admin.msg_4c0e810d": "Small",
   "admin.msg_4c48806b": "Supplier",
@@ -2018,5 +2018,8 @@
   "admin.msg_failed": "Failed",
   "admin.msg_conn_success": "Connection successful",
   "admin.msg_conn_error": "Server connection error",
-  "admin.msg_save_config": "Save Configuration"
+  "admin.msg_save_config": "Save Configuration",
+  "admin.msg_3efd9389": "Undefined",
+  "admin.msg_1922c670": "Enter content...",
+  "admin.msg_752396ef": "Added export tax"
 }

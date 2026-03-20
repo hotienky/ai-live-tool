@@ -152,7 +152,7 @@ function hasPromo(p) {
   if (p.promotion_end && new Date(p.promotion_end).getTime() < now) return false
   return true
 }
-function fmt(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+function fmt(v) { return formatCurrency(v || 0) }
 
 onMounted(async () => { await loadFilters(); await reload() })
 watch(() => props.categoryId, (v) => { selectedCat.value = v; page.value = 1; reload() })

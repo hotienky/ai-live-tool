@@ -97,7 +97,7 @@ import { Wallet, Plus, Minus, Check, X, Trash2,
 } from 'lucide-vue-next'
 import PaymentVoucherForm from './PaymentVoucherForm.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const vouchers = ref([])
@@ -115,7 +115,7 @@ const categories = [
 ]
 
 const form = ref({
-  type: 'receipt', amount: 0, category: 'Tiền hàng',
+  type: 'receipt', amount: 0, category: t('admin.msg_59471fe2', 'Tiền hàng'),
   description: '', payment_method: 'cash', counterparty: '',
   voucher_date: new Date().toISOString().split('T')[0],
 })
@@ -192,9 +192,7 @@ async function deleteVoucher(v) {
   } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' xóa', 'error') }
 }
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
-}
+// formatCurrency provided by useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })

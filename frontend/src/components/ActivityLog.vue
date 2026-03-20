@@ -80,7 +80,7 @@ import {
   LogIn, UserPlus, UserMinus, FileText, Image, FolderTree, Shield
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   /* tenant-scoped */

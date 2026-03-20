@@ -85,7 +85,7 @@ import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import { Image as ImageIcon, Search, Upload, Film, Loader2 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const { mediaList, loading, pagination, fetchMedia, uploadMedia } = useMedia()
 

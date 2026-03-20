@@ -92,7 +92,7 @@ import {
   Loader2, Bot, Copy, Check, ShoppingBag
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   nickname: String,

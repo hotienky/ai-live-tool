@@ -72,7 +72,7 @@ import { ChevronLeft, Briefcase, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import { useToast, useI18n } from '../helpers.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const props = defineProps({ editId: { type: [String, Number], default: null } })
 const emit = defineEmits(['saved', 'back'])

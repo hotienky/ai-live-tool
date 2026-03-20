@@ -2018,5 +2018,8 @@
   "admin.msg_failed": "Thất bại",
   "admin.msg_conn_success": "Kết nối thành công",
   "admin.msg_conn_error": "Lỗi kết nối tới server",
-  "admin.msg_save_config": "Lưu cấu hình"
+  "admin.msg_save_config": "Lưu cấu hình",
+  "admin.msg_3efd9389": "Không xác định",
+  "admin.msg_1922c670": "Nhập nội dung...",
+  "admin.msg_752396ef": "Đã thêm thuế suất"
 }

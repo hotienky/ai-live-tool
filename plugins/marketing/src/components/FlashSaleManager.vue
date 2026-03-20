@@ -97,7 +97,7 @@ import { Zap, Plus, Pencil, Trash2, X, Package } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
 
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const emit = defineEmits(['navigate'])
 
 const sales = ref([])

@@ -41,7 +41,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { TrendingUp, X } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   stats: { type: Object, default: () => ({ hot: 0, warm: 0, cold: 0, total: 0 }) },

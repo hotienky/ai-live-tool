@@ -179,7 +179,7 @@ import {
   CheckCircle2, XCircle, Eye, EyeOff, FlaskConical, Send, AlertTriangle,
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 // ─── Icon map per group ───────────────────────────────────────────────────────

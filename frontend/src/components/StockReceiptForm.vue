@@ -85,7 +85,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const props = defineProps({ editId: { type: [String, Number], default: null }, initialType: { type: String, default: 'import' } })
 const emit = defineEmits(['saved', 'back'])
@@ -155,7 +155,7 @@ async function handleSave() {
   saving.value = false
 }
 
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 </script>
 
 <style scoped>

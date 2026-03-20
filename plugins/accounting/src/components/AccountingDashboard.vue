@@ -447,7 +447,7 @@ import { useToast } from '../helpers.js'
 
 const emit = defineEmits(['navigate-to-tax', 'navigate-to-order'])
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const tabs = [
   { key: 'overview', label: t('admin.msg_09c0fd66', 'Tổng quan'), icon: BarChart2 },

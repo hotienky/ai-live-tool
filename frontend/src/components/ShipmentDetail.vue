@@ -134,7 +134,7 @@ function mapKeys(obj) {
   if (Array.isArray(obj)) return obj.map(mapKeys)
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [toCamel(k), v]))
 }
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -236,8 +236,8 @@ function printShipmentLabel() {
     <div class="section">
       <div class="section-title">Thông tin gói hàng</div>
       <div class="row"><span class="label">{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><span class="value">${s.weight || 500}g</span></div>
-      <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${Number(s.shippingFee || 0).toLocaleString('vi-VN')}đ</span></div>
-      <div class="row"><span class="label">COD:</span><span class="value">${Number(s.codAmount || 0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${formatCurrency(s.shippingFee || 0)}</span></div>
+      <div class="row"><span class="label">COD:</span><span class="value">${formatCurrency(s.codAmount || 0)}</span></div>
     </div>
     <div class="footer">In lúc ${new Date().toLocaleString('vi-VN')}</div>
   </body></html>`)

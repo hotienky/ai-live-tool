@@ -65,7 +65,7 @@ import { Tag } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 import PromotionForm from './PromotionForm.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const { promotions, coupons, fetchPromotions, deletePromotion, fetchCoupons, deleteCoupon } = usePromotions(apiFetch)
 
@@ -111,7 +111,7 @@ async function handleDeleteCoupon(id) {
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
-function formatCurrency(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+// formatCurrency from useI18n
 </script>
 
 <style scoped>

@@ -40,7 +40,7 @@ import { useToast } from '../composables/useToast.js'
 import { FolderOpen, Edit3, Trash2 } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const emit = defineEmits(['create', 'edit'])

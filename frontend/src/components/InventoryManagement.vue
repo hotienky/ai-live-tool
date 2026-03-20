@@ -254,7 +254,7 @@ import StockAdjustForm from './StockAdjustForm.vue'
 import MediaPicker from './MediaPicker.vue'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({ /* tenant-scoped */ })
@@ -541,9 +541,7 @@ async function submitImport() {
   } catch (err) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' nhập: ' + err.message, 'error') }
 }
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
-}
+// formatCurrency provided by useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })

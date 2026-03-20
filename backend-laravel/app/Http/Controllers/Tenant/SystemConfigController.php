@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant;
 use App\Http\Controllers\Controller;
 use App\Events\Tenant\SettingsChanged;
 use App\Repositories\SystemConfig\SystemConfigRepositoryInterface;
+use App\Tenancy\Bootstrappers\SystemConfigBootstrapper;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
@@ -57,6 +58,11 @@ class SystemConfigController extends Controller
 
             $this->repo->updateGroup($group, $items);
             $this->logActivity('settings.updated', 'system_config', null, ['group' => $group]);
+
+            // Xoá cache mail config khi group mail thay đổi
+            if ($group === 'mail') {
+                SystemConfigBootstrapper::forgetCache((string) tenancy()->tenant->getTenantKey());
+            }
 
             // Thông báo: cấu hình nhóm thay đổi
             $changedKeys = array_column($items, 'key');

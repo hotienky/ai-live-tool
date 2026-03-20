@@ -33,13 +33,15 @@ class InitializeTenancyBySlug
         }
 
         try {
-            $tenant = \App\Models\Tenant::where('slug', $resolved['slug'])->first();
+            $tenant = $this->resolveTenantBySlug($resolved['slug']);
 
             if (!$tenant) {
                 return $this->fail("Tenant not found: {$resolved['slug']}", $request, $next, 404);
             }
 
             if ($tenant->status !== 'active') {
+                // Xoá cache ngay khi phát hiện suspended để tránh serve stale data
+                Cache::forget("tenant_slug:{$resolved['slug']}");
                 return $this->fail("Tenant is suspended: {$resolved['slug']}", $request, $next, 403);
             }
 
@@ -116,6 +118,36 @@ class InitializeTenancyBySlug
         // 3. Fallback: query param or header (for dev environments)
         $fallback = $request->query('tenant') ?? $request->header('X-Tenant-Slug');
         return $fallback ? ['slug' => $fallback] : null;
+    }
+
+    /**
+     * Lookup tenant by slug with Redis cache (10 min TTL).
+     * Cache dùng central Redis (chưa initialize tenancy tại thời điểm này).
+     */
+    protected function resolveTenantBySlug(string $slug): ?\App\Models\Tenant
+    {
+        $cacheKey = "tenant_slug:{$slug}";
+
+        // Cache hit: rebuild Tenant object từ array để tránh serialize model phức tạp
+        $cached = Cache::get($cacheKey);
+        if ($cached === 'not_found') {
+            return null;
+        }
+        if (is_array($cached)) {
+            return (new \App\Models\Tenant)->forceFill($cached);
+        }
+
+        $tenant = \App\Models\Tenant::where('slug', $slug)->first();
+
+        if (!$tenant) {
+            Cache::put($cacheKey, 'not_found', 600);
+            return null;
+        }
+
+        // Chỉ cache các trường cần thiết (id, slug, status, tenancy_db_name)
+        Cache::put($cacheKey, $tenant->only(['id', 'slug', 'status', 'tenancy_db_name']), 600);
+
+        return $tenant;
     }
 
     /**

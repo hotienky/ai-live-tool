@@ -75,7 +75,7 @@ import { apiFetch } from '../composables/useApi.js'
 import { Radio, X, Music, BookOpen, Video, ShoppingCart, Drama, Signal } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const platformIcons = { tiktok: Music, facebook: BookOpen, youtube: Video, shopee: ShoppingCart }
 

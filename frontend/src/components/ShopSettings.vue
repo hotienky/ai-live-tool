@@ -573,7 +573,7 @@ import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import { logger } from '../utils/logger.js'
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   currentShop: { type: Object, default: null },

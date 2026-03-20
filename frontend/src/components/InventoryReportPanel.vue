@@ -165,7 +165,7 @@ import {
   RefreshCw, Download
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const tabs = [
   { key: 'stock', label: t('admin.msg_fea4ef8a', 'Tồn kho'), icon: Package },
@@ -254,7 +254,7 @@ watch(activeTab, (tab) => {
 
 onMounted(fetchStock)
 
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
 
 function exportCSV(type) {

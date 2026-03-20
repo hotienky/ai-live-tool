@@ -124,7 +124,7 @@ import {
 import ShipmentForm from './ShipmentForm.vue'
 import ShipmentDetail from './ShipmentDetail.vue'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 
 const props = defineProps({ /* tenant-scoped */ })
@@ -289,8 +289,8 @@ function printShipmentLabel(s) {
     <div class="section">
       <div class="section-title">Thông tin gói hàng</div>
       <div class="row"><span class="label">{{ t('admin.msg_40a72f9d', 'Khối lượng:') }}</span><span class="value">${s.weight || 500}g</span></div>
-      <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${Number(s.shippingFee || 0).toLocaleString('vi-VN')}đ</span></div>
-      <div class="row"><span class="label">COD:</span><span class="value">${Number(s.codAmount || 0).toLocaleString('vi-VN')}đ</span></div>
+      <div class="row"><span class="label">{{ t('admin.msg_40d8de95', 'Phí ship:') }}</span><span class="value">${formatCurrency(s.shippingFee || 0)}</span></div>
+      <div class="row"><span class="label">COD:</span><span class="value">${formatCurrency(s.codAmount || 0)}</span></div>
     </div>
     ${s.notes ? `<div class="section"><div class="section-title">{{ t('admin.notes', 'Ghi chú') }}</div><p>${s.notes}</p></div>` : ''}
     <div class="footer">In lúc ${new Date().toLocaleString('vi-VN')} — AI Live Tool</div>
@@ -302,9 +302,7 @@ function printShipmentLabel(s) {
 // Expose for parent to call (from OrderManagement)
 defineExpose({ openCreateModal })
 
-function formatCurrency(v) {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0)
-}
+// formatCurrency provided by useI18n
 function formatDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })

@@ -107,7 +107,7 @@ import { useI18n } from '../composables/useI18n.js'
 import LanguageTabs from './LanguageTabs.vue'
 import { useLanguages } from '../composables/useLanguages.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
 

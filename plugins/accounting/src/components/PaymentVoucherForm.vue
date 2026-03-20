@@ -70,7 +70,7 @@ import { ChevronLeft, Wallet, Loader2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import { useToast, useI18n } from '../helpers.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const emit = defineEmits(['saved', 'back'])
 const props = defineProps({ initialType: { type: String, default: 'receipt' } })
@@ -78,7 +78,7 @@ const props = defineProps({ initialType: { type: String, default: 'receipt' } })
 const saving = ref(false)
 const categories = [t('admin.msg_59471fe2', 'Tiền hàng'), t('admin.shipping', 'Vận chuyển'), 'Marketing', t('admin.msg_0931b128', 'Lương'), t('admin.msg_9a2b203a', 'Thuê mặt bằng'), t('admin.msg_e8a642ef', 'Điện nước'), t('admin.msg_07123c29', 'Dụng cụ'), t('admin.msg_faf5c20b', 'Sửa chữa'), t('admin.msg_94280c8b', 'Hoàn trả'), t('admin.msg_06c1f85a', 'Khác')]
 const form = ref({
-  type: props.initialType || 'receipt', amount: 0, category: 'Tiền hàng',
+  type: props.initialType || 'receipt', amount: 0, category: t('admin.msg_59471fe2', 'Tiền hàng'),
   description: '', payment_method: 'cash', counterparty: '',
   voucher_date: new Date().toISOString().split('T')[0],
 })

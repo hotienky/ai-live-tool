@@ -18,8 +18,8 @@ const loadingPlugin = ref(null)
 
 function initBridge() {
   const { showToast } = useToast()
-  const { t, currentLang } = useI18n()
-  window.__APP_BRIDGE__ = { apiFetch, showToast, t, currentLang }
+  const { t, currentLang, formatCurrency, currencyLocale, currencySymbol } = useI18n()
+  window.__APP_BRIDGE__ = { apiFetch, showToast, t, currentLang, formatCurrency, currencyLocale, currencySymbol }
 }
 
 // Load a plugin bundle dynamically via fetch + eval (no script tag race conditions)

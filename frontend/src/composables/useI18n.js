@@ -104,5 +104,28 @@ export function useI18n() {
     }
   }
 
-  return { t, currentLang, languages, setLang, init, loadLanguages, loadTranslations }
+  /**
+   * Format currency value — always uses shop currency (VND/đ)
+   * Number formatting adapts to selected locale:
+   * vi: 1.000.000đ | en: 1,000,000đ | ja: 1,000,000đ
+   */
+  const LOCALE_MAP = { vi: 'vi-VN', en: 'en-US', ja: 'ja-JP' }
+
+  function formatCurrency(value) {
+    const num = Number(value || 0)
+    const lang = state.currentLang
+    const locale = LOCALE_MAP[lang] || 'vi-VN'
+    const formatted = num.toLocaleString(locale)
+    return `${formatted}đ`
+  }
+
+  function currencyLocale() {
+    return LOCALE_MAP[state.currentLang] || 'vi-VN'
+  }
+
+  function currencySymbol() {
+    return 'đ'
+  }
+
+  return { t, currentLang, languages, setLang, init, loadLanguages, loadTranslations, formatCurrency, currencyLocale, currencySymbol }
 }

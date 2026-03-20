@@ -85,7 +85,7 @@ import { ChevronLeft, ShoppingCart, Loader2, Trash2 } from 'lucide-vue-next'
 import { apiFetch } from '../helpers.js'
 import { useToast, useI18n } from '../helpers.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { showToast } = useToast()
 const props = defineProps({ editId: { type: [String, Number], default: null } })
 const emit = defineEmits(['saved', 'back'])
@@ -157,7 +157,7 @@ async function handleSave() {
   saving.value = false
 }
 
-function formatCurrency(v) { return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0) }
+// formatCurrency provided by useI18n
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@
 
 namespace App\Tenancy\Bootstrappers;
 
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Stancl\Tenancy\Contracts\TenancyBootstrapper;
@@ -16,21 +17,35 @@ class SystemConfigBootstrapper implements TenancyBootstrapper
     /** Config keys gốc trước khi override — dùng để revert */
     protected array $original = [];
 
-    public function bootstrap(Tenant $_tenant): void
+    public function bootstrap(Tenant $tenant): void
     {
         try {
-                // Chỉ load mail — cache/queue dùng .env của server (infrastructure chung)
-            $mailRows = DB::table('system_configs')
-                ->where('group_name', 'mail')
-                ->get(['key', 'value'])
-                ->pluck('value', 'key');
+            // Cache trên Redis central (CacheTenancyBootstrapper chưa chạy ở bước này)
+            // Key gắn tenant ID để tránh conflict giữa các tenant
+            $cacheKey = 'syscfg_mail:' . $tenant->getTenantKey();
 
-            $get = fn(string $key, mixed $default = null) => $mailRows->get($key) ?? $default;
+            $mailRows = Cache::store('redis')->remember($cacheKey, 300, function () {
+                return DB::table('system_configs')
+                    ->where('group_name', 'mail')
+                    ->get(['key', 'value'])
+                    ->pluck('value', 'key')
+                    ->toArray();
+            });
+
+            $get = fn(string $key, mixed $default = null) => $mailRows[$key] ?? $default;
 
             $this->applyMail($get);
         } catch (\Throwable) {
             // Bảng chưa migrate hoặc tenant mới — bỏ qua, dùng .env
         }
+    }
+
+    /**
+     * Xoá cache mail config của tenant (gọi sau khi lưu system_config group mail).
+     */
+    public static function forgetCache(string $tenantId): void
+    {
+        Cache::store('redis')->forget("syscfg_mail:{$tenantId}");
     }
 
     public function revert(): void

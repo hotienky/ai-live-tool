@@ -77,7 +77,7 @@ import { ref, onUnmounted } from 'vue'
 import { Gift, X, Sparkles, Users, Zap, Trophy, RotateCcw, Target, Timer, PartyPopper } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   comments: { type: Array, default: () => [] },

@@ -105,7 +105,7 @@ import { useToast } from '../helpers.js'
 import { Tag } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const { promotions, coupons, loading, fetchPromotions, savePromotion, deletePromotion, fetchCoupons, createCoupon, updateCoupon, deleteCoupon } = usePromotions(apiFetch)
 
 const props = defineProps({ /* tenant-scoped */ })
@@ -176,9 +176,7 @@ async function handleDeleteCoupon(id) {
   showToast('Đã xóa', 'success')
 }
 
-function formatCurrency(v) {
-  return Number(v || 0).toLocaleString('vi-VN') + 'đ'
-}
+// formatCurrency from useI18n
 </script>
 
 <style scoped>

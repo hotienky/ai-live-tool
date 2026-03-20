@@ -157,7 +157,7 @@ import LanguageTabs from './LanguageTabs.vue'
 import { useContentTranslations } from '../composables/useContentTranslations.js'
 
 const { showToast } = useToast()
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 const props = defineProps({
   editId: { type: [String, Number], default: null },
 })
@@ -233,7 +233,7 @@ function onWindowClick(e) {
 }
 
 // ── Helpers ──
-function formatPrice(p) { return Number(p || 0).toLocaleString('vi-VN') + 'đ' }
+function formatPrice(p) { return formatCurrency(p || 0) }
 function fmtDate(d) {
   if (!d) return '—'
   return new Date(d).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })

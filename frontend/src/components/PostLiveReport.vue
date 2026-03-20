@@ -105,7 +105,7 @@ import {
   Flame, Target, Hash, Trophy
 } from 'lucide-vue-next'
 
-const { t } = useI18n()
+const { t, formatCurrency } = useI18n()
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

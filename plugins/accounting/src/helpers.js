@@ -38,6 +38,9 @@ export function useI18n() {
   const bridge = window.__APP_BRIDGE__
   return {
     t: bridge?.t || ((key, fallback) => fallback || key),
+    formatCurrency: bridge?.formatCurrency || ((v) => Number(v || 0).toLocaleString('vi-VN') + 'đ'),
+    currencyLocale: bridge?.currencyLocale || (() => 'vi-VN'),
+    currencySymbol: bridge?.currencySymbol || (() => 'đ'),
     currentLang: bridge?.currentLang || { value: 'vi' },
   }
 }
