@@ -13,7 +13,7 @@ class ModuleSeeder extends Seeder
             [
                 'module_id' => 'warehouse',
                 'name' => 'Quản lý Kho',
-                'description' => 'Phiếu nhập kho, nhà cung cấp, đơn mua hàng, báo cáo tồn kho',
+                'description' => 'Phiếu nhập kho, nhà cung cấp, Đơn Nhập Hàng, báo cáo tồn kho',
                 'icon' => 'Package',
                 'category' => 'operations',
                 'version' => '1.0.0',
@@ -23,7 +23,7 @@ class ModuleSeeder extends Seeder
                     'items' => [
                         ['key' => 'stock-receipts', 'label' => 'Phiếu kho', 'icon' => 'ClipboardList', 'route' => 'warehouse/stock-receipts'],
                         ['key' => 'suppliers', 'label' => 'Nhà cung cấp', 'icon' => 'Briefcase', 'route' => 'warehouse/suppliers'],
-                        ['key' => 'purchase-orders', 'label' => 'Đơn mua hàng', 'icon' => 'ShoppingCart', 'route' => 'warehouse/purchase-orders'],
+                        ['key' => 'purchase-orders', 'label' => 'Đơn Nhập Hàng', 'icon' => 'ShoppingCart', 'route' => 'warehouse/purchase-orders'],
                         ['key' => 'inventory-reports', 'label' => 'Báo cáo tồn kho', 'icon' => 'BarChart2', 'route' => 'warehouse/inventory-reports'],
                     ],
                 ],

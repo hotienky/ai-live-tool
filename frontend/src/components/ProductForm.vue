@@ -29,15 +29,15 @@
           <div class="form-row">
             <div class="form-group">
               <label>{{ t('admin.cost_price', 'Giá nhập') }}</label>
-              <CurrencyInput v-model="form.cost_price" placeholder="0" input-class="form-input" />
+              <CurrencyInput v-model="form.cost_price" placeholder="0" input-class="form-input" :locale="currentLang" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.msg_0a3e406f', 'Giá bán *') }}</label>
-              <CurrencyInput v-model="form.price" placeholder="0" input-class="form-input" />
+              <CurrencyInput v-model="form.price" placeholder="0" input-class="form-input" :locale="currentLang" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.promo_sale_price', 'Giá khuyến mãi') }}</label>
-              <CurrencyInput v-model="form.promotion_price" placeholder="0" input-class="form-input" />
+              <CurrencyInput v-model="form.promotion_price" placeholder="0" input-class="form-input" :locale="currentLang" />
             </div>
             <div class="form-group">
               <label>{{ t('admin.msg_5cb7bf4f', 'Số lượng tồn') }}</label>
@@ -122,11 +122,11 @@
               <div class="variant-row">
                 <div class="form-group">
                   <label>{{ t('admin.cost_price', 'Giá nhập') }}</label>
-                  <CurrencyInput v-model="v.cost_price" placeholder="0" input-class="form-input" />
+                  <CurrencyInput v-model="v.cost_price" placeholder="0" input-class="form-input" :locale="currentLang" @update:modelValue="v._userEditedCost = true" />
                 </div>
                 <div class="form-group">
                   <label>{{ t('admin.msg_072c1a4b', 'Giá bán') }}</label>
-                  <CurrencyInput v-model="v.price" placeholder="0" input-class="form-input" />
+                  <CurrencyInput v-model="v.price" placeholder="0" input-class="form-input" :locale="currentLang" @update:modelValue="v._userEditedPrice = true" />
                 </div>
                 <div class="form-group">
                   <label>{{ t('admin.msg_8ad259c6', 'Giá KM') }}</label>
@@ -134,7 +134,9 @@
                     v-model="v.promotion_price"
                     placeholder="0"
                     input-class="form-input"
+                    :locale="currentLang"
                     :disabled="applyPromoToAll"
+                    @update:modelValue="v._userEditedPromo = true"
                   />
                   <span class="form-hint variant-promo-hint" v-if="applyPromoToAll && v.price && form.price && form.promotion_price">
                     = {{ formatPrice(Math.round(v.price * form.promotion_price / form.price)) }}
@@ -274,7 +276,16 @@ function addImage() {
 }
 
 function addVariant() {
-  form.value.variants.push({ name: '', sku: '', cost_price: '', price: '', promotion_price: '', stock: 0, image: '' })
+  form.value.variants.push({
+    name: '', sku: '',
+    cost_price: form.value.cost_price || '',
+    price: form.value.price || '',
+    promotion_price: form.value.promotion_price || '',
+    stock: 0, image: '',
+    _userEditedCost: false,
+    _userEditedPrice: false,
+    _userEditedPromo: false,
+  })
 }
 
 function onPromoToggle() {
@@ -286,7 +297,35 @@ function onPromoToggle() {
   }
 }
 
-function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
+const CURRENCY_MAP = { vi: 'đ', en: '$', ja: '¥', zh: '¥', ko: '₩', th: '฿', fr: '€', de: '€', es: '€', it: '€', pt: 'R$', ru: '₽', hi: '₹', id: 'Rp', ms: 'RM' }
+function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + (CURRENCY_MAP[currentLang.value] || 'đ') }
+
+// Auto-fill variant prices from product when product prices change
+watch(() => form.value.cost_price, (newVal, oldVal) => {
+  if (!newVal) return
+  form.value.variants.forEach(v => {
+    // Fill if: not manually edited AND (empty OR still matches old product value)
+    if (!v._userEditedCost && (!v.cost_price || v.cost_price === '' || v.cost_price == oldVal)) {
+      v.cost_price = newVal
+    }
+  })
+})
+watch(() => form.value.price, (newVal, oldVal) => {
+  if (!newVal) return
+  form.value.variants.forEach(v => {
+    if (!v._userEditedPrice && (!v.price || v.price === '' || v.price == oldVal)) {
+      v.price = newVal
+    }
+  })
+})
+watch(() => form.value.promotion_price, (newVal, oldVal) => {
+  if (!newVal) return
+  form.value.variants.forEach(v => {
+    if (!v._userEditedPromo && (!v.promotion_price || v.promotion_price === '' || v.promotion_price == oldVal)) {
+      v.promotion_price = newVal
+    }
+  })
+})
 
 function goBackToList() {
   emit('back')

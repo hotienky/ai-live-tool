@@ -11,21 +11,38 @@
       :placeholder="placeholder"
       :class="inputClass"
     />
-    <span v-if="suffix" class="currency-input__suffix">{{ suffix }}</span>
+    <span v-if="currencySuffix" class="currency-input__suffix">{{ currencySuffix }}</span>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useI18n } from '../composables/useI18n.js'
+
+const { currentLang } = useI18n()
+
+// Language code → currency symbol mapping
+const CURRENCY_MAP = {
+  vi: '₫', en: '$', ja: '¥', zh: '¥', ko: '₩',
+  th: '฿', fr: '€', de: '€', es: '€', it: '€', pt: 'R$',
+  ru: '₽', ar: 'ر.س', hi: '₹', id: 'Rp', ms: 'RM',
+}
 
 const props = defineProps({
   modelValue: { type: [Number, String], default: 0 },
   placeholder: { type: String, default: '0' },
-  suffix: { type: String, default: '₫' },
+  suffix: { type: String, default: '' }, // empty = auto-detect from locale
+  locale: { type: String, default: '' }, // explicit locale override (e.g. 'ja', 'en')
   inputClass: { type: String, default: '' },
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const currencySuffix = computed(() => {
+  if (props.suffix) return props.suffix // explicit symbol override
+  const lang = props.locale || currentLang.value
+  return CURRENCY_MAP[lang] || '₫'
+})
 
 const isFocused = ref(false)
 
@@ -44,7 +61,6 @@ function parseNumber(str) {
 
 const displayValue = computed(() => {
   if (isFocused.value) {
-    // When focused, show raw number for easy editing
     const val = props.modelValue
     if (val === 0 || val === '0' || val === null || val === undefined) return ''
     return String(val)

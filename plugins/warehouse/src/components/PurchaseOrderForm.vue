@@ -4,7 +4,7 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> Quay lại</button>
       <div class="pof-header__center">
         <div class="pof-header__icon"><ShoppingCart :size="15" /></div>
-        <h3>{{ props.editId ? 'Sửa đơn mua hàng' : 'Tạo đơn mua hàng' }}</h3>
+        <h3>{{ props.editId ? 'Sửa Đơn Nhập Hàng' : 'Tạo Đơn Nhập Hàng' }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? 'Đang lưu...' : (props.editId ? 'Cập nhật' : 'Tạo đơn') }}
@@ -151,7 +151,7 @@ async function handleSave() {
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await apiFetch('/purchase-orders', { method: 'POST', body: JSON.stringify(form.value) })
-      showToast('Đã tạo đơn mua hàng', 'success')
+      showToast('Đã tạo Đơn Nhập Hàng', 'success')
     }
     emit('saved')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }

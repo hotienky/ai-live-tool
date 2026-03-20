@@ -126,7 +126,7 @@ Route::post('/payment-vouchers/{id}/confirm', [PaymentVoucherController::class, 
 Route::post('/payment-vouchers/{id}/cancel', [PaymentVoucherController::class, 'cancel'])->middleware('permission:orders.edit');
 Route::delete('/payment-vouchers/{id}', [PaymentVoucherController::class, 'destroy'])->middleware('permission:orders.edit');
 
-// Purchase Orders (Đơn mua hàng)
+// Purchase Orders (Đơn Nhập Hàng)
 use App\Http\Controllers\Tenant\PurchaseOrderController;
 Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->middleware('permission:orders.view');
 Route::get('/purchase-orders/stats', [PurchaseOrderController::class, 'stats'])->middleware('permission:orders.view');

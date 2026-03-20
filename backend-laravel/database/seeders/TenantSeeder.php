@@ -298,7 +298,7 @@ class TenantSeeder extends Seeder
                     'title' => 'Chính sách đổi trả',
                     'alias' => 'chinh-sach-doi-tra',
                     'image' => null,
-                    'content' => '<h2>Chính sách đổi trả hàng</h2><p>Chúng tôi chấp nhận đổi trả trong vòng 7 ngày kể từ ngày nhận hàng.</p><h3>Điều kiện đổi trả</h3><ul><li>Sản phẩm còn nguyên tem, nhãn mác</li><li>Chưa qua sử dụng</li><li>Có hóa đơn mua hàng</li></ul><h3>Quy trình đổi trả</h3><ol><li>Liên hệ hotline: 0123.456.789</li><li>Gửi sản phẩm về kho</li><li>Nhận hàng mới trong 2-3 ngày</li></ol>',
+                    'content' => '<h2>Chính sách đổi trả hàng</h2><p>Chúng tôi chấp nhận đổi trả trong vòng 7 ngày kể từ ngày nhận hàng.</p><h3>Điều kiện đổi trả</h3><ul><li>Sản phẩm còn nguyên tem, nhãn mác</li><li>Chưa qua sử dụng</li><li>Có hóa Đơn Nhập Hàng</li></ul><h3>Quy trình đổi trả</h3><ol><li>Liên hệ hotline: 0123.456.789</li><li>Gửi sản phẩm về kho</li><li>Nhận hàng mới trong 2-3 ngày</li></ol>',
                     'sort' => 2, 'status' => 1,
                     'created_at' => now(), 'updated_at' => now(),
                 ],

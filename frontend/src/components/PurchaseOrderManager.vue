@@ -6,7 +6,7 @@
   <!-- List view -->
   <div v-else class="po-mgr">
     <div class="po-header">
-      <h2><ShoppingCart :size="20" style="vertical-align:middle" /> {{ t('admin.msg_b01962ee', 'Đơn Mua Hàng') }}</h2>
+      <h2><ShoppingCart :size="20" style="vertical-align:middle" /> {{ t('admin.msg_b01962ee', 'Đơn Nhập Hàng') }}</h2>
       <div class="header-actions">
         <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_8e2a27', 'Tìm mã PO, ghi chú...')" @input="debouncedSearch" />
         <select v-model="filterStatus" class="filter-select">
@@ -59,7 +59,7 @@
             </td>
           </tr>
           <tr v-if="orders.length === 0">
-            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_258ce7bb', 'Chưa có đơn mua hàng') }}</p></div></td>
+            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_258ce7bb', 'Chưa có Đơn Nhập Hàng') }}</p></div></td>
           </tr>
         </tbody>
       </table>

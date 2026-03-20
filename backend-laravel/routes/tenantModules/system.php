@@ -76,6 +76,8 @@ Route::get('/system-config', [SystemConfigController::class, 'index'])->middlewa
 Route::post('/system-config', [SystemConfigController::class, 'store'])->middleware('permission:settings.edit');
 Route::get('/system-config/group/{group}', [SystemConfigController::class, 'showGroup'])->middleware('permission:settings.view');
 Route::put('/system-config/group/{group}', [SystemConfigController::class, 'updateGroup'])->middleware('permission:settings.edit');
+Route::post('/system-config/test-mail',  [SystemConfigController::class, 'testMail'])->middleware('permission:settings.edit');
+Route::post('/system-config/test-redis', [SystemConfigController::class, 'testRedis'])->middleware('permission:settings.edit');
 
 // API Keys
 Route::get('/api-keys', [ApiKeysController::class, 'index'])->middleware('permission:system.api_keys');

@@ -813,7 +813,7 @@ const tabGroups = [
       { key: 'stock-receipts', label: t('admin.stock_receipts', 'Phiếu kho'), icon: ClipboardList },
       { key: 'suppliers', label: t('admin.suppliers', 'Nhà cung cấp'), icon: Briefcase },
       { key: 'payment-vouchers', label: t('admin.payment_vouchers', 'Thu/Chi'), icon: Wallet },
-      { key: 'purchase-orders', label: t('admin.purchase_orders', 'Đơn mua hàng'), icon: ShoppingCart },
+      { key: 'purchase-orders', label: t('admin.purchase_orders', 'Đơn Nhập Hàng'), icon: ShoppingCart },
       { key: 'inventory-reports', label: t('admin.inventory_reports', 'Báo cáo kho'), icon: BarChart2 },
     ],
   },

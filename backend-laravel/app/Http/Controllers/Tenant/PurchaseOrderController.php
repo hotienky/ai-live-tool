@@ -88,7 +88,7 @@ class PurchaseOrderController extends Controller
         $po = PurchaseOrder::create($data);
         $this->logActivity('purchase_order.created', 'purchase_order', $po->id);
 
-        return $this->successResponse($po->load('supplier'), 'Đã tạo đơn mua hàng', 201);
+        return $this->successResponse($po->load('supplier'), 'Đã tạo Đơn Nhập Hàng', 201);
     }
 
     public function update(Request $request, $id)
@@ -268,7 +268,7 @@ class PurchaseOrderController extends Controller
         $po->update(['status' => 'cancelled']);
         $this->logActivity('purchase_order.cancelled', 'purchase_order', $id);
 
-        return $this->successResponse($po, 'Đã hủy đơn mua hàng');
+        return $this->successResponse($po, 'Đã hủy Đơn Nhập Hàng');
     }
 
     public function destroy($id)

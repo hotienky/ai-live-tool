@@ -22,7 +22,7 @@ const plugin = {
     items: [
       { key: 'stock-receipts', label: 'Phiếu kho', icon: 'ClipboardList', route: 'warehouse/stock-receipts' },
       { key: 'suppliers', label: 'Nhà cung cấp', icon: 'Briefcase', route: 'warehouse/suppliers' },
-      { key: 'purchase-orders', label: 'Đơn mua hàng', icon: 'ShoppingCart', route: 'warehouse/purchase-orders' },
+      { key: 'purchase-orders', label: 'Đơn Nhập Hàng', icon: 'ShoppingCart', route: 'warehouse/purchase-orders' },
       { key: 'inventory-reports', label: 'Báo cáo kho', icon: 'BarChart2', route: 'warehouse/inventory-reports' },
     ],
   },

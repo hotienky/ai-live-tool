@@ -99,6 +99,24 @@
             <Moon v-else-if="resolvedTheme === 'dark' && theme !== 'system'" :size="16" />
             <Monitor v-else :size="16" />
           </button>
+          <!-- Language Switcher -->
+          <div class="app-header__lang-wrap" v-if="adminLanguages.length > 1">
+            <button class="app-header__icon-btn" @click="showLangMenu = !showLangMenu" :title="t('admin.language', 'Ngôn ngữ')">
+              <Globe :size="16" />
+            </button>
+            <div class="app-header__lang-menu" v-if="showLangMenu">
+              <button
+                v-for="lang in adminLanguages"
+                :key="lang.code"
+                class="app-header__lang-item"
+                :class="{ 'app-header__lang-item--active': lang.code === adminCurrentLang }"
+                @click="onChangeLang(lang.code)"
+              >
+                <span v-if="lang.flag" class="app-header__lang-flag">{{ lang.flag }}</span>
+                <span>{{ lang.name || lang.code }}</span>
+              </button>
+            </div>
+          </div>
           <NotificationBell @navigate="navigateTo" />
           <button class="app-header__btn app-header__btn--profile" @click="showProfile = true" :title="t('admin.profile', 'Hồ sơ')" v-if="currentUser">
             <UserIcon :size="16" />
@@ -353,7 +371,16 @@ const { isLoggedIn, currentUser, logout } = useAuth()
 const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
 const { theme, resolvedTheme, toggleTheme } = useTheme()
 const { can, isSuperAdmin } = usePermissions()
-const { t } = useI18n()
+const { t, currentLang: adminCurrentLang, languages: adminLanguages, setLang, init: initI18n } = useI18n()
+const showLangMenu = ref(false)
+async function onChangeLang(code) {
+  await setLang(code)
+  showLangMenu.value = false
+}
+// Close lang menu on outside click
+function onDocClick(e) { if (!e.target.closest('.app-header__lang-wrap')) showLangMenu.value = false }
+onMounted(() => document.addEventListener('click', onDocClick))
+onUnmounted(() => document.removeEventListener('click', onDocClick))
 
 function onLoginSuccess() {}
 function onLogout() { logout() }
@@ -404,6 +431,7 @@ onMounted(() => {
   fetchTenantFeatures()
   fetchPermissionsIfEmpty()
   fetchInstalledModules()
+  initI18n() // load languages + translations for language switcher
 
   // Initialize plugin bridge for dynamic module bundles
   const { initBridge } = usePluginLoader()
@@ -1083,6 +1111,59 @@ const statusText = computed(() => {
   margin-left: auto;
   padding-left: 12px;
   border-left: 1px solid var(--color-border);
+}
+/* Language Switcher */
+.app-header__lang-wrap {
+  position: relative;
+}
+.app-header__lang-code {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-left: 2px;
+  opacity: 0.8;
+}
+.app-header__lang-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: var(--color-card-bg, #fff);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  min-width: 160px;
+  z-index: 1000;
+  padding: 4px;
+  animation: fadeIn 0.15s ease;
+}
+.app-header__lang-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.app-header__lang-item:hover {
+  background: var(--color-hover, rgba(0,0,0,0.05));
+}
+.app-header__lang-item--active {
+  background: var(--color-accent, #3b82f6);
+  color: #fff;
+  font-weight: 600;
+}
+.app-header__lang-item--active:hover {
+  background: var(--color-accent, #3b82f6);
+}
+.app-header__lang-flag {
+  font-size: 16px;
 }
 .app-header__username {
   max-width: 120px;

@@ -4,7 +4,7 @@
       <button class="btn-back" @click="emit('back')"><ChevronLeft :size="15" /> {{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
       <div class="pof-header__center">
         <div class="pof-header__icon"><ShoppingCart :size="15" /></div>
-        <h3>{{ props.editId ? t('admin.msg_f373c2cc', 'Sửa đơn mua hàng') : t('admin.msg_d379a7f1', 'Tạo đơn mua hàng') }}</h3>
+        <h3>{{ props.editId ? t('admin.msg_f373c2cc', 'Sửa Đơn Nhập Hàng') : t('admin.msg_d379a7f1', 'Tạo Đơn Nhập Hàng') }}</h3>
       </div>
       <button class="btn-save" @click="handleSave" :disabled="saving">
         <Loader2 v-if="saving" :size="13" class="spin" /> {{ saving ? t('admin.msg_4d30b6f8', 'Đang lưu...') : (props.editId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_23275279', 'Tạo đơn')) }}
@@ -151,7 +151,7 @@ async function handleSave() {
       showToast(t('admin.updated', 'Đã cập nhật'), 'success')
     } else {
       await apiFetch('/purchase-orders', { method: 'POST', body: JSON.stringify(form.value) })
-      showToast(t('admin.msg_9ae9d5', 'Đã tạo đơn mua hàng'), 'success')
+      showToast(t('admin.msg_9ae9d5', 'Đã tạo Đơn Nhập Hàng'), 'success')
     }
     emit('saved')
   } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
