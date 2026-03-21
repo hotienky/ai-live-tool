@@ -411,7 +411,17 @@ function onDropdownLeave() {
 // E-commerce, warehouse, marketing, etc. are now registered by plugins via hooks
 // Note: 'live-group' (livestream nav) moved to plugins/livestream — registered via hooks when installed
 const coreNavItems = [
-  // Note: 'Cửa hàng' (shop/products) entry removed — now registered by plugins/ecom via hooks
+  { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', featureGroup: null },
+  {
+    key: 'system', label: 'Hệ thống', icon: 'Settings', featureGroup: null,
+    children: [
+      { key: 'store-info-nav', view: 'shop/info', label: 'Cửa hàng', icon: 'Store' },
+      { key: 'sys-config-nav', view: 'shop/config', label: 'Cấu hình', icon: 'Settings2' },
+      { key: 'languages-nav', view: 'shop/languages', label: 'Ngôn ngữ', icon: 'Globe' },
+      { key: 'roles-nav', view: 'system/roles', label: 'Phân quyền', icon: 'Shield', permission: 'roles.view' },
+      { key: 'modules-nav', view: 'system/modules', label: 'Module Store', icon: 'Package' },
+    ]
+  },
   { key: 'billing', label: 'Thanh toán & Gói cước', icon: 'Receipt', featureGroup: null }
 ]
 
@@ -462,6 +472,7 @@ const coreRouteToTab = {
   // Live
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
   // System (always available)
+  'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/languages': 'languages',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'system/modules': 'modules',
@@ -475,7 +486,7 @@ const routeConfig = computed(() => {
 const routeToTab = computed(() => routeConfig.value.routeToTab)
 const validViews = computed(() => [
   'dashboard', 'live', 'crm', 'reports', 'billing',
-  'notifications',
+  'notifications', 'shop/info', 'shop/config', 'shop/languages',
   'shop/cms/create', 'shop/cms/edit',
   'shop/products/edit', 'shop/categories/edit',
   ...Object.keys(routeConfig.value.routeToTab),

@@ -19,7 +19,11 @@ class ShopsController extends Controller
 
     public function index()
     {
-        return $this->successResponse($this->transformer->transformCollection($this->repo->all()));
+        try {
+            return $this->successResponse($this->transformer->transformCollection($this->repo->all()));
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
+        }
     }
 
     public function show($id)

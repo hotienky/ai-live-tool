@@ -119,7 +119,9 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
-            'options' => env('PGBOUNCER', false) ? [PDO::ATTR_EMULATE_PREPARES => true] : [],
+            // Master connection uses fixed database — safe to use real prepared statements
+            // (emulated prepares break PG boolean binding: sends 1/0 instead of true/false)
+            'options' => [],
         ],
 
         'sqlsrv' => [

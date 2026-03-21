@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Hash;
  * - Default languages (vi, en)
  * - System configs
  * - Default nav links
+ *
+ * NOTE: Uses explicit boolean casting for PostgreSQL compatibility.
+ * PG strict mode rejects PHP true/false as integer 1/0 in raw inserts.
  */
 class TenantBaseSeeder extends Seeder
 {
@@ -27,8 +30,12 @@ class TenantBaseSeeder extends Seeder
         }
 
         $db = DB::connection('tenant');
+        $isPgsql = $db->getDriverName() === 'pgsql';
 
         echo "🌱 Seeding essential data for tenant: {$tenant->slug}\n";
+
+        // Helper: cast boolean for PG compatibility
+        $bool = fn(bool $val) => $isPgsql ? ($val ? 'true' : 'false') : $val;
 
         // ── 1. Roles (create first so admin user can link to super_admin) ──
         $superAdminRoleId = null;
@@ -50,30 +57,41 @@ class TenantBaseSeeder extends Seeder
 
         // ── 2. Admin User (linked to super_admin role) ──
         if ($db->table('users')->count() < 1) {
-            $userId = $db->table('users')->insertGetId([
-                'name' => $tenant->owner_name ?? 'Admin',
-                'email' => $tenant->owner_email ?? "admin@{$tenant->slug}.com",
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'role_id' => $superAdminRoleId,
-                'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            // Also create user_roles pivot entry
-            if ($superAdminRoleId && $db->getSchemaBuilder()->hasTable('user_roles')) {
-                $db->table('user_roles')->insert([
-                    'user_id' => $userId,
+            try {
+                $insertData = [
+                    'name' => $tenant->owner_name ?? 'Admin',
+                    'email' => $tenant->owner_email ?? "admin@{$tenant->slug}.com",
+                    'password' => Hash::make('password'),
+                    'role' => 'admin',
                     'role_id' => $superAdminRoleId,
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+
+                // Handle is_active: PG needs DB::raw for boolean
+                if ($isPgsql) {
+                    $insertData['is_active'] = DB::raw('true');
+                } else {
+                    $insertData['is_active'] = true;
+                }
+
+                $userId = $db->table('users')->insertGetId($insertData);
+
+                // Also create user_roles pivot entry
+                if ($superAdminRoleId && $db->getSchemaBuilder()->hasTable('user_roles')) {
+                    $db->table('user_roles')->insert([
+                        'user_id' => $userId,
+                        'role_id' => $superAdminRoleId,
+                    ]);
+                }
+                echo "   ✅ Admin user created (linked to super_admin role)\n";
+            } catch (\Exception $e) {
+                echo "   ❌ Admin user creation failed: {$e->getMessage()}\n";
             }
-            echo "   ✅ Admin user created (linked to super_admin role)\n";
         }
 
         // ── 3. Languages ──
         if ($db->table('languages')->count() < 1) {
-            // Determine default language from tenant data (set during creation), fallback to 'vi'
             $defaultLangCode = $tenant->default_language ?? 'vi';
 
             $languageNames = [
@@ -88,17 +106,28 @@ class TenantBaseSeeder extends Seeder
 
             $defaultName = $languageNames[$defaultLangCode] ?? ucfirst($defaultLangCode);
 
-            $languages = [
-                ['code' => $defaultLangCode, 'name' => $defaultName, 'is_default' => true, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
-            ];
-
-            // Always add English as secondary language if it's not already the default
-            if ($defaultLangCode !== 'en') {
-                $languages[] = ['code' => 'en', 'name' => 'English', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
-            }
-            // If default is English, add Vietnamese as secondary
-            if ($defaultLangCode === 'en') {
-                $languages[] = ['code' => 'vi', 'name' => 'Tiếng Việt', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
+            if ($isPgsql) {
+                // PG: use DB::raw for boolean columns
+                $languages = [
+                    ['code' => $defaultLangCode, 'name' => $defaultName, 'is_default' => DB::raw('true'), 'is_active' => DB::raw('true'), 'created_at' => now(), 'updated_at' => now()],
+                ];
+                if ($defaultLangCode !== 'en') {
+                    $languages[] = ['code' => 'en', 'name' => 'English', 'is_default' => DB::raw('false'), 'is_active' => DB::raw('true'), 'created_at' => now(), 'updated_at' => now()];
+                }
+                if ($defaultLangCode === 'en') {
+                    $languages[] = ['code' => 'vi', 'name' => 'Tiếng Việt', 'is_default' => DB::raw('false'), 'is_active' => DB::raw('true'), 'created_at' => now(), 'updated_at' => now()];
+                }
+            } else {
+                // SQLite/MySQL: normal booleans
+                $languages = [
+                    ['code' => $defaultLangCode, 'name' => $defaultName, 'is_default' => true, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+                ];
+                if ($defaultLangCode !== 'en') {
+                    $languages[] = ['code' => 'en', 'name' => 'English', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
+                }
+                if ($defaultLangCode === 'en') {
+                    $languages[] = ['code' => 'vi', 'name' => 'Tiếng Việt', 'is_default' => false, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()];
+                }
             }
 
             $db->table('languages')->insert($languages);
@@ -123,10 +152,17 @@ class TenantBaseSeeder extends Seeder
 
         // ── 5. Default Nav Links ──
         if ($db->table('nav_links')->count() < 1) {
-            $db->table('nav_links')->insert([
-                ['title' => 'Trang chủ', 'url' => '/', 'icon' => 'Home', 'sort' => 1, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
-                ['title' => 'Sản phẩm', 'url' => '/products', 'icon' => 'Package', 'sort' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
-            ]);
+            if ($isPgsql) {
+                $db->table('nav_links')->insert([
+                    ['title' => 'Trang chủ', 'url' => '/', 'icon' => 'Home', 'sort_order' => 1, 'is_active' => DB::raw('true'), 'created_at' => now(), 'updated_at' => now()],
+                    ['title' => 'Sản phẩm', 'url' => '/products', 'icon' => 'Package', 'sort_order' => 2, 'is_active' => DB::raw('true'), 'created_at' => now(), 'updated_at' => now()],
+                ]);
+            } else {
+                $db->table('nav_links')->insert([
+                    ['title' => 'Trang chủ', 'url' => '/', 'icon' => 'Home', 'sort_order' => 1, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+                    ['title' => 'Sản phẩm', 'url' => '/products', 'icon' => 'Package', 'sort_order' => 2, 'is_active' => true, 'created_at' => now(), 'updated_at' => now()],
+                ]);
+            }
             echo "   ✅ Nav links created\n";
         }
 

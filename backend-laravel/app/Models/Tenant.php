@@ -52,6 +52,8 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'settings',
             'features',
             'expires_at',
+            'plan_expires_at',
+            'plan_renewed_at',
         ];
     }
 

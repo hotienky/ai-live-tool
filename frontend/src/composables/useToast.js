@@ -21,5 +21,14 @@ export function useToast() {
     toasts.value = toasts.value.filter(t => t.id !== id)
   }
 
-  return { toasts, showToast, removeToast }
+  return {
+    toasts,
+    showToast,
+    removeToast,
+    // Convenience methods
+    error: (msg, duration) => showToast(msg, 'error', duration),
+    success: (msg, duration) => showToast(msg, 'success', duration),
+    warning: (msg, duration) => showToast(msg, 'warning', duration),
+    info: (msg, duration) => showToast(msg, 'info', duration),
+  }
 }

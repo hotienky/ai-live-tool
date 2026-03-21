@@ -93,6 +93,12 @@ async function clearReadNotifications() {
 function initEcho() {
   if (echo) return
 
+  const reverbKey = import.meta.env.VITE_REVERB_APP_KEY
+  if (!reverbKey) {
+    console.debug('[Notifications] VITE_REVERB_APP_KEY not set, skipping WebSocket')
+    return
+  }
+
   window.Pusher = Pusher
 
   echo = new Echo({

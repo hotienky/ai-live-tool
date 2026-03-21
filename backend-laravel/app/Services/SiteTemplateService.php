@@ -78,7 +78,7 @@ class SiteTemplateService
                         [
                             'title' => $page['title'],
                             'content' => "<p>Nội dung trang {$page['title']}</p>",
-                            'status' => true,
+                            'status' => DB::raw('true'),
                             'created_at' => now(),
                             'updated_at' => now()
                         ]
@@ -92,7 +92,8 @@ class SiteTemplateService
                 DB::table('system_configs')->updateOrInsert(
                     ['key' => 'storefront.layout.home'],
                     [
-                        'group' => 'storefront',
+                        'group_name' => 'storefront',
+                        'type' => 'json',
                         'value' => $layoutData,
                         'created_at' => now(),
                         'updated_at' => now()
@@ -105,19 +106,19 @@ class SiteTemplateService
                 if (!empty($siteInfo['name'])) {
                     DB::table('system_configs')->updateOrInsert(
                         ['key' => 'shop_name'],
-                        ['group' => 'store', 'value' => $siteInfo['name'], 'updated_at' => now(), 'created_at' => now()]
+                        ['group_name' => 'store', 'type' => 'string', 'value' => $siteInfo['name'], 'updated_at' => now(), 'created_at' => now()]
                     );
                 }
                 if (!empty($siteInfo['description'])) {
                     DB::table('system_configs')->updateOrInsert(
                         ['key' => 'description'],
-                        ['group' => 'store', 'value' => $siteInfo['description'], 'updated_at' => now(), 'created_at' => now()]
+                        ['group_name' => 'store', 'type' => 'string', 'value' => $siteInfo['description'], 'updated_at' => now(), 'created_at' => now()]
                     );
                 }
                 if (!empty($siteInfo['language'])) {
                     DB::table('system_configs')->updateOrInsert(
                         ['key' => 'default_language'],
-                        ['group' => 'system', 'value' => $siteInfo['language'], 'updated_at' => now(), 'created_at' => now()]
+                        ['group_name' => 'system', 'type' => 'string', 'value' => $siteInfo['language'], 'updated_at' => now(), 'created_at' => now()]
                     );
                 }
             }

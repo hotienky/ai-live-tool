@@ -47,24 +47,30 @@ class TenantsController extends Controller
                 return $this->errorResponse("Tenant với slug '{$slug}' đã tồn tại. Vui lòng chọn slug khác.", 422);
             }
 
+            $ownerEmail = $request->input('ownerEmail', $request->input('owner_email', ''));
+            $ownerName = $request->input('ownerName', $request->input('owner_name', ''));
+
             $data = [
                 'name' => $request->input('name'),
                 'slug' => $slug,
                 'plan' => $request->input('plan', 'free'),
                 'status' => 'active',
-                'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
-                'owner_name' => $request->input('ownerName', $request->input('owner_name')),
+                'owner_email' => $ownerEmail,
+                'owner_name' => $ownerName,
                 'features' => $request->input('features', 'all'),
                 'db_name' => 'tenant_' . $slug,
             ];
 
-            // Stancl data column: default_language + storage settings
+            // Stancl data column: stores all non-column fields as JSON
             $defaultLang = $request->input('default_language', $request->input('defaultLanguage', 'vi'));
             $storageDriver = $this->validateDriver($request->input('storage_driver', 'local'));
 
             $stancData = [
                 'default_language' => $defaultLang,
                 'storage_driver' => $storageDriver,
+                'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
+                'owner_name' => $request->input('ownerName', $request->input('owner_name')),
+                'features' => $request->input('features', 'all'),
             ];
 
             // Merge storage_config if provided
@@ -131,7 +137,6 @@ class TenantsController extends Controller
                 $currentData['storage_driver'] = $this->validateDriver($storageDriver);
             }
             if (is_array($storageConfig)) {
-                // Merge: keep existing secrets if new values are masked (****)
                 $existing = $currentData['storage_config'] ?? [];
                 $currentData['storage_config'] = $this->mergeStorageConfig($existing, $storageConfig);
             }
