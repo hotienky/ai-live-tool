@@ -36,8 +36,8 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { Plus, Search, Type, AlignLeft, Image, MousePointer, Space, Minus, Play, Smile, Code, Columns, LayoutGrid } from 'lucide-vue-next'
-import { blockRegistry } from '../core/blocks.js'
-import { useI18n } from '../composables/useI18n.js'
+import { blockRegistry } from '../../core/blocks.js'
+import { useI18n } from '../../composables/useI18n.js'
 
 const { t } = useI18n()
 defineEmits(['select'])

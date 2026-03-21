@@ -1,0 +1,12 @@
+{
+  "id": "blank",
+  "name": "Trang trắng (Blank)",
+  "icon": "LayoutGrid",
+  "description": "Bắt đầu từ con số 0. Tự do thiết kế hệ thống theo ý bạn.",
+  "preview": "blank-preview.png",
+  "modules": [],
+  "theme": "starter",
+  "layout_sections": [],
+  "default_pages": [],
+  "sample_data": null
+}

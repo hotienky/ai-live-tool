@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'module' => \App\Http\Middleware\ModuleMiddleware::class,
+            'plan.limit' => \App\Http\Middleware\PlanLimits::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

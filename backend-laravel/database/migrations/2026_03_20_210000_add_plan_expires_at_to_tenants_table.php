@@ -11,21 +11,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     // Chỉ định chạy trên master database (landlord connection)
-    protected $connection = 'landlord';
+    protected $connection = 'master';
 
     public function up(): void
     {
-        Schema::connection('landlord')->table('tenants', function (Blueprint $table) {
-            // Ngày hết hạn gói dịch vụ
-            $table->timestamp('plan_expires_at')->nullable()->after('plan');
-            // Ngày gia hạn gần nhất (để track lịch sử)
-            $table->timestamp('plan_renewed_at')->nullable()->after('plan_expires_at');
+        Schema::connection('master')->table('tenants', function (Blueprint $table) {
+            if (!Schema::connection('master')->hasColumn('tenants', 'plan_expires_at')) {
+                $table->timestamp('plan_expires_at')->nullable()->after('plan');
+            }
+            if (!Schema::connection('master')->hasColumn('tenants', 'plan_renewed_at')) {
+                $table->timestamp('plan_renewed_at')->nullable()->after('plan_expires_at');
+            }
         });
     }
 
     public function down(): void
     {
-        Schema::connection('landlord')->table('tenants', function (Blueprint $table) {
+        Schema::connection('master')->table('tenants', function (Blueprint $table) {
             $table->dropColumn(['plan_expires_at', 'plan_renewed_at']);
         });
     }

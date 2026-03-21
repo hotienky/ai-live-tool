@@ -264,6 +264,7 @@
             v-model:sections="sections"
             :section-meta="sectionMeta"
             :all-categories="allCategories"
+            @open-block-editor="s => showBlockEditorFor = s"
           />
 
           <!-- Add Section Button (only for homepage and CMS dynamic pages, not builtin pages) -->
@@ -392,6 +393,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Visual Builder Modal -->
+    <div class="modal-overlay modal-overlay--full" v-if="showBlockEditorFor" @click.self="showBlockEditorFor = null">
+      <div class="modal modal--full" style="width: 100vw; height: 100vh; max-width: none; border-radius: 0; display: flex; flex-direction: column;">
+        <div class="modal__header" style="flex-shrink: 0; background: var(--bg-2);">
+          <h3><Paintbrush :size="16" /> Visual Builder (Custom Block)</h3>
+          <button class="btn-close" @click="showBlockEditorFor = null"><X :size="18" /></button>
+        </div>
+        <div class="modal__body" style="padding: 0; flex: 1; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-1);">
+          <BlockEditor v-model="showBlockEditorFor.content" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -404,6 +418,7 @@ import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import LanguageTabs from './LanguageTabs.vue'
+import BlockEditor from './builder/BlockEditor.vue'
 import { useToast } from '../composables/useToast.js'
 import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
@@ -411,7 +426,7 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil
+  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -434,6 +449,7 @@ const previewKey = ref(0)
 const storefrontUrl = ref('')
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
+const showBlockEditorFor = ref(null)
 
 const activePageId = ref(null)
 const dynamicPages = ref([])
@@ -738,6 +754,7 @@ const sectionMeta = {
   newsletter: { label: t('admin.msg_26a469cd', 'Đăng ký email'), icon: Mail, pvHeight: '30px' },
   social_feed: { label: t('admin.msg_0f1252b7', 'Mạng xã hội'), icon: Share2, pvHeight: '25px' },
   brands_slider: { label: t('admin.msg_161416d9', 'Thương hiệu'), icon: Award, pvHeight: '30px' },
+  custom_block: { label: 'Visual Builder', icon: Paintbrush, pvHeight: '60px' },
 }
 
 const defaultParams = {
@@ -755,6 +772,7 @@ const defaultParams = {
   newsletter: { title: t('admin.msg_9a76bcab', 'Đăng ký nhận tin'), subtitle: t('admin.msg_e3809562', 'Nhận thông tin khuyến mãi và sản phẩm mới nhất'), buttonText: t('admin.msg_0bb0951d', 'Đăng ký') },
   social_feed: { title: t('admin.msg_d4a4c495', 'Theo dõi chúng tôi') },
   brands_slider: { title: t('admin.msg_161416d9', 'Thương hiệu'), animationSpeed: 20 },
+  custom_block: { title: '' },
 }
 
 // ─── Library ───
@@ -767,6 +785,7 @@ const libraryItems = [
   { type: 'newsletter', label: t('admin.msg_26a469cd', 'Đăng ký email'), desc: t('admin.msg_7538695d', 'Form đăng ký nhận tin'), icon: Mail },
   { type: 'social_feed', label: t('admin.msg_0f1252b7', 'Mạng xã hội'), desc: 'Links social media', icon: Share2 },
   { type: 'brands_slider', label: t('admin.msg_161416d9', 'Thương hiệu'), desc: t('admin.msg_6c5566ff', 'Logo thương hiệu'), icon: Award },
+  { type: 'custom_block', label: 'Visual Builder', desc: 'Thiết kế kéo thả tự do', icon: Paintbrush },
 ]
 
 function addLibrarySection(lib) {

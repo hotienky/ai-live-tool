@@ -9,9 +9,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::connection('master')->table('tenant_module_subscriptions', function (Blueprint $table) {
-            $table->string('status', 20)->default('active')->after('is_active');
+            if (!Schema::connection('master')->hasColumn('tenant_module_subscriptions', 'status')) {
+                $table->string('status', 20)->default('active')->after('is_active');
+            }
             // status: active (free+installed), pending (paid+requested), approved, rejected
-            $table->text('request_note')->nullable()->after('status');
+            if (!Schema::connection('master')->hasColumn('tenant_module_subscriptions', 'request_note')) {
+                $table->text('request_note')->nullable()->after('status');
+            }
         });
     }
 

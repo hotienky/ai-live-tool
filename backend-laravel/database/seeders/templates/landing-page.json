@@ -1,0 +1,18 @@
+{
+  "id": "landing-page",
+  "name": "Landing Page",
+  "icon": "Target",
+  "description": "Trang đích tối ưu chuyển đổi cho một sản phẩm hoặc chiến dịch cụ thể.",
+  "preview": "landing-page-preview.png",
+  "modules": [],
+  "theme": "starter",
+  "layout_sections": [
+    { "type": "banner", "enabled": true, "params": { "title": "Sản phẩm đổi mới 2026", "height": "lg" } },
+    { "type": "video_embed", "enabled": true, "params": { "title": "Giới thiệu tính năng" } },
+    { "type": "custom_block", "enabled": true, "params": { "title": "Lợi ích nổi bật" } },
+    { "type": "testimonials", "enabled": true, "params": { "title": "Đánh giá", "columns": 3 } },
+    { "type": "custom_block", "enabled": true, "params": { "title": "Đăng ký tư vấn" }, "content": [{ "id": "form_1", "type": "form", "columns": 1, "params": { "formId": "consulting", "title": "Nhận tư vấn ngay", "submitLabel": "Gửi yêu cầu" } }] }
+  ],
+  "default_pages": [],
+  "sample_data": null
+}

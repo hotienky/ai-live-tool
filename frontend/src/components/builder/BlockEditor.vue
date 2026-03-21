@@ -65,12 +65,12 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Plus, Columns, Undo2, Redo2, LayoutGrid, ChevronUp, ChevronDown, Copy, Trash2 } from 'lucide-vue-next'
-import { createBlock, createRow, blockRegistry } from '../core/blocks.js'
-import { useI18n } from '../composables/useI18n.js'
-import BlockRenderer from './builder/BlockRenderer.vue'
-import BlockPalette from './builder/BlockPalette.vue'
-import BlockSettings from './builder/BlockSettings.vue'
-import RowEditor from './builder/RowEditor.vue'
+import { createBlock, createRow, blockRegistry } from '../../core/blocks.js'
+import { useI18n } from '../../composables/useI18n.js'
+import BlockRenderer from './BlockRenderer.vue'
+import BlockPalette from './BlockPalette.vue'
+import BlockSettings from './BlockSettings.vue'
+import RowEditor from './RowEditor.vue'
 
 const { t } = useI18n()
 

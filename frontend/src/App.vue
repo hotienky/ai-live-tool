@@ -35,6 +35,12 @@
   <LoginPage v-else-if="!isLoggedIn" @loginSuccess="onLoginSuccess" />
 
   <div class="app" v-else>
+    <!-- Onboarding Overlay -->
+    <OnboardingWizard
+      v-if="needsOnboarding"
+      @complete="onOnboardingComplete"
+    />
+
     <!-- Connection Lost Banner -->
     <div class="connection-lost" v-if="connectionLost">
       <AlertTriangle :size="14" style="vertical-align:middle" /> {{ t('admin.connection_lost', 'Mất kết nối server — đang thử kết nối lại...') }}
@@ -128,69 +134,12 @@
         </div>
       </div>
 
-      <!-- Row 2: Live Controls (only when no plugin providing the live view) -->
-      <div class="app-header__row2" v-if="activeView === 'live' && !liveMonitorComponent">
-        <div class="app-header__shop-info" v-if="currentShop">
-          <span class="app-header__shop-name">{{ currentShop.shop_name || currentShop.shopName }}</span>
-        </div>
-        <div class="app-header__status">
-          <span class="app-header__dot" :class="statusDotClass"></span>
-          <span class="app-header__status-text">{{ statusText }}</span>
-        </div>
-        <div class="app-header__viewers" v-if="viewerCount > 0">
-          <Eye :size="13" />
-          {{ viewerCount.toLocaleString() }}
-        </div>
-        <div class="app-header__spacer"></div>
-        <div class="app-header__controls">
-          <button class="app-header__icon-btn" :class="{ active: ttsEnabled }" @click="toggleTTS" title="TTS">
-            <Volume2 v-if="ttsEnabled" :size="15" />
-            <VolumeX v-else :size="15" />
-          </button>
-          <button class="app-header__icon-btn" :class="{ active: showChart }" @click="showChart = !showChart" :title="t('admin.chart', 'Biểu đồ')">
-            <BarChart3 :size="15" />
-          </button>
-          <button class="app-header__icon-btn" :class="{ active: showHistory }" @click="showHistory = !showHistory" :title="t('admin.history', 'Lịch sử')">
-            <History :size="15" />
-          </button>
-          <button class="app-header__icon-btn" @click="onExport" title="Export CSV">
-            <Download :size="15" />
-          </button>
-          <div class="app-header__divider"></div>
-          <button class="app-header__action-btn app-header__action-btn--connect" @click="showLiveModal = true" :disabled="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'">
-            <Radio :size="13" /> {{ t('admin.live_session', 'Phiên Live') }}
-          </button>
-          <button
-            class="app-header__action-btn app-header__action-btn--stop"
-            @click="onDisconnect"
-            v-if="crawlerStatus?.status === 'connected' || crawlerStatus?.status === 'mock'"
-          >
-            <Square :size="13" /> {{ t('admin.disconnect', 'Ngắt') }}
-          </button>
-          <button class="app-header__icon-btn" @click="onResetStats" title="Reset">
-            <RotateCcw :size="14" />
-          </button>
-        </div>
-      </div>
     </header>
-
-    <!-- Session History Panel -->
-    <SessionHistory
-      :visible="showHistory"
-      @close="showHistory = false"
-    />
-
-    <!-- Stats Chart Overlay -->
-    <StatsChart
-      v-if="showChart"
-      :stats="stats"
-      :timelineData="timelineData"
-      @close="showChart = false"
-    />
 
     <!-- ═══ View: Dashboard ═══ -->
     <DashboardOverview
       v-if="activeView === 'dashboard'"
+      :isLivestreamInstalled="isModuleInstalled('livestream')"
       @goLive="navigateTo('live')"
       @goLead="navigateTo('crm')"
       @goCustomer="(c) => openCustomerDetail({ nickname: c.nickname, uniqueId: c.nickname })"
@@ -202,26 +151,6 @@
       :is="liveMonitorComponent"
       @openCustomer="openCustomerDetail"
     />
-    <!-- Fallback: hardcoded live view (used only if plugin is NOT installed) -->
-    <main class="app-main" v-else-if="activeView === 'live'">
-      <!-- Left: Lead Panel (70%) -->
-      <section class="app-main__left">
-        <LeadPanel :leads="leads" @openCustomer="openCustomerDetail" />
-      </section>
-
-      <!-- Right: Chat + Stats (30%) -->
-      <section class="app-main__right">
-        <ChatStream ref="chatStreamRef" :comments="allComments" @reply="onQuickReply" />
-        <QuickReply
-          :visible="showQuickReply"
-          :targetComment="quickReplyTarget"
-          @close="showQuickReply = false"
-          @sent="onReplySent"
-        />
-        <StatsBar :stats="stats" :viewerCount="viewerCount" />
-      </section>
-    </main>
-
     <!-- ═══ View: Live Replay (plugin-based) ═══ -->
     <component
       v-else-if="activeView === 'live/replay' && liveReplayComponent"
@@ -237,6 +166,11 @@
     <!-- ═══ View: Reports ═══ -->
     <ReportPage
       v-if="activeView === 'reports'"
+    />
+
+    <!-- ═══ View: Billing ═══ -->
+    <BillingPage
+      v-if="activeView === 'billing'"
     />
 
     <!-- ═══ View: Settings-based Pages (Shop/Live settings/Orders) ═══ -->
@@ -269,21 +203,6 @@
 
 
 
-    <!-- Post-Live Report Modal -->
-    <PostLiveReport
-      :visible="showPostLiveReport"
-      :report="postLiveReport"
-      @close="showPostLiveReport = false"
-    />
-
-    <!-- Floating Action Buttons (Live Monitor) -->
-    <div class="app-fab" v-if="activeView === 'live'">
-      <button class="app-fab__btn app-fab__btn--notif" @click="toggleBrowserNotif" :title="notifEnabled ? t('admin.disable_notif', 'Tắt thông báo') : t('admin.enable_notif', 'Bật thông báo')">
-        <BellRing v-if="notifEnabled" :size="18" />
-        <BellOff v-else :size="18" />
-      </button>
-    </div>
-
     <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-overlay" v-if="showShortcuts" @click.self="showShortcuts = false">
       <div class="shortcuts-modal">
@@ -309,12 +228,6 @@
     <!-- Toast Notifications -->
     <ToastContainer />
 
-    <!-- Live Session Modal -->
-    <LiveSessionModal
-      v-if="showLiveModal"
-      @close="showLiveModal = false"
-      @started="onLiveSessionStarted"
-    />
   </div>
 </template>
 
@@ -333,13 +246,7 @@ import { apiFetch } from './composables/useApi.js'
 import { logger } from './utils/logger.js'
 import { useSocket } from './composables/useSocket.js'
 import { useShops } from './composables/useShops.js'
-import { useTTS } from './composables/useTTS.js'
 import ShopSelector from './components/ShopSelector.vue' // keep import for potential future use
-import LeadPanel from './components/LeadPanel.vue'
-import ChatStream from './components/ChatStream.vue'
-import StatsBar from './components/StatsBar.vue'
-import StatsChart from './components/StatsChart.vue'
-import SessionHistory from './components/SessionHistory.vue'
 import DashboardOverview from './components/DashboardOverview.vue'
 import LeadPipeline from './components/LeadPipeline.vue'
 import ReportPage from './components/ReportPage.vue'
@@ -348,17 +255,15 @@ import ShopSettings from './components/ShopSettings.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
+import BillingPage from './components/BillingPage.vue'
 import NotificationPage from './components/NotificationPage.vue'
-import QuickReply from './components/QuickReply.vue'
-
-import LiveSessionModal from './components/LiveSessionModal.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
-import PostLiveReport from './components/PostLiveReport.vue'
 import StorefrontHome from './components/StorefrontHome.vue'
 import StorefrontProduct from './components/StorefrontProduct.vue'
 import StorefrontCategory from './components/StorefrontCategory.vue'
 import StorefrontPage from './components/StorefrontPage.vue'
+import OnboardingWizard from './components/OnboardingWizard.vue'
 import { useAuth } from './composables/useAuth.js'
 import { useNotifications } from './composables/useNotifications.js'
 import { useKeyboardShortcuts } from './composables/useKeyboardShortcuts.js'
@@ -370,11 +275,9 @@ import { hooks } from './core/hooks.js'
 import { SIDEBAR_ITEMS, ADMIN_ROUTES } from './core/hook-names.js'
 
 import {
-  Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
-  Radio, Drama, Square, RotateCcw, History,
-  LayoutDashboard, MonitorPlay, Users, BarChart2,
+  Rocket,
+  LayoutDashboard, Users, BarChart2,
   User as UserIcon, LogOut, Settings, Store, ChevronDown,
-  BellRing, BellOff,
   Sun, Moon, Monitor, AlertTriangle, Keyboard,
   ShoppingBag, FolderTree, Award, Receipt, Tag,
   Key, MessageCircle, Shield, Link, Image, BookOpen, Zap,
@@ -383,7 +286,7 @@ import {
 
 // ── Auth ──
 const { isLoggedIn, currentUser, logout } = useAuth()
-const { notifEnabled, notifyHotLead, notifyKeywordMatch, toggleNotif: toggleBrowserNotif } = useNotifications()
+useNotifications()
 const { theme, resolvedTheme, toggleTheme } = useTheme()
 const { can, isSuperAdmin } = usePermissions()
 const { t, currentLang: adminCurrentLang, languages: adminLanguages, setLang, init: initI18n } = useI18n()
@@ -406,6 +309,7 @@ function onProfileUpdated(user) {
 
 // ── Tenant Feature Groups ──
 const tenantFeatures = ref(localStorage.getItem('tenant_features') || 'all')
+const needsOnboarding = ref(false)
 
 async function fetchTenantFeatures() {
   try {
@@ -415,10 +319,21 @@ async function fetchTenantFeatures() {
       const features = data.features || 'all'
       tenantFeatures.value = features
       localStorage.setItem('tenant_features', features)
+      
+      // Check onboarding status
+      if (data.onboarded === false) {
+        needsOnboarding.value = true
+      }
     }
   } catch (e) {
     console.warn('[Features] Failed to fetch:', e.message)
   }
+}
+
+function onOnboardingComplete() {
+  needsOnboarding.value = false
+  fetchTenantFeatures()
+  fetchInstalledModules()
 }
 
 // ── Installed Modules ──
@@ -497,6 +412,7 @@ function onDropdownLeave() {
 // Note: 'live-group' (livestream nav) moved to plugins/livestream — registered via hooks when installed
 const coreNavItems = [
   // Note: 'Cửa hàng' (shop/products) entry removed — now registered by plugins/ecom via hooks
+  { key: 'billing', label: 'Thanh toán & Gói cước', icon: 'Receipt', featureGroup: null }
 ]
 
 // ── Dynamic nav items via hooks — plugins can add items ──
@@ -558,7 +474,7 @@ const routeConfig = computed(() => {
 })
 const routeToTab = computed(() => routeConfig.value.routeToTab)
 const validViews = computed(() => [
-  'dashboard', 'live', 'crm', 'reports',
+  'dashboard', 'live', 'crm', 'reports', 'billing',
   'notifications',
   'shop/cms/create', 'shop/cms/edit',
   'shop/products/edit', 'shop/categories/edit',
@@ -749,67 +665,25 @@ function openCustomerDetail(customer) {
   showCustomerDetail.value = true
 }
 
-// Floating panels
-const showPostLiveReport = ref(false)
-
-// Quick Reply
-const showQuickReply = ref(false)
-const quickReplyTarget = ref(null)
-const notifCenter = ref(null)
-const chatStreamRef = ref(null)
 const shopSelectorRef = ref(null) // kept for compatibility
 const showShortcuts = ref(false)
-const showLiveModal = ref(false)
 
 // Keyboard shortcuts
 const { shortcuts } = useKeyboardShortcuts({
   onSwitchTab: (tab) => { navigateTo(tab) },
   onToggleSearch: () => {
     if (activeView.value !== 'live') navigateTo('live')
-    if (chatStreamRef.value) {
-      chatStreamRef.value.showSearch = !chatStreamRef.value.showSearch
-    }
   },
-  onStartMock: () => onStartMock(),
+  onStartMock: () => {},
   onCloseModal: () => {
     showCustomerDetail.value = false
-    showQuickReply.value = false
     showShortcuts.value = false
   },
   onToggleHelp: () => { showShortcuts.value = !showShortcuts.value },
 })
 
-function onQuickReply(comment) {
-  quickReplyTarget.value = comment
-  showQuickReply.value = true
-}
-
-function onReplySent({ comment, reply }) {
-  showQuickReply.value = false
-  if (notifCenter.value) {
-    notifCenter.value.addNotification('system', `Đã gửi reply cho @${comment?.nickname || 'user'}`)
-  }
-}
-
-// Socket composable
-const {
-  isConnected,
-  connectionLost,
-  leads,
-  allComments,
-  stats,
-  crawlerStatus,
-  viewerCount,
-  postLiveReport,
-  joinShop,
-  startMock,
-  resetStats,
-} = useSocket()
-
-// Auto-show post-live report when received
-watch(postLiveReport, (report) => {
-  if (report) showPostLiveReport.value = true
-})
+// Socket composable — only connectionLost is used in App shell; live features handled by plugin
+const { connectionLost } = useSocket()
 
 // Redirect away from disabled-feature views when tenant features load/change
 watch(tenantFeatures, () => {
@@ -819,59 +693,13 @@ watch(tenantFeatures, () => {
 
 // Shops composable
 const {
-  shops,
   currentShop,
   fetchShops,
   createShop,
-  connectShop,
-  disconnectShop,
   selectShop,
 } = useShops()
 
-// TTS composable
-const { isEnabled: ttsEnabled, toggle: toggleTTS, announceHotLead } = useTTS()
-
-// Stats Chart & Session History
-const showChart = ref(false)
-const showHistory = ref(false)
 const showProfile = ref(false)
-const timelineData = ref([])
-
-let timelineInterval = null
-
-function startTimelineCollection() {
-  if (timelineInterval) clearInterval(timelineInterval)
-  timelineInterval = setInterval(() => {
-    const now = new Date()
-    const time = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-    timelineData.value.push({
-      time,
-      count: stats.value.total,
-      hot: stats.value.hot,
-      warm: stats.value.warm,
-    })
-    if (timelineData.value.length > 30) {
-      timelineData.value = timelineData.value.slice(-30)
-    }
-  }, 30000)
-}
-
-watch(leads, (newLeads, oldLeads) => {
-  if (newLeads.length > (oldLeads?.length || 0)) {
-    const latest = newLeads[newLeads.length - 1]
-    if (latest.label === '[HOT]') {
-      announceHotLead(latest)
-      notifyHotLead(latest)
-    }
-  }
-}, { deep: true })
-
-watch(currentShop, (shop) => {
-  if (shop) {
-    joinShop(shop.id)
-    timelineData.value = []
-  }
-})
 
 onMounted(async () => {
   // Bootstrap saved storefront accent color into CMS CSS vars on startup
@@ -905,11 +733,6 @@ onMounted(async () => {
   } catch { /* non-critical */ }
 
   try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
-  startTimelineCollection()
-})
-
-onUnmounted(() => {
-  if (timelineInterval) clearInterval(timelineInterval)
 })
 
 function onSelectShop(shop) { selectShop(shop) }
@@ -921,69 +744,8 @@ async function onCreateShop(shopData) {
   } catch (err) { logger.error('Error creating shop:', err) }
 }
 
-async function onConnectTiktok() {
-  if (!currentShop.value) return
-  try { await connectShop(currentShop.value.id, false) }
-  catch (err) { logger.error('Connect error:', err) }
-}
-
-function onStartMock() {
-  if (!currentShop.value) return
-  startMock(currentShop.value.id, currentShop.value.shop_name)
-}
-
-async function onLiveSessionStarted(shop, mock) {
-  // Refresh shops, select the new shop, join socket
-  await fetchShops()
-  const found = shops.value.find(s => s.id === shop.id)
-  if (found) selectShop(found)
-  navigateTo('live')
-}
-
-async function onDisconnect() {
-  if (!currentShop.value) return
-  try { await disconnectShop(currentShop.value.id) }
-  catch (err) { logger.error('Disconnect error:', err) }
-}
-
-function onResetStats() {
-  if (currentShop.value) {
-    resetStats(currentShop.value.id)
-    timelineData.value = []
-  }
-}
 
 
-
-
-
-function onExport() {
-  if (!currentShop.value) return
-  window.open(`${API_BASE}/export/leads?format=csv`, '_blank')
-}
-
-const statusDotClass = computed(() => {
-  if (!isConnected.value) return 'app-header__dot--offline'
-  const status = crawlerStatus.value?.status
-  if (status === 'connected' || status === 'mock') return 'app-header__dot--live'
-  if (status === 'error') return 'app-header__dot--error'
-  return 'app-header__dot--waiting'
-})
-
-const statusText = computed(() => {
-  if (!currentShop.value) return t('admin.msg_select_shop', 'Chọn shop để bắt đầu')
-  if (!isConnected.value) return t('admin.msg_connection_lost', 'Mất kết nối server')
-  const status = crawlerStatus.value?.status
-  if (status === 'connected' || status === 'mock') {
-    const shop = currentShop.value
-    const identifier = shop.tiktok_username || shop.shopee_id || shop.facebook_page_id || shop.youtube_channel_id || shop.shop_name || ''
-    const prefix = status === 'mock' ? 'Mock' : t('admin.msg_live_now', 'Đang Live')
-    return `${prefix} - ${shop.shop_name}${identifier && identifier !== shop.shop_name ? ` @${identifier}` : ''}`
-  }
-  if (status === 'error') return t('admin.msg_aaf377aa', 'Lỗi') + ': ' + (crawlerStatus.value?.message || '')
-  if (status === 'disconnected') return t('admin.msg_disconnected', 'Ngắt kết nối')
-  return t('admin.msg_ready', 'Sẵn sàng kết nối')
-})
 </script>
 
 <style scoped>
@@ -1207,66 +969,6 @@ const statusText = computed(() => {
   white-space: nowrap;
 }
 
-/* ── Row 2: Shop + Controls ── */
-.app-header__row2 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 16px;
-}
-
-.app-header__spacer { flex: 1; }
-
-.app-header__shop-info {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: var(--color-bg-card);
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-}
-.app-header__shop-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-}
-
-.app-header__status {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
-}
-.app-header__dot {
-  width: 7px; height: 7px; border-radius: 50%;
-}
-.app-header__dot--live {
-  background: var(--color-success);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-  animation: dotPulse 1.5s infinite;
-}
-.app-header__dot--waiting { background: #f59e0b; animation: dotPulse 1.5s infinite; }
-.app-header__dot--offline { background: #6b7280; }
-.app-header__dot--error { background: var(--color-accent-hot); }
-.app-header__status-text { white-space: nowrap; }
-
-.app-header__viewers {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-.app-header__controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
 
 /* Icon-only toggle buttons */
 .app-header__icon-btn {
@@ -1354,8 +1056,6 @@ const statusText = computed(() => {
 .app-header__btn--logout:hover { color: #ff3b5c; border-color: #ff3b5c; background: rgba(255, 59, 92, 0.08); }
 
 .app-main { display: flex; flex: 1; overflow: hidden; }
-.app-main__left { flex: 7; border-right: 1px solid var(--color-border); overflow: hidden; }
-.app-main__right { flex: 3; display: flex; flex-direction: column; overflow: hidden; }
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -1365,8 +1065,6 @@ const statusText = computed(() => {
 }
 @media (max-width: 768px) {
   .app-header__row1 { gap: 6px; padding: 6px 10px; }
-  .app-header__row2 { flex-wrap: wrap; gap: 6px; padding: 6px 10px; }
-  .app-header__controls { flex-wrap: wrap; }
 }
 
 /* Floating Panels */
@@ -1388,7 +1086,7 @@ const statusText = computed(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* FAB Buttons */
+/* FAB Buttons — kept for potential plugin use */
 .app-fab {
   position: fixed;
   bottom: 20px;

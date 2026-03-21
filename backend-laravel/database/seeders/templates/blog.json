@@ -1,0 +1,22 @@
+{
+  "id": "blog",
+  "name": "Blog / Tin tức",
+  "icon": "FileText",
+  "description": "Giao diện tối ưu cho người viết lách, báo chí và nhà sáng tạo nội dung.",
+  "preview": "blog-preview.png",
+  "modules": ["blog"],
+  "theme": "blog-magazine",
+  "layout_sections": [
+    { "type": "banner", "enabled": true, "params": { "title": "Đọc tin tức mỗi ngày", "height": "md" } },
+    { "type": "cms_pages", "enabled": true, "params": { "title": "Bài viết mới nhất", "layout": "grid", "maxPages": 6 } },
+    { "type": "newsletter", "enabled": true, "params": { "title": "Bản tin tuần", "subtitle": "Không bỏ lỡ những bài viết hay nhất", "buttonText": "Đăng ký" } }
+  ],
+  "default_pages": [
+    { "title": "Về tác giả", "slug": "about-author", "template": "about" },
+    { "title": "Liên hệ hợp tác", "slug": "contact", "template": "contact" }
+  ],
+  "sample_data": {
+    "posts": 8,
+    "categories": 3
+  }
+}

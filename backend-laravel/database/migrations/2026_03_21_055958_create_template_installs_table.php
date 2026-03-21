@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('template_installs')) return;
         Schema::create('template_installs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('template_id')->constrained('templates')->onDelete('cascade');

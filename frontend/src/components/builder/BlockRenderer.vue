@@ -54,7 +54,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Image as ImageIcon, PlayCircle, AlertCircle, Star } from 'lucide-vue-next'
-import { blockStyleToCSS } from '../core/blocks.js'
+import { blockStyleToCSS } from '../../core/blocks.js'
 
 const props = defineProps({
   block: { type: Object, required: true },

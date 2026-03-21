@@ -1,0 +1,20 @@
+{
+  "id": "portfolio",
+  "name": "Portfolio / Cá nhân",
+  "icon": "User",
+  "description": "Trưng bày dự án, kỹ năng và tóm tắt tiểu sử dành cho freelancer & agency.",
+  "preview": "portfolio-preview.png",
+  "modules": [],
+  "theme": "starter",
+  "layout_sections": [
+    { "type": "banner", "enabled": true, "params": { "title": "Hi, I'm a Creative Professional", "height": "lg" } },
+    { "type": "text_block", "enabled": true, "params": { "title": "Về tôi" }, "content": "<h1>Creative Director & Designer</h1><p>Với hơn 10 năm kinh nghiệm trong ngành...</p>" },
+    { "type": "image_gallery", "enabled": true, "params": { "title": "Dự án tiêu biểu", "columns": 3 } },
+    { "type": "testimonials", "enabled": true, "params": { "title": "Khách hàng nói gì", "columns": 2 } }
+  ],
+  "default_pages": [
+    { "title": "My Resume", "slug": "resume", "template": "blank" },
+    { "title": "Contact Me", "slug": "contact", "template": "contact" }
+  ],
+  "sample_data": null
+}

@@ -35,7 +35,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { LayoutTemplate, Search } from 'lucide-vue-next'
-import { useI18n } from '../composables/useI18n.js'
+import { useI18n } from '../../composables/useI18n.js'
 
 const { t } = useI18n()
 defineEmits(['select'])

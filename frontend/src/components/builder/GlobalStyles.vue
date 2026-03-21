@@ -97,9 +97,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { Palette, Paintbrush, Type, LayoutGrid, Moon, Sun, Monitor, Save, Download } from 'lucide-vue-next'
-import { apiFetch } from '../composables/useApi.js'
-import { useToast } from '../composables/useToast.js'
-import { useI18n } from '../composables/useI18n.js'
+import { apiFetch } from '../../composables/useApi.js'
+import { useToast } from '../../composables/useToast.js'
+import { useI18n } from '../../composables/useI18n.js'
 
 const { t } = useI18n()
 const { showToast } = useToast()

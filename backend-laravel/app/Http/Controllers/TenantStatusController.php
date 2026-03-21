@@ -23,8 +23,13 @@ class TenantStatusController extends Controller
 
         $cacheKey = "tenant_status:{$slug}";
         $status = Cache::remember($cacheKey, 60, function () use ($slug) {
-            $tenant = \App\Models\Tenant::where('slug', $slug)->first(['status', 'name', 'features']);
-            return $tenant ? ['status' => $tenant->status, 'name' => $tenant->name, 'features' => $tenant->features ?? 'all'] : null;
+            $tenant = \App\Models\Tenant::where('slug', $slug)->first(['status', 'name', 'features', 'settings']);
+            return $tenant ? [
+                'status' => $tenant->status, 
+                'name' => $tenant->name, 
+                'features' => $tenant->features ?? 'all',
+                'onboarded' => $tenant->settings['onboarded'] ?? false,
+            ] : null;
         });
 
         if (!$status) {
@@ -50,6 +55,7 @@ class TenantStatusController extends Controller
         return response()->json([
             'status' => 'active',
             'features' => $status['features'] ?? 'all',
+            'onboarded' => $status['onboarded'] ?? false,
         ], 200);
     }
 

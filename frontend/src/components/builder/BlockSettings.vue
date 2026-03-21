@@ -66,7 +66,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { X, PenLine, Palette } from 'lucide-vue-next'
-import { blockRegistry } from '../core/blocks.js'
+import { blockRegistry } from '../../core/blocks.js'
 import StyleControls from './StyleControls.vue'
 
 const props = defineProps({

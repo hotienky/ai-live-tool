@@ -1,5 +1,12 @@
 <template>
-  <div class="dashboard">
+  <div v-if="!isLivestreamInstalled" class="dashboard dashboard--empty">
+    <div class="dashboard__no-plugin">
+      <Radio :size="48" class="dashboard__no-plugin-icon" />
+      <p class="dashboard__no-plugin-title">Live Comment Reader chưa được cài đặt</p>
+      <p class="dashboard__no-plugin-hint">Vào <strong>Hệ thống → Modules</strong> để cài đặt plugin Livestream.</p>
+    </div>
+  </div>
+  <div v-else class="dashboard">
     <!-- Stats Cards -->
     <div class="dashboard__cards">
       <div class="dashboard__card dashboard__card--live">
@@ -155,6 +162,10 @@ import {
 const { t, formatCurrency } = useI18n()
 
 const emit = defineEmits(['goLive', 'goLead', 'goCustomer'])
+
+const props = defineProps({
+  isLivestreamInstalled: { type: Boolean, default: false },
+})
 
 const { overview, recentLeads, analytics, topCustomers, loading, fetchOverview, fetchRecentLeads, fetchAnalytics, fetchTopCustomers } = useDashboard()
 
@@ -382,4 +393,10 @@ onUnmounted(() => {
 .dashboard__rate-label {
   font-size: 11px; font-weight: 800; color: #ef4444; min-width: 32px; text-align: right;
 }
+.dashboard--empty { display: flex; align-items: center; justify-content: center; height: 100%; }
+.dashboard__no-plugin { display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--color-text-muted); text-align: center; padding: 40px; }
+.dashboard__no-plugin-icon { opacity: 0.2; }
+.dashboard__no-plugin-title { font-size: 16px; font-weight: 700; color: var(--color-text-secondary); }
+.dashboard__no-plugin-hint { font-size: 13px; }
+.dashboard__no-plugin-hint strong { color: var(--color-accent-primary); }
 </style>

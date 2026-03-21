@@ -138,7 +138,7 @@
 <script setup>
 import { computed } from 'vue'
 import { Move, Type, PaintBucket, Square, Sparkles, Smartphone, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-vue-next'
-import { animationPresets } from '../core/blocks.js'
+import { animationPresets } from '../../core/blocks.js'
 
 const props = defineProps({
   styleData: { type: Object, default: () => ({}) },
