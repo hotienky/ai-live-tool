@@ -1,0 +1,20 @@
+<?php
+
+namespace App\Events;
+
+use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+
+/**
+ * Fired after a user successfully logs in.
+ */
+class UserLoggedIn
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public int $userId,
+        public string $email,
+        public ?string $tenantId = null,
+    ) {}
+}

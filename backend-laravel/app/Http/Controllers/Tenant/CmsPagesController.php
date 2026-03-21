@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Repositories\CmsPage\CmsPageRepositoryInterface;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
+use App\Events\ContentSaved;
+use App\Events\ContentDeleted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -58,6 +60,9 @@ class CmsPagesController extends Controller
                 $this->syncTranslations('cms_pages', $page->id, $request->input('translations'));
             }
 
+            // Fire event for plugins
+            ContentSaved::dispatch('page', $page->id, $data, true);
+
             return $this->successResponse($page, 'Page created', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->errorResponse($e->getMessage(), 422);
@@ -93,6 +98,9 @@ class CmsPagesController extends Controller
                 $this->syncTranslations('cms_pages', $id, $request->input('translations'));
             }
 
+            // Fire event for plugins
+            ContentSaved::dispatch('page', (int) $id, $data, false);
+
             return $this->successResponse($this->repo->find($id), 'Page updated');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -106,6 +114,10 @@ class CmsPagesController extends Controller
             if (!$page) return $this->notFoundResponse('Page not found');
             $this->logActivity('cms.deleted', 'cms_page', $id, ['title' => $page->title ?? null]);
             $this->repo->delete($id);
+
+            // Fire event for plugins
+            ContentDeleted::dispatch('page', (int) $id);
+
             return $this->successResponse(null, 'Page deleted');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());

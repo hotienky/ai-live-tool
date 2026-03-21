@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Services\ModuleRegistry;
+use App\Events\ModuleInstalled;
+use App\Events\ModuleUninstalled;
 use Illuminate\Http\Request;
 
 class ModuleController extends Controller
@@ -42,6 +44,11 @@ class ModuleController extends Controller
             'installed' => ModuleRegistry::installedModuleIds($this->tenantId()),
         ] : [];
 
+        // Fire event for plugins
+        if ($result['success']) {
+            ModuleInstalled::dispatch($moduleId, $this->tenantId());
+        }
+
         return response()->json([
             'type' => $result['success'] ? 'success' : 'error',
             'message' => $result['message'],
@@ -60,6 +67,11 @@ class ModuleController extends Controller
             'modules' => ModuleRegistry::listForTenant($this->tenantId()),
             'installed' => ModuleRegistry::installedModuleIds($this->tenantId()),
         ] : [];
+
+        // Fire event for plugins
+        if ($result['success']) {
+            ModuleUninstalled::dispatch($moduleId, $this->tenantId());
+        }
 
         return response()->json([
             'type' => $result['success'] ? 'success' : 'error',

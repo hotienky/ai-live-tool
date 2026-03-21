@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Module;
 use App\Models\TenantModuleSubscription;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 class ModuleRegistry
 {
@@ -97,7 +99,29 @@ class ModuleRegistry
             'installed_by' => $userId,
         ]);
 
+        // Run module-specific migrations if they exist
+        static::runModuleMigrations($moduleId);
+
         return ['success' => true, 'message' => "Đã cài đặt {$module->name}"];
+    }
+
+    /**
+     * Run database migrations for a specific module
+     */
+    protected static function runModuleMigrations(string $moduleId): void
+    {
+        $migrationPath = database_path("migrations/modules/{$moduleId}");
+        if (is_dir($migrationPath)) {
+            try {
+                Artisan::call('migrate', [
+                    '--path' => "database/migrations/modules/{$moduleId}",
+                    '--force' => true,
+                ]);
+                Log::info("[ModuleRegistry] Ran migrations for module: {$moduleId}");
+            } catch (\Exception $e) {
+                Log::error("[ModuleRegistry] Migration failed for {$moduleId}: {$e->getMessage()}");
+            }
+        }
     }
 
     // Request a paid module (creates pending subscription)

@@ -2,6 +2,38 @@ import AccountingDashboard from './components/AccountingDashboard.vue'
 import PaymentVoucherManager from './components/PaymentVoucherManager.vue'
 
 const PLUGIN_ID = 'accounting'
+const bridge = window.__APP_BRIDGE__
+const hooks = bridge?.hooks || window.__APP_HOOKS__
+const t = bridge?.t || ((k, fb) => fb)
+
+// ── Register via Hooks ──
+if (hooks) {
+  hooks.addFilter('sidebar_items', (items) => {
+    // Accounting adds items into the existing nav structure
+    // These will appear as part of the orders/warehouse area
+    items.push({
+      key: 'accounting-group',
+      label: t('accounting.title', 'Kế toán'),
+      icon: 'DollarSign',
+      featureGroup: 'store',
+      moduleId: 'accounting',
+      activeKeys: ['orders/accounting', 'warehouse/payment-vouchers'],
+      children: [
+        { key: 'orders/accounting', view: 'orders/accounting', label: t('accounting.accounting', 'Kế toán'), icon: 'DollarSign', moduleId: 'accounting' },
+        { key: 'warehouse/payment-vouchers', view: 'warehouse/payment-vouchers', label: t('accounting.payment_vouchers', 'Thu/Chi'), icon: 'Wallet', moduleId: 'accounting' },
+      ],
+    })
+    return items
+  })
+
+  hooks.addFilter('admin_routes', (config) => {
+    Object.assign(config.routeToTab, {
+      'orders/accounting': 'accounting',
+      'warehouse/payment-vouchers': 'payment-vouchers',
+    })
+    return config
+  })
+}
 
 const plugin = {
   id: PLUGIN_ID,

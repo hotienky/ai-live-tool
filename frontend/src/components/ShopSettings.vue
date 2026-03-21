@@ -234,17 +234,17 @@
 
       <!-- ═══ Tab: Products ═══ -->
       <div v-if="activeTab === 'products'" class="settings__panel">
-        <ProductManager :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.productEditId" @navigate="(r) => emit('navigate', r)" />
+        <PluginRenderer moduleId="ecom" tabKey="products" :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.productEditId" @navigate="(r) => emit('navigate', r)" />
       </div>
 
       <!-- ═══ Tab: Categories ═══ -->
       <div v-if="activeTab === 'categories'" class="settings__panel">
-        <CategoryManager :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.categoryEditId" @navigate="(r) => emit('navigate', r)" />
+        <PluginRenderer moduleId="ecom" tabKey="categories" :languagesInstalled="isModuleInstalled('languages')" :initialEditId="props.categoryEditId" @navigate="(r) => emit('navigate', r)" />
       </div>
 
       <!-- ═══ Tab: Brands ═══ -->
       <div v-if="activeTab === 'brands'" class="settings__panel">
-        <BrandManager :languagesInstalled="isModuleInstalled('languages')" />
+        <PluginRenderer moduleId="ecom" tabKey="brands" :languagesInstalled="isModuleInstalled('languages')" />
       </div>
 
       <!-- ═══ Tab: Keywords ═══ -->
@@ -368,7 +368,7 @@
 
       <!-- ═══ Tab: Shop Customers ═══ -->
       <div v-if="activeTab === 'shop-customers'" class="settings__panel">
-        <CustomerManager />
+        <PluginRenderer moduleId="ecom" tabKey="shop-customers" />
       </div>
 
       <!-- ═══ Tab: Promotions (Plugin) ═══ -->
@@ -445,12 +445,12 @@
 
       <!-- ═══ Tab: Orders ═══ -->
       <div v-if="activeTab === 'orders'" class="settings__panel">
-        <OrderManagement @view-order="viewOrderDetail" @create-shipment="createShipmentFromOrder" />
+        <PluginRenderer moduleId="ecom" tabKey="orders" @view-order="viewOrderDetail" @create-shipment="createShipmentFromOrder" />
       </div>
 
       <!-- ═══ Tab: Order Detail ═══ -->
       <div v-if="activeTab === 'order-detail'" class="settings__panel">
-        <OrderDetailPage :orderId="orderDetailId" @back="goBackToOrders" @create-shipment="createShipmentFromOrder" />
+        <PluginRenderer moduleId="ecom" tabKey="order-detail" :orderId="orderDetailId" @back="goBackToOrders" @create-shipment="createShipmentFromOrder" />
       </div>
 
       <!-- ═══ Tab: Webhooks ═══ -->
@@ -475,7 +475,7 @@
 
       <!-- ═══ Tab: Shipping / Shipments ═══ -->
       <div v-if="activeTab === 'shipping'" class="settings__panel">
-        <ShippingManagement ref="shippingMgmtRef" />
+        <PluginRenderer moduleId="shipping" tabKey="shipping" ref="shippingMgmtRef" />
       </div>
 
       <!-- ═══ Tab: Tax (Plugin) ═══ -->
@@ -536,16 +536,14 @@ import {
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle, Search,
   Image as ImageIcon,
 } from 'lucide-vue-next'
-import CustomerManager from './CustomerManager.vue'
+// E-com components removed — loaded dynamically via PluginRenderer
 // Module components removed — loaded dynamically via PluginRenderer
 import BannerManager from './BannerManager.vue'
 import MediaLibrary from './MediaLibrary.vue'
 import NavLinkManager from './NavLinkManager.vue'
 import ModuleManager from './ModuleManager.vue'
 import PluginRenderer from './PluginRenderer.vue'
-import ProductManager from './ProductManager.vue'
-import CategoryManager from './CategoryManager.vue'
-import BrandManager from './BrandManager.vue'
+// ProductManager, CategoryManager, BrandManager → PluginRenderer moduleId="ecom"
 import CmsPageForm from './CmsPageForm.vue'
 import FlashSaleForm from './FlashSaleForm.vue'
 import RoleManager from './RoleManager.vue'
@@ -553,13 +551,12 @@ import SystemConfigPanel from './SystemConfigPanel.vue'
 import ApiKeyManager from './ApiKeyManager.vue'
 import LanguageManager from './LanguageManager.vue'
 import CustomFieldManager from './CustomFieldManager.vue'
-import OrderManagement from './OrderManagement.vue'
-import OrderDetailPage from './OrderDetailPage.vue'
+// OrderManagement, OrderDetailPage → PluginRenderer moduleId="ecom"
 import WebhookManager from './WebhookManager.vue'
 import ActivityLog from './ActivityLog.vue'
 import ThemeCustomizer from './ThemeCustomizer.vue'
 import PaymentSettings from './PaymentSettings.vue'
-import ShippingManagement from './ShippingManagement.vue'
+// ShippingManagement → PluginRenderer moduleId="shipping"
 // TaxManagement + AccountingDashboard removed — loaded via plugin bundles
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
 import StoreInfoConfig from './StoreInfoConfig.vue'
@@ -892,14 +889,25 @@ onMounted(fetchInstalledModules)
 
 // Module tabs that require specific module to be installed
 const moduleTabMap = {
+  // E-commerce core
+  'products': 'ecom', 'categories': 'ecom', 'brands': 'ecom',
+  'orders': 'ecom', 'shop-customers': 'ecom', 'order-detail': 'ecom',
+  'payment': 'ecom', 'store-info': 'ecom', 'system-config': 'ecom',
+  'appearance': 'ecom', 'storefront-layout': 'ecom',
+  // Shipping
+  'shipping': 'shipping',
+  // Warehouse
   'stock-receipts': 'warehouse', 'suppliers': 'warehouse',
   'purchase-orders': 'warehouse', 'inventory-reports': 'warehouse',
+  // Accounting
   'accounting': 'accounting', 'payment-vouchers': 'accounting',
+  // Marketing
   'promotions': 'marketing', 'flash-sales': 'marketing',
+  // Tax
   'tax': 'tax',
+  // CMS
   'cms': 'cms',
   'banners': 'banners',
-  'storefront-layout': 'banners',
   'languages': 'languages',
 }
 

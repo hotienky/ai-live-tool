@@ -2,24 +2,65 @@
 import { ref, reactive, markRaw } from 'vue'
 import * as Vue from 'vue'
 import * as LucideVueNext from 'lucide-vue-next'
-import { apiFetch } from './useApi.js'
+import { apiFetch, API_BASE } from './useApi.js'
 import { useToast } from './useToast.js'
 import { useI18n } from './useI18n.js'
+import { useContentTranslations } from './useContentTranslations.js'
+import { useLanguages } from './useLanguages.js'
+import { useShopCustomers } from './useShopCustomers.js'
+import { useUrlParam } from './useUrlFilter.js'
+import { useSocket } from './useSocket.js'
+import { logger } from '../utils/logger.js'
+import { hooks } from '../core/hooks.js'
+// Shared components — exposed via bridge so plugins can import them
+import MediaPicker from '../components/MediaPicker.vue'
+import LanguageTabs from '../components/LanguageTabs.vue'
+import CurrencyInput from '../components/CurrencyInput.vue'
 
 // ── Set globals immediately at module scope ──
 window.Vue = Vue
 window.LucideVueNext = LucideVueNext
 window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}
+window.__APP_HOOKS__ = hooks
 
 const loadedPlugins = reactive({})
 const pluginComponents = reactive({})
 const pluginSidebar = reactive({})
 const loadingPlugin = ref(null)
+const pluginVersion = ref(0) // Reactive counter — increments after each plugin load
+// Track hook IDs per plugin for cleanup
+const pluginHookIds = reactive({})
 
 function initBridge() {
   const { showToast } = useToast()
   const { t, currentLang, formatCurrency, currencyLocale, currencySymbol } = useI18n()
-  window.__APP_BRIDGE__ = { apiFetch, showToast, t, currentLang, formatCurrency, currencyLocale, currencySymbol }
+  window.__APP_BRIDGE__ = {
+    // ── Core utilities ──
+    apiFetch,
+    API_BASE,
+    showToast,
+    logger,
+    // ── i18n ──
+    t,
+    currentLang,
+    formatCurrency,
+    currencyLocale,
+    currencySymbol,
+    // ── Composables (for plugin components) ──
+    useContentTranslations,
+    useLanguages,
+    useShopCustomers,
+    useUrlParam,
+    useSocket,
+    // ── Shared Components (for plugin components to import) ──
+    components: {
+      MediaPicker: markRaw(MediaPicker),
+      LanguageTabs: markRaw(LanguageTabs),
+      CurrencyInput: markRaw(CurrencyInput),
+    },
+    // ── Hooks System ──
+    hooks,
+  }
 }
 
 // Load a plugin bundle dynamically via fetch + eval (no script tag race conditions)
@@ -54,12 +95,24 @@ async function loadPlugin(moduleId) {
     window.LucideVueNext = window.LucideVueNext || LucideVueNext
     window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}
 
+    // Track hook registrations by capturing counter before/after
+    const hookIdBefore = hooks._idCounter
+
     // Execute the IIFE bundle
     try {
       new Function(code)()
     } catch (evalError) {
       console.error(`[PluginLoader] Error executing ${moduleId} bundle:`, evalError)
       throw new Error(`Plugin ${moduleId} có lỗi code: ${evalError.message}`)
+    }
+
+    // Record hook IDs registered by this plugin (for cleanup on unload)
+    const hookIdAfter = hooks._idCounter
+    if (hookIdAfter > hookIdBefore) {
+      pluginHookIds[moduleId] = Array.from(
+        { length: hookIdAfter - hookIdBefore },
+        (_, i) => hookIdBefore + i + 1
+      )
     }
 
     // Check registration
@@ -80,6 +133,13 @@ async function loadPlugin(moduleId) {
     }
 
     loadedPlugins[moduleId] = plugin
+
+    // Fire module_activated action
+    hooks.doActionSync('module_activated', moduleId)
+
+    // Increment reactive counter to trigger re-render of computed that depend on hook results
+    pluginVersion.value++
+
     return plugin
   } catch (e) {
     console.error(`[PluginLoader] Error loading ${moduleId}:`, e)
@@ -90,8 +150,16 @@ async function loadPlugin(moduleId) {
 }
 
 function unloadPlugin(moduleId) {
+  // Remove CSS
   const css = document.getElementById(`plugin-css-${moduleId}`)
   if (css) css.remove()
+
+  // Cleanup all hooks registered by this plugin
+  if (pluginHookIds[moduleId]) {
+    hooks.removeByIds(pluginHookIds[moduleId])
+    delete pluginHookIds[moduleId]
+  }
+
   delete loadedPlugins[moduleId]
   delete pluginSidebar[moduleId]
   for (const key of Object.keys(pluginComponents)) {
@@ -108,7 +176,8 @@ function getPluginComponent(moduleId, tabKey) {
 
 export function usePluginLoader() {
   return {
-    loadedPlugins, pluginComponents, pluginSidebar, loadingPlugin,
-    initBridge, loadPlugin, unloadPlugin, getPluginComponent,
+    loadedPlugins, pluginComponents, pluginSidebar, loadingPlugin, pluginVersion,
+    initBridge, loadPlugin, unloadPlugin, getPluginComponent, hooks,
   }
 }
+

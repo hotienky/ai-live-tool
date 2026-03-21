@@ -11,6 +11,26 @@ class ModuleSeeder extends Seeder
     {
         $modules = [
             [
+                'module_id' => 'ecom',
+                'name' => 'E-commerce Core',
+                'description' => 'Sản phẩm, đơn hàng, khách hàng, thanh toán — nền tảng bán hàng',
+                'icon' => 'Store',
+                'category' => 'core',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Cửa hàng',
+                    'items' => [
+                        ['key' => 'products', 'label' => 'Sản phẩm', 'icon' => 'ShoppingBag', 'route' => 'shop/products'],
+                        ['key' => 'categories', 'label' => 'Danh mục', 'icon' => 'FolderTree', 'route' => 'shop/categories'],
+                        ['key' => 'brands', 'label' => 'Thương hiệu', 'icon' => 'Award', 'route' => 'shop/brands'],
+                        ['key' => 'orders', 'label' => 'Đơn hàng', 'icon' => 'Receipt', 'route' => 'orders'],
+                        ['key' => 'customers', 'label' => 'Khách hàng', 'icon' => 'Users', 'route' => 'orders/customers'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
                 'module_id' => 'warehouse',
                 'name' => 'Quản lý Kho',
                 'description' => 'Phiếu nhập kho, nhà cung cấp, Đơn Nhập Hàng, báo cáo tồn kho',

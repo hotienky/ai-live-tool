@@ -1,7 +1,7 @@
 <template>
   <div class="plugin-renderer">
     <!-- Plugin loaded → render its component -->
-    <component v-if="pluginComp" :is="pluginComp" @navigate="(route) => emit('navigate', route)" />
+    <component v-if="pluginComp" :is="pluginComp" v-bind="$attrs" />
 
     <!-- Loading state -->
     <div v-else-if="isLoading" class="plugin-renderer__loading">
@@ -29,6 +29,8 @@ import { ref, watch, onMounted, shallowRef } from 'vue'
 import { usePluginLoader } from '../composables/usePluginLoader.js'
 import { AlertCircle, Package } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
+
+defineOptions({ inheritAttrs: false })
 
 const { t, formatCurrency } = useI18n()
 

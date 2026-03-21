@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register middleware aliases
         $middleware->alias([
             'permission' => \App\Http\Middleware\CheckPermission::class,
+            'module' => \App\Http\Middleware\ModuleMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

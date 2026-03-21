@@ -7,6 +7,7 @@ use App\Repositories\User\UserRepositoryInterface;
 use App\Repositories\Role\RoleRepositoryInterface;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
+use App\Events\UserLoggedIn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -99,6 +100,13 @@ class AuthController extends Controller
             // Load RBAC
             $rbac = $this->loadUserRbac($user->id);
             $user->role = $rbac['role'];
+
+            // Fire event for plugins
+            try {
+                UserLoggedIn::dispatch($user->id, $user->email, tenant('id') ?? null);
+            } catch (\Exception $_) {
+                // Don't break login if event listener fails
+            }
 
             return $this->successResponse([
                 'user' => $user,

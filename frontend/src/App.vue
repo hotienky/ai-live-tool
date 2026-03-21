@@ -354,6 +354,8 @@ import { useTheme } from './composables/useTheme.js'
 import { usePermissions, fetchPermissionsIfEmpty } from './composables/usePermissions.js'
 import { usePluginLoader } from './composables/usePluginLoader.js'
 import { useI18n } from './composables/useI18n.js'
+import { hooks } from './core/hooks.js'
+import { SIDEBAR_ITEMS, ADMIN_ROUTES } from './core/hook-names.js'
 
 import {
   Rocket, Eye, Volume2, VolumeX, BarChart3, Download,
@@ -417,6 +419,11 @@ async function fetchInstalledModules() {
     const ids = data?.installed || []
     installedModules.value = ids
     localStorage.setItem('installed_modules', JSON.stringify(ids))
+
+    // Eagerly load all installed plugin bundles so they can register
+    // their sidebar items and routes via hooks BEFORE the sidebar renders
+    const { loadPlugin } = usePluginLoader()
+    await Promise.allSettled(ids.map(id => loadPlugin(id)))
   } catch (e) {
     console.warn('[Modules] Failed to fetch:', e.message)
   }
@@ -439,6 +446,8 @@ onMounted(() => {
   initBridge()
 })
 
+const { pluginVersion } = usePluginLoader()
+
 // ── Navigation ──
 const openDropdown = ref(null)
 let dropdownTimer = null
@@ -452,7 +461,9 @@ function onDropdownLeave() {
   dropdownTimer = setTimeout(() => { openDropdown.value = null }, 150)
 }
 
-const navItems = [
+// ── Core nav items (hardcoded — always present) ──
+// E-commerce, warehouse, marketing, etc. are now registered by plugins via hooks
+const coreNavItems = [
   {
     key: 'live-group', label: 'Live', icon: MonitorPlay,
     featureGroup: 'livestream',
@@ -469,13 +480,16 @@ const navItems = [
       { key: 'live-connection', view: 'live/connection', label: t('admin.connection', 'Kết nối'), icon: Link },
     ],
   },
-  {
-    key: 'shop/products', label: t('admin.store', 'Cửa hàng'), icon: Store,
-    featureGroup: 'store',
-    permission: 'products.view',
-  },
-
+  // Note: 'Cửa hàng' (shop/products) entry removed — now registered by plugins/ecom via hooks
 ]
+
+// ── Dynamic nav items via hooks — plugins can add items ──
+const navItems = computed(() => {
+  // pluginVersion is a reactive dependency — when plugins load and register 
+  // new hook filters, this computed re-evaluates to include plugin-registered items
+  void pluginVersion.value
+  return hooks.applyFilters(SIDEBAR_ITEMS, [...coreNavItems])
+})
 
 // Check if item's featureGroup is enabled for this tenant
 function isFeatureEnabled(featureGroup) {
@@ -487,7 +501,7 @@ function isFeatureEnabled(featureGroup) {
 
 // Filter nav items by user permissions AND tenant feature groups AND installed modules
 const filteredNavItems = computed(() => {
-  return navItems
+  return navItems.value
     .map(item => {
       // Filter by feature group first
       if (!isFeatureEnabled(item.featureGroup)) return null
@@ -509,35 +523,38 @@ const filteredNavItems = computed(() => {
     .filter(Boolean)
 })
 
-// Route → settingsTab mapping
-const routeToTab = {
+// ── Core route → tab mapping ──
+// Only truly core routes remain here. E-com, marketing, warehouse, etc.
+// are now registered by their respective plugins via hooks.
+const coreRouteToTab = {
+  // Live
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
-  'shop/products': 'products', 'shop/products/edit': 'products', 'shop/categories': 'categories', 'shop/categories/edit': 'categories', 'shop/brands': 'brands',
-  'shop/promotions': 'promotions', 'shop/flash-sales': 'flash-sales', 'shop/banners': 'banners', 'shop/media': 'media', 'shop/cms': 'cms',
-  'shop/cms/create': 'cms', 'shop/cms/edit': 'cms',
-  'shop/flash-sales/create': 'flash-sales', 'shop/flash-sales/edit': 'flash-sales',
-  'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
-  'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/payment': 'payment', 'shop/shipping': 'shipping',
-  'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks', 'shop/languages': 'languages', 'shop/custom-fields': 'custom-fields',
+  // System (always available)
+  'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
-  'orders': 'orders', 'orders/customers': 'shop-customers', 'orders/accounting': 'accounting',
-  'shop/tax': 'tax', 'orders/detail': 'order-detail',
-  'warehouse/stock-receipts': 'stock-receipts', 'warehouse/suppliers': 'suppliers', 'warehouse/payment-vouchers': 'payment-vouchers', 'warehouse/purchase-orders': 'purchase-orders', 'warehouse/inventory-reports': 'inventory-reports',
   'system/modules': 'modules',
 }
-const validViews = [
+
+// ── Dynamic route config via hooks — plugins extend this ──
+const routeConfig = computed(() => {
+  void pluginVersion.value // re-evaluate when plugins register new routes
+  return hooks.applyFilters(ADMIN_ROUTES, { routeToTab: { ...coreRouteToTab }, validViews: [] })
+})
+const routeToTab = computed(() => routeConfig.value.routeToTab)
+const validViews = computed(() => [
   'dashboard', 'live', 'crm', 'reports',
   'notifications',
   'shop/cms/create', 'shop/cms/edit',
   'shop/products/edit', 'shop/categories/edit',
-  ...Object.keys(routeToTab),
-]
+  ...Object.keys(routeConfig.value.routeToTab),
+  ...routeConfig.value.validViews,
+])
 
 // ── Feature-group → views map (derived from navItems) ──
 // Used to block URL-typed navigation to disabled feature areas.
-const viewFeatureGroupMap = (() => {
+const viewFeatureGroupMap = computed(() => {
   const map = {}
-  for (const item of navItems) {
+  for (const item of navItems.value) {
     if (!item.featureGroup) continue
     if (item.children) {
       for (const child of item.children) {
@@ -548,18 +565,19 @@ const viewFeatureGroupMap = (() => {
     }
   }
   // All shop/* and order/warehouse paths belong to the 'store' feature
-  for (const key of Object.keys(routeToTab)) {
+  for (const key of Object.keys(routeToTab.value)) {
     if (!map[key] && (key.startsWith('shop/') || key === 'orders' || key.startsWith('orders/') || key.startsWith('warehouse/'))) {
       map[key] = 'store'
     }
   }
   return map
-})()
+})
 
 function getViewFeatureGroup(view) {
-  if (viewFeatureGroupMap[view]) return viewFeatureGroupMap[view]
+  const map = viewFeatureGroupMap.value
+  if (map[view]) return map[view]
   // Match prefix (e.g. 'shop/products/edit' → 'store')
-  for (const [k, fg] of Object.entries(viewFeatureGroupMap)) {
+  for (const [k, fg] of Object.entries(map)) {
     if (view.startsWith(k + '/')) return fg
   }
   return null
@@ -610,10 +628,10 @@ function viewFromPath() {
   else if (path === 'shop/flash-sales/create')    resolved = 'shop/flash-sales/create'
   else if (path.startsWith('shop/flash-sales/edit/')) resolved = 'shop/flash-sales/edit'
   else if (path.startsWith('orders/detail/'))     resolved = 'orders/detail'
-  else if (validViews.includes(path))             resolved = path
+  else if (validViews.value.includes(path))             resolved = path
   else {
     const first = path.split('/')[0] || ''
-    resolved = validViews.includes(first) ? first : null
+    resolved = validViews.value.includes(first) ? first : null
   }
   if (!resolved) return defaultAccessibleView()
   // Redirect if the resolved view belongs to a disabled feature group
@@ -625,9 +643,9 @@ const activeView = ref(viewFromPath())
 const prevView   = ref(defaultAccessibleView())
 
 // Computed: which settings tab to show
-const settingsActiveTab = computed(() => routeToTab[activeView.value] || 'products')
+const settingsActiveTab = computed(() => routeToTab.value[activeView.value] || 'products')
 // Is the current view a settings-based page?
-const isSettingsView = computed(() => activeView.value in routeToTab)
+const isSettingsView = computed(() => activeView.value in routeToTab.value)
 
 // CMS page edit ID (from URL: /shop/cms/edit/123)
 const cmsEditPageId = ref(null)
@@ -671,10 +689,10 @@ function navigateTo(view) {
   categoryEditId.value = extractCategoryEditId(urlPath)
   ;(function() { const fs = extractFlashSaleState(urlPath); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
 
-  if (!validViews.includes(view)) {
+  if (!validViews.value.includes(view)) {
     // Check if it matches view + ID pattern
     const base = view.replace(/\/\d+$/, '')
-    view = validViews.includes(base) ? base : defaultAccessibleView()
+    view = validViews.value.includes(base) ? base : defaultAccessibleView()
   }
   // Redirect if target view belongs to a disabled feature group
   const fg = getViewFeatureGroup(view)
