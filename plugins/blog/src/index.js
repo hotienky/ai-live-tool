@@ -36,6 +36,17 @@ if (hooks) {
     })
     return config
   })
+
+  // Register blog as a storefront section type
+  hooks.addFilter('storefront_sections', (sections) => {
+    sections.push({
+      type: 'blog',
+      label: t('admin.blog_section', 'Blog / Bài viết'),
+      icon: 'PenSquare',
+      defaultParams: { maxPosts: 6, showViewAll: true },
+    })
+    return sections
+  })
 }
 
 // ══════════════════════════════════════

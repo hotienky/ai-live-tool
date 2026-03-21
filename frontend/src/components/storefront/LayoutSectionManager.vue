@@ -248,6 +248,14 @@
             </div>
           </template>
 
+          <template v-if="section.type === 'custom_block'">
+            <div class="param-row" style="margin-top: 10px;">
+              <button class="btn-save" style="width: 100%; justify-content: center; background: var(--accent-gradient);" @click.stop="$emit('open-block-editor', section)">
+                <Sparkles :size="14" /> Mở Visual Builder (Kéo Thả)
+              </button>
+            </div>
+          </template>
+
           <!-- Style Params -->
           <div class="section-style-divider"></div>
 
@@ -305,7 +313,7 @@ const props = defineProps({
   sectionMeta: { type: Object, required: true },
   allCategories: { type: Array, default: () => [] }
 })
-const emit = defineEmits(['update:sections'])
+const emit = defineEmits(['update:sections', 'open-block-editor'])
 
 const list = computed({
   get: () => props.sections,

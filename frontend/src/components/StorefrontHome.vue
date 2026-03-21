@@ -120,6 +120,15 @@
           @viewPage="(id) => $emit('viewPage', id)"
         />
 
+        <!-- Blog Posts -->
+        <SfBlogSection
+          v-if="section.type === 'blog'"
+          :config="section.params || {}"
+          :storeId="storeId"
+          @viewPost="(slug) => $emit('navigate', 'blog-post', slug)"
+          @viewAll="$emit('navigate', 'blog')"
+        />
+
         <!-- Content-driven sections: testimonials, faq, gallery, video, text, newsletter, brands, social -->
         <SfContentSection
           v-if="contentSectionTypes.includes(section.type)"
@@ -166,6 +175,7 @@ import SfProductGridSection from './storefront/SfProductGridSection.vue'
 import SfFlashSaleSection from './storefront/SfFlashSaleSection.vue'
 import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
 import SfContentSection from './storefront/SfContentSection.vue'
+import SfBlogSection from './storefront/SfBlogSection.vue'
 
 
 const contentSectionTypes = ['testimonials', 'faq', 'image_gallery', 'video_embed', 'text_block', 'newsletter', 'brands_slider', 'social_feed']

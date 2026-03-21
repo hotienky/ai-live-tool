@@ -128,8 +128,8 @@
         </div>
       </div>
 
-      <!-- Row 2: Live Controls (only visible on Live Monitor) -->
-      <div class="app-header__row2" v-if="activeView === 'live'">
+      <!-- Row 2: Live Controls (only when no plugin providing the live view) -->
+      <div class="app-header__row2" v-if="activeView === 'live' && !liveMonitorComponent">
         <div class="app-header__shop-info" v-if="currentShop">
           <span class="app-header__shop-name">{{ currentShop.shop_name || currentShop.shopName }}</span>
         </div>
@@ -196,8 +196,14 @@
       @goCustomer="(c) => openCustomerDetail({ nickname: c.nickname, uniqueId: c.nickname })"
     />
 
-    <!-- ═══ View: Live Monitor ═══ -->
-    <main class="app-main" v-if="activeView === 'live'">
+    <!-- ═══ View: Live Monitor (plugin-based when livestream plugin is installed) ═══ -->
+    <component
+      v-if="activeView === 'live' && liveMonitorComponent"
+      :is="liveMonitorComponent"
+      @openCustomer="openCustomerDetail"
+    />
+    <!-- Fallback: hardcoded live view (used only if plugin is NOT installed) -->
+    <main class="app-main" v-else-if="activeView === 'live'">
       <!-- Left: Lead Panel (70%) -->
       <section class="app-main__left">
         <LeadPanel :leads="leads" @openCustomer="openCustomerDetail" />
@@ -215,6 +221,12 @@
         <StatsBar :stats="stats" :viewerCount="viewerCount" />
       </section>
     </main>
+
+    <!-- ═══ View: Live Replay (plugin-based) ═══ -->
+    <component
+      v-else-if="activeView === 'live/replay' && liveReplayComponent"
+      :is="liveReplayComponent"
+    />
 
     <!-- ═══ View: CRM Pipeline ═══ -->
     <LeadPipeline
@@ -424,6 +436,15 @@ async function fetchInstalledModules() {
     // their sidebar items and routes via hooks BEFORE the sidebar renders
     const { loadPlugin } = usePluginLoader()
     await Promise.allSettled(ids.map(id => loadPlugin(id)))
+
+    // Re-resolve the URL path now that plugin routes are registered.
+    // On initial page load, viewFromPath() runs before plugins load, so
+    // plugin-registered views (e.g. shop/products) are not yet in validViews
+    // and the router falls back to dashboard. Fix it here.
+    const resolvedView = viewFromPath()
+    if (resolvedView !== activeView.value) {
+      activeView.value = resolvedView
+    }
   } catch (e) {
     console.warn('[Modules] Failed to fetch:', e.message)
   }
@@ -446,7 +467,17 @@ onMounted(() => {
   initBridge()
 })
 
-const { pluginVersion } = usePluginLoader()
+const { pluginVersion, getPluginComponent } = usePluginLoader()
+
+// ── Livestream plugin components (resolved dynamically when plugin is installed) ──
+const liveMonitorComponent = computed(() => {
+  void pluginVersion.value
+  return getPluginComponent('livestream', 'live-monitor')
+})
+const liveReplayComponent = computed(() => {
+  void pluginVersion.value
+  return getPluginComponent('livestream', 'live-replay')
+})
 
 // ── Navigation ──
 const openDropdown = ref(null)
@@ -463,23 +494,8 @@ function onDropdownLeave() {
 
 // ── Core nav items (hardcoded — always present) ──
 // E-commerce, warehouse, marketing, etc. are now registered by plugins via hooks
+// Note: 'live-group' (livestream nav) moved to plugins/livestream — registered via hooks when installed
 const coreNavItems = [
-  {
-    key: 'live-group', label: 'Live', icon: MonitorPlay,
-    featureGroup: 'livestream',
-    permission: null,
-    activeKeys: ['dashboard', 'live', 'crm', 'reports', 'live/keywords', 'live/replies', 'live/moderation', 'live/connection'],
-    children: [
-      { key: 'dashboard', view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { key: 'live', view: 'live', label: 'Live Monitor', icon: MonitorPlay },
-      { key: 'crm', view: 'crm', label: 'CRM / Leads', icon: Users },
-      { key: 'reports', view: 'reports', label: t('admin.reports', 'Báo cáo'), icon: BarChart2 },
-      { key: 'live-keywords', view: 'live/keywords', label: 'Keywords', icon: Key },
-      { key: 'live-replies', view: 'live/replies', label: 'Auto Reply', icon: MessageCircle },
-      { key: 'live-moderation', view: 'live/moderation', label: 'Moderation', icon: Shield },
-      { key: 'live-connection', view: 'live/connection', label: t('admin.connection', 'Kết nối'), icon: Link },
-    ],
-  },
   // Note: 'Cửa hàng' (shop/products) entry removed — now registered by plugins/ecom via hooks
 ]
 

@@ -5,6 +5,10 @@
     <!-- Generate new key -->
     <div class="key-add-row">
       <input v-model="newName" :placeholder="t('admin.msg_d2b41b', 'Tên API key (ví dụ: Mobile App)')" class="key-input key-input--flex" />
+      <select v-model="newType" class="key-select">
+        <option value="public">🔓 Public (pk_ — Read only)</option>
+        <option value="secret">🔐 Secret (sk_ — Read + Write)</option>
+      </select>
       <button class="key-gen-btn" @click="generateKey" :disabled="!newName || generating">
         <Plus :size="14" /> {{ generating ? t('admin.msg_f2315cbc', 'Đang tạo...') : t('admin.msg_004f1f31', 'Tạo key') }}
       </button>
@@ -41,6 +45,7 @@
           <div class="key-item__name">
             <KeyRound :size="13" />
             <span>{{ key.name }}</span>
+            <span class="key-item__type" :class="'type--' + (key.type || 'public')">{{ (key.type || 'public') === 'secret' ? 'sk_' : 'pk_' }}</span>
             <span class="key-item__status" :class="'status--' + key.status">{{ key.status }}</span>
           </div>
           <div class="key-item__meta">
@@ -51,9 +56,23 @@
             <span v-if="key.lastUsedAt || key.last_used_at" class="key-item__used">
               Dùng lần cuối: {{ formatDate(key.lastUsedAt || key.last_used_at) }}
             </span>
+            <span v-if="key.usage_count != null" class="key-item__usage">
+              <BarChart3 :size="11" /> {{ formatNumber(key.usage_count) }} requests
+            </span>
+            <span v-if="key.rate_limit" class="key-item__rate">
+              <Gauge :size="11" /> {{ formatNumber(key.rate_limit) }}/hr
+            </span>
           </div>
         </div>
         <div class="key-item__actions">
+          <button
+            v-if="key.status === 'active'"
+            class="key-action-btn key-action-btn--regen"
+            @click="regenerateKey(key.id)"
+            :title="t('admin.regenerate', 'Tạo lại')"
+          >
+            <RefreshCw :size="13" />
+          </button>
           <button
             v-if="key.status === 'active'"
             class="key-action-btn key-action-btn--revoke"
@@ -74,7 +93,7 @@
 import { ref, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { KeyRound, Plus, Copy, ShieldCheck, Clock, Ban, Trash2, Loader2 } from 'lucide-vue-next'
+import { KeyRound, Plus, Copy, ShieldCheck, Clock, Ban, Trash2, Loader2, RefreshCw, BarChart3, Gauge } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t, formatCurrency } = useI18n()
@@ -84,6 +103,7 @@ const apiKeys = ref([])
 const loading = ref(false)
 const generating = ref(false)
 const newName = ref('')
+const newType = ref('public')
 const newlyGenerated = ref('')
 
 async function loadKeys() {
@@ -104,7 +124,7 @@ async function generateKey() {
   try {
     const res = await apiFetch('/api-keys', {
       method: 'POST',
-      body: JSON.stringify({ name: newName.value }),
+      body: JSON.stringify({ name: newName.value, type: newType.value }),
     })
     if (res?.key) {
       newlyGenerated.value = res.key
@@ -145,6 +165,25 @@ async function deleteKey(id) {
 function copyKey(key) {
   navigator.clipboard.writeText(key)
   showToast(t('admin.msg_0478f4', 'Đã copy API key'), 'success')
+}
+
+async function regenerateKey(id) {
+  if (!confirm(t('admin.confirm_regen', 'Tạo lại API key? Key cũ sẽ bị thay thế.'))) return
+  try {
+    const res = await apiFetch(`/api-keys/${id}/regenerate`, { method: 'PUT' })
+    if (res?.key) {
+      newlyGenerated.value = res.key
+      showToast(t('admin.regen_ok', 'API key đã tạo lại — lưu ngay!'), 'success')
+      loadKeys()
+    }
+  } catch (e) {
+    showToast(t('admin.regen_err', 'Lỗi tạo lại key'), 'error')
+  }
+}
+
+function formatNumber(n) {
+  if (n == null) return '0'
+  return Number(n).toLocaleString('vi-VN')
 }
 
 function formatDate(ts) {
@@ -228,6 +267,20 @@ onMounted(() => loadKeys())
   font-size:11px; font-family:monospace;
 }
 .key-item__date { display:flex; align-items:center; gap:3px; }
+.key-item__usage,.key-item__rate { display:flex; align-items:center; gap:3px; }
+
+.key-item__type {
+  font-size:10px; padding:2px 8px; border-radius:6px; font-weight:700;
+}
+.type--public { background:rgba(16,185,129,0.12); color:#10b981; }
+.type--secret { background:rgba(239,68,68,0.12); color:#ef4444; }
+
+.key-select {
+  padding:9px 14px; border-radius:8px; font-size:13px; font-weight:600;
+  border:1px solid var(--color-border); background:var(--color-bg-card-solid);
+  color:var(--color-text-primary); cursor:pointer; min-width:200px;
+}
+.key-select:focus { outline:none; border-color:var(--color-accent-primary); }
 
 .key-item__actions { display:flex; gap:6px; }
 .key-action-btn {
@@ -237,6 +290,7 @@ onMounted(() => loadKeys())
   color:var(--color-text-muted);
 }
 .key-action-btn--revoke:hover { border-color:#f59e0b; color:#f59e0b; background:rgba(245,158,11,0.08); }
+.key-action-btn--regen:hover { border-color:#3b82f6; color:#3b82f6; background:rgba(59,130,246,0.08); }
 .key-action-btn--delete:hover { border-color:#ef4444; color:#ef4444; background:rgba(239,68,68,0.08); }
 
 .loading-state,.empty-state {

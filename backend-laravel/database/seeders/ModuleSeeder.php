@@ -278,6 +278,23 @@ class ModuleSeeder extends Seeder
                 'requires' => ['marketing'],
             ],
             [
+                'module_id' => 'livestream',
+                'name' => 'Live Comment Reader',
+                'description' => 'Đọc bình luận TikTok, Facebook, YouTube, Shopee livestream theo thời gian thực. Phân loại lead HOT/WARM/COLD, xem lại phiên, báo cáo.',
+                'icon' => 'MonitorPlay',
+                'category' => 'live',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Live',
+                    'items' => [
+                        ['key' => 'live', 'label' => 'Live Monitor', 'icon' => 'MonitorPlay', 'route' => 'live'],
+                        ['key' => 'live-replay', 'label' => 'Session Replay', 'icon' => 'PlayCircle', 'route' => 'live/replay'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
                 'module_id' => 'blog',
                 'name' => 'Blog & Bài viết',
                 'description' => 'Viết blog, quản lý bài viết, danh mục, bình luận, RSS feed',

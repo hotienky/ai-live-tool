@@ -1,0 +1,31 @@
+{
+  "id": "starter",
+  "name": "Starter",
+  "version": "1.0.0",
+  "author": "KAC Team",
+  "description": "Bộ giao diện khởi đầu — đơn giản, sạch sẽ, phù hợp mọi loại site. Dễ tuỳ chỉnh.",
+  "preview": "preview.png",
+  "category": "general",
+  "requires_modules": [],
+  "sections": [
+    { "type": "banner", "component": "SfBannerSection" },
+    { "type": "cms_pages", "component": "SfCmsPagesSection" },
+    { "type": "testimonials", "component": "SfContentSection" },
+    { "type": "faq", "component": "SfContentSection" },
+    { "type": "newsletter", "component": "SfContentSection" },
+    { "type": "text_block", "component": "SfContentSection" }
+  ],
+  "colors": {
+    "primary": "#7c3aed",
+    "secondary": "#1e293b",
+    "accent": "#7c3aed",
+    "background": "#ffffff",
+    "surface": "#f8fafc",
+    "text": "#334155"
+  },
+  "fonts": {
+    "heading": "Inter",
+    "body": "Inter"
+  },
+  "layouts": ["full-width"]
+}

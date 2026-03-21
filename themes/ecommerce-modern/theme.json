@@ -1,0 +1,33 @@
+{
+  "id": "ecommerce-modern",
+  "name": "Modern Shop",
+  "version": "1.0.0",
+  "author": "KAC Team",
+  "description": "Giao diện e-commerce hiện đại với layout sạch, tối ưu cho cửa hàng trực tuyến. Tích hợp Flash Sale, danh mục sản phẩm, và đánh giá khách hàng.",
+  "preview": "preview.png",
+  "category": "ecommerce",
+  "requires_modules": ["ecom"],
+  "sections": [
+    { "type": "banner", "component": "SfBannerSection" },
+    { "type": "categories", "component": "SfCategoriesSection" },
+    { "type": "flash_sale", "component": "SfFlashSaleSection" },
+    { "type": "featured_products", "component": "SfProductGridSection" },
+    { "type": "new_arrivals", "component": "SfProductGridSection" },
+    { "type": "brands_slider", "component": "SfContentSection" },
+    { "type": "testimonials", "component": "SfContentSection" },
+    { "type": "newsletter", "component": "SfContentSection" }
+  ],
+  "colors": {
+    "primary": "#1a1a2e",
+    "secondary": "#16213e",
+    "accent": "#e94560",
+    "background": "#0f0f1a",
+    "surface": "#1a1a2e",
+    "text": "#e5e7eb"
+  },
+  "fonts": {
+    "heading": "Plus Jakarta Sans",
+    "body": "Inter"
+  },
+  "layouts": ["full-width", "sidebar-right"]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "blog-magazine",
+  "name": "Magazine",
+  "version": "1.0.0",
+  "author": "KAC Team",
+  "description": "Giao diện blog/tin tức phong cách tạp chí. Tối ưu cho bài viết dài, hình ảnh nổi bật, và sidebar danh mục.",
+  "preview": "preview.png",
+  "category": "blog",
+  "requires_modules": ["blog"],
+  "sections": [
+    { "type": "banner", "component": "SfBannerSection" },
+    { "type": "blog", "component": "SfBlogSection" },
+    { "type": "cms_pages", "component": "SfCmsPagesSection" },
+    { "type": "testimonials", "component": "SfContentSection" },
+    { "type": "newsletter", "component": "SfContentSection" },
+    { "type": "social_feed", "component": "SfContentSection" }
+  ],
+  "colors": {
+    "primary": "#1e293b",
+    "secondary": "#475569",
+    "accent": "#0ea5e9",
+    "background": "#f8fafc",
+    "surface": "#ffffff",
+    "text": "#1e293b"
+  },
+  "fonts": {
+    "heading": "Playfair Display",
+    "body": "Inter"
+  },
+  "layouts": ["full-width", "sidebar-left", "sidebar-right"]
+}

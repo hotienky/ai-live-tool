@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Events\MediaUploaded;
+use App\Events\MediaDeleted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -146,6 +148,9 @@ class MediaController extends Controller
             }
         }
 
+        // Fire event for plugins before deleting
+        MediaDeleted::dispatch($media->id, $media->filename, $media->path);
+
         $media->delete();
 
         return response()->json([
@@ -213,6 +218,9 @@ class MediaController extends Controller
             'thumbnails' => $thumbnails ?: null,
             'metadata'   => null,
         ]);
+
+        // Fire event for plugins
+        MediaUploaded::dispatch($media->id, $originalName, $mimeType, auth()->id());
 
         // ── 6. Response: return media data with URLs ──
         return $media->toArray();

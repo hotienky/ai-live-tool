@@ -1,0 +1,20 @@
+{
+  "id": "livestream",
+  "name": "Live Comment Reader",
+  "description": "Đọc bình luận TikTok, Facebook, YouTube, Shopee livestream theo thời gian thực. Phân loại lead HOT/WARM/COLD, xem lại phiên, báo cáo sau phiên.",
+  "version": "1.0.0",
+  "icon": "MonitorPlay",
+  "category": "live",
+  "requires": [],
+  "controllers": ["SessionsController", "KeywordsController"],
+  "models": ["Session", "Keyword"],
+  "routes_file": "livestream.php",
+  "permissions": ["livestream.view", "livestream.manage"],
+  "sidebar": {
+    "group": "Live",
+    "items": [
+      { "key": "live", "label": "Live Monitor", "icon": "MonitorPlay", "route": "live" },
+      { "key": "live-replay", "label": "Session Replay", "icon": "PlayCircle", "route": "live/replay" }
+    ]
+  }
+}

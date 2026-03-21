@@ -9,6 +9,7 @@ use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
 use App\Events\ContentSaved;
 use App\Events\ContentDeleted;
+use App\Events\PagePublished;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -132,6 +133,10 @@ class CmsPagesController extends Controller
             if (!$page) return $this->notFoundResponse('Page not found');
             $this->repo->update(['status' => 'published', 'published_at' => now(), 'is_active' => true], $id);
             $this->logActivity('cms.published', 'cms_page', $id, ['title' => $page->title ?? null]);
+
+            // Fire event for plugins
+            PagePublished::dispatch((int) $id, $page->title ?? null, auth()->id());
+
             return $this->successResponse($this->repo->find($id), 'Page published');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
