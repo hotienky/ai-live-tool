@@ -313,6 +313,250 @@ class ModuleSeeder extends Seeder
                 ],
                 'requires' => [],
             ],
+            // ── Education ──
+            [
+                'module_id' => 'lms',
+                'name' => 'Khóa học trực tuyến (LMS)',
+                'description' => 'Tạo khóa học, bài giảng, bài kiểm tra, chứng chỉ, theo dõi tiến trình học viên',
+                'icon' => 'GraduationCap',
+                'category' => 'education',
+                'version' => '1.0.0',
+                'price' => 300000,
+                'sidebar' => [
+                    'group' => 'Khóa học',
+                    'items' => [
+                        ['key' => 'lms-courses', 'label' => 'Khóa học', 'icon' => 'BookOpen', 'route' => 'lms/courses'],
+                        ['key' => 'lms-students', 'label' => 'Học viên', 'icon' => 'Users', 'route' => 'lms/students'],
+                        ['key' => 'lms-certificates', 'label' => 'Chứng chỉ', 'icon' => 'Award', 'route' => 'lms/certificates'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            // ── Booking & Services ──
+            [
+                'module_id' => 'booking',
+                'name' => 'Đặt lịch & Dịch vụ',
+                'description' => 'Quản lý dịch vụ, lịch hẹn, đặt chỗ, nhắc nhở tự động',
+                'icon' => 'CalendarCheck',
+                'category' => 'booking',
+                'version' => '1.0.0',
+                'price' => 250000,
+                'sidebar' => [
+                    'group' => 'Đặt lịch',
+                    'items' => [
+                        ['key' => 'booking-services', 'label' => 'Dịch vụ', 'icon' => 'Briefcase', 'route' => 'booking/services'],
+                        ['key' => 'booking-appointments', 'label' => 'Lịch hẹn', 'icon' => 'CalendarDays', 'route' => 'booking/appointments'],
+                        ['key' => 'booking-calendar', 'label' => 'Lịch', 'icon' => 'Calendar', 'route' => 'booking/calendar'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'events',
+                'name' => 'Quản lý Sự kiện',
+                'description' => 'Tạo sự kiện, bán vé, RSVP, quản lý khách tham dự',
+                'icon' => 'CalendarPlus',
+                'category' => 'booking',
+                'version' => '1.0.0',
+                'price' => 200000,
+                'sidebar' => [
+                    'group' => 'Sự kiện',
+                    'items' => [
+                        ['key' => 'events-list', 'label' => 'Sự kiện', 'icon' => 'CalendarPlus', 'route' => 'events/list'],
+                        ['key' => 'events-tickets', 'label' => 'Vé', 'icon' => 'Ticket', 'route' => 'events/tickets'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            // ── Community ──
+            [
+                'module_id' => 'forum',
+                'name' => 'Diễn đàn cộng đồng',
+                'description' => 'Tạo diễn đàn thảo luận, chủ đề, trả lời, quản lý nội dung',
+                'icon' => 'MessagesSquare',
+                'category' => 'community',
+                'version' => '1.0.0',
+                'price' => 200000,
+                'sidebar' => [
+                    'group' => 'Cộng đồng',
+                    'items' => [
+                        ['key' => 'forum-threads', 'label' => 'Chủ đề', 'icon' => 'MessageCircle', 'route' => 'forum/threads'],
+                        ['key' => 'forum-moderation', 'label' => 'Kiểm duyệt', 'icon' => 'Shield', 'route' => 'forum/moderation'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'membership',
+                'name' => 'Hội viên & Thành viên',
+                'description' => 'Quản lý hội viên, phân cấp thành viên, nội dung dành riêng',
+                'icon' => 'UserCheck',
+                'category' => 'community',
+                'version' => '1.0.0',
+                'price' => 250000,
+                'sidebar' => [
+                    'group' => 'Cộng đồng',
+                    'items' => [
+                        ['key' => 'membership-tiers', 'label' => 'Cấp thành viên', 'icon' => 'Crown', 'route' => 'membership/tiers'],
+                        ['key' => 'membership-members', 'label' => 'Thành viên', 'icon' => 'Users', 'route' => 'membership/members'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            // ── Directory ──
+            [
+                'module_id' => 'jobboard',
+                'name' => 'Bảng Tuyển dụng',
+                'description' => 'Đăng tuyển, quản lý hồ sơ, ứng viên, quy trình tuyển dụng',
+                'icon' => 'Briefcase',
+                'category' => 'directory',
+                'version' => '1.0.0',
+                'price' => 250000,
+                'sidebar' => [
+                    'group' => 'Tuyển dụng',
+                    'items' => [
+                        ['key' => 'jobs', 'label' => 'Tin tuyển dụng', 'icon' => 'Briefcase', 'route' => 'jobs/listings'],
+                        ['key' => 'applicants', 'label' => 'Ứng viên', 'icon' => 'UserPlus', 'route' => 'jobs/applicants'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'realestate',
+                'name' => 'Bất động sản',
+                'description' => 'Quản lý tin đăng bất động sản, tìm kiếm, bản đồ, hồ sơ môi giới',
+                'icon' => 'Home',
+                'category' => 'directory',
+                'version' => '1.0.0',
+                'price' => 300000,
+                'sidebar' => [
+                    'group' => 'Bất động sản',
+                    'items' => [
+                        ['key' => 'property-listings', 'label' => 'Tin đăng', 'icon' => 'Home', 'route' => 'realestate/listings'],
+                        ['key' => 'property-agents', 'label' => 'Môi giới', 'icon' => 'UserCircle', 'route' => 'realestate/agents'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            // ── Industry ──
+            [
+                'module_id' => 'restaurant',
+                'name' => 'Nhà hàng & F&B',
+                'description' => 'Menu, đặt bàn, đặt món online, QR menu, quản lý bếp',
+                'icon' => 'UtensilsCrossed',
+                'category' => 'industry',
+                'version' => '1.0.0',
+                'price' => 300000,
+                'sidebar' => [
+                    'group' => 'Nhà hàng',
+                    'items' => [
+                        ['key' => 'restaurant-menu', 'label' => 'Menu', 'icon' => 'BookOpen', 'route' => 'restaurant/menu'],
+                        ['key' => 'restaurant-tables', 'label' => 'Đặt bàn', 'icon' => 'Armchair', 'route' => 'restaurant/tables'],
+                        ['key' => 'restaurant-orders', 'label' => 'Đơn hàng', 'icon' => 'ClipboardList', 'route' => 'restaurant/orders'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'salon',
+                'name' => 'Salon & Spa',
+                'description' => 'Dịch vụ, đặt lịch, nhân viên, khách hàng, báo cáo doanh thu',
+                'icon' => 'Scissors',
+                'category' => 'industry',
+                'version' => '1.0.0',
+                'price' => 250000,
+                'sidebar' => [
+                    'group' => 'Salon',
+                    'items' => [
+                        ['key' => 'salon-services', 'label' => 'Dịch vụ', 'icon' => 'Sparkles', 'route' => 'salon/services'],
+                        ['key' => 'salon-staff', 'label' => 'Nhân viên', 'icon' => 'Users', 'route' => 'salon/staff'],
+                        ['key' => 'salon-bookings', 'label' => 'Lịch hẹn', 'icon' => 'CalendarCheck', 'route' => 'salon/bookings'],
+                    ],
+                ],
+                'requires' => ['booking'],
+            ],
+            // ── Utilities ──
+            [
+                'module_id' => 'seo',
+                'name' => 'SEO & Tối ưu tìm kiếm',
+                'description' => 'Sitemap, meta tags, schema markup, phân tích SEO trang',
+                'icon' => 'Search',
+                'category' => 'utilities',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Hệ thống',
+                    'items' => [
+                        ['key' => 'seo-settings', 'label' => 'SEO', 'icon' => 'Search', 'route' => 'system/seo'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'analytics',
+                'name' => 'Phân tích & Thống kê',
+                'description' => 'Thống kê truy cập, hành vi người dùng, conversion tracking',
+                'icon' => 'BarChart3',
+                'category' => 'utilities',
+                'version' => '1.0.0',
+                'price' => 150000,
+                'sidebar' => [
+                    'group' => 'Báo cáo',
+                    'items' => [
+                        ['key' => 'analytics-dashboard', 'label' => 'Thống kê', 'icon' => 'BarChart3', 'route' => 'analytics/dashboard'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'reviews',
+                'name' => 'Đánh giá & Nhận xét',
+                'description' => 'Đánh giá sao, nhận xét sản phẩm, kiểm duyệt, hiển thị trên storefront',
+                'icon' => 'Star',
+                'category' => 'utilities',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Cửa hàng',
+                    'items' => [
+                        ['key' => 'reviews', 'label' => 'Đánh giá', 'icon' => 'Star', 'route' => 'shop/reviews'],
+                    ],
+                ],
+                'requires' => ['ecom'],
+            ],
+            [
+                'module_id' => 'forms',
+                'name' => 'Form Builder',
+                'description' => 'Tạo form liên hệ, đăng ký, khảo sát, thu thập dữ liệu',
+                'icon' => 'ClipboardEdit',
+                'category' => 'utilities',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Nội dung',
+                    'items' => [
+                        ['key' => 'forms', 'label' => 'Forms', 'icon' => 'ClipboardEdit', 'route' => 'forms/list'],
+                        ['key' => 'form-submissions', 'label' => 'Phản hồi', 'icon' => 'Inbox', 'route' => 'forms/submissions'],
+                    ],
+                ],
+                'requires' => [],
+            ],
+            [
+                'module_id' => 'ai-assistant',
+                'name' => 'AI Trợ lý viết nội dung',
+                'description' => 'Tạo nội dung tự động, viết mô tả sản phẩm, gợi ý SEO bằng AI',
+                'icon' => 'Sparkles',
+                'category' => 'utilities',
+                'version' => '1.0.0',
+                'price' => 300000,
+                'sidebar' => [
+                    'group' => 'Công cụ',
+                    'items' => [
+                        ['key' => 'ai-writer', 'label' => 'AI Writer', 'icon' => 'Sparkles', 'route' => 'tools/ai-writer'],
+                    ],
+                ],
+                'requires' => [],
+            ],
         ];
 
         foreach ($modules as $m) {

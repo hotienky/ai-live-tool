@@ -106,21 +106,29 @@ class ModuleRegistry
     }
 
     /**
-     * Run database migrations for a specific module
+     * Run database migrations for a specific module.
+     * Returns true if migrations were found and executed.
      */
-    protected static function runModuleMigrations(string $moduleId): void
+    protected static function runModuleMigrations(string $moduleId): bool
     {
         $migrationPath = database_path("migrations/modules/{$moduleId}");
-        if (is_dir($migrationPath)) {
-            try {
-                Artisan::call('migrate', [
-                    '--path' => "database/migrations/modules/{$moduleId}",
-                    '--force' => true,
-                ]);
-                Log::info("[ModuleRegistry] Ran migrations for module: {$moduleId}");
-            } catch (\Exception $e) {
-                Log::error("[ModuleRegistry] Migration failed for {$moduleId}: {$e->getMessage()}");
-            }
+        if (!is_dir($migrationPath)) {
+            return false;
+        }
+
+        try {
+            Artisan::call('migrate', [
+                '--path' => "database/migrations/modules/{$moduleId}",
+                '--database' => 'tenant',
+                '--realpath' => false,
+                '--force' => true,
+            ]);
+            $output = trim(Artisan::output());
+            Log::info("[ModuleRegistry] Ran migrations for module: {$moduleId}", ['output' => $output]);
+            return true;
+        } catch (\Exception $e) {
+            Log::error("[ModuleRegistry] Migration failed for {$moduleId}: {$e->getMessage()}");
+            return false;
         }
     }
 

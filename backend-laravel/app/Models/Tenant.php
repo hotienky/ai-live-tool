@@ -23,6 +23,10 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     protected $connection = 'master';
 
+    // Ensure Eloquent casts the PK to string in relationship queries
+    // because domains.tenant_id is varchar in PostgreSQL
+    protected $keyType = 'string';
+
     protected $casts = [
         'settings' => 'array',
         'expires_at' => 'datetime',

@@ -124,15 +124,19 @@ class SiteTemplateService
         });
 
         // 6. Update Tenant settings on Master
-        $settings = is_string($tenant->settings) ? json_decode($tenant->settings, true) : ($tenant->settings ?? []);
+        // Note: Tenant model casts settings to array, but handle edge cases
+        $settings = $tenant->settings;
         if (!is_array($settings)) {
-            $settings = [];
+            $settings = is_string($settings) ? (json_decode($settings, true) ?: []) : [];
         }
         $settings['onboarded'] = true;
         $settings['site_template'] = $templateId;
         
         $tenant->settings = $settings;
         $tenant->save();
+
+        // Clear tenant status cache so frontend immediately sees onboarded=true
+        \Illuminate\Support\Facades\Cache::forget("tenant_status:{$tenant->slug}");
 
         return ['success' => true, 'message' => "Đã khởi tạo website với mẫu '{$template['name']}' thành công."];
     }

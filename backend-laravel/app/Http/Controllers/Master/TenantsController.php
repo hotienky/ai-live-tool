@@ -29,36 +29,78 @@ class TenantsController extends Controller
 
     public function store(Request $request)
     {
-        $data = [
-            'name' => $request->input('name'),
-            'slug' => $request->input('slug'),
-            'plan' => $request->input('plan', 'free'),
-            'status' => 'active',
-            'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
-            'owner_name' => $request->input('ownerName', $request->input('owner_name')),
-            'features' => $request->input('features', 'all'),
-            'db_name' => 'tenant_' . $request->input('slug'),
-        ];
+        try {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'slug' => 'required|string|max:100|regex:/^[a-z0-9\-]+$/',
+                'ownerEmail' => 'nullable|email',
+                'plan' => 'nullable|string',
+            ]);
 
-        // Stancl data column: default_language + storage settings
-        $defaultLang = $request->input('default_language', $request->input('defaultLanguage', 'vi'));
-        $storageDriver = $this->validateDriver($request->input('storage_driver', 'local'));
+            $slug = $request->input('slug');
 
-        $stancData = [
-            'default_language' => $defaultLang,
-            'storage_driver' => $storageDriver,
-        ];
+            // Check duplicate slug or db_name
+            $existing = \App\Models\Tenant::where('slug', $slug)
+                ->orWhere('db_name', 'tenant_' . $slug)
+                ->first();
+            if ($existing) {
+                return $this->errorResponse("Tenant với slug '{$slug}' đã tồn tại. Vui lòng chọn slug khác.", 422);
+            }
 
-        // Merge storage_config if provided
-        $storageConfig = $request->input('storage_config');
-        if (is_array($storageConfig)) {
-            $stancData['storage_config'] = $this->sanitizeStorageConfig($storageConfig);
+            $data = [
+                'name' => $request->input('name'),
+                'slug' => $slug,
+                'plan' => $request->input('plan', 'free'),
+                'status' => 'active',
+                'owner_email' => $request->input('ownerEmail', $request->input('owner_email')),
+                'owner_name' => $request->input('ownerName', $request->input('owner_name')),
+                'features' => $request->input('features', 'all'),
+                'db_name' => 'tenant_' . $slug,
+            ];
+
+            // Stancl data column: default_language + storage settings
+            $defaultLang = $request->input('default_language', $request->input('defaultLanguage', 'vi'));
+            $storageDriver = $this->validateDriver($request->input('storage_driver', 'local'));
+
+            $stancData = [
+                'default_language' => $defaultLang,
+                'storage_driver' => $storageDriver,
+            ];
+
+            // Merge storage_config if provided
+            $storageConfig = $request->input('storage_config');
+            if (is_array($storageConfig)) {
+                $stancData['storage_config'] = $this->sanitizeStorageConfig($storageConfig);
+            }
+
+            $data['data'] = json_encode($stancData);
+
+            $tenant = $this->repo->store($data);
+
+            // Auto-assign subscription based on plan slug
+            $planSlug = $request->input('plan', 'free');
+            $plan = \App\Models\Plan::where('slug', $planSlug)->first();
+            if (!$plan) {
+                $plan = \App\Models\Plan::where('slug', 'free')->first();
+            }
+            if ($plan) {
+                \App\Models\Subscription::create([
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $plan->id,
+                    'status' => $plan->price > 0 ? 'trialing' : 'active',
+                    'trial_ends_at' => $plan->price > 0 ? now()->addDays(14) : null,
+                    'current_period_start' => now(),
+                    'current_period_end' => now()->addMonth(),
+                ]);
+            }
+
+            return $this->successResponse($this->transformer->transform($tenant), 'Tenant created', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $messages = collect($e->errors())->flatten()->implode(' ');
+            return $this->errorResponse($messages, 422);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Tạo tenant thất bại: ' . $e->getMessage(), 500);
         }
-
-        $data['data'] = json_encode($stancData);
-
-        $tenant = $this->repo->store($data);
-        return $this->successResponse($this->transformer->transform($tenant), 'Tenant created', 201);
     }
 
     public function update(Request $request, $id)

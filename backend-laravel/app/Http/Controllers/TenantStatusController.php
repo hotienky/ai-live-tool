@@ -24,12 +24,23 @@ class TenantStatusController extends Controller
         $cacheKey = "tenant_status:{$slug}";
         $status = Cache::remember($cacheKey, 60, function () use ($slug) {
             $tenant = \App\Models\Tenant::where('slug', $slug)->first(['status', 'name', 'features', 'settings']);
-            return $tenant ? [
+            if (!$tenant) return null;
+            
+            // Safely decode settings — may be a raw JSON string
+            $settings = $tenant->settings;
+            if (is_string($settings)) {
+                $settings = json_decode($settings, true) ?: [];
+            }
+            if (!is_array($settings)) {
+                $settings = [];
+            }
+            
+            return [
                 'status' => $tenant->status, 
                 'name' => $tenant->name, 
                 'features' => $tenant->features ?? 'all',
-                'onboarded' => $tenant->settings['onboarded'] ?? false,
-            ] : null;
+                'onboarded' => $settings['onboarded'] ?? false,
+            ];
         });
 
         if (!$status) {
