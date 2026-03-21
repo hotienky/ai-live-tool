@@ -87,10 +87,10 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 | Layout Builder (sections) | ✅ Đã có | — |
 | Custom Fields | ✅ Đã có | Phase 3 nâng cấp |
 | **GENERAL-PURPOSE** | | |
-| Plugin/Module system | ✅ Đã có | Phase 1 nâng cấp (hooks) |
-| Dynamic Content Types | ❌ Chưa có | Phase 3 |
-| Blog module | ❌ Chưa có | Phase 4 |
-| E-com as optional module | ❌ Hardcoded | Phase 2 |
+| Plugin/Module system | ✅ Done | Phase 1 ✅ — `hooks.js`, `hook-names.js`, 7 plugins |
+| Dynamic Content Types | ✅ Done | Phase 3 ✅ — `ContentTypeRegistry`, `contents` table |
+| Blog module | ✅ Done | Phase 4 ✅ — `plugins/blog/`, controllers, comments, RSS |
+| E-com as optional module | ✅ Done | Phase 2 ✅ — `plugins/ecom/` via hooks |
 | Theme marketplace | ❌ Chưa có | Phase 6 |
 | Site type templates | ❌ Chưa có | Phase 7 |
 | Onboarding wizard | ❌ Chưa có | Phase 7 |
@@ -109,7 +109,7 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 | Usage tracking | ❌ Chưa có | Phase 8 |
 | Module marketplace revenue | ❌ Chưa có | Phase 8, 9 |
 | **ECOSYSTEM** | | |
-| Hooks system (plugin interop) | ❌ Chưa có | Phase 1 |
+| Hooks system (plugin interop) | ✅ Done | Phase 1 ✅ — `addFilter`, `addAction`, `applyFilters`, `doAction` |
 | Plugin SDK & CLI | ❌ Chưa có | Phase 9 |
 | Theme SDK | ❌ Chưa có | Phase 9 |
 | Developer portal & docs | ❌ Chưa có | Phase 9 |
@@ -151,34 +151,50 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 | i18n (vi/en/ja) | ✅ Working | `useI18n.js`, 2326 translation keys |
 | Theme System | ✅ Basic | `ThemeCustomizer.vue`, CSS variables |
 | Layout Builder | ✅ Working | `StorefrontLayoutBuilder.vue`, section-based |
-| Plugin System | ✅ Working | `usePluginLoader.js`, `ModuleRegistry.php`, 5 plugins |
+| Hooks & Filters | ✅ Working | `frontend/src/core/hooks.js`, `hook-names.js` |
+| Plugin System | ✅ Working | `usePluginLoader.js`, `ModuleRegistry.php`, **7 plugins** |
+| Content Type System | ✅ Working | `ContentTypeRegistry.php`, `ContentController.php`, `contents` table |
 | Custom Fields | ✅ Working | `CustomFieldsController`, `CustomFieldManager.vue` |
 | API Keys | ✅ Working | `ApiKeysController`, `ApiKeyManager.vue` |
 | Webhooks | ✅ Basic | `WebhooksController`, `WebhookManager.vue` |
 | Notifications | ✅ Working | Pusher/WebSocket, bell + page |
 
-### 🔶 E-commerce (Currently in Core — Needs Extraction)
-| Component | Location | Should Be |
-|-----------|----------|-----------|
-| Products/Variants | `ProductsController`, `ProductForm.vue` | Plugin: `ecom` |
-| Orders | `OrdersController`, `OrderManagement.vue` | Plugin: `ecom` |
-| Cart/Checkout | `CartController`, `WishlistController` | Plugin: `ecom` |
-| Customers | `CustomersController`, `CustomerManager.vue` | Plugin: `ecom` |
-| Inventory | `InventoryManagement.vue` | Plugin: `warehouse` ✅ |
-| Accounting | Plugin: `accounting` ✅ | ✅ Already a plugin |
-| Tax | Plugin: `tax` ✅ | ✅ Already a plugin |
-| Shipping | `ShipmentsController`, `ShippingManagement.vue` | Plugin: `shipping` |
-| Promotions | Plugin: `marketing` ✅ | ✅ Already a plugin |
+### ✅ Plugin Packages (Phase 1 & 2 Done)
+| Plugin | Status | Notes |
+|--------|--------|-------|
+| `plugins/ecom` | ✅ Done | Products, Orders, Customers — via hooks |
+| `plugins/shipping` | ✅ Done | Shipments, Shipping settings |
+| `plugins/warehouse` | ✅ Done | Stock, Suppliers, Inventory |
+| `plugins/accounting` | ✅ Done | Journal, Invoices, Payment vouchers |
+| `plugins/marketing` | ✅ Done | Promotions, Flash Sales |
+| `plugins/tax` | ✅ Done | Tax settings |
+| `plugins/cms` | ✅ Done | CMS core plugin |
+
+### ✅ Blog Module (Phase 4 — Completed)
+| Component | Status | Notes |
+|-----------|--------|-------|
+| `BlogController.php` | ✅ Done | RSS feed, post list, single post |
+| `CommentController.php` | ✅ Done | Comment CRUD + moderation |
+| `Comment.php` model | ✅ Done | SoftDeletes, nested, scopes |
+| Admin routes | ✅ Done | `tenantModules/blog.php` |
+| Storefront routes | ✅ Done | `storefrontModules/blog.php` (no auth) |
+| `comments` migration | ✅ Done | `migrations/modules/blog/` |
+| `plugins/blog/` package | ✅ Done | IIFE bundle 31.56 KB |
+| `PostList.vue` | ✅ Done | Search, filter, pagination |
+| `PostEditor.vue` | ✅ Done | SEO, taxonomies, revisions |
+| `CommentManager.vue` | ✅ Done | Approve/spam/delete, counts |
+| `BlogSettings.vue` | ✅ Done | RSS, comments, SEO config |
+| Sidebar via hooks | ✅ Done | Posts, Categories, Comments, Settings |
+| Storefront components | 🔶 Deferred | `SfBlogSection.vue`, `SfPostPage.vue` (Phase 6) |
 
 ### 🔴 Missing for General-Purpose CMS
-- Hooks & Filters system (plugin interoperability)
-- Content Type system (dynamic, not hardcoded)
-- Public REST API (versioned, documented)
-- Theme marketplace
-- Blog module
-- Site type templates / onboarding
-- Billing & subscriptions management
-- Plugin SDK & developer docs
+- Public REST API (versioned, documented) — Phase 5
+- Theme marketplace — Phase 6
+- Site type templates / onboarding — Phase 7
+- Billing & subscriptions management — Phase 8
+- Plugin SDK & developer docs — Phase 9
+- CustomFields → Content Type system merge — Phase 3 backlog
+- Storefront blog components (SfBlogSection, SfPostPage) — Phase 6 backlog
 
 ---
 
@@ -186,25 +202,26 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 
 ---
 
-## Phase 1: Hooks & Filters System ⚡
-**Priority**: 🔴 Critical — Foundation for everything else  
-**Duration**: 1–2 weeks  
+## Phase 1: Hooks & Filters System ⚡ ✅ COMPLETED
+**Priority**: 🔴 Critical — Foundation for everything else
+**Status**: ✅ Done — 2026-03-21
 **Goal**: Enable plugins to intercept and modify core behavior
 
 ### 1.1 Frontend Hooks (JavaScript)
 ```
 📁 frontend/src/core/hooks.js
+📁 frontend/src/core/hook-names.js
 ```
 
 **Tasks:**
-- [ ] Create `hooks.js` — central event/filter bus
+- [x] Create `hooks.js` — central event/filter bus
   - `addAction(hookName, callback, priority)` — register side-effect
   - `doAction(hookName, ...args)` — trigger all registered callbacks
   - `addFilter(hookName, callback, priority)` — register data transformer
   - `applyFilters(hookName, value, ...args)` — pipe value through all transformers
   - `removeAction(hookName, callback)` / `removeFilter(hookName, callback)`
-- [ ] Expose via `window.__APP_HOOKS__` in plugin bridge
-- [ ] Core hook points:
+- [x] Expose via `window.__APP_HOOKS__` in plugin bridge
+- [x] Core hook points:
   - `sidebar_items` — filter: plugins add/modify sidebar items
   - `admin_routes` — filter: plugins register custom routes
   - `page_toolbar_actions` — filter: plugins add toolbar buttons
@@ -212,8 +229,8 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
   - `content_render` — filter: modify rendered content
   - `dashboard_widgets` — filter: plugins add dashboard cards
   - `settings_tabs` — filter: plugins add settings sections
-- [ ] Update `usePluginLoader.js` to expose hooks to plugins
-- [ ] Update existing plugins to use hooks instead of hardcoded sidebar
+- [x] Update `usePluginLoader.js` to expose hooks to plugins
+- [x] Update existing plugins to use hooks instead of hardcoded sidebar
 
 ### 1.2 Backend Hooks (Laravel Events)
 ```
@@ -231,115 +248,104 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 - [ ] Create `HookRegistry` service for runtime filter registration
 - [ ] Allow plugins to register event listeners via module config
 
+> **Note**: Backend Laravel events chưa implement — frontend hooks đã đủ cho giai đoạn hiện tại. Backend events sẽ làm khi cần webhook/event-driven features (Phase 5.3).
+
 ### 1.3 Tests
 - [ ] Unit tests for hooks system (register, trigger, priority ordering)
 - [ ] Integration test: plugin registers sidebar via hook
 
 ---
 
-## Phase 2: Tách E-commerce ra Plugin 📦
-**Priority**: 🔴 Critical — Core phải agnostic  
-**Duration**: 2–3 weeks  
+## Phase 2: Tách E-commerce ra Plugin 📦 ✅ COMPLETED
+**Priority**: 🔴 Critical — Core phải agnostic
+**Status**: ✅ Done — 2026-03-21
 **Goal**: Core chỉ giữ CMS features, e-commerce thành optional module package
 
-### 2.1 Create `ecom` Plugin Package
+### 2.1 Plugin Packages Created
 ```
-📁 plugins/ecom/
-  ├── src/
-  │   ├── components/
-  │   │   ├── ProductManager.vue      ← move from frontend
-  │   │   ├── ProductForm.vue         ← move from frontend
-  │   │   ├── ProductList.vue         ← move from frontend
-  │   │   ├── OrderManagement.vue     ← move from frontend
-  │   │   ├── OrderDetailPage.vue     ← move from frontend
-  │   │   ├── CustomerManager.vue     ← move from frontend
-  │   │   ├── CustomerDetail.vue      ← move from frontend
-  │   │   ├── CustomerForm.vue        ← move from frontend
-  │   │   ├── PromotionForm.vue       ← move from frontend
-  │   │   ├── FlashSaleManager.vue    ← move from frontend
-  │   │   ├── FlashSaleForm.vue       ← move from frontend
-  │   │   ├── CurrencyInput.vue       ← move from frontend
-  │   │   └── InventoryManagement.vue ← move from frontend
-  │   ├── helpers.js
-  │   └── index.js
-  ├── vite.config.js
-  └── package.json
+📁 plugins/ecom/        ✅ — Products, Orders, Customers, Categories, Brands
+📁 plugins/shipping/    ✅ — Shipments, Shipping settings
+📁 plugins/warehouse/   ✅ — Stock, Suppliers, Inventory reports
+📁 plugins/accounting/  ✅ — Journal, Invoices, Payment vouchers
+📁 plugins/marketing/   ✅ — Promotions, Flash Sales
+📁 plugins/tax/         ✅ — Tax settings
+📁 plugins/cms/         ✅ — CMS core plugin
 ```
 
 **Tasks:**
-- [ ] Create `plugins/ecom/` scaffold
-- [ ] Move e-commerce Vue components from `frontend/src/components/` → `plugins/ecom/src/components/`
-- [ ] Register ecom sidebar items via hooks system (not hardcoded in App.vue)
-- [ ] Register ecom routes via hooks system
-- [ ] Move e-commerce related API routes to conditionally load based on module installation
-- [ ] Update `App.vue` — remove hardcoded e-commerce component imports
-- [ ] Replace direct component references with `PluginRenderer.vue` for ecom views
-- [ ] Update `ShopSettings.vue` — move e-commerce settings to ecom plugin
+- [x] Create `plugins/ecom/` scaffold
+- [x] Move e-commerce Vue components → `plugins/ecom/src/components/`
+- [x] Register ecom sidebar items via hooks system (`hooks.addFilter('sidebar_items', ...)`)
+- [x] Register ecom routes via hooks system (`hooks.addFilter('admin_routes', ...)`)
+- [x] Move e-commerce related API routes to conditionally load based on module installation
+- [x] Update `App.vue` — remove hardcoded e-commerce component imports
+- [x] Replace direct component references with `PluginRenderer.vue` for ecom views
 - [ ] Test: fresh tenant without ecom module → no e-commerce UI visible
 - [ ] Test: install ecom module → all e-commerce features available
 
-### 2.2 Create `shipping` Plugin Package
-```
-📁 plugins/shipping/
-```
-- [ ] Move `ShippingManagement.vue`, `ShipmentDetail.vue`, `ShipmentForm.vue`, `ShippingSettings.vue`
-- [ ] Move `ShipmentsController.php`, `ShippingController.php`
+### 2.2 Plugin Packages: `shipping`, `warehouse`, `accounting`, `marketing`, `tax`
+- [x] All moved to `plugins/` as independent buildable packages
 
 ### 2.3 Cleanup Core Frontend
-- [ ] `App.vue` should only import CMS-core components
-- [ ] Sidebar items come from hooks (no hardcoded plugin routes)
-- [ ] Route handling via dynamic registration
+- [x] `App.vue` only imports CMS-core components
+- [x] Sidebar items come from hooks
+- [x] Route handling via dynamic registration
 
 ### 2.4 Database Considerations
-- [ ] E-commerce tables (products, orders, order_details, etc.) stay in tenant DB
-- [ ] Core migration only creates CMS tables
-- [ ] E-commerce migrations run on module install
-- [ ] Add `ModuleMigration` system: each plugin can define its own migrations
+- [x] E-commerce tables stay in tenant DB
+- [x] Core migration only creates CMS tables
+- [x] Each plugin can define its own migrations (`migrations/modules/`)
+- [ ] `ModuleMigration` auto-run system on module install/uninstall
 
 ---
 
-## Phase 3: Content Type System 📐
-**Priority**: 🟡 High — Enables Blog, LMS, Booking, etc.  
-**Duration**: 2 weeks  
+## Phase 3: Content Type System 📐 ✅ LARGELY DONE
+**Priority**: 🟡 High — Enables Blog, LMS, Booking, etc.
+**Status**: ✅ Core done — 2026-03-21 | 🔶 Some items pending
 **Goal**: Dynamic content types that plugins can register
 
-### 3.1 Backend — Content Type Registry
+### 3.1 Backend — Content Type Registry ✅
 ```
-📁 backend-laravel/app/Services/ContentTypeRegistry.php
-📁 backend-laravel/app/Http/Controllers/Tenant/ContentController.php
-📁 backend-laravel/database/migrations/tenant/xxxx_create_contents_table.php
+📁 backend-laravel/app/Services/ContentTypeRegistry.php        ✅
+📁 backend-laravel/app/Http/Controllers/Tenant/ContentController.php  ✅
+📁 backend-laravel/app/Models/Content.php                      ✅
+📁 backend-laravel/app/Models/ContentRevision.php              ✅
+📁 backend-laravel/app/Models/ContentTaxonomy.php              ✅
+📁 backend-laravel/database/migrations/tenant/2026_03_21_100000_create_contents_table.php  ✅
 ```
 
 **Tasks:**
-- [ ] Design `contents` table (polymorphic content storage):
+- [x] Design `contents` table (polymorphic content storage):
   ```sql
-  contents: id, type, slug, title, body, status, author_id, 
+  contents: id, type, slug, title, body, status, author_id,
             meta (JSONB), published_at, created_at, updated_at
   content_taxonomies: id, content_id, taxonomy, term
   ```
-- [ ] `ContentTypeRegistry` service:
+- [x] `ContentTypeRegistry` service:
   - `register(type, config)` — plugin registers a content type
-  - `getFields(type)` — get field definitions
-  - `getAll()` — list all registered types
-- [ ] Generic `ContentController` with CRUD for any content type
-- [ ] Support field types: text, richtext, number, date, media, select, relation, json, currency
-- [ ] Taxonomy system: categories + tags per content type
-- [ ] Validation rules per field
+  - `get(type)` / `all()` / `exists(type)`
+  - `getValidationRules(type)` — auto-generate from config
+  - `getTaxonomies(type)`
+- [x] Generic `ContentController` with CRUD for any content type
+- [x] Support field types: text, richtext, number, date, media, select, relation, json, currency
+- [x] Taxonomy system: categories + tags per content type (`ContentTaxonomy`)
+- [x] Validation rules per field
+- [x] Revision history model (`ContentRevision`)
 
-### 3.2 Frontend — Dynamic Content Editor
+### 3.2 Frontend — Dynamic Content Editor ✅
 ```
-📁 frontend/src/components/ContentEditor.vue
-📁 frontend/src/components/ContentList.vue  
-📁 frontend/src/components/ContentFieldRenderer.vue
+📁 frontend/src/components/ContentEditor.vue        ✅
+📁 frontend/src/components/ContentList.vue          ✅
+📁 frontend/src/components/ContentFieldRenderer.vue ✅
 ```
 
 **Tasks:**
-- [ ] `ContentList.vue` — generic list view for any content type (sortable, filterable, searchable)
-- [ ] `ContentEditor.vue` — dynamic form generated from content type field definitions
-- [ ] `ContentFieldRenderer.vue` — renders field based on type (text input, rich text, media picker, etc.)
+- [x] `ContentList.vue` — generic list view for any content type
+- [x] `ContentEditor.vue` — dynamic form generated from content type field definitions
+- [x] `ContentFieldRenderer.vue` — renders field based on type
 - [ ] Support for custom field layouts (sections, tabs)
 - [ ] Preview capability
-- [ ] Revision history
+- [ ] Revision history UI
 
 ### 3.3 Integrate with Custom Fields Module
 - [ ] Merge `CustomFieldManager` logic into Content Type system
@@ -347,56 +353,90 @@ Mỗi yêu cầu kinh doanh phải được đáp ứng bởi phase cụ thể:
 
 ---
 
-## Phase 4: Blog Module 📝
-**Priority**: 🟡 High — First "non-ecom" use case, proves platform is general-purpose  
-**Duration**: 1–2 weeks  
+## Phase 4: Blog Module 📝 ✅ COMPLETED
+**Priority**: 🟡 High — First "non-ecom" use case, proves platform is general-purpose
+**Status**: ✅ Done — 2026-03-21
 **Goal**: Full blog functionality via plugin + content types
 
-### 4.1 Plugin: `blog`
+### Status
+| Component | Status | File |
+|-----------|--------|------|
+| `post` content type registered | ✅ Done | `AppServiceProvider` |
+| `BlogController.php` | ✅ Done | RSS feed, posts list, single post by slug |
+| `CommentController.php` | ✅ Done | index, approve, spam, destroy, store, forContent |
+| `Comment.php` model | ✅ Done | SoftDeletes, scopes: approved, pending, topLevel |
+| Admin routes | ✅ Done | `routes/tenantModules/blog.php` — comment moderation |
+| Storefront routes | ✅ Done | `routes/storefrontModules/blog.php` — RSS, posts, comments (no auth) |
+| Post CRUD (admin) | ✅ Done | Via generic `/content/post/*` (ContentController) |
+| `comments` migration | ✅ Done | `migrations/modules/blog/` |
+| `plugins/blog/` package | ✅ Done | IIFE bundle 31.56 KB + 14.82 KB CSS |
+| `PostList.vue` | ✅ Done | Search, category filter, status filter, pagination |
+| `PostEditor.vue` | ✅ Done | SEO, taxonomies, revisions, auto-excerpt, reading time |
+| `CommentManager.vue` | ✅ Done | Approve/spam/delete, nested replies, moderation counts |
+| `BlogSettings.vue` | ✅ Done | RSS, comments, SEO config |
+| Hooks registration | ✅ Done | Sidebar: Posts, Categories, Comments, Settings |
+| Blog module in `ModuleSeeder` | ✅ Done | Seeded to all tenants |
+| Storefront Vue components | 🔶 Deferred | `SfBlogSection.vue`, `SfPostPage.vue` → Phase 6 |
+
+### 4.1 Plugin: `blog` ✅
 ```
 📁 plugins/blog/
   ├── src/
   │   ├── components/
-  │   │   ├── PostEditor.vue        — extends ContentEditor for blog posts
-  │   │   ├── PostList.vue          — blog post management
-  │   │   ├── CommentManager.vue    — moderate comments
-  │   │   └── BlogSettings.vue      — RSS, SEO, social sharing config
-  │   ├── helpers.js
-  │   └── index.js
+  │   │   ├── PostEditor.vue        ✅ — blog post editor with SEO + taxonomies
+  │   │   ├── PostList.vue          ✅ — post management with filters
+  │   │   ├── CommentManager.vue    ✅ — moderation UI
+  │   │   └── BlogSettings.vue      ✅ — RSS, comments, SEO config
+  │   ├── helpers.js                ✅ — bridge wrapper
+  │   └── index.js                  ✅ — hooks (sidebar_items, admin_routes)
+  ├── vite.config.js                ✅
+  ├── package.json                  ✅
+  └── dist/
+      ├── bundle.js                 ✅ (31.56 KB)
+      └── style.css                 ✅ (14.82 KB)
 ```
 
 **Tasks:**
-- [ ] Register content type `post` with fields: title, slug, body (richtext), excerpt, featured_image, categories, tags, author, status (draft/published)
-- [ ] Register sidebar items via hooks: Posts, Comments, Categories, Tags
-- [ ] Blog-specific features:
-  - [ ] Post scheduling (publish at future date)
-  - [ ] Excerpt auto-generation
+- [x] `post` content type schema: title, slug, body, excerpt, featured_image, categories, tags, author, status
+- [x] RSS feed endpoint (`BlogController::rss`)
+- [x] Storefront: public posts list + single post by slug
+- [x] Comment model + controller (admin moderation + storefront submit)
+- [x] Storefront routes: `/blog/posts`, `/blog/rss`, `/blog/comments`
+- [x] Create `plugins/blog/` package scaffold
+- [x] `plugins/blog/src/index.js` — register sidebar + routes via hooks
+- [x] Blog-specific features:
+  - [x] RSS feed generation
+  - [x] Excerpt auto-generation (first 160 chars)
+  - [x] Reading time auto-calculation (words / 200)
+  - [x] Comment moderation UI (CommentManager)
+  - [x] Featured post toggle
+- [ ] Future improvements (backlog):
+  - [ ] Move `post` type registration to `BlogServiceProvider`
   - [ ] Related posts
-  - [ ] Comment moderation
-  - [ ] RSS feed generation
   - [ ] Social sharing meta tags
-- [ ] Storefront blog section component
-- [ ] SEO: auto sitemap for posts, structured data
+  - [ ] SEO: auto sitemap for posts, structured data
 
-### 4.2 Storefront Components
+### 4.2 Storefront Components — Deferred to Phase 6
 ```
-📁 plugins/blog/src/storefront/
+📁 plugins/blog/src/storefront/     (future)
   ├── SfBlogSection.vue       — latest posts grid
-  ├── SfPostPage.vue          — single post view
+  ├── SfPostPage.vue          — single post view (+ comment form)
   └── SfPostSidebar.vue       — categories, tags, recent posts
 ```
 
 ---
 
 ## Phase 5: Public REST API v1 🌐
-**Priority**: 🟡 High — Enables headless mode  
-**Duration**: 2–3 weeks  
+**Priority**: 🟡 High — Enables headless mode
+**Duration**: 2–3 weeks
 **Goal**: Versioned, documented, rate-limited public API
+
+> **Lợi thế từ Phase 3**: `ContentTypeRegistry` + `ContentController` generic đã sẵn sàng. Phase 5 chủ yếu là wrap lại với versioning, auth (API key), rate limiting và response format chuẩn — không cần build from scratch.
 
 ### 5.1 API Architecture
 ```
 📁 backend-laravel/app/Http/Controllers/Api/V1/
-  ├── ContentController.php     — CRUD for any content type
+  ├── ContentController.php     — expose ContentController generic ra public API
   ├── MediaController.php       — Media files
   ├── MenuController.php        — Navigation menus
   ├── SiteController.php        — Site config, theme, settings
@@ -674,27 +714,38 @@ Month 6+:  Phase 10 (Advanced Features) — ongoing
 
 ## 🏗️ Architecture Evolution
 
-### Current (Monolithic Frontend)
+### Before (Monolithic Frontend)
 ```
-App.vue ─── imports 93 components directly
+App.vue ─── imported 93+ components directly
          ├── E-commerce components (hardcoded)
          ├── CMS components
          ├── System components
          └── Plugin components (dynamic)
 ```
 
-### Target (Plugin-first Architecture)
+### Current ✅ (Plugin-first Architecture — Phase 1–4 Done)
 ```
 App.vue ─── Core only (Auth, CMS Pages, Media, Nav, Settings)
          ├── PluginRenderer.vue (dynamic component loader)
-         ├── Hooks system (sidebar, routes, widgets)
-         └── Everything else loaded via plugins
-             ├── ecom plugin ── Products, Orders, Cart
-             ├── blog plugin ── Posts, Comments
-             ├── warehouse plugin ── Stock, Suppliers ✅
-             ├── accounting plugin ── Journal, Invoices ✅
-             ├── marketing plugin ── Promotions, Flash Sales ✅
-             └── ... any custom plugin
+         ├── Hooks system ✅ (sidebar_items, admin_routes, dashboard_widgets, ...)
+         └── Everything loaded via plugins
+             ├── plugins/cms        ✅ ── CMS Pages, Media, Navigation
+             ├── plugins/ecom       ✅ ── Products, Orders, Customers, Categories
+             ├── plugins/shipping   ✅ ── Shipments, Shipping settings
+             ├── plugins/warehouse  ✅ ── Stock, Suppliers, Inventory
+             ├── plugins/accounting ✅ ── Journal, Invoices, Payment vouchers
+             ├── plugins/marketing  ✅ ── Promotions, Flash Sales
+             ├── plugins/tax        ✅ ── Tax settings
+             └── plugins/blog       ✅ ── Posts, Comments, RSS, Settings (31.56 KB)
+```
+
+### Next Steps Toward Target
+```
+Phase 5         ❌ — Public REST API v1 (Controllers/Api/V1/)
+Phase 6         ❌ — Theme marketplace + storefront blog components
+Phase 7         ❌ — Onboarding wizard + site templates
+Phase 8         ❌ — Billing & subscriptions
+Phase 9         ❌ — Plugin SDK & developer portal
 ```
 
 ---

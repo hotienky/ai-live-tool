@@ -31,6 +31,11 @@ Route::get('/health', fn () => response()->json([
 Route::get('/tenant-status', \App\Http\Controllers\TenantStatusController::class);
 
 // ════════════════════════════════════════════════════════════
+// ──── PUBLIC REST API v1 (API key auth, self-initializing tenant) ────
+// ════════════════════════════════════════════════════════════
+require __DIR__ . '/api-v1.php';
+
+// ════════════════════════════════════════════════════════════
 // ──── STOREFRONT PUBLIC API (tenant-scoped, no auth) ────
 // ════════════════════════════════════════════════════════════
 Route::middleware([InitializeTenancyBySlug::class])->prefix('storefront')->group(function () {

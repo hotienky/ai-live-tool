@@ -277,6 +277,25 @@ class ModuleSeeder extends Seeder
                 ],
                 'requires' => ['marketing'],
             ],
+            [
+                'module_id' => 'blog',
+                'name' => 'Blog & Bài viết',
+                'description' => 'Viết blog, quản lý bài viết, danh mục, bình luận, RSS feed',
+                'icon' => 'PenSquare',
+                'category' => 'content',
+                'version' => '1.0.0',
+                'price' => 0,
+                'sidebar' => [
+                    'group' => 'Blog',
+                    'items' => [
+                        ['key' => 'blog-posts', 'label' => 'Bài viết', 'icon' => 'FileText', 'route' => 'blog/posts'],
+                        ['key' => 'blog-categories', 'label' => 'Danh mục', 'icon' => 'FolderOpen', 'route' => 'blog/categories'],
+                        ['key' => 'blog-comments', 'label' => 'Bình luận', 'icon' => 'MessageCircle', 'route' => 'blog/comments'],
+                        ['key' => 'blog-settings', 'label' => 'Cài đặt', 'icon' => 'Settings', 'route' => 'blog/settings'],
+                    ],
+                ],
+                'requires' => [],
+            ],
         ];
 
         foreach ($modules as $m) {

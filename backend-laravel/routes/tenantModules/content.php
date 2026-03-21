@@ -43,3 +43,17 @@ Route::get('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 
 Route::put('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 'update'])->middleware('permission:media.edit');
 Route::delete('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::class, 'destroy'])->middleware('permission:media.delete');
 
+// ── Generic Content Type API ──
+// Allows plugins to register content types (post, course, listing, etc.)
+// and get full CRUD via a single controller.
+use App\Http\Controllers\Tenant\ContentController;
+
+Route::get('/content-types', [ContentController::class, 'types']);
+Route::prefix('content/{type}')->group(function () {
+    Route::get('/', [ContentController::class, 'index']);
+    Route::post('/', [ContentController::class, 'store']);
+    Route::get('/{id}', [ContentController::class, 'show']);
+    Route::put('/{id}', [ContentController::class, 'update']);
+    Route::delete('/{id}', [ContentController::class, 'destroy']);
+});
+
