@@ -23,6 +23,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
 
     protected $connection = 'master';
 
+    protected $casts = [
+        'settings' => 'array',
+        'expires_at' => 'datetime',
+    ];
+
     /**
      * Custom columns on the tenants table (not stored in JSON `data`).
      * Must list ALL real columns to prevent stancl from using `data` JSON column.

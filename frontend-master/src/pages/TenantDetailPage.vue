@@ -135,20 +135,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-4">
-          <label class="mp-label">Tính năng sử dụng</label>
-          <div class="flex gap-3">
-            <label v-for="f in featureOptions" :key="f.value"
-                 class="flex-1 card p-3 cursor-pointer transition-all select-none flex items-center gap-3"
-                 :class="selectedEditFeatures.includes(f.value) ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
-              <input type="checkbox" :value="f.value" v-model="selectedEditFeatures" class="mp-checkbox" />
-              <div>
-                <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
-                <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
-              </div>
-            </label>
-          </div>
-        </div>
+
         <div class="flex items-center gap-3 mt-4">
           <button @click="handleSaveSettings" :disabled="actionLoading || !hasChanges" class="btn-primary text-sm flex items-center gap-2" :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }">
             <Save :size="16" /> Lưu thay đổi
@@ -271,7 +258,7 @@ const actionMsg = ref('')
 const actionError = ref(false)
 
 const editForm = ref({
-  name: '', plan: '', features: 'all',
+  name: '', plan: '',
   storage_driver: 'local',
   storage_config: { key: '', secret: '', region: '', bucket: '', endpoint: '', cdn_url: '' },
 })
@@ -282,7 +269,7 @@ const hasChanges = computed(() => {
   if (!tenant.value) return false
   return editForm.value.name !== tenant.value.name
     || editForm.value.plan !== tenant.value.plan
-    || editForm.value.features !== (tenant.value.features || 'all')
+
     || editForm.value.storage_driver !== (tenant.value.storage_driver || 'local')
     || JSON.stringify(editForm.value.storage_config) !== JSON.stringify(tenant.value.storage_config || {})
 })
@@ -293,7 +280,7 @@ function syncEditForm() {
     editForm.value = {
       name: tenant.value.name || '',
       plan: tenant.value.plan || 'free',
-      features: tenant.value.features || 'all',
+
       storage_driver: tenant.value.storage_driver || 'local',
       storage_config: {
         key: sc.key || '',
@@ -314,24 +301,7 @@ function driverLabel(driver) {
 
 watch(tenant, syncEditForm)
 
-const featureOptions = [
-  { value: 'livestream', label: 'Live', desc: 'Dashboard, Live Monitor, CRM' },
-  { value: 'store', label: 'Store', desc: 'Cửa hàng, Đơn hàng, Kế toán' },
-]
 
-const selectedEditFeatures = computed({
-  get() {
-    const f = editForm.value.features
-    if (f === 'all') return ['livestream', 'store']
-    if (f === 'livestream') return ['livestream']
-    if (f === 'store') return ['store']
-    return ['livestream', 'store']
-  },
-  set(arr) {
-    if (arr.length === 2 || arr.length === 0) editForm.value.features = 'all'
-    else editForm.value.features = arr[0]
-  },
-})
 
 function planBadgeClass(plan) {
   const base = 'px-2.5 py-0.5 rounded-full text-xs font-medium'

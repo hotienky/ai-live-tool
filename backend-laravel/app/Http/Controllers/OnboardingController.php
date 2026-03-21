@@ -29,7 +29,8 @@ class OnboardingController extends Controller
     public function applyTemplate(Request $request)
     {
         $request->validate([
-            'template_id' => 'required|string'
+            'template_id' => 'required|string',
+            'site_info' => 'nullable|array'
         ]);
 
         $tenantId = tenant('id'); // Assumes we are in a tenant context
@@ -38,7 +39,7 @@ class OnboardingController extends Controller
         }
 
         try {
-            $result = SiteTemplateService::applyTemplate($tenantId, $request->input('template_id'));
+            $result = SiteTemplateService::applyTemplate($tenantId, $request->input('template_id'), $request->input('site_info', []));
             return response()->json($result, $result['success'] ? 200 : 400);
         } catch (\Exception $e) {
             \Log::error("Onboarding apply failed: " . $e->getMessage());

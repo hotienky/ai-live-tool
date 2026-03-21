@@ -52,20 +52,7 @@
         </div>
       </div>
 
-      <div>
-        <label class="mp-label">Tính năng sử dụng</label>
-        <div class="flex gap-3">
-          <label v-for="f in featureOptions" :key="f.value"
-               class="flex-1 card p-3 cursor-pointer transition-all select-none flex items-center gap-3"
-               :class="selectedFeatures.includes(f.value) ? 'border-primary-500/50 bg-primary-600/10 ring-1 ring-primary-500/30' : ''">
-            <input type="checkbox" :value="f.value" v-model="selectedFeatures" class="mp-checkbox" />
-            <div>
-              <p class="text-sm font-medium mp-text-primary">{{ f.label }}</p>
-              <p class="text-xs mp-text-muted mt-0.5">{{ f.desc }}</p>
-            </div>
-          </label>
-        </div>
-      </div>
+
 
       <div class="pt-2 flex justify-end gap-3">
         <router-link to="/tenants" class="btn-ghost">Hủy</router-link>
@@ -94,7 +81,6 @@ const form = ref({
   ownerEmail: '',
   ownerName: '',
   plan: 'free',
-  features: 'all',
 })
 
 const plans = [
@@ -103,24 +89,7 @@ const plans = [
   { value: 'enterprise', label: 'Enterprise', desc: 'Không giới hạn' },
 ]
 
-const featureOptions = [
-  { value: 'livestream', label: 'Live', desc: 'Dashboard, Live Monitor, CRM' },
-  { value: 'store', label: 'Store', desc: 'Cửa hàng, Đơn hàng, Kế toán' },
-]
 
-const selectedFeatures = computed({
-  get() {
-    const f = form.value.features
-    if (f === 'all') return ['livestream', 'store']
-    if (f === 'livestream') return ['livestream']
-    if (f === 'store') return ['store']
-    return ['livestream', 'store']
-  },
-  set(arr) {
-    if (arr.length === 2 || arr.length === 0) form.value.features = 'all'
-    else form.value.features = arr[0]
-  },
-})
 
 async function handleCreate() {
   error.value = ''

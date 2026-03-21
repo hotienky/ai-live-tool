@@ -15,7 +15,7 @@ class DomainRepository extends BaseEloquentRepository implements DomainRepositor
 
     public function findByTenant(int|string $tenantId): array
     {
-        $tenant = Tenant::findOrFail($tenantId);
+        $tenant = Tenant::findOrFail((string) $tenantId);
 
         return $tenant->domains->map(fn ($d) => [
             'id' => $d->id,
@@ -29,12 +29,12 @@ class DomainRepository extends BaseEloquentRepository implements DomainRepositor
 
     public function findByTenantAndId(int|string $tenantId, int|string $domainId)
     {
-        return $this->model->where('tenant_id', $tenantId)->findOrFail($domainId);
+        return $this->model->where('tenant_id', (string) $tenantId)->findOrFail($domainId);
     }
 
     public function storeForTenant(int|string $tenantId, array $data)
     {
-        $tenant = Tenant::findOrFail($tenantId);
+        $tenant = Tenant::findOrFail((string) $tenantId);
 
         return $tenant->domains()->create($data);
     }

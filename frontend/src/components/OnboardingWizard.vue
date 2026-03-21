@@ -46,38 +46,74 @@
             <div 
               v-for="tpl in templates" :key="tpl.id"
               @click="selectTemplate(tpl)"
-              class="bg-white rounded-2xl border p-8 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden"
+              class="bg-white rounded-2xl border cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden flex flex-col"
               :class="selectedTemplate?.id === tpl.id ? 'border-indigo-500 shadow-lg ring-4 ring-indigo-500/20' : 'border-gray-200 hover:border-indigo-300'"
             >
-              <!-- Selected Badge -->
-              <div v-if="selectedTemplate?.id === tpl.id" class="absolute top-4 right-4 text-indigo-600 bg-indigo-100 rounded-full p-1 animate-in zoom-in">
-                <LucideCheckCircle class="w-6 h-6" />
-              </div>
-              
-              <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-sm border border-indigo-100">
-                <component :is="getIcon(tpl.icon)" class="w-8 h-8" />
-              </div>
-              
-              <h3 class="text-2xl font-bold mb-3 text-gray-900">{{ tpl.name }}</h3>
-              <p class="text-gray-500 mb-6 leading-relaxed flex-1">{{ tpl.description }}</p>
-              
-              <!-- Included features/modules preview -->
-              <div class="mt-auto pt-5 border-t border-gray-100">
-                <div class="flex items-center space-x-3 mb-2 text-sm text-gray-600 font-medium">
-                  <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
-                  <span>{{ tpl.modules.length > 0 ? tpl.modules.length + ' modules cài sẵn' : 'Tùy biến tự do' }}</span>
+              <!-- Image Cover -->
+              <div class="w-full h-48 bg-gray-100 relative overflow-hidden border-b">
+                <img v-if="tpl.image" :src="tpl.image" :alt="tpl.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div v-else class="w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center text-indigo-300">
+                  <component :is="getIcon(tpl.icon)" class="w-16 h-16 opacity-50" />
                 </div>
-                <div class="flex items-center space-x-3 text-sm text-gray-600 font-medium">
-                  <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
-                  <span>Giao diện: <strong class="text-gray-900">{{ tpl.theme }}</strong></span>
+                <!-- Selected Badge -->
+                <div v-if="selectedTemplate?.id === tpl.id" class="absolute top-4 right-4 text-white bg-indigo-600 rounded-full p-1 shadow-lg animate-in zoom-in z-10">
+                  <LucideCheckCircle class="w-6 h-6" />
+                </div>
+              </div>
+              
+              <div class="p-6 flex-1 flex flex-col">
+                <div class="flex items-center space-x-3 mb-3">
+                  <div v-if="!tpl.image" class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 flex items-center justify-center shadow-sm border border-indigo-100">
+                    <component :is="getIcon(tpl.icon)" class="w-5 h-5" />
+                  </div>
+                  <h3 class="text-2xl font-bold text-gray-900">{{ tpl.name }}</h3>
+                </div>
+                
+                <p class="text-gray-500 mb-6 leading-relaxed flex-1">{{ tpl.description }}</p>
+                
+                <!-- Included features/modules preview -->
+                <div class="mt-auto pt-5 border-t border-gray-100">
+                  <div class="flex items-center space-x-3 mb-2 text-sm text-gray-600 font-medium">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
+                    <span>{{ tpl.modules.length > 0 ? tpl.modules.length + ' modules cài sẵn' : 'Tùy biến tự do' }}</span>
+                  </div>
+                  <div class="flex items-center space-x-3 text-sm text-gray-600 font-medium">
+                    <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
+                    <span>Giao diện: <strong class="text-gray-900">{{ tpl.theme }}</strong></span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- STEP 2: Basic Info -->
+        <!-- STEP 2: Language -->
         <div v-else-if="step === 1" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
+          <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Ngôn ngữ mặc định</h2>
+            <p class="text-gray-600">Chọn ngôn ngữ chính cho website của bạn. Có thể thêm ngôn ngữ khác trong phần Cài đặt sau này.</p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div 
+              v-for="lang in languages" :key="lang.code"
+              @click="siteInfo.language = lang.code"
+              class="bg-white rounded-xl border p-6 cursor-pointer transition-all flex items-center space-x-4"
+              :class="siteInfo.language === lang.code ? 'border-indigo-500 ring-2 ring-indigo-500 bg-indigo-50/50' : 'hover:border-indigo-300'"
+            >
+              <div class="text-4xl">{{ lang.flag }}</div>
+              <div class="flex-1">
+                <h3 class="text-xl font-bold text-gray-900">{{ lang.name }}</h3>
+                <p class="text-sm text-gray-500">{{ lang.code.toUpperCase() }}</p>
+              </div>
+              <div v-if="siteInfo.language === lang.code" class="text-indigo-600">
+                <LucideCheckCircle class="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Basic Info -->
+        <div v-else-if="step === 2" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
           <div class="text-center mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4">Tên cửa hàng / website của bạn</h2>
             <p class="text-gray-600">Những thông tin này có thể được chỉnh sửa sau trong phần Cài đặt.</p>
@@ -105,8 +141,8 @@
           </div>
         </div>
 
-        <!-- STEP 3: Confirm & Process -->
-        <div v-else-if="step === 2" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
+        <!-- STEP 4: Confirm & Process -->
+        <div v-else-if="step === 3" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
           <div v-if="!isApplying" class="text-center">
             <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <component :is="getIcon(selectedTemplate.icon)" class="w-10 h-10" />
@@ -119,6 +155,7 @@
             <div class="bg-white rounded-lg border p-6 text-left mb-8 space-y-4">
               <h4 class="font-semibold text-gray-900">Chi tiết khởi tạo:</h4>
               <ul class="space-y-3 text-sm text-gray-600">
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Ngôn ngữ chính: {{ languages.find(l => l.code === siteInfo.language)?.name }}</li>
                 <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cài đặt Theme: {{ selectedTemplate.theme }}</li>
                 <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cài đặt {{ selectedTemplate.modules.length }} modules chức năng</li>
                 <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cấu hình Storefront Layout tự động</li>
@@ -155,7 +192,7 @@
       <div v-else></div> <!-- Spacer -->
 
       <button 
-        v-if="step < 2"
+        v-if="step < 3"
         @click="nextStep"
         :disabled="step === 0 && !selectedTemplate"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
@@ -164,7 +201,7 @@
       </button>
 
       <button 
-        v-if="step === 2"
+        v-if="step === 3"
         @click="processOnboarding"
         class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium shadow-md transition-all hover:-translate-y-0.5 flex items-center"
       >
@@ -185,11 +222,15 @@ const { ShoppingCart, FileText, User, Target, LayoutGrid, Rocket, Check, ArrowRi
 const toast = useToast()
 const emit = defineEmits(['complete'])
 
-const steps = ['Bố cục', 'Thông tin', 'Xác nhận']
+const steps = ['Bố cục', 'Ngôn ngữ', 'Thông tin', 'Xác nhận']
 const step = ref(0)
 const templates = ref([])
 const selectedTemplate = ref(null)
-const siteInfo = ref({ name: '', description: '' })
+const siteInfo = ref({ name: '', description: '', language: 'vi' })
+const languages = [
+  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'en', name: 'English', flag: '🇺🇸' }
+]
 const isApplying = ref(false)
 
 const getIcon = (iconName) => {
@@ -231,17 +272,10 @@ const processOnboarding = async () => {
     const res = await apiFetch('/onboarding/apply', {
       method: 'POST',
       body: JSON.stringify({
-        template_id: selectedTemplate.value.id
+        template_id: selectedTemplate.value.id,
+        site_info: siteInfo.value
       })
     })
-    
-    // 2. Optionally, save basic info to another endpoint like /api/settings/general
-    if (siteInfo.value.name || siteInfo.value.description) {
-      await apiFetch('/settings/general', {
-        method: 'PUT',
-        body: JSON.stringify(siteInfo.value)
-      }).catch(e => console.warn('Failed to save basic info immediately', e))
-    }
 
     const json = await res.json()
     if (json && json.success) {

@@ -120,12 +120,43 @@ class TenantsController extends Controller
 
     public function migrate($id)
     {
-        return $this->successResponse(null, 'Migration triggered');
+        try {
+            $tenant = \App\Models\Tenant::findOrFail($id);
+
+            \Illuminate\Support\Facades\Artisan::call('tenants:migrate', [
+                '--tenants' => [$tenant->id],
+                '--force' => true,
+            ]);
+
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            return $this->successResponse(
+                ['output' => $output],
+                'Migration hoàn tất cho tenant: ' . $tenant->slug
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Migration thất bại: ' . $e->getMessage(), 500);
+        }
     }
 
     public function seed($id)
     {
-        return $this->successResponse(null, 'Seeding triggered');
+        try {
+            $tenant = \App\Models\Tenant::findOrFail($id);
+
+            // Run TenantBaseSeeder within the tenant context
+            $tenant->run(function () {
+                $seeder = new \Database\Seeders\TenantBaseSeeder();
+                $seeder->run();
+            });
+
+            return $this->successResponse(
+                null,
+                'Seed data hoàn tất cho tenant: ' . $tenant->slug
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse('Seeding thất bại: ' . $e->getMessage(), 500);
+        }
     }
 
     // ── Storage config helpers ──

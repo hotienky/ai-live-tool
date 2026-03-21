@@ -4,26 +4,107 @@
   "icon": "ShoppingCart",
   "description": "Giải pháp toàn diện để bán hàng trực tuyến với giỏ hàng, thanh toán và quản lý đơn hàng.",
   "preview": "ecommerce-preview.png",
-  "modules": ["ecom"],
+  "modules": [
+    "ecom"
+  ],
   "theme": "ecommerce-modern",
   "layout_sections": [
-    { "type": "banner", "enabled": true, "params": { "title": "Summer Collection 2026", "height": "lg", "autoplay": true, "interval": 5000 } },
-    { "type": "categories", "enabled": true, "params": { "columns": 4, "showDescription": false, "showCount": true, "layoutStyle": "grid" } },
-    { "type": "featured_products", "enabled": true, "params": { "title": "Sản phẩm nổi bật", "count": 8, "columns": 4, "sortOrder": "bestselling" } },
-    { "type": "flash_sale", "enabled": true, "params": { "showTimer": true, "showProgress": true, "count": 4, "columns": 4 } },
-    { "type": "new_arrivals", "enabled": true, "params": { "title": "Hàng mới về", "count": 8, "columns": 4 } },
-    { "type": "newsletter", "enabled": true, "params": { "title": "Đăng ký nhận tin", "subtitle": "Nhận mã giảm giá 10% cho đơn hàng đầu tiên", "buttonText": "Đăng ký", "sectionBgColor": "#f8fafc" } },
-    { "type": "social_feed", "enabled": true, "params": { "title": "Theo dõi Instagram" } },
-    { "type": "brands_slider", "enabled": true, "params": { "title": "Thương hiệu nổi bật", "animationSpeed": 20 } }
+    {
+      "type": "banner",
+      "enabled": true,
+      "params": {
+        "title": "Summer Collection 2026",
+        "height": "lg",
+        "autoplay": true,
+        "interval": 5000
+      }
+    },
+    {
+      "type": "categories",
+      "enabled": true,
+      "params": {
+        "columns": 4,
+        "showDescription": false,
+        "showCount": true,
+        "layoutStyle": "grid"
+      }
+    },
+    {
+      "type": "featured_products",
+      "enabled": true,
+      "params": {
+        "title": "Sản phẩm nổi bật",
+        "count": 8,
+        "columns": 4,
+        "sortOrder": "bestselling"
+      }
+    },
+    {
+      "type": "flash_sale",
+      "enabled": true,
+      "params": {
+        "showTimer": true,
+        "showProgress": true,
+        "count": 4,
+        "columns": 4
+      }
+    },
+    {
+      "type": "new_arrivals",
+      "enabled": true,
+      "params": {
+        "title": "Hàng mới về",
+        "count": 8,
+        "columns": 4
+      }
+    },
+    {
+      "type": "newsletter",
+      "enabled": true,
+      "params": {
+        "title": "Đăng ký nhận tin",
+        "subtitle": "Nhận mã giảm giá 10% cho đơn hàng đầu tiên",
+        "buttonText": "Đăng ký",
+        "sectionBgColor": "#f8fafc"
+      }
+    },
+    {
+      "type": "social_feed",
+      "enabled": true,
+      "params": {
+        "title": "Theo dõi Instagram"
+      }
+    },
+    {
+      "type": "brands_slider",
+      "enabled": true,
+      "params": {
+        "title": "Thương hiệu nổi bật",
+        "animationSpeed": 20
+      }
+    }
   ],
   "default_pages": [
-    { "title": "Giới thiệu", "slug": "about", "template": "about" },
-    { "title": "Hệ thống cửa hàng", "slug": "stores", "template": "stores" },
-    { "title": "Chính sách đổi trả", "slug": "return-policy", "template": "policy" }
+    {
+      "title": "Giới thiệu",
+      "slug": "about",
+      "template": "about"
+    },
+    {
+      "title": "Hệ thống cửa hàng",
+      "slug": "stores",
+      "template": "stores"
+    },
+    {
+      "title": "Chính sách đổi trả",
+      "slug": "return-policy",
+      "template": "policy"
+    }
   ],
   "sample_data": {
     "products": 12,
     "categories": 5,
     "banners": 3
-  }
+  },
+  "image": "/images/templates/ecommerce.png"
 }

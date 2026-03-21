@@ -163,8 +163,8 @@ const fetchBillingData = async () => {
   loading.value = true
   try {
     const [planResRaw, usageResRaw] = await Promise.all([
-      apiFetch('/api/billing/current-plan'),
-      apiFetch('/api/billing/usage')
+      apiFetch('/billing/current-plan'),
+      apiFetch('/billing/usage')
     ])
     
     const planRes = await planResRaw.json()

@@ -8,5 +8,6 @@
   "theme": "starter",
   "layout_sections": [],
   "default_pages": [],
-  "sample_data": null
+  "sample_data": null,
+  "image": "/images/templates/blank.png"
 }

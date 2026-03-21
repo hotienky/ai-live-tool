@@ -38,7 +38,7 @@ class SiteTemplateService
     /**
      * Apply a specific template configuration to a tenant
      */
-    public static function applyTemplate(string $tenantId, string $templateId): array
+    public static function applyTemplate(string $tenantId, string $templateId, array $siteInfo = []): array
     {
         $templates = collect(self::listTemplates())->keyBy('id');
         $template = $templates->get($templateId);
@@ -51,8 +51,7 @@ class SiteTemplateService
 
         // 1. Install Required Modules (in master DB)
         if (!empty($template['modules'])) {
-            // Usually modules are managed in master
-            config(['database.default' => 'master']);
+            // Modules are managed in master via ModuleRegistry
             foreach ($template['modules'] as $moduleId) {
                 // Ensure the module exists first
                 $moduleExists = DB::connection('master')->table('modules')->where('module_id', $moduleId)->exists();
@@ -72,16 +71,14 @@ class SiteTemplateService
             }
 
             // 3. Create Default Pages
-            if (!empty($template['default_pages']) && \Schema::hasTable('cms_pages')) {
+            if (!empty($template['default_pages']) && Schema::hasTable('cms_pages')) {
                 foreach ($template['default_pages'] as $page) {
                     DB::table('cms_pages')->updateOrInsert(
-                        ['slug' => $page['slug']],
+                        ['alias' => $page['slug']],
                         [
                             'title' => $page['title'],
                             'content' => "<p>Nội dung trang {$page['title']}</p>",
-                            'is_published' => true,
-                            'template' => $page['template'] ?? 'default',
-                            'author_id' => 1,
+                            'status' => true,
                             'created_at' => now(),
                             'updated_at' => now()
                         ]
@@ -103,13 +100,34 @@ class SiteTemplateService
                 );
             }
 
-            // 5. Update Tenant Settings (Mark as Onboarded + Store Site Data)
-            // Note: tenant->settings is stored on 'tenants' table which is in master. 
-            // We should do this outside of tenant context. We will return the updated settings array string and run it outside.
+            // 5. Apply Site Info
+            if (!empty($siteInfo)) {
+                if (!empty($siteInfo['name'])) {
+                    DB::table('system_configs')->updateOrInsert(
+                        ['key' => 'shop_name'],
+                        ['group' => 'store', 'value' => $siteInfo['name'], 'updated_at' => now(), 'created_at' => now()]
+                    );
+                }
+                if (!empty($siteInfo['description'])) {
+                    DB::table('system_configs')->updateOrInsert(
+                        ['key' => 'description'],
+                        ['group' => 'store', 'value' => $siteInfo['description'], 'updated_at' => now(), 'created_at' => now()]
+                    );
+                }
+                if (!empty($siteInfo['language'])) {
+                    DB::table('system_configs')->updateOrInsert(
+                        ['key' => 'default_language'],
+                        ['group' => 'system', 'value' => $siteInfo['language'], 'updated_at' => now(), 'created_at' => now()]
+                    );
+                }
+            }
         });
 
         // 6. Update Tenant settings on Master
-        $settings = $tenant->settings ?? [];
+        $settings = is_string($tenant->settings) ? json_decode($tenant->settings, true) : ($tenant->settings ?? []);
+        if (!is_array($settings)) {
+            $settings = [];
+        }
         $settings['onboarded'] = true;
         $settings['site_template'] = $templateId;
         

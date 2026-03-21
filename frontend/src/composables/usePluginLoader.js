@@ -87,7 +87,11 @@ async function loadPlugin(moduleId) {
     // Fetch JS bundle as text (use apiFetch for auth token)
     const v = Date.now()
     const res = await apiFetch(`/modules/${moduleId}/bundle.js?v=${v}`)
-    if (!res.ok) throw new Error(`HTTP ${res.status} loading plugin ${moduleId}`)
+    if (!res.ok) {
+      // 404 = backend-only module with no frontend bundle — skip silently
+      if (res.status === 404) return null
+      throw new Error(`HTTP ${res.status} loading plugin ${moduleId}`)
+    }
     const code = await res.text()
 
     // Ensure globals before execution
