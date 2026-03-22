@@ -34,21 +34,35 @@ class AiController extends Controller
 
     /**
      * Resolve AI service with correct key mode for current tenant.
+     * Priority: 1. Tenant's own key -> 2. Master's override -> 3. System global
      */
     private function resolveAiService(): AiService
     {
         $ai = new AiService();
 
         try {
-            $keyMode = SystemConfig::where('key', 'ai.key_mode')->value('value') ?? 'system';
-            $ownKey = SystemConfig::where('key', 'ai.own_api_key')->value('value') ?? '';
-            $ownProvider = SystemConfig::where('key', 'ai.own_provider')->value('value') ?? 'openai';
+            // 1. Tenant's Own Key
+            $tenantKeyMode = SystemConfig::where('key', 'ai.tenant_key_mode')->value('value');
+            $tenantOwnKey = SystemConfig::where('key', 'ai.tenant_api_key')->value('value');
+            $tenantProvider = SystemConfig::where('key', 'ai.tenant_provider')->value('value') ?? 'openai';
 
-            if ($keyMode === 'own' && !empty($ownKey)) {
-                $ai->withTenantKey($ownKey, $ownProvider);
-            } else {
-                $ai->setKeyMode('system');
+            if ($tenantKeyMode === 'own' && !empty($tenantOwnKey)) {
+                $ai->withTenantKey($tenantOwnKey, $tenantProvider);
+                return $ai;
             }
+
+            // 2. Master's Override Key
+            $masterKeyMode = SystemConfig::where('key', 'ai.key_mode')->value('value') ?? 'system';
+            $masterOwnKey = SystemConfig::where('key', 'ai.own_api_key')->value('value');
+            $masterProvider = SystemConfig::where('key', 'ai.own_provider')->value('value') ?? 'openai';
+
+            if ($masterKeyMode === 'own' && !empty($masterOwnKey)) {
+                $ai->withTenantKey($masterOwnKey, $masterProvider);
+                return $ai;
+            }
+
+            // 3. System Global
+            $ai->setKeyMode('system');
         } catch (\Exception $e) {
             // Fallback to system key
             $ai->setKeyMode('system');
@@ -197,17 +211,20 @@ class AiController extends Controller
         if ($gate) return response()->json($gate, 403);
 
         try {
-            $configs = SystemConfig::whereIn('key', ['ai.key_mode', 'ai.own_api_key', 'ai.own_provider'])
-                ->pluck('value', 'key');
+            $configs = SystemConfig::whereIn('key', [
+                'ai.tenant_key_mode', 'ai.tenant_api_key', 'ai.tenant_provider',
+                'ai.key_mode'
+            ])->pluck('value', 'key');
 
-            $keyMode = $configs['ai.key_mode'] ?? 'system';
-            $ownKey = $configs['ai.own_api_key'] ?? '';
-            $ownProvider = $configs['ai.own_provider'] ?? 'openai';
+            $tenantKeyMode = $configs['ai.tenant_key_mode'] ?? 'system';
+            $tenantOwnKey = $configs['ai.tenant_api_key'] ?? '';
+            $tenantProvider = $configs['ai.tenant_provider'] ?? 'openai';
+            $masterKeyMode = $configs['ai.key_mode'] ?? 'system';
 
             // Mask API key for display
             $maskedKey = '';
-            if ($ownKey) {
-                $maskedKey = substr($ownKey, 0, 8) . '...' . substr($ownKey, -4);
+            if ($tenantOwnKey) {
+                $maskedKey = substr($tenantOwnKey, 0, 8) . '...' . substr($tenantOwnKey, -4);
             }
 
             // Check if system key is configured
@@ -216,10 +233,11 @@ class AiController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'key_mode' => $keyMode,
+                    'key_mode' => $tenantKeyMode,
                     'own_api_key_masked' => $maskedKey,
-                    'own_provider' => $ownProvider,
-                    'has_own_key' => !empty($ownKey),
+                    'own_provider' => $tenantProvider,
+                    'has_own_key' => !empty($tenantOwnKey),
+                    'master_key_mode' => $masterKeyMode,
                     'system_key_available' => $systemKeyAvailable,
                     'system_provider' => config('services.ai.provider', 'openai'),
                     'system_model' => config('services.ai.' . config('services.ai.provider', 'openai') . '.model', 'gpt-4o-mini'),
@@ -246,18 +264,18 @@ class AiController extends Controller
 
         try {
             foreach ([
-                'ai.key_mode' => $request->input('key_mode'),
-                'ai.own_provider' => $request->input('own_provider', 'openai'),
+                'ai.tenant_key_mode' => $request->input('key_mode'),
+                'ai.tenant_provider' => $request->input('own_provider', 'openai'),
             ] as $key => $value) {
                 SystemConfig::updateOrCreate(['key' => $key], ['value' => $value]);
             }
 
             // Only update key if provided (don't overwrite with empty)
             if ($request->filled('own_api_key')) {
-                SystemConfig::updateOrCreate(['key' => 'ai.own_api_key'], ['value' => $request->input('own_api_key')]);
+                SystemConfig::updateOrCreate(['key' => 'ai.tenant_api_key'], ['value' => $request->input('own_api_key')]);
             }
 
-            return response()->json(['success' => true, 'message' => 'Đã lưu cài đặt AI']);
+            return response()->json(['success' => true, 'message' => 'Đã lưu cài đặt AI của bạn']);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }

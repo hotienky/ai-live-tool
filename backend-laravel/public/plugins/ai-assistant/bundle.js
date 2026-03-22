@@ -386,29 +386,31 @@ var Plugin_ai = (function(e) {
       <!-- SETTINGS TAB -->\
       <div v-if="activeTab === \'settings\'">\
         <h4>⚙️ Cài đặt AI</h4>\
-        <p class="ai-desc">Cấu hình API key và xem lịch sử sử dụng AI.</p>\
+        <p class="ai-desc">Cấu hình API key của riêng bạn và xem lịch sử sử dụng AI.</p>\
 \
         <div v-if="settingsLoading" class="ai-loading"><div class="ai-spinner"></div><span>Đang tải...</span></div>\
 \
         <div v-else class="ai-settings">\
           <!-- Key Mode Selection -->\
           <div class="ai-setting-card">\
-            <h5>🔑 Chế độ API Key</h5>\
+            <h5>🔑 Chọn nguồn cung cấp API Key</h5>\
             <div class="ai-key-modes">\
               <label class="ai-key-mode" :class="{\'ai-key-mode--active\': keyModeInput === \'system\'}" @click="keyModeInput = \'system\'">\
                 <span class="ai-key-mode-icon">🏢</span>\
                 <div>\
-                  <strong>Dùng key hệ thống</strong>\
-                  <small>Sử dụng API key của nền tảng. Chi phí được tính theo token sử dụng.</small>\
+                  <strong>Dùng key mặc định hệ thống</strong>\
+                  <small v-if="settings.master_key_mode === \'own\'" class="text-emerald-600 dark:text-emerald-400">Bạn đang được cấp API Key riêng biệt từ Admin hệ thống.</small>\
+                  <small v-else>Sử dụng API key chung của nền tảng. Chi phí được tính theo block token sử dụng.</small>\
                 </div>\
-                <span v-if="settings.system_key_available" class="ai-key-status ai-key-status--ok">✓ Sẵn sàng</span>\
+                <span v-if="settings.master_key_mode === \'own\'" class="ai-key-status ai-key-status--ok">✓ Key Admin</span>\
+                <span v-else-if="settings.system_key_available" class="ai-key-status ai-key-status--ok">✓ Sẵn sàng</span>\
                 <span v-else class="ai-key-status ai-key-status--warn">⚠ Chưa cấu hình</span>\
               </label>\
               <label class="ai-key-mode" :class="{\'ai-key-mode--active\': keyModeInput === \'own\'}" @click="keyModeInput = \'own\'">\
                 <span class="ai-key-mode-icon">🔐</span>\
                 <div>\
-                  <strong>Dùng key riêng</strong>\
-                  <small>Tự cung cấp API key. Miễn phí hệ thống, chi phí tính trực tiếp từ OpenAI/Anthropic.</small>\
+                  <strong>Cấu hình Key của riêng tôi</strong>\
+                  <small>Tự cung cấp API key (Ưu tiên cao nhất). Chi phí tính trực tiếp từ OpenAI/Anthropic ở tài khoản của bạn.</small>\
                 </div>\
                 <span v-if="settings.has_own_key" class="ai-key-status ai-key-status--ok">✓ Đã có key</span>\
               </label>\
@@ -417,22 +419,22 @@ var Plugin_ai = (function(e) {
 \
           <!-- Own Key Config -->\
           <div v-if="keyModeInput === \'own\'" class="ai-setting-card">\
-            <h5>🔐 Cấu hình API Key riêng</h5>\
+            <h5>🔐 Cấu hình API Key cá nhân</h5>\
             <div class="ai-form">\
-              <label>Provider</label>\
+              <label>Provider (Nhà cung cấp)</label>\
               <select v-model="ownProviderInput" class="ai-input">\
                 <option value="openai">OpenAI (GPT-4o-mini)</option>\
-                <option value="anthropic">Anthropic (Claude)</option>\
+                <option value="anthropic">Anthropic (Claude 3.5)</option>\
               </select>\
               <label>API Key</label>\
-              <input v-model="ownKeyInput" class="ai-input" type="password" :placeholder="settings.has_own_key ? \'Key hiện tại: \' + settings.own_api_key_masked : \'Nhập API key...\'"/>\
-              <p class="ai-hint">💡 Key được mã hóa và lưu an toàn. {{ ownProviderInput === \'openai\' ? \'Lấy key tại platform.openai.com\' : \'Lấy key tại console.anthropic.com\' }}</p>\
+              <input v-model="ownKeyInput" class="ai-input" type="password" :placeholder="settings.has_own_key ? \'Key hiện tại: \' + settings.own_api_key_masked + \' (Bỏ trống để giữ nguyên)\' : \'Nhập API key...\'"/>\
+              <p class="ai-hint">💡 Key được mã hóa chuẩn và lưu an toàn tuyệt đối. {{ ownProviderInput === \'openai\' ? \'Lấy key tại platform.openai.com\' : \'Lấy key tại console.anthropic.com\' }}</p>\
             </div>\
           </div>\
 \
           <!-- System Key Info -->\
-          <div v-if="keyModeInput === \'system\'" class="ai-setting-card">\
-            <h5>💰 Bảng giá sử dụng AI (Key hệ thống)</h5>\
+          <div v-if="keyModeInput === \'system\' && settings.master_key_mode !== \'own\'" class="ai-setting-card">\
+            <h5>💰 Bảng giá tham khảo (Dùng chung)</h5>\
             <div class="ai-pricing">\
               <div class="ai-price-row"><span>Provider</span><strong>{{ settings.system_provider || \'openai\' }} / {{ settings.system_model || \'gpt-4o-mini\' }}</strong></div>\
               <div class="ai-price-row"><span>SEO Analysis</span><strong>~500 tokens/request</strong></div>\
@@ -443,7 +445,7 @@ var Plugin_ai = (function(e) {
           </div>\
 \
           <button class="ai-btn" :disabled="settingsSaving" @click="saveSettings">\
-            {{ settingsSaving ? "⏳ Đang lưu..." : "💾 Lưu cài đặt" }}\
+            {{ settingsSaving ? "⏳ Đang lưu..." : "💾 Lưu cài đặt AI" }}\
           </button>\
 \
           <!-- Usage Dashboard -->\

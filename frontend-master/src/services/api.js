@@ -99,6 +99,8 @@ export const tenants = {
   activate: (id) => api.post(`/tenants/${id}/activate`),
   migrate: (id) => api.post(`/tenants/${id}/migrate`),
   seed: (id) => api.post(`/tenants/${id}/seed`),
+  getAiSettings: (id) => api.get(`/ai-config/tenant/${id}/settings`),
+  updateAiSettings: (id, data) => api.put(`/ai-config/tenant/${id}/settings`, data),
 }
 
 // ──── Domains ────

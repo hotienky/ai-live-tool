@@ -22,6 +22,22 @@
         </div>
       </div>
 
+      <!-- Tabs -->
+      <div class="flex items-center gap-6 border-b mb-6" style="border-color: var(--mp-border)">
+        <button
+          v-for="tab in ['overview', 'ai']"
+          :key="tab"
+          @click="activeTab = tab"
+          class="pb-3 text-sm font-medium transition-colors relative"
+          :class="activeTab === tab ? 'text-primary-500' : 'mp-text-muted hover:text-primary-400'"
+        >
+          {{ tab === 'overview' ? 'Tổng quan' : 'Dịch vụ AI' }}
+          <div v-if="activeTab === tab" class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-500 rounded-t-full shadow-[0_-2px_8px_rgba(59,130,246,0.5)]"></div>
+        </button>
+      </div>
+
+      <!-- TAB: OVERVIEW -->
+      <div v-show="activeTab === 'overview'">
       <!-- Info Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <!-- Details (read-only) -->
@@ -69,6 +85,117 @@
           <p v-else class="text-sm mp-text-muted">Không có dữ liệu thống kê</p>
         </div>
       </div>
+
+      <!-- AI Usage (Tháng này) -->
+      <div class="card p-5 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="mp-section-title !mb-0 flex items-center gap-2">
+            <Sparkles :size="16" class="text-sky-500" /> Sử dụng AI (Tháng này)
+          </h3>
+          <button @click="loadAiUsage" class="text-xs btn-ghost border border-gray-300 dark:border-gray-600 py-1 px-3 rounded-lg" :disabled="aiUsageLoading">
+            {{ aiUsageLoading ? 'Đang tải...' : 'Làm mới' }}
+          </button>
+        </div>
+
+        <div v-if="aiUsageLoading" class="text-center py-6 mp-text-muted text-sm">Đang tải dữ liệu AI...</div>
+        <div v-else-if="aiUsage && aiUsage.stats" class="space-y-4">
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+              <span class="text-[10px] uppercase font-semibold mp-text-muted block mb-1">Requests</span>
+              <span class="text-lg font-bold mp-text-primary">{{ aiUsage.stats.totals?.total_requests || 0 }}</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+              <span class="text-[10px] uppercase font-semibold mp-text-muted block mb-1">Tokens</span>
+              <span class="text-lg font-bold text-sky-500">{{ formatTokens(aiUsage.stats.totals?.total_tokens) }}</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+              <span class="text-[10px] uppercase font-semibold mp-text-muted block mb-1">Chi phí ước tính</span>
+              <span class="text-lg font-bold text-red-500">{{ formatCost(aiUsage.stats.totals?.total_cost) }}</span>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border border-gray-100 dark:border-gray-800">
+              <span class="text-[10px] uppercase font-semibold mp-text-muted block mb-1">Dùng Key Chung</span>
+              <span class="text-lg font-bold text-emerald-500">{{ getSystemKeyRequests(aiUsage.stats.by_key_mode) }} rq</span>
+            </div>
+          </div>
+
+          <!-- Recent Logs -->
+          <div class="overflow-x-auto border rounded-xl mt-3" style="border-color: var(--mp-border)">
+            <table class="w-full text-xs">
+              <thead class="bg-gray-50/50 dark:bg-gray-800/50">
+                <tr>
+                  <th class="text-left py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Thời gian</th>
+                  <th class="text-left py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Tác vụ</th>
+                  <th class="text-left py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Model</th>
+                  <th class="text-left py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Mode</th>
+                  <th class="text-right py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Tokens</th>
+                  <th class="text-right py-2 px-3 font-medium mp-text-muted border-b" style="border-color: var(--mp-border)">Chi phí</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="log in (aiUsage.recent || []).slice(0, 10)" :key="log.id" class="border-b last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors" style="border-color: var(--mp-border)">
+                  <td class="py-2 px-3 mp-text-secondary whitespace-nowrap">{{ formatDateTime(log.created_at) }}</td>
+                  <td class="py-2 px-3">
+                    <span class="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-1.5 py-0.5 rounded text-[10px]">{{ log.action }}</span>
+                  </td>
+                  <td class="py-2 px-3 mp-text-primary">{{ log.model }}</td>
+                  <td class="py-2 px-3">
+                    <span :class="log.key_mode === 'system' ? 'text-emerald-500 bg-emerald-500/10' : 'text-amber-500 bg-amber-500/10'" class="px-1.5 py-0.5 rounded uppercase font-semibold text-[9px]">
+                      {{ log.key_mode }}
+                    </span>
+                  </td>
+                  <td class="py-2 px-3 text-right text-sky-500">{{ log.total_tokens }}</td>
+                  <td class="py-2 px-3 text-right font-medium text-red-500">{{ formatCost(log.estimated_cost) }}</td>
+                </tr>
+                <tr v-if="!aiUsage.recent?.length">
+                  <td colspan="6" class="py-6 text-center mp-text-muted text-sm">Chưa có lượt dùng AI nào gần đây.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="aiUsage.recent?.length > 10" class="text-center mt-2">
+            <router-link to="/ai-config" class="text-xs text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 hover:underline">Xem tất cả lịch sử trên Cấu hình AI →</router-link>
+          </div>
+        </div>
+        <div v-else class="text-center py-6 mp-text-muted text-sm">Chưa có dữ liệu sử dụng AI trong tháng này</div>
+      </div>
+      </div> <!-- END TAB OVERVIEW -->
+
+      <!-- TAB: AI SERVICES -->
+      <div v-show="activeTab === 'ai'">
+        <!-- Master Admin overrides Tenant AI setup -->
+        <div class="card p-5 mb-6">
+          <h3 class="mp-section-title flex items-center gap-2">
+            <Settings :size="16" class="text-sky-500" /> Cấu hình API Key (Riêng cho Tenant này)
+          </h3>
+          <p class="text-xs mp-text-muted mb-4">Ghi đè cấu hình AI của khách hàng. Khi bật dùng key riêng, các chức năng AI sẽ sử dụng key này và không tính phí vào hệ thống.</p>
+          
+          <div v-if="aiSettingsLoading" class="text-xs mp-text-muted py-2">Đang tải cấu hình...</div>
+          <div v-else class="max-w-xl">
+            <div class="mb-4">
+              <label class="mp-label">Chế độ Key</label>
+              <select v-model="aiForm.key_mode" class="input w-full max-w-xs">
+                <option value="system">Dùng chung (System Key)</option>
+                <option value="own">Dùng riêng (Tenant Key)</option>
+              </select>
+            </div>
+
+            <div v-if="aiForm.key_mode === 'own'" class="mb-4 p-4 rounded-lg bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+              <label class="mp-label">API Key (OpenAI / Gemini / Anthropic)</label>
+              <input v-model="aiForm.api_key" type="password" class="input w-full font-mono text-sm" :placeholder="aiSettings.has_own_key ? 'Đã cài đặt key (Bỏ trống giữ nguyên)' : 'Nhập API key...'" />
+              <p class="text-[10px] mp-text-muted mt-1">Lưu ý: API Key sẽ được mã hóa trước khi lưu vào database của tenant này.</p>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <button @click="saveAiSettings" :disabled="aiSettingsSaving" class="btn-primary text-sm flex items-center gap-2" :class="{ 'opacity-50': aiSettingsSaving }">
+                <Save :size="16" /> {{ aiSettingsSaving ? 'Đang lưu...' : 'Lưu cấu hình AI' }}
+              </button>
+              <span v-if="aiSettingsMsg" class="text-xs" :class="aiSettingsError ? 'text-red-400' : 'text-emerald-400'">{{ aiSettingsMsg }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- END TAB AI SERVICES -->
 
       <!-- Edit Settings -->
       <div class="card p-5 mb-6">
@@ -246,11 +373,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save, Globe, Plus, HardDrive } from 'lucide-vue-next'
-import { tenants, domains } from '../services/api.js'
+import { Building2, Pause, Play, Database, Sprout, Trash2, Settings, Save, Globe, Plus, HardDrive, Sparkles } from 'lucide-vue-next'
+import { api, tenants, domains } from '../services/api.js'
 
 const route = useRoute()
 const router = useRouter()
+const activeTab = ref('overview')
 const tenant = ref(null)
 const loading = ref(true)
 const actionLoading = ref(false)
@@ -342,12 +470,92 @@ async function load() {
   loading.value = true
   try {
     tenant.value = await tenants.get(route.params.id)
-    await loadDomains()
+    await Promise.all([
+      loadDomains(),
+      loadAiUsage(),
+      loadAiSettings()
+    ])
   } catch {
     tenant.value = null
   } finally {
     loading.value = false
   }
+}
+
+// ──── AI Usage ────
+const aiUsage = ref(null)
+const aiUsageLoading = ref(false)
+
+async function loadAiUsage() {
+  aiUsageLoading.value = true
+  try {
+    const res = await api.get(`/ai-config/usage/${route.params.id}`)
+    aiUsage.value = res.data ? res.data : res
+  } catch (e) {
+    aiUsage.value = null
+  }
+  aiUsageLoading.value = false
+}
+
+function formatTokens(t) {
+  if (!t) return '0'
+  if (t > 1000000) return (t/1000000).toFixed(2) + 'M'
+  if (t > 1000) return (t/1000).toFixed(1) + 'K'
+  return t
+}
+
+function formatCost(c) {
+  if (!c) return '$0.00'
+  return '$' + Number(c).toFixed(4)
+}
+
+function getSystemKeyRequests(byKeyModeArr) {
+  if (!Array.isArray(byKeyModeArr)) return 0
+  const systemRow = byKeyModeArr.find(x => x.key_mode === 'system')
+  return systemRow ? systemRow.requests : 0
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleString('vi-VN', { 
+    hour: '2-digit', minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric' 
+  })
+}
+
+// ──── AI Configuration ────
+const aiSettings = ref({ key_mode: 'system', has_own_key: false })
+const aiForm = ref({ key_mode: 'system', api_key: '' })
+const aiSettingsLoading = ref(false)
+const aiSettingsSaving = ref(false)
+const aiSettingsMsg = ref('')
+const aiSettingsError = ref(false)
+
+async function loadAiSettings() {
+  aiSettingsLoading.value = true
+  try {
+    const res = await tenants.getAiSettings(route.params.id)
+    aiSettings.value = res.data ? res.data : res
+    aiForm.value.key_mode = aiSettings.value.key_mode || 'system'
+  } catch (e) {
+    if (e.message) console.error(e)
+  }
+  aiSettingsLoading.value = false
+}
+
+async function saveAiSettings() {
+  aiSettingsSaving.value = true
+  aiSettingsError.value = false
+  aiSettingsMsg.value = ''
+  try {
+    const res = await tenants.updateAiSettings(route.params.id, aiForm.value)
+    aiSettingsMsg.value = res.message || 'Đã lưu cấu hình AI'
+    await loadAiSettings()
+  } catch (e) {
+    aiSettingsError.value = true
+    aiSettingsMsg.value = e.message
+  }
+  aiSettingsSaving.value = false
 }
 
 // ──── Domain Management ────

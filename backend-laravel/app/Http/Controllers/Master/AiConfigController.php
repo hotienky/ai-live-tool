@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
 use App\Models\AiUsageLog;
+use App\Models\Tenant;
+use App\Models\SystemConfig;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -142,7 +144,7 @@ class AiConfigController extends Controller
             ->selectRaw('tenant_id, COUNT(*) as requests, COALESCE(SUM(total_tokens), 0) as tokens, COALESCE(SUM(estimated_cost), 0) as cost')
             ->groupBy('tenant_id')
             ->orderByDesc('tokens')
-            ->limit(50)
+            ->limit(500)
             ->get();
 
         // By action
@@ -199,6 +201,49 @@ class AiConfigController extends Controller
                 'stats' => $stats,
                 'recent' => $recent,
             ],
+        ]);
+    }
+
+    /**
+     * Get AI settings for a specific tenant from master.
+     */
+    public function getTenantSettings($tenantId)
+    {
+        $tenant = Tenant::findOrFail($tenantId);
+        $settings = $tenant->run(function () {
+            return [
+                'key_mode' => SystemConfig::where('key', 'ai.key_mode')->value('value') ?? 'system',
+                'has_own_key' => !empty(SystemConfig::where('key', 'ai.own_api_key')->value('value')),
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $settings,
+        ]);
+    }
+
+    /**
+     * Update AI settings for a specific tenant from master.
+     */
+    public function updateTenantSettings(Request $request, $tenantId)
+    {
+        $request->validate([
+            'key_mode' => 'required|in:system,own',
+            'api_key' => 'nullable|string|max:500',
+        ]);
+
+        $tenant = Tenant::findOrFail($tenantId);
+        $tenant->run(function () use ($request) {
+            SystemConfig::updateOrCreate(['key' => 'ai.key_mode'], ['value' => $request->key_mode]);
+            if ($request->filled('api_key')) {
+                SystemConfig::updateOrCreate(['key' => 'ai.own_api_key'], ['value' => $request->api_key]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Lưu cấu hình AI thành công',
         ]);
     }
 }
