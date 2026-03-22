@@ -38,7 +38,7 @@ require __DIR__ . '/api-v1.php';
 // ════════════════════════════════════════════════════════════
 // ──── STOREFRONT PUBLIC API (tenant-scoped, no auth) ────
 // ════════════════════════════════════════════════════════════
-Route::middleware([InitializeTenancyBySlug::class])->prefix('storefront')->group(function () {
+Route::middleware([InitializeTenancyBySlug::class, \App\Http\Middleware\CompressResponse::class])->prefix('storefront')->group(function () {
     foreach (glob(__DIR__ . '/storefrontModules/*.php') as $file) {
         require $file;
     }

@@ -198,7 +198,7 @@ onMounted(fetchModules)
 <style scoped>
 .mod-admin { padding: 24px; overflow-y: auto; height: 100%; }
 .mod-admin__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-.mod-admin__header h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.mod-admin__header h2 { margin: 0; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .mod-admin__subtitle { font-size: 13px; color: var(--color-text-muted); margin: 4px 0 0; }
 .mod-admin__add-btn {
   display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px;
@@ -229,7 +229,7 @@ onMounted(fetchModules)
 
 .mod-admin__overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .mod-admin__modal { background: var(--color-bg-primary); border: 1px solid var(--glass-border); border-radius: 20px; padding: 28px; width: 520px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-.mod-admin__modal h3 { margin: 0 0 20px; font-size: 18px; font-weight: 800; }
+.mod-admin__modal h3 { margin: 0 0 20px; font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 
 .mod-admin__form { display: flex; flex-direction: column; gap: 14px; }
 .form-row { display: flex; flex-direction: column; gap: 4px; }

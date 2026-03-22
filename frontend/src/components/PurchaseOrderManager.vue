@@ -198,7 +198,7 @@ function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateSt
 <style scoped>
 .po-mgr { padding: 24px; overflow-y: auto; height: 100%; }
 .po-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-.po-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.po-header h2 { margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px; min-width: 180px; outline: none; }
 .search-input:focus { border-color: var(--color-accent-primary); }

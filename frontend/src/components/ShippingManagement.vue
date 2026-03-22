@@ -315,7 +315,7 @@ function formatDate(d) {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
 }
-.ship-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.ship-header h2 { margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .search-input {
   background: var(--glass-bg); border: 1px solid var(--glass-border);

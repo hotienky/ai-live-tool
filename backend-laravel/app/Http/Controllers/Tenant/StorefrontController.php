@@ -24,6 +24,7 @@ use App\Traits\ApiResponse;
 use App\Models\ContentTranslation;
 use App\Models\TenantModuleSubscription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class StorefrontController extends Controller
 {
@@ -45,56 +46,62 @@ class StorefrontController extends Controller
 
     public function products(Request $request)
     {
-        $perPage = min((int) $request->input('per_page', 20), 100);
-        $paginated = $this->productRepo->getProducts($perPage);
-        $items = collect($paginated->items())->map(fn($p) => $p->toArray())->all();
+        try {
+            $perPage = min((int) $request->input('per_page', 20), 100);
+            $paginated = $this->productRepo->getProducts($perPage);
+            $items = collect($paginated->items())->map(fn($p) => $p->toArray())->all();
 
-        // Merge translations if locale requested
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            }
+
+            return $this->successResponse([
+                'data' => $items,
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->successResponse(['data' => [], 'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 20, 'total' => 0]]);
         }
-
-        return $this->successResponse([
-            'data' => $items,
-            'meta' => [
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-            ],
-        ]);
     }
 
     public function productDetail(Request $request, $identifier)
     {
-        $product = $this->productRepo->findBySlugOrId($identifier);
-        if (!$product) return $this->notFoundResponse('Product not found');
+        try {
+            $product = $this->productRepo->findBySlugOrId($identifier);
+            if (!$product) return $this->notFoundResponse('Product not found');
 
-        $dbVariants = $this->orderRepo->getVariants($product->id);
-        $jsonVariants = is_array($product->variants) ? $product->variants : [];
+            $dbVariants = $this->orderRepo->getVariants($product->id);
+            $jsonVariants = is_array($product->variants) ? $product->variants : [];
 
-        if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
-            $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
-            $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
-                $key = $v->sku ?: $v->name;
-                $json = $jsonMap->get($key);
-                if ($json && isset($json['promotion_price'])) {
-                    $v->promotion_price = $json['promotion_price'];
-                }
-                return $v;
-            });
+            if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
+                $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
+                $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
+                    $key = $v->sku ?: $v->name;
+                    $json = $jsonMap->get($key);
+                    if ($json && isset($json['promotion_price'])) {
+                        $v->promotion_price = $json['promotion_price'];
+                    }
+                    return $v;
+                });
+            }
+
+            $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
+
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            }
+
+            return $this->successResponse($product);
+        } catch (\Exception $e) {
+            return $this->notFoundResponse('Product not found');
         }
-
-        $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
-
-        // Merge translations for product detail
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-        }
-
-        return $this->successResponse($product);
     }
 
     public function relatedProducts(Request $request, $slug)
@@ -124,57 +131,77 @@ class StorefrontController extends Controller
 
     public function categories(Request $request)
     {
-        $items = $this->categoryRepo->getCategories();
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $arr = collect($items)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-            return $this->successResponse($arr);
+        try {
+            $items = $this->categoryRepo->getCategories();
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($items)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                return $this->successResponse($arr);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
     public function brands(Request $request)
     {
-        $items = $this->brandRepo->all();
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'brands', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-            return $this->successResponse($arr);
+        try {
+            $items = $this->brandRepo->all();
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'brands', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                return $this->successResponse($arr);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
 
     public function banners(Request $request)
     {
-        $items = $this->bannerRepo->manyBy('status', 1);
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'banners', $locale, ['title', 'description']);
-            return $this->successResponse($arr);
+        try {
+            $items = $this->bannerRepo->manyBy('status', 1);
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'banners', $locale, ['title', 'description']);
+                return $this->successResponse($arr);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
 
     public function pages(Request $request)
     {
-        $items = $this->cmsPageRepo->all();
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $arr = collect($items)->map(fn($p) => is_array($p) ? $p : $p->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
-            return $this->successResponse($arr);
+        try {
+            $items = $this->cmsPageRepo->all();
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($items)->map(fn($p) => is_array($p) ? $p : $p->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
+                return $this->successResponse($arr);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
     public function flashSales(Request $request) {
-        $items = collect($this->flashSaleRepo->getActive())->map(fn($item) => is_array($item) ? $item : $item->toArray())->all();
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $items = ContentTranslation::mergeIntoItems($items, 'flash_sales', $locale, ['name']);
+        try {
+            $items = collect($this->flashSaleRepo->getActive())->map(fn($item) => is_array($item) ? $item : $item->toArray())->all();
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $items = ContentTranslation::mergeIntoItems($items, 'flash_sales', $locale, ['name']);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
 
     /**
@@ -184,6 +211,35 @@ class StorefrontController extends Controller
     public function siteConfig(Request $request)
     {
         $locale = $this->getLocale($request);
+        $tenantId = tenant('id') ?? 'default';
+        $cacheKey = "site_config:{$tenantId}:{$locale}";
+
+        $data = Cache::remember($cacheKey, 600, function () use ($request, $locale) {
+            return $this->buildSiteConfig($request, $locale);
+        });
+
+        return $this->successResponse($data);
+    }
+
+    /**
+     * Clear cached site-config for the current tenant.
+     * Call this when admin saves layout, modules, store settings, etc.
+     */
+    public static function clearSiteConfigCache(?string $tenantId = null): void
+    {
+        $tenantId = $tenantId ?? (tenant('id') ?? 'default');
+        // Clear all locale variants
+        $locales = ['', 'vi', 'en', 'ja', 'ko', 'zh', 'fr', 'de', 'th'];
+        foreach ($locales as $locale) {
+            Cache::forget("site_config:{$tenantId}:{$locale}");
+        }
+    }
+
+    /**
+     * Build the full site config response (extracted for caching).
+     */
+    private function buildSiteConfig(Request $request, ?string $locale): array
+    {
 
         // Store info
         $storeConfigs = $this->configRepo->getByGroup('store');
@@ -241,14 +297,15 @@ class StorefrontController extends Controller
             return $p;
         });
 
-        // Categories (flat)
-        $categories = $this->categoryRepo->getCategories();
-
-        // Merge translations for categories if needed
-        if ($locale) {
-            $catArr = collect($categories)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
-            $categories = ContentTranslation::mergeIntoItems($catArr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-        }
+        // Categories (flat) — graceful if module not installed
+        $categories = [];
+        try {
+            $categories = $this->categoryRepo->getCategories();
+            if ($locale) {
+                $catArr = collect($categories)->map(fn($c) => is_array($c) ? $c : $c->toArray())->all();
+                $categories = ContentTranslation::mergeIntoItems($catArr, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            }
+        } catch (\Exception $e) { /* categories table not yet created */ }
 
         // Default layout values
         $defaultSections = [
@@ -276,9 +333,13 @@ class StorefrontController extends Controller
             $languages = $this->langRepo->query()->where('is_active', true)->get()->toArray();
         }
 
-        return $this->successResponse([
+        // Installed modules — storefront uses this to dynamically show/hide features
+        $installedModules = $this->getInstalledModuleIds();
+
+        return [
             'store' => $storeInfo,
             'theme' => $theme,
+            'modules' => $installedModules,
             'layout' => [
                 'sections' => json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections,
                 'pages' => json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],
@@ -292,7 +353,7 @@ class StorefrontController extends Controller
             'navLinks' => $nestedLinks->values(),
             'categories' => $categories,
             'languages' => $languages,
-        ]);
+        ];
     }
 
     /**
@@ -303,46 +364,53 @@ class StorefrontController extends Controller
         $q = trim($request->input('q', ''));
         if (strlen($q) < 2) return $this->successResponse(['data' => [], 'meta' => ['total' => 0]]);
 
-        $perPage = min((int) $request->input('per_page', 20), 100);
-        $paginated = $this->productRepo->query()
-            ->where('is_active', true)
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('description', 'like', "%{$q}%")
-                      ->orWhere('sku', 'like', "%{$q}%")
-                      ->orWhere('keywords', 'like', "%{$q}%");
-            })
-            ->paginate($perPage);
+        try {
+            $perPage = min((int) $request->input('per_page', 20), 100);
+            $paginated = $this->productRepo->query()
+                ->where('is_active', true)
+                ->where(function ($query) use ($q) {
+                    $query->where('name', 'like', "%{$q}%")
+                          ->orWhere('description', 'like', "%{$q}%")
+                          ->orWhere('sku', 'like', "%{$q}%")
+                          ->orWhere('keywords', 'like', "%{$q}%");
+                })
+                ->paginate($perPage);
 
-        $items = collect($paginated->items())->map(fn($p) => $p->toArray())->all();
+            $items = collect($paginated->items())->map(fn($p) => $p->toArray())->all();
 
-        // Merge translations if locale requested
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $items = ContentTranslation::mergeIntoItems($items, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+            }
+
+            return $this->successResponse([
+                'data' => $items,
+                'meta' => [
+                    'current_page' => $paginated->currentPage(),
+                    'last_page' => $paginated->lastPage(),
+                    'per_page' => $paginated->perPage(),
+                    'total' => $paginated->total(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return $this->successResponse(['data' => [], 'meta' => ['current_page' => 1, 'last_page' => 1, 'per_page' => 20, 'total' => 0]]);
         }
-
-        return $this->successResponse([
-            'data' => $items,
-            'meta' => [
-                'current_page' => $paginated->currentPage(),
-                'last_page' => $paginated->lastPage(),
-                'per_page' => $paginated->perPage(),
-                'total' => $paginated->total(),
-            ],
-        ]);
     }
 
     public function pageDetail(Request $request, $slug)
     {
-        $page = $this->cmsPageRepo->findBy('alias', $slug);
-        if (!$page) return $this->notFoundResponse('Page not found');
+        try {
+            $page = $this->cmsPageRepo->findBy('alias', $slug);
+            if (!$page) return $this->notFoundResponse('Page not found');
 
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
+            }
+            return $this->successResponse($page);
+        } catch (\Exception $e) {
+            return $this->notFoundResponse('Page not found');
         }
-        return $this->successResponse($page);
     }
 
     public function resolveUrl(Request $request)
@@ -402,7 +470,11 @@ class StorefrontController extends Controller
 
     public function languages()
     {
-        return $this->successResponse($this->langRepo->query()->where('is_active', true)->get());
+        try {
+            return $this->successResponse($this->langRepo->query()->where('is_active', true)->get());
+        } catch (\Exception) {
+            return $this->successResponse([]);
+        }
     }
 
     public function translations($langCode)
@@ -414,14 +486,18 @@ class StorefrontController extends Controller
 
     public function featuredProducts(Request $request)
     {
-        $items = $this->productRepo->query()->where('is_featured', true)->where('is_active', true)->limit(12)->get();
-        $locale = $this->getLocale($request);
-        if ($locale) {
-            $arr = collect($items)->map(fn($p) => $p->toArray())->all();
-            $arr = ContentTranslation::mergeIntoItems($arr, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-            return $this->successResponse($arr);
+        try {
+            $items = $this->productRepo->query()->where('is_featured', true)->where('is_active', true)->limit(12)->get();
+            $locale = $this->getLocale($request);
+            if ($locale) {
+                $arr = collect($items)->map(fn($p) => $p->toArray())->all();
+                $arr = ContentTranslation::mergeIntoItems($arr, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                return $this->successResponse($arr);
+            }
+            return $this->successResponse($items);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
         }
-        return $this->successResponse($items);
     }
 
     public function theme()
@@ -495,27 +571,41 @@ class StorefrontController extends Controller
         return $this->successResponse($methods);
     }
 
-    // ── Delegated to Actions ──
-    public function checkout(Request $request, CheckoutAction $action) { return $action($request); }
-    public function orderDetail($id, OrderDetailAction $action) { return $action($id); }
-    public function shipmentTracking(Request $request, $orderId, ShipmentTrackingAction $action) { return $action($request, $orderId); }
-    public function productReviews($productId, ProductReviewsAction $action) { return $action($productId); }
-    public function createReview(Request $request, $productId, CreateReviewAction $action) { return $action($request, $productId); }
+    // ── Delegated to Actions (with graceful fallback) ──
+    public function checkout(Request $request, CheckoutAction $action) {
+        try { return $action($request); } catch (\Exception $e) { return $this->errorResponse('Checkout unavailable: ' . $e->getMessage(), 503); }
+    }
+    public function orderDetail($id, OrderDetailAction $action) {
+        try { return $action($id); } catch (\Exception $e) { return $this->notFoundResponse('Order not found'); }
+    }
+    public function shipmentTracking(Request $request, $orderId, ShipmentTrackingAction $action) {
+        try { return $action($request, $orderId); } catch (\Exception $e) { return $this->notFoundResponse('Shipment not found'); }
+    }
+    public function productReviews($productId, ProductReviewsAction $action) {
+        try { return $action($productId); } catch (\Exception $e) { return $this->successResponse([]); }
+    }
+    public function createReview(Request $request, $productId, CreateReviewAction $action) {
+        try { return $action($request, $productId); } catch (\Exception $e) { return $this->errorResponse('Reviews unavailable', 503); }
+    }
 
     public function storefrontOrders(Request $request)
     {
         $customer = $request->attributes->get('shop_customer');
         if (!$customer) return $this->errorResponse('Authentication required', 401);
 
-        $orders = $this->orderRepo->query()
-            ->where(function ($q) use ($customer) {
-                $q->where('customer_email', $customer->email);
-                if ($customer->phone) $q->orWhere('customer_phone', $customer->phone);
-            })
-            ->orderByDesc('created_at')->limit(50)->get();
+        try {
+            $orders = $this->orderRepo->query()
+                ->where(function ($q) use ($customer) {
+                    $q->where('customer_email', $customer->email);
+                    if ($customer->phone) $q->orWhere('customer_phone', $customer->phone);
+                })
+                ->orderByDesc('created_at')->limit(50)->get();
 
-        $orders->each(fn($order) => $order->details = $this->orderRepo->getDetails($order->id));
-        return $this->successResponse($orders);
+            $orders->each(fn($order) => $order->details = $this->orderRepo->getDetails($order->id));
+            return $this->successResponse($orders);
+        } catch (\Exception $e) {
+            return $this->successResponse([]);
+        }
     }
 
     public function cancelOrder(Request $request, $id)
@@ -552,14 +642,33 @@ class StorefrontController extends Controller
 
         if (!$code) return $this->successResponse(['valid' => false, 'message' => 'Vui lòng nhập mã giảm giá']);
 
-        $result = $this->couponRepo->validateCoupon($code, $orderTotal);
-        if (!$result['valid']) {
-            $messages = ['Coupon not found' => 'Mã giảm giá không tồn tại', 'Coupon has expired' => 'Mã giảm giá đã hết hạn', 'Order total does not meet minimum requirement' => 'Đơn hàng chưa đạt giá trị tối thiểu'];
-            return $this->successResponse(['valid' => false, 'message' => $messages[$result['message']] ?? $result['message']]);
-        }
+        try {
+            $result = $this->couponRepo->validateCoupon($code, $orderTotal);
+            if (!$result['valid']) {
+                $messages = ['Coupon not found' => 'Mã giảm giá không tồn tại', 'Coupon has expired' => 'Mã giảm giá đã hết hạn', 'Order total does not meet minimum requirement' => 'Đơn hàng chưa đạt giá trị tối thiểu'];
+                return $this->successResponse(['valid' => false, 'message' => $messages[$result['message']] ?? $result['message']]);
+            }
 
-        $coupon = $result['coupon'];
-        return $this->successResponse(['valid' => true, 'discount' => round($result['discount'], 0), 'coupon' => ['code' => $coupon->code, 'type' => $coupon->type, 'value' => $coupon->value]]);
+            $coupon = $result['coupon'];
+            return $this->successResponse(['valid' => true, 'discount' => round($result['discount'], 0), 'coupon' => ['code' => $coupon->code, 'type' => $coupon->type, 'value' => $coupon->value]]);
+        } catch (\Exception $e) {
+            return $this->successResponse(['valid' => false, 'message' => 'Coupon service unavailable']);
+        }
+    }
+
+    // Helper: Get all installed module IDs for this tenant
+    private function getInstalledModuleIds(): array
+    {
+        try {
+            $tenantId = tenant()?->getTenantKey();
+            if (!$tenantId) return [];
+            return TenantModuleSubscription::where('tenant_id', $tenantId)
+                ->where('is_active', true)
+                ->pluck('module_id')
+                ->toArray();
+        } catch (\Exception) {
+            return [];
+        }
     }
 
     // Helper: Check if languages module is installed

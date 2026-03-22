@@ -139,10 +139,7 @@
     <!-- ═══ View: Dashboard ═══ -->
     <DashboardOverview
       v-if="activeView === 'dashboard'"
-      :isLivestreamInstalled="isModuleInstalled('livestream')"
-      @goLive="navigateTo('live')"
-      @goLead="navigateTo('crm')"
-      @goCustomer="(c) => openCustomerDetail({ nickname: c.nickname, uniqueId: c.nickname })"
+      @navigate="navigateTo"
     />
 
     <!-- ═══ View: Live Monitor (plugin-based when livestream plugin is installed) ═══ -->
@@ -168,10 +165,6 @@
       v-if="activeView === 'reports'"
     />
 
-    <!-- ═══ View: Billing ═══ -->
-    <BillingPage
-      v-if="activeView === 'billing'"
-    />
 
     <!-- ═══ View: Settings-based Pages (Shop/Live settings/Orders) ═══ -->
     <ShopSettings
@@ -255,7 +248,7 @@ import ShopSettings from './components/ShopSettings.vue'
 import CustomerDetail from './components/CustomerDetail.vue'
 import NotificationCenter from './components/NotificationCenter.vue'
 import NotificationBell from './components/NotificationBell.vue'
-import BillingPage from './components/BillingPage.vue'
+// BillingPage removed — billing handled by master admin externally
 import NotificationPage from './components/NotificationPage.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import ProfileModal from './components/ProfileModal.vue'
@@ -412,17 +405,7 @@ function onDropdownLeave() {
 // Note: 'live-group' (livestream nav) moved to plugins/livestream — registered via hooks when installed
 const coreNavItems = [
   { key: 'dashboard', label: 'Tổng quan', icon: 'LayoutDashboard', featureGroup: null },
-  {
-    key: 'system', label: 'Hệ thống', icon: 'Settings', featureGroup: null,
-    children: [
-      { key: 'store-info-nav', view: 'shop/info', label: 'Cửa hàng', icon: 'Store' },
-      { key: 'sys-config-nav', view: 'shop/config', label: 'Cấu hình', icon: 'Settings2' },
-      { key: 'languages-nav', view: 'shop/languages', label: 'Ngôn ngữ', icon: 'Globe' },
-      { key: 'roles-nav', view: 'system/roles', label: 'Phân quyền', icon: 'Shield', permission: 'roles.view' },
-      { key: 'modules-nav', view: 'system/modules', label: 'Module Store', icon: 'Package' },
-    ]
-  },
-  { key: 'billing', label: 'Thanh toán & Gói cước', icon: 'Receipt', featureGroup: null }
+  { key: 'shop/info', label: 'Hệ thống', icon: 'Settings', featureGroup: null },
 ]
 
 // ── Dynamic nav items via hooks — plugins can add items ──
@@ -441,9 +424,11 @@ function isFeatureEnabled(featureGroup) {
   return tf === featureGroup
 }
 
-// Filter nav items by user permissions AND tenant feature groups AND installed modules
+// ── Header nav items — only core items (no module duplicates) ──
+// Module-specific items (e-com, CMS, blog, etc.) are shown ONLY in the sidebar (ShopSettings).
+// The header shows: Dashboard, System dropdown, Billing — that's it.
 const filteredNavItems = computed(() => {
-  return navItems.value
+  return coreNavItems
     .map(item => {
       // Filter by feature group first
       if (!isFeatureEnabled(item.featureGroup)) return null
@@ -465,14 +450,36 @@ const filteredNavItems = computed(() => {
     .filter(Boolean)
 })
 
+// ── Full nav items (used by sidebar / other components that need all items) ──
+const allNavItems = computed(() => {
+  return navItems.value
+    .map(item => {
+      if (!isFeatureEnabled(item.featureGroup)) return null
+      if (!item.permission && !item.children) return item
+      if (item.children) {
+        const visibleChildren = item.children.filter(c => {
+          if (c.permission && !can(c.permission)) return false
+          if (c.moduleId && !isModuleInstalled(c.moduleId)) return false
+          return true
+        })
+        if (visibleChildren.length === 0 && item.permission && !can(item.permission)) return null
+        return { ...item, children: visibleChildren }
+      }
+      return (!item.permission || can(item.permission)) ? item : null
+    })
+    .filter(Boolean)
+})
+
 // ── Core route → tab mapping ──
 // Only truly core routes remain here. E-com, marketing, warehouse, etc.
 // are now registered by their respective plugins via hooks.
 const coreRouteToTab = {
   // Live
   'live/keywords': 'keywords', 'live/replies': 'replies', 'live/moderation': 'moderation', 'live/connection': 'connection',
-  // System (always available)
+  // Core (always available)
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/languages': 'languages',
+  'shop/media': 'media',
+  'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'system/modules': 'modules',
@@ -485,7 +492,7 @@ const routeConfig = computed(() => {
 })
 const routeToTab = computed(() => routeConfig.value.routeToTab)
 const validViews = computed(() => [
-  'dashboard', 'live', 'crm', 'reports', 'billing',
+  'dashboard', 'live', 'crm', 'reports',
   'notifications', 'shop/info', 'shop/config', 'shop/languages',
   'shop/cms/create', 'shop/cms/edit',
   'shop/products/edit', 'shop/categories/edit',

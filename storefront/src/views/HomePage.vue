@@ -82,7 +82,7 @@
         </div>
       </section>
 
-      <!-- CMS Pages -->
+      <!-- CMS Pages (requires cms module) -->
       <section v-if="section.type === 'cms_pages' && pages.length > 0" class="home-section container">
         <h2 class="section-title">
           <BookOpen :size="22" class="section-title__accent" />
@@ -102,6 +102,36 @@
             <div class="home-page-card__info">
               <h4>{{ pg.title }}</h4>
               <span class="home-page-card__date">{{ formatDate(pg.created_at) }}</span>
+            </div>
+          </router-link>
+        </div>
+      </section>
+
+      <!-- Blog Posts (requires blog module) -->
+      <section v-if="section.type === 'blog_posts' && blogPosts.length > 0" class="home-section container">
+        <div class="home-section__header">
+          <h2 class="section-title">
+            <BookOpen :size="22" class="section-title__accent" />
+            {{ rp(section)?.title || t('storefront.latest_posts') || 'Bài viết mới nhất' }}
+          </h2>
+          <router-link to="/blog" class="home-section__viewall">
+            {{ t('storefront.view_all') || 'Xem tất cả' }} <ArrowRight :size="14" />
+          </router-link>
+        </div>
+        <div class="home-pages">
+          <router-link
+            v-for="post in blogPosts.slice(0, section.params?.count || 6)"
+            :key="post.id"
+            :to="`/blog/${post.slug || post.id}`"
+            class="home-page-card"
+          >
+            <img v-if="post.featured_image || post.image" :src="post.featured_image || post.image" :alt="post.title" class="home-page-card__img" />
+            <div v-else class="home-page-card__img home-page-card__img--empty">
+              <BookOpen :size="28" />
+            </div>
+            <div class="home-page-card__info">
+              <h4>{{ post.title }}</h4>
+              <span class="home-page-card__date">{{ formatDate(post.published_at || post.created_at) }}</span>
             </div>
           </router-link>
         </div>
@@ -153,6 +183,15 @@
         :params="rp(section)"
         :content="rc(section)"
       />
+
+      <!-- Custom Block (Visual Builder HTML) -->
+      <div
+        v-if="section.type === 'custom_block' && (section.content || rp(section).title)"
+        class="container custom-block-section"
+      >
+        <h2 v-if="rp(section).title" class="section-title">{{ rp(section).title }}</h2>
+        <div class="custom-block-content" v-html="sanitize(rc(section))"></div>
+      </div>
       </div>
     </template>
   </div>
@@ -168,9 +207,24 @@ import ProductCarousel from '../components/ProductCarousel.vue'
 import FlashSale from '../components/FlashSale.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
+import { useSanitize } from '../composables/useSanitize.js'
 import { Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
+import { useModules } from '../composables/useModules.js'
 
 const { t, currentLang, defaultLangCode } = useI18n()
+const { isEcom, isBlog, isCms, hasModule } = useModules()
+const { sanitize } = useSanitize()
+
+// ── Section type → required module mapping ──
+const sectionModuleMap = {
+  categories: 'ecom',
+  flash_sale: 'ecom',
+  featured_products: 'ecom',
+  new_arrivals: 'ecom',
+  cms_pages: 'cms',
+  blog_posts: 'blog',
+  // banner, testimonials, faq, gallery, video, text_block, newsletter, social, brands_slider, trust_badges → always allowed
+}
 
 // ── Resolve section translations based on current storefront language ──
 function rp(section) {
@@ -178,7 +232,6 @@ function rp(section) {
   if (!lang || lang === defaultLangCode.value) return section.params || {}
   const tp = section.translations?.[lang]?.params
   if (!tp) return section.params || {}
-  // Merge: translated params override base, but only non-empty fields
   const merged = { ...(section.params || {}) }
   for (const [k, v] of Object.entries(tp)) {
     if (v && String(v).trim()) merged[k] = v
@@ -191,7 +244,6 @@ function rc(section) {
   if (!lang || lang === defaultLangCode.value) return section.content
   const tc = section.translations?.[lang]?.content
   if (!tc) return section.content
-  // For arrays, merge per-item: only override non-empty fields
   if (Array.isArray(tc) && Array.isArray(section.content)) {
     return section.content.map((item, i) => {
       if (!tc[i]) return item
@@ -202,7 +254,6 @@ function rc(section) {
       return merged
     })
   }
-  // For string content (text_block)
   if (typeof tc === 'string' && tc.trim()) return tc
   return section.content
 }
@@ -227,22 +278,46 @@ const categories = ref([])
 const products = ref([])
 const newProducts = ref([])
 const pages = ref([])
+const blogPosts = ref([])
 const loading = ref(true)
 
-const defaultSections = [
-  { type: 'banner', enabled: true, order: 0 },
-  { type: 'categories', enabled: true, order: 1 },
-  { type: 'flash_sale', enabled: true, order: 2 },
-  { type: 'featured_products', enabled: true, order: 3 },
-  { type: 'new_arrivals', enabled: true, order: 4 },
-  { type: 'cms_pages', enabled: true, order: 5 },
-  { type: 'trust_badges', enabled: true, order: 6 },
-]
+// ── Dynamic default sections based on installed modules ──
+const defaultSections = computed(() => {
+  const sections = []
+  let order = 0
+
+  // Banner is always available
+  sections.push({ type: 'banner', enabled: true, order: order++ })
+
+  if (isEcom.value) {
+    sections.push({ type: 'categories', enabled: true, order: order++ })
+    sections.push({ type: 'flash_sale', enabled: true, order: order++ })
+    sections.push({ type: 'featured_products', enabled: true, order: order++ })
+    sections.push({ type: 'new_arrivals', enabled: true, order: order++ })
+  }
+
+  if (isBlog.value) {
+    sections.push({ type: 'blog_posts', enabled: true, order: order++ })
+  }
+
+  if (isCms.value) {
+    sections.push({ type: 'cms_pages', enabled: true, order: order++ })
+  }
+
+  sections.push({ type: 'trust_badges', enabled: true, order: order++ })
+  return sections
+})
 
 const activeSections = computed(() => {
-  const sections = layoutConfig.value?.sections || defaultSections
+  const sections = layoutConfig.value?.sections || defaultSections.value
   return sections
-    .filter(s => s.enabled)
+    .filter(s => {
+      if (!s.enabled) return false
+      // Check if this section type requires a specific module
+      const requiredModule = sectionModuleMap[s.type]
+      if (requiredModule && !hasModule(requiredModule)) return false
+      return true
+    })
     .sort((a, b) => a.order - b.order)
 })
 
@@ -269,20 +344,45 @@ function filteredCategories(section) {
 async function loadAll() {
   loading.value = true
   try {
-    const [bannersRes, catsRes, prodsRes, newRes, pagesRes] = await Promise.allSettled([
-      apiFetch('/banners'),
-      apiFetch('/categories'),
-      apiFetch('/products', { limit: 16, sort: 'created_at', order: 'desc' }),
-      apiFetch('/products', { limit: 12, sort: 'created_at', order: 'desc', page: 1 }),
-      apiFetch('/pages'),
-    ])
-    banners.value = bannersRes.status === 'fulfilled' ? bannersRes.value : []
-    categories.value = catsRes.status === 'fulfilled' ? catsRes.value : []
-    const prodData = prodsRes.status === 'fulfilled' ? prodsRes.value : []
+    const fetches = [
+      apiFetch('/banners').catch(() => []),
+    ]
+
+    // Only fetch e-commerce data if ecom module is installed
+    if (isEcom.value) {
+      fetches.push(
+        apiFetch('/categories').catch(() => []),
+        apiFetch('/products', { limit: 16, sort: 'created_at', order: 'desc' }).catch(() => []),
+        apiFetch('/products', { limit: 12, sort: 'created_at', order: 'desc', page: 1 }).catch(() => []),
+      )
+    } else {
+      fetches.push(Promise.resolve([]), Promise.resolve([]), Promise.resolve([]))
+    }
+
+    // Only fetch CMS pages if cms module is installed
+    if (isCms.value) {
+      fetches.push(apiFetch('/pages').catch(() => []))
+    } else {
+      fetches.push(Promise.resolve([]))
+    }
+
+    // Only fetch blog posts if blog module is installed
+    if (isBlog.value) {
+      fetches.push(apiFetch('/blog/posts', { limit: 6, sort: 'published_at', order: 'desc' }).catch(() => []))
+    } else {
+      fetches.push(Promise.resolve([]))
+    }
+
+    const [bannersRes, catsRes, prodsRes, newRes, pagesRes, postsRes] = await Promise.all(fetches)
+    banners.value = bannersRes || []
+    categories.value = catsRes || []
+    const prodData = prodsRes || []
     products.value = Array.isArray(prodData) ? prodData : (prodData.data || [])
-    const newData = newRes.status === 'fulfilled' ? newRes.value : []
+    const newData = newRes || []
     newProducts.value = Array.isArray(newData) ? newData : (newData.data || [])
-    pages.value = pagesRes.status === 'fulfilled' ? pagesRes.value : []
+    pages.value = pagesRes || []
+    const postData = postsRes || []
+    blogPosts.value = Array.isArray(postData) ? postData : (postData.data || [])
   } catch { /* ignore */ }
   loading.value = false
 

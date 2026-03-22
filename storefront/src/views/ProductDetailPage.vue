@@ -200,7 +200,7 @@
           <FileText :size="20" class="section-title__accent" />
           {{ t('storefront.product_description') || 'Mô tả sản phẩm' }}
         </h2>
-        <div class="detail-desc-content" v-html="product.description"></div>
+        <div class="detail-desc-content" v-html="sanitize(product.description)"></div>
       </div>
 
       <!-- Related Products -->
@@ -335,6 +335,9 @@ import { useToast } from '../composables/useToast.js'
 import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
+import { useSanitize } from '../composables/useSanitize.js'
+
+const { sanitize } = useSanitize()
 
 const { t, currentLang, defaultLangCode } = useI18n()
 const { addToCart } = useCart()

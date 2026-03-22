@@ -272,7 +272,7 @@ function exportCSV(type) {
 <style scoped>
 .inv-report { padding: 24px; overflow-y: auto; height: 100%; }
 .rpt-header { margin-bottom: 24px; }
-.rpt-header h2 { margin: 0 0 16px; font-size: 20px; font-weight: 800; }
+.rpt-header h2 { margin: 0 0 16px; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .tab-bar { display: flex; gap: 6px; flex-wrap: wrap; }
 .tab-btn {
   display: inline-flex; align-items: center; gap: 6px;

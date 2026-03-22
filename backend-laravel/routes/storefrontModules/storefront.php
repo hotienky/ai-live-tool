@@ -14,7 +14,8 @@ Route::get('/pages/{slug}', [\App\Http\Controllers\Tenant\StorefrontController::
 Route::get('/resolve-url', [\App\Http\Controllers\Tenant\StorefrontController::class, 'resolveUrl']);
 Route::get('/info', [\App\Http\Controllers\Tenant\StorefrontController::class, 'storeInfo']);
 Route::get('/site-config', [\App\Http\Controllers\Tenant\StorefrontController::class, 'siteConfig']);
-Route::get('/search', [\App\Http\Controllers\Tenant\StorefrontController::class, 'searchProducts']);
+Route::get('/search', [\App\Http\Controllers\Tenant\StorefrontController::class, 'searchProducts'])
+    ->middleware(['throttle:30,1']); // 30 requests per minute per IP
 Route::get('/nav-links', [\App\Http\Controllers\Tenant\NavLinksController::class, 'flat']);
 Route::post('/checkout', [\App\Http\Controllers\Tenant\StorefrontController::class, 'checkout']);
 Route::post('/coupon/validate', [\App\Http\Controllers\Tenant\StorefrontController::class, 'validateCoupon']);

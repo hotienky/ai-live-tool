@@ -561,7 +561,7 @@ function printInvoice(order) {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
 }
-.om-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.om-header h2 { margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .header-actions { display: flex; gap: 8px; }
 .filter-select {
   background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -685,7 +685,7 @@ tr:hover { background: var(--color-accent-glow); }
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.modal h3 { margin: 0 0 20px 0; font-weight: 800; }
+.modal h3 { margin: 0 0 20px 0; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
 .form-group input, .form-group textarea {
@@ -783,7 +783,7 @@ tr:hover { background: var(--color-accent-glow); }
 /* Order Detail Modal */
 /* Removed local modal detail */
 .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.detail-header h3 { margin: 0; font-weight: 800; }
+.detail-header h3 { margin: 0; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .btn-close {
   background: none; border: none; font-size: 24px; cursor: pointer;
   color: var(--color-text-muted); transition: color 0.2s;

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Module;
 use App\Models\TenantModuleSubscription;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ModuleRegistry
@@ -20,13 +21,15 @@ class ModuleRegistry
             ->toArray();
     }
 
-    // Get installed module IDs for a specific tenant
+    // Get installed module IDs for a specific tenant (cached)
     public static function installedModuleIds(string $tenantId): array
     {
-        return TenantModuleSubscription::where('tenant_id', $tenantId)
-            ->whereRaw('"is_active" = true')
-            ->pluck('module_id')
-            ->toArray();
+        return Cache::remember("tenant_modules:{$tenantId}", 600, function () use ($tenantId) {
+            return TenantModuleSubscription::where('tenant_id', $tenantId)
+                ->whereRaw('"is_active" = true')
+                ->pluck('module_id')
+                ->toArray();
+        });
     }
 
     // Check if a module is installed for a tenant
@@ -90,17 +93,28 @@ class ModuleRegistry
             return ['success' => false, 'message' => "Module trả phí — vui lòng sử dụng 'Yêu cầu cài đặt'", 'require_payment' => true];
         }
 
-        TenantModuleSubscription::create([
+        $data = [
             'tenant_id' => $tenantId,
             'module_id' => $moduleId,
             'is_active' => true,
             'status' => 'active',
             'installed_at' => now(),
             'installed_by' => $userId,
-        ]);
+        ];
+
+        // Add version tracking if column exists (requires migration)
+        $connection = config('tenancy.database.central_connection', 'master');
+        if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('tenant_module_subscriptions', 'installed_version')) {
+            $data['installed_version'] = $module->version ?? '1.0.0';
+        }
+
+        TenantModuleSubscription::create($data);
 
         // Run module-specific migrations if they exist
         static::runModuleMigrations($moduleId);
+
+        // Clear caches
+        static::clearCache($tenantId);
 
         return ['success' => true, 'message' => "Đã cài đặt {$module->name}"];
     }
@@ -186,6 +200,9 @@ class ModuleRegistry
             'installed_at' => now(),
         ]);
 
+        // Clear caches
+        static::clearCache($sub->tenant_id);
+
         $module = Module::where('module_id', $sub->module_id)->first();
         return ['success' => true, 'message' => "Đã duyệt: {$module->name}"];
     }
@@ -227,6 +244,10 @@ class ModuleRegistry
         }
 
         $sub->update(['is_active' => false]);
+
+        // Clear caches
+        static::clearCache($tenantId);
+
         $name = $module->name ?? $moduleId;
         return ['success' => true, 'message' => "Đã gỡ {$name}. Dữ liệu được giữ lại."];
     }
@@ -273,5 +294,16 @@ class ModuleRegistry
             }
         }
         return $items;
+    }
+
+    /**
+     * Clear module-related caches for a tenant.
+     * Also clears site-config cache since modules affect the storefront.
+     */
+    public static function clearCache(string $tenantId): void
+    {
+        Cache::forget("tenant_modules:{$tenantId}");
+        // Also clear site-config since modules list is part of it
+        \App\Http\Controllers\Tenant\StorefrontController::clearSiteConfigCache($tenantId);
     }
 }

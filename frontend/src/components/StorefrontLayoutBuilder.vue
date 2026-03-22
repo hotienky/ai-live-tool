@@ -465,6 +465,7 @@ const builtinPageOptions = [
   { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
   { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
   { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
+  { id: '__blog',           label: 'Blog',                                          icon: BookOpen },
 ]
 
 // Computed: current active page display (icon + label)
@@ -650,6 +651,14 @@ const defaultPageConfigs = {
     showPasswordChange: true,
     sidebarPosition: 'left',
     pageTitle: t('admin.msg_7bd53616', 'Tài khoản'),
+    pageDescription: '',
+    translations: {},
+  },
+  blog: {
+    gridColumns: 3,
+    postsPerPage: 9,
+    layout: 'grid',
+    pageTitle: 'Blog',
     pageDescription: '',
     translations: {},
   },

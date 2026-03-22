@@ -41,7 +41,7 @@
 
           <!-- Text Column -->
           <template v-if="col.type === 'text'">
-            <div class="sf-text-content" v-html="col.content"></div>
+            <div class="sf-text-content" v-html="sanitize(col.content)"></div>
           </template>
         </div>
 
@@ -80,7 +80,7 @@
             </div>
           </template>
 
-          <template v-if="activePayments.length">
+          <template v-if="activePayments.length && isEcom && !isLanding">
             <h4 class="site-footer__col-title sf-mt">{{ t('storefront.footer.payment_support', 'Hỗ trợ thanh toán') }}</h4>
             <div class="sf-payments-row">
               <span v-for="pm in activePayments" :key="pm.code" class="sf-payment-badge">
@@ -91,9 +91,14 @@
         </div>
       </div>
 
+      <!-- Newsletter -->
+      <div class="site-footer__newsletter">
+        <NewsletterForm />
+      </div>
+
       <!-- Legal / Company Info -->
       <div class="site-footer__legal" v-if="cfg.legalText">
-        <div class="sf-legal-text" v-html="nl2br(cfg.legalText)"></div>
+        <div class="sf-legal-text" v-html="sanitize(nl2br(cfg.legalText))"></div>
       </div>
 
       <!-- Copyright -->
@@ -114,8 +119,16 @@ import {
   ShoppingBag, ExternalLink
 } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
+import { useModules } from '../composables/useModules.js'
+import NewsletterForm from './NewsletterForm.vue'
 
 const { t } = useI18n()
+
+import { useSanitize } from '../composables/useSanitize.js'
+const { sanitize } = useSanitize()
+const { isEcom } = useModules()
+import { useTemplate } from '../composables/useTemplate.js'
+const { isLanding } = useTemplate()
 
 defineProps({ storeName: { type: String, default: '' } })
 
@@ -377,6 +390,14 @@ function nl2br(text) {
 .sf-legal-text {
   font-size: 12px; color: var(--sf-text-muted); line-height: 1.7;
   text-align: center;
+}
+
+/* ── Newsletter ── */
+.site-footer__newsletter {
+  border-top: 1px solid var(--sf-border);
+  padding: 20px 0;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 /* ── Copyright ── */

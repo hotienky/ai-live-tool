@@ -33,6 +33,9 @@ class SystemConfigController extends Controller
             $this->repo->upsertItems($items);
             $this->logActivity('settings.updated', 'system_config', null, ['count' => count($items)]);
 
+            // Clear site-config cache (layout, store, theme changes affect storefront)
+            \App\Http\Controllers\Tenant\StorefrontController::clearSiteConfigCache();
+
             // Thông báo: cấu hình thay đổi
             $changedKeys = array_column($items, 'key');
             if (!empty($changedKeys)) {
@@ -63,6 +66,9 @@ class SystemConfigController extends Controller
             if ($group === 'mail') {
                 SystemConfigBootstrapper::forgetCache((string) tenancy()->tenant->getTenantKey());
             }
+
+            // Clear site-config cache (any group change may affect storefront)
+            \App\Http\Controllers\Tenant\StorefrontController::clearSiteConfigCache();
 
             // Thông báo: cấu hình nhóm thay đổi
             $changedKeys = array_column($items, 'key');

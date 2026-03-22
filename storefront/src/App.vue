@@ -5,7 +5,9 @@
     <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
-          <component :is="Component" />
+          <ErrorBoundary>
+            <component :is="Component" />
+          </ErrorBoundary>
         </transition>
       </router-view>
     </main>
@@ -19,10 +21,12 @@
 <script setup>
 import { ref, computed, onMounted, watch, provide, onErrorCaptured } from 'vue'
 import { apiFetch } from './api.js'
+import { setInstalledModules, setEnabledPages, setActiveTemplate } from './router.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
 import SfToastContainer from './components/SfToastContainer.vue'
 import BackToTop from './components/BackToTop.vue'
+import ErrorBoundary from './components/ErrorBoundary.vue'
 import RouteLoader from './components/RouteLoader.vue'
 import PromoBar from './components/PromoBar.vue'
 import { useTheme } from './composables/useTheme.js'
@@ -46,6 +50,7 @@ const layoutConfig = ref(null)
 const headerConfig = ref({})
 const footerConfig = ref({})
 const navLinks = ref([])
+const installedModules = ref([])
 
 // Preview mode: read layout from URL query param
 const urlParams = new URLSearchParams(window.location.search)
@@ -76,6 +81,8 @@ async function loadSiteConfig() {
     // Use /site-config mega endpoint — single call for everything
     const config = await apiFetch('/site-config')
     storeInfo.value = config.store || {}
+    installedModules.value = config.modules || []
+    setInstalledModules(installedModules.value)
     layoutConfig.value = config.layout || {
       sections: [
         { type: 'banner', enabled: true, order: 0 },
@@ -91,6 +98,14 @@ async function loadSiteConfig() {
     headerConfig.value = config.layout?.headerConfig || {}
     footerConfig.value = config.layout?.footerConfig || {}
     navLinks.value = config.navLinks || []
+
+    // Enable page toggle route guards
+    if (layoutConfig.value?.pages) {
+      setEnabledPages(layoutConfig.value.pages)
+    }
+
+    // Set active template for route blocking
+    setActiveTemplate(layoutConfig.value?.template)
 
     // Inject custom CSS from layout config
     if (layoutConfig.value?.customCss) {
@@ -148,19 +163,22 @@ function injectCustomCss(css) {
 }
 
 onMounted(async () => {
-  await Promise.all([
+  // Use allSettled so a failing init (e.g. languages 500) doesn't block others
+  await Promise.allSettled([
     loadSiteConfig(),
     initTheme(),
     initI18n(),
   ])
 })
 
-// Provide store info, layout config, header/footer config globally
+// Provide store info, layout config, header/footer config, modules globally
 provide('storeInfo', storeInfo)
 provide('layoutConfig', layoutConfig)
 provide('headerConfig', headerConfig)
 provide('footerConfig', footerConfig)
 provide('navLinks', navLinks)
+provide('installedModules', installedModules)
+provide('template', computed(() => layoutConfig.value?.template || 'full_store'))
 </script>
 
 <style scoped>

@@ -888,12 +888,13 @@ async function fetchInstalledModules() {
 onMounted(fetchInstalledModules)
 
 // Module tabs that require specific module to be installed
+// Core system tabs always show: store-info, system-config, media
+// media is NOT mapped — it's always available (every module needs images)
 const moduleTabMap = {
-  // E-commerce core
+  // E-commerce (products, orders, storefront layout)
   'products': 'ecom', 'categories': 'ecom', 'brands': 'ecom',
   'orders': 'ecom', 'shop-customers': 'ecom', 'order-detail': 'ecom',
-  'payment': 'ecom', 'store-info': 'ecom', 'system-config': 'ecom',
-  'appearance': 'ecom', 'storefront-layout': 'ecom',
+  'payment': 'ecom', 'storefront-layout': 'ecom',
   // Shipping
   'shipping': 'shipping',
   // Warehouse
@@ -905,9 +906,10 @@ const moduleTabMap = {
   'promotions': 'marketing', 'flash-sales': 'marketing',
   // Tax
   'tax': 'tax',
-  // CMS
+  // CMS (content management)
   'cms': 'cms',
-  'banners': 'banners',
+  'banners': 'cms',
+  // Languages (show if module installed)
   'languages': 'languages',
 }
 

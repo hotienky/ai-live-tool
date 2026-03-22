@@ -554,7 +554,7 @@ function formatDate(d) {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
 }
-.inv-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.inv-header h2 { margin: 0; font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .search-input {
   background: var(--glass-bg); border: 1px solid var(--glass-border);
@@ -647,7 +647,7 @@ tr:hover { background: var(--color-accent-glow); }
   padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
   background: var(--color-accent-glow); color: var(--accent-light);
 }
-.stock-cell { font-weight: 800; }
+.stock-cell { font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .stock-unit { font-size: 11px; color: var(--color-text-muted); margin-left: 2px; }
 .stock-num.ok { color: #34d399; }
 .stock-num.low { color: #fbbf24; }
@@ -699,7 +699,7 @@ tr:hover { background: var(--color-accent-glow); }
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.modal h3 { margin: 0 0 20px 0; font-weight: 800; }
+.modal h3 { margin: 0 0 20px 0; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-group { margin-bottom: 0; }
 .form-group.span-2 { grid-column: span 2; }

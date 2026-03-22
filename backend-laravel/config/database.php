@@ -97,9 +97,16 @@ return [
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
-            // pgBouncer transaction mode: PDO phải emulate prepared statements
-            // vì pgBouncer không giữ state giữa các transaction
+            // Connection pool settings (for multi-tenant scale)
+            'pool' => [
+                'min' => (int) env('DB_POOL_MIN', 2),
+                'max' => (int) env('DB_POOL_MAX', 10),
+                'idle_timeout' => (int) env('DB_POOL_IDLE_TIMEOUT', 60),
+            ],
+            // pgBouncer transaction mode: PDO must emulate prepared statements
             'options' => env('PGBOUNCER', false) ? [PDO::ATTR_EMULATE_PREPARES => true] : [],
+            // Persistent connections reduce connection overhead for multi-tenant
+            'persistent' => env('DB_PERSISTENT', false),
         ],
 
         'master' => env('MASTER_DB_DRIVER', env('DB_CONNECTION', 'pgsql')) === 'sqlite' ? [

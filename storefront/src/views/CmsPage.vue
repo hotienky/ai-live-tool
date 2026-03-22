@@ -110,6 +110,16 @@
             <HomeSectionNewsletter v-if="section.type === 'newsletter'" :params="section.params" :content="section.content" />
             <HomeSectionSocial v-if="section.type === 'social_feed'" :params="section.params" :content="section.content" />
             <HomeSectionBrands v-if="section.type === 'brands_slider'" :params="section.params" :content="section.content" />
+            <HomeSectionTrustBadges v-if="section.type === 'trust_badges'" :params="section.params" :content="section.content" />
+
+            <!-- Custom Block (Visual Builder HTML) -->
+            <div
+              v-if="section.type === 'custom_block' && (section.content || section.params?.title)"
+              class="container custom-block-section"
+            >
+              <h2 v-if="section.params?.title" class="section-title">{{ section.params.title }}</h2>
+              <div class="custom-block-content" v-html="sanitize(section.content)"></div>
+            </div>
 
           </div>
         </template>
@@ -127,7 +137,7 @@
         <div class="cms-banner" v-if="page.image">
           <img :src="page.image" :alt="page.title" />
         </div>
-        <div class="cms-body" v-html="page.content"></div>
+        <div class="cms-body" v-html="sanitize(page.content)"></div>
       </article>
 
     </div>
@@ -162,9 +172,12 @@ import HomeSectionTextBlock from '../components/sections/HomeSectionTextBlock.vu
 import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.vue'
 import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
 import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
+import HomeSectionTrustBadges from '../components/sections/HomeSectionTrustBadges.vue'
 import { useI18n } from '../composables/useI18n.js'
+import { useSanitize } from '../composables/useSanitize.js'
 
 const { t } = useI18n()
+const { sanitize } = useSanitize()
 const { setPageSeo } = useSeo()
 
 const props = defineProps({

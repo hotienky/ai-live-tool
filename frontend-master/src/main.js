@@ -43,3 +43,10 @@ router.beforeEach((to) => {
 const app = createApp(App)
 app.use(router)
 app.mount('#app')
+
+// Register Service Worker (production only)
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {})
+  })
+}

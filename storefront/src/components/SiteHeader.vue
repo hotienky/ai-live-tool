@@ -43,8 +43,8 @@
         </div>
       </nav>
 
-      <!-- Search -->
-      <div v-if="headerCfg.showSearch" class="site-header__search" :class="{ focused: searchFocused }">
+      <!-- Search (only if ecom installed) -->
+      <div v-if="headerCfg.showSearch && isEcom && !isLanding" class="site-header__search" :class="{ focused: searchFocused }">
         <Search :size="16" class="site-header__search-icon" />
         <input
           v-model="searchQuery"
@@ -106,14 +106,14 @@
           </div>
         </div>
 
-        <!-- Cart -->
-        <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__cart-btn" active-class="active">
+        <!-- Cart (only if ecom installed) -->
+        <router-link v-if="pageEnabled.cart && isEcom && !isLanding" :to="'/cart'" class="site-header__cart-btn" active-class="active">
           <ShoppingCart :size="16" />
           <span v-if="cartCount > 0" class="cart-badge">{{ cartCount }}</span>
         </router-link>
 
-        <!-- Wishlist -->
-        <router-link v-if="pageEnabled.account" to="/account?tab=wishlist" class="site-header__wish-btn">
+        <!-- Wishlist (only if ecom installed) -->
+        <router-link v-if="pageEnabled.account && isEcom && !isLanding" to="/account?tab=wishlist" class="site-header__wish-btn">
           <Heart :size="16" />
           <span v-if="wishlistCount > 0" class="cart-badge">{{ wishlistCount }}</span>
         </router-link>
@@ -156,7 +156,7 @@
           <component v-if="link.icon && iconMap[link.icon]" :is="iconMap[link.icon]" :size="16" />
           {{ link.name }}
         </router-link>
-        <router-link v-if="pageEnabled.cart" :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
+        <router-link v-if="pageEnabled.cart && isEcom && !isLanding" :to="'/cart'" class="site-header__mobile-link" @click="mobileMenu = false">
           <ShoppingCart :size="16" /> {{ t('storefront.cart') || 'Giỏ hàng' }}
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
@@ -197,6 +197,8 @@ import { useCart } from '../composables/useCart.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useTheme } from '../composables/useTheme.js'
 import { useAuth } from '../composables/useAuth.js'
+import { useModules } from '../composables/useModules.js'
+import { useTemplate } from '../composables/useTemplate.js'
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const storeInfo = inject('storeInfo', ref(null))
@@ -223,6 +225,8 @@ const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
 const { isDark, toggleTheme } = useTheme()
 const { isLoggedIn, customer } = useAuth()
+const { isEcom, isBlog, isCms } = useModules()
+const { isLanding } = useTemplate()
 
 // Wishlist count
 import { useWishlist } from '../composables/useWishlist.js'
@@ -284,11 +288,21 @@ const mobileMenu = ref(false)
 // Dynamic nav links — use provided from site-config or fetch as fallback
 const navLinks = ref([])
 
-// Fallback links if API returns empty — computed so translations are reactive
-const fallbackLinks = computed(() => [
-  { id: 'f1', name: t('storefront.home', 'Trang chủ'), url: '/', icon: 'Home', sort: 1 },
-  { id: 'f2', name: t('storefront.products', 'Sản phẩm'), url: '/products', icon: 'ShoppingBag', sort: 2 },
-])
+// Fallback links if API returns empty — dynamic based on installed modules + template
+const fallbackLinks = computed(() => {
+  const links = [
+    { id: 'f1', name: t('storefront.home', 'Trang chủ'), url: '/', icon: 'Home', sort: 1 },
+  ]
+  // Landing template: no product links (even if ecom installed)
+  if (isEcom.value && !isLanding.value) {
+    links.push({ id: 'f2', name: t('storefront.products', 'Sản phẩm'), url: '/products', icon: 'ShoppingBag', sort: 2 })
+  }
+  // Catalog/minimal: no blog links
+  if (isBlog.value && !isLanding.value) {
+    links.push({ id: 'f3', name: 'Blog', url: '/blog', icon: 'BookOpen', sort: 3 })
+  }
+  return links
+})
 
 const MAX_VISIBLE = computed(() => headerCfg.value.maxNavLinks)
 const moreOpen = ref(false)

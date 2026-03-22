@@ -10,7 +10,8 @@ class TenantModuleSubscription extends Model
     protected $table = 'tenant_module_subscriptions';
 
     protected $fillable = [
-        'tenant_id', 'module_id', 'is_active', 'status', 'request_note', 'installed_at', 'installed_by',
+        'tenant_id', 'module_id', 'is_active', 'status',
+        'request_note', 'installed_at', 'installed_by', 'installed_version',
     ];
 
     protected $casts = [

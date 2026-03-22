@@ -7,125 +7,123 @@
 
     <div v-if="loading" class="mod-loading">{{ t('admin.loading', 'Đang tải...') }}</div>
 
-    <div v-else class="mod-grid">
-      <div
-        v-for="m in modules" :key="m.id"
-        class="mod-card" :class="{ 'mod-card--installed': m.is_installed }"
-      >
-        <div class="mod-card__header">
-          <div class="mod-card__icon" :class="m.is_installed ? 'mod-card__icon--active' : ''">
-            <component :is="iconMap[m.icon] || Package" :size="24" />
+    <template v-else>
+      <!-- Grouped by category -->
+      <div v-for="group in groupedModules" :key="group.key" class="mod-group">
+        <div class="mod-group__header">
+          <div class="mod-group__icon" :style="{ background: group.iconBg }">
+            <component :is="group.icon" :size="20" :style="{ color: group.iconColor }" />
           </div>
-          <div class="mod-card__info">
-            <h3>{{ m.name }}</h3>
-            <span class="mod-card__version">v{{ m.version }}</span>
+          <div>
+            <h3 class="mod-group__title">{{ group.label }}</h3>
+            <p class="mod-group__desc">{{ group.description }}</p>
           </div>
-          <span v-if="m.is_installed" class="mod-badge mod-badge--active">{{ t('admin.msg_f6dd9c8a', 'Đã cài') }}</span>
-          <span v-else class="mod-badge mod-badge--available">{{ t('admin.msg_c90e2dcc', 'Có sẵn') }}</span>
-        </div>
-
-        <p class="mod-card__desc">{{ m.description }}</p>
-
-        <div class="mod-card__price">
-          <span v-if="m.price > 0" class="price-tag">{{ formatPrice(m.price) }}</span>
-          <span v-else class="price-tag price-tag--free">{{ t('admin.msg_c5918647', 'Miễn phí') }}</span>
-        </div>
-
-        <div v-if="m.requires?.length" class="mod-card__deps">
-          <span class="dep-label">{{ t('admin.msg_93e018a3', 'Yêu cầu:') }}</span>
-          <span
-            v-for="dep in m.requires" :key="dep"
-            :class="['dep-badge', isDepInstalled(dep) ? 'dep-badge--ok' : 'dep-badge--missing']"
-            :title="isDepInstalled(dep) ? t('admin.msg_f6dd9c8a', 'Đã cài') : t('admin.msg_a182d7a9', 'Chưa cài — cần cài trước')"
-          >
-            <component :is="isDepInstalled(dep) ? CheckCircle2 : AlertCircle" :size="11" />
-            {{ getModuleName(dep) }}
+          <span class="mod-group__count" v-if="group.installedCount > 0">
+            {{ group.installedCount }}/{{ group.modules.length }} đã cài
           </span>
         </div>
-        <div v-if="m.requires?.length && !allDepsInstalled(m)" class="mod-card__dep-warning">
-          <AlertTriangle :size="12" /> Cần cài đặt module yêu cầu trước
-        </div>
 
-        <div class="mod-card__footer">
-          <div class="mod-card__category">
-            <component :is="catIcons[m.category] || Package" :size="12" />
-            {{ catLabels[m.category] || m.category }}
+        <div class="mod-grid">
+          <div
+            v-for="m in group.modules" :key="m.id"
+            class="mod-card" :class="{ 'mod-card--installed': m.is_installed }"
+          >
+            <div class="mod-card__header">
+              <div class="mod-card__icon" :class="m.is_installed ? 'mod-card__icon--active' : ''">
+                <component :is="iconMap[m.icon] || Package" :size="24" />
+              </div>
+              <div class="mod-card__info">
+                <h3>{{ m.name }}</h3>
+                <span class="mod-card__version">v{{ m.version }}</span>
+              </div>
+              <span v-if="m.is_installed" class="mod-badge mod-badge--active">{{ t('admin.msg_f6dd9c8a', 'Đã cài') }}</span>
+              <span v-else class="mod-badge mod-badge--available">{{ t('admin.msg_c90e2dcc', 'Có sẵn') }}</span>
+            </div>
+
+            <p class="mod-card__desc">{{ m.description }}</p>
+
+            <div class="mod-card__price">
+              <span v-if="m.price > 0" class="price-tag">{{ formatPrice(m.price) }}</span>
+              <span v-else class="price-tag price-tag--free">{{ t('admin.msg_c5918647', 'Miễn phí') }}</span>
+            </div>
+
+            <div v-if="m.requires?.length" class="mod-card__deps">
+              <span class="dep-label">{{ t('admin.msg_93e018a3', 'Yêu cầu:') }}</span>
+              <span
+                v-for="dep in m.requires" :key="dep"
+                :class="['dep-badge', isDepInstalled(dep) ? 'dep-badge--ok' : 'dep-badge--missing']"
+                :title="isDepInstalled(dep) ? t('admin.msg_f6dd9c8a', 'Đã cài') : t('admin.msg_a182d7a9', 'Chưa cài — cần cài trước')"
+              >
+                <component :is="isDepInstalled(dep) ? CheckCircle2 : AlertCircle" :size="11" />
+                {{ getModuleName(dep) }}
+              </span>
+            </div>
+            <div v-if="m.requires?.length && !allDepsInstalled(m)" class="mod-card__dep-warning">
+              <AlertTriangle :size="12" /> Cần cài đặt module yêu cầu trước
+            </div>
+
+            <div class="mod-card__footer">
+              <div class="mod-card__category">
+                <component :is="catIcons[m.category] || Package" :size="12" />
+                {{ catLabels[m.category] || m.category }}
+              </div>
+
+              <!-- Installed → Uninstall -->
+              <button
+                v-if="m.is_installed"
+                class="mod-btn mod-btn--uninstall"
+                :disabled="actionLoading === m.id"
+                @click="uninstallModule(m.id)"
+              >
+                <Trash2 :size="13" />
+                {{ actionLoading === m.id ? t('admin.msg_0c30f9fb', 'Đang gỡ...') : t('admin.msg_ca016666', 'Gỡ cài đặt') }}
+              </button>
+
+              <!-- Pending -->
+              <span v-else-if="m.status === 'pending'" class="mod-btn mod-btn--pending" disabled>
+                <Clock :size="13" />{{ t('admin.msg_acb8dc96', 'Chờ duyệt') }}</span>
+
+              <!-- Rejected -->
+              <button v-else-if="m.status === 'rejected'" class="mod-btn mod-btn--rejected" :disabled="actionLoading === m.id" @click="requestModule(m.id)">
+                <AlertCircle :size="13" /> Yêu cầu lại
+              </button>
+
+              <!-- Paid + approved → Reinstall -->
+              <button v-else-if="m.price > 0 && m.status === 'active'" class="mod-btn mod-btn--install" :disabled="actionLoading === m.id || !allDepsInstalled(m)" @click="installModule(m.id)">
+                <Download :size="13" />
+                {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_4d4542e9', 'Cài đặt lại') }}
+              </button>
+
+              <!-- Paid → Request -->
+              <button v-else-if="m.price > 0" class="mod-btn mod-btn--request" :disabled="actionLoading === m.id || !allDepsInstalled(m)" @click="requestModule(m.id)">
+                <Send :size="13" />
+                {{ actionLoading === m.id ? t('admin.msg_6b22c83e', 'Đang gửi...') : t('admin.msg_3ba3fad4', 'Yêu cầu cài đặt') }}
+              </button>
+
+              <!-- Free → Install -->
+              <button v-else class="mod-btn mod-btn--install" :disabled="actionLoading === m.id || !allDepsInstalled(m)" @click="installModule(m.id)">
+                <Download :size="13" />
+                {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_1a691070', 'Cài đặt') }}
+              </button>
+            </div>
+
+            <div v-if="m.installed_at && m.is_installed" class="mod-card__meta">
+              Cài lúc: {{ formatDate(m.installed_at) }}
+            </div>
           </div>
-
-          <!-- Installed → Uninstall -->
-          <button
-            v-if="m.is_installed"
-            class="mod-btn mod-btn--uninstall"
-            :disabled="actionLoading === m.id"
-            @click="uninstallModule(m.id)"
-          >
-            <Trash2 :size="13" />
-            {{ actionLoading === m.id ? t('admin.msg_0c30f9fb', 'Đang gỡ...') : t('admin.msg_ca016666', 'Gỡ cài đặt') }}
-          </button>
-
-          <!-- Pending → Show waiting badge -->
-          <span v-else-if="m.status === 'pending'" class="mod-btn mod-btn--pending" disabled>
-            <Clock :size="13" />{{ t('admin.msg_acb8dc96', 'Chờ duyệt') }}</span>
-
-          <!-- Rejected → Show rejected badge + retry -->
-          <button
-            v-else-if="m.status === 'rejected'"
-            class="mod-btn mod-btn--rejected"
-            :disabled="actionLoading === m.id"
-            @click="requestModule(m.id)"
-          >
-            <AlertCircle :size="13" /> Yêu cầu lại
-          </button>
-
-          <!-- Paid + Previously approved → Reinstall directly -->
-          <button
-            v-else-if="m.price > 0 && m.status === 'active'"
-            class="mod-btn mod-btn--install"
-            :disabled="actionLoading === m.id || !allDepsInstalled(m)"
-            @click="installModule(m.id)"
-          >
-            <Download :size="13" />
-            {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_4d4542e9', 'Cài đặt lại') }}
-          </button>
-
-          <!-- Paid + Never approved → Request button -->
-          <button
-            v-else-if="m.price > 0"
-            class="mod-btn mod-btn--request"
-            :disabled="actionLoading === m.id || !allDepsInstalled(m)"
-            @click="requestModule(m.id)"
-          >
-            <Send :size="13" />
-            {{ actionLoading === m.id ? t('admin.msg_6b22c83e', 'Đang gửi...') : t('admin.msg_3ba3fad4', 'Yêu cầu cài đặt') }}
-          </button>
-
-          <!-- Free + Not installed → Install button -->
-          <button
-            v-else
-            class="mod-btn mod-btn--install"
-            :disabled="actionLoading === m.id || !allDepsInstalled(m)"
-            @click="installModule(m.id)"
-          >
-            <Download :size="13" />
-            {{ actionLoading === m.id ? t('admin.msg_95922d51', 'Đang cài...') : t('admin.msg_1a691070', 'Cài đặt') }}
-          </button>
-        </div>
-
-        <div v-if="m.installed_at && m.is_installed" class="mod-card__meta">
-          Cài lúc: {{ formatDate(m.installed_at) }}
         </div>
       </div>
-    </div>
 
-    <div v-if="!loading && modules.length === 0" class="mod-empty">
-      <Package :size="48" />
-      <p>{{ t('admin.msg_4184d885', 'Chưa có module nào') }}</p>
-    </div>
+      <div v-if="modules.length === 0" class="mod-empty">
+        <Package :size="48" />
+        <p>{{ t('admin.msg_4184d885', 'Chưa có module nào') }}</p>
+      </div>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
@@ -133,7 +131,7 @@ import {
   Puzzle, Package, Download, Trash2,
   DollarSign, Tag, Receipt, BookOpen, Users, Mail,
   Warehouse, BarChart2, ShoppingCart, Clock, AlertCircle, Send,
-  CheckCircle2, AlertTriangle,
+  CheckCircle2, AlertTriangle, Globe, Layers, Star, Truck, Megaphone,
 } from 'lucide-vue-next'
 
 const { t, formatCurrency } = useI18n()
@@ -152,20 +150,121 @@ const iconMap = {
 }
 
 const catIcons = {
-  operations: Package,
+  core: Star,
+  operations: Truck,
   finance: DollarSign,
-  marketing: Tag,
+  marketing: Megaphone,
   content: BookOpen,
   sales: Users,
 }
 
 const catLabels = {
+  core: 'Nền tảng',
   operations: t('admin.msg_8ae3233c', 'Vận hành'),
   finance: t('admin.msg_7add65a1', 'Tài chính'),
   marketing: 'Marketing',
   content: t('admin.msg_ee7ca513', 'Nội dung'),
   sales: t('admin.msg_cc0e5c0c', 'Bán hàng'),
 }
+
+// ── Module grouping config ──
+// Define the group order, labels, icons, and which categories belong where
+const groupConfig = [
+  {
+    key: 'main',
+    label: '🏪 Module Chính',
+    description: 'Các module nền tảng chính cho hệ thống của bạn',
+    categories: ['core', 'content'],
+    icon: Star,
+    iconBg: 'rgba(139,92,246,0.12)',
+    iconColor: '#a78bfa',
+    // Only standalone modules (no requires)
+    filter: m => !m.requires?.length,
+  },
+  {
+    key: 'sales',
+    label: '🛒 Bán hàng & CRM',
+    description: 'Quản lý khách hàng, đơn hàng và quy trình bán hàng',
+    categories: ['sales'],
+    icon: Users,
+    iconBg: 'rgba(59,130,246,0.12)',
+    iconColor: '#60a5fa',
+  },
+  {
+    key: 'marketing',
+    label: '📣 Marketing & Khuyến mãi',
+    description: 'Công cụ marketing, flash sale và vòng quay may mắn',
+    categories: ['marketing'],
+    icon: Megaphone,
+    iconBg: 'rgba(245,158,11,0.12)',
+    iconColor: '#fbbf24',
+  },
+  {
+    key: 'finance',
+    label: '💰 Tài chính & Kế toán',
+    description: 'Quản lý thuế, thu chi và báo cáo tài chính',
+    categories: ['finance'],
+    icon: DollarSign,
+    iconBg: 'rgba(16,185,129,0.12)',
+    iconColor: '#34d399',
+  },
+  {
+    key: 'operations',
+    label: '🚚 Vận hành & Kho',
+    description: 'Vận chuyển, quản lý kho và nghiệp vụ vận hành',
+    categories: ['operations'],
+    icon: Truck,
+    iconBg: 'rgba(239,68,68,0.12)',
+    iconColor: '#f87171',
+  },
+  {
+    key: 'addons',
+    label: '🧩 Module Bổ Sung',
+    description: 'Các module mở rộng thêm cho module chính',
+    categories: ['content'],
+    icon: Layers,
+    iconBg: 'rgba(96,165,250,0.12)',
+    iconColor: '#60a5fa',
+    // Only add-on/dependent modules from content category
+    filter: m => m.requires?.length > 0,
+  },
+]
+
+// Build grouped modules from the flat list
+const groupedModules = computed(() => {
+  const placed = new Set()
+  const groups = []
+  for (const config of groupConfig) {
+    const filtered = modules.value.filter(m => {
+      if (placed.has(m.id)) return false
+      if (!config.categories.includes(m.category)) return false
+      if (config.filter && !config.filter(m)) return false
+      return true
+    })
+    if (filtered.length === 0) continue
+    filtered.forEach(m => placed.add(m.id))
+    groups.push({
+      ...config,
+      modules: filtered,
+      installedCount: filtered.filter(m => m.is_installed).length,
+    })
+  }
+  // Catch any uncategorized modules
+  const remaining = modules.value.filter(m => !placed.has(m.id))
+  if (remaining.length > 0) {
+    groups.push({
+      key: 'other',
+      label: '📦 Khác',
+      description: 'Các module khác',
+      icon: Package,
+      iconBg: 'rgba(148,163,184,0.12)',
+      iconColor: '#94a3b8',
+      modules: remaining,
+      installedCount: remaining.filter(m => m.is_installed).length,
+    })
+  }
+  return groups
+})
 
 async function fetchModules() {
   loading.value = true
@@ -280,12 +379,32 @@ onMounted(fetchModules)
 <style scoped>
 .mod-manager { padding: 24px; overflow-y: auto; height: 100%; }
 .mod-header { margin-bottom: 28px; }
-.mod-header h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.mod-header h2 { margin: 0; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .mod-subtitle { font-size: 13px; color: var(--color-text-muted); margin: 6px 0 0; }
 
 .mod-loading { text-align: center; padding: 60px; color: var(--color-text-muted); font-size: 14px; }
 .mod-empty { text-align: center; padding: 80px 20px; color: var(--color-text-muted); }
 .mod-empty p { margin-top: 12px; font-size: 14px; }
+
+/* ── Group Sections ── */
+.mod-group { margin-bottom: 32px; }
+.mod-group__header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 18px; padding: 14px 18px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 14px;
+}
+.mod-group__icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.mod-group__title { margin: 0; font-size: 16px; font-weight: 800; color: var(--color-text-primary); }
+.mod-group__desc { margin: 2px 0 0; font-size: 12px; color: var(--color-text-muted); }
+.mod-group__count {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  padding: 4px 10px; border-radius: 8px; white-space: nowrap;
+  background: rgba(52,211,153,0.12); color: #34d399;
+}
 
 .mod-grid {
   display: grid;
