@@ -190,7 +190,7 @@
         class="container custom-block-section"
       >
         <h2 v-if="rp(section).title" class="section-title">{{ rp(section).title }}</h2>
-        <div class="custom-block-content" v-html="sanitize(rc(section))"></div>
+        <ShortcodeRenderer class="custom-block-content" :html="rc(section)" />
       </div>
       </div>
     </template>
@@ -268,6 +268,7 @@ import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.
 import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
 import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
 import HomeSectionTrustBadges from '../components/sections/HomeSectionTrustBadges.vue'
+import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
 
 const { setPageSeo } = useSeo()
 

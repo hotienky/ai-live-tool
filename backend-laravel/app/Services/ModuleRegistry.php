@@ -200,10 +200,29 @@ class ModuleRegistry
             'installed_at' => now(),
         ]);
 
+        // Run module-specific migrations (create tables if needed)
+        static::runModuleMigrations($sub->module_id);
+
         // Clear caches
         static::clearCache($sub->tenant_id);
 
         $module = Module::where('module_id', $sub->module_id)->first();
+        
+        // Notify tenant
+        $tenant = \App\Models\Tenant::find($sub->tenant_id);
+        if ($tenant) {
+            $tenant->run(function () use ($module, $sub) {
+                \App\Models\Notification::create([
+                    'user_id' => $sub->installed_by,
+                    'type' => 'system',
+                    'title' => 'Yêu cầu Module được duyệt',
+                    'message' => "Yêu cầu cài đặt module '{$module->name}' đã được duyệt thành công. Bạn có thể bắt đầu sử dụng.",
+                    'link' => '/settings/modules',
+                    'created_at' => now(),
+                ]);
+            });
+        }
+
         return ['success' => true, 'message' => "Đã duyệt: {$module->name}"];
     }
 
@@ -220,6 +239,22 @@ class ModuleRegistry
         ]);
 
         $module = Module::where('module_id', $sub->module_id)->first();
+
+        // Notify tenant
+        $tenant = \App\Models\Tenant::find($sub->tenant_id);
+        if ($tenant) {
+            $tenant->run(function () use ($module, $sub, $reason) {
+                \App\Models\Notification::create([
+                    'user_id' => $sub->installed_by,
+                    'type' => 'system',
+                    'title' => 'Yêu cầu Module bị từ chối',
+                    'message' => "Yêu cầu cài đặt module '{$module->name}' đã bị từ chối. Lời nhắn từ Admin: " . ($reason ?? $sub->request_note ?: 'Không có'),
+                    'link' => '/settings/modules',
+                    'created_at' => now(),
+                ]);
+            });
+        }
+
         return ['success' => true, 'message' => "Đã từ chối: {$module->name}"];
     }
 

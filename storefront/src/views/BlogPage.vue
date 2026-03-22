@@ -88,7 +88,7 @@
           <img :src="currentPost.image || currentPost.featured_image" :alt="currentPost.title" />
         </div>
 
-        <div class="blog-detail__content" v-html="sanitize(currentPost.body)"></div>
+        <ShortcodeRenderer class="blog-detail__content" :html="currentPost.body" />
 
         <!-- Comments Section -->
         <section v-if="comments.length > 0 || true" class="blog-comments">
@@ -146,6 +146,7 @@ import {
   BookOpen, FileText, Calendar, User, ChevronRight, ArrowLeft,
   MessageCircle, Send, Tag, FileQuestion
 } from 'lucide-vue-next'
+import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
 import { useSanitize } from '../composables/useSanitize.js'
 
 const { t } = useI18n()

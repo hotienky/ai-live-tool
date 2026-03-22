@@ -135,7 +135,8 @@ async function loadSiteConfig() {
         logo: info.logo || '',
       })
     }
-  } catch {
+  } catch (err) {
+    console.error('[Storefront] Failed to load site-config:', err)
     layoutConfig.value = {
       sections: [
         { type: 'banner', enabled: true, order: 0 },

@@ -425,8 +425,23 @@ const navItems = computed(() => {
 // Check if item's featureGroup is enabled for this tenant
 function isFeatureEnabled(featureGroup) {
   if (!featureGroup) return true // no featureGroup = always visible (e.g. Dashboard)
-  const tf = tenantFeatures.value
-  if (tf === 'all') return true
+  
+  let tf = tenantFeatures.value
+  if (!tf || tf === 'all') return true
+  
+  // Parse string arrays or comma-separated lists
+  if (typeof tf === 'string') {
+    if (tf.startsWith('[')) {
+      try { tf = JSON.parse(tf) } catch (e) {}
+    } else if (tf.includes(',')) {
+      tf = tf.split(',').map(s => s.trim())
+    }
+  }
+
+  if (Array.isArray(tf)) {
+    return tf.includes(featureGroup)
+  }
+  
   return tf === featureGroup
 }
 

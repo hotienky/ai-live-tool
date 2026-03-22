@@ -538,6 +538,76 @@
         <PluginRenderer moduleId="ai-assistant" tabKey="ai-assistant" />
       </div>
 
+      <!-- ═══ Tab: Blog Posts (Plugin) ═══ -->
+      <div v-if="activeTab === 'blog-posts'" class="settings__panel">
+        <PluginRenderer moduleId="blog" tabKey="blog-posts" />
+      </div>
+
+      <!-- ═══ Tab: Blog Categories (Plugin) ═══ -->
+      <div v-if="activeTab === 'blog-categories'" class="settings__panel">
+        <PluginRenderer moduleId="blog" tabKey="blog-categories" />
+      </div>
+
+      <!-- ═══ Tab: Blog Comments (Plugin) ═══ -->
+      <div v-if="activeTab === 'blog-comments'" class="settings__panel">
+        <PluginRenderer moduleId="blog" tabKey="blog-comments" />
+      </div>
+
+      <!-- ═══ Tab: Blog Settings (Plugin) ═══ -->
+      <div v-if="activeTab === 'blog-settings'" class="settings__panel">
+        <PluginRenderer moduleId="blog" tabKey="blog-settings" />
+      </div>
+
+      <!-- ═══ Tab: Booking (Plugin) ═══ -->
+      <div v-if="activeTab === 'booking'" class="settings__panel">
+        <PluginRenderer moduleId="booking" tabKey="booking" />
+      </div>
+
+      <!-- ═══ Tab: Events (Plugin) ═══ -->
+      <div v-if="activeTab === 'events'" class="settings__panel">
+        <PluginRenderer moduleId="events" tabKey="events" />
+      </div>
+
+      <!-- ═══ Tab: Restaurant (Plugin) ═══ -->
+      <div v-if="activeTab === 'restaurant'" class="settings__panel">
+        <PluginRenderer moduleId="restaurant" tabKey="restaurant" />
+      </div>
+
+      <!-- ═══ Tab: Salon (Plugin) ═══ -->
+      <div v-if="activeTab === 'salon'" class="settings__panel">
+        <PluginRenderer moduleId="salon" tabKey="salon" />
+      </div>
+
+      <!-- ═══ Tab: LMS (Plugin) ═══ -->
+      <div v-if="activeTab === 'lms'" class="settings__panel">
+        <PluginRenderer moduleId="lms" tabKey="lms" />
+      </div>
+
+      <!-- ═══ Tab: Forum (Plugin) ═══ -->
+      <div v-if="activeTab === 'forum'" class="settings__panel">
+        <PluginRenderer moduleId="forum" tabKey="forum" />
+      </div>
+
+      <!-- ═══ Tab: Job Board (Plugin) ═══ -->
+      <div v-if="activeTab === 'jobboard'" class="settings__panel">
+        <PluginRenderer moduleId="jobboard" tabKey="jobboard" />
+      </div>
+
+      <!-- ═══ Tab: Real Estate (Plugin) ═══ -->
+      <div v-if="activeTab === 'realestate'" class="settings__panel">
+        <PluginRenderer moduleId="realestate" tabKey="realestate" />
+      </div>
+
+      <!-- ═══ Tab: Lucky Draw (Plugin) ═══ -->
+      <div v-if="activeTab === 'lucky-draw'" class="settings__panel">
+        <PluginRenderer moduleId="lucky-draw" tabKey="lucky-draw" />
+      </div>
+
+      <!-- ═══ Tab: Membership (Plugin) ═══ -->
+      <div v-if="activeTab === 'membership'" class="settings__panel">
+        <PluginRenderer moduleId="membership" tabKey="membership" />
+      </div>
+
       <!-- ═══ Tab: Modules ═══ -->
       <div v-if="activeTab === 'modules'" class="settings__panel">
         <ModuleManager @modulesChanged="onModulesChanged" />
@@ -753,7 +823,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -882,6 +952,14 @@ const tabGroups = [
     ],
   },
   {
+    label: 'Blog',
+    items: [
+      { key: 'blog-posts', label: t('admin.posts', 'Bài viết'), icon: BookOpen },
+      { key: 'blog-comments', label: t('admin.comments', 'Bình luận'), icon: MessageCircle },
+      { key: 'blog-settings', label: t('admin.config', 'Cấu hình'), icon: Cog },
+    ],
+  },
+  {
     label: t('admin.system', 'Hệ thống'),
     items: [
       { key: 'seo', label: 'SEO', icon: Search },
@@ -922,6 +1000,13 @@ const tabToRoute = {
   // Hệ thống
   'api-keys': 'system/api-keys', 'webhooks': 'system/webhooks', 'custom-fields': 'shop/custom-fields',
   'activity-logs': 'system/logs', 'roles': 'system/roles', 'modules': 'system/modules',
+  // Blog
+  'blog-posts': 'blog/posts', 'blog-categories': 'blog/categories', 'blog-comments': 'blog/comments', 'blog-settings': 'blog/settings',
+  // Plugins
+  'booking': 'booking/dashboard', 'events': 'events/dashboard', 'restaurant': 'restaurant/dashboard',
+  'salon': 'salon/dashboard', 'lms': 'lms/dashboard', 'forum': 'forum/dashboard',
+  'jobboard': 'jobboard/dashboard', 'realestate': 'realestate/dashboard',
+  'lucky-draw': 'lucky-draw/dashboard', 'membership': 'membership/dashboard',
 }
 
 // ── Installed Modules state ──
@@ -971,6 +1056,12 @@ const moduleTabMap = {
   'ai-assistant': 'ai-assistant',
   // Languages (show if module installed)
   'languages': 'languages',
+  // Blog
+  'blog-posts': 'blog', 'blog-categories': 'blog', 'blog-comments': 'blog', 'blog-settings': 'blog',
+  // New plugins
+  'booking': 'booking', 'events': 'events', 'restaurant': 'restaurant', 'salon': 'salon',
+  'lms': 'lms', 'forum': 'forum', 'jobboard': 'jobboard', 'realestate': 'realestate',
+  'lucky-draw': 'lucky-draw', 'membership': 'membership',
 }
 
 function onModulesChanged(newInstalled) {
@@ -990,7 +1081,7 @@ function isModuleInstalled(moduleId) {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value

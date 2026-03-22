@@ -4,7 +4,7 @@
       <Type :size="22" class="section-title__accent" />
       {{ params.title }}
     </h2>
-    <div class="text-content" v-if="htmlContent" v-html="sanitize(htmlContent)"></div>
+    <ShortcodeRenderer class="text-content" v-if="htmlContent" :html="htmlContent" />
     <p v-else class="section-empty">{{ t('storefront.section.text_empty', 'Chưa có nội dung') }}</p>
   </section>
 </template>
@@ -14,6 +14,7 @@ import { computed } from 'vue'
 import { Type } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { useSanitize } from '../../composables/useSanitize.js'
+import ShortcodeRenderer from '../ShortcodeRenderer.vue'
 
 const { t } = useI18n()
 const { sanitize } = useSanitize()

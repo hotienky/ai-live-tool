@@ -100,6 +100,38 @@ class FormController extends Controller
         ]);
     }
 
+    // Public: get form schema (storefront)
+    public function showPublic($slug)
+    {
+        $form = Form::where('slug', $slug)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        // Sanitize field labels/placeholders to prevent XSS
+        $fields = collect($form->fields)->map(function ($field) {
+            if (isset($field['label'])) {
+                $field['label'] = strip_tags($field['label']);
+            }
+            if (isset($field['placeholder'])) {
+                $field['placeholder'] = strip_tags($field['placeholder']);
+            }
+            return $field;
+        })->toArray();
+
+        return response()->json([
+            'type' => 'success',
+            'data' => [
+                'id' => $form->id,
+                'title' => strip_tags($form->title),
+                'slug' => $form->slug,
+                'fields' => $fields,
+                'settings' => [
+                    'success_message' => strip_tags($form->settings['success_message'] ?? 'Thành công'),
+                ],
+            ],
+        ]);
+    }
+
     // Public: submit a form (storefront)
     public function submit(Request $request, $slug)
     {

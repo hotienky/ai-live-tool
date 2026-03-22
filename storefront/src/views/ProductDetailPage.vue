@@ -194,13 +194,12 @@
         </div>
       </div>
 
-      <!-- Description -->
       <div class="detail-description" v-if="product.description">
         <h2 class="section-title">
           <FileText :size="20" class="section-title__accent" />
           {{ t('storefront.product_description') || 'Mô tả sản phẩm' }}
         </h2>
-        <div class="detail-desc-content" v-html="sanitize(product.description)"></div>
+        <ShortcodeRenderer class="detail-desc-content" :html="product.description" />
       </div>
 
       <!-- Related Products -->
@@ -335,6 +334,7 @@ import { useToast } from '../composables/useToast.js'
 import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
+import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
 import { useSanitize } from '../composables/useSanitize.js'
 
 const { sanitize } = useSanitize()

@@ -41,7 +41,7 @@
 
           <!-- Text Column -->
           <template v-if="col.type === 'text'">
-            <div class="sf-text-content" v-html="sanitize(col.content)"></div>
+            <ShortcodeRenderer class="sf-text-content" :html="col.content" />
           </template>
         </div>
 
@@ -98,7 +98,7 @@
 
       <!-- Legal / Company Info -->
       <div class="site-footer__legal" v-if="cfg.legalText">
-        <div class="sf-legal-text" v-html="sanitize(nl2br(cfg.legalText))"></div>
+        <ShortcodeRenderer class="sf-legal-text" :html="nl2br(cfg.legalText)" />
       </div>
 
       <!-- Copyright -->
@@ -120,6 +120,7 @@ import {
 } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
 import { useModules } from '../composables/useModules.js'
+import ShortcodeRenderer from './ShortcodeRenderer.vue'
 import NewsletterForm from './NewsletterForm.vue'
 
 const { t } = useI18n()

@@ -118,7 +118,7 @@
               class="container custom-block-section"
             >
               <h2 v-if="section.params?.title" class="section-title">{{ section.params.title }}</h2>
-              <div class="custom-block-content" v-html="sanitize(section.content)"></div>
+              <ShortcodeRenderer class="custom-block-content" :html="section.content" />
             </div>
 
           </div>
@@ -137,7 +137,7 @@
         <div class="cms-banner" v-if="page.image">
           <img :src="page.image" :alt="page.title" />
         </div>
-        <div class="cms-body" v-html="sanitize(page.content)"></div>
+        <ShortcodeRenderer class="cms-body" :html="page.content" />
       </article>
 
     </div>
@@ -173,6 +173,7 @@ import HomeSectionNewsletter from '../components/sections/HomeSectionNewsletter.
 import HomeSectionSocial from '../components/sections/HomeSectionSocial.vue'
 import HomeSectionBrands from '../components/sections/HomeSectionBrands.vue'
 import HomeSectionTrustBadges from '../components/sections/HomeSectionTrustBadges.vue'
+import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useSanitize } from '../composables/useSanitize.js'
 
