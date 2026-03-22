@@ -179,6 +179,7 @@
       :flashSaleEditId="flashSaleEditId"
       @openShopSelector="shopSelectorRef?.open()"
       @navigate="navigateTo"
+      @modulesChanged="onModulesChanged"
     />
     <!-- ═══ View: All Notifications ═══ -->
     <NotificationPage
@@ -361,6 +362,11 @@ async function fetchInstalledModules() {
 function isModuleInstalled(moduleId) {
   if (!moduleId) return true // no moduleId = always visible
   return installedModules.value.includes(moduleId)
+}
+
+// Re-load plugin bundles when modules are installed/uninstalled
+async function onModulesChanged() {
+  await fetchInstalledModules()
 }
 
 // Fetch on mount

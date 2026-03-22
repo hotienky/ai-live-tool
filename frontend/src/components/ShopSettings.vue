@@ -583,7 +583,7 @@ const props = defineProps({
   flashSaleFormMode: { type: String, default: null }, // null | 'create' | 'edit'
 })
 
-const emit = defineEmits(['openShopSelector', 'navigate'])
+const emit = defineEmits(['openShopSelector', 'navigate', 'modulesChanged'])
 
 // CMS form state
 const cmsFormMode = ref(null) // null = list, 'create', 'edit'
@@ -915,6 +915,7 @@ const moduleTabMap = {
 
 function onModulesChanged(newInstalled) {
   installedModules.value = newInstalled
+  emit('modulesChanged', newInstalled)
 }
 
 // Check if a tab should use PluginRenderer (dynamic) vs static component
