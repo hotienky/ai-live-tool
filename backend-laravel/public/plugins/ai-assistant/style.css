@@ -1,1 +1,56 @@
-/* AI Trợ lý viết nội dung styles */
+/* AI Assistant Plugin Styles */
+.ai { color: var(--color-text-primary); }
+.ai-header { display:flex;align-items:center;gap:12px;margin-bottom:16px; }
+.ai-header h3 { font-size:18px;font-weight:700;margin:0; }
+.ai-badge { background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700; }
+
+/* Tabs */
+.ai-tabs { display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap; }
+.ai-tab { display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--color-bg-secondary);border:1px solid var(--color-border);padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .2s;min-width:80px; }
+.ai-tab:hover { border-color:var(--accent,#7c3aed);transform:translateY(-1px); }
+.ai-tab--active { background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(37,99,235,.15));border-color:var(--accent,#7c3aed);box-shadow:0 2px 8px rgba(124,58,237,.2); }
+.ai-tab-icon { font-size:18px; }
+.ai-tab-label { font-size:11px;font-weight:600;color:var(--color-text-secondary); }
+.ai-tab--active .ai-tab-label { color:var(--accent,#7c3aed); }
+
+/* Body */
+.ai-body { display:flex;flex-direction:column;gap:16px; }
+.ai-panel { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:12px;padding:20px; }
+.ai-panel h4 { margin:0 0 4px;font-size:16px; }
+.ai-desc { color:var(--color-text-secondary);font-size:13px;margin:0 0 16px; }
+
+/* Form */
+.ai-form { display:flex;flex-direction:column;gap:10px; }
+.ai-form label { font-size:12px;font-weight:600;color:var(--color-text-secondary); }
+.ai-input { width:100%;background:var(--color-bg-tertiary);border:1px solid var(--color-border);padding:8px 12px;border-radius:6px;font-size:13px;color:var(--color-text-primary);box-sizing:border-box;transition:border .15s; }
+.ai-input:focus { outline:none;border-color:var(--accent,#7c3aed); }
+.ai-textarea { min-height:80px;resize:vertical;font-family:inherit; }
+.ai-row { display:flex;gap:12px; }
+.ai-col { flex:1; }
+
+/* Sales Type Grid */
+.ai-type-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin:4px 0 8px; }
+.ai-type-btn { display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px;background:var(--color-bg-tertiary);border:1px solid var(--color-border);border-radius:6px;cursor:pointer;transition:all .15s;font-size:13px; }
+.ai-type-btn small { font-size:10px;color:var(--color-text-muted); }
+.ai-type-btn:hover { border-color:var(--accent,#7c3aed); }
+.ai-type-btn--active { background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(37,99,235,.1));border-color:var(--accent,#7c3aed);box-shadow:0 0 0 1px var(--accent,#7c3aed); }
+
+/* Buttons */
+.ai-btn { background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;transition:all .2s;align-self:flex-start; }
+.ai-btn:hover { filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,.3); }
+.ai-btn:disabled { opacity:.6;cursor:not-allowed;transform:none; }
+.ai-btn--sales { background:linear-gradient(135deg,#f59e0b,#ef4444); }
+
+/* Result */
+.ai-result { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:12px;overflow:hidden; }
+.ai-result-header { display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--color-border);background:var(--color-bg-tertiary); }
+.ai-result-header h4 { margin:0;font-size:14px; }
+.ai-copy { background:var(--accent,#7c3aed);color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s; }
+.ai-copy:hover { filter:brightness(1.1); }
+.ai-result-body { padding:16px;max-height:400px;overflow-y:auto; }
+.ai-result-text { white-space:pre-wrap;font-size:13px;line-height:1.7;margin:0;font-family:inherit;color:var(--color-text-primary); }
+
+/* Loading */
+.ai-loading { display:flex;align-items:center;gap:10px;padding:20px;justify-content:center;color:var(--color-text-secondary);font-size:14px; }
+.ai-spinner { width:20px;height:20px;border:2px solid var(--color-border);border-top-color:var(--accent,#7c3aed);border-radius:50%;animation:ai-spin 1s linear infinite; }
+@keyframes ai-spin { to { transform:rotate(360deg); } }

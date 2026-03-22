@@ -489,6 +489,14 @@ const coreRouteToTab = {
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'system/modules': 'modules',
+  // Forms (plugin)
+  'forms': 'forms', 'forms/create': 'forms', 'forms/submissions': 'form-submissions',
+  // Reviews (plugin)
+  'shop/reviews': 'reviews',
+  // SEO (plugin)
+  'system/seo': 'seo',
+  // AI Assistant (plugin)
+  'ai-assistant': 'ai-assistant',
 }
 
 // ── Dynamic route config via hooks — plugins extend this ──

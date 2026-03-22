@@ -1,1 +1,37 @@
-/* SEO & Tối ưu tìm kiếm styles */
+/* SEO Plugin Styles */
+.seo { color: var(--color-text-primary); }
+.seo-header { margin-bottom:16px; }
+.seo-header h3 { font-size:18px;font-weight:700; }
+
+.seo-tabs { display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--color-border);padding-bottom:10px; }
+.seo-tabs button { background:none;border:none;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--color-text-secondary);border-radius:6px 6px 0 0;transition:all .15s; }
+.seo-tabs button:hover { color:var(--accent,#7c3aed); }
+.seo-tab--active { background:var(--color-bg-secondary) !important;color:var(--accent,#7c3aed) !important;font-weight:600;border-bottom:2px solid var(--accent,#7c3aed) !important; }
+
+.seo-panel { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:10px;padding:20px; }
+.seo-group { margin-bottom:16px; }
+.seo-group label { display:block;font-size:13px;font-weight:600;margin-bottom:4px; }
+.seo-group small { font-size:11px;color:var(--color-text-muted);margin-top:2px;display:block; }
+.seo-input { width:100%;background:var(--color-bg-tertiary);border:1px solid var(--color-border);padding:8px 12px;border-radius:6px;font-size:13px;color:var(--color-text-primary);box-sizing:border-box; }
+.seo-input:focus { outline:none;border-color:var(--accent,#7c3aed); }
+.seo-textarea { min-height:60px;resize:vertical; }
+.seo-code { font-family:monospace;font-size:12px; }
+
+.seo-preview { margin:20px 0;padding:16px;background:var(--color-bg-primary);border-radius:8px; }
+.seo-preview h4 { margin:0 0 10px;font-size:13px;color:var(--color-text-secondary); }
+.seo-google-preview { padding:12px;border:1px solid #ddd;border-radius:6px;background:#fff; }
+.sgp-title { color:#1a0dab;font-size:18px;font-weight:400;margin-bottom:2px;font-family:Arial,sans-serif; }
+.sgp-url { color:#006621;font-size:13px;margin-bottom:2px;font-family:Arial,sans-serif; }
+.sgp-desc { color:#545454;font-size:13px;line-height:1.5;font-family:Arial,sans-serif; }
+
+.seo-save { background:var(--accent,#7c3aed);color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s; }
+.seo-save:hover { filter:brightness(1.1); }
+.seo-save:disabled { opacity:.6;cursor:not-allowed; }
+
+.seo-feature h4 { margin:0 0 8px; }
+.seo-feature p { color:var(--color-text-secondary);font-size:13px;margin:0 0 12px; }
+
+.seo-checklist h4 { margin:0 0 14px; }
+.seo-check { padding:10px 14px;border-radius:6px;margin-bottom:6px;font-size:13px;display:flex;align-items:center;gap:8px; }
+.seo-check--pass { background:rgba(34,197,94,.1); }
+.seo-check--fail { background:rgba(239,68,68,.1); }

@@ -7,12 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class FormSubmission extends Model
 {
     protected $fillable = [
-        'form_title',
-        'data',
-        'source_page',
-        'ip_address',
-        'user_agent',
-        'is_read',
+        'form_id', 'data', 'ip_address', 'user_agent', 'is_read',
     ];
 
     protected $casts = [
@@ -20,13 +15,8 @@ class FormSubmission extends Model
         'is_read' => 'boolean',
     ];
 
-    public function scopeUnread($query)
+    public function form()
     {
-        return $query->where('is_read', false);
-    }
-
-    public function markAsRead(): void
-    {
-        $this->update(['is_read' => true]);
+        return $this->belongsTo(Form::class);
     }
 }

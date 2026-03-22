@@ -24,7 +24,7 @@ class Language extends Model
      */
     public static function getDefaultCode(): string
     {
-        return static::where('is_default', true)->value('code') ?? 'vi';
+        return static::whereRaw('"is_default" = true')->value('code') ?? 'vi';
     }
 
     /** Check if this is the default (base/source) language */

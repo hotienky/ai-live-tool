@@ -1,1 +1,35 @@
-/* Đánh giá & Nhận xét styles */
+/* Reviews Plugin Styles */
+.rv { color: var(--color-text-primary); }
+.rv-header { margin-bottom:16px; }
+.rv-header h3 { font-size:18px;font-weight:700; }
+
+.rv-stats { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+.rv-stat { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:10px;padding:14px;text-align:center; }
+.rv-stat-num { display:block;font-size:24px;font-weight:800;color:var(--accent,#7c3aed); }
+.rv-stat-label { font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.5px; }
+.rv-stat--pending .rv-stat-num { color:#f59e0b; }
+.rv-stat--approved .rv-stat-num { color:#22c55e; }
+.rv-stat--rating .rv-stat-num { color:#eab308; }
+
+.rv-filters { display:flex;gap:8px;margin-bottom:16px; }
+.rv-filters button { background:var(--color-bg-secondary);border:1px solid var(--color-border);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--color-text-primary);transition:all .15s; }
+.rv-filters button:hover { border-color:var(--accent,#7c3aed); }
+.rv-filter--active { background:var(--accent,#7c3aed) !important;color:#fff !important;border-color:transparent !important; }
+
+.rv-loading,.rv-empty { text-align:center;padding:40px;color:var(--color-text-secondary); }
+
+.rv-list { display:flex;flex-direction:column;gap:10px; }
+.rv-card { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:10px;padding:14px;transition:all .15s; }
+.rv-card:hover { border-color:var(--accent,#7c3aed); }
+.rv-card--pending { border-left:3px solid #f59e0b; }
+.rv-card-top { display:flex;align-items:center;gap:10px;margin-bottom:8px; }
+.rv-avatar { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent,#7c3aed),#a78bfa);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px; }
+.rv-info { flex:1; }
+.rv-info strong { font-size:14px; }
+.rv-stars { color:#eab308;font-size:14px;letter-spacing:1px; }
+.rv-date { font-size:11px;color:var(--color-text-muted); }
+.rv-content { font-size:13px;line-height:1.5;margin:0 0 10px;color:var(--color-text-secondary); }
+.rv-card-actions { display:flex;gap:8px; }
+.rv-card-actions button { background:var(--color-bg-tertiary);border:1px solid var(--color-border);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .15s; }
+.rv-card-actions button:hover { background:var(--accent,#7c3aed);color:#fff;border-color:transparent; }
+.rv-del:hover { background:#ef4444 !important;color:#fff !important; }

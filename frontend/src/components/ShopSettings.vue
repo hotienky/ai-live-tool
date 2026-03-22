@@ -513,6 +513,31 @@
         <PluginRenderer moduleId="warehouse" tabKey="inventory-reports" />
       </div>
 
+      <!-- ═══ Tab: Forms (Plugin) ═══ -->
+      <div v-if="activeTab === 'forms'" class="settings__panel">
+        <PluginRenderer moduleId="forms" tabKey="forms" @navigate="onFormNavigate" />
+      </div>
+
+      <!-- ═══ Tab: Form Submissions (Plugin) ═══ -->
+      <div v-if="activeTab === 'form-submissions'" class="settings__panel">
+        <PluginRenderer moduleId="forms" tabKey="form-submissions" />
+      </div>
+
+      <!-- ═══ Tab: Reviews (Plugin) ═══ -->
+      <div v-if="activeTab === 'reviews'" class="settings__panel">
+        <PluginRenderer moduleId="reviews" tabKey="reviews" />
+      </div>
+
+      <!-- ═══ Tab: SEO (Plugin) ═══ -->
+      <div v-if="activeTab === 'seo'" class="settings__panel">
+        <PluginRenderer moduleId="seo" tabKey="seo" />
+      </div>
+
+      <!-- ═══ Tab: AI Assistant (Plugin) ═══ -->
+      <div v-if="activeTab === 'ai-assistant'" class="settings__panel">
+        <PluginRenderer moduleId="ai-assistant" tabKey="ai-assistant" />
+      </div>
+
       <!-- ═══ Tab: Modules ═══ -->
       <div v-if="activeTab === 'modules'" class="settings__panel">
         <ModuleManager @modulesChanged="onModulesChanged" />
@@ -530,7 +555,7 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag, Zap, BarChart2, Puzzle,
+  FolderTree, Award, Users, Tag, Zap, BarChart2, Puzzle, Bot,
   Cog, KeyRound, Globe, LayoutList, DollarSign, Briefcase, Wallet,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle, Search,
@@ -642,6 +667,11 @@ function onCmsFormNavigate(route) {
   }
 }
 
+// Handle navigate from Forms plugin
+function onFormNavigate(route) {
+  emit('navigate', route)
+}
+
 const { theme, accentColor, fontSize: fontSizePref, accentPresets, setTheme, setAccent, setFontSize } = useTheme()
 const { can, canAny, isSuperAdmin } = usePermissions()
 
@@ -723,7 +753,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant']
 const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -839,8 +869,22 @@ const tabGroups = [
     ],
   },
   {
+    label: t('admin.content', 'Nội dung'),
+    items: [
+      { key: 'forms', label: 'Form Builder', icon: ClipboardList },
+      { key: 'reviews', label: t('admin.reviews', 'Đánh giá'), icon: Award },
+    ],
+  },
+  {
+    label: 'Công cụ AI',
+    items: [
+      { key: 'ai-assistant', label: 'AI Assistant', icon: Bot },
+    ],
+  },
+  {
     label: t('admin.system', 'Hệ thống'),
     items: [
+      { key: 'seo', label: 'SEO', icon: Search },
       { key: 'api-keys', label: 'API Keys', icon: KeyRound },
       { key: 'webhooks', label: 'Webhooks', icon: Webhook },
       { key: 'custom-fields', label: 'Custom Fields', icon: LayoutList },
@@ -866,6 +910,13 @@ const tabToRoute = {
   // Giao diện
   'cms': 'shop/cms', 'banners': 'shop/banners', 'media': 'shop/media',
   'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
+  // Content
+  'forms': 'forms', 'form-submissions': 'forms/submissions',
+  'reviews': 'shop/reviews',
+  // SEO
+  'seo': 'system/seo',
+  // AI
+  'ai-assistant': 'ai-assistant',
   // Cửa hàng
   'store-info': 'shop/info', 'system-config': 'shop/config', 'languages': 'shop/languages',
   // Hệ thống
@@ -909,6 +960,15 @@ const moduleTabMap = {
   // CMS (content management)
   'cms': 'cms',
   'banners': 'cms',
+  // Forms
+  'forms': 'forms',
+  'form-submissions': 'forms',
+  // Reviews
+  'reviews': 'reviews',
+  // SEO
+  'seo': 'seo',
+  // AI Assistant
+  'ai-assistant': 'ai-assistant',
   // Languages (show if module installed)
   'languages': 'languages',
 }
@@ -930,7 +990,7 @@ function isModuleInstalled(moduleId) {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
