@@ -18,6 +18,7 @@
 .ai-panel { background:var(--color-bg-secondary);border:1px solid var(--color-border);border-radius:12px;padding:20px; }
 .ai-panel h4 { margin:0 0 4px;font-size:16px; }
 .ai-desc { color:var(--color-text-secondary);font-size:13px;margin:0 0 16px; }
+.ai-hint { color:var(--color-text-muted);font-size:12px;margin:4px 0; }
 
 /* Form */
 .ai-form { display:flex;flex-direction:column;gap:10px; }
@@ -54,3 +55,52 @@
 .ai-loading { display:flex;align-items:center;gap:10px;padding:20px;justify-content:center;color:var(--color-text-secondary);font-size:14px; }
 .ai-spinner { width:20px;height:20px;border:2px solid var(--color-border);border-top-color:var(--accent,#7c3aed);border-radius:50%;animation:ai-spin 1s linear infinite; }
 @keyframes ai-spin { to { transform:rotate(360deg); } }
+
+/* ═══ Settings Tab Styles ═══ */
+.ai-settings { display:flex;flex-direction:column;gap:16px; }
+.ai-setting-card { background:var(--color-bg-tertiary);border:1px solid var(--color-border);border-radius:10px;padding:16px; }
+.ai-setting-card h5 { margin:0 0 12px;font-size:14px;font-weight:700; }
+.ai-setting-card h6 { margin:12px 0 8px;font-size:12px;font-weight:600;color:var(--color-text-secondary); }
+
+/* Key Mode Selection */
+.ai-key-modes { display:flex;flex-direction:column;gap:8px; }
+.ai-key-mode {
+  display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px;cursor:pointer;
+  border:2px solid var(--color-border);background:var(--color-bg-secondary);transition:all .2s;
+}
+.ai-key-mode:hover { border-color:rgba(124,58,237,.3); }
+.ai-key-mode--active { border-color:var(--accent,#7c3aed);background:linear-gradient(135deg,rgba(124,58,237,.05),rgba(37,99,235,.05));box-shadow:0 0 0 1px rgba(124,58,237,.1); }
+.ai-key-mode-icon { font-size:24px;flex-shrink:0; }
+.ai-key-mode div { flex:1; }
+.ai-key-mode strong { display:block;font-size:13px;color:var(--color-text-primary); }
+.ai-key-mode small { display:block;font-size:11px;color:var(--color-text-muted);margin-top:2px; }
+.ai-key-status { flex-shrink:0;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px; }
+.ai-key-status--ok { background:rgba(22,163,74,.1);color:#16a34a; }
+.ai-key-status--warn { background:rgba(245,158,11,.1);color:#f59e0b; }
+
+/* Pricing */
+.ai-pricing { display:flex;flex-direction:column;gap:6px; }
+.ai-price-row { display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--color-border);font-size:13px; }
+.ai-price-row:last-child { border-bottom:none; }
+.ai-price-row span { color:var(--color-text-secondary); }
+.ai-price-row strong { color:var(--color-text-primary); }
+
+/* Usage Dashboard */
+.ai-usage-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:12px; }
+.ai-usage-refresh { background:none;border:1px solid var(--color-border);padding:4px 8px;border-radius:6px;cursor:pointer;font-size:14px;transition:all .15s; }
+.ai-usage-refresh:hover { background:var(--color-bg-secondary); }
+
+.ai-usage-stats { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px; }
+.ai-stat { display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px;border-radius:10px;background:var(--color-bg-secondary);border:1px solid var(--color-border); }
+.ai-stat-value { font-size:22px;font-weight:800;background:linear-gradient(135deg,#7c3aed,#2563eb);-webkit-background-clip:text;-webkit-text-fill-color:transparent; }
+.ai-stat-label { font-size:11px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.5px; }
+
+/* Usage Tables */
+.ai-usage-table { margin-top:12px; }
+.ai-usage-table table { width:100%;border-collapse:collapse;font-size:12px; }
+.ai-usage-table th { text-align:left;padding:6px 8px;background:var(--color-bg-secondary);border-bottom:1px solid var(--color-border);font-weight:700;color:var(--color-text-secondary);font-size:11px;text-transform:uppercase; }
+.ai-usage-table td { padding:6px 8px;border-bottom:1px solid var(--color-border); }
+
+/* Key mode badges */
+.ai-badge-system { background:rgba(37,99,235,.1);color:#2563eb;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600; }
+.ai-badge-own { background:rgba(22,163,74,.1);color:#16a34a;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600; }

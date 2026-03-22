@@ -115,4 +115,5 @@ Route::prefix('master')->middleware(\App\Http\Middleware\MasterAuth::class)->gro
     require __DIR__ . '/masterModules/roles.php';
     require __DIR__ . '/masterModules/users.php';
     require __DIR__ . '/masterModules/modules.php';
+    require __DIR__ . '/masterModules/ai-config.php';
 });

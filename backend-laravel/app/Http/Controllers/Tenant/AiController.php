@@ -3,22 +3,101 @@
 namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
+use App\Models\AiUsageLog;
+use App\Models\SystemConfig;
 use App\Services\AiService;
+use App\Services\ModuleRegistry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AiController extends Controller
 {
     /**
-     * Generate generic content from a prompt.
+     * Check if AI module is installed for current tenant.
+     */
+    private function checkModuleInstalled(): ?array
+    {
+        try {
+            $tenantId = tenant('id');
+            if (!ModuleRegistry::isInstalled($tenantId, 'ai-assistant')) {
+                return [
+                    'success' => false,
+                    'message' => 'Module AI Assistant chưa được cài đặt. Vui lòng cài đặt trong Hệ thống → Modules.',
+                ];
+            }
+        } catch (\Exception $e) {
+            // If tenant() fails, skip check (e.g., in testing)
+            Log::warning("[AiController] Module check failed: {$e->getMessage()}");
+        }
+        return null;
+    }
+
+    /**
+     * Resolve AI service with correct key mode for current tenant.
+     */
+    private function resolveAiService(): AiService
+    {
+        $ai = new AiService();
+
+        try {
+            $keyMode = SystemConfig::where('key', 'ai.key_mode')->value('value') ?? 'system';
+            $ownKey = SystemConfig::where('key', 'ai.own_api_key')->value('value') ?? '';
+            $ownProvider = SystemConfig::where('key', 'ai.own_provider')->value('value') ?? 'openai';
+
+            if ($keyMode === 'own' && !empty($ownKey)) {
+                $ai->withTenantKey($ownKey, $ownProvider);
+            } else {
+                $ai->setKeyMode('system');
+            }
+        } catch (\Exception $e) {
+            // Fallback to system key
+            $ai->setKeyMode('system');
+        }
+
+        return $ai;
+    }
+
+    /**
+     * Log AI usage after a successful request.
+     */
+    private function logUsage(AiService $ai, array $result, string $action): void
+    {
+        if (!($result['success'] ?? false)) return;
+
+        try {
+            $usage = $result['usage'] ?? [];
+            AiUsageLog::logUsage([
+                'tenant_id' => tenant('id'),
+                'user_id' => auth()->id(),
+                'action' => $action,
+                'provider' => $ai->getProvider(),
+                'model' => $ai->getModel(),
+                'key_mode' => $ai->getKeyMode(),
+                'prompt_tokens' => $usage['prompt_tokens'] ?? 0,
+                'completion_tokens' => $usage['completion_tokens'] ?? 0,
+                'total_tokens' => $usage['total_tokens'] ?? 0,
+                'estimated_cost' => $usage['estimated_cost'] ?? 0,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning("[AiController] Usage logging failed: {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Generate content (main AI endpoint).
      */
     public function generate(Request $request)
     {
+        // Module gate
+        $gate = $this->checkModuleInstalled();
+        if ($gate) return response()->json($gate, 403);
+
         $request->validate([
             'prompt' => 'required|string|max:5000',
             'type' => 'nullable|string|in:general,blog,product,seo,translate,tags,sales',
         ]);
 
-        $ai = new AiService();
+        $ai = $this->resolveAiService();
         $type = $request->input('type', 'general');
 
         $result = match ($type) {
@@ -48,8 +127,12 @@ class AiController extends Controller
             default => $ai->generate($request->input('prompt'), [
                 'max_tokens' => $request->input('max_tokens', 2000),
                 'temperature' => $request->input('temperature', 0.7),
+                'system' => $request->input('system'),
             ]),
         };
+
+        // Log usage
+        $this->logUsage($ai, $result, $type);
 
         if (!$result['success']) {
             return response()->json([
@@ -69,6 +152,9 @@ class AiController extends Controller
      */
     public function batchTranslate(Request $request)
     {
+        $gate = $this->checkModuleInstalled();
+        if ($gate) return response()->json($gate, 403);
+
         $request->validate([
             'fields' => 'required|array|min:1',
             'fields.*.key' => 'required|string',
@@ -77,12 +163,11 @@ class AiController extends Controller
             'context' => 'nullable|string|max:50',
         ]);
 
-        $ai = new AiService();
+        $ai = $this->resolveAiService();
         $fields = $request->input('fields');
         $targetLang = $request->input('target_lang');
         $context = $request->input('context', 'e-commerce');
 
-        // Combine fields into one prompt for efficiency
         $combined = collect($fields)->map(fn($f) => "[{$f['key']}]: {$f['value']}")->implode("\n---\n");
 
         $prompt = "Dịch các trường sau sang {$targetLang}. Giữ nguyên format [key]: value.\n\n{$combined}";
@@ -93,11 +178,126 @@ class AiController extends Controller
             'temperature' => 0.3,
         ]);
 
+        $this->logUsage($ai, $result, 'batch_translate');
+
         return response()->json([
             'success' => $result['success'],
             'data' => $result,
         ], $result['success'] ? 200 : 500);
     }
+
+    // ── AI Settings ──
+
+    /**
+     * Get AI settings for current tenant.
+     */
+    public function getSettings()
+    {
+        $gate = $this->checkModuleInstalled();
+        if ($gate) return response()->json($gate, 403);
+
+        try {
+            $configs = SystemConfig::whereIn('key', ['ai.key_mode', 'ai.own_api_key', 'ai.own_provider'])
+                ->pluck('value', 'key');
+
+            $keyMode = $configs['ai.key_mode'] ?? 'system';
+            $ownKey = $configs['ai.own_api_key'] ?? '';
+            $ownProvider = $configs['ai.own_provider'] ?? 'openai';
+
+            // Mask API key for display
+            $maskedKey = '';
+            if ($ownKey) {
+                $maskedKey = substr($ownKey, 0, 8) . '...' . substr($ownKey, -4);
+            }
+
+            // Check if system key is configured
+            $systemKeyAvailable = !empty(config('services.ai.openai.key', '') ?: config('services.ai.anthropic.key', ''));
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'key_mode' => $keyMode,
+                    'own_api_key_masked' => $maskedKey,
+                    'own_provider' => $ownProvider,
+                    'has_own_key' => !empty($ownKey),
+                    'system_key_available' => $systemKeyAvailable,
+                    'system_provider' => config('services.ai.provider', 'openai'),
+                    'system_model' => config('services.ai.' . config('services.ai.provider', 'openai') . '.model', 'gpt-4o-mini'),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Save AI settings for current tenant.
+     */
+    public function updateSettings(Request $request)
+    {
+        $gate = $this->checkModuleInstalled();
+        if ($gate) return response()->json($gate, 403);
+
+        $request->validate([
+            'key_mode' => 'required|in:own,system',
+            'own_api_key' => 'nullable|string|max:200',
+            'own_provider' => 'nullable|in:openai,anthropic',
+        ]);
+
+        try {
+            foreach ([
+                'ai.key_mode' => $request->input('key_mode'),
+                'ai.own_provider' => $request->input('own_provider', 'openai'),
+            ] as $key => $value) {
+                SystemConfig::updateOrCreate(['key' => $key], ['value' => $value]);
+            }
+
+            // Only update key if provided (don't overwrite with empty)
+            if ($request->filled('own_api_key')) {
+                SystemConfig::updateOrCreate(['key' => 'ai.own_api_key'], ['value' => $request->input('own_api_key')]);
+            }
+
+            return response()->json(['success' => true, 'message' => 'Đã lưu cài đặt AI']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get AI usage stats for current tenant.
+     */
+    public function getUsage(Request $request)
+    {
+        $gate = $this->checkModuleInstalled();
+        if ($gate) return response()->json($gate, 403);
+
+        try {
+            $tenantId = tenant('id');
+            $from = $request->input('from', now()->startOfMonth()->toDateTimeString());
+            $to = $request->input('to', now()->toDateTimeString());
+
+            $stats = AiUsageLog::getStats($tenantId, $from, $to);
+
+            // Recent logs (latest 20)
+            $recentLogs = AiUsageLog::where('tenant_id', $tenantId)
+                ->orderByDesc('created_at')
+                ->limit(20)
+                ->get(['action', 'provider', 'model', 'key_mode', 'total_tokens', 'estimated_cost', 'created_at']);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'period' => ['from' => $from, 'to' => $to],
+                    'stats' => $stats,
+                    'recent' => $recentLogs,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    // ── Private Helpers ──
 
     /**
      * Handle sales copy generation.
@@ -132,4 +332,3 @@ class AiController extends Controller
         ]);
     }
 }
-

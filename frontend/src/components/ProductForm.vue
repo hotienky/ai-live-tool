@@ -71,13 +71,19 @@
 
         <!-- SEO Section -->
         <div class="form-card">
-          <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700">🔍 SEO</h4>
+          <div class="seo-header">
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700">🔍 SEO</h4>
+            <button type="button" class="btn-ai-seo" @click="aiSuggestSeo" :disabled="aiSeoLoading">
+              <Sparkles :size="14" />
+              {{ aiSeoLoading ? 'Đang phân tích...' : '✨ AI Gợi ý SEO' }}
+            </button>
+          </div>
           <div class="form-group">
-            <label>Meta Title</label>
+            <label>Meta Title <small v-if="fMetaTitle">({{ fMetaTitle.length }}/60)</small></label>
             <input v-model="fMetaTitle" :placeholder="t('admin.msg_073024', 'Tiêu đề SEO (tự động nếu để trống)')" />
           </div>
           <div class="form-group">
-            <label>Meta Description</label>
+            <label>Meta Description <small v-if="fMetaDesc">({{ fMetaDesc.length }}/160)</small></label>
             <textarea v-model="fMetaDesc" rows="2" :placeholder="t('admin.msg_9de927', 'Mô tả SEO (tự động nếu để trống)')"></textarea>
           </div>
           <div class="form-group">
@@ -220,7 +226,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
-import { ShoppingBag, Layers, Trash2, ChevronLeft, Edit3 } from 'lucide-vue-next'
+import { ShoppingBag, Layers, Trash2, ChevronLeft, Edit3, Sparkles } from 'lucide-vue-next'
 import CurrencyInput from './CurrencyInput.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import MediaPicker from './MediaPicker.vue'
@@ -255,6 +261,43 @@ const fMetaTitle = tField('meta_title')
 const fMetaDesc = tField('meta_description')
 
 const applyPromoToAll = ref(true)
+const aiSeoLoading = ref(false)
+
+// AI SEO Suggest
+async function aiSuggestSeo() {
+  const name = form.value.name || fName.value
+  if (!name) { showToast('Nhập tên sản phẩm trước', 'error'); return }
+  aiSeoLoading.value = true
+  try {
+    const content = [name, form.value.description || fDescription.value, form.value.category, form.value.brand].filter(Boolean).join('. ')
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'seo', prompt: name, title: name, content })
+    })
+    const data = await res.json()
+    if (data.success && data.data?.content) {
+      try {
+        // Try to parse JSON response from AI
+        const cleaned = data.data.content.replace(/```json\n?|```\n?/g, '').trim()
+        const seo = JSON.parse(cleaned)
+        if (seo.meta_title) fMetaTitle.value = seo.meta_title
+        if (seo.meta_description) fMetaDesc.value = seo.meta_description
+        if (seo.meta_keywords) form.value.meta_keywords = seo.meta_keywords
+        if (seo.slug_suggestion && !form.value.slug) form.value.slug = seo.slug_suggestion
+        showToast('✨ Đã tạo SEO metadata!', 'success')
+      } catch {
+        // If not JSON, use as meta description
+        fMetaDesc.value = data.data.content.substring(0, 160)
+        showToast('✨ Đã gợi ý mô tả SEO', 'success')
+      }
+    } else {
+      showToast(data.message || 'AI chưa cấu hình. Cần OPENAI_API_KEY trong .env', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  }
+  aiSeoLoading.value = false
+}
 
 function defaultForm() {
   return {
@@ -577,6 +620,17 @@ onMounted(async () => {
 
 .btn-sm { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); cursor: pointer; transition: all 0.15s; }
 .btn-del:hover, .act-cancel:hover { color: #ef4444; border-color: #ef4444; }
+
+/* AI SEO Suggest */
+.seo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.btn-ai-seo {
+  display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px;
+  border: 1px solid rgba(124, 58, 237, 0.3); background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(37, 99, 235, 0.08));
+  color: var(--color-accent-primary, #7c3aed); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ai-seo:hover { background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(37, 99, 235, 0.15)); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); }
+.btn-ai-seo:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
 @media (max-width: 768px) {
   .form-page-body { flex-direction: column; }

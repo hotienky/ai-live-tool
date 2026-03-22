@@ -22,6 +22,7 @@ const routes = [
       { path: 'users', name: 'Users', component: () => import('./pages/UsersPage.vue') },
       { path: 'roles', name: 'Roles', component: () => import('./pages/RolesPage.vue') },
       { path: 'modules', name: 'Modules', component: () => import('./pages/ModulesPage.vue') },
+      { path: 'ai-config', name: 'AiConfig', component: () => import('./pages/AiConfigPage.vue') },
     ],
   },
 ]

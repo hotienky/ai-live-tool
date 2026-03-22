@@ -51,13 +51,19 @@
 
         <!-- SEO Section -->
         <div class="form-card">
-          <h4 style="margin: 0 0 12px; font-size: 14px; font-weight: 700">🔍 SEO</h4>
+          <div class="seo-header">
+            <h4 style="margin: 0; font-size: 14px; font-weight: 700">🔍 SEO</h4>
+            <button type="button" class="btn-ai-seo" @click="aiSuggestSeo" :disabled="aiSeoLoading">
+              <Sparkles :size="14" />
+              {{ aiSeoLoading ? 'Đang phân tích...' : '✨ AI Gợi ý SEO' }}
+            </button>
+          </div>
           <div class="form-group">
-            <label>Meta Title</label>
+            <label>Meta Title <small v-if="fMetaTitle">({{ fMetaTitle.length }}/60)</small></label>
             <input v-model="fMetaTitle" :placeholder="t('admin.msg_073024', 'Tiêu đề SEO (tự động nếu để trống)')" />
           </div>
           <div class="form-group">
-            <label>Meta Description</label>
+            <label>Meta Description <small v-if="fMetaDesc">({{ fMetaDesc.length }}/160)</small></label>
             <textarea v-model="fMetaDesc" rows="3" :placeholder="t('admin.msg_9de927', 'Mô tả SEO (tự động nếu để trống)')"></textarea>
           </div>
         </div>
@@ -95,7 +101,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { ArrowLeft, Loader2 } from 'lucide-vue-next'
+import { ArrowLeft, Loader2, Sparkles } from 'lucide-vue-next'
 import MediaPicker from './MediaPicker.vue'
 import RichTextEditor from './RichTextEditor.vue'
 import { apiFetch } from '../composables/useApi.js'
@@ -136,6 +142,40 @@ const fTitle = tField('title')
 const fContent = tField('content')
 const fMetaTitle = tField('meta_title')
 const fMetaDesc = tField('meta_description')
+const aiSeoLoading = ref(false)
+
+// AI SEO Suggest for CMS page
+async function aiSuggestSeo() {
+  const title = form.value.title || fTitle.value
+  if (!title) { showToast('Nhập tiêu đề trang trước', 'error'); return }
+  aiSeoLoading.value = true
+  try {
+    const content = [title, form.value.content || fContent.value].filter(Boolean).join('. ')
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'seo', prompt: title, title, content })
+    })
+    const data = await res.json()
+    if (data.success && data.data?.content) {
+      try {
+        const cleaned = data.data.content.replace(/```json\n?|```\n?/g, '').trim()
+        const seo = JSON.parse(cleaned)
+        if (seo.meta_title) fMetaTitle.value = seo.meta_title
+        if (seo.meta_description) fMetaDesc.value = seo.meta_description
+        if (seo.slug_suggestion && !form.value.alias) form.value.alias = seo.slug_suggestion
+        showToast('✨ Đã tạo SEO metadata!', 'success')
+      } catch {
+        fMetaDesc.value = data.data.content.substring(0, 160)
+        showToast('✨ Đã gợi ý mô tả SEO', 'success')
+      }
+    } else {
+      showToast(data.message || 'AI chưa cấu hình. Cần OPENAI_API_KEY trong .env', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  }
+  aiSeoLoading.value = false
+}
 
 function goBack() {
   emit('navigate', 'shop/cms')
@@ -374,4 +414,15 @@ async function handleSave() {
     position: static;
   }
 }
+
+/* AI SEO Suggest */
+.seo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.btn-ai-seo {
+  display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px;
+  border: 1px solid rgba(124, 58, 237, 0.3); background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(37, 99, 235, 0.08));
+  color: var(--color-accent-primary, #7c3aed); font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-ai-seo:hover { background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(37, 99, 235, 0.15)); transform: translateY(-1px); box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2); }
+.btn-ai-seo:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 </style>
