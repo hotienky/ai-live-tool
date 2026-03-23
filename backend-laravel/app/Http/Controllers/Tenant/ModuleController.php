@@ -13,7 +13,17 @@ class ModuleController extends Controller
     // Get current tenant ID from the tenancy context
     private function tenantId(): string
     {
-        return tenant('id') ?? request()->header('X-Tenant', '');
+        $id = tenant('id');
+        if ($id) return (string) $id;
+
+        // Fallback: resolve slug from X-Tenant header to integer ID
+        $slug = request()->header('X-Tenant', '');
+        if ($slug) {
+            $tenant = \App\Models\Tenant::where('slug', $slug)->first();
+            if ($tenant) return (string) $tenant->id;
+        }
+
+        return '';
     }
 
     // List all available modules with install status for current tenant

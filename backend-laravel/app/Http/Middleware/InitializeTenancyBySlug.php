@@ -74,10 +74,12 @@ class InitializeTenancyBySlug
      */
     protected function resolveTenant(string $hostname, Request $request): ?array
     {
-        // Central domains — no tenant
+        // Central domains — check for explicit override first, then skip
         $centralDomains = config('tenancy.central_domains', []);
         if (\in_array($hostname, $centralDomains, true)) {
-            return null;
+            // Allow explicit tenant override via query param or header (dev/API)
+            $fallback = $request->query('tenant') ?? $request->header('X-Tenant-Slug') ?? $request->header('X-Tenant');
+            return $fallback ? ['slug' => $fallback] : null;
         }
 
         $parts = explode('.', $hostname);

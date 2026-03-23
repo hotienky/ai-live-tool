@@ -625,7 +625,7 @@ import {
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
   Palette, Sun, Moon, Monitor as MonitorIcon, Lock, CreditCard,
   Music, BookOpen, Video, ShoppingCart, ClipboardList,
-  FolderTree, Award, Users, Tag, Zap, BarChart2, Puzzle, Bot,
+  FolderTree, FolderOpen, Award, Users, Tag, Zap, BarChart2, Puzzle, Bot,
   Cog, KeyRound, Globe, LayoutList, DollarSign, Briefcase, Wallet,
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle, Search,
@@ -955,6 +955,7 @@ const tabGroups = [
     label: 'Blog',
     items: [
       { key: 'blog-posts', label: t('admin.posts', 'Bài viết'), icon: BookOpen },
+      { key: 'blog-categories', label: t('admin.categories', 'Danh mục'), icon: FolderOpen },
       { key: 'blog-comments', label: t('admin.comments', 'Bình luận'), icon: MessageCircle },
       { key: 'blog-settings', label: t('admin.config', 'Cấu hình'), icon: Cog },
     ],

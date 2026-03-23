@@ -18,7 +18,16 @@ class ModuleMiddleware
 {
     public function handle(Request $request, Closure $next, string $moduleId): Response
     {
-        $tenantId = tenant('id') ?? $request->header('X-Tenant', '');
+        $tenantId = tenant('id');
+
+        // Fallback: resolve slug from X-Tenant header to integer ID
+        if (!$tenantId) {
+            $slug = $request->header('X-Tenant', '');
+            if ($slug) {
+                $tenant = \App\Models\Tenant::where('slug', $slug)->first();
+                $tenantId = $tenant?->id;
+            }
+        }
 
         if (!$tenantId) {
             return response()->json([

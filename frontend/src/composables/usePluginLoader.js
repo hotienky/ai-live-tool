@@ -60,6 +60,11 @@ function initBridge() {
     },
     // ── Hooks System ──
     hooks,
+    // ── Plugin Registration (for plugins that use bridge.registerPlugin) ──
+    registerPlugin: (moduleId, plugin) => {
+      window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}
+      window.__PLUGIN_REGISTRY__[moduleId] = plugin
+    },
   }
 }
 
