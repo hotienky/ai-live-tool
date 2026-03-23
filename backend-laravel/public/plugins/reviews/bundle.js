@@ -64,7 +64,7 @@ var Plugin_reviews = (function(e, k) {
       }
 
       function renderStars(n) {
-        return '★'.repeat(n) + '☆'.repeat(5 - n);
+        return ''.repeat(n) + ''.repeat(5 - n);
       }
 
       function formatDate(d) {
@@ -78,7 +78,7 @@ var Plugin_reviews = (function(e, k) {
     template: '\
 <div class="rv">\
   <div class="rv-header">\
-    <h3>⭐ Đánh giá & Nhận xét</h3>\
+    <h3>Đánh giá & Nhận xét</h3>\
   </div>\
   <div class="rv-stats">\
     <div class="rv-stat"><span class="rv-stat-num">{{ stats.total }}</span><span class="rv-stat-label">Tổng</span></div>\
@@ -88,8 +88,8 @@ var Plugin_reviews = (function(e, k) {
   </div>\
   <div class="rv-filters">\
     <button :class="{\'rv-filter--active\': filter===\'all\'}" @click="filter=\'all\'">Tất cả</button>\
-    <button :class="{\'rv-filter--active\': filter===\'pending\'}" @click="filter=\'pending\'">⏳ Chờ duyệt</button>\
-    <button :class="{\'rv-filter--active\': filter===\'approved\'}" @click="filter=\'approved\'">✅ Đã duyệt</button>\
+    <button :class="{\'rv-filter--active\': filter===\'pending\'}" @click="filter=\'pending\'">Chờ xử lý duyệt</button>\
+    <button :class="{\'rv-filter--active\': filter===\'approved\'}" @click="filter=\'approved\'"> Đã duyệt</button>\
   </div>\
   <div v-if="loading" class="rv-loading">Đang tải...</div>\
   <div v-else-if="!reviews.length" class="rv-empty">Chưa có đánh giá nào</div>\
@@ -105,8 +105,8 @@ var Plugin_reviews = (function(e, k) {
       </div>\
       <p class="rv-content">{{ r.content || "(Không có nội dung)" }}</p>\
       <div class="rv-card-actions">\
-        <button @click="toggleApprove(r)">{{ r.is_approved ? "⏸ Ẩn" : "✅ Duyệt" }}</button>\
-        <button class="rv-del" @click="deleteReview(r.id)">🗑 Xóa</button>\
+        <button @click="toggleApprove(r)">{{ r.is_approved ? "⏸ Ẩn" : " Duyệt" }}</button>\
+        <button class="rv-del" @click="deleteReview(r.id)"> Xóa</button>\
       </div>\
     </div>\
   </div>\

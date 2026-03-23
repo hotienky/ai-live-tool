@@ -34,13 +34,13 @@ var Plugin_luckydraw = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/lucky-draw/campaigns/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove, fmtDate };
   }, template: '\
-<div class="ld-section"><div class="ld-header"><h3>🎰 Chiến dịch</h3><button class="ld-btn-primary" @click="openCreate">+ Tạo</button></div>\
+<div class="ld-section"><div class="ld-header"><h3>Chiến dịch</h3><button class="ld-btn-primary" @click="openCreate">+ Tạo</button></div>\
   <table class="ld-table"><thead><tr><th>Tên</th><th>Bắt đầu</th><th>Kết thúc</th><th>Người tham gia</th><th>Giải thưởng</th><th>TT</th><th></th></tr></thead>\
   <tbody><tr v-for="c in items" :key="c.id"><td><strong>{{ c.name }}</strong></td><td>{{ fmtDate(c.start_date) }}</td><td>{{ fmtDate(c.end_date) }}</td>\
     <td>{{ c.participants_count || 0 }}{{ c.max_participants ? "/" + c.max_participants : "" }}</td>\
     <td>{{ c.prizes_count || 0 }}</td>\
     <td><span :class="c.is_active ? \'ld-badge-on\' : \'ld-badge-off\'">{{ c.is_active ? "Đang chạy" : "Tắt" }}</span></td>\
-    <td><button class="ld-btn-primary" @click="$emit(\'select\', c)">🎯 Quản lý</button> <button @click="openEdit(c)">✏️</button> <button class="ld-btn-del" @click="remove(c.id)">🗑</button></td></tr></tbody></table>\
+    <td><button class="ld-btn-primary" @click="$emit(\'select\', c)"> Quản lý</button> <button @click="openEdit(c)"></button> <button class="ld-btn-del" @click="remove(c.id)"></button></td></tr></tbody></table>\
   <div v-if="showModal" class="ld-modal-overlay" @click.self="showModal=false"><div class="ld-modal"><h4>{{ editing ? "Sửa" : "Tạo" }} chiến dịch</h4>\
     <label>Tên <input v-model="form.name" class="ld-input" /></label>\
     <label>Mô tả <textarea v-model="form.description" class="ld-input ld-textarea"></textarea></label>\
@@ -48,7 +48,7 @@ var Plugin_luckydraw = (function(e) {
       <label>Kết thúc <input v-model="form.end_date" type="date" class="ld-input" /></label></div>\
     <label>Giới hạn người <input v-model.number="form.max_participants" type="number" class="ld-input" placeholder="Không giới hạn" /></label>\
     <label class="ld-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
-    <div class="ld-modal-actions"><button class="ld-btn-primary" @click="save">💾</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="ld-modal-actions"><button class="ld-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var LDPrizes = { name: 'LDPrizes', props: { campaignId: [String,Number] }, setup: function(props) {
@@ -63,17 +63,17 @@ var Plugin_luckydraw = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/lucky-draw/campaigns/' + props.campaignId + '/prizes/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { prizes, loading, showModal, form, editing, openCreate, openEdit, save, remove };
   }, template: '\
-<div class="ld-section"><div class="ld-header"><h3>🎁 Giải thưởng</h3><button class="ld-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="ld-section"><div class="ld-header"><h3>Giải thưởng</h3><button class="ld-btn-primary" @click="openCreate">+ Thêm</button></div>\
   <table class="ld-table"><thead><tr><th>Tên giải</th><th>Mô tả</th><th>Số lượng</th><th>Xác suất</th><th>Đã trúng</th><th></th></tr></thead>\
   <tbody><tr v-for="p in prizes" :key="p.id"><td><strong>{{ p.name }}</strong></td><td>{{ p.description || "-" }}</td>\
     <td>{{ p.quantity }}</td><td>{{ p.probability ? (p.probability * 100).toFixed(1) + "%" : "Auto" }}</td><td>{{ p.winners_count || 0 }}</td>\
-    <td><button @click="openEdit(p)">✏️</button><button class="ld-btn-del" @click="remove(p.id)">🗑</button></td></tr></tbody></table>\
+    <td><button @click="openEdit(p)"></button><button class="ld-btn-del" @click="remove(p.id)"></button></td></tr></tbody></table>\
   <div v-if="showModal" class="ld-modal-overlay" @click.self="showModal=false"><div class="ld-modal"><h4>{{ editing ? "Sửa" : "Thêm" }} giải</h4>\
     <label>Tên <input v-model="form.name" class="ld-input" /></label>\
     <label>Mô tả <textarea v-model="form.description" class="ld-input ld-textarea"></textarea></label>\
     <div class="ld-form-row"><label>Số lượng <input v-model.number="form.quantity" type="number" class="ld-input" /></label>\
       <label>Xác suất (0-1) <input v-model.number="form.probability" type="number" step="0.01" class="ld-input" placeholder="Tự động" /></label></div>\
-    <div class="ld-modal-actions"><button class="ld-btn-primary" @click="save">💾</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="ld-modal-actions"><button class="ld-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var LDDraw = { name: 'LDDraw', props: { campaignId: [String,Number] }, setup: function(props) {
@@ -83,10 +83,10 @@ var Plugin_luckydraw = (function(e) {
       catch(e) { showToast('Lỗi: ' + e.message,'error'); } drawing.value = false; }
     return { drawing, result, executeDraw };
   }, template: '\
-<div class="ld-draw"><h3>🎰 Quay thưởng</h3>\
+<div class="ld-draw"><h3> Quay thưởng</h3>\
   <button class="ld-draw-btn" @click="executeDraw" :disabled="drawing">\
-    <span v-if="drawing">🎰 Đang quay...</span><span v-else>🎯 BẮT ĐẦU QUAY</span></button>\
-  <div v-if="result" class="ld-result"><h4>🎉 Kết quả</h4>\
+    <span v-if="drawing"> Đang quay...</span><span v-else> BẮT ĐẦU QUAY</span></button>\
+  <div v-if="result" class="ld-result"><h4> Kết quả</h4>\
     <div class="ld-winner-card"><div class="ld-winner-name">{{ result.winner_name || "N/A" }}</div>\
       <div class="ld-winner-prize">Giải: {{ result.prize_name || "N/A" }}</div></div></div>\
 </div>' };
@@ -98,10 +98,10 @@ var Plugin_luckydraw = (function(e) {
       function back() { selectedCampaign.value = null; tab.value = 'campaigns'; }
       return { tab, selectedCampaign, selectCampaign, back }; },
     template: '<div class="luckydraw-plugin"><div class="ld-tabs">\
-      <button :class="{\'ld-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-      <button :class="{\'ld-tab-active\':tab===\'campaigns\'}" @click="tab=\'campaigns\'">🎰 Chiến dịch</button>\
-      <button v-if="selectedCampaign" :class="{\'ld-tab-active\':tab===\'prizes\'}" @click="tab=\'prizes\'">🎁 Giải</button>\
-      <button v-if="selectedCampaign" :class="{\'ld-tab-active\':tab===\'draw\'}" @click="tab=\'draw\'">🎯 Quay</button></div>\
+      <button :class="{\'ld-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+      <button :class="{\'ld-tab-active\':tab===\'campaigns\'}" @click="tab=\'campaigns\'">Chiến dịch</button>\
+      <button v-if="selectedCampaign" :class="{\'ld-tab-active\':tab===\'prizes\'}" @click="tab=\'prizes\'"> Giải</button>\
+      <button v-if="selectedCampaign" :class="{\'ld-tab-active\':tab===\'draw\'}" @click="tab=\'draw\'"> Quay</button></div>\
       <LDStats v-if="tab===\'stats\'" />\
       <LDCampaigns v-else-if="tab===\'campaigns\'" @select="selectCampaign" />\
       <div v-else-if="tab===\'prizes\' && selectedCampaign"><button class="ld-btn-back" @click="back">← Quay lại</button><h3>{{ selectedCampaign.name }}</h3>\

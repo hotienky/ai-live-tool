@@ -15,7 +15,7 @@ var Plugin_booking = (function(e) {
   // ── Helpers ──
   function fmtDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN') : '-'; }
   function fmtMoney(v) { return v ? Number(v).toLocaleString('vi-VN') + 'đ' : '0đ'; }
-  var STATUS_MAP = { pending: '⏳ Chờ', confirmed: '✅ Xác nhận', completed: '✔️ Hoàn thành', cancelled: '❌ Huỷ', no_show: '🚫 Vắng' };
+  var STATUS_MAP = { pending: 'Chờ xử lý', confirmed: 'Xác nhận', completed: 'Hoàn thành', cancelled: 'Đã huỷ', no_show: 'Vắng mặt' };
 
   // ══════════════════════════════════════
   // Stats Dashboard
@@ -84,7 +84,7 @@ var Plugin_booking = (function(e) {
     },
     template: '\
 <div class="bk-section">\
-  <div class="bk-header"><h3>🛎️ Dịch vụ</h3><button class="bk-btn-primary" @click="openCreate">+ Thêm dịch vụ</button></div>\
+  <div class="bk-header"><h3>Dịch vụ</h3><button class="bk-btn-primary" @click="openCreate">+ Thêm dịch vụ</button></div>\
   <div v-if="loading" class="bk-loading">Đang tải...</div>\
   <table v-else class="bk-table">\
     <thead><tr><th>Tên</th><th>Thời lượng</th><th>Buffer</th><th>Giá</th><th>Danh mục</th><th>Max/slot</th><th>Trạng thái</th><th></th></tr></thead>\
@@ -97,7 +97,7 @@ var Plugin_booking = (function(e) {
         <td>{{ s.category || "-" }}</td>\
         <td>{{ s.max_bookings_per_slot || 1 }}</td>\
         <td><span class="bk-badge" :class="s.is_active ? \'bk-badge--active\' : \'bk-badge--inactive\'">{{ s.is_active ? "Hoạt động" : "Tắt" }}</span></td>\
-        <td><button @click="openEdit(s)">✏️</button> <button class="bk-btn-del" @click="remove(s.id)">🗑</button></td>\
+        <td><button @click="openEdit(s)"></button> <button class="bk-btn-del" @click="remove(s.id)"></button></td>\
       </tr>\
       <tr v-if="!items.length"><td colspan="8" class="bk-empty">Chưa có dịch vụ</td></tr>\
     </tbody>\
@@ -119,7 +119,7 @@ var Plugin_booking = (function(e) {
         <label>Danh mục <input v-model="form.category" class="bk-input" /></label>\
         <label class="bk-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
       </div>\
-      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div>\
+      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div>\
     </div>\
   </div>\
 </div>'
@@ -172,7 +172,7 @@ var Plugin_booking = (function(e) {
     },
     template: '\
 <div class="bk-section">\
-  <div class="bk-header"><h3>📅 Lịch hẹn</h3><button class="bk-btn-primary" @click="openCreate">+ Tạo lịch hẹn</button></div>\
+  <div class="bk-header"><h3>Lịch hẹn</h3><button class="bk-btn-primary" @click="openCreate">+ Tạo lịch hẹn</button></div>\
   <div class="bk-filters">\
     <select v-model="filter.status" @change="load" class="bk-input"><option value="">Tất cả</option><option value="pending">Chờ</option><option value="confirmed">Xác nhận</option><option value="completed">Hoàn thành</option><option value="cancelled">Huỷ</option></select>\
     <input v-model="filter.date" type="date" @change="load" class="bk-input" />\
@@ -190,11 +190,11 @@ var Plugin_booking = (function(e) {
         <td>{{ a.time_slot }}</td>\
         <td>\
           <select :value="a.status" @change="updateStatus(a.id, $event.target.value)" class="bk-status-sel">\
-            <option value="pending">⏳ Chờ</option><option value="confirmed">✅ Xác nhận</option>\
-            <option value="completed">✔️ Hoàn thành</option><option value="cancelled">❌ Huỷ</option><option value="no_show">🚫 Vắng</option>\
+            <option value="pending">Chờ xử lý</option><option value="confirmed">Xác nhận</option>\
+            <option value="completed">Hoàn thành</option><option value="cancelled">Đã huỷ</option><option value="no_show">Vắng mặt</option>\
           </select>\
         </td>\
-        <td><button class="bk-btn-del" @click="remove(a.id)">🗑</button></td>\
+        <td><button class="bk-btn-del" @click="remove(a.id)"></button></td>\
       </tr>\
       <tr v-if="!items.length"><td colspan="7" class="bk-empty">Không có lịch hẹn</td></tr>\
     </tbody>\
@@ -215,7 +215,7 @@ var Plugin_booking = (function(e) {
         </div>\
         <label>Ghi chú <textarea v-model="form.notes" class="bk-input bk-textarea"></textarea></label>\
       </div>\
-      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div>\
+      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div>\
     </div>\
   </div>\
 </div>'
@@ -234,9 +234,9 @@ var Plugin_booking = (function(e) {
     template: '\
 <div class="booking-plugin">\
   <div class="bk-tabs">\
-    <button :class="{\'bk-tab-active\': tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-    <button :class="{\'bk-tab-active\': tab===\'services\'}" @click="tab=\'services\'">🛎️ Dịch vụ</button>\
-    <button :class="{\'bk-tab-active\': tab===\'appointments\'}" @click="tab=\'appointments\'">📅 Lịch hẹn</button>\
+    <button :class="{\'bk-tab-active\': tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+    <button :class="{\'bk-tab-active\': tab===\'services\'}" @click="tab=\'services\'">Dịch vụ</button>\
+    <button :class="{\'bk-tab-active\': tab===\'appointments\'}" @click="tab=\'appointments\'">Lịch hẹn</button>\
   </div>\
   <BookingStats v-if="tab===\'stats\'" />\
   <BookingServices v-else-if="tab===\'services\'" />\

@@ -39,7 +39,7 @@ var Plugin_jobboard = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/jobboard/jobs/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, filter, showModal, form, editing, openCreate, openEdit, save, remove, load, fmtDate, fmtMoney };
   }, template: '\
-<div class="jb-section"><div class="jb-header"><h3>💼 Tin tuyển dụng</h3><button class="jb-btn-primary" @click="openCreate">+ Đăng tin</button></div>\
+<div class="jb-section"><div class="jb-header"><h3>Tin tuyển dụng</h3><button class="jb-btn-primary" @click="openCreate">+ Đăng tin</button></div>\
   <div class="jb-filters"><select v-model="filter.status" @change="load" class="jb-input"><option value="">Tất cả</option><option value="active">Đang tuyển</option><option value="closed">Đã đóng</option><option value="draft">Nháp</option></select>\
     <input v-model="filter.search" @input="load" class="jb-input" placeholder="Tìm..." /></div>\
   <table class="jb-table"><thead><tr><th>Vị trí</th><th>Công ty</th><th>Địa điểm</th><th>Loại</th><th>Lương</th><th>Đơn</th><th>Hạn</th><th>TT</th><th></th></tr></thead>\
@@ -48,7 +48,7 @@ var Plugin_jobboard = (function(e) {
     <td>{{ j.job_type }}</td><td>{{ j.salary_min ? fmtMoney(j.salary_min) + " - " + fmtMoney(j.salary_max) : "Thoả thuận" }}</td>\
     <td>{{ j.applications_count || 0 }}</td><td>{{ fmtDate(j.application_deadline) }}</td>\
     <td><span :class="j.status === \'active\' ? \'jb-badge-on\' : \'jb-badge-off\'">{{ j.status }}</span></td>\
-    <td><button @click="openEdit(j)">✏️</button><button class="jb-btn-del" @click="remove(j.id)">🗑</button></td></tr></tbody></table>\
+    <td><button @click="openEdit(j)"></button><button class="jb-btn-del" @click="remove(j.id)"></button></td></tr></tbody></table>\
   <div v-if="showModal" class="jb-modal-overlay" @click.self="showModal=false"><div class="jb-modal"><h4>{{ editing ? "Sửa" : "Đăng" }} tin</h4>\
     <label>Vị trí <input v-model="form.title" class="jb-input" /></label>\
     <div class="jb-form-row"><label>Công ty <input v-model="form.company_name" class="jb-input" /></label>\
@@ -62,7 +62,7 @@ var Plugin_jobboard = (function(e) {
     <label>Quyền lợi <textarea v-model="form.benefits" class="jb-input jb-textarea" rows="3"></textarea></label>\
     <div class="jb-form-row"><label>Trạng thái <select v-model="form.status" class="jb-input"><option value="active">Đang tuyển</option><option value="closed">Đã đóng</option><option value="draft">Nháp</option></select></label></div>\
     <label class="jb-check"><input type="checkbox" v-model="form.is_featured" /> Nổi bật</label>\
-    <div class="jb-modal-actions"><button class="jb-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="jb-modal-actions"><button class="jb-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var JobApplications = { name: 'JobApplications', setup: function() {
@@ -75,13 +75,13 @@ var Plugin_jobboard = (function(e) {
     async function updateStatus(id, s) { try { await apiFetch('/jobboard/applications/' + id, { method:'PUT', body:JSON.stringify({ status:s }) }); showToast('Đã cập nhật','success'); load(); } catch(e) {} }
     return { items, loading, filter, updateStatus, load, fmtDate };
   }, template: '\
-<div class="jb-section"><h3>📋 Đơn ứng tuyển</h3>\
+<div class="jb-section"><h3> Đơn ứng tuyển</h3>\
   <div class="jb-filters"><select v-model="filter.status" @change="load" class="jb-input"><option value="">Tất cả</option><option value="new">Mới</option><option value="reviewing">Đang xem</option><option value="shortlisted">Chọn lọc</option><option value="interview">Phỏng vấn</option><option value="offered">Đã chọn</option><option value="rejected">Từ chối</option></select>\
     <input v-model="filter.search" @input="load" class="jb-input" placeholder="Tìm..." /></div>\
   <table class="jb-table"><thead><tr><th>Ứng viên</th><th>Email</th><th>SĐT</th><th>Vị trí</th><th>Ngày nộp</th><th>CV</th><th>TT</th></tr></thead>\
   <tbody><tr v-for="a in items" :key="a.id"><td><strong>{{ a.applicant_name }}</strong></td><td>{{ a.applicant_email }}</td><td>{{ a.applicant_phone || "-" }}</td>\
     <td>{{ a.job ? a.job.title : "-" }}</td><td>{{ fmtDate(a.created_at) }}</td>\
-    <td><a v-if="a.resume_url" :href="a.resume_url" target="_blank">📄</a><span v-else>-</span></td>\
+    <td><a v-if="a.resume_url" :href="a.resume_url" target="_blank"></a><span v-else>-</span></td>\
     <td><select :value="a.status" @change="updateStatus(a.id, $event.target.value)" class="jb-status-sel"><option value="new">Mới</option><option value="reviewing">Đang xem</option><option value="shortlisted">Chọn lọc</option><option value="interview">PV</option><option value="offered">Đã chọn</option><option value="rejected">Từ chối</option></select></td></tr></tbody></table>\
 </div>' };
 
@@ -89,9 +89,9 @@ var Plugin_jobboard = (function(e) {
     components: { JobStats:JobStats, JobList:JobList, JobApplications:JobApplications },
     setup: function() { var tab = e.ref('stats'); return { tab }; },
     template: '<div class="jobboard-plugin"><div class="jb-tabs">\
-      <button :class="{\'jb-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-      <button :class="{\'jb-tab-active\':tab===\'jobs\'}" @click="tab=\'jobs\'">💼 Tin tuyển</button>\
-      <button :class="{\'jb-tab-active\':tab===\'applications\'}" @click="tab=\'applications\'">📋 Đơn ứng tuyển</button></div>\
+      <button :class="{\'jb-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+      <button :class="{\'jb-tab-active\':tab===\'jobs\'}" @click="tab=\'jobs\'">Tin tuyển</button>\
+      <button :class="{\'jb-tab-active\':tab===\'applications\'}" @click="tab=\'applications\'"> Đơn ứng tuyển</button></div>\
       <JobStats v-if="tab===\'stats\'" /><JobList v-else-if="tab===\'jobs\'" />\
       <JobApplications v-else-if="tab===\'applications\'" /></div>' };
 

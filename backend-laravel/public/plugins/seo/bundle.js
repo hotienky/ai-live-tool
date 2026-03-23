@@ -60,13 +60,13 @@ var Plugin_seo = (function(e, k) {
     template: '\
 <div class="seo">\
   <div class="seo-header">\
-    <h3>🔍 SEO & Tối ưu tìm kiếm</h3>\
+    <h3>SEO & Tối ưu tìm kiếm</h3>\
   </div>\
   <div class="seo-tabs">\
-    <button :class="{\'seo-tab--active\': activeTab===\'meta\'}" @click="activeTab=\'meta\'">📝 Meta Tags</button>\
-    <button :class="{\'seo-tab--active\': activeTab===\'sitemap\'}" @click="activeTab=\'sitemap\'">🗺 Sitemap</button>\
-    <button :class="{\'seo-tab--active\': activeTab===\'robots\'}" @click="activeTab=\'robots\'">🤖 Robots.txt</button>\
-    <button :class="{\'seo-tab--active\': activeTab===\'analysis\'}" @click="activeTab=\'analysis\'">📊 Phân tích</button>\
+    <button :class="{\'seo-tab--active\': activeTab===\'meta\'}" @click="activeTab=\'meta\'"> Meta Tags</button>\
+    <button :class="{\'seo-tab--active\': activeTab===\'sitemap\'}" @click="activeTab=\'sitemap\'"> Sitemap</button>\
+    <button :class="{\'seo-tab--active\': activeTab===\'robots\'}" @click="activeTab=\'robots\'"> Robots.txt</button>\
+    <button :class="{\'seo-tab--active\': activeTab===\'analysis\'}" @click="activeTab=\'analysis\'"> Phân tích</button>\
   </div>\
   <div v-if="activeTab===\'meta\'" class="seo-panel">\
     <div class="seo-group">\
@@ -95,11 +95,11 @@ var Plugin_seo = (function(e, k) {
         <div class="sgp-desc">{{ meta.site_description || "Mô tả sẽ hiển thị ở đây..." }}</div>\
       </div>\
     </div>\
-    <button class="seo-save" :disabled="saving" @click="saveSeo">{{ saving ? "Đang lưu..." : "💾 Lưu cấu hình SEO" }}</button>\
+    <button class="seo-save" :disabled="saving" @click="saveSeo">{{ saving ? "Đang lưu..." : "Lưu cấu hình SEO" }}</button>\
   </div>\
   <div v-if="activeTab===\'sitemap\'" class="seo-panel">\
     <div class="seo-feature">\
-      <h4>🗺 Sitemap XML</h4>\
+      <h4> Sitemap XML</h4>\
       <p>Sitemap tự động tạo từ các trang sản phẩm, CMS, danh mục.</p>\
       <button class="seo-save" @click="generateSitemap">Xem Sitemap</button>\
     </div>\
@@ -109,22 +109,22 @@ var Plugin_seo = (function(e, k) {
       <label>robots.txt</label>\
       <textarea v-model="meta.robots_txt" class="seo-input seo-textarea seo-code" rows="8"></textarea>\
     </div>\
-    <button class="seo-save" :disabled="saving" @click="saveSeo">💾 Lưu</button>\
+    <button class="seo-save" :disabled="saving" @click="saveSeo">Lưu</button>\
   </div>\
   <div v-if="activeTab===\'analysis\'" class="seo-panel">\
     <div class="seo-checklist">\
-      <h4>📊 SEO Checklist</h4>\
+      <h4> SEO Checklist</h4>\
       <div class="seo-check" :class="meta.site_title ? \'seo-check--pass\' : \'seo-check--fail\'">\
-        <span>{{ meta.site_title ? "✅" : "❌" }}</span> Tiêu đề website\
+        <span>{{ meta.site_title ? "" : "" }}</span> Tiêu đề website\
       </div>\
       <div class="seo-check" :class="meta.site_description ? \'seo-check--pass\' : \'seo-check--fail\'">\
-        <span>{{ meta.site_description ? "✅" : "❌" }}</span> Mô tả website\
+        <span>{{ meta.site_description ? "" : "" }}</span> Mô tả website\
       </div>\
       <div class="seo-check" :class="meta.og_image ? \'seo-check--pass\' : \'seo-check--fail\'">\
-        <span>{{ meta.og_image ? "✅" : "❌" }}</span> OG Image\
+        <span>{{ meta.og_image ? "" : "" }}</span> OG Image\
       </div>\
       <div class="seo-check" :class="meta.google_verification ? \'seo-check--pass\' : \'seo-check--fail\'">\
-        <span>{{ meta.google_verification ? "✅" : "❌" }}</span> Google Verification\
+        <span>{{ meta.google_verification ? "" : "" }}</span> Google Verification\
       </div>\
     </div>\
   </div>\

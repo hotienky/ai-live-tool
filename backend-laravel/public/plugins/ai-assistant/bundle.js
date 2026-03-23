@@ -57,13 +57,13 @@ var Plugin_ai = (function(e) {
       var salesDetails = e.ref('');
       var salesAudience = e.ref('');
       var SALES_TYPES = [
-        { code: 'ad', label: '📢 Quảng cáo', desc: 'Google/Facebook Ads' },
-        { code: 'email', label: '📧 Email', desc: 'Email Marketing' },
-        { code: 'social', label: '📱 Social Media', desc: 'FB, IG, TikTok' },
-        { code: 'promo', label: '🏷️ Khuyến mãi', desc: 'Flash Sale, Voucher' },
-        { code: 'landing', label: '🌐 Landing Page', desc: 'Trang bán hàng' },
-        { code: 'sms', label: '💬 SMS', desc: 'Tin nhắn marketing' },
-        { code: 'push', label: '🔔 Push', desc: 'Thông báo push' },
+        { code: 'ad', label: ' Quảng cáo', desc: 'Google/Facebook Ads' },
+        { code: 'email', label: ' Email', desc: 'Email Marketing' },
+        { code: 'social', label: ' Social Media', desc: 'FB, IG, TikTok' },
+        { code: 'promo', label: ' Khuyến mãi', desc: 'Flash Sale, Voucher' },
+        { code: 'landing', label: ' Landing Page', desc: 'Trang bán hàng' },
+        { code: 'sms', label: ' SMS', desc: 'Tin nhắn marketing' },
+        { code: 'push', label: ' Push', desc: 'Thông báo push' },
       ];
 
       // ── SEO State ──
@@ -218,13 +218,13 @@ var Plugin_ai = (function(e) {
       }
 
       var TABS = [
-        { key: 'translate', label: '🌐 Dịch thuật', desc: 'Auto Translate' },
-        { key: 'product', label: '📦 Mô tả SP', desc: 'Product Description' },
-        { key: 'blog', label: '📝 Viết Blog', desc: 'Blog Generator' },
-        { key: 'sales', label: '🚀 Sales Copy', desc: 'Marketing Content' },
-        { key: 'seo', label: '🔍 SEO', desc: 'SEO Metadata' },
-        { key: 'free', label: '✨ Tự do', desc: 'Free Prompt' },
-        { key: 'settings', label: '⚙️ Cài đặt', desc: 'API Key & Usage' },
+        { key: 'translate', label: ' Dịch thuật', desc: 'Auto Translate' },
+        { key: 'product', label: ' Mô tả SP', desc: 'Product Description' },
+        { key: 'blog', label: ' Viết Blog', desc: 'Blog Generator' },
+        { key: 'sales', label: ' Sales Copy', desc: 'Marketing Content' },
+        { key: 'seo', label: 'SEO', desc: 'SEO Metadata' },
+        { key: 'free', label: ' Tự do', desc: 'Free Prompt' },
+        { key: 'settings', label: ' Cài đặt', desc: 'API Key & Usage' },
       ];
 
       // Load settings when switching to settings tab
@@ -263,7 +263,7 @@ var Plugin_ai = (function(e) {
     template: '\
 <div class="ai">\
   <div class="ai-header">\
-    <h3>🤖 AI Assistant</h3>\
+    <h3>AI Assistant</h3>\
     <span class="ai-badge">Powered by AI</span>\
   </div>\
   <div class="ai-tabs">\
@@ -277,7 +277,7 @@ var Plugin_ai = (function(e) {
 \
       <!-- TRANSLATE TAB -->\
       <div v-if="activeTab === \'translate\'">\
-        <h4>🌐 Dịch tự động</h4>\
+        <h4> Dịch tự động</h4>\
         <p class="ai-desc">Dịch nội dung sang nhiều ngôn ngữ. Dùng Google Translate — miễn phí.</p>\
         <div class="ai-form">\
           <label>Nội dung cần dịch</label>\
@@ -286,7 +286,7 @@ var Plugin_ai = (function(e) {
             <div class="ai-col">\
               <label>Ngôn ngữ nguồn</label>\
               <select v-model="trFrom" class="ai-input">\
-                <option value="auto">🔍 Tự nhận diện</option>\
+                <option value="auto"> Tự nhận diện</option>\
                 <option v-for="l in LANGS" :key="l.code" :value="l.code">{{ l.label }}</option>\
               </select>\
             </div>\
@@ -297,27 +297,27 @@ var Plugin_ai = (function(e) {
               </select>\
             </div>\
           </div>\
-          <p class="ai-hint">💡 Dùng Google Translate — miễn phí, không cần API key</p>\
-          <button class="ai-btn" :disabled="loading" @click="doTranslate">{{ loading ? "⏳ Đang dịch..." : "🌐 Dịch ngay" }}</button>\
+          <p class="ai-hint"> Dùng Google Translate — miễn phí, không cần API key</p>\
+          <button class="ai-btn" :disabled="loading" @click="doTranslate">{{ loading ? "⏳ Đang dịch..." : " Dịch ngay" }}</button>\
         </div>\
       </div>\
 \
       <!-- PRODUCT TAB -->\
       <div v-if="activeTab === \'product\'">\
-        <h4>📦 Tạo mô tả sản phẩm</h4>\
+        <h4> Tạo mô tả sản phẩm</h4>\
         <p class="ai-desc">AI tự động viết mô tả hấp dẫn, SEO-friendly cho sản phẩm.</p>\
         <div class="ai-form">\
           <label>Tên sản phẩm</label>\
           <input v-model="prodName" class="ai-input" placeholder="VD: Áo thun nam cotton premium..." />\
           <label>Thuộc tính (mỗi dòng = key: value)</label>\
           <textarea v-model="prodAttrs" class="ai-input ai-textarea" rows="3" placeholder="Chất liệu: Cotton 100%&#10;Màu: Đen, Trắng, Navy&#10;Size: S, M, L, XL"></textarea>\
-          <button class="ai-btn" :disabled="loading" @click="doProduct">{{ loading ? "⏳ Đang tạo..." : "📦 Tạo mô tả" }}</button>\
+          <button class="ai-btn" :disabled="loading" @click="doProduct">{{ loading ? "⏳ Đang tạo..." : " Tạo mô tả" }}</button>\
         </div>\
       </div>\
 \
       <!-- BLOG TAB -->\
       <div v-if="activeTab === \'blog\'">\
-        <h4>📝 Viết Blog</h4>\
+        <h4> Viết Blog</h4>\
         <p class="ai-desc">AI viết bài blog hoàn chỉnh từ chủ đề, có heading, SEO-friendly.</p>\
         <div class="ai-form">\
           <label>Chủ đề</label>\
@@ -331,13 +331,13 @@ var Plugin_ai = (function(e) {
             <option value="casual">Thoải mái</option>\
             <option value="academic">Học thuật</option>\
           </select>\
-          <button class="ai-btn" :disabled="loading" @click="doBlog">{{ loading ? "⏳ Đang viết..." : "📝 Viết blog" }}</button>\
+          <button class="ai-btn" :disabled="loading" @click="doBlog">{{ loading ? "⏳ Đang viết..." : " Viết blog" }}</button>\
         </div>\
       </div>\
 \
       <!-- SALES COPY TAB -->\
       <div v-if="activeTab === \'sales\'">\
-        <h4>🚀 Sales Copy Generator</h4>\
+        <h4> Sales Copy Generator</h4>\
         <p class="ai-desc">Tạo nội dung marketing chuyên nghiệp: Ads, Email, Social, Landing Page...</p>\
         <div class="ai-form">\
           <label>Sản phẩm / Dịch vụ</label>\
@@ -353,39 +353,39 @@ var Plugin_ai = (function(e) {
           <textarea v-model="salesDetails" class="ai-input ai-textarea" rows="2" placeholder="Giảm giá 50%, miễn phí ship, ưu đãi đặc biệt..."></textarea>\
           <label>Đối tượng mục tiêu</label>\
           <input v-model="salesAudience" class="ai-input" placeholder="VD: Phụ nữ 25-40 tuổi, quan tâm skincare..." />\
-          <button class="ai-btn ai-btn--sales" :disabled="loading" @click="doSales">{{ loading ? "⏳ Đang tạo..." : "🚀 Tạo Sales Copy" }}</button>\
+          <button class="ai-btn ai-btn--sales" :disabled="loading" @click="doSales">{{ loading ? "⏳ Đang tạo..." : " Tạo Sales Copy" }}</button>\
         </div>\
       </div>\
 \
       <!-- SEO TAB -->\
       <div v-if="activeTab === \'seo\'">\
-        <h4>🔍 Tạo SEO Metadata</h4>\
+        <h4> Tạo SEO Metadata</h4>\
         <p class="ai-desc">AI phân tích nội dung và tạo meta title, description, keywords tối ưu.</p>\
         <div class="ai-form">\
           <label>Tiêu đề trang</label>\
           <input v-model="seoTitle" class="ai-input" placeholder="VD: Bộ sưu tập mùa hè 2026" />\
           <label>Nội dung trang</label>\
           <textarea v-model="seoContent" class="ai-input ai-textarea" rows="5" placeholder="Dán nội dung cần phân tích SEO..."></textarea>\
-          <button class="ai-btn" :disabled="loading" @click="doSeo">{{ loading ? "⏳ Đang phân tích..." : "🔍 Phân tích SEO" }}</button>\
+          <button class="ai-btn" :disabled="loading" @click="doSeo">{{ loading ? "⏳ Đang phân tích..." : " Phân tích SEO" }}</button>\
         </div>\
       </div>\
 \
       <!-- FREE TAB -->\
       <div v-if="activeTab === \'free\'">\
-        <h4>✨ Tự do</h4>\
+        <h4> Tự do</h4>\
         <p class="ai-desc">Chat tự do với AI — viết, tóm tắt, phân tích, bất cứ gì bạn cần.</p>\
         <div class="ai-form">\
           <label>System Prompt (tuỳ chọn)</label>\
           <input v-model="freeSystem" class="ai-input" />\
           <label>Prompt</label>\
           <textarea v-model="freePrompt" class="ai-input ai-textarea" rows="5" placeholder="Nhập yêu cầu..."></textarea>\
-          <button class="ai-btn" :disabled="loading" @click="doFree">{{ loading ? "⏳ Đang xử lý..." : "✨ Tạo nội dung" }}</button>\
+          <button class="ai-btn" :disabled="loading" @click="doFree">{{ loading ? "⏳ Đang xử lý..." : " Tạo nội dung" }}</button>\
         </div>\
       </div>\
 \
       <!-- SETTINGS TAB -->\
       <div v-if="activeTab === \'settings\'">\
-        <h4>⚙️ Cài đặt AI</h4>\
+        <h4> Cài đặt AI</h4>\
         <p class="ai-desc">Cấu hình API key của riêng bạn và xem lịch sử sử dụng AI.</p>\
 \
         <div v-if="settingsLoading" class="ai-loading"><div class="ai-spinner"></div><span>Đang tải...</span></div>\
@@ -393,33 +393,33 @@ var Plugin_ai = (function(e) {
         <div v-else class="ai-settings">\
           <!-- Key Mode Selection -->\
           <div class="ai-setting-card">\
-            <h5>🔑 Chọn nguồn cung cấp API Key</h5>\
+            <h5> Chọn nguồn cung cấp API Key</h5>\
             <div class="ai-key-modes">\
               <label class="ai-key-mode" :class="{\'ai-key-mode--active\': keyModeInput === \'system\'}" @click="keyModeInput = \'system\'">\
-                <span class="ai-key-mode-icon">🏢</span>\
+                <span class="ai-key-mode-icon"></span>\
                 <div>\
                   <strong>Dùng key mặc định hệ thống</strong>\
                   <small v-if="settings.master_key_mode === \'own\'" class="text-emerald-600 dark:text-emerald-400">Bạn đang được cấp API Key riêng biệt từ Admin hệ thống.</small>\
                   <small v-else>Sử dụng API key chung của nền tảng. Chi phí được tính theo block token sử dụng.</small>\
                 </div>\
-                <span v-if="settings.master_key_mode === \'own\'" class="ai-key-status ai-key-status--ok">✓ Key Admin</span>\
-                <span v-else-if="settings.system_key_available" class="ai-key-status ai-key-status--ok">✓ Sẵn sàng</span>\
-                <span v-else class="ai-key-status ai-key-status--warn">⚠ Chưa cấu hình</span>\
+                <span v-if="settings.master_key_mode === \'own\'" class="ai-key-status ai-key-status--ok"> Key Admin</span>\
+                <span v-else-if="settings.system_key_available" class="ai-key-status ai-key-status--ok"> Sẵn sàng</span>\
+                <span v-else class="ai-key-status ai-key-status--warn"> Chưa cấu hình</span>\
               </label>\
               <label class="ai-key-mode" :class="{\'ai-key-mode--active\': keyModeInput === \'own\'}" @click="keyModeInput = \'own\'">\
-                <span class="ai-key-mode-icon">🔐</span>\
+                <span class="ai-key-mode-icon"></span>\
                 <div>\
                   <strong>Cấu hình Key của riêng tôi</strong>\
                   <small>Tự cung cấp API key (Ưu tiên cao nhất). Chi phí tính trực tiếp từ OpenAI/Anthropic ở tài khoản của bạn.</small>\
                 </div>\
-                <span v-if="settings.has_own_key" class="ai-key-status ai-key-status--ok">✓ Đã có key</span>\
+                <span v-if="settings.has_own_key" class="ai-key-status ai-key-status--ok"> Đã có key</span>\
               </label>\
             </div>\
           </div>\
 \
           <!-- Own Key Config -->\
           <div v-if="keyModeInput === \'own\'" class="ai-setting-card">\
-            <h5>🔐 Cấu hình API Key cá nhân</h5>\
+            <h5> Cấu hình API Key cá nhân</h5>\
             <div class="ai-form">\
               <label>Provider (Nhà cung cấp)</label>\
               <select v-model="ownProviderInput" class="ai-input">\
@@ -428,13 +428,13 @@ var Plugin_ai = (function(e) {
               </select>\
               <label>API Key</label>\
               <input v-model="ownKeyInput" class="ai-input" type="password" :placeholder="settings.has_own_key ? \'Key hiện tại: \' + settings.own_api_key_masked + \' (Bỏ trống để giữ nguyên)\' : \'Nhập API key...\'"/>\
-              <p class="ai-hint">💡 Key được mã hóa chuẩn và lưu an toàn tuyệt đối. {{ ownProviderInput === \'openai\' ? \'Lấy key tại platform.openai.com\' : \'Lấy key tại console.anthropic.com\' }}</p>\
+              <p class="ai-hint"> Key được mã hóa chuẩn và lưu an toàn tuyệt đối. {{ ownProviderInput === \'openai\' ? \'Lấy key tại platform.openai.com\' : \'Lấy key tại console.anthropic.com\' }}</p>\
             </div>\
           </div>\
 \
           <!-- System Key Info -->\
           <div v-if="keyModeInput === \'system\' && settings.master_key_mode !== \'own\'" class="ai-setting-card">\
-            <h5>💰 Bảng giá tham khảo (Dùng chung)</h5>\
+            <h5> Bảng giá tham khảo (Dùng chung)</h5>\
             <div class="ai-pricing">\
               <div class="ai-price-row"><span>Provider</span><strong>{{ settings.system_provider || \'openai\' }} / {{ settings.system_model || \'gpt-4o-mini\' }}</strong></div>\
               <div class="ai-price-row"><span>SEO Analysis</span><strong>~500 tokens/request</strong></div>\
@@ -445,14 +445,14 @@ var Plugin_ai = (function(e) {
           </div>\
 \
           <button class="ai-btn" :disabled="settingsSaving" @click="saveSettings">\
-            {{ settingsSaving ? "⏳ Đang lưu..." : "💾 Lưu cài đặt AI" }}\
+            {{ settingsSaving ? "⏳ Đang lưu..." : "Lưu cài đặt AI" }}\
           </button>\
 \
           <!-- Usage Dashboard -->\
           <div class="ai-setting-card" style="margin-top: 20px;">\
             <div class="ai-usage-header">\
-              <h5>📊 Thống kê sử dụng (tháng này)</h5>\
-              <button class="ai-usage-refresh" @click="loadUsage" :disabled="usageLoading">🔄</button>\
+              <h5> Thống kê sử dụng (tháng này)</h5>\
+              <button class="ai-usage-refresh" @click="loadUsage" :disabled="usageLoading"></button>\
             </div>\
 \
             <div v-if="usageLoading" class="ai-loading"><div class="ai-spinner"></div><span>Đang tải...</span></div>\
@@ -517,8 +517,8 @@ var Plugin_ai = (function(e) {
     <!-- RESULT PANEL -->\
     <div class="ai-result" v-if="result">\
       <div class="ai-result-header">\
-        <h4>📋 Kết quả</h4>\
-        <button class="ai-copy" @click="copyResult">{{ copied ? "✅ Đã copy" : "📋 Copy" }}</button>\
+        <h4> Kết quả</h4>\
+        <button class="ai-copy" @click="copyResult">{{ copied ? " Đã copy" : " Copy" }}</button>\
       </div>\
       <div class="ai-result-body">\
         <pre class="ai-result-text">{{ result }}</pre>\

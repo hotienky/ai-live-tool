@@ -40,7 +40,7 @@ var Plugin_realestate = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/realestate/properties/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, filter, showModal, form, editing, openCreate, openEdit, save, remove, load, fmtDate, fmtMoney };
   }, template: '\
-<div class="re-section"><div class="re-header"><h3>🏠 Bất động sản</h3><button class="re-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="re-section"><div class="re-header"><h3>Bất động sản</h3><button class="re-btn-primary" @click="openCreate">+ Thêm</button></div>\
   <div class="re-filters"><select v-model="filter.type" @change="load" class="re-input"><option value="">Tất cả loại</option><option value="apartment">Căn hộ</option><option value="house">Nhà phố</option><option value="villa">Biệt thự</option><option value="land">Đất nền</option><option value="commercial">Thương mại</option><option value="office">Văn phòng</option></select>\
     <select v-model="filter.status" @change="load" class="re-input"><option value="">Tất cả TT</option><option value="active">Đang đăng</option><option value="sold">Đã bán</option><option value="rented">Đã thuê</option><option value="draft">Nháp</option></select>\
     <input v-model="filter.search" @input="load" class="re-input" placeholder="Tìm..." /></div>\
@@ -50,7 +50,7 @@ var Plugin_realestate = (function(e) {
     <td>{{ fmtMoney(p.price) }}</td><td>{{ p.area }}m²</td><td>{{ p.bedrooms || "-" }}</td>\
     <td>{{ [p.district, p.city].filter(Boolean).join(", ") || "-" }}</td>\
     <td><span :class="p.status === \'active\' ? \'re-badge-on\' : \'re-badge-off\'">{{ p.status }}</span></td>\
-    <td><button @click="openEdit(p)">✏️</button><button class="re-btn-del" @click="remove(p.id)">🗑</button></td></tr></tbody></table>\
+    <td><button @click="openEdit(p)"></button><button class="re-btn-del" @click="remove(p.id)"></button></td></tr></tbody></table>\
   <div v-if="showModal" class="re-modal-overlay" @click.self="showModal=false"><div class="re-modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
     <label>Tên <input v-model="form.title" class="re-input" /></label>\
     <div class="re-form-row"><label>Loại BĐS <select v-model="form.property_type" class="re-input"><option value="apartment">Căn hộ</option><option value="house">Nhà phố</option><option value="villa">Biệt thự</option><option value="land">Đất nền</option><option value="commercial">Thương mại</option><option value="office">Văn phòng</option></select></label>\
@@ -65,7 +65,7 @@ var Plugin_realestate = (function(e) {
     <label>Mô tả <textarea v-model="form.description" class="re-input re-textarea" rows="4"></textarea></label>\
     <div class="re-form-row"><label>Trạng thái <select v-model="form.status" class="re-input"><option value="active">Đang đăng</option><option value="sold">Đã bán</option><option value="rented">Đã thuê</option><option value="draft">Nháp</option></select></label></div>\
     <label class="re-check"><input type="checkbox" v-model="form.is_featured" /> Nổi bật</label>\
-    <div class="re-modal-actions"><button class="re-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="re-modal-actions"><button class="re-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var REInquiries = { name: 'REInquiries', setup: function() {
@@ -75,7 +75,7 @@ var Plugin_realestate = (function(e) {
     async function updateStatus(id, s) { try { await apiFetch('/realestate/inquiries/' + id, { method:'PUT', body:JSON.stringify({ status:s }) }); load(); } catch(e) {} }
     return { items, loading, updateStatus, fmtDate };
   }, template: '\
-<div class="re-section"><h3>📞 Liên hệ tư vấn</h3>\
+<div class="re-section"><h3> Liên hệ tư vấn</h3>\
   <table class="re-table"><thead><tr><th>Khách</th><th>SĐT</th><th>Email</th><th>BĐS</th><th>Tin nhắn</th><th>Ngày</th><th>TT</th></tr></thead>\
   <tbody><tr v-for="i in items" :key="i.id"><td><strong>{{ i.name }}</strong></td><td>{{ i.phone || "-" }}</td><td>{{ i.email || "-" }}</td>\
     <td>{{ i.property ? i.property.title : "-" }}</td><td class="re-msg">{{ i.message || "-" }}</td><td>{{ fmtDate(i.created_at) }}</td>\
@@ -86,9 +86,9 @@ var Plugin_realestate = (function(e) {
     components: { REStats:REStats, REProperties:REProperties, REInquiries:REInquiries },
     setup: function() { var tab = e.ref('stats'); return { tab }; },
     template: '<div class="realestate-plugin"><div class="re-tabs">\
-      <button :class="{\'re-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-      <button :class="{\'re-tab-active\':tab===\'properties\'}" @click="tab=\'properties\'">🏠 BĐS</button>\
-      <button :class="{\'re-tab-active\':tab===\'inquiries\'}" @click="tab=\'inquiries\'">📞 Liên hệ</button></div>\
+      <button :class="{\'re-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+      <button :class="{\'re-tab-active\':tab===\'properties\'}" @click="tab=\'properties\'"> BĐS</button>\
+      <button :class="{\'re-tab-active\':tab===\'inquiries\'}" @click="tab=\'inquiries\'"> Liên hệ</button></div>\
       <REStats v-if="tab===\'stats\'" /><REProperties v-else-if="tab===\'properties\'" />\
       <REInquiries v-else-if="tab===\'inquiries\'" /></div>' };
 

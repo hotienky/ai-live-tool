@@ -15,18 +15,18 @@ var Plugin_forms = (function(e, k) {
 
   // ── Field Types ──
   var FIELD_TYPES = [
-    { type: 'text',     label: 'Text',     icon: '📝' },
-    { type: 'email',    label: 'Email',    icon: '✉️' },
-    { type: 'phone',    label: 'Phone',    icon: '📞' },
-    { type: 'number',   label: 'Number',   icon: '🔢' },
-    { type: 'textarea', label: 'Textarea', icon: '📄' },
-    { type: 'select',   label: 'Dropdown', icon: '📋' },
-    { type: 'checkbox', label: 'Checkbox', icon: '☑️' },
+    { type: 'text',     label: 'Text',     icon: '' },
+    { type: 'email',    label: 'Email',    icon: '' },
+    { type: 'phone',    label: 'Phone',    icon: '' },
+    { type: 'number',   label: 'Number',   icon: '' },
+    { type: 'textarea', label: 'Textarea', icon: '' },
+    { type: 'select',   label: 'Dropdown', icon: '' },
+    { type: 'checkbox', label: 'Checkbox', icon: '' },
     { type: 'radio',    label: 'Radio',    icon: '⭕' },
-    { type: 'date',     label: 'Date',     icon: '📅' },
-    { type: 'file',     label: 'File',     icon: '📎' },
-    { type: 'heading',  label: 'Heading',  icon: '📌' },
-    { type: 'divider',  label: 'Divider',  icon: '➖' },
+    { type: 'date',     label: 'Date',     icon: '' },
+    { type: 'file',     label: 'File',     icon: '' },
+    { type: 'heading',  label: 'Heading',  icon: '' },
+    { type: 'divider',  label: 'Divider',  icon: '' },
   ];
 
   // ══════════════════════════════════════
@@ -95,7 +95,7 @@ var Plugin_forms = (function(e, k) {
   <div class="fb-header">\
     <button class="fb-back" @click="$emit(\'back\')">← Quay lại</button>\
     <h3>{{ formId ? "Sửa Form" : "Tạo Form mới" }}</h3>\
-    <button class="fb-save" :disabled="saving" @click="saveForm">{{ saving ? "Đang lưu..." : "💾 Lưu" }}</button>\
+    <button class="fb-save" :disabled="saving" @click="saveForm">{{ saving ? "Đang lưu..." : "Lưu" }}</button>\
   </div>\
   <div class="fb-body">\
     <div class="fb-sidebar">\
@@ -127,7 +127,7 @@ var Plugin_forms = (function(e, k) {
             <button @click="moveField(idx, idx-1)" :disabled="idx===0" title="Lên">↑</button>\
             <button @click="moveField(idx, idx+1)" :disabled="idx===form.fields.length-1" title="Xuống">↓</button>\
             <button class="fb-field-w" @click="field.width = field.width===\'full\' ? \'half\' : \'full\'" :title="field.width===\'full\' ? \'Thu nhỏ\' : \'Mở rộng\'">{{ field.width === "full" ? "▬" : "▫" }}</button>\
-            <button class="fb-field-del" @click="removeField(idx)">✕</button>\
+            <button class="fb-field-del" @click="removeField(idx)"></button>\
           </div>\
         </div>\
         <div class="fb-field-body">\
@@ -201,12 +201,12 @@ var Plugin_forms = (function(e, k) {
     template: '\
 <div class="fl">\
   <div class="fl-header">\
-    <h3>📋 Form Builder</h3>\
+    <h3>Form Builder</h3>\
     <button class="fl-create" @click="$emit(\'navigate\', \'forms/create\')">+ Tạo Form</button>\
   </div>\
   <div v-if="loading" class="fl-loading">Đang tải...</div>\
   <div v-else-if="!forms.length" class="fl-empty">\
-    <div class="fl-empty-icon">📋</div>\
+    <div class="fl-empty-icon"></div>\
     <p>Chưa có form nào. Tạo form đầu tiên!</p>\
     <button class="fl-create" @click="$emit(\'navigate\', \'forms/create\')">+ Tạo Form</button>\
   </div>\
@@ -217,16 +217,16 @@ var Plugin_forms = (function(e, k) {
         <span class="fl-badge" :class="form.is_active ? \'fl-badge--active\' : \'fl-badge--inactive\'">{{ form.is_active ? "Active" : "Draft" }}</span>\
       </div>\
       <div class="fl-card-meta">\
-        <span>📝 {{ (form.fields || []).length }} trường</span>\
-        <span>📨 {{ form.submission_count || form.submissions_count || 0 }} lượt gửi</span>\
+        <span> {{ (form.fields || []).length }} trường</span>\
+        <span> {{ form.submission_count || form.submissions_count || 0 }} lượt gửi</span>\
       </div>\
       <div class="fl-card-slug">Slug: <code>{{ form.slug }}</code></div>\
       <div class="fl-card-actions">\
-        <button @click="$emit(\'navigate\', \'forms/edit/\' + form.id)">✏️ Sửa</button>\
-        <button @click="$emit(\'navigate\', \'forms/submissions/\' + form.id)">📨 Xem gửi</button>\
-        <button @click="copyEmbed(form)">📎 Embed</button>\
+        <button @click="$emit(\'navigate\', \'forms/edit/\' + form.id)"> Sửa</button>\
+        <button @click="$emit(\'navigate\', \'forms/submissions/\' + form.id)"> Xem gửi</button>\
+        <button @click="copyEmbed(form)"> Embed</button>\
         <button @click="toggleActive(form)">{{ form.is_active ? "⏸ Tắt" : "▶ Bật" }}</button>\
-        <button class="fl-del" @click="deleteForm(form.id)">🗑</button>\
+        <button class="fl-del" @click="deleteForm(form.id)"></button>\
       </div>\
     </div>\
   </div>\
@@ -283,7 +283,7 @@ var Plugin_forms = (function(e, k) {
 <div class="sv">\
   <div class="sv-header">\
     <button class="sv-back" @click="$emit(\'back\')">← Quay lại</button>\
-    <h3>📨 {{ formTitle }} — Dữ liệu gửi ({{ submissions.length }})</h3>\
+    <h3> {{ formTitle }} — Dữ liệu gửi ({{ submissions.length }})</h3>\
   </div>\
   <div v-if="loading" class="sv-loading">Đang tải...</div>\
   <div v-else-if="!submissions.length" class="sv-empty">Chưa có ai gửi form này</div>\
@@ -303,7 +303,7 @@ var Plugin_forms = (function(e, k) {
         <td v-for="f in formFields" :key="f.id">{{ sub.data && sub.data[f.id] || sub.data && sub.data[f.label] || \'-\' }}</td>\
         <td>{{ formatDate(sub.created_at) }}</td>\
         <td><small>{{ sub.ip_address || \'-\' }}</small></td>\
-        <td><button class="sv-del" @click="deleteSubmission(sub.id)">✕</button></td>\
+        <td><button class="sv-del" @click="deleteSubmission(sub.id)"></button></td>\
       </tr>\
     </tbody>\
   </table>\

@@ -55,13 +55,13 @@ var Plugin_restaurant = (function(e) {
       return { items, loading, categories, showModal, form, editing, openCreate, openEdit, save, remove, fmtMoney };
     },
     template: '\
-<div class="rs-section"><div class="rs-header"><h3>🍽️ Thực đơn</h3><button class="rs-btn-primary" @click="openCreate">+ Thêm món</button></div>\
+<div class="rs-section"><div class="rs-header"><h3> Thực đơn</h3><button class="rs-btn-primary" @click="openCreate">+ Thêm món</button></div>\
   <table class="rs-table"><thead><tr><th>Tên</th><th>Danh mục</th><th>Giá</th><th>Chuẩn bị</th><th>Cay</th><th>TT</th><th></th></tr></thead>\
-  <tbody><tr v-for="i in items" :key="i.id"><td><strong>{{ i.name }}</strong><span v-if="i.is_popular" class="rs-pop">🔥</span></td>\
+  <tbody><tr v-for="i in items" :key="i.id"><td><strong>{{ i.name }}</strong><span v-if="i.is_popular" class="rs-pop"></span></td>\
     <td>{{ i.category ? i.category.name : "-" }}</td><td>{{ fmtMoney(i.price) }}</td>\
     <td>{{ i.preparation_time ? i.preparation_time + " phút" : "-" }}</td><td>{{ i.spice_level || "-" }}</td>\
-    <td><span :class="i.is_available ? \'rs-badge-on\' : \'rs-badge-off\'">{{ i.is_available ? "✅" : "❌" }}</span></td>\
-    <td><button @click="openEdit(i)">✏️</button> <button class="rs-btn-del" @click="remove(i.id)">🗑</button></td></tr></tbody></table>\
+    <td><span :class="i.is_available ? \'rs-badge-on\' : \'rs-badge-off\'">{{ i.is_available ? "" : "" }}</span></td>\
+    <td><button @click="openEdit(i)"></button> <button class="rs-btn-del" @click="remove(i.id)"></button></td></tr></tbody></table>\
   <div v-if="showModal" class="rs-modal-overlay" @click.self="showModal=false"><div class="rs-modal"><h4>{{ editing ? "Sửa" : "Thêm" }} món</h4>\
     <label>Tên <input v-model="form.name" class="rs-input" /></label>\
     <label>Danh mục <select v-model="form.category_id" class="rs-input"><option value="">--</option><option v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</option></select></label>\
@@ -71,7 +71,7 @@ var Plugin_restaurant = (function(e) {
     <label>Cay <select v-model="form.spice_level" class="rs-input"><option value="none">Không</option><option value="mild">Nhẹ</option><option value="medium">Vừa</option><option value="hot">Cay</option><option value="extra_hot">Rất cay</option></select></label></div>\
     <label class="rs-check"><input type="checkbox" v-model="form.is_available" /> Còn hàng</label>\
     <label class="rs-check"><input type="checkbox" v-model="form.is_popular" /> Phổ biến</label>\
-    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>'
   };
 
@@ -100,7 +100,7 @@ var Plugin_restaurant = (function(e) {
       return { items, loading, filter, showModal, form, openCreate, save, updateStatus, load, fmtDate };
     },
     template: '\
-<div class="rs-section"><div class="rs-header"><h3>📋 Đặt bàn</h3><button class="rs-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="rs-section"><div class="rs-header"><h3> Đặt bàn</h3><button class="rs-btn-primary" @click="openCreate">+ Thêm</button></div>\
   <div class="rs-filters"><select v-model="filter.status" @change="load" class="rs-input"><option value="">Tất cả</option><option value="pending">Chờ</option><option value="confirmed">Xác nhận</option><option value="seated">Đã ngồi</option><option value="completed">Xong</option><option value="cancelled">Huỷ</option></select>\
     <input v-model="filter.date" type="date" @change="load" class="rs-input" /><input v-model="filter.search" @input="load" class="rs-input" placeholder="Tìm..." /></div>\
   <table class="rs-table"><thead><tr><th>Khách</th><th>SĐT</th><th>Ngày</th><th>Giờ</th><th>Số khách</th><th>Mã</th><th>TT</th></tr></thead>\
@@ -113,7 +113,7 @@ var Plugin_restaurant = (function(e) {
     <div class="rs-form-row"><label>Ngày <input v-model="form.date" type="date" class="rs-input" /></label><label>Giờ <input v-model="form.time" class="rs-input" placeholder="18:00" /></label></div>\
     <label>Số khách <input v-model.number="form.party_size" type="number" class="rs-input" /></label>\
     <label>Ghi chú <textarea v-model="form.notes" class="rs-input rs-textarea"></textarea></label>\
-    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">💾 Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>'
   };
 
@@ -136,13 +136,13 @@ var Plugin_restaurant = (function(e) {
   <div class="rs-table-grid"><div v-for="t in items" :key="t.id" class="rs-table-card" :class="{\'rs-table-inactive\':!t.is_active}">\
     <div class="rs-table-num">{{ t.table_number }}</div><div class="rs-table-cap">{{ t.capacity }} chỗ</div>\
     <div class="rs-table-loc">{{ t.location || "-" }}</div>\
-    <div class="rs-table-acts"><button @click="openEdit(t)">✏️</button><button @click="remove(t.id)">🗑</button></div></div></div>\
+    <div class="rs-table-acts"><button @click="openEdit(t)"></button><button @click="remove(t.id)"></button></div></div></div>\
   <div v-if="showModal" class="rs-modal-overlay" @click.self="showModal=false"><div class="rs-modal"><h4>{{ editing ? "Sửa" : "Thêm" }} bàn</h4>\
     <label>Số bàn <input v-model="form.table_number" class="rs-input" /></label>\
     <label>Số chỗ <input v-model.number="form.capacity" type="number" class="rs-input" /></label>\
     <label>Vị trí <input v-model="form.location" class="rs-input" placeholder="Tầng 1, Ngoài trời..." /></label>\
     <label class="rs-check"><input type="checkbox" v-model="form.is_active" /> Hoạt động</label>\
-    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">💾</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="rs-modal-actions"><button class="rs-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>'
   };
 
@@ -153,9 +153,9 @@ var Plugin_restaurant = (function(e) {
     setup: function() { var tab = e.ref('stats'); return { tab }; },
     template: '\
 <div class="restaurant-plugin"><div class="rs-tabs">\
-  <button :class="{\'rs-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-  <button :class="{\'rs-tab-active\':tab===\'menu\'}" @click="tab=\'menu\'">🍽️ Thực đơn</button>\
-  <button :class="{\'rs-tab-active\':tab===\'reservations\'}" @click="tab=\'reservations\'">📋 Đặt bàn</button>\
+  <button :class="{\'rs-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+  <button :class="{\'rs-tab-active\':tab===\'menu\'}" @click="tab=\'menu\'"> Thực đơn</button>\
+  <button :class="{\'rs-tab-active\':tab===\'reservations\'}" @click="tab=\'reservations\'"> Đặt bàn</button>\
   <button :class="{\'rs-tab-active\':tab===\'tables\'}" @click="tab=\'tables\'">🪑 Bàn</button>\
 </div>\
   <RestStats v-if="tab===\'stats\'" /><RestMenu v-else-if="tab===\'menu\'" />\

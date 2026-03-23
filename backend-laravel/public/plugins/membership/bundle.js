@@ -36,14 +36,14 @@ var Plugin_membership = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/membership/tiers/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove };
   }, template: '\
-<div class="mb-section"><div class="mb-header"><h3>🏅 Hạng thành viên</h3><button class="mb-btn-primary" @click="openCreate">+ Thêm hạng</button></div>\
+<div class="mb-section"><div class="mb-header"><h3> Hạng thành viên</h3><button class="mb-btn-primary" @click="openCreate">+ Thêm hạng</button></div>\
   <div class="mb-tier-grid"><div v-for="t in items" :key="t.id" class="mb-tier-card" :style="{borderLeft: \'4px solid \' + (t.color || \'#6366f1\')}">\
     <div class="mb-tier-name" :style="{color: t.color}">{{ t.name }}</div>\
     <div class="mb-tier-info">Điểm tối thiểu: <strong>{{ t.min_points }}</strong></div>\
     <div class="mb-tier-info">Giảm giá: <strong>{{ t.discount_percent }}%</strong></div>\
     <div class="mb-tier-info">Thành viên: <strong>{{ t.members_count || 0 }}</strong></div>\
     <div v-if="t.benefits" class="mb-tier-benefits">{{ t.benefits }}</div>\
-    <div class="mb-tier-acts"><button @click="openEdit(t)">✏️</button><button class="mb-btn-del" @click="remove(t.id)">🗑</button></div></div></div>\
+    <div class="mb-tier-acts"><button @click="openEdit(t)"></button><button class="mb-btn-del" @click="remove(t.id)"></button></div></div></div>\
   <div v-if="showModal" class="mb-modal-overlay" @click.self="showModal=false"><div class="mb-modal"><h4>{{ editing ? "Sửa" : "Thêm" }} hạng</h4>\
     <label>Tên <input v-model="form.name" class="mb-input" /></label>\
     <div class="mb-form-row"><label>Điểm tối thiểu <input v-model.number="form.min_points" type="number" class="mb-input" /></label>\
@@ -51,7 +51,7 @@ var Plugin_membership = (function(e) {
     <label>Quyền lợi <textarea v-model="form.benefits" class="mb-input mb-textarea"></textarea></label>\
     <label>Màu <input v-model="form.color" type="color" class="mb-input" style="width:80px;height:40px" /></label>\
     <label class="mb-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
-    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="save">💾</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var MemberList = { name: 'MemberList', setup: function() {
@@ -70,27 +70,27 @@ var Plugin_membership = (function(e) {
     function savePoints() { adjustPoints(pointForm.value.memberId, pointForm.value.amount, pointForm.value.reason); pointModal.value = false; }
     return { items, loading, filter, tiers, load, openPointModal, pointModal, pointForm, savePoints, fmtDate };
   }, template: '\
-<div class="mb-section"><div class="mb-header"><h3>👥 Thành viên</h3></div>\
+<div class="mb-section"><div class="mb-header"><h3>Thành viên</h3></div>\
   <div class="mb-filters"><select v-model="filter.tier" @change="load" class="mb-input"><option value="">Tất cả hạng</option><option v-for="t in tiers" :key="t.id" :value="t.id">{{ t.name }}</option></select>\
     <input v-model="filter.search" @input="load" class="mb-input" placeholder="Tìm tên/email..." /></div>\
   <table class="mb-table"><thead><tr><th>Tên</th><th>Email</th><th>Hạng</th><th>Điểm</th><th>Tổng chi</th><th>Giới thiệu</th><th>Ngày</th><th></th></tr></thead>\
   <tbody><tr v-for="m in items" :key="m.id"><td><strong>{{ m.name }}</strong></td><td>{{ m.email || "-" }}</td>\
     <td><span class="mb-tier-badge" :style="{background: m.tier_color || \'#6366f1\'}">{{ m.tier_name || m.current_tier || "Cơ bản" }}</span></td>\
     <td>{{ m.points || 0 }}</td><td>{{ m.total_spent || 0 }}</td><td>{{ m.referral_count || 0 }}</td><td>{{ fmtDate(m.created_at) }}</td>\
-    <td><button class="mb-btn-primary" @click="openPointModal(m)">🎯 Điểm</button></td></tr></tbody></table>\
+    <td><button class="mb-btn-primary" @click="openPointModal(m)"> Điểm</button></td></tr></tbody></table>\
   <div v-if="pointModal" class="mb-modal-overlay" @click.self="pointModal=false"><div class="mb-modal"><h4>Điều chỉnh điểm</h4>\
     <label>Số điểm (+/-) <input v-model.number="pointForm.amount" type="number" class="mb-input" /></label>\
     <label>Lý do <input v-model="pointForm.reason" class="mb-input" placeholder="VD: Bonus sinh nhật" /></label>\
-    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="savePoints">💾 Lưu</button><button @click="pointModal=false">Huỷ</button></div></div></div>\
+    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="savePoints">Lưu</button><button @click="pointModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var MemberManager = { name: 'MemberManager',
     components: { MemberStats:MemberStats, MemberTiers:MemberTiers, MemberList:MemberList },
     setup: function() { var tab = e.ref('stats'); return { tab }; },
     template: '<div class="membership-plugin"><div class="mb-tabs">\
-      <button :class="{\'mb-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">📊 Tổng quan</button>\
-      <button :class="{\'mb-tab-active\':tab===\'tiers\'}" @click="tab=\'tiers\'">🏅 Hạng</button>\
-      <button :class="{\'mb-tab-active\':tab===\'members\'}" @click="tab=\'members\'">👥 Thành viên</button></div>\
+      <button :class="{\'mb-tab-active\':tab===\'stats\'}" @click="tab=\'stats\'">Tổng quan</button>\
+      <button :class="{\'mb-tab-active\':tab===\'tiers\'}" @click="tab=\'tiers\'"> Hạng</button>\
+      <button :class="{\'mb-tab-active\':tab===\'members\'}" @click="tab=\'members\'">Thành viên</button></div>\
       <MemberStats v-if="tab===\'stats\'" /><MemberTiers v-else-if="tab===\'tiers\'" />\
       <MemberList v-else-if="tab===\'members\'" /></div>' };
 
