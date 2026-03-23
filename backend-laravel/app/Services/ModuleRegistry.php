@@ -72,6 +72,7 @@ class ModuleRegistry
                     'installed_at' => now(),
                     'installed_by' => $userId,
                 ]);
+                static::clearCache($tenantId);
                 return ['success' => true, 'message' => "Đã cài đặt lại {$module->name}"];
             }
             // Free module → reactivate
@@ -82,6 +83,7 @@ class ModuleRegistry
                     'installed_at' => now(),
                     'installed_by' => $userId,
                 ]);
+                static::clearCache($tenantId);
                 return ['success' => true, 'message' => "Đã cài đặt {$module->name}"];
             }
             // Paid + not yet approved → block

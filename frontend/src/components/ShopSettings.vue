@@ -630,6 +630,8 @@ import {
   ShieldCheck, Webhook, ScrollText, Receipt, Truck,
   Eye, Tablet, Smartphone, RotateCcw, AlertCircle, Search,
   Image as ImageIcon,
+  CalendarDays, PartyPopper, MessagesSquare, Building2, Scissors,
+  Home, Gift, UserCheck, UtensilsCrossed, GraduationCap,
 } from 'lucide-vue-next'
 // E-com components removed — loaded dynamically via PluginRenderer
 // Module components removed — loaded dynamically via PluginRenderer
@@ -958,6 +960,41 @@ const tabGroups = [
       { key: 'blog-categories', label: t('admin.categories', 'Danh mục'), icon: FolderOpen },
       { key: 'blog-comments', label: t('admin.comments', 'Bình luận'), icon: MessageCircle },
       { key: 'blog-settings', label: t('admin.config', 'Cấu hình'), icon: Cog },
+    ],
+  },
+  {
+    label: 'Học tập',
+    items: [
+      { key: 'lms', label: 'LMS', icon: GraduationCap },
+    ],
+  },
+  {
+    label: 'Dịch vụ',
+    items: [
+      { key: 'booking', label: 'Đặt lịch', icon: CalendarDays },
+      { key: 'events', label: 'Sự kiện', icon: PartyPopper },
+      { key: 'restaurant', label: 'Nhà hàng', icon: UtensilsCrossed },
+      { key: 'salon', label: 'Salon', icon: Scissors },
+    ],
+  },
+  {
+    label: 'Cộng đồng',
+    items: [
+      { key: 'forum', label: 'Diễn đàn', icon: MessagesSquare },
+      { key: 'membership', label: 'Thành viên', icon: UserCheck },
+    ],
+  },
+  {
+    label: 'Ngành nghề',
+    items: [
+      { key: 'jobboard', label: 'Việc làm', icon: Briefcase },
+      { key: 'realestate', label: 'Bất động sản', icon: Building2 },
+    ],
+  },
+  {
+    label: 'Khuyến mãi',
+    items: [
+      { key: 'lucky-draw', label: 'Vòng quay', icon: Gift },
     ],
   },
   {

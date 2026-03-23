@@ -5,6 +5,12 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   appType: 'spa',
+  resolve: {
+    alias: {
+      // Include Vue template compiler for plugin bundles that use `template` strings
+      vue: 'vue/dist/vue.esm-bundler.js',
+    },
+  },
   server: {
     allowedHosts: true,
     proxy: {
