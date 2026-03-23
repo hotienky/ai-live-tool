@@ -21,6 +21,7 @@
 import { computed } from 'vue'
 import { useSanitize } from '../composables/useSanitize.js'
 import FormRenderer from './FormRenderer.vue'
+import LuckyDrawPlugin from './plugins/LuckyDrawPlugin.vue'
 
 const props = defineProps({
   html: {
@@ -34,6 +35,7 @@ const { sanitize } = useSanitize()
 // Core registry for native components compiled into storefront
 const BUILTIN_SHORTCODES = {
   'form': FormRenderer,
+  'lucky-draw': LuckyDrawPlugin,
 }
 
 function getComponent(tag) {

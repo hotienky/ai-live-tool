@@ -618,7 +618,18 @@ function viewFromPath() {
   if (fg && !isFeatureEnabled(fg)) return defaultAccessibleView()
   return resolved
 }
-const activeView = ref(viewFromPath())
+// Preserve the raw URL path when viewFromPath() would fall back to the default
+// view. Plugin-registered routes (shop/cms, shop/products, etc.) aren't in
+// validViews on initial load — keeping the raw path prevents a flash of
+// "Tổng quan". The post-plugin-load re-resolve in fetchInstalledModules()
+// validates and corrects any truly invalid paths.
+const _rawInitPath = window.location.pathname.replace(/^\//, '')
+const _initResolved = viewFromPath()
+const activeView = ref(
+  _rawInitPath && _initResolved === defaultAccessibleView()
+    ? _rawInitPath
+    : _initResolved
+)
 const prevView   = ref(defaultAccessibleView())
 
 // Computed: which settings tab to show

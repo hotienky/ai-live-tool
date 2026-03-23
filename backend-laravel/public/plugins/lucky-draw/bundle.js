@@ -35,8 +35,16 @@ var Plugin_luckydraw = (function(e) {
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove, fmtDate };
   }, template: '\
 <div class="ld-section"><div class="ld-header"><h3>Chiến dịch</h3><button class="btn-primary btn-sm" @click="openCreate">+ Tạo chiến dịch</button></div>\
-  <table class="ld-table"><thead><tr><th>Tên</th><th>Bắt đầu</th><th>Kết thúc</th><th>Người tham gia</th><th>Giải thưởng</th><th>TT</th><th></th></tr></thead>\
-  <tbody><tr v-for="c in items" :key="c.id"><td><strong>{{ c.name }}</strong></td><td>{{ fmtDate(c.start_date) }}</td><td>{{ fmtDate(c.end_date) }}</td>\
+  <div style="background:#e3f2fd; color:#0e566c; padding:12px 16px; border-radius:8px; margin-bottom:16px; font-size:14px; display:flex; gap:10px; align-items:center;">\
+    <span style="font-size:18px">💡</span> \
+    <span>\
+      <strong>Mẹo hiển thị:</strong> Để chèn Vòng Quay ra ngoài Storefront, bạn hãy copy mã ngắn \
+      <code style="background:#fff; padding:2px 6px; border-radius:4px; font-weight:bold; color:#d32f2f;">[lucky-draw id="ID"]</code> \
+      (Thay ID bằng số tương ứng) và dán vào Nội dung của bất kỳ <strong>Trang (Pages)</strong> nào!\
+    </span>\
+  </div>\
+  <table class="ld-table"><thead><tr><th>ID</th><th>Tên</th><th>Bắt đầu</th><th>Kết thúc</th><th>Người tham gia</th><th>Giải thưởng</th><th>TT</th><th></th></tr></thead>\
+  <tbody><tr v-for="c in items" :key="c.id"><td>#{{ c.id }}</td><td><strong>{{ c.name }}</strong></td><td>{{ fmtDate(c.start_date) }}</td><td>{{ fmtDate(c.end_date) }}</td>\
     <td>{{ c.participants_count || 0 }}{{ c.max_participants ? "/" + c.max_participants : "" }}</td>\
     <td>{{ c.prizes_count || 0 }}</td>\
     <td><span :class="c.is_active ? \'ld-badge-on\' : \'ld-badge-off\'">{{ c.is_active ? "Đang chạy" : "Tắt" }}</span></td>\
