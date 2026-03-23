@@ -1,8 +1,15 @@
 <template>
   <div class="cms-mgr">
+    <!-- PAGE BUILDER VIEW -->
+    <CmsPageBuilder
+      v-if="builderPageId !== null"
+      :pageId="builderPageId"
+      @back="builderPageId = null; fetchPages({})"
+    />
+
     <!-- EDITOR VIEW -->
     <CmsEditor
-      v-if="editId !== null"
+      v-else-if="editId !== null"
       :editId="editId"
       @back="editId = null"
       @saved="onSaved"
@@ -20,11 +27,9 @@
           <div class="cm-card__info">
             <div class="cm-card__title-row">
               <strong>{{ p.title }}</strong>
-              <!-- System page badge: không thể xóa -->
-              <span v-if="p.is_system" class="badge badge--system" title="Trang hệ thống">
+              <span v-if="p.is_system" class="badge badge--system" title="Trang hệ thống — không thể xóa">
                 <Lock :size="10" /> Hệ thống
               </span>
-              <!-- Dynamic page badge: có page builder -->
               <span v-if="p.is_dynamic" class="badge badge--dynamic" title="Trang có Page Builder">
                 <Layers :size="10" /> Dynamic
               </span>
@@ -39,8 +44,16 @@
           </div>
           <div class="cm-card__actions">
             <button class="btn-sm btn-preview" @click="previewPage(p)" title="Xem trước">⊙</button>
+            <!-- Nút Page Builder chỉ hiện cho trang dynamic đã có ID -->
+            <button
+              v-if="p.is_dynamic"
+              class="btn-sm btn-builder"
+              @click="builderPageId = p.id"
+              title="Mở Page Builder"
+            >
+              <Layout :size="12" />
+            </button>
             <button class="btn-sm btn-edit" @click="editId = p.id">{{ t('admin.edit', 'Sửa') }}</button>
-            <!-- Không cho xóa trang hệ thống -->
             <button
               v-if="!p.is_system"
               class="btn-sm btn-del"
@@ -68,10 +81,17 @@
             <span v-if="previewData.is_system" class="badge badge--system"><Lock :size="10" /> Hệ thống</span>
             <span v-if="previewData.is_dynamic" class="badge badge--dynamic"><Layers :size="10" /> Dynamic</span>
           </div>
-          <div class="preview-content" v-html="previewData.is_dynamic
-            ? '<em style=\'color:#888\'>Trang dynamic — xem trong Page Builder</em>'
-            : previewData.content"
+          <div
+            class="preview-content"
+            v-html="previewData.is_dynamic
+              ? '<p style=\'color:#888;font-style:italic\'>Trang dynamic — mở Page Builder để xem bố cục.</p>'
+              : previewData.content"
           ></div>
+          <div v-if="previewData.is_dynamic" class="preview-footer">
+            <button class="btn-builder-modal" @click="builderPageId = previewData.id; showPreview = false">
+              <Layout :size="13" /> Mở Page Builder
+            </button>
+          </div>
         </div>
       </div>
     </template>
@@ -82,8 +102,9 @@
 import { useI18n, useToast, apiFetch } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { useCmsPages } from '../composables/useCmsPages.js'
-import { FileText, Lock, Layers } from 'lucide-vue-next'
+import { FileText, Lock, Layers, Layout } from 'lucide-vue-next'
 import CmsEditor from './CmsEditor.vue'
+import CmsPageBuilder from './CmsPageBuilder.vue'
 
 const { showToast } = useToast()
 const { t } = useI18n()
@@ -91,6 +112,7 @@ const { pages, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)
 
 // editId: null = list, '' = create, <number> = edit
 const editId = ref(null)
+const builderPageId = ref(null)
 const showPreview = ref(false)
 const previewData = ref({})
 
@@ -141,8 +163,10 @@ async function handleDelete(p) {
 .cm-card__meta { font-size: .7rem; color: var(--text-3); }
 .cm-sort { background: var(--bg-3, rgba(255,255,255,.05)); padding: 2px 6px; border-radius: 4px; }
 .cm-card__actions { display: flex; gap: .3rem; align-items: center; }
-.btn-sm { padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-2); cursor: pointer; font-size: .75rem; color: var(--text-1); }
+.btn-sm { padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-2); cursor: pointer; font-size: .75rem; color: var(--text-1); display: inline-flex; align-items: center; gap: 3px; }
 .btn-preview:hover { border-color: var(--accent); }
+.btn-builder { color: var(--accent); border-color: rgba(124,58,237,.3); background: rgba(124,58,237,.05); }
+.btn-builder:hover { background: rgba(124,58,237,.1); }
 .btn-edit:hover { border-color: var(--accent); color: var(--accent); }
 .btn-del { color: #ef4444; }
 .btn-del:hover { background: rgba(239,68,68,.1); }
@@ -154,11 +178,15 @@ async function handleDelete(p) {
 .badge--system { background: rgba(251,191,36,.15); color: #d97706; border: 1px solid rgba(251,191,36,.3); }
 .badge--dynamic { background: rgba(139,92,246,.15); color: #7c3aed; border: 1px solid rgba(139,92,246,.3); }
 
+/* Preview modal */
 .preview-header { display: flex; align-items: center; justify-content: space-between; }
 .preview-header h3 { margin: 0; }
 .btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-2); padding: 0; line-height: 1; }
 .preview-meta { display: flex; align-items: center; gap: .5rem; margin-bottom: .8rem; flex-wrap: wrap; }
-.preview-content { padding: .8rem; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--border); line-height: 1.6; font-size: .9rem; min-height: 100px; max-height: 60vh; overflow-y: auto; }
+.preview-content { padding: .8rem; background: var(--bg-2); border-radius: 8px; border: 1px solid var(--border); line-height: 1.6; font-size: .9rem; min-height: 80px; max-height: 50vh; overflow-y: auto; }
+.preview-footer { margin-top: 12px; display: flex; justify-content: flex-end; }
+.btn-builder-modal { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-builder-modal:hover { filter: brightness(1.1); }
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
 .modal h3 { margin: 0 0 1rem; font-size: 1rem; }
 .modal--wide { width: 90%; max-width: 800px; background: var(--bg-1); padding: 20px; border-radius: 12px; }

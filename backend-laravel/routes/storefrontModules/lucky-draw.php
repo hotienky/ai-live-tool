@@ -12,4 +12,5 @@ Route::middleware('module:lucky-draw')->prefix('lucky-draw')->group(function () 
     Route::get('/{id}', [PluginStorefrontController::class, 'luckyDrawShow']);
     Route::post('/{id}/spin', [PluginStorefrontController::class, 'luckyDrawSpin'])
         ->middleware('throttle:20,1'); // max 20 spins per minute
+    Route::post('/{id}/claim/{spinId}', [PluginStorefrontController::class, 'luckyDrawClaim']);
 });

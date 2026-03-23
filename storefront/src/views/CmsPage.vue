@@ -15,9 +15,81 @@
 
     <!-- Page Content -->
     <div v-else-if="page">
-      
-      <!-- ─── DYNAMIC PAGE LAYOUT (Shopify-style) ─── -->
-      <div v-if="page.is_dynamic" class="dynamic-page-wrap">
+
+      <!-- ─── DYNAMIC PAGE LAYOUT — NEW BLOCK BUILDER (Phase 2) ─── -->
+      <div v-if="page.is_dynamic && isNewBuilderFormat" class="dynamic-page-wrap">
+        <h1 class="sr-only">{{ page.title }}</h1>
+        <template v-for="block in builderBlocks" :key="block.id">
+
+          <!-- hero-banner -->
+          <section v-if="block.type === 'hero-banner'" class="blk-hero" :style="{ minHeight: block.settings?.min_height || '340px', backgroundImage: block.settings?.image ? `url(${block.settings.image})` : undefined }">
+            <div class="blk-hero__inner" :style="{ textAlign: block.settings?.text_align || 'center' }">
+              <h2 v-if="block.settings?.title" class="blk-hero__title">{{ block.settings.title }}</h2>
+              <p v-if="block.settings?.subtitle" class="blk-hero__subtitle">{{ block.settings.subtitle }}</p>
+              <a v-if="block.settings?.button_text && block.settings?.button_url" :href="block.settings.button_url" class="blk-hero__btn">{{ block.settings.button_text }}</a>
+            </div>
+          </section>
+
+          <!-- rich-text -->
+          <div v-else-if="block.type === 'rich-text'" class="container blk-richtext">
+            <ShortcodeRenderer :html="block.settings?.content || ''" />
+          </div>
+
+          <!-- image-banner -->
+          <div v-else-if="block.type === 'image-banner'" class="blk-image" :class="{ 'container': !block.settings?.full_width }">
+            <a v-if="block.settings?.link" :href="block.settings.link">
+              <img :src="block.settings.image" :alt="block.settings.alt || ''" class="blk-image__img" />
+            </a>
+            <img v-else-if="block.settings?.image" :src="block.settings.image" :alt="block.settings.alt || ''" class="blk-image__img" />
+          </div>
+
+          <!-- spacer -->
+          <div v-else-if="block.type === 'spacer'" :style="{ height: block.settings?.height || '40px' }"></div>
+
+          <!-- html-embed / shortcode -->
+          <div v-else-if="block.type === 'html-embed'" class="container blk-embed">
+            <ShortcodeRenderer :html="block.settings?.html || ''" />
+          </div>
+
+          <!-- blog-collection -->
+          <section v-else-if="block.type === 'blog-collection'" class="container blk-blog home-section">
+            <div class="home-section__header" v-if="block.settings?.title">
+              <h2 class="section-title">{{ block.settings.title }}</h2>
+              <router-link v-if="block.settings?.show_view_all" to="/blog" class="home-section__viewall">
+                Xem tất cả <ArrowRight :size="14" />
+              </router-link>
+            </div>
+            <BlogBlockRenderer :settings="block.settings" />
+          </section>
+
+          <!-- product-listing -->
+          <section v-else-if="block.type === 'product-listing' || block.type === 'featured-products'" class="container blk-products home-section">
+            <div class="home-section__header" v-if="block.settings?.title">
+              <h2 class="section-title">{{ block.settings.title }}</h2>
+              <router-link v-if="block.settings?.show_view_all" to="/products" class="home-section__viewall">
+                Xem tất cả <ArrowRight :size="14" />
+              </router-link>
+            </div>
+            <ProductBlockRenderer :settings="block.settings" />
+          </section>
+
+          <!-- product-categories -->
+          <section v-else-if="block.type === 'product-categories'" class="container blk-categories home-section">
+            <h2 v-if="block.settings?.title" class="section-title">{{ block.settings.title }}</h2>
+            <CategoryGrid :categories="categories.slice(0, block.settings?.limit || 6)" />
+          </section>
+
+          <!-- latest-posts -->
+          <section v-else-if="block.type === 'latest-posts'" class="container blk-blog home-section">
+            <h2 v-if="block.settings?.title" class="section-title">{{ block.settings.title }}</h2>
+            <BlogBlockRenderer :settings="{ ...block.settings, sort: block.settings?.sort || 'latest' }" />
+          </section>
+
+        </template>
+      </div>
+
+      <!-- ─── DYNAMIC PAGE LAYOUT — OLD Shopify-style sections ─── -->
+      <div v-else-if="page.is_dynamic" class="dynamic-page-wrap">
         <h1 class="sr-only">{{ page.title }}</h1>
         <template v-for="section in activeSections" :key="section.type + '-' + section.order">
           <div :id="section.params?.anchorId || undefined" :class="section.params?.cssClass || undefined" :style="sectionWrapStyle(section.params)">
@@ -123,7 +195,7 @@
 
           </div>
         </template>
-      </div>
+      </div><!-- /old dynamic -->
 
       <!-- ─── STATIC PAGE LAYOUT (WYSIWYG) ─── -->
       <article v-else class="cms-article container">
@@ -154,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, watch, computed, defineAsyncComponent } from 'vue'
 import { apiFetch } from '../api.js'
 import { useSeo } from '../composables/useSeo.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft, Grid, Sparkles, ArrowRight, Package, Clock, BookOpen, FileText } from 'lucide-vue-next'
@@ -177,6 +249,18 @@ import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
 import { useI18n } from '../composables/useI18n.js'
 import { useSanitize } from '../composables/useSanitize.js'
 
+// ── Inline lightweight block renderers ──────────────────────────────
+
+// Renders a small grid of blog posts for blog-collection / latest-posts blocks
+const BlogBlockRenderer = defineAsyncComponent(() =>
+  import('../components/blocks/BlogBlockRenderer.vue').catch(() => ({ template: '<div></div>' }))
+)
+
+// Renders a product grid for product-listing / featured-products blocks
+const ProductBlockRenderer = defineAsyncComponent(() =>
+  import('../components/blocks/ProductBlockRenderer.vue').catch(() => ({ template: '<div></div>' }))
+)
+
 const { t } = useI18n()
 const { sanitize } = useSanitize()
 const { setPageSeo } = useSeo()
@@ -195,6 +279,21 @@ const products = ref([])
 const newProducts = ref([])
 const cmsPagesList = ref([])
 
+// ── Format detection ────────────────────────────────────────────────
+// New builder format: { version: '1.0', blocks: [...] }
+// Old Shopify-style: [ { type, enabled, order, params }, ... ]
+
+const isNewBuilderFormat = computed(() => {
+  const ld = page.value?.layout_data
+  return ld && typeof ld === 'object' && !Array.isArray(ld) && ld.version && Array.isArray(ld.blocks)
+})
+
+const builderBlocks = computed(() => {
+  if (!isNewBuilderFormat.value) return []
+  return [...(page.value.layout_data.blocks || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+})
+
+// Old format
 const activeSections = computed(() => {
   if (!page.value || !page.value.layout_data) return []
   return (Array.isArray(page.value.layout_data) ? page.value.layout_data : [])
@@ -350,4 +449,59 @@ watch(() => props.slug, () => loadPage())
   .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 12px; }
   .section-title { font-size: 20px; }
 }
+
+/* ── Block builder styles ── */
+.blk-hero {
+  position: relative;
+  background: var(--sf-accent-glow, #f3f0ff);
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 340px;
+  overflow: hidden;
+}
+.blk-hero__inner {
+  position: relative;
+  z-index: 1;
+  padding: 48px 24px;
+  max-width: 720px;
+  width: 100%;
+}
+.blk-hero__title {
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 900;
+  line-height: 1.15;
+  color: var(--sf-text-primary);
+  margin: 0 0 12px;
+}
+.blk-hero__subtitle {
+  font-size: 18px;
+  color: var(--sf-text-secondary);
+  margin: 0 0 24px;
+}
+.blk-hero__btn {
+  display: inline-block;
+  padding: 12px 28px;
+  background: var(--sf-accent);
+  color: #fff;
+  border-radius: var(--sf-radius-md, 10px);
+  font-weight: 700;
+  text-decoration: none;
+  transition: filter .2s;
+}
+.blk-hero__btn:hover { filter: brightness(1.1); }
+
+.blk-richtext { padding-top: 32px; padding-bottom: 32px; font-size: 16px; line-height: 1.8; color: var(--sf-text-secondary); }
+.blk-richtext :deep(h2) { font-size: 22px; font-weight: 800; margin: 28px 0 12px; }
+.blk-richtext :deep(h3) { font-size: 18px; font-weight: 700; margin: 20px 0 8px; }
+.blk-richtext :deep(p) { margin: 0 0 16px; }
+
+.blk-image { padding: 16px 0; }
+.blk-image__img { width: 100%; border-radius: var(--sf-radius-lg, 12px); display: block; }
+
+.blk-embed { padding: 24px 0; }
+
+.blk-blog, .blk-products, .blk-categories { padding-top: 40px; padding-bottom: 40px; }
 </style>

@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class LuckyWheel extends Model
 {
     protected $fillable = [
-        'title', 'description', 'is_active', 'settings', 'spin_count',
+        'title', 'description', 'is_active', 'settings', 'flow_config', 'spin_count',
         'start_date', 'end_date', 'max_spins_per_user', 'require_login', 'background_image',
     ];
 
     protected $casts = [
         'settings' => 'array',
+        'flow_config' => 'array',
         'is_active' => 'boolean',
         'require_login' => 'boolean',
         'start_date' => 'datetime',

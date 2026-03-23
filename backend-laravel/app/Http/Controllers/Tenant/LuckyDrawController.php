@@ -58,6 +58,7 @@ class LuckyDrawController extends Controller
             'description' => 'nullable|string',
             'is_active' => 'boolean',
             'settings' => 'nullable|array',
+            'flow_config' => 'nullable|array',
             'background_image' => 'nullable|string',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
@@ -94,7 +95,7 @@ class LuckyDrawController extends Controller
     public function update(Request $request, $id)
     {
         $wheel = LuckyWheel::findOrFail($id);
-        $data = $request->only(['name', 'title', 'description', 'is_active', 'settings', 'background_image', 'start_date', 'end_date', 'max_participants', 'max_spins_per_user']);
+        $data = $request->only(['name', 'title', 'description', 'is_active', 'settings', 'flow_config', 'background_image', 'start_date', 'end_date', 'max_participants', 'max_spins_per_user']);
 
         if (isset($data['name']) && !isset($data['title'])) {
             $data['title'] = $data['name'];
@@ -256,6 +257,7 @@ class LuckyDrawController extends Controller
         $data['max_participants'] = $data['max_spins_per_user'] ?? null;
         $data['participants_count'] = $data['spins_count'] ?? $wheel->spin_count ?? 0;
         $data['settings'] = $data['settings'] ?? [];
+        $data['flow_config'] = $data['flow_config'] ?? [];
         $data['background_image'] = $data['background_image'] ?? '';
         return $data;
     }

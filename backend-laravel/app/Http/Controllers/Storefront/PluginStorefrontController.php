@@ -216,12 +216,17 @@ class PluginStorefrontController extends Controller
         // Hide probabilities from public
         $wheel->prizes->each(fn ($p) => $p->makeHidden(['probability', 'stock', 'redeemed_count']));
 
-        return $this->successResponse($wheel);
+        // Include flow_config for storefront multi-step flow
+        $result = $wheel->toArray();
+        $result['flow_config'] = $wheel->flow_config ?? [];
+
+        return $this->successResponse($result);
     }
 
     public function luckyDrawSpin(Request $request, $id)
     {
         $wheel = LuckyWheel::with('prizes')->where('is_active', true)->findOrFail($id);
+        $flowConfig = $wheel->flow_config ?? [];
 
         // Check campaign dates
         if ($wheel->start_date && now()->lt($wheel->start_date)) {
@@ -231,16 +236,60 @@ class PluginStorefrontController extends Controller
             return $this->errorResponse('Chương trình đã kết thúc', 422);
         }
 
-        // Check spin limits per IP (anti-cheat)
+        // ── Auth check ──
+        $authMode = $flowConfig['auth_mode'] ?? 'none';
+        $userId = null;
+        if ($authMode === 'required') {
+            $token = $request->bearerToken();
+            if (!$token) {
+                return $this->errorResponse('Vui lòng đăng nhập để tham gia', 401);
+            }
+            // Try to find customer by token (simple token lookup)
+            $customer = \App\Models\Customer::whereHas('tokens', fn($q) => $q->where('token', hash('sha256', $token)))->first();
+            if (!$customer) {
+                return $this->errorResponse('Token không hợp lệ', 401);
+            }
+            $userId = $customer->id;
+        } elseif ($authMode === 'optional') {
+            $token = $request->bearerToken();
+            if ($token) {
+                $customer = \App\Models\Customer::whereHas('tokens', fn($q) => $q->where('token', hash('sha256', $token)))->first();
+                $userId = $customer?->id;
+            }
+        }
+
+        // ── Pre-spin form validation ──
+        $formData = [];
+        $preForm = $flowConfig['pre_spin_form'] ?? null;
+        if ($preForm && ($preForm['enabled'] ?? false)) {
+            $fields = $preForm['fields'] ?? [];
+            foreach ($fields as $field) {
+                $key = $field['key'] ?? '';
+                $value = $request->input("form.{$key}") ?? $request->input($key);
+                if (($field['required'] ?? false) && empty($value)) {
+                    return $this->errorResponse("Vui lòng nhập {$field['label']}", 422);
+                }
+                if (!empty($value)) {
+                    $formData[$key] = $value;
+                }
+            }
+        }
+
+        // ── Spin limits (per IP or per user) ──
         $ip = $request->ip();
         if ($wheel->max_spins_per_user) {
-            $spinCount = WheelSpin::where('wheel_id', $id)->where('ip_address', $ip)->count();
-            if ($spinCount >= $wheel->max_spins_per_user) {
+            $query = WheelSpin::where('wheel_id', $id);
+            if ($userId) {
+                $query->where('user_id', $userId);
+            } else {
+                $query->where('ip_address', $ip);
+            }
+            if ($query->count() >= $wheel->max_spins_per_user) {
                 return $this->errorResponse('Bạn đã hết lượt quay', 429);
             }
         }
 
-        // Server-side probability calculation
+        // ── Server-side probability calculation ──
         $prizes = $wheel->prizes->filter(fn ($p) => !$p->stock || $p->redeemed_count < $p->stock);
         $totalProb = $prizes->sum('probability');
         if ($totalProb <= 0) {
@@ -259,14 +308,17 @@ class PluginStorefrontController extends Controller
             }
         }
 
-        // Record spin
+        // Record spin with all flow data
         $spin = WheelSpin::create([
             'wheel_id' => $id,
             'prize_id' => $wonPrize?->id,
-            'customer_name' => $request->input('name'),
-            'customer_phone' => $request->input('phone'),
-            'customer_email' => $request->input('email'),
+            'user_id' => $userId,
+            'customer_name' => $formData['name'] ?? $request->input('name'),
+            'customer_phone' => $formData['phone'] ?? $request->input('phone'),
+            'customer_email' => $formData['email'] ?? $request->input('email'),
+            'form_data' => !empty($formData) ? $formData : null,
             'ip_address' => $ip,
+            'claim_status' => $wonPrize ? 'pending' : 'none',
             'won_at' => now(),
         ]);
 
@@ -274,6 +326,19 @@ class PluginStorefrontController extends Controller
             $wonPrize->increment('redeemed_count');
         }
         $wheel->increment('spin_count');
+
+        // Build result messages from flow_config
+        $resultMsg = $flowConfig['result_message'] ?? [];
+        $winMsg = $resultMsg['win'] ?? 'Chúc mừng! Bạn đã trúng: {prize_name}';
+        $loseMsg = $resultMsg['lose'] ?? 'Chúc bạn may mắn lần sau!';
+
+        $message = $wonPrize
+            ? str_replace('{prize_name}', $wonPrize->label, $winMsg)
+            : $loseMsg;
+
+        // Determine if post-spin form is needed
+        $postForm = $flowConfig['post_spin_form'] ?? null;
+        $needsClaim = $wonPrize && $postForm && ($postForm['enabled'] ?? false);
 
         return $this->successResponse([
             'spin_id' => $spin->id,
@@ -283,7 +348,58 @@ class PluginStorefrontController extends Controller
                 'type' => $wonPrize->prize_type,
                 'value' => $wonPrize->prize_value,
             ] : null,
-        ], $wonPrize ? "Chúc mừng! Bạn đã trúng: {$wonPrize->label}" : 'Chúc bạn may mắn lần sau!');
+            'needs_claim' => $needsClaim,
+            'claim_form' => $needsClaim ? $postForm : null,
+        ], $message);
+    }
+
+    /** Post-spin claim — winner submits their info to claim the prize */
+    public function luckyDrawClaim(Request $request, $id, $spinId)
+    {
+        $spin = WheelSpin::where('wheel_id', $id)->where('id', $spinId)->firstOrFail();
+
+        if ($spin->claim_status === 'claimed') {
+            return $this->errorResponse('Giải thưởng đã được nhận rồi', 422);
+        }
+        if (!$spin->prize_id) {
+            return $this->errorResponse('Không có giải thưởng để nhận', 422);
+        }
+
+        $wheel = LuckyWheel::findOrFail($id);
+        $flowConfig = $wheel->flow_config ?? [];
+        $postForm = $flowConfig['post_spin_form'] ?? null;
+
+        // Validate post-spin form fields
+        $claimData = [];
+        if ($postForm && ($postForm['enabled'] ?? false)) {
+            foreach ($postForm['fields'] ?? [] as $field) {
+                $key = $field['key'] ?? '';
+                $value = $request->input($key);
+                if (($field['required'] ?? false) && empty($value)) {
+                    return $this->errorResponse("Vui lòng nhập {$field['label']}", 422);
+                }
+                if (!empty($value)) {
+                    $claimData[$key] = $value;
+                }
+            }
+        }
+
+        // Update spin with claim data
+        $existingFormData = $spin->form_data ?? [];
+        $spin->update([
+            'form_data' => array_merge($existingFormData, $claimData),
+            'claim_status' => 'claimed',
+            'is_redeemed' => true,
+            'redeemed_at' => now(),
+            'customer_name' => $claimData['name'] ?? $spin->customer_name,
+            'customer_phone' => $claimData['phone'] ?? $spin->customer_phone,
+            'customer_email' => $claimData['email'] ?? $spin->customer_email,
+        ]);
+
+        return $this->successResponse([
+            'spin_id' => $spin->id,
+            'claim_status' => 'claimed',
+        ], 'Đã nhận giải thưởng thành công!');
     }
 
     // ═══════════════════ LMS ═══════════════════
