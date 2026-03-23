@@ -87,4 +87,15 @@ class EventController extends Controller
         $reg->delete();
         return $this->successResponse(null, 'Đã xoá');
     }
+
+    public function globalStats()
+    {
+        $total      = Content::where('type', 'event')->count();
+        $upcoming   = Content::where('type', 'event')->where('status', 'published')
+                        ->whereDate('meta->start_date', '>=', now()->toDateString())->count();
+        $registrations = EventRegistration::count();
+        $checkedIn  = EventRegistration::where('status', 'checked_in')->count();
+
+        return $this->successResponse(compact('total', 'upcoming', 'registrations', 'checkedIn'));
+    }
 }

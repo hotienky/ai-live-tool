@@ -15,6 +15,13 @@ class WheelPrize extends Model
         'probability' => 'decimal:2',
     ];
 
+    protected $appends = ['name', 'quantity', 'description', 'winners_count'];
+
+    public function getNameAttribute() { return $this->label; }
+    public function getQuantityAttribute() { return $this->stock; }
+    public function getDescriptionAttribute() { return $this->prize_value; }
+    public function getWinnersCountAttribute() { return $this->redeemed_count; }
+
     public function wheel()
     {
         return $this->belongsTo(LuckyWheel::class, 'wheel_id');

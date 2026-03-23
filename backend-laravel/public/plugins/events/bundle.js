@@ -70,7 +70,7 @@ var Plugin_events = (function(e) {
     },
     template: '\
 <div class="ev-tickets">\
-  <div class="ev-header"><h4> Vé sự kiện</h4><button class="ev-btn-primary" @click="openCreate">+ Thêm vé</button></div>\
+  <div class="ev-header"><h4> Vé sự kiện</h4><button class="btn-primary btn-sm" @click="openCreate">+ Thêm vé</button></div>\
   <table class="ev-table">\
     <thead><tr><th>Tên vé</th><th>Loại</th><th>Giá</th><th>SL</th><th>Đã bán</th><th>Trạng thái</th><th></th></tr></thead>\
     <tbody>\
@@ -78,18 +78,18 @@ var Plugin_events = (function(e) {
         <td>{{ tk.name }}</td><td>{{ tk.type }}</td><td>{{ fmtMoney(tk.price) }}</td>\
         <td>{{ tk.quantity }}</td><td>{{ tk.sold_count || 0 }}</td>\
         <td><span :class="tk.is_active ? \'ev-badge-active\' : \'ev-badge-inactive\'">{{ tk.is_active ? "Active" : "Tắt" }}</span></td>\
-        <td><button @click="openEdit(tk)"></button> <button class="ev-btn-del" @click="remove(tk.id)"></button></td>\
+        <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(tk)">Sửa</button> <button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(tk.id)">Xoá</button></td>\
       </tr>\
     </tbody>\
   </table>\
-  <div v-if="showModal" class="ev-modal-overlay" @click.self="showModal=false">\
-    <div class="ev-modal"><h4>{{ editing ? "Sửa vé" : "Thêm vé" }}</h4>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false">\
+    <div class="modal"><h4>{{ editing ? "Sửa vé" : "Thêm vé" }}</h4>\
       <label>Tên <input v-model="form.name" class="ev-input" /></label>\
       <label>Loại <select v-model="form.type" class="ev-input"><option value="free">Miễn phí</option><option value="paid">Có phí</option><option value="vip">VIP</option></select></label>\
       <label>Giá <input v-model.number="form.price" type="number" class="ev-input" /></label>\
       <label>Số lượng <input v-model.number="form.quantity" type="number" class="ev-input" /></label>\
       <label class="ev-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
-      <div class="ev-modal-actions"><button class="ev-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div>\
+      <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div>\
     </div>\
   </div>\
 </div>'
@@ -124,7 +124,7 @@ var Plugin_events = (function(e) {
         <td>{{ r.attendee_name }}</td><td>{{ r.attendee_email }}</td>\
         <td>{{ r.ticket ? r.ticket.name : "-" }}</td><td><code>{{ r.registration_code }}</code></td>\
         <td>{{ r.checked_in_at ? fmtDate(r.checked_in_at) : "" }}</td>\
-        <td><button v-if="!r.checked_in_at" class="ev-btn-primary" @click="checkIn(r.id)"> Check-in</button><span v-else></span></td>\
+        <td><button v-if="!r.checked_in_at" class="btn-primary btn-sm" @click="checkIn(r.id)"> Check-in</button><span v-else></span></td>\
       </tr>\
     </tbody>\
   </table>\
@@ -161,7 +161,7 @@ var Plugin_events = (function(e) {
     <h3> Danh sách sự kiện</h3>\
     <table class="ev-table"><thead><tr><th>Tên</th><th>Ngày</th><th>Đăng ký</th><th></th></tr></thead>\
     <tbody><tr v-for="ev in events" :key="ev.id"><td>{{ ev.title }}</td><td>{{ fmtDate(ev.created_at) }}</td><td>{{ ev.registrations_count || 0 }}</td>\
-    <td><button class="ev-btn-primary" @click="selectEvent(ev)">Quản lý</button></td></tr></tbody></table>\
+    <td><button class="btn-primary btn-sm" @click="selectEvent(ev)">Quản lý</button></td></tr></tbody></table>\
   </div>\
   <EventTickets v-else-if="tab===\'tickets\' && selectedEvent" :eventId="selectedEvent.id" />\
   <EventRegistrations v-else-if="tab===\'regs\' && selectedEvent" :eventId="selectedEvent.id" />\

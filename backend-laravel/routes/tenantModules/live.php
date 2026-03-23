@@ -6,8 +6,12 @@ use App\Http\Controllers\Tenant\KeywordsController;
 use App\Http\Controllers\Tenant\TemplatesController;
 use App\Http\Controllers\Tenant\ExportController;
 use App\Http\Controllers\Tenant\AuthController;
+use App\Http\Controllers\Tenant\AiController;
 
 Route::middleware('module:livestream')->group(function () {
+    // Reply (send & AI suggest)
+    Route::post('/reply/send',    [AiController::class, 'replySend']);
+    Route::post('/reply/suggest', [AiController::class, 'replySuggest']);
     // Shops
     Route::get('/shops', [ShopsController::class, 'index']);
     Route::post('/shops', [ShopsController::class, 'store']);

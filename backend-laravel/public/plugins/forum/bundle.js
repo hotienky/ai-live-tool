@@ -34,18 +34,18 @@ var Plugin_forum = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/forum/categories/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove };
   }, template: '\
-<div class="fm-section"><div class="fm-header"><h3> Chuyên mục</h3><button class="fm-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="fm-section"><div class="fm-header"><h3> Chuyên mục</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm</button></div>\
   <table class="fm-table"><thead><tr><th>Tên</th><th>Mô tả</th><th>Chủ đề</th><th>Thứ tự</th><th>TT</th><th></th></tr></thead>\
   <tbody><tr v-for="c in items" :key="c.id"><td><strong>{{ c.name }}</strong></td><td>{{ c.description || "-" }}</td>\
     <td>{{ c.threads_count || 0 }}</td><td>{{ c.sort_order }}</td>\
     <td><span :class="c.is_active ? \'fm-badge-on\' : \'fm-badge-off\'">{{ c.is_active ? "" : "" }}</span></td>\
-    <td><button @click="openEdit(c)"></button><button class="fm-btn-del" @click="remove(c.id)"></button></td></tr></tbody></table>\
-  <div v-if="showModal" class="fm-modal-overlay" @click.self="showModal=false"><div class="fm-modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
+    <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(c)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(c.id)">Xoá</button></td></tr></tbody></table>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
     <label>Tên <input v-model="form.name" class="fm-input" /></label>\
     <label>Mô tả <textarea v-model="form.description" class="fm-input fm-textarea"></textarea></label>\
     <label>Thứ tự <input v-model.number="form.sort_order" type="number" class="fm-input" /></label>\
     <label class="fm-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
-    <div class="fm-modal-actions"><button class="fm-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var ForumThreads = { name: 'ForumThreads', setup: function() {
@@ -69,7 +69,7 @@ var Plugin_forum = (function(e) {
     <td>{{ t.replies_count || 0 }}</td><td>{{ t.views_count || 0 }}</td>\
     <td><select :value="t.status" @change="updateStatus(t.id, $event.target.value)" class="fm-status-sel"><option value="open">Mở</option><option value="closed">Đóng</option><option value="locked">Khoá</option></select></td>\
     <td><button @click="pin(t.id, !t.is_pinned)" :title="t.is_pinned ? \'Bỏ ghim\' : \'Ghim\'">{{ t.is_pinned ? "" : "" }}</button>\
-      <button class="fm-btn-del" @click="remove(t.id)"></button></td></tr></tbody></table>\
+      <button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(t.id)">Xoá</button></td></tr></tbody></table>\
 </div>' };
 
   var ForumManager = { name: 'ForumManager',

@@ -79,4 +79,26 @@ class OrdersController extends Controller
     {
         return $this->successResponse($this->repo->getPaymentStatuses());
     }
+
+    public function updatePayment(Request $request, $id)
+    {
+        $request->validate([
+            'payment_status' => 'required|string|in:unpaid,paid,refunded',
+        ]);
+
+        $order = $this->repo->find($id);
+        $this->repo->update([
+            'payment_status' => $request->input('payment_status'),
+            'updated_at' => now(),
+        ], $id);
+
+        $this->logActivity('order.payment_updated', 'order', $id, [
+            'payment_status' => $request->input('payment_status'),
+        ]);
+
+        return $this->successResponse(
+            $this->transformer->transform($this->repo->find($id)),
+            'Payment status updated'
+        );
+    }
 }

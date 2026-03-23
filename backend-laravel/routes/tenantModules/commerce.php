@@ -15,11 +15,14 @@ use App\Http\Controllers\Tenant\PaymentVoucherController;
 use App\Http\Controllers\Tenant\PurchaseOrderController;
 use App\Http\Controllers\Tenant\InventoryReportController;
 use App\Http\Controllers\Tenant\ShipmentsController;
+use App\Http\Controllers\Tenant\AiController;
 
 // ════════════════════════════════════════════════════════════
 // E-COMMERCE MODULE ROUTES (require ecom module)
 // ════════════════════════════════════════════════════════════
 Route::middleware('module:ecom')->group(function () {
+    // AI reply sentiment
+    Route::post('/reply/sentiment', [AiController::class, 'replySentiment']);
     // Orders
     Route::get('/orders', [OrdersController::class, 'index'])->middleware('permission:orders.view');
     Route::get('/orders/stats', [OrdersController::class, 'stats'])->middleware('permission:orders.view');
@@ -31,6 +34,7 @@ Route::middleware('module:ecom')->group(function () {
     Route::get('/orders/{id}/totals', [OrdersController::class, 'getTotals'])->middleware('permission:orders.view');
     Route::get('/orders/{id}/history', [OrdersController::class, 'getHistory'])->middleware('permission:orders.view');
     Route::put('/orders/{id}/status', [OrdersController::class, 'updateStatus'])->middleware('permission:orders.edit');
+    Route::put('/orders/{id}/payment', [OrdersController::class, 'updatePayment'])->middleware('permission:orders.edit');
     Route::get('/order-statuses', [OrdersController::class, 'getOrderStatuses'])->middleware('permission:orders.view');
     Route::get('/payment-statuses', [OrdersController::class, 'getPaymentStatuses'])->middleware('permission:orders.view');
 
@@ -180,4 +184,7 @@ Route::middleware('module:shipping')->group(function () {
     Route::put('/shipments/{id}/status', [ShipmentsController::class, 'updateStatus'])->middleware('permission:orders.edit');
     Route::delete('/shipments/{id}', [ShipmentsController::class, 'destroy'])->middleware('permission:orders.edit');
     Route::get('/shipments/{id}/tracking', [ShipmentsController::class, 'tracking'])->middleware('permission:orders.view');
+
+    // Admin shipping fee calculation (frontend calls /shipping/calculate-fee)
+    Route::post('/shipping/calculate-fee', [\App\Http\Controllers\Tenant\ShippingController::class, 'calculate'])->middleware('permission:orders.edit');
 });

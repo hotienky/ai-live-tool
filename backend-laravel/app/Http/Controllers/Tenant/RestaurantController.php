@@ -126,7 +126,7 @@ class RestaurantController extends Controller
             'party_size' => 'integer|min:1',
             'notes' => 'nullable|string',
             'table_id' => 'nullable|exists:restaurant_tables,id',
-            'table_number' => 'nullable|string|max:20',
+            'number' => 'nullable|string|max:20',
         ]);
         $data['confirmation_code'] = strtoupper(Str::random(8));
         $data['source'] = 'admin';
@@ -158,24 +158,24 @@ class RestaurantController extends Controller
 
     public function tables()
     {
-        return $this->successResponse(RestaurantTable::orderBy('table_number')->get());
+        return $this->successResponse(RestaurantTable::orderBy('number')->get());
     }
 
-    public function storeTable(Request $request)
+    public function createTable(Request $request)
     {
-        $data = $request->validate([
-            'table_number' => 'required|string|max:20',
-            'capacity' => 'required|integer|min:1',
-            'location' => 'nullable|string|max:100',
-            'is_active' => 'boolean',
+        $request->validate([
+            'number' => 'nullable|string|max:20',
+            'capacity' => 'integer|min:1',
+            'location' => 'nullable|string|max:50',
+            'is_active' => 'boolean'
         ]);
-        return $this->successResponse(RestaurantTable::create($data), 'Đã tạo bàn', 201);
+        return $this->successResponse(RestaurantTable::create($request->validated()), 'Đã tạo bàn', 201);
     }
 
     public function updateTable(Request $request, $id)
     {
         $table = RestaurantTable::findOrFail($id);
-        $table->update($request->only(['table_number', 'capacity', 'location', 'is_active']));
+        $table->update($request->only(['number', 'capacity', 'location', 'is_active']));
         return $this->successResponse($table, 'Đã cập nhật');
     }
 

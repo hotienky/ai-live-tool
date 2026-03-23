@@ -39,7 +39,7 @@ var Plugin_jobboard = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/jobboard/jobs/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, filter, showModal, form, editing, openCreate, openEdit, save, remove, load, fmtDate, fmtMoney };
   }, template: '\
-<div class="jb-section"><div class="jb-header"><h3>Tin tuyển dụng</h3><button class="jb-btn-primary" @click="openCreate">+ Đăng tin</button></div>\
+<div class="jb-section"><div class="jb-header"><h3>Tin tuyển dụng</h3><button class="btn-primary btn-sm" @click="openCreate">+ Đăng tin</button></div>\
   <div class="jb-filters"><select v-model="filter.status" @change="load" class="jb-input"><option value="">Tất cả</option><option value="active">Đang tuyển</option><option value="closed">Đã đóng</option><option value="draft">Nháp</option></select>\
     <input v-model="filter.search" @input="load" class="jb-input" placeholder="Tìm..." /></div>\
   <table class="jb-table"><thead><tr><th>Vị trí</th><th>Công ty</th><th>Địa điểm</th><th>Loại</th><th>Lương</th><th>Đơn</th><th>Hạn</th><th>TT</th><th></th></tr></thead>\
@@ -48,21 +48,21 @@ var Plugin_jobboard = (function(e) {
     <td>{{ j.job_type }}</td><td>{{ j.salary_min ? fmtMoney(j.salary_min) + " - " + fmtMoney(j.salary_max) : "Thoả thuận" }}</td>\
     <td>{{ j.applications_count || 0 }}</td><td>{{ fmtDate(j.application_deadline) }}</td>\
     <td><span :class="j.status === \'active\' ? \'jb-badge-on\' : \'jb-badge-off\'">{{ j.status }}</span></td>\
-    <td><button @click="openEdit(j)"></button><button class="jb-btn-del" @click="remove(j.id)"></button></td></tr></tbody></table>\
-  <div v-if="showModal" class="jb-modal-overlay" @click.self="showModal=false"><div class="jb-modal"><h4>{{ editing ? "Sửa" : "Đăng" }} tin</h4>\
+    <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(j)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(j.id)">Xoá</button></td></tr></tbody></table>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Đăng" }} tin</h4>\
     <label>Vị trí <input v-model="form.title" class="jb-input" /></label>\
-    <div class="jb-form-row"><label>Công ty <input v-model="form.company_name" class="jb-input" /></label>\
+    <div class="form-row"><label>Công ty <input v-model="form.company_name" class="jb-input" /></label>\
       <label>Địa điểm <input v-model="form.location" class="jb-input" /></label></div>\
-    <div class="jb-form-row"><label>Loại <select v-model="form.job_type" class="jb-input"><option value="full-time">Toàn thời gian</option><option value="part-time">Bán thời gian</option><option value="contract">Hợp đồng</option><option value="freelance">Freelance</option><option value="internship">Thực tập</option></select></label>\
+    <div class="form-row"><label>Loại <select v-model="form.job_type" class="jb-input"><option value="full-time">Toàn thời gian</option><option value="part-time">Bán thời gian</option><option value="contract">Hợp đồng</option><option value="freelance">Freelance</option><option value="internship">Thực tập</option></select></label>\
       <label>Hạn nộp <input v-model="form.application_deadline" type="date" class="jb-input" /></label></div>\
-    <div class="jb-form-row"><label>Lương tối thiểu <input v-model.number="form.salary_min" type="number" class="jb-input" /></label>\
+    <div class="form-row"><label>Lương tối thiểu <input v-model.number="form.salary_min" type="number" class="jb-input" /></label>\
       <label>Lương tối đa <input v-model.number="form.salary_max" type="number" class="jb-input" /></label></div>\
     <label>Mô tả <textarea v-model="form.description" class="jb-input jb-textarea" rows="4"></textarea></label>\
     <label>Yêu cầu <textarea v-model="form.requirements" class="jb-input jb-textarea" rows="3"></textarea></label>\
     <label>Quyền lợi <textarea v-model="form.benefits" class="jb-input jb-textarea" rows="3"></textarea></label>\
-    <div class="jb-form-row"><label>Trạng thái <select v-model="form.status" class="jb-input"><option value="active">Đang tuyển</option><option value="closed">Đã đóng</option><option value="draft">Nháp</option></select></label></div>\
+    <div class="form-row"><label>Trạng thái <select v-model="form.status" class="jb-input"><option value="active">Đang tuyển</option><option value="closed">Đã đóng</option><option value="draft">Nháp</option></select></label></div>\
     <label class="jb-check"><input type="checkbox" v-model="form.is_featured" /> Nổi bật</label>\
-    <div class="jb-modal-actions"><button class="jb-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var JobApplications = { name: 'JobApplications', setup: function() {

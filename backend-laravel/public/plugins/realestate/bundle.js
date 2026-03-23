@@ -40,7 +40,7 @@ var Plugin_realestate = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/realestate/properties/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, filter, showModal, form, editing, openCreate, openEdit, save, remove, load, fmtDate, fmtMoney };
   }, template: '\
-<div class="re-section"><div class="re-header"><h3>Bất động sản</h3><button class="re-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="re-section"><div class="re-header"><h3>Bất động sản</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm</button></div>\
   <div class="re-filters"><select v-model="filter.type" @change="load" class="re-input"><option value="">Tất cả loại</option><option value="apartment">Căn hộ</option><option value="house">Nhà phố</option><option value="villa">Biệt thự</option><option value="land">Đất nền</option><option value="commercial">Thương mại</option><option value="office">Văn phòng</option></select>\
     <select v-model="filter.status" @change="load" class="re-input"><option value="">Tất cả TT</option><option value="active">Đang đăng</option><option value="sold">Đã bán</option><option value="rented">Đã thuê</option><option value="draft">Nháp</option></select>\
     <input v-model="filter.search" @input="load" class="re-input" placeholder="Tìm..." /></div>\
@@ -50,22 +50,22 @@ var Plugin_realestate = (function(e) {
     <td>{{ fmtMoney(p.price) }}</td><td>{{ p.area }}m²</td><td>{{ p.bedrooms || "-" }}</td>\
     <td>{{ [p.district, p.city].filter(Boolean).join(", ") || "-" }}</td>\
     <td><span :class="p.status === \'active\' ? \'re-badge-on\' : \'re-badge-off\'">{{ p.status }}</span></td>\
-    <td><button @click="openEdit(p)"></button><button class="re-btn-del" @click="remove(p.id)"></button></td></tr></tbody></table>\
-  <div v-if="showModal" class="re-modal-overlay" @click.self="showModal=false"><div class="re-modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
+    <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(p)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(p.id)">Xoá</button></td></tr></tbody></table>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
     <label>Tên <input v-model="form.title" class="re-input" /></label>\
-    <div class="re-form-row"><label>Loại BĐS <select v-model="form.property_type" class="re-input"><option value="apartment">Căn hộ</option><option value="house">Nhà phố</option><option value="villa">Biệt thự</option><option value="land">Đất nền</option><option value="commercial">Thương mại</option><option value="office">Văn phòng</option></select></label>\
+    <div class="form-row"><label>Loại BĐS <select v-model="form.property_type" class="re-input"><option value="apartment">Căn hộ</option><option value="house">Nhà phố</option><option value="villa">Biệt thự</option><option value="land">Đất nền</option><option value="commercial">Thương mại</option><option value="office">Văn phòng</option></select></label>\
       <label>Hình thức <select v-model="form.listing_type" class="re-input"><option value="sale">Bán</option><option value="rent">Cho thuê</option></select></label></div>\
-    <div class="re-form-row"><label>Giá <input v-model.number="form.price" type="number" class="re-input" /></label>\
+    <div class="form-row"><label>Giá <input v-model.number="form.price" type="number" class="re-input" /></label>\
       <label>Diện tích (m²) <input v-model.number="form.area" type="number" class="re-input" /></label></div>\
-    <div class="re-form-row"><label>Phòng ngủ <input v-model.number="form.bedrooms" type="number" class="re-input" /></label>\
+    <div class="form-row"><label>Phòng ngủ <input v-model.number="form.bedrooms" type="number" class="re-input" /></label>\
       <label>Phòng tắm <input v-model.number="form.bathrooms" type="number" class="re-input" /></label></div>\
     <label>Địa chỉ <input v-model="form.address" class="re-input" /></label>\
-    <div class="re-form-row"><label>Thành phố <input v-model="form.city" class="re-input" /></label>\
+    <div class="form-row"><label>Thành phố <input v-model="form.city" class="re-input" /></label>\
       <label>Quận/Huyện <input v-model="form.district" class="re-input" /></label></div>\
     <label>Mô tả <textarea v-model="form.description" class="re-input re-textarea" rows="4"></textarea></label>\
-    <div class="re-form-row"><label>Trạng thái <select v-model="form.status" class="re-input"><option value="active">Đang đăng</option><option value="sold">Đã bán</option><option value="rented">Đã thuê</option><option value="draft">Nháp</option></select></label></div>\
+    <div class="form-row"><label>Trạng thái <select v-model="form.status" class="re-input"><option value="active">Đang đăng</option><option value="sold">Đã bán</option><option value="rented">Đã thuê</option><option value="draft">Nháp</option></select></label></div>\
     <label class="re-check"><input type="checkbox" v-model="form.is_featured" /> Nổi bật</label>\
-    <div class="re-modal-actions"><button class="re-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var REInquiries = { name: 'REInquiries', setup: function() {

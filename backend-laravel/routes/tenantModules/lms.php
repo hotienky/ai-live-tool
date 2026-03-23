@@ -31,8 +31,8 @@ Route::middleware('module:lms')->group(function () {
         Route::delete('/{courseId}/quizzes/{id}', [LmsController::class, 'destroyQuiz']);
     });
 
-    // Enrollments (Students)
-    Route::prefix('lms/students')->group(function () {
+    // Enrollments
+    Route::prefix('lms/enrollments')->group(function () {
         Route::get('/',     [LmsController::class, 'enrollments']);
         Route::post('/',    [LmsController::class, 'storeEnrollment']);
         Route::put('/{id}', [LmsController::class, 'updateEnrollment']);

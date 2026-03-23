@@ -37,21 +37,21 @@ var Plugin_salon = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/salon/services/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove, fmtMoney };
   }, template: '\
-<div class="sl-section"><div class="sl-header"><h3>Dịch vụ</h3><button class="sl-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="sl-section"><div class="sl-header"><h3>Dịch vụ</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm</button></div>\
   <table class="sl-table"><thead><tr><th>Tên</th><th>Thời lượng</th><th>Giá</th><th>Danh mục</th><th>TT</th><th></th></tr></thead>\
   <tbody><tr v-for="s in items" :key="s.id"><td><strong>{{ s.name }}</strong><span v-if="s.is_popular"> </span></td>\
     <td>{{ s.duration_minutes }} phút</td><td>{{ fmtMoney(s.price) }}</td><td>{{ s.category || "-" }}</td>\
     <td><span :class="s.is_active ? \'sl-badge-on\' : \'sl-badge-off\'">{{ s.is_active ? "" : "" }}</span></td>\
-    <td><button @click="openEdit(s)"></button><button class="sl-btn-del" @click="remove(s.id)"></button></td></tr></tbody></table>\
-  <div v-if="showModal" class="sl-modal-overlay" @click.self="showModal=false"><div class="sl-modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
+    <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(s)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(s.id)">Xoá</button></td></tr></tbody></table>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
     <label>Tên <input v-model="form.name" class="sl-input" /></label>\
     <label>Mô tả <textarea v-model="form.description" class="sl-input sl-textarea"></textarea></label>\
-    <div class="sl-form-row"><label>Thời lượng (phút) <input v-model.number="form.duration_minutes" type="number" class="sl-input" /></label>\
+    <div class="form-row"><label>Thời lượng (phút) <input v-model.number="form.duration_minutes" type="number" class="sl-input" /></label>\
       <label>Giá <input v-model.number="form.price" type="number" class="sl-input" /></label></div>\
     <label>Danh mục <input v-model="form.category" class="sl-input" /></label>\
     <label class="sl-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
     <label class="sl-check"><input type="checkbox" v-model="form.is_popular" /> Phổ biến</label>\
-    <div class="sl-modal-actions"><button class="sl-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var SalonStaff = { name: 'SalonStaff', setup: function() {
@@ -65,16 +65,16 @@ var Plugin_salon = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/salon/staff/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove };
   }, template: '\
-<div class="sl-section"><div class="sl-header"><h3> Nhân viên</h3><button class="sl-btn-primary" @click="openCreate">+ Thêm</button></div>\
+<div class="sl-section"><div class="sl-header"><h3> Nhân viên</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm</button></div>\
   <table class="sl-table"><thead><tr><th>Tên</th><th>SĐT</th><th>Email</th><th>Chuyên môn</th><th>Lịch hẹn</th><th></th></tr></thead>\
   <tbody><tr v-for="s in items" :key="s.id"><td><strong>{{ s.name }}</strong></td><td>{{ s.phone || "-" }}</td><td>{{ s.email || "-" }}</td>\
     <td>{{ s.specialties ? s.specialties.join(", ") : "-" }}</td><td>{{ s.appointments_count || 0 }}</td>\
-    <td><button @click="openEdit(s)"></button><button class="sl-btn-del" @click="remove(s.id)"></button></td></tr></tbody></table>\
-  <div v-if="showModal" class="sl-modal-overlay" @click.self="showModal=false"><div class="sl-modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
+    <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(s)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(s.id)">Xoá</button></td></tr></tbody></table>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Thêm" }}</h4>\
     <label>Tên <input v-model="form.name" class="sl-input" /></label>\
-    <div class="sl-form-row"><label>SĐT <input v-model="form.phone" class="sl-input" /></label><label>Email <input v-model="form.email" class="sl-input" type="email" /></label></div>\
+    <div class="form-row"><label>SĐT <input v-model="form.phone" class="sl-input" /></label><label>Email <input v-model="form.email" class="sl-input" type="email" /></label></div>\
     <label class="sl-check"><input type="checkbox" v-model="form.is_active" /> Hoạt động</label>\
-    <div class="sl-modal-actions"><button class="sl-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var SalonAppointments = { name: 'SalonAppointments', setup: function() {
@@ -96,7 +96,7 @@ var Plugin_salon = (function(e) {
     async function updateStatus(id, s) { try { await apiFetch('/salon/appointments/' + id, { method:'PUT', body:JSON.stringify({ status:s }) }); load(); } catch(e) {} }
     return { items, loading, filter, services, staffList, showModal, form, openCreate, save, updateStatus, load, fmtDate, fmtMoney };
   }, template: '\
-<div class="sl-section"><div class="sl-header"><h3>Lịch hẹn</h3><button class="sl-btn-primary" @click="openCreate">+ Tạo</button></div>\
+<div class="sl-section"><div class="sl-header"><h3>Lịch hẹn</h3><button class="btn-primary btn-sm" @click="openCreate">+ Tạo</button></div>\
   <div class="sl-filters"><select v-model="filter.status" @change="load" class="sl-input"><option value="">Tất cả</option><option value="pending">Chờ</option><option value="confirmed">Xác nhận</option><option value="completed">Hoàn thành</option><option value="cancelled">Huỷ</option></select>\
     <input v-model="filter.date" type="date" @change="load" class="sl-input" /><input v-model="filter.search" @input="load" class="sl-input" placeholder="Tìm..." /></div>\
   <table class="sl-table"><thead><tr><th>Khách</th><th>SĐT</th><th>Dịch vụ</th><th>Nhân viên</th><th>Ngày</th><th>Giờ</th><th>Giá</th><th>TT</th></tr></thead>\
@@ -104,14 +104,14 @@ var Plugin_salon = (function(e) {
     <td>{{ a.service ? a.service.name : "-" }}</td><td>{{ a.staff ? a.staff.name : "-" }}</td>\
     <td>{{ fmtDate(a.date) }}</td><td>{{ a.time_slot }}</td><td>{{ fmtMoney(a.total_price) }}</td>\
     <td><select :value="a.status" @change="updateStatus(a.id, $event.target.value)" class="sl-status-sel"><option value="pending">Chờ</option><option value="confirmed">Xác nhận</option><option value="completed">Xong</option><option value="cancelled">Huỷ</option></select></td></tr></tbody></table>\
-  <div v-if="showModal" class="sl-modal-overlay" @click.self="showModal=false"><div class="sl-modal"><h4>Tạo lịch hẹn</h4>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>Tạo lịch hẹn</h4>\
     <label>Dịch vụ <select v-model="form.service_id" class="sl-input"><option value="">--</option><option v-for="s in services" :key="s.id" :value="s.id">{{ s.name }}</option></select></label>\
     <label>Nhân viên <select v-model="form.staff_id" class="sl-input"><option value="">-- Bất kỳ --</option><option v-for="s in staffList" :key="s.id" :value="s.id">{{ s.name }}</option></select></label>\
     <label>Tên khách <input v-model="form.customer_name" class="sl-input" /></label>\
-    <div class="sl-form-row"><label>SĐT <input v-model="form.customer_phone" class="sl-input" /></label><label>Email <input v-model="form.customer_email" class="sl-input" type="email" /></label></div>\
-    <div class="sl-form-row"><label>Ngày <input v-model="form.date" type="date" class="sl-input" /></label><label>Giờ <input v-model="form.time_slot" class="sl-input" placeholder="09:00" /></label></div>\
+    <div class="form-row"><label>SĐT <input v-model="form.customer_phone" class="sl-input" /></label><label>Email <input v-model="form.customer_email" class="sl-input" type="email" /></label></div>\
+    <div class="form-row"><label>Ngày <input v-model="form.date" type="date" class="sl-input" /></label><label>Giờ <input v-model="form.time_slot" class="sl-input" placeholder="09:00" /></label></div>\
     <label>Ghi chú <textarea v-model="form.notes" class="sl-input sl-textarea"></textarea></label>\
-    <div class="sl-modal-actions"><button class="sl-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var SalonManager = { name: 'SalonManager',

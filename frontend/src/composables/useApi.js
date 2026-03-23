@@ -62,7 +62,17 @@ export async function apiFetch(path, options = {}) {
       if (json.type === 'error') {
         throw new Error(json.message || 'API responded with an error')
       }
-      return json.data
+      
+      // Polyfill .data property onto the unwrapped result so older plugins 
+      // calling (await r.json()).data still work seamlessly.
+      const unwrappedData = json.data;
+      if (unwrappedData !== null && typeof unwrappedData === 'object' && !('data' in unwrappedData)) {
+        Object.defineProperty(unwrappedData, 'data', {
+          get() { return this; },
+          enumerable: false
+        });
+      }
+      return unwrappedData
     }
     return json
   }

@@ -25,6 +25,7 @@ Route::middleware('module:membership')->group(function () {
     // Points transactions
     Route::get('/membership/transactions', [MembershipController::class, 'transactions']);
     Route::post('/membership/members/{id}/adjust-points', [MembershipController::class, 'adjustPoints']);
+    Route::post('/membership/members/{id}/points', [MembershipController::class, 'adjustPoints']); // alias for frontend bundle
 
     // Earning rules
     Route::prefix('membership/rules')->group(function () {

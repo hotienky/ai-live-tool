@@ -84,7 +84,7 @@ var Plugin_booking = (function(e) {
     },
     template: '\
 <div class="bk-section">\
-  <div class="bk-header"><h3>Dịch vụ</h3><button class="bk-btn-primary" @click="openCreate">+ Thêm dịch vụ</button></div>\
+  <div class="bk-header"><h3>Dịch vụ</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm dịch vụ</button></div>\
   <div v-if="loading" class="bk-loading">Đang tải...</div>\
   <table v-else class="bk-table">\
     <thead><tr><th>Tên</th><th>Thời lượng</th><th>Buffer</th><th>Giá</th><th>Danh mục</th><th>Max/slot</th><th>Trạng thái</th><th></th></tr></thead>\
@@ -97,29 +97,29 @@ var Plugin_booking = (function(e) {
         <td>{{ s.category || "-" }}</td>\
         <td>{{ s.max_bookings_per_slot || 1 }}</td>\
         <td><span class="bk-badge" :class="s.is_active ? \'bk-badge--active\' : \'bk-badge--inactive\'">{{ s.is_active ? "Hoạt động" : "Tắt" }}</span></td>\
-        <td><button @click="openEdit(s)"></button> <button class="bk-btn-del" @click="remove(s.id)"></button></td>\
+        <td><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(s)">Sửa</button> <button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(s.id)">Xoá</button></td>\
       </tr>\
       <tr v-if="!items.length"><td colspan="8" class="bk-empty">Chưa có dịch vụ</td></tr>\
     </tbody>\
   </table>\
-  <div v-if="showModal" class="bk-modal-overlay" @click.self="showModal=false">\
-    <div class="bk-modal">\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false">\
+    <div class="modal">\
       <h4>{{ editing ? "Sửa dịch vụ" : "Thêm dịch vụ" }}</h4>\
       <div class="bk-form">\
         <label>Tên dịch vụ <input v-model="form.title" class="bk-input" /></label>\
         <label>Mô tả <textarea v-model="form.description" class="bk-input bk-textarea"></textarea></label>\
-        <div class="bk-form-row">\
+        <div class="form-row">\
           <label>Thời lượng (phút) <input v-model.number="form.duration_minutes" type="number" class="bk-input" /></label>\
           <label>Buffer (phút) <input v-model.number="form.buffer_minutes" type="number" class="bk-input" /></label>\
         </div>\
-        <div class="bk-form-row">\
+        <div class="form-row">\
           <label>Giá <input v-model.number="form.price" type="number" class="bk-input" /></label>\
           <label>Max bookings/slot <input v-model.number="form.max_bookings_per_slot" type="number" class="bk-input" /></label>\
         </div>\
         <label>Danh mục <input v-model="form.category" class="bk-input" /></label>\
         <label class="bk-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
       </div>\
-      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div>\
+      <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div>\
     </div>\
   </div>\
 </div>'
@@ -172,7 +172,7 @@ var Plugin_booking = (function(e) {
     },
     template: '\
 <div class="bk-section">\
-  <div class="bk-header"><h3>Lịch hẹn</h3><button class="bk-btn-primary" @click="openCreate">+ Tạo lịch hẹn</button></div>\
+  <div class="bk-header"><h3>Lịch hẹn</h3><button class="btn-primary btn-sm" @click="openCreate">+ Tạo lịch hẹn</button></div>\
   <div class="bk-filters">\
     <select v-model="filter.status" @change="load" class="bk-input"><option value="">Tất cả</option><option value="pending">Chờ</option><option value="confirmed">Xác nhận</option><option value="completed">Hoàn thành</option><option value="cancelled">Huỷ</option></select>\
     <input v-model="filter.date" type="date" @change="load" class="bk-input" />\
@@ -194,28 +194,28 @@ var Plugin_booking = (function(e) {
             <option value="completed">Hoàn thành</option><option value="cancelled">Đã huỷ</option><option value="no_show">Vắng mặt</option>\
           </select>\
         </td>\
-        <td><button class="bk-btn-del" @click="remove(a.id)"></button></td>\
+        <td><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(a.id)">Xoá</button></td>\
       </tr>\
       <tr v-if="!items.length"><td colspan="7" class="bk-empty">Không có lịch hẹn</td></tr>\
     </tbody>\
   </table>\
-  <div v-if="showModal" class="bk-modal-overlay" @click.self="showModal=false">\
-    <div class="bk-modal">\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false">\
+    <div class="modal">\
       <h4>Tạo lịch hẹn</h4>\
       <div class="bk-form">\
         <label>Dịch vụ <select v-model="form.service_id" class="bk-input"><option value="">-- Chọn --</option><option v-for="s in services" :key="s.id" :value="s.id">{{ s.title }}</option></select></label>\
         <label>Tên khách <input v-model="form.customer_name" class="bk-input" /></label>\
-        <div class="bk-form-row">\
+        <div class="form-row">\
           <label>SĐT <input v-model="form.customer_phone" class="bk-input" /></label>\
           <label>Email <input v-model="form.customer_email" class="bk-input" type="email" /></label>\
         </div>\
-        <div class="bk-form-row">\
+        <div class="form-row">\
           <label>Ngày <input v-model="form.date" type="date" class="bk-input" /></label>\
           <label>Giờ <input v-model="form.time_slot" class="bk-input" placeholder="09:00" /></label>\
         </div>\
         <label>Ghi chú <textarea v-model="form.notes" class="bk-input bk-textarea"></textarea></label>\
       </div>\
-      <div class="bk-modal-actions"><button class="bk-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div>\
+      <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div>\
     </div>\
   </div>\
 </div>'

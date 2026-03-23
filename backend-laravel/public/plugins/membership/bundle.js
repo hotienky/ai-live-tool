@@ -36,22 +36,22 @@ var Plugin_membership = (function(e) {
     async function remove(id) { if (!confirm('Xoá?')) return; try { await apiFetch('/membership/tiers/' + id, { method:'DELETE' }); load(); } catch(e) {} }
     return { items, loading, showModal, form, editing, openCreate, openEdit, save, remove };
   }, template: '\
-<div class="mb-section"><div class="mb-header"><h3> Hạng thành viên</h3><button class="mb-btn-primary" @click="openCreate">+ Thêm hạng</button></div>\
+<div class="mb-section"><div class="mb-header"><h3> Hạng thành viên</h3><button class="btn-primary btn-sm" @click="openCreate">+ Thêm hạng</button></div>\
   <div class="mb-tier-grid"><div v-for="t in items" :key="t.id" class="mb-tier-card" :style="{borderLeft: \'4px solid \' + (t.color || \'#6366f1\')}">\
     <div class="mb-tier-name" :style="{color: t.color}">{{ t.name }}</div>\
     <div class="mb-tier-info">Điểm tối thiểu: <strong>{{ t.min_points }}</strong></div>\
     <div class="mb-tier-info">Giảm giá: <strong>{{ t.discount_percent }}%</strong></div>\
     <div class="mb-tier-info">Thành viên: <strong>{{ t.members_count || 0 }}</strong></div>\
     <div v-if="t.benefits" class="mb-tier-benefits">{{ t.benefits }}</div>\
-    <div class="mb-tier-acts"><button @click="openEdit(t)"></button><button class="mb-btn-del" @click="remove(t.id)"></button></div></div></div>\
-  <div v-if="showModal" class="mb-modal-overlay" @click.self="showModal=false"><div class="mb-modal"><h4>{{ editing ? "Sửa" : "Thêm" }} hạng</h4>\
+    <div class="mb-tier-acts"><button class="btn-ghost btn-sm" style="color:var(--plugin-blue)" @click="openEdit(t)">Sửa</button><button class="btn-ghost btn-sm" style="color:var(--plugin-red)" @click="remove(t.id)">Xoá</button></div></div></div>\
+  <div v-if="showModal" class="modal-overlay" @click.self="showModal=false"><div class="modal"><h4>{{ editing ? "Sửa" : "Thêm" }} hạng</h4>\
     <label>Tên <input v-model="form.name" class="mb-input" /></label>\
-    <div class="mb-form-row"><label>Điểm tối thiểu <input v-model.number="form.min_points" type="number" class="mb-input" /></label>\
+    <div class="form-row"><label>Điểm tối thiểu <input v-model.number="form.min_points" type="number" class="mb-input" /></label>\
       <label>Giảm giá (%) <input v-model.number="form.discount_percent" type="number" class="mb-input" /></label></div>\
     <label>Quyền lợi <textarea v-model="form.benefits" class="mb-input mb-textarea"></textarea></label>\
     <label>Màu <input v-model="form.color" type="color" class="mb-input" style="width:80px;height:40px" /></label>\
     <label class="mb-check"><input type="checkbox" v-model="form.is_active" /> Kích hoạt</label>\
-    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="save">Lưu</button><button @click="showModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-save" @click="save">Lưu</button><button class="btn-cancel" @click="showModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var MemberList = { name: 'MemberList', setup: function() {
@@ -77,11 +77,11 @@ var Plugin_membership = (function(e) {
   <tbody><tr v-for="m in items" :key="m.id"><td><strong>{{ m.name }}</strong></td><td>{{ m.email || "-" }}</td>\
     <td><span class="mb-tier-badge" :style="{background: m.tier_color || \'#6366f1\'}">{{ m.tier_name || m.current_tier || "Cơ bản" }}</span></td>\
     <td>{{ m.points || 0 }}</td><td>{{ m.total_spent || 0 }}</td><td>{{ m.referral_count || 0 }}</td><td>{{ fmtDate(m.created_at) }}</td>\
-    <td><button class="mb-btn-primary" @click="openPointModal(m)"> Điểm</button></td></tr></tbody></table>\
-  <div v-if="pointModal" class="mb-modal-overlay" @click.self="pointModal=false"><div class="mb-modal"><h4>Điều chỉnh điểm</h4>\
+    <td><button class="btn-primary btn-sm" @click="openPointModal(m)"> Điểm</button></td></tr></tbody></table>\
+  <div v-if="pointModal" class="modal-overlay" @click.self="pointModal=false"><div class="modal"><h4>Điều chỉnh điểm</h4>\
     <label>Số điểm (+/-) <input v-model.number="pointForm.amount" type="number" class="mb-input" /></label>\
     <label>Lý do <input v-model="pointForm.reason" class="mb-input" placeholder="VD: Bonus sinh nhật" /></label>\
-    <div class="mb-modal-actions"><button class="mb-btn-primary" @click="savePoints">Lưu</button><button @click="pointModal=false">Huỷ</button></div></div></div>\
+    <div class="modal-actions"><button class="btn-primary btn-sm" @click="savePoints">Lưu</button><button @click="pointModal=false">Huỷ</button></div></div></div>\
 </div>' };
 
   var MemberManager = { name: 'MemberManager',

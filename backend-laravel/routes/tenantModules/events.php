@@ -8,6 +8,9 @@ use App\Http\Controllers\Tenant\EventController;
 // EVENTS MODULE ROUTES — ContentType + dedicated controllers
 // ════════════════════════════════════════════════════════════
 Route::middleware('module:events')->prefix('events')->group(function () {
+    // Global stats
+    Route::get('/stats', [EventController::class, 'globalStats']);
+
     // Content CRUD (via ContentTypeRegistry)
     Route::get('/',     [ContentController::class, 'index'])->defaults('type', 'event');
     Route::post('/',    [ContentController::class, 'store'])->defaults('type', 'event');
@@ -24,6 +27,7 @@ Route::middleware('module:events')->prefix('events')->group(function () {
     // Registrations / Attendees
     Route::get('/{eventId}/registrations', [EventController::class, 'registrations']);
     Route::post('/{eventId}/registrations/{id}/checkin', [EventController::class, 'checkIn']);
+    Route::post('/{eventId}/registrations/{id}/check-in', [EventController::class, 'checkIn']); // alias with hyphen
     Route::delete('/{eventId}/registrations/{id}', [EventController::class, 'destroyRegistration']);
     Route::get('/{eventId}/stats', [EventController::class, 'registrationStats']);
 });

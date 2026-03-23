@@ -380,4 +380,62 @@ PROMPT;
             'max_tokens' => 2000,
         ]);
     }
+
+    // ── Reply helpers (used by livestream & ecom plugins) ──
+
+    public function replySuggest(Request $request)
+    {
+        $request->validate([
+            'comment'  => 'required|string|max:1000',
+            'label'    => 'nullable|string|max:100',
+            'nickname' => 'nullable|string|max:100',
+        ]);
+
+        $ai      = $this->resolveAiService();
+        $comment = $request->input('comment');
+        $label   = $request->input('label', '');
+        $nick    = $request->input('nickname', 'khách hàng');
+        $prompt  = "Bình luận từ {$nick}" . ($label ? " (nhãn: {$label})" : '') . ": \"{$comment}\"\n"
+                 . "Hãy viết 1 câu trả lời ngắn gọn, thân thiện, chuyên nghiệp bằng tiếng Việt.";
+
+        $reply = $ai->generate($prompt, ['max_tokens' => 200, 'temperature' => 0.7]);
+
+        return response()->json(['success' => true, 'data' => ['reply' => $reply]]);
+    }
+
+    public function replySend(Request $request)
+    {
+        $request->validate([
+            'comment'  => 'required|string',
+            'reply'    => 'required|string',
+            'nickname' => 'nullable|string',
+        ]);
+
+        // Log the reply action (actual social media sending handled by frontend/webhook)
+        Log::info('[Reply] Sent', [
+            'nickname' => $request->input('nickname'),
+            'reply'    => $request->input('reply'),
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Đã gửi phản hồi']);
+    }
+
+    public function replySentiment(Request $request)
+    {
+        $request->validate(['comment' => 'required|string|max:1000']);
+
+        $ai      = $this->resolveAiService();
+        $comment = $request->input('comment');
+        $prompt  = "Phân tích cảm xúc của bình luận sau và trả về JSON với trường \"sentiment\" (positive/negative/neutral) và \"score\" (0-1):\n\"{$comment}\"";
+
+        $result = $ai->generate($prompt, ['max_tokens' => 100, 'temperature' => 0.1]);
+
+        // Try to parse JSON from AI response, fallback to neutral
+        $parsed = json_decode($result, true);
+        if (!$parsed) {
+            $parsed = ['sentiment' => 'neutral', 'score' => 0.5];
+        }
+
+        return response()->json(['success' => true, 'data' => $parsed]);
+    }
 }

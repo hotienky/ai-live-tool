@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\ContentTypeRegistry;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // 
     }
 
     /**
@@ -20,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ── Fix PostgreSQL boolean with pgbouncer (emulated prepares) ──
+        // Must be in boot() so it overrides default Laravel DatabaseServiceProvider binding.
+        // PDO emulated prepares (required for pgbouncer) converts PHP booleans to 1/0
+        // which PostgreSQL strict typing rejects. Our custom connection converts them to 'true'/'false'.
+        \Illuminate\Database\Connection::resolverFor('pgsql', function ($connection, $database, $prefix, $config) {
+            return new \App\Database\PostgresConnection($connection, $database, $prefix, $config);
+        });
         // ── Register core content types ──
         ContentTypeRegistry::register('page', [
             'label' => 'Trang',
