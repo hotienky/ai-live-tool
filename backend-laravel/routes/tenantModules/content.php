@@ -8,9 +8,13 @@ use App\Http\Controllers\Tenant\NavLinksController;
 // CMS Pages
 Route::get('/cms-pages', [CmsPagesController::class, 'index'])->middleware('permission:cms.view');
 Route::post('/cms-pages', [CmsPagesController::class, 'store'])->middleware('permission:cms.create');
+// Static routes BEFORE {id} to avoid conflicts
+Route::get('/cms-pages/system', [CmsPagesController::class, 'systemPages'])->middleware('permission:cms.view');
+Route::get('/cms-pages/by-alias/{alias}', [CmsPagesController::class, 'showByAlias'])->middleware('permission:cms.view');
 Route::get('/cms-pages/{id}', [CmsPagesController::class, 'show'])->middleware('permission:cms.view');
 Route::put('/cms-pages/{id}', [CmsPagesController::class, 'update'])->middleware('permission:cms.edit');
 Route::delete('/cms-pages/{id}', [CmsPagesController::class, 'destroy'])->middleware('permission:cms.delete');
+Route::put('/cms-pages/{id}/layout', [CmsPagesController::class, 'saveLayout'])->middleware('permission:cms.edit');
 Route::post('/cms-pages/{id}/publish', [CmsPagesController::class, 'publish'])->middleware('permission:cms.edit');
 Route::post('/cms-pages/{id}/unpublish', [CmsPagesController::class, 'unpublish'])->middleware('permission:cms.edit');
 Route::post('/cms-pages/{id}/schedule', [CmsPagesController::class, 'schedule'])->middleware('permission:cms.edit');

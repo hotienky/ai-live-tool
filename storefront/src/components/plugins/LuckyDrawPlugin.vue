@@ -62,7 +62,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { apiFetch } from '../../api.js'
+import { apiFetch, apiPost } from '../../api.js'
 
 const props = defineProps({
   id: { type: [String, Number], required: true }
@@ -130,7 +130,7 @@ async function fetchCampaign() {
   loading.value = true
   error.value = null
   try {
-    const res = await apiFetch(`/storefront/lucky-draw/${props.id}`)
+    const res = await apiFetch(`/lucky-draw/${props.id}`)
     const data = res.data || res
     campaign.value = data
     prizes.value = data.prizes || []
@@ -150,7 +150,7 @@ async function spinWheel() {
   isSpinning.value = true
   
   try {
-    const res = await apiFetch(`/storefront/lucky-draw/${props.id}/spin`, { method: 'POST' })
+    const res = await apiPost(`/lucky-draw/${props.id}/spin`)
     const data = res.data || res
     const wonPrizeId = data.prize?.id
     

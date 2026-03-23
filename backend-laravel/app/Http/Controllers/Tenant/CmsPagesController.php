@@ -34,6 +34,54 @@ class CmsPagesController extends Controller
         return $page ? $this->successResponse($page) : $this->notFoundResponse('Page not found');
     }
 
+    /** Tìm trang theo alias — dùng cho storefront và page builder */
+    public function showByAlias($alias)
+    {
+        $page = $this->repo->findByAlias($alias);
+        return $page ? $this->successResponse($page) : $this->notFoundResponse('Page not found');
+    }
+
+    /** Lấy danh sách trang hệ thống (home, about, contact) */
+    public function systemPages()
+    {
+        try {
+            $pages = $this->repo->getSystemPages();
+            return $this->successResponse($pages);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /** Lưu layout_data cho trang dynamic — tách khỏi update chính để tránh mất data content */
+    public function saveLayout(Request $request, $id)
+    {
+        try {
+            $page = $this->repo->find($id);
+            if (!$page) return $this->notFoundResponse('Page not found');
+
+            $data = $request->validate([
+                'layout_data' => 'required|array',
+                'is_dynamic'  => 'nullable|boolean',
+            ]);
+
+            $update = ['layout_data' => $data['layout_data']];
+            if (isset($data['is_dynamic'])) {
+                $update['is_dynamic'] = $data['is_dynamic'];
+            }
+
+            $this->repo->update($update, $id);
+            $this->logActivity('cms.layout_saved', 'cms_page', $id, ['title' => $page->title ?? null]);
+
+            ContentSaved::dispatch('page', (int) $id, $update, false);
+
+            return $this->successResponse($this->repo->find($id), 'Layout saved');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return $this->errorResponse($e->getMessage(), 422);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
     public function store(Request $request)
     {
         try {
@@ -43,17 +91,23 @@ class CmsPagesController extends Controller
                 'alias' => 'nullable|string',
                 'content' => 'nullable|string',
                 'image' => 'nullable|string',
+                'sort' => 'nullable|integer',
+                'status' => 'nullable',
                 'is_active' => 'nullable|boolean',
-                'status' => 'nullable|string|in:draft,published,scheduled',
                 'published_at' => 'nullable|date',
+                'meta_title' => 'nullable|string|max:255',
                 'meta_description' => 'nullable|string',
                 'meta_keywords' => 'nullable|string',
                 'is_dynamic' => 'nullable|boolean',
                 'layout_data' => 'nullable|array',
             ]);
+            // Convert status to boolean for DB
+            if (isset($data['status'])) {
+                $data['status'] = filter_var($data['status'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+            }
             $data['slug'] = $data['slug'] ?? Str::slug($data['title']);
             $data['alias'] = $data['alias'] ?? $data['slug'];
-            $data['status'] = $data['status'] ?? 'draft';
+            $data['status'] = $data['status'] ?? true;
             $page = $this->repo->store($data);
             $this->logActivity('cms.created', 'cms_page', $page->id, ['title' => $data['title']]);
 
@@ -81,14 +135,20 @@ class CmsPagesController extends Controller
                 'alias' => 'nullable|string',
                 'content' => 'nullable|string',
                 'image' => 'nullable|string',
+                'sort' => 'nullable|integer',
+                'status' => 'nullable',
                 'is_active' => 'nullable|boolean',
-                'status' => 'nullable|string|in:draft,published,scheduled',
                 'published_at' => 'nullable|date',
+                'meta_title' => 'nullable|string|max:255',
                 'meta_description' => 'nullable|string',
                 'meta_keywords' => 'nullable|string',
                 'is_dynamic' => 'nullable|boolean',
                 'layout_data' => 'nullable|array',
             ]);
+            // Convert status to boolean for DB
+            if (isset($data['status'])) {
+                $data['status'] = filter_var($data['status'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? true;
+            }
 
             $page = $this->repo->find($id);
             if (!$page) return $this->notFoundResponse('Page not found');

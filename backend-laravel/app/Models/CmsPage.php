@@ -10,7 +10,7 @@ class CmsPage extends Model
         'title', 'alias', 'content', 'image', 'status',
         'published_at', 'created_by', 'updated_by',
         'meta_title', 'meta_description', 'meta_keywords',
-        'is_dynamic', 'layout_data'
+        'is_dynamic', 'layout_data', 'is_system',
     ];
 
     protected $casts = [
@@ -18,6 +18,7 @@ class CmsPage extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'is_dynamic' => 'boolean',
+        'is_system' => 'boolean',
         'layout_data' => 'array',
     ];
 
