@@ -20,7 +20,7 @@ class LmsController extends Controller
     {
         $query = Course::withCount(['lessons', 'enrollments']);
         if ($search = $request->input('search')) $query->where('title', 'ilike', "%{$search}%");
-        if ($request->input('published')) $query->where('is_published', true);
+        if ($request->input('published')) $query->whereRaw('is_published = true');
         return $this->successResponse($query->orderBy('created_at', 'desc')->paginate($request->input('per_page', 20)));
     }
 
@@ -37,6 +37,8 @@ class LmsController extends Controller
             'level' => 'nullable|in:beginner,intermediate,advanced',
         ]);
         $data['slug'] = Str::slug($data['title']) . '-' . Str::random(4);
+        if (isset($data['is_published'])) $data['is_published'] = (bool) $data['is_published'];
+        if (isset($data['certificate_enabled'])) $data['certificate_enabled'] = (bool) $data['certificate_enabled'];
         return $this->successResponse(Course::create($data), 'Đã tạo khóa học', 201);
     }
 
@@ -48,11 +50,14 @@ class LmsController extends Controller
     public function updateCourse(Request $request, $id)
     {
         $course = Course::findOrFail($id);
-        $course->update($request->only([
+        $data = $request->only([
             'title', 'description', 'featured_image', 'price', 'is_published',
             'instructor_name', 'duration_hours', 'level',
             'certificate_enabled', 'certificate_template', 'prerequisite_id',
-        ]));
+        ]);
+        if (isset($data['is_published'])) $data['is_published'] = (bool) $data['is_published'];
+        if (isset($data['certificate_enabled'])) $data['certificate_enabled'] = (bool) $data['certificate_enabled'];
+        $course->update($data);
         return $this->successResponse($course, 'Đã cập nhật');
     }
 
@@ -242,16 +247,24 @@ class LmsController extends Controller
 
     public function stats()
     {
-        $totalCourses = Course::count();
-        $publishedCourses = Course::where('is_published', true)->count();
-        $totalEnrollments = Enrollment::count();
-        $completedEnrollments = Enrollment::where('status', 'completed')->count();
-        $totalLessons = Lesson::count();
-        $topCourses = Course::orderBy('enrollment_count', 'desc')->limit(5)->get(['id', 'title', 'enrollment_count']);
+        try {
+            $totalCourses = Course::count();
+            $publishedCourses = Course::whereRaw("is_published = true")->count();
+            $totalEnrollments = Enrollment::count();
+            $completedEnrollments = Enrollment::where('status', 'completed')->count();
+            $totalLessons = Lesson::count();
+            $topCourses = Course::orderBy('enrollment_count', 'desc')->limit(5)->get(['id', 'title', 'enrollment_count']);
 
-        return $this->successResponse(compact(
-            'totalCourses', 'publishedCourses', 'totalEnrollments', 'completedEnrollments', 'totalLessons', 'topCourses'
-        ));
+            return $this->successResponse(compact(
+                'totalCourses', 'publishedCourses', 'totalEnrollments', 'completedEnrollments', 'totalLessons', 'topCourses'
+            ));
+        } catch (\Exception $e) {
+            return $this->successResponse([
+                'totalCourses' => 0, 'publishedCourses' => 0,
+                'totalEnrollments' => 0, 'completedEnrollments' => 0,
+                'totalLessons' => 0, 'topCourses' => [],
+            ]);
+        }
     }
 }
 

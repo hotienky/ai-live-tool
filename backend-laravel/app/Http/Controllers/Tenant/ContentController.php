@@ -237,6 +237,27 @@ class ContentController extends Controller
     }
 
     /**
+     * Stats for a given content type (used by module dashboards)
+     */
+    public function stats(string $type)
+    {
+        if (!ContentTypeRegistry::exists($type)) {
+            return response()->json(['error' => "Unknown content type: {$type}"], 404);
+        }
+
+        $total    = Content::ofType($type)->count();
+        $byStatus = Content::ofType($type)
+            ->selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status');
+
+        $published = $byStatus['published'] ?? 0;
+        $draft     = $byStatus['draft']     ?? 0;
+
+        return $this->successResponse(compact('total', 'published', 'draft', 'byStatus'));
+    }
+
+    /**
      * Ensure slug is unique for a given content type
      */
     protected function ensureUniqueSlug(string $type, string $slug, ?int $excludeId = null): string

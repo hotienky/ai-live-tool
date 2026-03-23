@@ -72,6 +72,7 @@ class ModuleRegistry
                     'installed_at' => now(),
                     'installed_by' => $userId,
                 ]);
+                static::runModuleMigrations($moduleId);
                 static::clearCache($tenantId);
                 return ['success' => true, 'message' => "Đã cài đặt lại {$module->name}"];
             }

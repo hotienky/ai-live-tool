@@ -1,15 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Tenant\ContentController;
+use App\Http\Controllers\Tenant\ForumController;
 
-// ════════════════════════════════════════════════════════════
-// FORUM MODULE ROUTES — uses ContentTypeRegistry 'topic'
-// ════════════════════════════════════════════════════════════
 Route::middleware('module:forum')->prefix('forum')->group(function () {
-    Route::get('/topics',     [ContentController::class, 'index'])->defaults('type', 'topic');
-    Route::post('/topics',    [ContentController::class, 'store'])->defaults('type', 'topic');
-    Route::get('/topics/{id}', [ContentController::class, 'show'])->defaults('type', 'topic');
-    Route::put('/topics/{id}', [ContentController::class, 'update'])->defaults('type', 'topic');
-    Route::delete('/topics/{id}', [ContentController::class, 'destroy'])->defaults('type', 'topic');
+    Route::get('/stats', [ForumController::class, 'stats']);
+
+    // Categories
+    Route::get('/categories',        [ForumController::class, 'categories']);
+    Route::post('/categories',       [ForumController::class, 'storeCategory']);
+    Route::put('/categories/{id}',   [ForumController::class, 'updateCategory']);
+    Route::delete('/categories/{id}',[ForumController::class, 'destroyCategory']);
+
+    // Threads
+    Route::get('/threads',           [ForumController::class, 'threads']);
+    Route::put('/threads/{id}',      [ForumController::class, 'updateThread']);
+    Route::delete('/threads/{id}',   [ForumController::class, 'destroyThread']);
 });
