@@ -1,0 +1,793 @@
+/* ═══════════════════════════════════════════════════════════════
+   Plugin Shared Styles — Premium Dark/Light Theme
+   Covers all 10 plugins: bk, ev, rs, sl, lm, fm, jb, re, ld, mb
+   
+   Uses CSS custom properties from style.css for theme compatibility.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── CSS Custom Properties for Plugin Colors ── */
+:root {
+  --plugin-blue: #3b82f6;
+  --plugin-blue-glow: rgba(59, 130, 246, 0.15);
+  --plugin-green: #10b981;
+  --plugin-green-glow: rgba(16, 185, 129, 0.15);
+  --plugin-amber: #f59e0b;
+  --plugin-amber-glow: rgba(245, 158, 11, 0.15);
+  --plugin-red: #ef4444;
+  --plugin-red-glow: rgba(239, 68, 68, 0.15);
+  --plugin-purple: #8b5cf6;
+  --plugin-purple-glow: rgba(139, 92, 246, 0.15);
+  --plugin-cyan: #06b6d4;
+  --plugin-cyan-glow: rgba(6, 182, 212, 0.15);
+  --plugin-rose: #f43f5e;
+  --plugin-rose-glow: rgba(244, 63, 94, 0.15);
+  --plugin-indigo: #6366f1;
+  --plugin-indigo-glow: rgba(99, 102, 241, 0.15);
+}
+
+/* ═══════════════════════════════════════
+   LOADING STATE
+   ═══════════════════════════════════════ */
+[class$="-loading"],
+.bk-loading, .ev-loading, .rs-loading, .sl-loading,
+.lm-loading, .fm-loading, .jb-loading, .re-loading,
+.ld-loading, .mb-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  font-size: 14px;
+  color: var(--color-text-muted, #6b6b7b);
+  gap: 8px;
+}
+[class$="-loading"]::before,
+.bk-loading::before, .ev-loading::before, .rs-loading::before,
+.sl-loading::before, .lm-loading::before, .fm-loading::before,
+.jb-loading::before, .re-loading::before, .ld-loading::before,
+.mb-loading::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-border, rgba(255,255,255,.1));
+  border-top-color: var(--color-accent-primary, #7c3aed);
+  border-radius: 50%;
+  animation: pluginSpin 0.7s linear infinite;
+}
+
+@keyframes pluginSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══════════════════════════════════════
+   TABS NAVIGATION
+   ═══════════════════════════════════════ */
+.bk-tabs, .ev-tabs, .rs-tabs, .sl-tabs,
+.lm-tabs, .fm-tabs, .jb-tabs, .re-tabs,
+.ld-tabs, .mb-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--color-bg-card, rgba(255,255,255,.05));
+  border: 1px solid var(--color-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-md, 12px);
+  margin-bottom: 24px;
+}
+.bk-tabs button, .ev-tabs button, .rs-tabs button,
+.sl-tabs button, .lm-tabs button, .fm-tabs button,
+.jb-tabs button, .re-tabs button, .ld-tabs button,
+.mb-tabs button {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary, #b4b4be);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+.bk-tabs button:hover, .ev-tabs button:hover, .rs-tabs button:hover,
+.sl-tabs button:hover, .lm-tabs button:hover, .fm-tabs button:hover,
+.jb-tabs button:hover, .re-tabs button:hover, .ld-tabs button:hover,
+.mb-tabs button:hover {
+  color: var(--color-text-primary, #f4f4f5);
+  background: var(--color-bg-card-hover, rgba(255,255,255,.08));
+}
+/* Active tab */
+.bk-tab-active, .ev-tab-active, .rs-tab-active, .sl-tab-active,
+.lm-tab-active, .fm-tab-active, .jb-tab-active, .re-tab-active,
+.ld-tab-active, .mb-tab-active {
+  background: var(--accent-gradient, linear-gradient(135deg, #7c3aed, #6d28d9)) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* ═══════════════════════════════════════
+   STATS GRID
+   ═══════════════════════════════════════ */
+.bk-stats, .ev-stats, .rs-stats, .sl-stats,
+.lm-stats, .fm-stats, .jb-stats, .re-stats,
+.ld-stats, .mb-stats {
+  animation: pluginFadeIn 0.3s ease;
+}
+.bk-stats-grid, .ev-stats-grid, .rs-stats-grid, .sl-stats-grid,
+.lm-stats-grid, .fm-stats-grid, .jb-stats-grid, .re-stats-grid,
+.ld-stats-grid, .mb-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.bk-stat-card, .ev-stat-card, .rs-stat-card, .sl-stat-card,
+.lm-stat-card, .fm-stat-card, .jb-stat-card, .re-stat-card,
+.ld-stat-card, .mb-stat-card {
+  background: var(--glass-bg, rgba(255,255,255,.05));
+  border: 1px solid var(--glass-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-lg, 16px);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.bk-stat-card::before, .ev-stat-card::before, .rs-stat-card::before,
+.sl-stat-card::before, .lm-stat-card::before, .fm-stat-card::before,
+.jb-stat-card::before, .re-stat-card::before, .ld-stat-card::before,
+.mb-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-accent-primary, #7c3aed), var(--plugin-blue));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.bk-stat-card:hover, .ev-stat-card:hover, .rs-stat-card:hover,
+.sl-stat-card:hover, .lm-stat-card:hover, .fm-stat-card:hover,
+.jb-stat-card:hover, .re-stat-card:hover, .ld-stat-card:hover,
+.mb-stat-card:hover {
+  border-color: var(--color-border-hover, rgba(255,255,255,.18));
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card, 0 4px 24px rgba(0,0,0,.25));
+}
+.bk-stat-card:hover::before, .ev-stat-card:hover::before,
+.rs-stat-card:hover::before, .sl-stat-card:hover::before,
+.lm-stat-card:hover::before, .fm-stat-card:hover::before,
+.jb-stat-card:hover::before, .re-stat-card:hover::before,
+.ld-stat-card:hover::before, .mb-stat-card:hover::before {
+  opacity: 1;
+}
+.bk-stat-num, .ev-stat-num, .rs-stat-num, .sl-stat-num,
+.lm-stat-num, .fm-stat-num, .jb-stat-num, .re-stat-num,
+.ld-stat-num, .mb-stat-num {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text-primary, #f4f4f5);
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.bk-stat-label, .ev-stat-label, .rs-stat-label, .sl-stat-label,
+.lm-stat-label, .fm-stat-label, .jb-stat-label, .re-stat-label,
+.ld-stat-label, .mb-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted, #6b6b7b);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 6px;
+}
+
+/* Stat card color variants */
+.bk-stat--today { border-left: 3px solid var(--plugin-blue); }
+.bk-stat--pending { border-left: 3px solid var(--plugin-amber); }
+.bk-stat--revenue { border-left: 3px solid var(--plugin-green); }
+.bk-stat--today .bk-stat-num { color: var(--plugin-blue); }
+.bk-stat--pending .bk-stat-num { color: var(--plugin-amber); }
+.bk-stat--revenue .bk-stat-num { color: var(--plugin-green); }
+
+/* ═══════════════════════════════════════
+   SECTION + HEADER
+   ═══════════════════════════════════════ */
+.bk-section, .ev-section, .rs-section, .sl-section,
+.lm-section, .fm-section, .jb-section, .re-section,
+.ld-section, .mb-section {
+  animation: pluginFadeIn 0.3s ease;
+}
+.bk-header, .ev-header, .rs-header, .sl-header,
+.lm-header, .fm-header, .jb-header, .re-header,
+.ld-header, .mb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.bk-header h3, .ev-header h3, .rs-header h3, .sl-header h3,
+.lm-header h3, .fm-header h3, .jb-header h3, .re-header h3,
+.ld-header h3, .mb-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text-primary, #f4f4f5);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ═══════════════════════════════════════
+   TABLES
+   ═══════════════════════════════════════ */
+.bk-table, .ev-table, .rs-table, .sl-table,
+.lm-table, .fm-table, .jb-table, .re-table,
+.ld-table, .mb-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--glass-bg, rgba(255,255,255,.05));
+  border: 1px solid var(--glass-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-lg, 16px);
+  overflow: hidden;
+}
+.bk-table thead, .ev-table thead, .rs-table thead, .sl-table thead,
+.lm-table thead, .fm-table thead, .jb-table thead, .re-table thead,
+.ld-table thead, .mb-table thead {
+  background: var(--color-bg-elevated, rgba(255,255,255,.06));
+}
+.bk-table th, .ev-table th, .rs-table th, .sl-table th,
+.lm-table th, .fm-table th, .jb-table th, .re-table th,
+.ld-table th, .mb-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted, #6b6b7b);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.1));
+}
+.bk-table td, .ev-table td, .rs-table td, .sl-table td,
+.lm-table td, .fm-table td, .jb-table td, .re-table td,
+.ld-table td, .mb-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--color-text-secondary, #b4b4be);
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.06));
+  transition: background 0.15s;
+}
+.bk-table tr:last-child td, .ev-table tr:last-child td,
+.rs-table tr:last-child td, .sl-table tr:last-child td,
+.lm-table tr:last-child td, .fm-table tr:last-child td,
+.jb-table tr:last-child td, .re-table tr:last-child td,
+.ld-table tr:last-child td, .mb-table tr:last-child td {
+  border-bottom: none;
+}
+.bk-table tbody tr:hover td, .ev-table tbody tr:hover td,
+.rs-table tbody tr:hover td, .sl-table tbody tr:hover td,
+.lm-table tbody tr:hover td, .fm-table tbody tr:hover td,
+.jb-table tbody tr:hover td, .re-table tbody tr:hover td,
+.ld-table tbody tr:hover td, .mb-table tbody tr:hover td {
+  background: var(--color-bg-card-hover, rgba(255,255,255,.08));
+}
+.bk-table td strong, .ev-table td strong, .rs-table td strong,
+.sl-table td strong, .lm-table td strong, .fm-table td strong,
+.jb-table td strong, .re-table td strong, .ld-table td strong,
+.mb-table td strong {
+  color: var(--color-text-primary, #f4f4f5);
+  font-weight: 600;
+}
+
+/* ═══════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════ */
+.bk-btn-primary, .ev-btn-primary, .rs-btn-primary, .sl-btn-primary,
+.lm-btn-primary, .fm-btn-primary, .jb-btn-primary, .re-btn-primary,
+.ld-btn-primary, .mb-btn-primary {
+  background: var(--accent-gradient, linear-gradient(135deg, #7c3aed, #6d28d9));
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  white-space: nowrap;
+}
+.bk-btn-primary:hover, .ev-btn-primary:hover, .rs-btn-primary:hover,
+.sl-btn-primary:hover, .lm-btn-primary:hover, .fm-btn-primary:hover,
+.jb-btn-primary:hover, .re-btn-primary:hover, .ld-btn-primary:hover,
+.mb-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+}
+
+.bk-btn-del, .ev-btn-del, .rs-btn-del, .sl-btn-del,
+.lm-btn-del, .fm-btn-del, .jb-btn-del, .re-btn-del,
+.ld-btn-del, .mb-btn-del {
+  background: var(--plugin-red-glow);
+  color: var(--plugin-red);
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.bk-btn-del:hover, .ev-btn-del:hover, .rs-btn-del:hover,
+.sl-btn-del:hover, .lm-btn-del:hover, .fm-btn-del:hover,
+.jb-btn-del:hover, .re-btn-del:hover, .ld-btn-del:hover,
+.mb-btn-del:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+.lm-btn-back, .ld-btn-back {
+  background: var(--color-bg-card, rgba(255,255,255,.05));
+  color: var(--color-text-secondary, #b4b4be);
+  border: 1px solid var(--color-border, rgba(255,255,255,.1));
+  padding: 7px 14px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.lm-btn-back:hover, .ld-btn-back:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+/* Table action buttons (inline) */
+.bk-table button, .ev-table button, .rs-table button,
+.sl-table button, .lm-table button, .fm-table button,
+.jb-table button, .re-table button, .ld-table button,
+.mb-table button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.bk-table button:hover, .ev-table button:hover, .rs-table button:hover,
+.sl-table button:hover, .lm-table button:hover, .fm-table button:hover,
+.jb-table button:hover, .re-table button:hover, .ld-table button:hover,
+.mb-table button:hover {
+  background: var(--color-bg-card-hover, rgba(255,255,255,.08));
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════ */
+.bk-modal-overlay, .ev-modal-overlay, .rs-modal-overlay, .sl-modal-overlay,
+.lm-modal-overlay, .fm-modal-overlay, .jb-modal-overlay, .re-modal-overlay,
+.ld-modal-overlay, .mb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: pluginFadeIn 0.2s ease;
+}
+.bk-modal, .ev-modal, .rs-modal, .sl-modal,
+.lm-modal, .fm-modal, .jb-modal, .re-modal,
+.ld-modal, .mb-modal {
+  background: var(--bg-1, #12121f);
+  border: 1px solid var(--border, rgba(255,255,255,.1));
+  border-radius: var(--radius-lg, 16px);
+  padding: 28px;
+  width: 90vw;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-elevated, 0 8px 40px rgba(0,0,0,.35));
+  animation: pluginSlideUp 0.3s ease;
+}
+.bk-modal h4, .ev-modal h4, .rs-modal h4, .sl-modal h4,
+.lm-modal h4, .fm-modal h4, .jb-modal h4, .re-modal h4,
+.ld-modal h4, .mb-modal h4 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-primary, #f4f4f5);
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border, rgba(255,255,255,.1));
+}
+.bk-modal-actions, .ev-modal-actions, .rs-modal-actions, .sl-modal-actions,
+.lm-modal-actions, .fm-modal-actions, .jb-modal-actions, .re-modal-actions,
+.ld-modal-actions, .mb-modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, rgba(255,255,255,.1));
+}
+.bk-modal-actions button:last-child, .ev-modal-actions button:last-child,
+.rs-modal-actions button:last-child, .sl-modal-actions button:last-child,
+.lm-modal-actions button:last-child, .fm-modal-actions button:last-child,
+.jb-modal-actions button:last-child, .re-modal-actions button:last-child,
+.ld-modal-actions button:last-child, .mb-modal-actions button:last-child {
+  background: var(--color-bg-card-solid, #181830);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 9px 18px;
+  border-radius: var(--radius-sm, 8px);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.bk-modal-actions button:last-child:hover, .ev-modal-actions button:last-child:hover,
+.rs-modal-actions button:last-child:hover, .sl-modal-actions button:last-child:hover,
+.lm-modal-actions button:last-child:hover, .fm-modal-actions button:last-child:hover,
+.jb-modal-actions button:last-child:hover, .re-modal-actions button:last-child:hover,
+.ld-modal-actions button:last-child:hover, .mb-modal-actions button:last-child:hover {
+  border-color: var(--color-border-hover);
+  color: var(--color-text-primary);
+}
+
+/* ═══════════════════════════════════════
+   FORM INPUTS
+   ═══════════════════════════════════════ */
+.bk-input, .ev-input, .rs-input, .sl-input,
+.lm-input, .fm-input, .jb-input, .re-input,
+.ld-input, .mb-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-bg-input, rgba(255,255,255,.04));
+  color: var(--color-text-primary, #f4f4f5);
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  outline: none;
+}
+.bk-input:focus, .ev-input:focus, .rs-input:focus, .sl-input:focus,
+.lm-input:focus, .fm-input:focus, .jb-input:focus, .re-input:focus,
+.ld-input:focus, .mb-input:focus {
+  border-color: var(--color-accent-primary, #7c3aed);
+  box-shadow: 0 0 0 3px var(--color-accent-glow, rgba(124,58,237,.2));
+}
+.bk-input::placeholder, .ev-input::placeholder, .rs-input::placeholder,
+.sl-input::placeholder, .lm-input::placeholder, .fm-input::placeholder,
+.jb-input::placeholder, .re-input::placeholder, .ld-input::placeholder,
+.mb-input::placeholder {
+  color: var(--color-text-muted, #6b6b7b);
+}
+
+.bk-textarea, .ev-textarea, .rs-textarea, .sl-textarea,
+.lm-textarea, .fm-textarea, .jb-textarea, .re-textarea,
+.ld-textarea, .mb-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Form labels (inside modals) */
+.bk-modal label, .ev-modal label, .rs-modal label, .sl-modal label,
+.lm-modal label, .fm-modal label, .jb-modal label, .re-modal label,
+.ld-modal label, .mb-modal label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #b4b4be);
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+/* Form row (side by side) */
+.bk-form-row, .rs-form-row, .sl-form-row, .lm-form-row,
+.jb-form-row, .re-form-row, .ld-form-row, .mb-form-row {
+  display: flex;
+  gap: 12px;
+}
+.bk-form-row > label, .rs-form-row > label, .sl-form-row > label,
+.lm-form-row > label, .jb-form-row > label, .re-form-row > label,
+.ld-form-row > label, .mb-form-row > label {
+  flex: 1;
+}
+
+/* Checkbox labels */
+.bk-check, .ev-check, .rs-check, .sl-check,
+.lm-check, .fm-check, .jb-check, .re-check,
+.ld-check, .mb-check {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-text-secondary, #b4b4be) !important;
+  cursor: pointer;
+  padding: 8px 0;
+}
+.bk-check input, .ev-check input, .rs-check input, .sl-check input,
+.lm-check input, .fm-check input, .jb-check input, .re-check input,
+.ld-check input, .mb-check input {
+  width: 16px; height: 16px;
+  accent-color: var(--color-accent-primary, #7c3aed);
+  cursor: pointer;
+}
+
+/* Status select (inline in tables) */
+.bk-status-sel, .rs-status-sel, .sl-status-sel, .fm-status-sel,
+.jb-status-sel, .re-status-sel {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border, rgba(255,255,255,.1));
+  border-radius: 6px;
+  background: var(--color-bg-input, rgba(255,255,255,.04));
+  color: var(--color-text-primary, #f4f4f5);
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.bk-status-sel:focus, .rs-status-sel:focus, .sl-status-sel:focus,
+.fm-status-sel:focus, .jb-status-sel:focus, .re-status-sel:focus {
+  border-color: var(--color-accent-primary, #7c3aed);
+}
+
+/* ═══════════════════════════════════════
+   FILTERS BAR
+   ═══════════════════════════════════════ */
+.bk-filters, .rs-filters, .sl-filters, .fm-filters,
+.jb-filters, .re-filters, .mb-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.bk-filters input, .rs-filters input, .sl-filters input,
+.fm-filters input, .jb-filters input, .re-filters input,
+.mb-filters input,
+.bk-filters select, .rs-filters select, .sl-filters select,
+.fm-filters select, .jb-filters select, .re-filters select,
+.mb-filters select {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-sm, 8px);
+  background: var(--color-bg-input, rgba(255,255,255,.04));
+  color: var(--color-text-primary, #f4f4f5);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  min-width: 140px;
+}
+.bk-filters input:focus, .rs-filters input:focus, .sl-filters input:focus,
+.fm-filters input:focus, .jb-filters input:focus, .re-filters input:focus,
+.mb-filters input:focus,
+.bk-filters select:focus, .rs-filters select:focus, .sl-filters select:focus,
+.fm-filters select:focus, .jb-filters select:focus, .re-filters select:focus,
+.mb-filters select:focus {
+  border-color: var(--color-accent-primary, #7c3aed);
+}
+
+/* ═══════════════════════════════════════
+   BADGES
+   ═══════════════════════════════════════ */
+.bk-badge, .ev-badge, .rs-badge, .sl-badge,
+.lm-badge, .fm-badge, .jb-badge, .re-badge,
+.ld-badge, .mb-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+/* Active/On badge */
+.bk-badge--active, .bk-badge-active, .ev-badge-active,
+.rs-badge-on, .sl-badge-on, .lm-badge-on, .fm-badge-on,
+.jb-badge-on, .re-badge-on, .ld-badge-on, .mb-badge-on {
+  background: var(--plugin-green-glow);
+  color: var(--plugin-green);
+}
+/* Inactive/Off badge */
+.bk-badge--inactive, .bk-badge-inactive, .ev-badge-inactive,
+.rs-badge-off, .sl-badge-off, .lm-badge-off, .fm-badge-off,
+.jb-badge-off, .re-badge-off, .ld-badge-off, .mb-badge-off {
+  background: var(--plugin-red-glow);
+  color: var(--plugin-red);
+}
+
+/* ═══════════════════════════════════════
+   RESTAURANT-SPECIFIC: Table Cards
+   ═══════════════════════════════════════ */
+.rs-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+.rs-table-card {
+  background: var(--glass-bg, rgba(255,255,255,.05));
+  border: 1px solid var(--glass-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-md, 12px);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.25s;
+  cursor: default;
+}
+.rs-table-card:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+.rs-table-card.rs-table-inactive {
+  opacity: 0.5;
+}
+.rs-table-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text-primary, #f4f4f5);
+}
+.rs-table-cap {
+  font-size: 11px;
+  color: var(--color-text-muted, #6b6b7b);
+  margin-top: 4px;
+}
+.rs-table-loc {
+  font-size: 11px;
+  color: var(--color-text-secondary, #b4b4be);
+  margin-top: 2px;
+}
+.rs-table-acts {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+}
+.rs-table-acts button {
+  background: var(--color-bg-card, rgba(255,255,255,.05));
+  border: 1px solid var(--color-border);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text-secondary);
+}
+.rs-table-acts button:hover {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
+/* ═══════════════════════════════════════
+   LUCKY-DRAW SPECIFIC
+   ═══════════════════════════════════════ */
+.ld-draw {
+  text-align: center;
+  padding: 40px 20px;
+}
+.ld-draw-btn {
+  background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 14px 32px !important;
+  border-radius: 50px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  cursor: pointer;
+  transition: all 0.3s !important;
+  box-shadow: 0 6px 25px rgba(245, 158, 11, 0.3);
+  animation: pluginPulse 2s infinite;
+}
+.ld-draw-btn:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 8px 35px rgba(245, 158, 11, 0.45) !important;
+}
+.ld-result {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--plugin-green-glow);
+  border: 1px solid var(--plugin-green);
+  border-radius: var(--radius-md, 12px);
+  color: var(--plugin-green);
+  font-weight: 700;
+}
+
+/* ═══════════════════════════════════════
+   MEMBERSHIP SPECIFIC: Tier Cards
+   ═══════════════════════════════════════ */
+[class*="ier-grid"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+[class*="ier-card"] {
+  background: var(--glass-bg, rgba(255,255,255,.05));
+  border: 1px solid var(--glass-border, rgba(255,255,255,.1));
+  border-radius: var(--radius-lg, 16px);
+  padding: 20px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+[class*="ier-card"]:hover {
+  border-color: var(--color-border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
+}
+[class*="ier-info"] {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 8px;
+}
+[class*="ier-badge"] {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* ═══════════════════════════════════════
+   PLUGIN CONTAINER (root wrapper)
+   ═══════════════════════════════════════ */
+.booking-plugin, .events-plugin, .restaurant-plugin,
+.salon-plugin, .lms-plugin, .forum-plugin,
+.jobboard-plugin, .realestate-plugin, .lucky-draw-plugin,
+.membership-plugin {
+  padding: 4px 0;
+  animation: pluginFadeIn 0.35s ease;
+}
+
+/* ═══════════════════════════════════════
+   FORM CONTAINER (used by booking)
+   ═══════════════════════════════════════ */
+.bk-form {
+  margin-bottom: 16px;
+}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════ */
+@keyframes pluginFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pluginSlideUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pluginPulse {
+  0%, 100% { box-shadow: 0 6px 25px rgba(245, 158, 11, 0.3); }
+  50% { box-shadow: 0 6px 35px rgba(245, 158, 11, 0.5); }
+}
+
+/* ═══════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════ */
+@media (max-width: 768px) {
+  .bk-stats-grid, .ev-stats-grid, .rs-stats-grid, .sl-stats-grid,
+  .lm-stats-grid, .fm-stats-grid, .jb-stats-grid, .re-stats-grid,
+  .ld-stats-grid, .mb-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .bk-tabs, .ev-tabs, .rs-tabs, .sl-tabs,
+  .lm-tabs, .fm-tabs, .jb-tabs, .re-tabs,
+  .ld-tabs, .mb-tabs {
+    flex-wrap: wrap;
+  }
+  .bk-form-row, .rs-form-row, .sl-form-row, .lm-form-row,
+  .jb-form-row, .re-form-row, .ld-form-row, .mb-form-row {
+    flex-direction: column;
+  }
+  .bk-modal, .ev-modal, .rs-modal, .sl-modal,
+  .lm-modal, .fm-modal, .jb-modal, .re-modal,
+  .ld-modal, .mb-modal {
+    width: 95vw;
+    padding: 20px;
+  }
+}

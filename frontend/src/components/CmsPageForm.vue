@@ -43,7 +43,25 @@
             </div>
 
             <div v-else class="form-group" style="margin-top: 12px;">
-              <label>{{ t('admin.msg_d4c057ac', 'Nội dung') }}</label>
+              <div class="content-label-row">
+                <label>{{ t('admin.msg_d4c057ac', 'Nội dung') }}</label>
+                <button type="button" class="btn-ai-content" @click="showAiContentPanel = !showAiContentPanel">
+                  <Sparkles :size="12" /> AI Viết nội dung
+                </button>
+              </div>
+              <div v-if="showAiContentPanel" class="ai-content-panel">
+                <textarea
+                  v-model="aiContentPrompt"
+                  class="ai-content-textarea"
+                  rows="2"
+                  placeholder="Mô tả nội dung trang... VD: Trang giới thiệu công ty Minh Phát chuyên sản xuất đồ nội thất gỗ cao cấp"
+                />
+                <button type="button" class="btn-ai-generate" @click="generateContent" :disabled="aiContentLoading || !aiContentPrompt.trim()">
+                  <Loader2 v-if="aiContentLoading" :size="12" class="spin" />
+                  <Sparkles v-else :size="12" />
+                  {{ aiContentLoading ? 'Đang tạo...' : 'Tạo nội dung' }}
+                </button>
+              </div>
               <RichTextEditor v-model="fContent" :placeholder="t('admin.msg_html_placeholder', 'Nhập nội dung trang...')" />
             </div>
           </div>
@@ -102,6 +120,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { ArrowLeft, Loader2, Sparkles } from 'lucide-vue-next'
+
 import MediaPicker from './MediaPicker.vue'
 import RichTextEditor from './RichTextEditor.vue'
 import { apiFetch } from '../composables/useApi.js'
@@ -143,6 +162,33 @@ const fContent = tField('content')
 const fMetaTitle = tField('meta_title')
 const fMetaDesc = tField('meta_description')
 const aiSeoLoading = ref(false)
+const showAiContentPanel = ref(false)
+const aiContentPrompt = ref('')
+const aiContentLoading = ref(false)
+
+async function generateContent() {
+  if (!aiContentPrompt.value.trim()) return
+  aiContentLoading.value = true
+  try {
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'general', prompt: `Viết nội dung HTML đầy đủ cho trang web: "${aiContentPrompt.value}". Trả về HTML thuần (không có markdown, không có thẻ html/body/head), gồm các section như giới thiệu, nội dung chính, call-to-action. Dùng thẻ h2, h3, p, ul, strong. Viết bằng tiếng Việt.`, max_tokens: 2000 }),
+    })
+    const data = await res.json()
+    if (data.success && data.data?.content) {
+      fContent.value = data.data.content.replace(/```html\n?|```\n?/g, '').trim()
+      showAiContentPanel.value = false
+      aiContentPrompt.value = ''
+      showToast('✨ Đã tạo nội dung trang!', 'success')
+    } else {
+      showToast(data.message || 'AI chưa cấu hình', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  } finally {
+    aiContentLoading.value = false
+  }
+}
 
 // AI SEO Suggest for CMS page
 async function aiSuggestSeo() {
@@ -414,6 +460,24 @@ async function handleSave() {
     position: static;
   }
 }
+
+/* AI Content Generate */
+.content-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.content-label-row label { margin-bottom: 0 !important; }
+.btn-ai-content {
+  display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px;
+  border: 1px solid rgba(124,58,237,.3); background: linear-gradient(135deg,rgba(124,58,237,.08),rgba(37,99,235,.08));
+  color: var(--color-accent-primary); font-size: 11px; font-weight: 600; cursor: pointer;
+}
+.btn-ai-content:hover { background: linear-gradient(135deg,rgba(124,58,237,.15),rgba(37,99,235,.15)); }
+.ai-content-panel { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; padding: 10px; border-radius: 8px; border: 1px solid rgba(124,58,237,.2); background: rgba(124,58,237,.04); }
+.ai-content-textarea { width: 100%; padding: 7px 10px; border-radius: 7px; border: 1px solid var(--color-border); background: var(--color-bg-primary); color: var(--color-text-primary); font-size: 12px; resize: vertical; font-family: inherit; outline: none; }
+.ai-content-textarea:focus { border-color: var(--color-accent-primary); }
+.btn-ai-generate {
+  display: flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 7px;
+  border: none; background: var(--color-accent-primary); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; align-self: flex-start;
+}
+.btn-ai-generate:disabled { opacity: .5; cursor: not-allowed; }
 
 /* AI SEO Suggest */
 .seo-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }

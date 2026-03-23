@@ -39,6 +39,12 @@
     <!-- HTML -->
     <div v-else-if="block.type === 'html'" class="br-html" v-html="block.content.code" />
 
+    <!-- Shortcode (admin preview only) -->
+    <div v-else-if="block.type === 'shortcode'" class="br-shortcode">
+      <Braces :size="14" />
+      <code>{{ block.content.code }}</code>
+    </div>
+
     <!-- Columns -->
     <div v-else-if="block.type === 'columns'" class="br-columns" :style="{ gridTemplateColumns: columnWidths }">
       <slot />
@@ -53,7 +59,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Image as ImageIcon, PlayCircle, AlertCircle, Star } from 'lucide-vue-next'
+import { Image as ImageIcon, PlayCircle, AlertCircle, Star, Braces } from 'lucide-vue-next'
 import { blockStyleToCSS } from '../../core/blocks.js'
 
 const props = defineProps({
@@ -143,6 +149,12 @@ function onHtmlEdit(e) {
 .br-icon { display: flex; align-items: center; justify-content: center; }
 
 .br-html { overflow: hidden; }
+.br-shortcode {
+  display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+  border-radius: 8px; border: 1px dashed var(--accent, #7c3aed);
+  background: rgba(124,58,237,.06); color: var(--accent, #7c3aed); font-size: 13px;
+}
+.br-shortcode code { font-family: monospace; font-size: 12px; }
 .br-columns { display: grid; gap: 16px; }
 
 .br-unknown {

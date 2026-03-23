@@ -214,6 +214,16 @@ blockRegistry.register('columns', {
   ],
 })
 
+blockRegistry.register('shortcode', {
+  label: 'Shortcode',
+  icon: 'Braces',
+  category: 'advanced',
+  defaultContent: { code: '[form slug="contact"]' },
+  settings: [
+    { key: 'code', type: 'text', label: 'Shortcode (VD: [form slug="..."])' },
+  ],
+})
+
 blockRegistry.register('form', {
   label: 'Form',
   icon: 'FileText',

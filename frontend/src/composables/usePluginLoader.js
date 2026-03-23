@@ -16,6 +16,7 @@ import { hooks } from '../core/hooks.js'
 import MediaPicker from '../components/MediaPicker.vue'
 import LanguageTabs from '../components/LanguageTabs.vue'
 import CurrencyInput from '../components/CurrencyInput.vue'
+import RichTextEditor from '../components/RichTextEditor.vue'
 
 // ── Set globals immediately at module scope ──
 window.Vue = Vue
@@ -57,6 +58,7 @@ function initBridge() {
       MediaPicker: markRaw(MediaPicker),
       LanguageTabs: markRaw(LanguageTabs),
       CurrencyInput: markRaw(CurrencyInput),
+      RichTextEditor: markRaw(RichTextEditor),
     },
     // ── Hooks System ──
     hooks,

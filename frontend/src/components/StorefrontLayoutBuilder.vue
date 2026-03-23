@@ -74,6 +74,31 @@
           </div>
         </div>
 
+        <!-- AI Generate Layout -->
+        <div class="lb-section">
+          <h4 class="lb-section__title lb-section__title--ai">
+            <Sparkles :size="14" /> AI Tạo layout
+            <button class="lb-ai-toggle" @click="showAiPanel = !showAiPanel">
+              {{ showAiPanel ? '▲' : '▼' }}
+            </button>
+          </h4>
+          <transition name="expand">
+            <div v-if="showAiPanel" class="lb-ai-panel">
+              <textarea
+                v-model="aiPrompt"
+                class="lb-ai-textarea"
+                rows="3"
+                placeholder="Mô tả trang bạn muốn tạo... VD: Trang giới thiệu công ty sản xuất nội thất, có phần về chúng tôi, đội ngũ, FAQ và form liên hệ"
+              />
+              <button class="lb-ai-btn" @click="generateLayout" :disabled="aiLoading || !aiPrompt.trim()">
+                <component :is="aiLoading ? 'Loader2' : 'Sparkles'" :size="13" :class="{ spin: aiLoading }" />
+                {{ aiLoading ? 'Đang tạo...' : '✨ Tạo layout bằng AI' }}
+              </button>
+              <p class="lb-ai-hint">AI sẽ tạo các sections phù hợp. Bạn có thể chỉnh sửa sau.</p>
+            </div>
+          </transition>
+        </div>
+
         <!-- Sections heading -->
         <div class="lb-section">
           <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? t('admin.msg_ff9d51ad', 'Cấu hình trang') : (activePageId ? 'Sections trong trang' : t('admin.msg_f6791831', 'Sections trang chủ')) }}</h4>
@@ -426,7 +451,7 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush
+  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -450,6 +475,48 @@ const storefrontUrl = ref('')
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
 const showBlockEditorFor = ref(null)
+
+// ─── AI Generate Layout ───
+const showAiPanel = ref(false)
+const aiPrompt = ref('')
+const aiLoading = ref(false)
+
+async function generateLayout() {
+  if (!aiPrompt.value.trim()) return
+  aiLoading.value = true
+  try {
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'layout', prompt: aiPrompt.value }),
+    })
+    const data = await res.json()
+    if (!data.success) { showToast(data.message || 'AI chưa cấu hình', 'error'); return }
+
+    const raw = (data.data?.content || '').replace(/```json\n?|```\n?/g, '').trim()
+    let generated
+    try { generated = JSON.parse(raw) } catch { showToast('AI trả về định dạng không hợp lệ', 'error'); return }
+    if (!Array.isArray(generated)) { showToast('Kết quả không phải JSON array', 'error'); return }
+
+    pushUndo()
+    const base = sections.value.length
+    const newSections = generated.map((s, i) => ({
+      type: s.type || 'text_block',
+      enabled: s.enabled !== false,
+      order: base + i,
+      params: { ...(defaultParams[s.type] || {}), ...(s.params || {}) },
+      content: s.content ?? [],
+    })).filter(s => sectionMeta[s.type])
+
+    sections.value = [...sections.value, ...newSections]
+    aiPrompt.value = ''
+    showAiPanel.value = false
+    showToast(`✨ Đã tạo ${newSections.length} section từ AI`, 'success')
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  } finally {
+    aiLoading.value = false
+  }
+}
 
 const activePageId = ref(null)
 const dynamicPages = ref([])
@@ -1143,6 +1210,15 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   margin: 0 0 12px; display: flex; align-items: center; gap: 6px;
 }
 .lb-section__hint { font-size: 11px; color: var(--color-text-muted); margin: -8px 0 12px; line-height: 1.4; }
+.lb-section__title--ai { justify-content: space-between; color: var(--color-accent-primary); }
+.lb-ai-toggle { background: none; border: none; cursor: pointer; color: var(--color-text-muted); font-size: 11px; padding: 2px 4px; }
+.lb-ai-panel { display: flex; flex-direction: column; gap: 8px; padding: 8px 0; }
+.lb-ai-textarea { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg-primary); color: var(--color-text-primary); font-size: 12px; resize: vertical; font-family: inherit; line-height: 1.5; outline: none; }
+.lb-ai-textarea:focus { border-color: var(--color-accent-primary); }
+.lb-ai-btn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: none; background: var(--color-accent-primary); color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: opacity .2s; }
+.lb-ai-btn:hover { opacity: .88; }
+.lb-ai-btn:disabled { opacity: .5; cursor: not-allowed; }
+.lb-ai-hint { font-size: 11px; color: var(--color-text-muted); margin: 0; }
 
 /* Footer color pickers */
 .footer-color-row { display: flex; gap: 12px; }

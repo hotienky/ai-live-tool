@@ -3,6 +3,16 @@
     <div class="mod-header">
       <h2><Puzzle :size="20" style="vertical-align:middle" /> {{ t('admin.msg_690deacc', 'Quản Lý Module') }}</h2>
       <p class="mod-subtitle">{{ t('admin.msg_883266f9', 'Cài đặt hoặc gỡ bỏ các tính năng mở rộng cho cửa hàng') }}</p>
+      <div class="mod-search">
+        <Search :size="16" class="mod-search__icon" />
+        <input
+          v-model="searchQuery"
+          type="text"
+          class="mod-search__input"
+          :placeholder="t('admin.search_modules', 'Tìm kiếm module...')"
+        />
+        <button v-if="searchQuery" class="mod-search__clear" @click="searchQuery = ''">✕</button>
+      </div>
     </div>
 
     <div v-if="loading" class="mod-loading">{{ t('admin.loading', 'Đang tải...') }}</div>
@@ -118,6 +128,10 @@
         <Package :size="48" />
         <p>{{ t('admin.msg_4184d885', 'Chưa có module nào') }}</p>
       </div>
+      <div v-else-if="searchQuery && groupedModules.length === 0" class="mod-empty">
+        <Search :size="48" />
+        <p>Không tìm thấy module nào phù hợp "{{ searchQuery }}"</p>
+      </div>
     </template>
   </div>
 </template>
@@ -131,7 +145,7 @@ import {
   Puzzle, Package, Download, Trash2,
   DollarSign, Tag, Receipt, BookOpen, Users, Mail,
   Warehouse, BarChart2, ShoppingCart, Clock, AlertCircle, Send,
-  CheckCircle2, AlertTriangle, Globe, Layers, Star, Truck, Megaphone,
+  CheckCircle2, AlertTriangle, Globe, Layers, Star, Truck, Megaphone, Search,
 } from 'lucide-vue-next'
 
 const { t, formatCurrency } = useI18n()
@@ -142,6 +156,7 @@ const emit = defineEmits(['modulesChanged'])
 const modules = ref([])
 const loading = ref(true)
 const actionLoading = ref(null)
+const searchQuery = ref('')
 
 // Icon mapping from manifest string → component
 const iconMap = {
@@ -232,6 +247,7 @@ const groupConfig = [
 
 // Build grouped modules from the flat list
 const groupedModules = computed(() => {
+  const query = searchQuery.value.toLowerCase().trim()
   const placed = new Set()
   const groups = []
   for (const config of groupConfig) {
@@ -239,6 +255,7 @@ const groupedModules = computed(() => {
       if (placed.has(m.id)) return false
       if (!config.categories.includes(m.category)) return false
       if (config.filter && !config.filter(m)) return false
+      if (query && !m.name.toLowerCase().includes(query) && !(m.description || '').toLowerCase().includes(query)) return false
       return true
     })
     if (filtered.length === 0) continue
@@ -381,6 +398,37 @@ onMounted(fetchModules)
 .mod-header { margin-bottom: 28px; }
 .mod-header h2 { margin: 0; font-size: 22px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
 .mod-subtitle { font-size: 13px; color: var(--color-text-muted); margin: 6px 0 0; }
+
+.mod-search {
+  position: relative; display: flex; align-items: center;
+  margin-top: 16px; max-width: 420px;
+}
+.mod-search__icon {
+  position: absolute; left: 14px;
+  color: var(--color-text-muted); pointer-events: none;
+}
+.mod-search__input {
+  width: 100%; padding: 10px 36px 10px 40px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg, rgba(255,255,255,0.06));
+  color: var(--color-text); font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.mod-search__input:focus {
+  border-color: var(--accent-light, #7c3aed);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+}
+.mod-search__input::placeholder { color: var(--color-text-muted); }
+.mod-search__clear {
+  position: absolute; right: 10px;
+  background: none; border: none; cursor: pointer;
+  color: var(--color-text-muted); font-size: 14px;
+  padding: 4px; border-radius: 4px;
+  transition: color 0.2s;
+}
+.mod-search__clear:hover { color: var(--color-text-primary); }
 
 .mod-loading { text-align: center; padding: 60px; color: var(--color-text-muted); font-size: 14px; }
 .mod-empty { text-align: center; padding: 80px 20px; color: var(--color-text-muted); }

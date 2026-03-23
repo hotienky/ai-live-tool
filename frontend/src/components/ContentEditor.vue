@@ -35,15 +35,41 @@
           </div>
         </div>
 
-        <!-- Body -->
+        <!-- ═══════════════════════════════════════════════ -->
+        <!-- BODY — Dual Mode Editor: Rich Text / Block Builder -->
+        <!-- ═══════════════════════════════════════════════ -->
         <div v-if="supports('body')" class="content-editor__field">
-          <label class="content-editor__label">{{ t('admin.content', 'Nội dung') }}</label>
-          <textarea
+          <!-- Editor Mode Toggle -->
+          <div class="ce-editor-bar">
+            <label class="content-editor__label">{{ t('admin.content', 'Nội dung') }}</label>
+            <div class="ce-mode-toggle">
+              <button
+                :class="['ce-mode-btn', { active: editorMode === 'richtext' }]"
+                @click="switchMode('richtext')"
+              >
+                <Type :size="14" /> Rich Text
+              </button>
+              <button
+                :class="['ce-mode-btn', { active: editorMode === 'blocks' }]"
+                @click="switchMode('blocks')"
+              >
+                <LayoutGrid :size="14" /> Block Builder
+              </button>
+            </div>
+          </div>
+
+          <!-- Rich Text Mode (TipTap) -->
+          <RichTextEditor
+            v-if="editorMode === 'richtext'"
             v-model="form.body"
-            class="content-editor__textarea"
-            rows="15"
             :placeholder="t('admin.enter_content', 'Nhập nội dung...')"
-          ></textarea>
+          />
+
+          <!-- Block Builder Mode -->
+          <BlockEditor
+            v-else-if="editorMode === 'blocks'"
+            v-model="form.blocks"
+          />
         </div>
 
         <!-- Excerpt -->
@@ -72,6 +98,80 @@
 
       <!-- Sidebar -->
       <div class="content-editor__sidebar">
+        <!-- ═══════════════════════════════════════════ -->
+        <!-- AI Content Assistant -->
+        <!-- ═══════════════════════════════════════════ -->
+        <div class="content-editor__card ce-ai-card">
+          <div class="ce-ai-header" @click="showAiPanel = !showAiPanel">
+            <h4 class="content-editor__card-title ce-ai-title">
+              <Sparkles :size="14" /> AI Assistant
+            </h4>
+            <ChevronDown :size="14" :class="['ce-ai-chevron', { open: showAiPanel }]" />
+          </div>
+
+          <div v-if="showAiPanel" class="ce-ai-body">
+            <!-- AI Action Buttons -->
+            <div class="ce-ai-actions">
+              <button class="ce-ai-btn" @click="aiGenerate('blog')" :disabled="aiLoading">
+                <FileText :size="13" /> Viết bài hoàn chỉnh
+              </button>
+              <button class="ce-ai-btn" @click="aiGenerate('outline')" :disabled="aiLoading">
+                <List :size="13" /> Tạo dàn bài
+              </button>
+              <button class="ce-ai-btn" @click="aiGenerate('title')" :disabled="aiLoading">
+                <Heading :size="13" /> Gợi ý tiêu đề
+              </button>
+              <button class="ce-ai-btn" @click="aiGenerate('seo')" :disabled="aiLoading">
+                <Search :size="13" /> Tối ưu SEO
+              </button>
+              <button class="ce-ai-btn" @click="aiGenerate('excerpt')" :disabled="aiLoading">
+                <AlignLeft :size="13" /> Tạo tóm tắt
+              </button>
+            </div>
+
+            <!-- AI Prompt Input -->
+            <div class="ce-ai-prompt">
+              <textarea
+                v-model="aiPrompt"
+                class="ce-ai-input"
+                rows="3"
+                placeholder="Mô tả chủ đề bài viết hoặc yêu cầu cụ thể..."
+              ></textarea>
+              <div class="ce-ai-options">
+                <select v-model="aiTone" class="ce-ai-select">
+                  <option value="professional">Chuyên nghiệp</option>
+                  <option value="casual">Thân thiện</option>
+                  <option value="creative">Sáng tạo</option>
+                  <option value="formal">Trang trọng</option>
+                  <option value="humorous">Hài hước</option>
+                </select>
+                <button class="ce-ai-generate" @click="aiGenerate('blog')" :disabled="aiLoading || !aiPrompt.trim()">
+                  <Loader2 v-if="aiLoading" :size="14" class="spin" />
+                  <Wand2 v-else :size="14" />
+                  {{ aiLoading ? 'Đang tạo...' : 'Tạo nội dung' }}
+                </button>
+              </div>
+            </div>
+
+            <!-- AI Result Preview -->
+            <div v-if="aiResult" class="ce-ai-result">
+              <div class="ce-ai-result-header">
+                <span>📝 Kết quả AI</span>
+                <div class="ce-ai-result-actions">
+                  <button @click="insertAiResult" class="ce-ai-result-btn ce-ai-result-btn--insert">
+                    <Plus :size="12" /> Chèn
+                  </button>
+                  <button @click="replaceWithAiResult" class="ce-ai-result-btn ce-ai-result-btn--replace">
+                    <Replace :size="12" /> Thay thế
+                  </button>
+                  <button @click="aiResult = ''" class="ce-ai-result-btn">✕</button>
+                </div>
+              </div>
+              <div class="ce-ai-result-content" v-html="aiResultHtml"></div>
+            </div>
+          </div>
+        </div>
+
         <!-- Status -->
         <div class="content-editor__card">
           <h4 class="content-editor__card-title">{{ t('admin.publish', 'Xuất bản') }}</h4>
@@ -156,11 +256,17 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { ChevronLeft, Save, Clock, Loader2 } from 'lucide-vue-next'
+import {
+  ChevronLeft, ChevronDown, Save, Clock, Loader2, Plus,
+  Type, LayoutGrid, Sparkles, FileText, List, Heading,
+  Search, AlignLeft, Wand2, Replace
+} from 'lucide-vue-next'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useI18n } from '../composables/useI18n.js'
 import ContentFieldRenderer from './ContentFieldRenderer.vue'
+import RichTextEditor from './RichTextEditor.vue'
+import BlockEditor from './builder/BlockEditor.vue'
 
 const { t } = useI18n()
 const { showToast } = useToast()
@@ -182,17 +288,45 @@ const form = reactive({
   published_at: '',
   meta: {},
   taxonomies: {},
+  blocks: [],
 })
 
 const saving = ref(false)
 const revisions = ref([])
 const newTag = reactive({})
+const editorMode = ref('richtext') // 'richtext' | 'blocks'
+
+// ── AI Assistant State ──
+const showAiPanel = ref(false)
+const aiPrompt = ref('')
+const aiTone = ref('professional')
+const aiLoading = ref(false)
+const aiResult = ref('')
 
 const metaFields = computed(() => props.typeConfig?.meta_fields || [])
 const taxonomies = computed(() => props.typeConfig?.taxonomies || [])
 
+const aiResultHtml = computed(() => {
+  // Simple markdown-to-html for AI preview
+  if (!aiResult.value) return ''
+  return aiResult.value
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+})
+
 function supports(feature) {
   return props.typeConfig?.supports?.includes(feature) ?? true
+}
+
+function switchMode(mode) {
+  editorMode.value = mode
 }
 
 function autoSlug() {
@@ -226,6 +360,179 @@ function formatDate(dateStr) {
   return d.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
+// ── AI Assistant Functions ──
+async function aiGenerate(type) {
+  // Build prompt from context
+  let prompt = aiPrompt.value.trim()
+
+  if (type === 'title') {
+    prompt = prompt || form.body?.substring(0, 500) || 'Tạo tiêu đề cho bài viết blog'
+    try {
+      aiLoading.value = true
+      const res = await apiFetch('/ai/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: `Gợi ý 5 tiêu đề hấp dẫn cho bài viết về: "${prompt}"`,
+          type: 'general',
+          max_tokens: 500,
+          temperature: 0.8,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        aiResult.value = data.data?.content || data.data?.text || ''
+        showToast('Đã tạo gợi ý tiêu đề', 'success')
+      } else {
+        showToast(data.message || 'AI không khả dụng', 'error')
+      }
+    } catch (e) {
+      showToast('Lỗi AI: ' + e.message, 'error')
+    } finally {
+      aiLoading.value = false
+    }
+    return
+  }
+
+  if (type === 'seo') {
+    try {
+      aiLoading.value = true
+      const res = await apiFetch('/ai/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: form.title || prompt,
+          type: 'seo',
+          title: form.title,
+          content: form.body?.substring(0, 2000) || '',
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        aiResult.value = data.data?.content || data.data?.text || ''
+        showToast('Đã tạo SEO metadata', 'success')
+      } else {
+        showToast(data.message || 'AI không khả dụng', 'error')
+      }
+    } catch (e) {
+      showToast('Lỗi AI: ' + e.message, 'error')
+    } finally {
+      aiLoading.value = false
+    }
+    return
+  }
+
+  if (type === 'excerpt') {
+    const content = form.body?.substring(0, 3000) || ''
+    if (!content) {
+      showToast('Cần có nội dung bài viết trước', 'warning')
+      return
+    }
+    try {
+      aiLoading.value = true
+      const res = await apiFetch('/ai/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: `Tóm tắt bài viết sau trong 2-3 câu ngắn gọn, hấp dẫn:\n\n${content}`,
+          type: 'general',
+          max_tokens: 300,
+          temperature: 0.5,
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        const excerpt = data.data?.content || data.data?.text || ''
+        form.excerpt = excerpt.replace(/<[^>]*>/g, '').trim()
+        showToast('Đã tạo tóm tắt tự động', 'success')
+      } else {
+        showToast(data.message || 'AI không khả dụng', 'error')
+      }
+    } catch (e) {
+      showToast('Lỗi AI: ' + e.message, 'error')
+    } finally {
+      aiLoading.value = false
+    }
+    return
+  }
+
+  if (type === 'outline') {
+    prompt = prompt || form.title || 'Bài viết blog'
+    try {
+      aiLoading.value = true
+      const res = await apiFetch('/ai/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          prompt: `Tạo dàn bài chi tiết cho bài viết về: "${prompt}"`,
+          type: 'general',
+          max_tokens: 1000,
+          temperature: 0.7,
+          system: 'Bạn là content strategist. Tạo dàn bài rõ ràng với heading, subheading, và bullet points cho từng phần.',
+        }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        aiResult.value = data.data?.content || data.data?.text || ''
+        showToast('Đã tạo dàn bài', 'success')
+      } else {
+        showToast(data.message || 'AI không khả dụng', 'error')
+      }
+    } catch (e) {
+      showToast('Lỗi AI: ' + e.message, 'error')
+    } finally {
+      aiLoading.value = false
+    }
+    return
+  }
+
+  // type === 'blog' — Full blog post generation
+  if (!prompt) {
+    if (form.title) {
+      prompt = form.title
+    } else {
+      showToast('Vui lòng nhập chủ đề bài viết', 'warning')
+      return
+    }
+  }
+
+  try {
+    aiLoading.value = true
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({
+        prompt,
+        type: 'blog',
+        tone: aiTone.value,
+        outline: aiResult.value || null, // Use previous outline if exists
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      aiResult.value = data.data?.content || data.data?.text || ''
+      showToast('Đã tạo bài viết bằng AI', 'success')
+    } else {
+      showToast(data.message || 'AI không khả dụng', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+function insertAiResult() {
+  if (!aiResult.value) return
+  // Convert markdown-ish text to HTML and append
+  const html = aiResultHtml.value
+  form.body = (form.body || '') + '\n' + (editorMode.value === 'richtext' ? html : aiResult.value)
+  showToast('Đã chèn nội dung AI', 'success')
+}
+
+function replaceWithAiResult() {
+  if (!aiResult.value) return
+  const html = aiResultHtml.value
+  form.body = editorMode.value === 'richtext' ? html : aiResult.value
+  showToast('Đã thay thế nội dung', 'success')
+}
+
+// ── Content CRUD ──
 async function loadContent() {
   if (!props.editId) return
   try {
@@ -240,6 +547,13 @@ async function loadContent() {
     form.status = item.status || 'draft'
     form.published_at = item.published_at ? item.published_at.slice(0, 16) : ''
     form.meta = item.meta || {}
+    // Restore editor mode and blocks from meta
+    if (item.meta?.editor_mode) {
+      editorMode.value = item.meta.editor_mode
+    }
+    if (item.meta?.blocks) {
+      form.blocks = item.meta.blocks
+    }
     // Map taxonomies
     if (item.taxonomies) {
       const taxMap = {}
@@ -267,6 +581,15 @@ async function save() {
       ? `/content/${props.contentType}/${props.editId}`
       : `/content/${props.contentType}`
 
+    // Store editor_mode and blocks in meta
+    const meta = {
+      ...form.meta,
+      editor_mode: editorMode.value,
+    }
+    if (editorMode.value === 'blocks' && form.blocks?.length) {
+      meta.blocks = form.blocks
+    }
+
     const res = await apiFetch(url, {
       method,
       body: JSON.stringify({
@@ -277,7 +600,7 @@ async function save() {
         featured_image: form.featured_image,
         status: form.status,
         published_at: form.published_at || null,
-        meta: form.meta,
+        meta,
         taxonomies: form.taxonomies,
       }),
     })
@@ -316,7 +639,7 @@ onMounted(loadContent)
 }
 
 .content-editor__body {
-  display: grid; grid-template-columns: 1fr 300px; gap: 24px;
+  display: grid; grid-template-columns: 1fr 320px; gap: 24px;
 }
 
 .content-editor__main { min-width: 0; }
@@ -428,15 +751,169 @@ onMounted(loadContent)
 }
 .content-editor__btn--secondary:hover { background: var(--glass-border); }
 .content-editor__btn--primary {
-  background: var(--accent-light, #6366f1); color: white;
+  background: var(--accent-gradient, linear-gradient(135deg, #7c3aed, #6d28d9)); color: white;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
-.content-editor__btn--primary:hover { filter: brightness(1.1); }
+.content-editor__btn--primary:hover { transform: translateY(-1px); }
 .content-editor__btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════
+   EDITOR MODE TOGGLE
+   ═══════════════════════════════════════ */
+.ce-editor-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.ce-mode-toggle {
+  display: flex; gap: 2px; padding: 3px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 8px;
+}
+.ce-mode-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border: none; background: transparent;
+  color: var(--color-text-muted); font-size: 12px; font-weight: 600;
+  border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.ce-mode-btn:hover { color: var(--color-text-secondary); }
+.ce-mode-btn.active {
+  background: var(--accent-gradient, linear-gradient(135deg, #7c3aed, #6d28d9));
+  color: #fff; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+}
+
+/* ═══════════════════════════════════════
+   AI CONTENT ASSISTANT
+   ═══════════════════════════════════════ */
+.ce-ai-card {
+  border-color: rgba(139, 92, 246, 0.2);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.03));
+}
+.ce-ai-header {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; margin-bottom: 0;
+}
+.ce-ai-header:hover { opacity: 0.8; }
+.ce-ai-title {
+  display: flex !important; align-items: center; gap: 6px;
+  margin-bottom: 0 !important;
+  background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ce-ai-chevron {
+  color: var(--color-text-muted); transition: transform 0.2s;
+}
+.ce-ai-chevron.open { transform: rotate(180deg); }
+
+.ce-ai-body {
+  margin-top: 14px; animation: aiFadeIn 0.2s ease;
+}
+.ce-ai-actions {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.ce-ai-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 6px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.ce-ai-btn:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+}
+.ce-ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ce-ai-prompt { margin-bottom: 12px; }
+.ce-ai-input {
+  width: 100%; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: rgba(139, 92, 246, 0.05);
+  color: var(--color-text-primary); font-size: 12px;
+  font-family: inherit; resize: vertical; outline: none;
+  transition: border-color 0.2s;
+}
+.ce-ai-input:focus { border-color: rgba(139, 92, 246, 0.5); }
+.ce-ai-input::placeholder { color: var(--color-text-muted); }
+
+.ce-ai-options {
+  display: flex; gap: 8px; margin-top: 8px; align-items: center;
+}
+.ce-ai-select {
+  flex: 1; padding: 6px 8px; border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg); color: var(--color-text-secondary);
+  font-size: 12px; outline: none;
+}
+.ce-ai-generate {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border: none; border-radius: 6px;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  box-shadow: 0 3px 10px rgba(139, 92, 246, 0.3);
+  white-space: nowrap;
+}
+.ce-ai-generate:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4); }
+.ce-ai-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* AI Result */
+.ce-ai-result {
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 8px; overflow: hidden;
+  background: rgba(16, 185, 129, 0.03);
+}
+.ce-ai-result-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: rgba(16, 185, 129, 0.06);
+  font-size: 12px; font-weight: 600; color: var(--color-text-secondary);
+}
+.ce-ai-result-actions { display: flex; gap: 4px; }
+.ce-ai-result-btn {
+  padding: 3px 8px; border-radius: 4px; border: none;
+  background: rgba(255,255,255,0.06); color: var(--color-text-secondary);
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; gap: 3px;
+  transition: all 0.2s;
+}
+.ce-ai-result-btn:hover { background: rgba(255,255,255,0.12); }
+.ce-ai-result-btn--insert { color: #34d399; }
+.ce-ai-result-btn--insert:hover { background: rgba(16, 185, 129, 0.15); }
+.ce-ai-result-btn--replace { color: #60a5fa; }
+.ce-ai-result-btn--replace:hover { background: rgba(59, 130, 246, 0.15); }
+
+.ce-ai-result-content {
+  padding: 10px; font-size: 12px; line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-height: 300px; overflow-y: auto;
+}
+.ce-ai-result-content :deep(h1),
+.ce-ai-result-content :deep(h2),
+.ce-ai-result-content :deep(h3) {
+  color: var(--color-text-primary); margin: 8px 0 4px;
+}
+.ce-ai-result-content :deep(h1) { font-size: 16px; }
+.ce-ai-result-content :deep(h2) { font-size: 14px; }
+.ce-ai-result-content :deep(h3) { font-size: 13px; }
+.ce-ai-result-content :deep(strong) { color: var(--color-text-primary); }
+.ce-ai-result-content :deep(ul) { padding-left: 16px; }
+.ce-ai-result-content :deep(li) { margin-bottom: 2px; }
+
+@keyframes aiFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .spin { animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media (max-width: 768px) {
   .content-editor__body { grid-template-columns: 1fr; }
+  .ce-ai-actions { flex-direction: column; }
+  .ce-ai-options { flex-direction: column; }
 }
 </style>

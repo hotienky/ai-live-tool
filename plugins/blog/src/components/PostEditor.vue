@@ -24,8 +24,37 @@
         </div>
 
         <div class="post-editor__field">
-          <label class="post-editor__label">Nội dung</label>
-          <textarea v-model="form.body" class="post-editor__textarea" rows="18" placeholder="Viết nội dung bài viết..."></textarea>
+          <div class="post-editor__content-header">
+            <label class="post-editor__label">Nội dung</label>
+            <button type="button" class="post-editor__ai-btn" @click="showAiPanel = !showAiPanel">
+              <SparklesIcon :size="12" /> AI Viết bài
+            </button>
+          </div>
+
+          <!-- AI Write Panel -->
+          <div v-if="showAiPanel" class="post-editor__ai-panel">
+            <textarea
+              v-model="aiPrompt"
+              class="post-editor__ai-textarea"
+              rows="2"
+              placeholder="Mô tả bài viết... VD: Bài viết về lợi ích của thiền định cho sức khỏe tâm thần"
+            />
+            <div class="post-editor__ai-actions">
+              <select v-model="aiTone" class="post-editor__ai-select">
+                <option value="professional">Chuyên nghiệp</option>
+                <option value="friendly">Thân thiện</option>
+                <option value="creative">Sáng tạo</option>
+                <option value="informative">Thông tin</option>
+              </select>
+              <button type="button" class="post-editor__ai-generate" @click="generatePost" :disabled="aiLoading || !aiPrompt.trim()">
+                <Loader2 v-if="aiLoading" :size="12" class="spin" />
+                <SparklesIcon v-else :size="12" />
+                {{ aiLoading ? 'Đang viết...' : 'Tạo bài viết' }}
+              </button>
+            </div>
+          </div>
+
+          <RichTextEditor v-model="form.body" placeholder="Viết nội dung bài viết..." />
         </div>
 
         <div class="post-editor__field">
@@ -136,8 +165,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { ChevronLeft, Save, Clock, Loader2 } from 'lucide-vue-next'
+import { ChevronLeft, Save, Clock, Loader2, Sparkles as SparklesIcon } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
+
+const bridge = window.__APP_BRIDGE__ || {}
+const RichTextEditor = bridge.components?.RichTextEditor
 
 const { showToast } = useToast()
 const props = defineProps({ editId: { type: [Number, String], default: null } })
@@ -154,11 +186,45 @@ const revisions = ref([])
 const newCategory = ref('')
 const newTagVal = ref('')
 
+// AI state
+const showAiPanel = ref(false)
+const aiPrompt = ref('')
+const aiTone = ref('professional')
+const aiLoading = ref(false)
+
+async function generatePost() {
+  if (!aiPrompt.value.trim()) return
+  aiLoading.value = true
+  try {
+    const res = await apiFetch('/ai/generate', {
+      method: 'POST',
+      body: JSON.stringify({ type: 'blog', prompt: aiPrompt.value, tone: aiTone.value }),
+    })
+    const data = await res.json()
+    if (data.success && data.data?.content) {
+      form.body = data.data.content.replace(/```html\n?|```\n?/g, '').trim()
+      if (!form.title) {
+        // Auto-extract title from first h1/h2 in generated content
+        const match = form.body.match(/<h[12][^>]*>(.*?)<\/h[12]>/i)
+        if (match) form.title = match[1].replace(/<[^>]*>/g, '')
+      }
+      showAiPanel.value = false
+      aiPrompt.value = ''
+      showToast('✨ Đã tạo bài viết!', 'success')
+    } else {
+      showToast(data.message || 'AI chưa cấu hình', 'error')
+    }
+  } catch (e) {
+    showToast('Lỗi AI: ' + e.message, 'error')
+  } finally {
+    aiLoading.value = false
+  }
+}
+
 function autoSlug() {
   if (!form.slug && form.title) {
     form.slug = form.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
   }
-  // Auto reading time
   if (form.body && !form.meta.reading_time) {
     form.meta.reading_time = Math.max(1, Math.ceil(form.body.replace(/<[^>]*>/g, '').split(/\s+/).length / 200))
   }
@@ -200,11 +266,9 @@ async function loadPost() {
 
 async function save() {
   if (!form.title.trim()) return showToast('Vui lòng nhập tiêu đề', 'warning')
-  // Auto excerpt
   if (!form.excerpt && form.body) {
     form.excerpt = form.body.replace(/<[^>]*>/g, '').substring(0, 160)
   }
-  // Auto reading time
   if (form.body) {
     form.meta.reading_time = Math.max(1, Math.ceil(form.body.replace(/<[^>]*>/g, '').split(/\s+/).length / 200))
   }
@@ -265,6 +329,19 @@ onMounted(loadPost)
 .post-editor__btn--pri { background:var(--accent-light,#6366f1); color:#fff }
 .post-editor__btn--pri:hover { filter:brightness(1.1) }
 .post-editor__btn:disabled { opacity:.6; cursor:not-allowed }
+
+/* AI Write */
+.post-editor__content-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px }
+.post-editor__content-header .post-editor__label { margin-bottom:0 }
+.post-editor__ai-btn { display:flex; align-items:center; gap:4px; padding:4px 10px; border-radius:6px; border:1px solid rgba(124,58,237,.3); background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(37,99,235,.08)); color:var(--accent-light,#7c3aed); font-size:11px; font-weight:600; cursor:pointer }
+.post-editor__ai-panel { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; padding:10px; border-radius:8px; border:1px solid rgba(124,58,237,.2); background:rgba(124,58,237,.04) }
+.post-editor__ai-textarea { width:100%; padding:7px 10px; border-radius:7px; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--color-text); font-size:12px; resize:vertical; font-family:inherit; outline:none }
+.post-editor__ai-textarea:focus { border-color:var(--accent-light) }
+.post-editor__ai-actions { display:flex; gap:6px; align-items:center }
+.post-editor__ai-select { padding:6px 8px; border-radius:6px; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--color-text); font-size:12px; flex:1 }
+.post-editor__ai-generate { display:flex; align-items:center; gap:5px; padding:6px 12px; border-radius:7px; border:none; background:var(--accent-light,#6366f1); color:#fff; font-size:12px; font-weight:600; cursor:pointer }
+.post-editor__ai-generate:disabled { opacity:.5; cursor:not-allowed }
+
 .spin { animation:spin .8s linear infinite }
 @keyframes spin { to { transform:rotate(360deg) } }
 @media(max-width:768px) { .post-editor__body { grid-template-columns:1fr } }

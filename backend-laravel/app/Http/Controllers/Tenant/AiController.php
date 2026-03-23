@@ -108,7 +108,7 @@ class AiController extends Controller
 
         $request->validate([
             'prompt' => 'required|string|max:5000',
-            'type' => 'nullable|string|in:general,blog,product,seo,translate,tags,sales',
+            'type' => 'nullable|string|in:general,blog,product,seo,translate,tags,sales,layout',
         ]);
 
         $ai = $this->resolveAiService();
@@ -138,6 +138,7 @@ class AiController extends Controller
                 $request->input('categories', [])
             ),
             'sales' => $this->handleSalesCopy($ai, $request),
+            'layout' => $this->handleLayoutGenerate($ai, $request),
             default => $ai->generate($request->input('prompt'), [
                 'max_tokens' => $request->input('max_tokens', 2000),
                 'temperature' => $request->input('temperature', 0.7),
@@ -316,6 +317,36 @@ class AiController extends Controller
     }
 
     // ── Private Helpers ──
+
+    /**
+     * Generate a page layout_data JSON array from a prompt.
+     */
+    private function handleLayoutGenerate(AiService $ai, Request $request): array
+    {
+        $systemPrompt = <<<'PROMPT'
+Bạn là AI page builder chuyên nghiệp. Tạo layout_data JSON cho trang web theo mô tả của người dùng.
+QUAN TRỌNG: Chỉ trả về JSON array thuần túy, không có markdown, không có ```json, không có giải thích.
+
+Mỗi section có cấu trúc: {"type":"...","enabled":true,"order":N,"params":{...},"content":[...]}
+
+Các type và cấu trúc params/content:
+- text_block: params={"title":"...","body":"<p>HTML nội dung...</p>"}, content=null
+- faq: params={"title":"Câu hỏi thường gặp"}, content=[{"q":"...","a":"..."}]
+- testimonials: params={"title":"Khách hàng nói gì"}, content=[{"name":"...","role":"...","text":"...","rating":5}]
+- image_gallery: params={"title":"...","columns":3}, content=[{"src":"","alt":"...","caption":"..."}]
+- trust_badges: params={"title":""}, content=[{"icon":"Shield","title":"...","desc":"..."}]
+- newsletter: params={"title":"...","subtitle":"..."}, content=null
+- custom_block: params={"title":"..."}, content="<p>HTML tự do...</p>"
+
+Tạo 3-6 sections phù hợp với mô tả. Đánh số order bắt đầu từ 0.
+PROMPT;
+
+        return $ai->generate($request->input('prompt'), [
+            'system' => $systemPrompt,
+            'max_tokens' => 3000,
+            'temperature' => 0.6,
+        ]);
+    }
 
     /**
      * Handle sales copy generation.
