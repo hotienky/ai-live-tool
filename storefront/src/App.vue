@@ -22,6 +22,7 @@
 import { ref, computed, onMounted, watch, provide, onErrorCaptured } from 'vue'
 import { apiFetch } from './api.js'
 import { setInstalledModules, setEnabledPages, setActiveTemplate } from './router.js'
+import { loadStorefrontPlugins, useStorefrontPlugins } from './composables/useStorefrontPlugins.js'
 import SiteHeader from './components/SiteHeader.vue'
 import SiteFooter from './components/SiteFooter.vue'
 import SfToastContainer from './components/SfToastContainer.vue'
@@ -44,6 +45,8 @@ onErrorCaptured((err, instance, info) => {
 const { init: initTheme } = useTheme()
 const { init: initI18n } = useI18n()
 const { setOrganizationSeo } = useSeo()
+const { pluginSections, pluginRoutes } = useStorefrontPlugins()
+const router = useRouter()
 
 const storeInfo = ref(null)
 const layoutConfig = ref(null)
@@ -170,6 +173,19 @@ onMounted(async () => {
     initTheme(),
     initI18n(),
   ])
+
+  // After site-config loaded, load storefront plugin bundles
+  if (installedModules.value.length > 0) {
+    const pluginAssets = layoutConfig.value?.pluginAssets || {}
+    await loadStorefrontPlugins(installedModules.value, pluginAssets)
+
+    // Dynamically add plugin-provided routes to the router
+    if (pluginRoutes.value.length > 0) {
+      for (const route of pluginRoutes.value) {
+        router.addRoute(route)
+      }
+    }
+  }
 })
 
 // Provide store info, layout config, header/footer config, modules globally
@@ -180,6 +196,7 @@ provide('footerConfig', footerConfig)
 provide('navLinks', navLinks)
 provide('installedModules', installedModules)
 provide('template', computed(() => layoutConfig.value?.template || 'full_store'))
+provide('pluginSections', pluginSections)
 </script>
 
 <style scoped>

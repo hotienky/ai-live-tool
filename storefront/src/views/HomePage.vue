@@ -192,6 +192,15 @@
         <h2 v-if="rp(section).title" class="section-title">{{ rp(section).title }}</h2>
         <ShortcodeRenderer class="custom-block-content" :html="rc(section)" />
       </div>
+
+      <!-- Plugin-provided sections (from storefront.js bundles) -->
+      <component
+        v-if="section._pluginComponent"
+        :is="section._pluginComponent"
+        :params="rp(section)"
+        :content="rc(section)"
+        :section="section"
+      />
       </div>
     </template>
   </div>
@@ -214,6 +223,9 @@ import { useModules } from '../composables/useModules.js'
 const { t, currentLang, defaultLangCode } = useI18n()
 const { isEcom, isBlog, isCms, hasModule } = useModules()
 const { sanitize } = useSanitize()
+
+// Inject plugin sections from App.vue (loaded via __SF_BRIDGE__)
+const injectedPluginSections = inject('pluginSections', ref([]))
 
 // ── Section type → required module mapping ──
 const sectionModuleMap = {
@@ -311,7 +323,7 @@ const defaultSections = computed(() => {
 
 const activeSections = computed(() => {
   const sections = layoutConfig.value?.sections || defaultSections.value
-  return sections
+  const filtered = sections
     .filter(s => {
       if (!s.enabled) return false
       // Check if this section type requires a specific module
@@ -319,7 +331,18 @@ const activeSections = computed(() => {
       if (requiredModule && !hasModule(requiredModule)) return false
       return true
     })
-    .sort((a, b) => a.order - b.order)
+
+  // Merge plugin-provided sections (from storefront.js bundles)
+  const pluginSects = (injectedPluginSections.value || []).map(ps => ({
+    type: ps.type || `plugin_${ps.moduleId}`,
+    enabled: true,
+    order: ps.order ?? 999,
+    params: ps.params || {},
+    _pluginComponent: ps.component,
+    moduleId: ps.moduleId,
+  }))
+
+  return [...filtered, ...pluginSects].sort((a, b) => a.order - b.order)
 })
 
 function gridStyle(columns) {

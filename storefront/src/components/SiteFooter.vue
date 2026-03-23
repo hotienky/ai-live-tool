@@ -3,8 +3,8 @@
     <div class="site-footer__inner container">
 
       <!-- Dynamic Columns -->
-      <div class="site-footer__grid" :style="{ '--cols': totalCols }">
-        <div v-for="(col, ci) in (cfg.columns || [])" :key="ci" class="site-footer__col">
+      <div class="site-footer__grid" :style="{ '--cols': totalCols }" v-if="nonEmptyCols.length || hasSocialOrBadges">
+        <div v-for="(col, ci) in nonEmptyCols" :key="ci" class="site-footer__col">
 
           <h4 v-if="col.title" class="site-footer__col-title">{{ col.title }}</h4>
 
@@ -91,8 +91,8 @@
         </div>
       </div>
 
-      <!-- Newsletter -->
-      <div class="site-footer__newsletter">
+      <!-- Newsletter (only when marketing or ecom module installed) -->
+      <div v-if="isMarketing || isEcom" class="site-footer__newsletter">
         <NewsletterForm />
       </div>
 
@@ -127,7 +127,7 @@ const { t } = useI18n()
 
 import { useSanitize } from '../composables/useSanitize.js'
 const { sanitize } = useSanitize()
-const { isEcom } = useModules()
+const { isEcom, isMarketing } = useModules()
 import { useTemplate } from '../composables/useTemplate.js'
 const { isLanding } = useTemplate()
 
@@ -212,8 +212,18 @@ const footerStyle = computed(() => {
   return style
 })
 
+// Filter out empty footer columns
+const nonEmptyCols = computed(() => {
+  return (cfg.value.columns || []).filter(col => {
+    if (col.type === 'links') return col.links?.length > 0
+    if (col.type === 'contact') return col.items?.length > 0
+    if (col.type === 'text') return !!(col.content && col.content.trim())
+    return true
+  })
+})
+
 const totalCols = computed(() => {
-  const dataCols = cfg.value.columns?.length || 0
+  const dataCols = nonEmptyCols.value.length
   const hasExtras = hasSocialOrBadges.value
   return Math.max(dataCols + (hasExtras ? 1 : 0), 1)
 })

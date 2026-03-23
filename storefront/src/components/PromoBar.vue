@@ -21,8 +21,10 @@
 import { ref, computed, onMounted, inject } from 'vue'
 import { Sparkles, X } from 'lucide-vue-next'
 import { useI18n } from '../composables/useI18n.js'
+import { useModules } from '../composables/useModules.js'
 
 const { t } = useI18n()
+const { isEcom } = useModules()
 const layoutConfig = inject('layoutConfig', ref(null))
 
 const props = defineProps({
@@ -34,7 +36,13 @@ const props = defineProps({
 
 // Read promo config from layout config (CMS) → props → i18n fallback
 const promoConfig = computed(() => layoutConfig?.value?.promoBar || {})
-const isEnabled = computed(() => promoConfig.value.enabled !== false) // default true
+const hasCustomText = computed(() => !!(promoConfig.value.text || props.text))
+const isEnabled = computed(() => {
+  if (promoConfig.value.enabled === false) return false
+  // If no custom text, only show for ecom (default text is ecom-specific)
+  if (!hasCustomText.value && !isEcom.value) return false
+  return true
+})
 const displayText = computed(() => promoConfig.value.text || props.text || t('storefront.promo.default_text', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!'))
 const displayCta = computed(() => promoConfig.value.ctaText || props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
 const promoLink = computed(() => promoConfig.value.link || props.link || '/products')

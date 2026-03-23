@@ -118,8 +118,8 @@
           <span v-if="wishlistCount > 0" class="cart-badge">{{ wishlistCount }}</span>
         </router-link>
 
-        <!-- Auth -->
-        <template v-if="pageEnabled.account || pageEnabled.auth">
+        <!-- Auth (only when ecom or crm module installed — blog-only sites don't need customer login) -->
+        <template v-if="(pageEnabled.account || pageEnabled.auth) && (isEcom || isCrm)">
           <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__auth-btn">
             <User :size="16" />
             <span>{{ customer?.first_name || t('storefront.account') || 'Tài khoản' }}</span>
@@ -160,7 +160,7 @@
           <ShoppingCart :size="16" /> {{ t('storefront.cart') || 'Giỏ hàng' }}
           <span v-if="cartCount > 0" class="cart-badge cart-badge--mobile">{{ cartCount }}</span>
         </router-link>
-        <template v-if="pageEnabled.account || pageEnabled.auth">
+        <template v-if="(pageEnabled.account || pageEnabled.auth) && (isEcom || isCrm)">
           <router-link v-if="isLoggedIn" :to="'/account'" class="site-header__mobile-link" @click="mobileMenu = false">
             <User :size="16" /> {{ customer?.first_name || t('storefront.account', 'Tài khoản') }}
           </router-link>
@@ -225,7 +225,7 @@ const { cartCount } = useCart()
 const { t, currentLang, languages: i18nLanguages, setLang, init: initI18n } = useI18n()
 const { isDark, toggleTheme } = useTheme()
 const { isLoggedIn, customer } = useAuth()
-const { isEcom, isBlog, isCms } = useModules()
+const { isEcom, isBlog, isCms, isCrm } = useModules()
 const { isLanding } = useTemplate()
 
 // Wishlist count
@@ -310,10 +310,26 @@ const moreDropdownRef = ref(null)
 
 const menuLinks = computed(() => {
   // Prefer provided navLinks from site-config, fallback to locally fetched navLinks
-  const links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks.value)
-  return links
+  let links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks.value)
+  // URLs that belong to specific modules
+  const ecomUrls = ['/products', '/product/', '/category/', '/cart', '/checkout', '/order-tracking', '/search', '/categories', '/brands', '/wishlist', '/promotions']
+  const blogUrls = ['/blog']
+  const filtered = links
     .filter(l => l.is_active !== false && l.group !== 'footer')
-    .sort((a, b) => (a.sort || 0) - (b.sort || 0))
+    .filter(l => {
+      const url = l.url || ''
+      // Hide ecom links if ecom module not installed
+      if (!isEcom.value && ecomUrls.some(u => url === u || url.startsWith(u))) return false
+      // Hide blog links if blog module not installed
+      if (!isBlog.value && blogUrls.some(u => url === u || url.startsWith(u))) return false
+      return true
+    })
+  // Auto-inject Blog link if blog module is active but nav doesn't include it
+  if (isBlog.value && !filtered.some(l => (l.url || '').startsWith('/blog'))) {
+    const maxSort = Math.max(0, ...filtered.map(l => l.sort || 0))
+    filtered.push({ id: '__auto_blog', name: 'Blog', url: '/blog', icon: 'BookOpen', sort: maxSort + 1 })
+  }
+  return filtered.sort((a, b) => (a.sort || 0) - (b.sort || 0))
 })
 
 const visibleLinks = computed(() => menuLinks.value.slice(0, MAX_VISIBLE.value))
