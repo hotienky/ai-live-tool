@@ -118,3 +118,17 @@ Route::get('/flash-sales/{id}', [FlashSalesController::class, 'show'])->middlewa
 Route::post('/flash-sales', [FlashSalesController::class, 'store'])->middleware('permission:promotions.create');
 Route::put('/flash-sales/{id}', [FlashSalesController::class, 'update'])->middleware('permission:promotions.edit');
 Route::delete('/flash-sales/{id}', [FlashSalesController::class, 'destroy'])->middleware('permission:promotions.delete');
+
+// Layout Pages (Dynamic UI Engine)
+Route::prefix('layout-pages')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'index'])->middleware('permission:settings.view');
+    Route::post('/', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'store'])->middleware('permission:settings.edit');
+    Route::get('/{id}', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'show'])->middleware('permission:settings.view');
+    Route::put('/{id}', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'update'])->middleware('permission:settings.edit');
+    Route::delete('/{id}', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'destroy'])->middleware('permission:settings.edit');
+    Route::post('/{id}/draft', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'saveDraft'])->middleware('permission:settings.edit');
+    Route::post('/{id}/publish', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'publish'])->middleware('permission:settings.edit');
+    Route::post('/{id}/rollback/{version}', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'rollback'])->middleware('permission:settings.edit');
+    Route::get('/{id}/versions', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'versions'])->middleware('permission:settings.view');
+});
+

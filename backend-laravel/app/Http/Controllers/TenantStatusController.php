@@ -24,6 +24,10 @@ class TenantStatusController extends Controller
         $cacheKey = "tenant_status:{$slug}";
         $status = Cache::remember($cacheKey, 60, function () use ($slug) {
             $tenant = \App\Models\Tenant::where('slug', $slug)->first(['status', 'name', 'features', 'settings']);
+            // Fallback: try matching db_name = 'tenant_{slug}' (handles events/event mismatch etc.)
+            if (!$tenant) {
+                $tenant = \App\Models\Tenant::where('db_name', 'tenant_' . $slug)->first(['status', 'name', 'features', 'settings']);
+            }
             if (!$tenant) return null;
             
             // Safely decode settings — may be a raw JSON string

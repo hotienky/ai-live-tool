@@ -143,6 +143,11 @@ class InitializeTenancyBySlug
 
         $tenant = \App\Models\Tenant::where('slug', $slug)->first();
 
+        // Fallback: try matching db_name = 'tenant_{slug}' (handles events/event, etc.)
+        if (!$tenant) {
+            $tenant = \App\Models\Tenant::where('db_name', 'tenant_' . $slug)->first();
+        }
+
         if (!$tenant) {
             Cache::put($cacheKey, 'not_found', 600);
             return null;

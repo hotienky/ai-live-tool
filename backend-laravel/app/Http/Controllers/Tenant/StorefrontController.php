@@ -163,7 +163,7 @@ class StorefrontController extends Controller
     public function banners(Request $request)
     {
         try {
-            $items = $this->bannerRepo->manyBy('status', 1);
+            $items = $this->bannerRepo->manyBy('status', true);
             $locale = $this->getLocale($request);
             if ($locale) {
                 $arr = collect($items)->map(fn($b) => is_array($b) ? $b : $b->toArray())->all();
@@ -258,7 +258,7 @@ class StorefrontController extends Controller
         $theme = [];
         foreach ($themeConfigs as $c) { $theme[$c->key] = $c->value; }
 
-        // Layout
+        // Layout — prefer layout_pages table, fall back to system_configs
         $layoutConfigs = $this->configRepo->getByGroup('storefront_layout');
         $layoutMap = [];
         foreach ($layoutConfigs as $c) { $layoutMap[$c->key] = $c->value; }
@@ -268,6 +268,19 @@ class StorefrontController extends Controller
             if (isset($transLayout[$locale])) {
                 $layoutMap = array_merge($layoutMap, $transLayout[$locale]);
             }
+        }
+
+        // Try layout_pages table first (new Dynamic UI Engine)
+        $layoutPageSections = null;
+        $layoutPageMeta = null;
+        try {
+            $homePage = \App\Models\LayoutPage::bySlug('home')->published()->first();
+            if ($homePage && !empty($homePage->layout_json)) {
+                $layoutPageSections = $homePage->layout_json;
+                $layoutPageMeta = $homePage->meta;
+            }
+        } catch (\Exception $e) {
+            // layout_pages table may not exist yet — graceful fallback
         }
 
         // Nav links (nested)
@@ -336,12 +349,16 @@ class StorefrontController extends Controller
         // Installed modules — storefront uses this to dynamically show/hide features
         $installedModules = $this->getInstalledModuleIds();
 
+        // Use layout_pages sections if available, otherwise fall back to system_configs
+        $sections = $layoutPageSections
+            ?: (json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections);
+
         return [
             'store' => $storeInfo,
             'theme' => $theme,
             'modules' => $installedModules,
             'layout' => [
-                'sections' => json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections,
+                'sections' => $sections,
                 'pages' => json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],
                 'pageConfigs' => json_decode($layoutMap['layout_page_configs'] ?? 'null', true) ?: [],
                 'template' => $layoutMap['layout_template'] ?? 'full_store',
@@ -349,6 +366,7 @@ class StorefrontController extends Controller
                 'headerConfig' => json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
                 'footerConfig' => json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
                 'promoBar' => json_decode($layoutMap['layout_promo_config'] ?? 'null', true) ?: ['enabled' => true, 'text' => '', 'link' => '/products', 'ctaText' => ''],
+                'meta' => $layoutPageMeta,  // Theme overrides from layout_pages
             ],
             'navLinks' => $nestedLinks->values(),
             'categories' => $categories,
@@ -425,28 +443,30 @@ class StorefrontController extends Controller
             return $this->successResponse(['type' => 'page', 'data' => $page]);
         }
 
-        $product = $this->productRepo->findBySlugOrId($path);
-        if ($product) {
-            $dbVariants = $this->orderRepo->getVariants($product->id);
-            $jsonVariants = is_array($product->variants) ? $product->variants : [];
-            if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
-                $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
-                $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
-                    $key = $v->sku ?: $v->name;
-                    $json = $jsonMap->get($key);
-                    if ($json && isset($json['promotion_price'])) $v->promotion_price = $json['promotion_price'];
-                    return $v;
-                });
+        if (in_array('ecom', $this->getInstalledModuleIds())) {
+            $product = $this->productRepo->findBySlugOrId($path);
+            if ($product) {
+                $dbVariants = $this->orderRepo->getVariants($product->id);
+                $jsonVariants = is_array($product->variants) ? $product->variants : [];
+                if ($dbVariants->count() > 0 && !empty($jsonVariants)) {
+                    $jsonMap = collect($jsonVariants)->keyBy(fn($v) => ($v['sku'] ?? '') ?: ($v['name'] ?? ''));
+                    $dbVariants = $dbVariants->map(function ($v) use ($jsonMap) {
+                        $key = $v->sku ?: $v->name;
+                        $json = $jsonMap->get($key);
+                        if ($json && isset($json['promotion_price'])) $v->promotion_price = $json['promotion_price'];
+                        return $v;
+                    });
+                }
+                $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
+                if ($locale) $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                return $this->successResponse(['type' => 'product', 'data' => $product]);
             }
-            $product->variants_list = $dbVariants->count() > 0 ? $dbVariants : collect($jsonVariants);
-            if ($locale) $product = ContentTranslation::mergeIntoSingleItem($product, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-            return $this->successResponse(['type' => 'product', 'data' => $product]);
-        }
 
-        $category = $this->categoryRepo->findBy('slug', $path);
-        if ($category) {
-            if ($locale) $category = ContentTranslation::mergeIntoSingleItem($category, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
-            return $this->successResponse(['type' => 'category', 'data' => $category]);
+            $category = $this->categoryRepo->findBy('slug', $path);
+            if ($category) {
+                if ($locale) $category = ContentTranslation::mergeIntoSingleItem($category, 'categories', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                return $this->successResponse(['type' => 'category', 'data' => $category]);
+            }
         }
 
         return $this->notFoundResponse('Route not found');

@@ -193,6 +193,14 @@
               <ShortcodeRenderer class="custom-block-content" :html="section.content" />
             </div>
 
+            <!-- Restaurant Menu Block -->
+            <div
+              v-if="section.type === 'restaurant_menu'"
+              class="container custom-block-section"
+            >
+              <ShortcodeRenderer class="custom-block-content" :html="`[restaurant-menu title='${section.params?.title || ''}' subtitle='${section.params?.subtitle || ''}']`" />
+            </div>
+
           </div>
         </template>
       </div><!-- /old dynamic -->

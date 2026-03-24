@@ -57,9 +57,10 @@ function initBridge() {
         pluginRoutes.value = [...pluginRoutes.value, ...config.routes]
       }
 
-      // Register homepage sections
-      if (config.sections?.length) {
-        const sections = config.sections.map(s => ({
+      // Register homepage sections (accept both 'sections' and 'homeSections')
+      const rawSections = config.sections || config.homeSections || []
+      if (rawSections.length) {
+        const sections = rawSections.map(s => ({
           ...s,
           component: markRaw(s.component),
           moduleId,
@@ -78,7 +79,7 @@ function initBridge() {
         id: moduleId,
         loaded: true,
         hasRoutes: !!config.routes?.length,
-        hasSections: !!config.sections?.length,
+        hasSections: rawSections.length > 0,
         hasWidgets: !!config.widgets,
       }
 

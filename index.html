@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Binary ↔ Image Tool</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    textarea { width: 100%; height: 150px; }
+    img { max-width: 300px; display: block; margin-top: 10px; }
+    button { margin: 5px 0; }
+  </style>
+</head>
+<body>
+
+<h2>Image → Binary</h2>
+<input type="file" id="fileInput" />
+<button onclick="imageToBinary()">Convert to Binary</button>
+<textarea id="binaryOutput"></textarea>
+
+<h2>Binary → Image</h2>
+<textarea id="binaryInput" placeholder="Paste binary here..."></textarea>
+<button onclick="binaryToImage()">Convert to Image</button>
+<img id="outputImage" />
+
+<script>
+function imageToBinary() {
+  const file = document.getElementById('fileInput').files[0];
+  const reader = new FileReader();
+
+  reader.onload = function() {
+    const array = new Uint8Array(reader.result);
+    let binary = '';
+
+    array.forEach(byte => {
+      binary += byte.toString(2).padStart(8, '0') + ' ';
+    });
+
+    document.getElementById('binaryOutput').value = binary.trim();
+  };
+
+  reader.readAsArrayBuffer(file);
+}
+
+function binaryToImage() {
+  const binary = document.getElementById('binaryInput').value.split(' ');
+
+  const bytes = new Uint8Array(binary.map(b => parseInt(b, 2)));
+
+  const blob = new Blob([bytes]);
+  const url = URL.createObjectURL(blob);
+
+  document.getElementById('outputImage').src = url;
+}
+</script>
+
+</body>
+</html>

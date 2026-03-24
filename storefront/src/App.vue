@@ -3,7 +3,10 @@
     <PromoBar v-if="!isPreviewMode" />
     <SiteHeader v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
     <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
-      <router-view v-slot="{ Component }">
+      <div v-if="!appReady" class="global-loading" style="display:flex;justify-content:center;padding:100px;">
+        <div class="loader"></div>
+      </div>
+      <router-view v-else v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <ErrorBoundary>
             <component :is="Component" />
@@ -54,6 +57,7 @@ const headerConfig = ref({})
 const footerConfig = ref({})
 const navLinks = ref([])
 const installedModules = ref([])
+const appReady = ref(false)
 
 // Preview mode: read layout from URL query param
 const urlParams = new URLSearchParams(window.location.search)
@@ -184,8 +188,18 @@ onMounted(async () => {
       for (const route of pluginRoutes.value) {
         router.addRoute(route)
       }
+      
+      // If the current route fell back to the URL resolver, re-evaluate now that plugins are loaded
+      if (router.currentRoute.value.name === 'UrlResolver') {
+        const to = router.resolve(router.currentRoute.value.fullPath)
+        if (to.matched.some(m => m.name !== 'UrlResolver')) {
+          await router.replace(to.fullPath)
+        }
+      }
     }
   }
+
+  appReady.value = true
 })
 
 // Provide store info, layout config, header/footer config, modules globally
@@ -212,5 +226,14 @@ provide('pluginSections', pluginSections)
 .storefront-main--preview {
   padding-top: 0;
 }
+.loader {
+  border: 4px solid var(--sf-border);
+  border-top-color: var(--sf-accent);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 

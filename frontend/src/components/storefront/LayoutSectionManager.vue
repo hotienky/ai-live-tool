@@ -256,6 +256,17 @@
             </div>
           </template>
 
+          <template v-if="section.type === 'restaurant_menu'">
+            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>{{ t('admin.msg_ebfe7133', 'Phụ đề') }}</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
+          </template>
+
+          <template v-if="['booking_services','salon_services','property_listings','upcoming_events'].includes(section.type)">
+            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Phụ đề</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
+            <div class="param-row"><label>Số mục hiển thị</label><input type="number" v-model.number="getParams(section).count" class="param-input" min="1" max="20" /></div>
+          </template>
+
           <!-- Style Params -->
           <div class="section-style-divider"></div>
 

@@ -46,13 +46,19 @@ return new class extends Migration
     {
         $now = now();
         foreach ($this->systemPages as $page) {
+            // Fix boolean values for PGSQL
+            $pageData = array_merge($page, [
+                'is_dynamic' => (bool)$page['is_dynamic'],
+                'is_system'  => (bool)$page['is_system'],
+                'status'     => (bool)$page['status'],
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
             // Chỉ chèn nếu alias chưa tồn tại
             $exists = DB::table('cms_pages')->where('alias', $page['alias'])->exists();
             if (!$exists) {
-                DB::table('cms_pages')->insert(array_merge($page, [
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]));
+                DB::table('cms_pages')->insert($pageData);
             } else {
                 // Nếu đã tồn tại, đánh dấu is_system = true để khoá xoá
                 DB::table('cms_pages')

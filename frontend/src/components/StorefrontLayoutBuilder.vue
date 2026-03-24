@@ -402,19 +402,43 @@
           <h3><Layers :size="16" /> {{ t('admin.msg_c989002c', 'Thư viện Section') }}</h3>
           <button class="btn-close" @click="showLibrary = false"><X :size="18" /></button>
         </div>
-        <div class="library-grid">
-          <button
-            v-for="lib in libraryItems"
-            :key="lib.type"
-            class="library-card"
-            :class="{ added: sections.some(s => s.type === lib.type) }"
-            @click="addLibrarySection(lib)"
-          >
-            <component :is="lib.icon" :size="24" />
-            <strong>{{ lib.label }}</strong>
-            <span>{{ lib.desc }}</span>
-            <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
-          </button>
+        <div class="library-grouped">
+          <!-- Content Blocks -->
+          <div class="library-group">
+            <h4 class="library-group__title">📝 Nội dung & Tương tác</h4>
+            <div class="library-grid">
+              <button
+                v-for="lib in libraryItems.filter(l => ['testimonials','faq','image_gallery','video_embed','text_block','newsletter','social_feed','brands_slider','custom_block'].includes(l.type))"
+                :key="lib.type"
+                class="library-card"
+                :class="{ added: sections.some(s => s.type === lib.type) }"
+                @click="addLibrarySection(lib)"
+              >
+                <component :is="lib.icon" :size="24" />
+                <strong>{{ lib.label }}</strong>
+                <span>{{ lib.desc }}</span>
+                <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
+              </button>
+            </div>
+          </div>
+          <!-- Vertical Blocks -->
+          <div class="library-group">
+            <h4 class="library-group__title">🏢 Block ngành dọc</h4>
+            <div class="library-grid">
+              <button
+                v-for="lib in libraryItems.filter(l => ['restaurant_menu','booking_services','salon_services','property_listings','upcoming_events'].includes(l.type))"
+                :key="lib.type"
+                class="library-card"
+                :class="{ added: sections.some(s => s.type === lib.type) }"
+                @click="addLibrarySection(lib)"
+              >
+                <component :is="lib.icon" :size="24" />
+                <strong>{{ lib.label }}</strong>
+                <span>{{ lib.desc }}</span>
+                <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -831,6 +855,11 @@ const sectionMeta = {
   social_feed: { label: t('admin.msg_0f1252b7', 'Mạng xã hội'), icon: Share2, pvHeight: '25px' },
   brands_slider: { label: t('admin.msg_161416d9', 'Thương hiệu'), icon: Award, pvHeight: '30px' },
   custom_block: { label: 'Visual Builder', icon: Paintbrush, pvHeight: '60px' },
+  restaurant_menu: { label: 'Thực đơn Nhà Hàng', icon: BookOpen, pvHeight: '80px' },
+  booking_services: { label: 'Dịch vụ Đặt lịch', icon: Clock, pvHeight: '60px' },
+  salon_services: { label: 'Dịch vụ Spa & Salon', icon: Sparkles, pvHeight: '60px' },
+  property_listings: { label: 'Bất Động Sản', icon: Image, pvHeight: '70px' },
+  upcoming_events: { label: 'Sự Kiện Sắp Tới', icon: Zap, pvHeight: '60px' },
 }
 
 const defaultParams = {
@@ -849,6 +878,11 @@ const defaultParams = {
   social_feed: { title: t('admin.msg_d4a4c495', 'Theo dõi chúng tôi') },
   brands_slider: { title: t('admin.msg_161416d9', 'Thương hiệu'), animationSpeed: 20 },
   custom_block: { title: '' },
+  restaurant_menu: { title: 'Thực Đơn Nhà Hàng', subtitle: 'Khám phá hương vị tinh tế' },
+  booking_services: { title: 'Dịch Vụ Nổi Bật', subtitle: 'Đặt lịch dễ dàng, nhanh chóng', count: 6 },
+  salon_services: { title: 'Dịch Vụ Spa & Salon', subtitle: 'Thư giãn và làm mới bản thân', count: 6 },
+  property_listings: { title: 'Bất Động Sản Nổi Bật', subtitle: 'Tìm ngôi nhà mơ ước của bạn', count: 6 },
+  upcoming_events: { title: 'Sự Kiện Sắp Tới', subtitle: 'Đừng bỏ lỡ những trải nghiệm tuyệt vời', count: 6 },
 }
 
 // ─── Library ───
@@ -862,6 +896,11 @@ const libraryItems = [
   { type: 'social_feed', label: t('admin.msg_0f1252b7', 'Mạng xã hội'), desc: 'Links social media', icon: Share2 },
   { type: 'brands_slider', label: t('admin.msg_161416d9', 'Thương hiệu'), desc: t('admin.msg_6c5566ff', 'Logo thương hiệu'), icon: Award },
   { type: 'custom_block', label: 'Visual Builder', desc: 'Thiết kế kéo thả tự do', icon: Paintbrush },
+  { type: 'restaurant_menu', label: 'Thực đơn Nhà hàng', desc: 'Hiển thị danh sách món ăn theo danh mục', icon: BookOpen },
+  { type: 'booking_services', label: 'Dịch vụ Đặt lịch', desc: 'Hiển thị dịch vụ booking trên trang chủ', icon: Clock },
+  { type: 'salon_services', label: 'Dịch vụ Spa & Salon', desc: 'Bảng giá dịch vụ và đội ngũ chuyên gia', icon: Sparkles },
+  { type: 'property_listings', label: 'Bất Động Sản', desc: 'Danh sách BĐS nổi bật cho thuê/bán', icon: Image },
+  { type: 'upcoming_events', label: 'Sự Kiện Sắp Tới', desc: 'Hiển thị sự kiện đang diễn ra', icon: Zap },
 ]
 
 function addLibrarySection(lib) {
@@ -895,12 +934,22 @@ const templates = [
   { key: 'catalog', name: 'Catalog', desc: t('admin.msg_c6498131', 'Danh mục + SP'), icon: Package },
   { key: 'minimal', name: 'Minimal', desc: t('admin.msg_f6c79663', 'Banner + SP nổi bật'), icon: Target },
   { key: 'landing', name: 'Landing Page', desc: 'Banner + CMS', icon: BookOpen },
+  { key: 'restaurant', name: 'Nhà Hàng', desc: 'Banner + Thực đơn + CMS', icon: BookOpen },
+  { key: 'booking', name: 'Đặt Lịch', desc: 'Banner + Dịch vụ + CMS', icon: Clock },
+  { key: 'salon', name: 'Spa & Salon', desc: 'Banner + Dịch vụ + CMS', icon: Sparkles },
+  { key: 'realestate', name: 'Bất Động Sản', desc: 'Banner + BĐS + CMS', icon: Image },
+  { key: 'events', name: 'Sự Kiện', desc: 'Banner + Sự kiện + CMS', icon: Zap },
 ]
 const templatePresets = {
   full_store: { sections: ['banner', 'categories', 'flash_sale', 'featured_products', 'new_arrivals', 'cms_pages'] },
   catalog: { sections: ['banner', 'categories', 'featured_products', 'new_arrivals'] },
   minimal: { sections: ['banner', 'featured_products'] },
   landing: { sections: ['banner', 'cms_pages'] },
+  restaurant: { sections: ['banner', 'restaurant_menu', 'cms_pages'] },
+  booking: { sections: ['banner', 'booking_services', 'testimonials', 'cms_pages'] },
+  salon: { sections: ['banner', 'salon_services', 'testimonials', 'cms_pages'] },
+  realestate: { sections: ['banner', 'property_listings', 'cms_pages'] },
+  events: { sections: ['banner', 'upcoming_events', 'cms_pages'] },
 }
 
 const activeSections = computed(() =>
@@ -911,11 +960,23 @@ function applyTemplate(key) {
   activeTemplate.value = key
   const preset = templatePresets[key]
   if (!preset) return
-  // Keep only built-in sections for template, preserve custom sections
-  const builtIn = ['banner', 'categories', 'flash_sale', 'featured_products', 'new_arrivals', 'cms_pages']
+  // All known section types to control
+  const allKnown = Object.keys(sectionMeta)
   sections.value.forEach(s => {
-    if (builtIn.includes(s.type)) {
+    if (allKnown.includes(s.type)) {
       s.enabled = preset.sections.includes(s.type)
+    }
+  })
+  // Add missing sections that are in the preset but not yet in sections
+  preset.sections.forEach((type, idx) => {
+    if (!sections.value.some(s => s.type === type)) {
+      sections.value.push({
+        type,
+        enabled: true,
+        order: idx,
+        params: { ...defaultParams[type] },
+        content: [],
+      })
     }
   })
   const order = preset.sections
@@ -1620,6 +1681,12 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .modal__header h3 { margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
 .btn-close { background: none; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; }
 
+.library-grouped { display: flex; flex-direction: column; gap: 20px; }
+.library-group__title {
+  font-size: 13px; font-weight: 700; margin: 0 0 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--glass-border);
+  color: var(--color-text-secondary);
+}
 .library-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .library-card {
   display: flex; flex-direction: column; align-items: center; gap: 6px;

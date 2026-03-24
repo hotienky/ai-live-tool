@@ -332,17 +332,35 @@ const activeSections = computed(() => {
       return true
     })
 
-  // Merge plugin-provided sections (from storefront.js bundles)
-  const pluginSects = (injectedPluginSections.value || []).map(ps => ({
-    type: ps.type || `plugin_${ps.moduleId}`,
-    enabled: true,
-    order: ps.order ?? 999,
-    params: ps.params || {},
-    _pluginComponent: ps.component,
-    moduleId: ps.moduleId,
-  }))
+  // Build a map of plugin-provided section types → component
+  const pluginMap = {}
+  ;(injectedPluginSections.value || []).forEach(ps => {
+    const key = ps.type || `plugin_${ps.moduleId}`
+    pluginMap[key] = ps
+  })
 
-  return [...filtered, ...pluginSects].sort((a, b) => a.order - b.order)
+  // Attach _pluginComponent to layout sections that match plugin types
+  const enhanced = filtered.map(s => {
+    if (pluginMap[s.type]) {
+      return { ...s, _pluginComponent: pluginMap[s.type].component, moduleId: pluginMap[s.type].moduleId }
+    }
+    return s
+  })
+
+  // Also append any plugin sections that weren't explicitly in the layout config
+  const usedTypes = new Set(filtered.map(s => s.type))
+  const extra = Object.entries(pluginMap)
+    .filter(([key]) => !usedTypes.has(key))
+    .map(([key, ps]) => ({
+      type: key,
+      enabled: true,
+      order: ps.order ?? 999,
+      params: ps.params || {},
+      _pluginComponent: ps.component,
+      moduleId: ps.moduleId,
+    }))
+
+  return [...enhanced, ...extra].sort((a, b) => a.order - b.order)
 })
 
 function gridStyle(columns) {
