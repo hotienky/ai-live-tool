@@ -45,12 +45,18 @@ return new class extends Migration
     public function up(): void
     {
         $now = now();
+        // Xác định kiểu của cột status để cast cho đúng (tránh lỗi PGSQL boolean vs integer trên các tenant cũ)
+        $isStatusBool = DB::table('information_schema.columns')
+            ->where('table_name', 'cms_pages')
+            ->where('column_name', 'status')
+            ->value('data_type') === 'boolean';
+
         foreach ($this->systemPages as $page) {
             // Fix boolean values for PGSQL
             $pageData = array_merge($page, [
                 'is_dynamic' => (bool)$page['is_dynamic'],
                 'is_system'  => (bool)$page['is_system'],
-                'status'     => (bool)$page['status'],
+                'status'     => $isStatusBool ? (bool)$page['status'] : (int)$page['status'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
