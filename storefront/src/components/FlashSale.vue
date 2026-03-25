@@ -99,7 +99,9 @@ function updateCountdown() {
 
 onMounted(async () => {
   try {
-    sales.value = await apiFetch('/flash-sales')
+    // Use BFF data from siteConfig.initialData if available — avoids extra API call
+    const cached = window.__STOREFRONT_DATA__?.flashSales
+    sales.value = cached ?? await apiFetch('/flash-sales')
     updateCountdown()
     timer = setInterval(updateCountdown, 1000)
   } catch {

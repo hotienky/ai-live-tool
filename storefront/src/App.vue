@@ -45,8 +45,8 @@ onErrorCaptured((err, instance, info) => {
   return false // prevent propagation
 })
 
-const { init: initTheme } = useTheme()
-const { init: initI18n } = useI18n()
+const { init: initTheme, initFromConfig: initThemeFromConfig } = useTheme()
+const { init: initI18n, initLanguagesFromConfig } = useI18n()
 const { setOrganizationSeo } = useSeo()
 const { pluginSections, pluginRoutes } = useStorefrontPlugins()
 const router = useRouter()
@@ -59,10 +59,11 @@ const navLinks = ref([])
 const installedModules = ref([])
 const appReady = ref(false)
 
-// Preview mode: read layout from URL query param
+// Preview mode: read layout from URL query param or postMessage
 const urlParams = new URLSearchParams(window.location.search)
 const previewParam = urlParams.get('preview_layout')
-const isPreviewMode = !!previewParam
+const isPostMessagePreview = urlParams.get('preview') === 'true'
+const isPreviewMode = !!previewParam || isPostMessagePreview
 
 async function loadSiteConfig() {
   // In preview mode, read from URL param
@@ -105,6 +106,15 @@ async function loadSiteConfig() {
     headerConfig.value = config.layout?.headerConfig || {}
     footerConfig.value = config.layout?.footerConfig || {}
     navLinks.value = config.navLinks || []
+
+    // Init theme from siteConfig — eliminates separate /theme API call
+    if (config.theme) initThemeFromConfig(config.theme)
+
+    // Init i18n languages from siteConfig — eliminates /languages API call
+    if (config.languages?.length) initLanguagesFromConfig(config.languages)
+
+    // Populate global data cache for section components (homepage BFF data)
+    window.__STOREFRONT_DATA__ = config.initialData || {}
 
     // Enable page toggle route guards
     if (layoutConfig.value?.pages) {
@@ -171,11 +181,12 @@ function injectCustomCss(css) {
 }
 
 onMounted(async () => {
-  // Use allSettled so a failing init (e.g. languages 500) doesn't block others
+  // Load siteConfig first — it bootstraps theme + languages + initialData in one call.
+  // Then init i18n (only /translations/{lang} remains — languages already set above).
+  await loadSiteConfig()
   await Promise.allSettled([
-    loadSiteConfig(),
-    initTheme(),
-    initI18n(),
+    initI18n(),    // skips /languages (already set); only fetches /translations/{lang}
+    initTheme(),   // no-op if theme was already applied from config; fallback for preview mode
   ])
 
   // After site-config loaded, load storefront plugin bundles
@@ -197,6 +208,26 @@ onMounted(async () => {
         }
       }
     }
+  }
+
+  // PostMessage-based preview: listen for real-time layout updates from CMS builder
+  if (isPostMessagePreview) {
+    window.addEventListener('message', (event) => {
+      if (event.data?.type !== 'layout-preview-update') return
+      const payload = event.data.payload
+      if (!payload) return
+
+      layoutConfig.value = {
+        sections: payload.sections || layoutConfig.value?.sections || [],
+        pages: payload.pages || layoutConfig.value?.pages || {},
+        pageConfigs: payload.pageConfigs || layoutConfig.value?.pageConfigs || {},
+        template: payload.template || layoutConfig.value?.template || 'full_store',
+        customCss: payload.customCss || '',
+      }
+      if (payload.headerConfig) headerConfig.value = payload.headerConfig
+      if (payload.footerConfig) footerConfig.value = payload.footerConfig
+      if (payload.customCss !== undefined) injectCustomCss(payload.customCss)
+    })
   }
 
   appReady.value = true

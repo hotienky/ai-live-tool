@@ -22,12 +22,16 @@ return new class extends Migration
         // Use raw SQL with IF EXISTS — PostgreSQL aborts entire
         // transaction on constraint errors even inside try/catch
         $conn = Schema::getConnection();
+        $driver = $conn->getDriverName();
 
-        // Drop old unique on 'key' (try both possible names)
-        $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_unique");
-        $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_idx");
+        // DROP CONSTRAINT is PostgreSQL-only; SQLite doesn't support it
+        // and new SQLite databases won't have the old constraint anyway
+        if ($driver === 'pgsql') {
+            $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_unique");
+            $conn->statement("ALTER TABLE system_configs DROP CONSTRAINT IF EXISTS system_configs_key_idx");
+        }
 
-        // Add composite unique: (key, group_name)
+        // Add composite unique: (key, group_name) — works on both PG and SQLite
         $conn->statement("CREATE UNIQUE INDEX IF NOT EXISTS sc_key_group_unique ON system_configs (key, group_name)");
 
         // Add index on group_name

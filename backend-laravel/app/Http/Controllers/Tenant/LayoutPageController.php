@@ -137,7 +137,8 @@ class LayoutPageController extends Controller
         $page = LayoutPage::findOrFail($id);
 
         // published_by dùng authenticated user, không nhận từ request (bảo mật)
-        $publishedBy = auth()->user()?->name ?? auth()->user()?->email ?? 'admin';
+        $user = $request->user();
+        $publishedBy = $user?->name ?? $user?->email ?? 'admin';
         $note = $request->input('note', null);
 
         if ($request->has('layout_json')) {

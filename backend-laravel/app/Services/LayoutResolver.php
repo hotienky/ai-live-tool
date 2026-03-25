@@ -11,9 +11,13 @@ use Illuminate\Support\Facades\Log;
  *
  * Flow: Layout JSON → resolveNode() → inject props.resolvedData → Frontend render
  *
- * Hỗ trợ hai dạng layout:
- *   1. Node có data.endpoint  → fetch theo endpoint đó
- *   2. Node có type trong sectionDataMap → auto-inject dữ liệu theo type
+ * CORE ONLY — This class contains only:
+ *   1. The resolve engine (recursive node resolution)
+ *   2. Core section types (banner, cms_pages, grid, spacer, etc.)
+ *   3. Plugin extension API (registerSectionResolver)
+ *
+ * Plugin-specific resolvers (ecom, blog, events, etc.) are registered
+ * via PluginResolverRegistrar — see P4 (Plugin-based architecture).
  */
 class LayoutResolver
 {
@@ -29,11 +33,27 @@ class LayoutResolver
 
     /**
      * Cho phép plugin/module đăng ký resolver theo section type.
-     * Tuân thủ P4 – Plugin-based architecture.
+     * P4 – Plugin-based architecture.
      */
     public static function registerSectionResolver(string $sectionType, callable $resolver): void
     {
         self::$pluginResolvers[$sectionType] = $resolver;
+    }
+
+    /**
+     * Get list of all registered resolver types (for debugging/verification).
+     */
+    public static function getRegisteredResolvers(): array
+    {
+        return array_keys(self::$pluginResolvers);
+    }
+
+    /**
+     * Clear all plugin resolvers (useful for testing).
+     */
+    public static function clearResolvers(): void
+    {
+        self::$pluginResolvers = [];
     }
 
     /**
@@ -69,7 +89,6 @@ class LayoutResolver
         } elseif (!empty($node['type'])) {
             $resolved = $this->resolveByType($node['type'], $node, $locale);
             if ($resolved !== null) {
-                // Inject vào params (cho Shopify-style sections) và props (cho block-builder)
                 $node['params'] ??= [];
                 $node['params']['resolvedData'] = $resolved;
                 $node['props'] ??= [];
@@ -85,7 +104,7 @@ class LayoutResolver
             );
         }
 
-        // Đệ quy blocks (new builder format: { version, blocks: [...] })
+        // Đệ quy blocks (new builder format)
         if (!empty($node['blocks']) && is_array($node['blocks'])) {
             $node['blocks'] = array_map(
                 fn($block) => $this->resolveNode($block, $locale),
@@ -97,12 +116,13 @@ class LayoutResolver
     }
 
     /**
-     * Auto-resolve data theo section/block type.
-     * Plugin có thể mở rộng qua registerSectionResolver().
+     * Resolve data theo section/block type.
+     * 1. Check plugin-registered resolvers first (P4)
+     * 2. Fallback to core types
      */
     private function resolveByType(string $type, array $node, ?string $locale): mixed
     {
-        // Kiểm tra plugin-registered resolvers trước (P4 – plugin logic)
+        // Plugin-registered resolvers (P4 – plugin logic first)
         if (isset(self::$pluginResolvers[$type])) {
             try {
                 return (self::$pluginResolvers[$type])($node, $locale);
@@ -114,7 +134,7 @@ class LayoutResolver
             }
         }
 
-        // Core section types
+        // Core section types only
         $map = $this->getCoreTypeMap();
         if (isset($map[$type])) {
             try {
@@ -131,118 +151,39 @@ class LayoutResolver
     }
 
     /**
-     * Core section type → data resolver mapping.
-     * Chỉ chứa core types; business-specific types đăng ký qua registerSectionResolver().
+     * CORE section types ONLY.
+     * P4: NO plugin/business-specific types here.
+     * Plugin types are registered via PluginResolverRegistrar.
      */
     private function getCoreTypeMap(): array
     {
-        $params = fn(array $node) => array_merge(
-            $node['params'] ?? [],
-            $node['settings'] ?? []  // block-builder format dùng settings
-        );
-
         return [
-            // ── Banner ──
+            // ── Banner (core feature — every tenant has banners) ──
             'banner' => function (array $node, ?string $locale) {
-                $repo = app(\App\Repositories\Banner\BannerRepositoryInterface::class);
-                return collect($repo->manyBy('status', true))
-                    ->map(fn($b) => is_array($b) ? $b : $b->toArray())
-                    ->values()
-                    ->all();
+                try {
+                    $repo = app(\App\Repositories\Banner\BannerRepositoryInterface::class);
+                    return collect($repo->manyBy('status', true))
+                        ->map(fn($b) => is_array($b) ? $b : $b->toArray())
+                        ->values()
+                        ->all();
+                } catch (\Exception $e) {
+                    return [];
+                }
             },
 
-            // ── E-Commerce ──
-            'featured_products' => $this->makeProductResolver(),
-            'featured-products' => $this->makeProductResolver(),
-            'product-listing' => $this->makeProductResolver(),
-
-            'new_arrivals' => $this->makeNewArrivalsResolver(),
-
-            'categories' => function (array $node, ?string $locale) {
-                $repo = app(\App\Repositories\Category\CategoryRepositoryInterface::class);
-                return collect($repo->getCategories())
-                    ->map(fn($c) => is_array($c) ? $c : $c->toArray())
-                    ->values()
-                    ->all();
-            },
-
-            'product-categories' => function (array $node, ?string $locale) {
-                $repo = app(\App\Repositories\Category\CategoryRepositoryInterface::class);
-                return collect($repo->getCategories())
-                    ->map(fn($c) => is_array($c) ? $c : $c->toArray())
-                    ->values()
-                    ->all();
-            },
-
-            'flash_sale' => function (array $node, ?string $locale) {
-                $repo = app(\App\Repositories\FlashSale\FlashSaleRepositoryInterface::class);
-                return collect($repo->getActive())
-                    ->map(fn($f) => is_array($f) ? $f : $f->toArray())
-                    ->values()
-                    ->all();
-            },
-
-            // ── CMS Pages ──
+            // ── CMS Pages (core) ──
             'cms_pages' => function (array $node, ?string $locale) {
-                $repo = app(\App\Repositories\CmsPage\CmsPageRepositoryInterface::class);
-                return collect($repo->all())
-                    ->map(fn($p) => is_array($p) ? $p : $p->toArray())
-                    ->values()
-                    ->all();
+                try {
+                    $repo = app(\App\Repositories\CmsPage\CmsPageRepositoryInterface::class);
+                    return collect($repo->all())
+                        ->map(fn($p) => is_array($p) ? $p : $p->toArray())
+                        ->values()
+                        ->all();
+                } catch (\Exception $e) {
+                    return [];
+                }
             },
-
-            // ── Blog ──
-            'blog_posts' => $this->makeBlogResolver(),
-            'blog-collection' => $this->makeBlogResolver(),
-            'latest-posts' => $this->makeBlogResolver(),
         ];
-    }
-
-    /**
-     * Tạo product resolver dùng lại cho nhiều section types.
-     */
-    private function makeProductResolver(): callable
-    {
-        return function (array $node, ?string $locale) {
-            $p = array_merge($node['params'] ?? [], $node['settings'] ?? []);
-            $limit = (int) ($p['limit'] ?? $p['count'] ?? 12);
-            $repo = app(\App\Repositories\Product\ProductRepositoryInterface::class);
-            return collect($repo->getProducts($limit)->items())
-                ->map(fn($p) => is_array($p) ? $p : $p->toArray())
-                ->all();
-        };
-    }
-
-    /**
-     * Tạo new arrivals resolver.
-     */
-    private function makeNewArrivalsResolver(): callable
-    {
-        return function (array $node, ?string $locale) {
-            $p = array_merge($node['params'] ?? [], $node['settings'] ?? []);
-            $limit = (int) ($p['limit'] ?? $p['count'] ?? 8);
-            $repo = app(\App\Repositories\Product\ProductRepositoryInterface::class);
-            return collect($repo->getProducts($limit)->items())
-                ->map(fn($p) => is_array($p) ? $p : $p->toArray())
-                ->all();
-        };
-    }
-
-    /**
-     * Tạo blog resolver dùng lại cho nhiều section types.
-     */
-    private function makeBlogResolver(): callable
-    {
-        return function (array $node, ?string $locale) {
-            $p = array_merge($node['params'] ?? [], $node['settings'] ?? []);
-            $limit = (int) ($p['limit'] ?? $p['count'] ?? 6);
-            try {
-                // Blog posts qua direct data map (tránh HTTP overhead)
-                return $this->fetchData('api/storefront/blog/posts', ['limit' => $limit], $locale);
-            } catch (\Exception $e) {
-                return [];
-            }
-        };
     }
 
     /**
@@ -264,45 +205,34 @@ class LayoutResolver
             $query['lang'] = $locale;
         }
 
-        $response = Http::timeout(5)->get($url, $query);
-        if ($response->successful()) {
-            $body = $response->json();
-            return $body['data'] ?? $body;
+        try {
+            $response = Http::timeout(5)->get($url, $query);
+            if ($response->successful()) {
+                $body = $response->json();
+                return $body['data'] ?? $body;
+            }
+        } catch (\Exception $e) {
+            Log::warning("LayoutResolver: HTTP fetch failed [{$cleanEndpoint}]", [
+                'error' => $e->getMessage(),
+            ]);
         }
 
         return [];
     }
 
     /**
-     * Direct DB calls (tránh HTTP round-trip cho các endpoint thông dụng).
+     * Direct DB calls for common endpoints (avoids HTTP round-trip).
+     * Only core endpoints here — plugin endpoints use the resolver system.
      */
     private function getDirectDataMap(): array
     {
         return [
             'api/storefront/banners' => function ($params, $locale) {
-                $repo = app(\App\Repositories\Banner\BannerRepositoryInterface::class);
-                return collect($repo->manyBy('status', true))
-                    ->map(fn($b) => is_array($b) ? $b : $b->toArray())
-                    ->values()
-                    ->all();
-            },
-            'api/storefront/products' => function ($params, $locale) {
-                $repo = app(\App\Repositories\Product\ProductRepositoryInterface::class);
-                $perPage = $params['limit'] ?? 12;
-                return collect($repo->getProducts($perPage)->items())
-                    ->map(fn($p) => is_array($p) ? $p : $p->toArray())
-                    ->all();
-            },
-            'api/storefront/blog/posts' => function ($params, $locale) {
-                // Graceful: blog module có thể chưa được cài
                 try {
-                    $limit = $params['limit'] ?? 6;
-                    return \App\Models\Content::where('type', 'post')
-                        ->where('status', 'published')
-                        ->orderByDesc('published_at')
-                        ->limit($limit)
-                        ->get()
-                        ->map(fn($p) => $p->toArray())
+                    $repo = app(\App\Repositories\Banner\BannerRepositoryInterface::class);
+                    return collect($repo->manyBy('status', true))
+                        ->map(fn($b) => is_array($b) ? $b : $b->toArray())
+                        ->values()
                         ->all();
                 } catch (\Exception $e) {
                     return [];

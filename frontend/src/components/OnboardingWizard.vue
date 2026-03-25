@@ -122,19 +122,19 @@
           <div class="bg-white rounded-xl shadow-sm border p-8 space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Tên gọi</label>
-              <input 
-                v-model="siteInfo.name" 
-                type="text" 
-                class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg"
+              <input
+                v-model="siteInfo.name"
+                type="text"
+                class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg text-gray-900 bg-white"
                 placeholder="VD: Cửa hàng Thời Trang VIP"
               >
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
-              <textarea 
-                v-model="siteInfo.description" 
+              <textarea
+                v-model="siteInfo.description"
                 rows="3"
-                class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg resize-none"
+                class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg resize-none text-gray-900 bg-white"
                 placeholder="Tóm tắt về sản phẩm hoặc dịch vụ..."
               ></textarea>
             </div>

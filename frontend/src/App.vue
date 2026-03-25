@@ -226,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, onErrorCaptured } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, onErrorCaptured, provide } from 'vue'
 
 // ── Error Boundary ──
 const appError = ref(null)
@@ -332,6 +332,8 @@ function onOnboardingComplete() {
 
 // ── Installed Modules ──
 const installedModules = ref(JSON.parse(localStorage.getItem('installed_modules') || '[]'))
+// P4: Provide to child components (e.g. StorefrontLayoutBuilder) for module-aware UX
+provide('installedModules', installedModules)
 
 async function fetchInstalledModules() {
   try {
@@ -790,7 +792,9 @@ onMounted(async () => {
     await fetchPermissionsIfEmpty()
   } catch { /* non-critical */ }
 
-  try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
+  if (isModuleInstalled('livestream')) {
+    try { await fetchShops() } catch (err) { console.error('[Admin] Failed to load shops:', err) }
+  }
 })
 
 function onSelectShop(shop) { selectShop(shop) }

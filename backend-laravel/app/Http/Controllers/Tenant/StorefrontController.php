@@ -353,13 +353,15 @@ class StorefrontController extends Controller
 
         // Use layout_pages sections if available, otherwise fall back to system_configs
         $rawSections = $layoutPageSections
-            ?: (json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections);
+            ?: (json_decode($layoutMap['layout_sections'] ?? 'null', true) ?: $defaultSections);
+        $sections = is_array($rawSections) ? $rawSections : (array) $rawSections;
 
-        // P5 – BFF: resolve data cho mọi section, inject vào params.resolvedData
-        // Frontend component KHÔNG cần fetch API riêng lẻ nữa
-        $sections = $this->layoutResolver->resolve(
-            is_array($rawSections) ? $rawSections : json_decode(json_encode($rawSections), true)
-        );
+        // Bundle initial data per active module — safe, isolated try/catch per module.
+        // Frontend reads from window.__STOREFRONT_DATA__ (set by App.vue from this field).
+        // LayoutResolver is NOT called here to prevent errors on tenants missing a module.
+        $hasEcom = in_array('ecom', $installedModules);
+        $hasBlog = in_array('blog', $installedModules);
+        $initialData = $this->buildInitialData($hasEcom, $hasBlog, $categories);
 
         return [
             'store' => $storeInfo,
@@ -374,12 +376,69 @@ class StorefrontController extends Controller
                 'headerConfig' => json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
                 'footerConfig' => json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
                 'promoBar' => json_decode($layoutMap['layout_promo_config'] ?? 'null', true) ?: ['enabled' => true, 'text' => '', 'link' => '/products', 'ctaText' => ''],
-                'meta' => $layoutPageMeta,  // Theme overrides from layout_pages
+                'meta' => $layoutPageMeta,
             ],
             'navLinks' => $nestedLinks->values(),
             'categories' => $categories,
             'languages' => $languages,
+            'initialData' => $initialData,
         ];
+    }
+
+    /**
+     * Build per-module initial data bundle for the storefront homepage.
+     * Each module is isolated in try/catch — a missing module never breaks the response.
+     * Frontend reads from window.__STOREFRONT_DATA__ populated by App.vue.
+     */
+    private function buildInitialData(bool $hasEcom, bool $hasBlog, array $categories): array
+    {
+        $data = ['categories' => $categories];
+
+        // Banners — core feature available on all plans
+        try {
+            $data['banners'] = collect($this->bannerRepo->manyBy('status', true))
+                ->map(fn($b) => is_array($b) ? $b : $b->toArray())
+                ->values()
+                ->all();
+        } catch (\Exception) {
+            $data['banners'] = [];
+        }
+
+        if ($hasEcom) {
+            try {
+                $data['products'] = collect($this->productRepo->getProducts(12)->items())
+                    ->map(fn($p) => is_array($p) ? $p : $p->toArray())
+                    ->all();
+            } catch (\Exception) {
+                $data['products'] = [];
+            }
+
+            try {
+                $data['flashSales'] = collect($this->flashSaleRepo->getActive())
+                    ->map(fn($f) => is_array($f) ? $f : $f->toArray())
+                    ->values()
+                    ->all();
+            } catch (\Exception) {
+                $data['flashSales'] = [];
+            }
+        }
+
+        if ($hasBlog) {
+            try {
+                $data['blogPosts'] = \App\Models\Content::ofType('post')
+                    ->published()
+                    ->orderBy('published_at', 'desc')
+                    ->limit(6)
+                    ->get()
+                    ->map(fn($p) => $p->toArray())
+                    ->values()
+                    ->all();
+            } catch (\Exception) {
+                $data['blogPosts'] = [];
+            }
+        }
+
+        return $data;
     }
 
     /**

@@ -103,13 +103,15 @@
       </div>
     </div>
 
-    <!-- Live Preview (iframe) -->
+    <!-- Live Preview (iframe with postMessage) -->
     <div v-else class="preview-live" :style="{ maxWidth: previewWidth }">
       <iframe
         v-if="storefrontUrl"
-        :src="livePreviewUrl"
+        ref="iframeRef"
+        :src="livePreviewBaseUrl"
         class="preview-iframe"
         :key="previewKey"
+        @load="sendLayoutToIframe"
       ></iframe>
       <div v-else class="preview-no-url">
         <AlertCircle :size="24" />
@@ -130,7 +132,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { Eye, Monitor, Tablet, Smartphone, AlertCircle } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 
@@ -141,7 +143,7 @@ const props = defineProps({
   previewWidth: { type: String, default: '100%' },
   previewKey: { type: Number, default: 0 },
   storefrontUrl: { type: String, default: '' },
-  livePreviewUrl: { type: String, default: '' },
+  livePreviewBaseUrl: { type: String, default: '' },
   pages: { type: Object, default: () => ({}) },
   activeBuiltinPage: { type: String, default: null },
   activePageId: { type: String, default: null },
@@ -149,14 +151,36 @@ const props = defineProps({
   activeSections: { type: Array, default: () => [] },
   sectionMeta: { type: Object, default: () => ({}) },
   pageConfigs: { type: Object, default: () => ({}) },
-  footerConfig: { type: Object, default: () => ({}) }
+  footerConfig: { type: Object, default: () => ({}) },
+  headerConfig: { type: Object, default: () => ({}) },
+  layoutPayload: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:previewWidth', 'update:storefrontUrl', 'refresh-live'])
+
+const iframeRef = ref(null)
 
 const footerPreviewStyle = computed(() => {
   const s = {}
   if (props.footerConfig.bgColor) s.background = props.footerConfig.bgColor
   return s
 })
+
+// ── PostMessage-based live preview ──
+function sendLayoutToIframe() {
+  if (!iframeRef.value?.contentWindow || !props.layoutPayload) return
+  iframeRef.value.contentWindow.postMessage({
+    type: 'layout-preview-update',
+    payload: props.layoutPayload,
+  }, '*')
+}
+
+// Watch layoutPayload changes and send via postMessage (debounced)
+let postMessageTimer
+watch(() => props.layoutPayload, () => {
+  clearTimeout(postMessageTimer)
+  postMessageTimer = setTimeout(sendLayoutToIframe, 300)
+}, { deep: true })
+
+onBeforeUnmount(() => clearTimeout(postMessageTimer))
 </script>

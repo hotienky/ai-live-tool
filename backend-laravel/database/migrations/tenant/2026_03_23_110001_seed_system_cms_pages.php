@@ -45,11 +45,14 @@ return new class extends Migration
     public function up(): void
     {
         $now = now();
-        // Xác định kiểu của cột status để cast cho đúng (tránh lỗi PGSQL boolean vs integer trên các tenant cũ)
-        $isStatusBool = DB::table('information_schema.columns')
-            ->where('table_name', 'cms_pages')
-            ->where('column_name', 'status')
-            ->value('data_type') === 'boolean';
+        // Xác định kiểu của cột status — dùng Schema::getColumnType thay vì information_schema (cross-DB)
+        $isStatusBool = false;
+        try {
+            $colType = \Illuminate\Support\Facades\Schema::getColumnType('cms_pages', 'status');
+            $isStatusBool = $colType === 'boolean';
+        } catch (\Throwable $e) {
+            // Fallback: on SQLite, tinyint acts as boolean
+        }
 
         foreach ($this->systemPages as $page) {
             // Fix boolean values for PGSQL

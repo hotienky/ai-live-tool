@@ -45,226 +45,120 @@
       <!-- Expanded Section Parameters -->
       <transition name="expand">
         <div v-if="expandedSection === section.type" class="section-params">
-          <template v-if="section.type === 'banner'">
-            <div class="param-row">
-              <label>{{ t('admin.msg_767b70a3', 'Tự chuyển') }}</label>
-              <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.autoplay" /><span class="toggle-slider"></span></label>
-            </div>
-            <div class="param-row" v-if="section.params.autoplay">
-              <label>Interval (ms)</label>
-              <input type="number" v-model.number="section.params.interval" min="1000" max="10000" step="500" class="param-input" />
-            </div>
-            <div class="param-row">
-              <label>{{ t('admin.msg_fd3684d7', 'Chiều cao') }}</label>
-              <select v-model="section.params.height" class="param-select">
-                <option value="sm">{{ t('admin.msg_4c0e810d', 'Nhỏ') }}</option><option value="md">{{ t('admin.msg_74ffe0a7', 'Vừa') }}</option><option value="lg">{{ t('admin.msg_41d05f9b', 'Lớn') }}</option>
-              </select>
-            </div>
-          </template>
+          <!-- Schema-Driven Inputs -->
+          <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
+            
+            <!-- Standard Prop Inputs -->
+            <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || getParams(section)[field.condition] !== false)">
+              <label v-if="field.type !== 'visualEditor'">{{ field.label }}</label>
+              
+              <template v-if="field.type === 'boolean'">
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="getParams(section)[field.key]" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </template>
+              
+              <template v-else-if="field.type === 'text' || field.type === 'url' || field.type === 'number'">
+                <input :type="field.type" v-model="getParams(section)[field.key]" class="param-input" :class="{'param-input--wide': field.type!=='number'}" :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
+              </template>
 
-          <template v-if="section.type === 'categories'">
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label>
-              <input type="range" v-model.number="section.params.columns" min="3" max="8" class="param-range" />
-              <span class="param-value">{{ section.params.columns }}</span>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_22afdb5d', 'Hiện mô tả') }}</label>
-              <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.showDescription" /><span class="toggle-slider"></span></label>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_bb9e2508', 'Bố cục') }}</label>
-              <select v-model="section.params.layoutStyle" class="param-select">
-                <option value="grid">{{ t('admin.msg_effa6fbb', 'Lưới') }}</option><option value="carousel">Carousel</option>
-              </select>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_1f89a9a5', 'Hiện số SP') }}</label>
-              <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.showCount" /><span class="toggle-slider"></span></label>
-            </div>
-            <div class="content-editor" v-if="allCategories.length">
-              <label class="content-editor__label">{{ t('admin.msg_092f794e', 'Chọn danh mục hiển thị') }}</label>
-              <div v-for="cat in allCategories" :key="cat.id" class="param-row">
-                <label style="font-size:12px">{{ cat.name }}</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" :checked="(section.params.selectedCategoryIds || []).includes(cat.id)" @change="toggleCategoryId(section, cat.id)" /><span class="toggle-slider"></span></label>
-              </div>
-              <small style="color:#888;font-size:11px">{{ t('admin.msg_951ec4bf', 'Bỏ chọn tất cả = hiện tất cả') }}</small>
-            </div>
-          </template>
+              <template v-else-if="field.type === 'range'">
+                <input type="range" v-model.number="getParams(section)[field.key]" :min="field.min" :max="field.max" :step="field.step" class="param-range" />
+                <span class="param-value">{{ getParams(section)[field.key] || field.min }}</span>
+              </template>
 
-          <template v-if="section.type === 'flash_sale'">
-            <div class="param-row"><label>{{ t('admin.msg_56d75810', 'Hiện đếm ngược') }}</label>
-              <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.showTimer" /><span class="toggle-slider"></span></label>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_4ec5f715', 'Hiện thanh tiến độ') }}</label>
-              <label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.showProgress" /><span class="toggle-slider"></span></label>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_1b625eb4', 'Số SP') }}</label>
-              <input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" /><span class="param-value">{{ section.params.count || 8 }}</span>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label>
-              <input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns || 4 }}</span>
-            </div>
-          </template>
+              <template v-else-if="field.type === 'select'">
+                <select v-model="getParams(section)[field.key]" class="param-select">
+                  <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+              </template>
 
-          <template v-if="section.type === 'featured_products'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" :placeholder="t('admin.msg_c90c3b', 'Sản phẩm nổi bật')" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_61012ba9', 'Số lượng') }}</label><input type="range" v-model.number="section.params.count" min="4" max="16" class="param-range" /><span class="param-value">{{ section.params.count }}</span></div>
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
-            <div class="param-row"><label>{{ t('admin.msg_748521e4', 'Lọc danh mục') }}</label>
-              <select v-model="section.params.filterCategory" class="param-select">
-                <option value="">{{ t('admin.msg_d8586d08', 'Tất cả') }}</option><option v-for="c in allCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
-              </select>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_29deb795', 'Sắp xếp') }}</label>
-              <select v-model="section.params.sortOrder" class="param-select">
-                <option value="newest">{{ t('admin.msg_2524bba6', 'Mới nhất') }}</option><option value="bestselling">{{ t('admin.msg_ad80f0c3', 'Bán chạy') }}</option>
-                <option value="price_asc">{{ t('admin.msg_be35e5ab', 'Giá tăng') }}</option><option value="price_desc">{{ t('admin.msg_f774dbab', 'Giá giảm') }}</option>
-              </select>
-            </div>
-            <div class="param-row" style="margin-top:6px;border-top:1px solid var(--glass-border);padding-top:8px"><label>{{ t('admin.msg_f74ff8a0', 'Slides/hàng') }}</label>
-              <select v-model.number="section.params.slidesPerView" class="param-select">
-                <option :value="2">{{ t('admin.msg_55d21e74', '2 sản phẩm') }}</option><option :value="3">{{ t('admin.msg_e90a77fa', '3 sản phẩm') }}</option>
-              </select>
-            </div>
-            <div class="param-row"><label>Auto-scroll</label><label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.autoplay" /><span class="toggle-slider"></span></label></div>
-            <div class="param-row" v-if="section.params.autoplay !== false"><label>{{ t('admin.msg_178a732e', 'Tốc độ (giây)') }}</label>
-              <input type="range" v-model.number="section.params.autoplaySpeed" min="2000" max="8000" step="500" class="param-range" /><span class="param-value">{{ (section.params.autoplaySpeed || 4000) / 1000 }}s</span>
-            </div>
-          </template>
+              <template v-else-if="field.type === 'categorySelect'">
+                <select v-model="getParams(section)[field.key]" class="param-select">
+                  <option value="">{{ t('admin.msg_d8586d08', 'Tất cả') }}</option>
+                  <option v-for="c in allCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
+                </select>
+              </template>
 
-          <template v-if="section.type === 'new_arrivals'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" :placeholder="t('admin.msg_f0676a', 'Hàng mới về')" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_61012ba9', 'Số lượng') }}</label><input type="range" v-model.number="section.params.count" min="4" max="12" class="param-range" /><span class="param-value">{{ section.params.count }}</span></div>
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns || 4 }}</span></div>
-            <div class="param-row"><label>{{ t('admin.msg_29deb795', 'Sắp xếp') }}</label>
-              <select v-model="section.params.sortOrder" class="param-select">
-                <option value="newest">{{ t('admin.msg_2524bba6', 'Mới nhất') }}</option><option value="bestselling">{{ t('admin.msg_ad80f0c3', 'Bán chạy') }}</option><option value="price_asc">{{ t('admin.msg_be35e5ab', 'Giá tăng') }}</option><option value="price_desc">{{ t('admin.msg_f774dbab', 'Giá giảm') }}</option>
-              </select>
+              <template v-else-if="field.type === 'visualEditor'">
+                <button class="btn-save" style="width: 100%; justify-content: center; background: var(--accent-gradient); min-width: 100%;" @click.stop="$emit('open-block-editor', section)">
+                  <Sparkles :size="14" /> {{ field.label }}
+                </button>
+              </template>
             </div>
-            <div class="param-row"><label>{{ t('admin.msg_f74ff8a0', 'Slides/hàng') }}</label>
-              <select v-model.number="section.params.slidesPerView" class="param-select">
-                <option :value="2">{{ t('admin.msg_55d21e74', '2 sản phẩm') }}</option><option :value="3">{{ t('admin.msg_e90a77fa', '3 sản phẩm') }}</option>
-              </select>
-            </div>
-            <div class="param-row"><label>Auto-scroll</label><label class="toggle-switch toggle-switch--sm" @click.stop><input type="checkbox" v-model="section.params.autoplay" /><span class="toggle-slider"></span></label></div>
-          </template>
 
-          <template v-if="section.type === 'cms_pages'">
-            <div class="param-row"><label>{{ t('admin.msg_bb9e2508', 'Bố cục') }}</label>
-              <select v-model="section.params.layout" class="param-select"><option value="grid">{{ t('admin.msg_effa6fbb', 'Lưới') }}</option><option value="list">{{ t('admin.msg_6bef01b6', 'Danh sách') }}</option></select>
-            </div>
-            <div class="param-row"><label>{{ t('admin.msg_9b8ce759', 'Tối đa') }}</label>
-              <input type="range" v-model.number="section.params.maxPages" min="3" max="12" class="param-range" /><span class="param-value">{{ section.params.maxPages }}</span>
-            </div>
-          </template>
-
-          <!-- Library blocks -->
-          <template v-if="section.type === 'video_embed'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="content-editor">
-              <label class="content-editor__label">{{ t('admin.msg_3968925f', 'Danh sách video') }}</label>
-              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
-                <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL video" />
-                <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
-              </div>
-              <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })"><Plus :size="12" /> {{ t('admin.msg_8a0b40fe', 'Thêm video') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'testimonials'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label><input type="range" v-model.number="section.params.columns" min="2" max="4" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
-            <div class="content-editor">
+            <!-- List / Content Array -->
+            <div class="content-editor" v-if="field.type === 'list'">
+              <label class="content-editor__label">{{ field.label }}</label>
               <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
-                <div style="display:flex;gap:4px">
-                  <input type="text" v-model="item.name" class="param-input param-input--wide" :placeholder="t('admin.msg_e94c4a', 'Tên khách hàng')" />
-                  <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
+                <div v-for="subf in field.fields" :key="subf.key" style="display:flex; gap:4px; width: 100%;">
+                  
+                  <template v-if="subf.type === 'text' || subf.type === 'url'">
+                    <input :type="subf.type" v-model="item[subf.key]" class="param-input param-input--wide" :placeholder="subf.placeholder" style="flex:1" />
+                  </template>
+                  
+                  <template v-else-if="subf.type === 'textarea'">
+                    <textarea v-model="item[subf.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="subf.placeholder" style="flex:1"></textarea>
+                  </template>
+
+                  <template v-else-if="subf.type === 'select'">
+                    <select v-model="item[subf.key]" class="param-select">
+                      <option v-for="o in subf.options" :key="o.value" :value="o.value">{{ o.label }}</option>
+                    </select>
+                  </template>
+                  
+                  <template v-else-if="subf.type === 'media'">
+                    <MediaPicker v-model="item[subf.key]" :placeholder="subf.placeholder" accept="image/*,video/*" style="flex:1" />
+                  </template>
+
+                  <!-- Only show delete bin on first field to save space -->
+                  <button v-if="subf === field.fields[0]" class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
                 </div>
-                <textarea v-model="item.text" class="param-input param-input--wide content-textarea" rows="2"></textarea>
               </div>
-              <button class="btn-add-item" @click="addContentItem(section, { name: '', text: '', rating: 5, avatar: '' })"><Plus :size="12" /> {{ t('admin.msg_4decacef', 'Thêm đánh giá') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'faq'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="content-editor">
-              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
-                <div style="display:flex;gap:4px">
-                  <input type="text" v-model="item.question" class="param-input param-input--wide" :placeholder="t('admin.msg_c1a8b2', 'Câu hỏi')" />
-                  <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
-                </div>
-                <textarea v-model="item.answer" class="param-input param-input--wide content-textarea" rows="2"></textarea>
-              </div>
-              <button class="btn-add-item" @click="addContentItem(section, { question: '', answer: '' })"><Plus :size="12" /> {{ t('admin.msg_6fe7c970', 'Thêm câu hỏi') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'image_gallery'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_fc5d878d', 'Số cột') }}</label><input type="range" v-model.number="section.params.columns" min="2" max="5" class="param-range" /><span class="param-value">{{ section.params.columns }}</span></div>
-            <div class="content-editor">
-              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
-                <MediaPicker v-model="item.url" :placeholder="t('admin.msg_fbee88', 'URL ảnh')" accept="image/*" />
-                <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
-              </div>
-              <button class="btn-add-item" @click="addContentItem(section, { url: '', caption: '' })"><Plus :size="12" /> {{ t('admin.msg_f63081d2', 'Thêm ảnh') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'text_block'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="content-editor">
-              <RichTextEditor :modelValue="getTextBlockContent(section)" @update:modelValue="setTextBlockContent(section, $event)" :placeholder="t('admin.msg_html_placeholder', 'Nhập nội dung...')" />
-            </div>
-          </template>
-
-          <template v-if="section.type === 'newsletter'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_ebfe7133', 'Phụ đề') }}</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_2bb71139', 'Nút bấm') }}</label><input type="text" v-model="getParams(section).buttonText" class="param-input param-input--wide" /></div>
-          </template>
-
-          <template v-if="section.type === 'social_feed'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="content-editor">
-              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item">
-                <select v-model="item.platform" class="param-select"><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="youtube">YouTube</option><option value="tiktok">TikTok</option></select>
-                <input type="url" v-model="item.url" class="param-input param-input--wide" placeholder="URL" />
-                <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
-              </div>
-              <button class="btn-add-item" @click="addContentItem(section, { platform: 'facebook', url: '', label: '' })"><Plus :size="12" /> {{ t('admin.msg_fcf3aa73', 'Thêm liên kết') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'brands_slider'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="content-editor">
-              <div v-for="(item, i) in getContent(section)" :key="i" class="content-item" style="flex-direction:column;gap:4px">
-                <div style="display:flex;gap:4px">
-                  <input type="text" v-model="item.name" class="param-input param-input--wide" :placeholder="t('admin.msg_9aced4', 'Tên hãng')" />
-                  <button class="btn-remove-item" @click="removeContentItem(section, i)"><Trash2 :size="12" /></button>
-                </div>
-                <MediaPicker v-model="item.logo" placeholder="URL Logo" accept="image/*" />
-              </div>
-              <button class="btn-add-item" @click="addContentItem(section, { name: '', logo: '', url: '' })"><Plus :size="12" /> {{ t('admin.msg_344ba403', 'Thêm hãng') }}</button>
-            </div>
-          </template>
-
-          <template v-if="section.type === 'custom_block'">
-            <div class="param-row" style="margin-top: 10px;">
-              <button class="btn-save" style="width: 100%; justify-content: center; background: var(--accent-gradient);" @click.stop="$emit('open-block-editor', section)">
-                <Sparkles :size="14" /> Mở Visual Builder (Kéo Thả)
+              <button class="btn-add-item" @click="addContentItem(section, field.defaults || (field.fields.reduce((acc, f) => { acc[f.key]=''; return acc }, {})))">
+                <Plus :size="12" /> Thêm mục
               </button>
             </div>
-          </template>
 
-          <template v-if="section.type === 'restaurant_menu'">
-            <div class="param-row"><label>{{ t('admin.msg_ae4b89f8', 'Tiêu đề') }}</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>{{ t('admin.msg_ebfe7133', 'Phụ đề') }}</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
-          </template>
+            <!-- Category Checkbox List -->
+            <div class="content-editor" v-if="field.type === 'categoryList' && allCategories.length">
+              <label class="content-editor__label">{{ field.label }}</label>
+              <div v-for="cat in allCategories" :key="cat.id" class="param-row" style="margin-bottom: 4px;">
+                <label style="font-size:12px">{{ cat.name }}</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" :checked="(getParams(section)[field.key] || []).includes(cat.id)" @change="toggleCategoryId(section, cat.id, field.key)" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <small style="color:#888;font-size:11px">Bỏ chọn tất cả = hiện tất cả</small>
+            </div>
 
-          <template v-if="['booking_services','salon_services','property_listings','upcoming_events'].includes(section.type)">
-            <div class="param-row"><label>Tiêu đề</label><input type="text" v-model="getParams(section).title" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>Phụ đề</label><input type="text" v-model="getParams(section).subtitle" class="param-input param-input--wide" /></div>
-            <div class="param-row"><label>Số mục hiển thị</label><input type="number" v-model.number="getParams(section).count" class="param-input" min="1" max="20" /></div>
+            <!-- RichText -->
+            <div class="content-editor" v-if="field.type === 'richtext'">
+              <label class="content-editor__label">{{ field.label }}</label>
+              <RichTextEditor :modelValue="getTextBlockContent(section)" @update:modelValue="setTextBlockContent(section, $event)" placeholder="Nhập nội dung..." />
+            </div>
+
+            <!-- Nested Children grid -->
+            <div class="content-editor nested-container" v-if="field.type === 'children'" style="padding: 8px; background: rgba(0,0,0,0.02); border: 1px dashed var(--glass-border); border-radius: 8px; margin-top: 12px;">
+              <label class="content-editor__label" style="display:flex; justify-content: space-between; align-items:center;">
+                <span>{{ field.label }}</span>
+                <span style="font-size: 10px; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px;">Khu vực kéo thả</span>
+              </label>
+              <!-- Recursive Call to Self -->
+              <LayoutSectionManager 
+                v-if="expandedSection === section.type"
+                :sections="section.children || (section.children = [])"
+                @update:sections="section.children = $event"
+                :sectionMeta="sectionMeta"
+                :allCategories="allCategories"
+              />
+              <div v-if="!section.children || section.children.length === 0" style="text-align: center; padding: 20px; font-size: 11px; color: #888;">
+                Chưa có component nào tron lưới. Kéo component từ danh sách thả vào đây.
+              </div>
+            </div>
+
           </template>
 
           <!-- Style Params -->
@@ -286,17 +180,26 @@
 
           <details class="section-style-details">
             <summary>🎨 Style & Advanced</summary>
-            <div class="param-row">
-              <label>{{ t('admin.msg_8821399e', 'Nền') }}</label><input type="color" v-model="section.params.sectionBgColor" class="param-color" />
-              <button v-if="section.params.sectionBgColor" class="btn-clear-color" @click="section.params.sectionBgColor = ''"><X :size="10" /></button>
-            </div>
-            <div class="param-row"><label>Padding</label>
-              <select v-model="section.params.sectionPadding" class="param-select">
-                <option value="">{{ t('admin.msg_a57a8ecd', 'Mặc định') }}</option><option value="sm">{{ t('admin.msg_4c0e810d', 'Nhỏ') }}</option><option value="md">{{ t('admin.msg_74ffe0a7', 'Vừa') }}</option><option value="lg">{{ t('admin.msg_41d05f9b', 'Lớn') }}</option><option value="xl">{{ t('admin.msg_e5c56836', 'Rất lớn') }}</option>
-              </select>
-            </div>
-            <div class="param-row"><label>Anchor ID</label><input type="text" v-model="section.params.anchorId" class="param-input" /></div>
-            <div class="param-row"><label>CSS Class</label><input type="text" v-model="section.params.cssClass" class="param-input" /></div>
+            <template v-for="sfield in styleSchema" :key="sfield.key">
+              <div class="param-row">
+                <label>{{ sfield.label }}</label>
+                
+                <template v-if="sfield.type === 'color'">
+                  <input type="color" v-model="section.params[sfield.key]" class="param-color" />
+                  <button v-if="section.params[sfield.key]" class="btn-clear-color" @click="section.params[sfield.key] = ''"><X :size="10" /></button>
+                </template>
+                
+                <template v-else-if="sfield.type === 'select'">
+                  <select v-model="section.params[sfield.key]" class="param-select">
+                    <option v-for="o in sfield.options" :key="o.value" :value="o.value">{{ o.label }}</option>
+                  </select>
+                </template>
+                
+                <template v-else-if="sfield.type === 'text'">
+                  <input type="text" v-model="section.params[sfield.key]" class="param-input" />
+                </template>
+              </div>
+            </template>
           </details>
         </div>
       </transition>
@@ -309,6 +212,7 @@ import { ref, computed } from 'vue'
 import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2 } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
+import { sectionSchemas, styleSchema } from './sectionSchemas.js'
 import LanguageTabs from '../LanguageTabs.vue'
 import MediaPicker from '../MediaPicker.vue'
 import RichTextEditor from '../RichTextEditor.vue'
@@ -435,11 +339,11 @@ function removeContentItem(section, index) {
     })
   }
 }
-function toggleCategoryId(section, catId) {
-  if (!section.params.selectedCategoryIds) section.params.selectedCategoryIds = []
-  const idx = section.params.selectedCategoryIds.indexOf(catId)
-  if (idx >= 0) section.params.selectedCategoryIds.splice(idx, 1)
-  else section.params.selectedCategoryIds.push(catId)
+function toggleCategoryId(section, catId, key = 'selectedCategoryIds') {
+  if (!section.params[key]) section.params[key] = []
+  const idx = section.params[key].indexOf(catId)
+  if (idx >= 0) section.params[key].splice(idx, 1)
+  else section.params[key].push(catId)
 }
 
 // ── Per-section auto translate ──
@@ -449,49 +353,49 @@ async function autoTranslateSection(section) {
   const lang = currentLang.value
   if (!lang || lang === defaultLangCode.value) return
   translatingSection.value = section.type
+  const schema = sectionSchemas[section.type] || []
 
   try {
-    // Ensure translations structure exists
     getParams(section)
     const tp = section.translations[lang].params
     const tc = section.translations[lang].content
 
-    // Translate params fields (title, subtitle, buttonText)
-    const paramFields = ['title', 'subtitle', 'buttonText']
-    for (const f of paramFields) {
-      const src = section.params[f]
-      if (!src || !String(src).trim()) continue
-      try {
-        const res = await apiFetch('/languages/auto-translate', {
-          method: 'POST',
-          body: JSON.stringify({ text: src, from: defaultLangCode.value, to: lang })
-        })
-        const data = await res.json()
-        if (data?.translated) tp[f] = data.translated
-      } catch {}
+    // Translate top-level params (text, richtext)
+    for (const field of schema) {
+      if ((field.type === 'text' || field.type === 'richtext') && section.params[field.key]) {
+        try {
+          const res = await apiFetch('/languages/auto-translate', {
+            method: 'POST',
+            body: JSON.stringify({ text: section.params[field.key], from: defaultLangCode.value, to: lang })
+          })
+          const data = await res.json()
+          if (data?.translated) tp[field.key] = data.translated
+        } catch {}
+      }
     }
 
-    // Translate content items (arrays)
-    if (Array.isArray(section.content) && Array.isArray(tc)) {
-      const contentFields = ['name', 'text', 'question', 'answer', 'label', 'caption']
+    // Translate content array items
+    const listField = schema.find(f => f.type === 'list')
+    if (listField && Array.isArray(section.content) && Array.isArray(tc)) {
+      const translatableKeys = listField.fields.filter(f => f.type === 'text' || f.type === 'textarea').map(f => f.key)
       for (let i = 0; i < section.content.length; i++) {
         const item = section.content[i]
         if (!tc[i]) tc[i] = {}
-        for (const f of contentFields) {
-          if (!item[f] || !String(item[f]).trim()) continue
+        for (const k of translatableKeys) {
+          if (!item[k] || !String(item[k]).trim()) continue
           try {
             const res = await apiFetch('/languages/auto-translate', {
               method: 'POST',
-              body: JSON.stringify({ text: item[f], from: defaultLangCode.value, to: lang })
+              body: JSON.stringify({ text: item[k], from: defaultLangCode.value, to: lang })
             })
             const data = await res.json()
-            if (data?.translated) tc[i][f] = data.translated
+            if (data?.translated) tc[i][k] = data.translated
           } catch {}
         }
       }
     }
 
-    // Translate string content (text_block)
+    // Translate old plain string content block if any
     if (typeof section.content === 'string' && section.content.trim()) {
       try {
         const res = await apiFetch('/languages/auto-translate', {

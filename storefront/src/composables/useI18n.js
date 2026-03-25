@@ -38,23 +38,27 @@ export function useI18n() {
     return fallback !== undefined ? fallback : ''
   }
 
+  function applyLanguages(langs) {
+    if (!Array.isArray(langs) || langs.length === 0) return
+    state.languages = langs
+    const defaultLang = langs.find(l => l.is_default) || langs[0]
+    if (defaultLang) state.defaultLangCode = defaultLang.code
+    const valid = state.currentLang && langs.find(l => l.code === state.currentLang)
+    if (!valid) {
+      state.currentLang = state.defaultLangCode || langs[0]?.code || 'vi'
+      localStorage.setItem(LANG_KEY, state.currentLang)
+    }
+  }
+
+  /** Init languages from siteConfig.languages — skips /languages API call. */
+  function initLanguagesFromConfig(languages) {
+    applyLanguages(languages)
+  }
+
   async function loadLanguages() {
     try {
       const res = await apiFetch('/languages')
-      state.languages = Array.isArray(res) ? res : []
-      // Detect default language from API
-      const defaultLang = state.languages.find(l => l.is_default) || state.languages[0]
-      if (defaultLang) {
-        state.defaultLangCode = defaultLang.code
-      }
-      // If current lang is empty or not in the list, fallback to default
-      if (state.languages.length > 0) {
-        const valid = state.currentLang && state.languages.find(l => l.code === state.currentLang)
-        if (!valid) {
-          state.currentLang = state.defaultLangCode || (state.languages[0]?.code) || 'vi'
-          localStorage.setItem(LANG_KEY, state.currentLang)
-        }
-      }
+      applyLanguages(Array.isArray(res) ? res : [])
     } catch (e) { console.warn('Failed to load languages:', e) }
   }
 
@@ -78,12 +82,13 @@ export function useI18n() {
 
   async function init() {
     if (!state.loaded) {
-      await loadLanguages()
+      // Skip /languages call if already populated from siteConfig
+      if (state.languages.length === 0) await loadLanguages()
       await loadTranslations()
     }
   }
 
   const defaultLangCode = computed(() => state.defaultLangCode)
 
-  return { t, currentLang, defaultLangCode, languages, setLang, init, loadLanguages, loadTranslations }
+  return { t, currentLang, defaultLangCode, languages, setLang, init, initLanguagesFromConfig, loadLanguages, loadTranslations }
 }

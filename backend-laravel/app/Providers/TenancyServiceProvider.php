@@ -66,6 +66,10 @@ class TenancyServiceProvider extends ServiceProvider
             Events\InitializingTenancy::class => [],
             Events\TenancyInitialized::class => [
                 Listeners\BootstrapTenancy::class,
+                // P4: Register plugin section resolvers after tenancy boot
+                function (Events\TenancyInitialized $event) {
+                    \App\Services\PluginResolverRegistrar::boot();
+                },
             ],
 
             Events\EndingTenancy::class => [],

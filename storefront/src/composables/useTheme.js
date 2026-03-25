@@ -161,29 +161,40 @@ export function useTheme() {
     applyTheme()
   }
 
+  function applyThemeConfig(config) {
+    if (config && typeof config === 'object') {
+      if (config['dark_accent']) state.dark.accent = config['dark_accent']
+      else if (config['accent']) state.dark.accent = config['accent']
+      if (config['light_accent']) state.light.accent = config['light_accent']
+      else if (config['accent']) state.light.accent = config['accent']
+      if (config['font'])       state.font      = config['font']
+      if (config['radius'])     state.radius    = config['radius']
+      if (config['card_style']) state.cardStyle = config['card_style']
+      if (config['mode']) {
+        state.tenantDefaultMode = config['mode']
+        if (!localStorage.getItem(THEME_KEY)) {
+          state.mode = config['mode']
+        }
+      }
+    }
+    state.loaded = true
+    applyTheme()
+  }
+
+  /** Init from siteConfig.theme — no API call needed. */
+  function initFromConfig(themeData) {
+    applyThemeConfig(themeData)
+  }
+
   async function loadThemeConfig() {
     try {
       const config = await apiFetch('/theme')
-      if (config && typeof config === 'object') {
-        // Per-mode accents (new format)
-        if (config['dark_accent']) state.dark.accent = config['dark_accent']
-        else if (config['accent']) state.dark.accent = config['accent'] // backward compat
-        if (config['light_accent']) state.light.accent = config['light_accent']
-        else if (config['accent']) state.light.accent = config['accent'] // backward compat
-
-        if (config['font'])   state.font   = config['font']
-        if (config['radius']) state.radius  = config['radius']
-        if (config['card_style']) state.cardStyle = config['card_style']
-        if (config['mode']) {
-          state.tenantDefaultMode = config['mode']
-          if (!localStorage.getItem(THEME_KEY)) {
-            state.mode = config['mode']
-          }
-        }
-      }
+      applyThemeConfig(config)
     } catch { /* use defaults */ }
-    state.loaded = true
-    applyTheme()
+    if (!state.loaded) {
+      state.loaded = true
+      applyTheme()
+    }
   }
 
   async function init() {
@@ -195,7 +206,7 @@ export function useTheme() {
   }
 
   return {
-    isDark, themeMode, toggleTheme, setMode, init,
+    isDark, themeMode, toggleTheme, setMode, init, initFromConfig,
     loadThemeConfig,
     accent: computed(() => state.mode === 'light' ? state.light.accent : state.dark.accent),
     font: computed(() => state.font),

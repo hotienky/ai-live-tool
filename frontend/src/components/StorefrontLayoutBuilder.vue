@@ -35,8 +35,15 @@
         </div>
       </div>
       <div class="layout-builder__header-actions">
+        <!-- Status badge -->
+        <span v-if="layoutPageVersion" class="lb-status-badge" :class="'lb-status-badge--' + layoutPageStatus">
+          v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? '✅ Published' : '📝 Draft' }}
+        </span>
         <button v-if="undoStack.length" class="btn-undo" @click="undo" :title="t('admin.msg_96ce272e', 'Hoàn tác')">
           <Undo2 :size="14" />
+        </button>
+        <button v-if="layoutPageId" class="btn-preview-toggle" @click="showVersionHistory = true" :title="t('admin.msg_vh_title', 'Lịch sử phiên bản')">
+          <History :size="14" /> {{ t('admin.msg_vh_short', 'Versions') }}
         </button>
         <button class="btn-preview-toggle" @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'">
           <Monitor v-if="previewMode === 'wireframe'" :size="14" />
@@ -46,7 +53,7 @@
         <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
           <FileEdit :size="14" /> {{ t('admin.msg_867cf3b9', 'Nháp') }}
         </button>
-        <button class="btn-save" @click="saveLayout" :disabled="saving">
+        <button class="btn-save" @click="handlePublish" :disabled="saving">
           <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.msg_723f4d22', 'Xuất bản') }}
         </button>
       </div>
@@ -382,7 +389,7 @@
         v-model:preview-width="previewWidth"
         :preview-key="previewKey"
         v-model:storefront-url="storefrontUrl"
-        :live-preview-url="livePreviewUrl"
+        :live-preview-base-url="livePreviewBaseUrl"
         :pages="pages"
         :active-builtin-page="activeBuiltinPage"
         :active-page-id="activePageId"
@@ -391,6 +398,8 @@
         :section-meta="sectionMeta"
         :page-configs="pageConfigs"
         :footer-config="footerConfig"
+        :header-config="headerConfig"
+        :layout-payload="layoutPayload"
         @refresh-live="previewKey++"
       />
     </div>
@@ -403,39 +412,26 @@
           <button class="btn-close" @click="showLibrary = false"><X :size="18" /></button>
         </div>
         <div class="library-grouped">
-          <!-- Content Blocks -->
-          <div class="library-group">
-            <h4 class="library-group__title">📝 Nội dung & Tương tác</h4>
+          <div v-for="(items, category) in groupedLibraryItems" :key="category" class="library-group">
+            <h4 class="library-group__title">{{ category }}</h4>
             <div class="library-grid">
               <button
-                v-for="lib in libraryItems.filter(l => ['testimonials','faq','image_gallery','video_embed','text_block','newsletter','social_feed','brands_slider','custom_block'].includes(l.type))"
+                v-for="lib in items"
                 :key="lib.type"
                 class="library-card"
-                :class="{ added: sections.some(s => s.type === lib.type) }"
-                @click="addLibrarySection(lib)"
+                :class="{
+                  added: sections.some(s => s.type === lib.type),
+                  'library-card--disabled': !lib.available
+                }"
+                @click="lib.available ? addLibrarySection(lib) : null"
+                :disabled="!lib.available"
               >
-                <component :is="lib.icon" :size="24" />
+                <span class="library-card__icon">{{ lib.icon }}</span>
                 <strong>{{ lib.label }}</strong>
-                <span>{{ lib.desc }}</span>
-                <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
-              </button>
-            </div>
-          </div>
-          <!-- Vertical Blocks -->
-          <div class="library-group">
-            <h4 class="library-group__title">🏢 Block ngành dọc</h4>
-            <div class="library-grid">
-              <button
-                v-for="lib in libraryItems.filter(l => ['restaurant_menu','booking_services','salon_services','property_listings','upcoming_events'].includes(l.type))"
-                :key="lib.type"
-                class="library-card"
-                :class="{ added: sections.some(s => s.type === lib.type) }"
-                @click="addLibrarySection(lib)"
-              >
-                <component :is="lib.icon" :size="24" />
-                <strong>{{ lib.label }}</strong>
-                <span>{{ lib.desc }}</span>
-                <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
+                <span class="library-card__desc">{{ lib.description }}</span>
+                <span v-if="lib.moduleId && lib.available" class="library-card__module">{{ lib.moduleId }}</span>
+                <span v-if="!lib.available" class="library-card__unavailable">⚠ Module "{{ lib.moduleId }}" chưa cài</span>
+                <span v-else-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
               </button>
             </div>
           </div>
@@ -455,17 +451,49 @@
         </div>
       </div>
     </div>
+
+    <!-- Version History Flyout -->
+    <LayoutVersionHistory
+      :visible="showVersionHistory"
+      :layout-page-id="layoutPageId"
+      :current-version="layoutPageVersion"
+      :current-status="layoutPageStatus"
+      @close="showVersionHistory = false"
+      @rollback="onRollback"
+    />
+
+    <!-- Publish Note Dialog -->
+    <div v-if="showPublishDialog" class="modal-overlay" @click.self="showPublishDialog = false">
+      <div class="publish-dialog">
+        <h3>📦 {{ t('admin.msg_pub_title', 'Xuất bản layout') }}</h3>
+        <p class="publish-dialog__desc">{{ t('admin.msg_pub_desc', 'Ghi chú cho lần publish này (tuỳ chọn)') }}</p>
+        <input
+          v-model="publishNote"
+          class="param-input param-input--wide"
+          :placeholder="t('admin.msg_pub_placeholder', 'VD: Cập nhật banner Tết, thêm section FAQ...')"
+          @keyup.enter="confirmPublish"
+          ref="publishNoteInput"
+        />
+        <div class="publish-dialog__actions">
+          <button class="btn-cancel-hl" @click="showPublishDialog = false">{{ t('admin.cancel', 'Huỷ') }}</button>
+          <button class="btn-save" @click="confirmPublish" :disabled="saving">
+            <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.msg_723f4d22', 'Xuất bản') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, inject } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
 import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
 import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
+import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
 import { useToast } from '../composables/useToast.js'
@@ -475,11 +503,13 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2
+  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
+  History
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useI18n } from '../composables/useI18n.js'
+import { sectionMeta as sectionMetaRegistry, getAllSectionsWithAvailability } from './storefront/sectionSchemas.js'
 
 const { t, formatCurrency } = useI18n()
 
@@ -499,6 +529,34 @@ const storefrontUrl = ref('')
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
 const showBlockEditorFor = ref(null)
+
+// ── Module awareness for section availability ──
+const _injectedModules = inject('installedModules', ref([]))
+const installedModules = computed(() => {
+  const v = _injectedModules.value
+  return Array.isArray(v) ? v : []
+})
+
+// ── Dynamic library items grouped by category ──
+const allLibrarySections = computed(() => getAllSectionsWithAvailability(installedModules.value))
+const groupedLibraryItems = computed(() => {
+  const groups = {}
+  for (const item of allLibrarySections.value) {
+    const cat = item.category || 'Khác'
+    if (!groups[cat]) groups[cat] = []
+    groups[cat].push(item)
+  }
+  return groups
+})
+
+// ── Layout Page Integration ──
+const layoutPageId = ref(null)
+const layoutPageVersion = ref(0)
+const layoutPageStatus = ref('draft')
+const showVersionHistory = ref(false)
+const showPublishDialog = ref(false)
+const publishNote = ref('')
+const publishNoteInput = ref(null)
 
 // ─── AI Generate Layout ───
 const showAiPanel = ref(false)
@@ -885,24 +943,7 @@ const defaultParams = {
   upcoming_events: { title: 'Sự Kiện Sắp Tới', subtitle: 'Đừng bỏ lỡ những trải nghiệm tuyệt vời', count: 6 },
 }
 
-// ─── Library ───
-const libraryItems = [
-  { type: 'testimonials', label: t('admin.msg_a4e1b16a', 'Đánh giá KH'), desc: t('admin.msg_ef583317', 'Hiện testimonials khách hàng'), icon: MessageSquareQuote },
-  { type: 'faq', label: 'FAQ', desc: t('admin.msg_65b83ce0', 'Câu hỏi thường gặp'), icon: HelpCircle },
-  { type: 'image_gallery', label: t('admin.msg_c1962630', 'Thư viện ảnh'), desc: t('admin.msg_7820dd0c', 'Gallery ảnh sản phẩm'), icon: Images },
-  { type: 'video_embed', label: 'Video', desc: 'Embed YouTube/TikTok', icon: Video },
-  { type: 'text_block', label: t('admin.msg_ec4344e3', 'Khối văn bản'), desc: t('admin.msg_da610ca2', 'Nội dung HTML tùy ý'), icon: Type },
-  { type: 'newsletter', label: t('admin.msg_26a469cd', 'Đăng ký email'), desc: t('admin.msg_7538695d', 'Form đăng ký nhận tin'), icon: Mail },
-  { type: 'social_feed', label: t('admin.msg_0f1252b7', 'Mạng xã hội'), desc: 'Links social media', icon: Share2 },
-  { type: 'brands_slider', label: t('admin.msg_161416d9', 'Thương hiệu'), desc: t('admin.msg_6c5566ff', 'Logo thương hiệu'), icon: Award },
-  { type: 'custom_block', label: 'Visual Builder', desc: 'Thiết kế kéo thả tự do', icon: Paintbrush },
-  { type: 'restaurant_menu', label: 'Thực đơn Nhà hàng', desc: 'Hiển thị danh sách món ăn theo danh mục', icon: BookOpen },
-  { type: 'booking_services', label: 'Dịch vụ Đặt lịch', desc: 'Hiển thị dịch vụ booking trên trang chủ', icon: Clock },
-  { type: 'salon_services', label: 'Dịch vụ Spa & Salon', desc: 'Bảng giá dịch vụ và đội ngũ chuyên gia', icon: Sparkles },
-  { type: 'property_listings', label: 'Bất Động Sản', desc: 'Danh sách BĐS nổi bật cho thuê/bán', icon: Image },
-  { type: 'upcoming_events', label: 'Sự Kiện Sắp Tới', desc: 'Hiển thị sự kiện đang diễn ra', icon: Zap },
-]
-
+// ─── Library (now uses sectionMeta from sectionSchemas.js) ───
 function addLibrarySection(lib) {
   if (sections.value.some(s => s.type === lib.type)) {
     showToast(t('admin.msg_7dfff8', 'Section đã tồn tại'), 'error')
@@ -988,18 +1029,23 @@ function applyTemplate(key) {
   sections.value.forEach((s, i) => { s.order = i })
 }
 
-// ─── Live Preview ───
-const livePreviewUrl = computed(() => {
+// ─── Live Preview (postMessage-based) ───
+const livePreviewBaseUrl = computed(() => {
   if (!storefrontUrl.value) return ''
-  const config = {
-    sections: sections.value,
-    pages: pages.value,
-    customCss: customCss.value,
-  }
-  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(config))))
-  const path = activePageId.value ? `/page/${dynamicPages.value.find(p => p.id === activePageId.value)?.alias}` : ''
-  return `${storefrontUrl.value}${path}?preview_layout=${encoded}`
+  const path = activePageId.value ? `/page/${dynamicPages.value.find(p => p.id === activePageId.value)?.alias || ''}` : ''
+  return `${storefrontUrl.value}${path}?preview=true`
 })
+
+// Payload sent via postMessage to the storefront iframe
+const layoutPayload = computed(() => ({
+  sections: sections.value,
+  pages: pages.value,
+  customCss: customCss.value,
+  template: activeTemplate.value,
+  pageConfigs: pageConfigs.value,
+  headerConfig: headerConfig.value,
+  footerConfig: footerConfig.value,
+}))
 
 // Debounced preview refresh
 let previewTimer
@@ -1033,6 +1079,66 @@ async function loadLayout() {
       return
     }
 
+    // ── Try layout-pages API first (new versioned system) ──
+    let loadedFromLayoutPages = false
+    try {
+      const lpRes = await apiFetch('/layout-pages')
+      const lpData = await lpRes.json()
+      const lpList = lpData.data || []
+      const homePage = lpList.find(p => p.slug === 'home')
+      if (homePage) {
+        // Found a LayoutPage for home — load full data
+        const detailRes = await apiFetch(`/layout-pages/${homePage.id}`)
+        const detail = await detailRes.json()
+        const page = detail.data || detail
+        layoutPageId.value = page.id
+        layoutPageVersion.value = page.version || 0
+        layoutPageStatus.value = page.status || 'draft'
+
+        const layoutJson = page.layout_json || []
+        sections.value = ensureParams(layoutJson)
+
+        // Load meta (global configs stored alongside layout)
+        const meta = page.meta || {}
+        if (meta.pages) pages.value = meta.pages
+        if (meta.template) activeTemplate.value = meta.template
+        if (meta.customCss) customCss.value = meta.customCss
+        if (meta.storefrontUrl) storefrontUrl.value = meta.storefrontUrl
+        if (meta.pageConfigs) {
+          pageConfigs.value = {
+            products: { ...defaultPageConfigs.products, ...meta.pageConfigs.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(meta.pageConfigs.products?.showFilters || {}) } },
+            productDetail: { ...defaultPageConfigs.productDetail, ...meta.pageConfigs.productDetail },
+            checkout: { ...defaultPageConfigs.checkout, ...meta.pageConfigs.checkout },
+            auth: { ...defaultPageConfigs.auth, ...meta.pageConfigs.auth },
+            account: { ...defaultPageConfigs.account, ...meta.pageConfigs.account },
+            blog: { ...defaultPageConfigs.blog, ...(meta.pageConfigs.blog || {}) },
+          }
+        }
+        if (meta.headerConfig) headerConfig.value = { ...defaultHeaderConfig, ...meta.headerConfig }
+        if (meta.promoConfig) promoConfig.value = { ...defaultPromoConfig, ...meta.promoConfig }
+        if (meta.footerConfig) {
+          const fc = meta.footerConfig
+          if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
+            footerConfig.value = JSON.parse(JSON.stringify(defaultFooterConfig))
+            if (fc.copyrightText) footerConfig.value.copyrightText = fc.copyrightText
+          } else {
+            footerConfig.value = {
+              ...JSON.parse(JSON.stringify(defaultFooterConfig)),
+              ...fc,
+              columns: fc.columns || defaultFooterConfig.columns.map(c => ({ ...c })),
+              social: fc.social || [],
+              badges: fc.badges || [],
+              paymentMethods: fc.paymentMethods || ['cod', 'bank'],
+            }
+          }
+        }
+        loadedFromLayoutPages = true
+      }
+    } catch { /* layout-pages not available, fall back to system-config */ }
+
+    if (loadedFromLayoutPages) return
+
+    // ── Fallback: legacy system-config ──
     const res = await apiFetch('/system-config/group/storefront_layout')
     const data = await res.json()
     const items = Array.isArray(data) ? data : (data.data || [])
@@ -1071,9 +1177,7 @@ async function loadLayout() {
     if (parsedPC2) promoConfig.value = { ...defaultPromoConfig, ...parsedPC2 }
     const parsedFC = map.layout_footer_config ? JSON.parse(map.layout_footer_config) : null
     if (parsedFC) {
-      // Backward compat: old format had columns as a number
       if (typeof parsedFC.columns === 'number' || !Array.isArray(parsedFC.columns)) {
-        // Use default column-based structure
         footerConfig.value = JSON.parse(JSON.stringify(defaultFooterConfig))
         if (parsedFC.copyrightText) footerConfig.value.copyrightText = parsedFC.copyrightText
       } else {
@@ -1100,6 +1204,47 @@ async function loadLayout() {
   }
 }
 
+// Build the meta object containing all global configs
+function buildMeta() {
+  return {
+    pages: pages.value,
+    template: activeTemplate.value,
+    customCss: customCss.value,
+    storefrontUrl: storefrontUrl.value,
+    pageConfigs: pageConfigs.value,
+    headerConfig: headerConfig.value,
+    footerConfig: footerConfig.value,
+    promoConfig: promoConfig.value,
+  }
+}
+
+// Ensure a LayoutPage record exists for 'home', create if needed
+async function ensureLayoutPage() {
+  if (layoutPageId.value) return layoutPageId.value
+  try {
+    const res = await apiFetch('/layout-pages', {
+      method: 'POST',
+      body: JSON.stringify({
+        slug: 'home',
+        title: 'Trang chủ',
+        layout_json: sections.value,
+        status: 'draft',
+        is_system: true,
+        meta: buildMeta(),
+      }),
+    })
+    const data = await res.json()
+    const page = data.data || data
+    layoutPageId.value = page.id
+    layoutPageVersion.value = page.version || 0
+    layoutPageStatus.value = page.status || 'draft'
+    return page.id
+  } catch (e) {
+    console.warn('[LayoutBuilder] Could not create LayoutPage:', e.message)
+    return null
+  }
+}
+
 async function saveLayout() {
   saving.value = true
   try {
@@ -1114,30 +1259,61 @@ async function saveLayout() {
       return
     }
 
-    // Built-in pages (__products, __productDetail) and Homepage
-    // All share the same system-config storefront_layout group
-
-    await apiFetch('/system-config/group/storefront_layout', {
-      method: 'PUT',
-      body: JSON.stringify({
-        items: [
-          { key: 'layout_sections', value: JSON.stringify(sections.value) },
-          { key: 'layout_pages', value: JSON.stringify(pages.value) },
-          { key: 'layout_template', value: activeTemplate.value },
-          { key: 'layout_custom_css', value: customCss.value },
-          { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
-          { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
-          { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
-          { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
-          { key: 'storefront_url', value: storefrontUrl.value },
-        ],
-      }),
-    })
-    showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
+    // ── Layout Pages API (versioned) ──
+    const pageId = await ensureLayoutPage()
+    if (pageId) {
+      await apiFetch(`/layout-pages/${pageId}/publish`, {
+        method: 'POST',
+        body: JSON.stringify({
+          layout_json: sections.value,
+          note: publishNote.value || null,
+        }),
+      })
+      // Update meta separately
+      await apiFetch(`/layout-pages/${pageId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ meta: buildMeta() }),
+      })
+      layoutPageVersion.value++
+      layoutPageStatus.value = 'published'
+      publishNote.value = ''
+      showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng') + ` (v${layoutPageVersion.value})`, 'success')
+    } else {
+      // Fallback to system-config if layout-pages is unavailable
+      await apiFetch('/system-config/group/storefront_layout', {
+        method: 'PUT',
+        body: JSON.stringify({
+          items: [
+            { key: 'layout_sections', value: JSON.stringify(sections.value) },
+            { key: 'layout_pages', value: JSON.stringify(pages.value) },
+            { key: 'layout_template', value: activeTemplate.value },
+            { key: 'layout_custom_css', value: customCss.value },
+            { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
+            { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
+            { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
+            { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
+            { key: 'storefront_url', value: storefrontUrl.value },
+          ],
+        }),
+      })
+      showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
+    }
   } catch (e) {
     showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu: ' + e.message, 'error')
   }
   saving.value = false
+}
+
+// Show publish dialog (with note input) before publishing
+function handlePublish() {
+  showPublishDialog.value = true
+  publishNote.value = ''
+  nextTick(() => publishNoteInput.value?.focus())
+}
+
+function confirmPublish() {
+  showPublishDialog.value = false
+  saveLayout()
 }
 
 async function saveDraft() {
@@ -1154,24 +1330,45 @@ async function saveDraft() {
       return
     }
 
-    // Built-in pages and Homepage — save to system-config
-    await apiFetch('/system-config/group/storefront_layout', {
-      method: 'PUT',
-      body: JSON.stringify({
-        items: [
-          { key: 'layout_draft_sections', value: JSON.stringify(sections.value) },
-          { key: 'layout_draft_page_configs', value: JSON.stringify(pageConfigs.value) },
-          { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
-          { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
-          { key: 'layout_draft_promo_config', value: JSON.stringify(promoConfig.value) },
-        ],
-      }),
-    })
-    showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
+    // ── Layout Pages API (draft) ──
+    const pageId = await ensureLayoutPage()
+    if (pageId) {
+      await apiFetch(`/layout-pages/${pageId}/draft`, {
+        method: 'POST',
+        body: JSON.stringify({ layout_json: sections.value }),
+      })
+      // Update meta
+      await apiFetch(`/layout-pages/${pageId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ meta: buildMeta() }),
+      })
+      layoutPageStatus.value = 'draft'
+      showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
+    } else {
+      // Fallback to system-config
+      await apiFetch('/system-config/group/storefront_layout', {
+        method: 'PUT',
+        body: JSON.stringify({
+          items: [
+            { key: 'layout_draft_sections', value: JSON.stringify(sections.value) },
+            { key: 'layout_draft_page_configs', value: JSON.stringify(pageConfigs.value) },
+            { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
+            { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
+            { key: 'layout_draft_promo_config', value: JSON.stringify(promoConfig.value) },
+          ],
+        }),
+      })
+      showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
+    }
   } catch (e) {
     showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu nháp: ' + e.message, 'error')
   }
   saving.value = false
+}
+
+// Handle rollback from version history
+async function onRollback() {
+  await loadLayout()
 }
 
 async function loadDynamicPages() {
@@ -1244,6 +1441,26 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   margin: 0; font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px;
 }
 .layout-builder__header-actions { display: flex; gap: 8px; align-items: center; }
+
+/* Status badge */
+.lb-status-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  color: var(--color-text-muted);
+}
+.lb-status-badge--published { border-color: rgba(34,197,94,0.3); color: #22c55e; background: rgba(34,197,94,0.08); }
+.lb-status-badge--draft { border-color: rgba(245,158,11,0.3); color: #f59e0b; background: rgba(245,158,11,0.08); }
+
+/* Publish note dialog */
+.publish-dialog {
+  background: var(--color-bg-primary, #1a1a2e); border: 1px solid var(--glass-border);
+  border-radius: 16px; padding: 24px; width: 100%; max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4); animation: hlSlideUp 0.2s ease;
+}
+.publish-dialog h3 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+.publish-dialog__desc { margin: 0 0 12px; font-size: 12px; color: var(--color-text-muted); }
+.publish-dialog__actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
 
 .btn-preview-toggle {
   padding: 6px 14px; border-radius: 8px; border: 1px solid var(--glass-border);
@@ -1703,6 +1920,22 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   position: absolute; top: 8px; right: 8px;
   background: rgba(34, 197, 94, 0.15); color: #22c55e;
   font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+}
+.library-card--disabled {
+  opacity: 0.4; cursor: not-allowed !important;
+  border-style: dashed;
+}
+.library-card--disabled:hover { transform: none; border-color: var(--glass-border); }
+.library-card__icon { font-size: 24px; line-height: 1; }
+.library-card__desc { font-size: 11px; color: var(--color-text-muted); }
+.library-card__module {
+  position: absolute; top: 6px; left: 6px;
+  background: rgba(99, 102, 241, 0.12); color: #818cf8;
+  font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.library-card__unavailable {
+  font-size: 10px; color: #f97316; font-weight: 600;
 }
 
 @media (max-width: 768px) {
