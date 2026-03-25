@@ -23,6 +23,7 @@ use App\Events\Order\OrderCancelled;
 use App\Traits\ApiResponse;
 use App\Models\ContentTranslation;
 use App\Models\TenantModuleSubscription;
+use App\Services\LayoutResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -42,6 +43,7 @@ class StorefrontController extends Controller
         private SystemConfigRepositoryInterface $configRepo,
         private CouponRepositoryInterface $couponRepo,
         private NavLinkRepositoryInterface $navLinkRepo,
+        private LayoutResolver $layoutResolver,
     ) {}
 
     public function products(Request $request)
@@ -350,8 +352,14 @@ class StorefrontController extends Controller
         $installedModules = $this->getInstalledModuleIds();
 
         // Use layout_pages sections if available, otherwise fall back to system_configs
-        $sections = $layoutPageSections
+        $rawSections = $layoutPageSections
             ?: (json_decode($layoutMap['layout_sections'] ?? 'null') ?: $defaultSections);
+
+        // P5 – BFF: resolve data cho mọi section, inject vào params.resolvedData
+        // Frontend component KHÔNG cần fetch API riêng lẻ nữa
+        $sections = $this->layoutResolver->resolve(
+            is_array($rawSections) ? $rawSections : json_decode(json_encode($rawSections), true)
+        );
 
         return [
             'store' => $storeInfo,
@@ -415,17 +423,59 @@ class StorefrontController extends Controller
         }
     }
 
+    /**
+     * P5 – Data Layer (BFF):
+     * Trả về CMS page với layout_data đã được LayoutResolver inject data.
+     * Component trên frontend KHÔNG cần fetch API thêm.
+     */
     public function pageDetail(Request $request, $slug)
     {
         try {
-            $page = $this->cmsPageRepo->findBy('alias', $slug);
-            if (!$page) return $this->notFoundResponse('Page not found');
-
             $locale = $this->getLocale($request);
-            if ($locale) {
-                $page = ContentTranslation::mergeIntoSingleItem($page, 'cms_pages', $locale, ['title', 'content', 'meta_title', 'meta_description']);
+            $tenantId = tenant('id') ?? 'default';
+            $cacheKey = "tenant:{$tenantId}:page:{$slug}:{$locale}";
+
+            $pageArr = Cache::remember($cacheKey, 300, function () use ($slug, $locale) {
+                $page = $this->cmsPageRepo->findBy('alias', $slug);
+                if (!$page) {
+                    return null;
+                }
+
+                if ($locale) {
+                    $page = ContentTranslation::mergeIntoSingleItem(
+                        $page, 'cms_pages', $locale,
+                        ['title', 'content', 'meta_title', 'meta_description']
+                    );
+                }
+
+                $pageArr = is_array($page) ? $page : $page->toArray();
+
+                // BFF: resolve data cho mọi block/section trong layout_data
+                if (!empty($pageArr['layout_data'])) {
+                    $layoutData = is_array($pageArr['layout_data'])
+                        ? $pageArr['layout_data']
+                        : json_decode($pageArr['layout_data'], true) ?? [];
+
+                    // Hỗ trợ cả hai format:
+                    // - New builder: { version, blocks: [...] }
+                    // - Old Shopify-style: [ {type, enabled, order, params}, ... ]
+                    if (isset($layoutData['blocks']) && is_array($layoutData['blocks'])) {
+                        $layoutData['blocks'] = $this->layoutResolver->resolve($layoutData['blocks'], $locale);
+                    } elseif (is_array($layoutData)) {
+                        $layoutData = $this->layoutResolver->resolve($layoutData, $locale);
+                    }
+
+                    $pageArr['layout_data'] = $layoutData;
+                }
+
+                return $pageArr;
+            });
+
+            if (!$pageArr) {
+                return $this->notFoundResponse('Page not found');
             }
-            return $this->successResponse($page);
+
+            return $this->successResponse($pageArr);
         } catch (\Exception $e) {
             return $this->notFoundResponse('Page not found');
         }

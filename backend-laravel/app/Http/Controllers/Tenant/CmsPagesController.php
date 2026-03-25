@@ -194,12 +194,27 @@ class CmsPagesController extends Controller
             $this->repo->update(['status' => 'published', 'published_at' => now(), 'is_active' => true], $id);
             $this->logActivity('cms.published', 'cms_page', $id, ['title' => $page->title ?? null]);
 
+            // Cache contract: clear cache khi publish (tenant:{tenant_id}:page:{slug})
+            $this->clearPageCache($page->alias ?? $page->slug ?? null);
+            StorefrontController::clearSiteConfigCache();
+
             // Fire event for plugins
             PagePublished::dispatch((int) $id, $page->title ?? null, auth()->id());
 
             return $this->successResponse($this->repo->find($id), 'Page published');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    /** P6 – Clear cache khi publish. Cache key: tenant:{id}:page:{slug}. */
+    private function clearPageCache(?string $slug): void
+    {
+        if (!$slug) return;
+        $tenantId = tenant('id') ?? 'default';
+        $locales = ['', 'vi', 'en', 'ja', 'ko', 'zh', 'fr', 'de', 'th'];
+        foreach ($locales as $locale) {
+            \Illuminate\Support\Facades\Cache::forget("tenant:{$tenantId}:page:{$slug}:{$locale}");
         }
     }
 

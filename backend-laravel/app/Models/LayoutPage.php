@@ -4,12 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * P1 – Multi-tenant isolation:
+ * Mọi bảng PHẢI có tenant_id. Model này sử dụng Global Scope để tự động
+ * filter theo tenant_id trên mọi query, đảm bảo không bao giờ bypass.
+ */
 class LayoutPage extends Model
 {
     protected $fillable = [
-        'slug', 'title', 'layout_json', 'status', 'version', 'is_system', 'meta',
+        'tenant_id', 'slug', 'title', 'layout_json', 'status', 'version', 'is_system', 'meta',
     ];
+
+    protected static function booted(): void
+    {
+        // P1: Auto-inject tenant_id vào mọi query và khi tạo mới
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = tenant('id') ?? null;
+            if ($tenantId) {
+                $builder->where('layout_pages.tenant_id', $tenantId);
+            }
+        });
+
+        static::creating(function (self $model) {
+            if (empty($model->tenant_id)) {
+                $model->tenant_id = tenant('id') ?? null;
+            }
+        });
+    }
 
     protected $casts = [
         'layout_json' => 'array',
