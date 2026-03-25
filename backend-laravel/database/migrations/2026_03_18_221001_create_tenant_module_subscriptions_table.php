@@ -11,7 +11,7 @@
             if (Schema::connection('master')->hasTable('tenant_module_subscriptions')) return;
             Schema::connection('master')->create('tenant_module_subscriptions', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('tenant_id');
+                $table->string('tenant_id');
                 $table->string('module_id');
                 $table->boolean('is_active')->default(true);
                 $table->timestamp('installed_at')->nullable();

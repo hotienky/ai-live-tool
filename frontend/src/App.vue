@@ -227,6 +227,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, onErrorCaptured, provide } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 // ── Error Boundary ──
 const appError = ref(null)
@@ -591,7 +592,7 @@ function shopNavigate(view, itemId = null) {
   let path = `/shop/${shopStoreId.value}`
   if (view && view !== 'home') path += `/${view}`
   if (itemId) path += `/${itemId}`
-  history.pushState({ shopView: view, shopItemId: itemId }, '', path)
+  router.push(path)
 }
 
 function onAddToCart(data) {
@@ -672,6 +673,9 @@ cmsEditPageId.value = extractCmsId(window.location.pathname)
 productEditId.value = extractProductEditId(window.location.pathname)
 categoryEditId.value = extractCategoryEditId(window.location.pathname)
 ;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
+const router = useRouter()
+const route = useRoute()
+
 function navigateTo(view) {
   const urlPath = view
 
@@ -692,29 +696,34 @@ function navigateTo(view) {
 
   if (view !== 'notifications') prevView.value = view
   activeView.value = view
-  history.pushState({ view }, '', '/' + urlPath)
+  // Use Vue Router for URL management (replaces history.pushState)
+  router.push('/' + urlPath)
 }
 
-window.addEventListener('popstate', () => {
-  const sp = parseShopPath()
-  if (sp) {
-    isStorefront.value = true
-    shopStoreId.value = sp.storeId
-    shopView.value = sp.view
-    shopItemId.value = sp.itemId
-  } else {
-    isStorefront.value = false
-    activeView.value = viewFromPath()
-    cmsEditPageId.value = extractCmsId(window.location.pathname)
-    productEditId.value = extractProductEditId(window.location.pathname)
-    categoryEditId.value = extractCategoryEditId(window.location.pathname)
-    ;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
+// Sync activeView when user navigates via browser back/forward (Vue Router handles popstate)
+watch(
+  () => route.path,
+  (newPath) => {
+    const sp = parseShopPath()
+    if (sp) {
+      isStorefront.value = true
+      shopStoreId.value = sp.storeId
+      shopView.value = sp.view
+      shopItemId.value = sp.itemId
+    } else {
+      isStorefront.value = false
+      activeView.value = viewFromPath()
+      cmsEditPageId.value = extractCmsId(window.location.pathname)
+      productEditId.value = extractProductEditId(window.location.pathname)
+      categoryEditId.value = extractCategoryEditId(window.location.pathname)
+      ;(function() { const fs = extractFlashSaleState(window.location.pathname); flashSaleFormMode.value = fs.mode; flashSaleEditId.value = fs.id })()
+    }
   }
-})
+)
 
-// Set initial URL if on root (only for admin, not storefront)
+// Set initial URL if on root (only for admin, not storefront) — use Vue Router
 if (!isStorefront.value && (!window.location.pathname || window.location.pathname === '/')) {
-  history.replaceState({ view: activeView.value }, '', '/' + activeView.value)
+  router.replace('/' + activeView.value)
 }
 
 // Customer detail modal

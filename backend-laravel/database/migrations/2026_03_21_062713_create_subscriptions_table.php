@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasTable('subscriptions')) {
             Schema::create('subscriptions', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('tenant_id');
+                $table->string('tenant_id');
                 $table->foreignId('plan_id')->constrained('plans')->onDelete('restrict');
                 $table->enum('status', ['active', 'past_due', 'cancelled', 'trialing'])->default('active');
                 $table->timestamp('trial_ends_at')->nullable();

@@ -20,6 +20,10 @@ class ContentTranslation extends Model
      */
     public static function getGrouped(string $type, int|string $id): array|object
     {
+        if (!is_numeric($id)) {
+            return new \stdClass();
+        }
+
         $rows = self::where('translatable_type', $type)
             ->where('translatable_id', $id)
             ->get();

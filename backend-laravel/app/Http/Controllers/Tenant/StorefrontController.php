@@ -251,7 +251,7 @@ class StorefrontController extends Controller
         if ($locale) {
             $trans = ContentTranslation::getGrouped('configs', 'store');
             if (isset($trans[$locale])) {
-                $storeInfo = array_merge($storeInfo, $trans[$locale]);
+                $storeInfo = array_merge($storeInfo, (array)$trans[$locale]);
             }
         }
 
@@ -361,12 +361,17 @@ class StorefrontController extends Controller
         // LayoutResolver is NOT called here to prevent errors on tenants missing a module.
         $hasEcom = in_array('ecom', $installedModules);
         $hasBlog = in_array('blog', $installedModules);
-        $initialData = $this->buildInitialData($hasEcom, $hasBlog, $categories);
+        $initialData = $this->buildInitialData($hasEcom, $hasBlog, json_decode(json_encode($categories), true));
+
+        $storefrontPlugins = array_values(array_filter($installedModules, function($module) {
+            return file_exists(public_path("plugins/{$module}/storefront.js"));
+        }));
 
         return [
             'store' => $storeInfo,
             'theme' => $theme,
             'modules' => $installedModules,
+            'storefrontPlugins' => $storefrontPlugins,
             'layout' => [
                 'sections' => $sections,
                 'pages' => json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],

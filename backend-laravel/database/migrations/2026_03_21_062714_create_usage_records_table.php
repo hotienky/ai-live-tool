@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasTable('usage_records')) {
             Schema::create('usage_records', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('tenant_id');
+                $table->string('tenant_id');
                 $table->string('metric'); // 'storage', 'api_calls', 'bandwidth'
                 $table->decimal('value', 12, 2)->default(0);
                 $table->timestamp('recorded_at')->useCurrent();

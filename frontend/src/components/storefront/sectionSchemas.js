@@ -13,6 +13,8 @@
 export const sectionMeta = {
   // ── Core sections (always available) ──
   banner:        { label: 'Banner / Slider',     moduleId: null, category: 'Cơ bản',       icon: '🖼️', description: 'Slideshow ảnh quảng cáo' },
+  image_banner:  { label: 'Promo Banner',        moduleId: null, category: 'Cơ bản',       icon: '🏷️', description: 'Banner ảnh đơn (FullWidth)' },
+  feature_links: { label: 'Tính năng nhanh',     moduleId: null, category: 'Cơ bản',       icon: '⚡', description: 'Các thẻ chức năng nổi bật' },
   cms_pages:     { label: 'Trang CMS',           moduleId: 'cms', category: 'Cơ bản',      icon: '📄', description: 'Hiển thị danh sách trang' },
   text_block:    { label: 'Khối văn bản',        moduleId: null, category: 'Cơ bản',       icon: '📝', description: 'Đoạn text tùy chỉnh' },
   image_gallery: { label: 'Bộ sưu tập ảnh',     moduleId: null, category: 'Cơ bản',       icon: '🖼️', description: 'Gallery hình ảnh' },
@@ -62,14 +64,32 @@ export const sectionSchemas = {
     { key: 'interval', type: 'number', label: 'Tốc độ (ms)', condition: 'autoplay', min: 1000, max: 10000, step: 500 },
     { key: 'height', type: 'select', label: 'Chiều cao', options: [{value: 'sm', label: 'Nhỏ'}, {value: 'md', label: 'Vừa'}, {value: 'lg', label: 'Lớn'}] }
   ],
+  image_banner: [
+    { key: 'desktopImage', type: 'media', label: 'Ảnh Desktop' },
+    { key: 'mobileImage', type: 'media', label: 'Ảnh Mobile (Tùy chọn)' },
+    { key: 'link', type: 'url', label: 'Đường dẫn (Link)' },
+    { key: 'fullWidth', type: 'boolean', label: 'Rộng toàn màn hình' }
+  ],
+  feature_links: [
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 6 },
+    { key: 'style', type: 'select', label: 'Kiểu dáng', options: [{value: 'card', label: 'Thẻ (Card)'}, {value: 'minimal', label: 'Đơn giản'}] },
+    { key: '_content', type: 'list', label: 'Các thẻ tính năng', defaults: { bgColor: '#f8f9fa' }, fields: [
+      { key: 'title', type: 'text', placeholder: 'Tiêu đề' },
+      { key: 'subtitle', type: 'text', placeholder: 'Phụ đề (tùy chọn)' },
+      { key: 'icon', type: 'media', placeholder: 'Icon / Ảnh' },
+      { key: 'url', type: 'url', placeholder: 'Đường dẫn' },
+      { key: 'bgColor', type: 'color', label: 'Màu nền thẻ' }
+    ]}
+  ],
   categories: [
-    { key: 'columns', type: 'range', label: 'Số cột', min: 3, max: 8 },
+    { key: 'columns', type: 'range', label: 'Số cột', min: 3, max: 10 },
     { key: 'showDescription', type: 'boolean', label: 'Hiện mô tả' },
-    { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}] },
+    { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}, {value: 'circle_icon', label: 'Icon tròn'}] },
     { key: 'showCount', type: 'boolean', label: 'Hiện số SP' },
     { key: 'selectedCategoryIds', type: 'categoryList', label: 'Chọn danh mục', multiple: true }
   ],
   flash_sale: [
+    { key: 'theme', type: 'select', label: 'Giao diện', options: [{value: 'default', label: 'Mặc định'}, {value: 'orange_strip', label: 'Dải màu cam (Nổi bật)'}] },
     { key: 'showTimer', type: 'boolean', label: 'Hiện đếm ngược' },
     { key: 'showProgress', type: 'boolean', label: 'Hiện thanh tiến độ' },
     { key: 'count', type: 'range', label: 'Số SP', min: 4, max: 16 },
@@ -77,6 +97,7 @@ export const sectionSchemas = {
   ],
   featured_products: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}] },
     { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 16 },
     { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
     { key: 'filterCategory', type: 'categorySelect', label: 'Lọc danh mục' },

@@ -9,8 +9,13 @@
         {{ t('storefront.view_all', 'Xem tất cả') }} <ArrowRight :size="14" />
       </router-link>
     </div>
-    <div class="product-grid" :style="gridStyle">
+    <!-- Grid Layout -->
+    <div v-if="params?.layoutStyle !== 'carousel'" class="product-grid" :style="gridStyle">
       <ProductCard v-for="p in productsData" :key="p.id" :product="p" />
+    </div>
+    <!-- Carousel Layout -->
+    <div v-else class="product-carousel" :style="{ '--cols': params?.slidesPerView || 4 }">
+      <ProductCard class="carousel-item" v-for="p in productsData" :key="p.id" :product="p" />
     </div>
   </section>
 </template>
@@ -51,3 +56,46 @@ const gridStyle = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+/* Grid Layout defaults handled by inline style + core CSS */
+
+/* Carousel Layout */
+.product-carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  padding-bottom: 16px; /* Space for scrollbar */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin; /* Firefox */
+}
+.product-carousel::-webkit-scrollbar {
+  height: 6px;
+}
+.product-carousel::-webkit-scrollbar-track {
+  background: var(--sf-bg-secondary, #f1f5f9);
+  border-radius: 4px;
+}
+.product-carousel::-webkit-scrollbar-thumb {
+  background: var(--sf-accent, #6366f1);
+  border-radius: 4px;
+}
+
+.carousel-item {
+  scroll-snap-align: start;
+  flex: 0 0 calc(100% / var(--cols) - (16px * (var(--cols) - 1) / var(--cols)));
+  min-width: 200px;
+}
+
+@media (max-width: 768px) {
+  .product-carousel {
+    --cols: 2.5 !important;
+  }
+}
+@media (max-width: 480px) {
+  .product-carousel {
+    --cols: 1.5 !important;
+  }
+}
+</style>

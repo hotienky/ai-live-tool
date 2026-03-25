@@ -55,11 +55,10 @@ return new class extends Migration
         }
 
         foreach ($this->systemPages as $page) {
-            // Fix boolean values for PGSQL
             $pageData = array_merge($page, [
                 'is_dynamic' => (bool)$page['is_dynamic'],
                 'is_system'  => (bool)$page['is_system'],
-                'status'     => $isStatusBool ? (bool)$page['status'] : (int)$page['status'],
+                'status'     => (bool)$page['status'],
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

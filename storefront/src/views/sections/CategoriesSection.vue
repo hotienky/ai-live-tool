@@ -4,7 +4,7 @@
       <GridIcon :size="22" class="section-title__accent" />
       {{ params?.title || t('storefront.categories', 'Danh mục sản phẩm') }}
     </h2>
-    <CategoryGrid :categories="categoriesData" />
+    <CategoryGrid :categories="categoriesData" :layout="params?.layoutStyle" />
   </section>
 </template>
 

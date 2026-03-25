@@ -1,5 +1,5 @@
 <template>
-  <section class="category-grid">
+  <section class="category-grid" :class="{ 'style-circle': layout === 'circle_icon' }">
     <router-link
       v-for="cat in categories"
       :key="cat.id"
@@ -7,11 +7,11 @@
       class="category-card"
     >
       <div class="category-card__icon">
-        <img v-if="cat.image" :src="cat.image" :alt="cat.name" />
+        <img v-if="cat.image" :src="cat.image" :alt="cat.name" referrerpolicy="no-referrer" />
         <FolderOpen v-else :size="28" />
       </div>
       <span class="category-card__name">{{ cat.name }}</span>
-      <ArrowRight :size="14" class="category-card__arrow" />
+      <ArrowRight v-if="layout !== 'circle_icon'" :size="14" class="category-card__arrow" />
     </router-link>
   </section>
 </template>
@@ -21,7 +21,7 @@ import { FolderOpen, ArrowRight } from 'lucide-vue-next'
 
 defineProps({
   categories: { type: Array, default: () => [] },
-  
+  layout: { type: String, default: 'grid' }
 })
 </script>
 
@@ -93,9 +93,51 @@ defineProps({
 
 @media (max-width: 768px) {
   .category-grid { grid-template-columns: repeat(2, 1fr); }
+  .category-grid.style-circle { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 480px) {
   .category-grid { grid-template-columns: 1fr; }
+  .category-grid.style-circle { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Circle Icon Style */
+.category-grid.style-circle {
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 20px 12px;
+}
+.category-grid.style-circle .category-card {
+  flex-direction: column;
+  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  text-align: center;
+  gap: 8px;
+}
+.category-grid.style-circle .category-card:hover {
+  transform: translateY(-4px);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+.category-grid.style-circle .category-card__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f0f4f8;
+  padding: 14px;
+  margin: 0 auto;
+}
+.category-grid.style-circle .category-card:hover .category-card__icon {
+  background: #e0e7ff;
+  color: var(--sf-accent);
+}
+.category-grid.style-circle .category-card__icon img {
+  object-fit: contain;
+}
+.category-grid.style-circle .category-card__name {
+  font-size: 13px;
+  font-weight: 500;
 }
 </style>

@@ -1,0 +1,194 @@
+# docker-compose.yml
+
+# ═══════════════════════════════════════════════════════════
+# AI Live Commerce — Multi-Tenant Docker Compose
+# ═══════════════════════════════════════════════════════════
+#
+# Routing:
+#   localhost/api          → backend-laravel:3333
+#   master.localhost       → frontend-master:5174
+#   {tenant}.cms.localhost → frontend-cms:5175
+#   {tenant}.localhost     → storefront:5173
+#
+# Start: docker compose up -d
+# Logs:  docker compose logs -f <service>
+# ═══════════════════════════════════════════════════════════
+
+services:
+  # ──── Databases ────
+  postgres:
+    image: postgres:16-alpine
+    container_name: rc-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ai_live_tool}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: rc-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ──── pgBouncer (Connection Pooler) ────
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    container_name: rc-pgbouncer
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: "*"
+      LISTEN_PORT: 5432
+      AUTH_TYPE: plain
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 25
+      IGNORE_STARTUP_PARAMETERS: extra_float_digits,options
+      SERVER_RESET_QUERY: DISCARD ALL
+      SERVER_RESET_QUERY_ALWAYS: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U ${POSTGRES_USER:-postgres} || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ──── Backend (Laravel) ────
+  backend-laravel:
+    build:
+      context: ./backend-laravel
+      dockerfile: Dockerfile
+    container_name: rc-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend-laravel/.env.docker
+    ports:
+      - "3333:3333"
+    volumes:
+      - ./backend-laravel:/app
+    depends_on:
+      pgbouncer:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+
+  # ──── Frontends ────
+  frontend-master:
+    build:
+      context: ./frontend-master
+      dockerfile: Dockerfile
+    container_name: rc-frontend-master
+    restart: unless-stopped
+    env_file:
+      - ./frontend-master/.env.docker
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./frontend-master:/app
+      - /app/node_modules
+    depends_on:
+      - backend-laravel
+    networks:
+      - app-network
+
+  storefront:
+    build:
+      context: ./storefront
+      dockerfile: Dockerfile
+    container_name: rc-storefront
+    restart: unless-stopped
+    env_file:
+      - ./storefront/.env.docker
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./storefront:/app
+      - /app/node_modules
+    depends_on:
+      - backend-laravel
+    networks:
+      - app-network
+
+  frontend-cms:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rc-frontend-cms
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env.docker
+    ports:
+      - "5175:5175"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-laravel
+    networks:
+      - app-network
+
+  # ──── Nginx Reverse Proxy ────
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: rc-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/suspended.html:/etc/nginx/pages/suspended.html:ro
+    depends_on:
+      - backend-laravel
+      - frontend-master
+      - frontend-cms
+      - storefront
+    networks:
+      - app-network
+
+# ──── Volumes ────
+volumes:
+  postgres_data:
+    driver: local
+  # mysql_data:
+  #   driver: local
+  redis_data:
+    driver: local
+
+# ──── Network ────
+networks:
+  app-network:
+    driver: bridge

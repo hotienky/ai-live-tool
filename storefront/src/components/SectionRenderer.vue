@@ -61,6 +61,8 @@ const coreRegistry = {
   social_feed:   defineAsyncComponent(() => import('./sections/HomeSectionSocial.vue')),
   brands_slider: defineAsyncComponent(() => import('./sections/HomeSectionBrands.vue')),
   trust_badges:  defineAsyncComponent(() => import('./sections/HomeSectionTrustBadges.vue')),
+  feature_links: defineAsyncComponent(() => import('./sections/HomeSectionFeatureLinks.vue')),
+  image_banner:  defineAsyncComponent(() => import('./sections/HomeSectionImageBanner.vue')),
 
   // ── Structural ──
   custom_block: defineAsyncComponent(() => import('../views/sections/CustomBlockSection.vue')),

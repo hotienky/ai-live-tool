@@ -57,6 +57,7 @@ const headerConfig = ref({})
 const footerConfig = ref({})
 const navLinks = ref([])
 const installedModules = ref([])
+const storefrontPlugins = ref([])
 const appReady = ref(false)
 
 // Preview mode: read layout from URL query param or postMessage
@@ -90,6 +91,7 @@ async function loadSiteConfig() {
     const config = await apiFetch('/site-config')
     storeInfo.value = config.store || {}
     installedModules.value = config.modules || []
+    storefrontPlugins.value = config.storefrontPlugins || installedModules.value
     setInstalledModules(installedModules.value)
     layoutConfig.value = config.layout || {
       sections: [
@@ -192,7 +194,7 @@ onMounted(async () => {
   // After site-config loaded, load storefront plugin bundles
   if (installedModules.value.length > 0) {
     const pluginAssets = layoutConfig.value?.pluginAssets || {}
-    await loadStorefrontPlugins(installedModules.value, pluginAssets)
+    await loadStorefrontPlugins(storefrontPlugins.value || installedModules.value, pluginAssets)
 
     // Dynamically add plugin-provided routes to the router
     if (pluginRoutes.value.length > 0) {

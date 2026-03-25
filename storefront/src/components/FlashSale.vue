@@ -1,5 +1,5 @@
 <template>
-  <section v-if="sales.length > 0" class="flash-sale">
+  <section v-if="sales.length > 0" class="flash-sale" :class="{ 'theme-orange': params?.theme === 'orange_strip' }">
     <div class="flash-sale__header">
       <div class="flash-sale__title">
         <span class="flash-sale__icon"><Zap :size="24" /></span>
@@ -175,7 +175,7 @@ onUnmounted(() => clearInterval(timer))
 .flash-item__name {
   margin: 0 0 6px; font-size: 13px; font-weight: 600;
   color: var(--sf-text-primary, #333);
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .flash-item__prices { display: flex; align-items: center; gap: 8px; }
@@ -203,5 +203,40 @@ onUnmounted(() => clearInterval(timer))
 @media (max-width: 640px) {
   .flash-sale__grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .flash-sale__timer { margin-left: 8px; }
+}
+
+/* Orange Strip Theme (Pharmacity Style) */
+.flash-sale.theme-orange {
+  background: #f15822; /* Pharmacity orange */
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 32px var(--sf-container-px, 16px);
+}
+.flash-sale.theme-orange .flash-sale__title h2 {
+  color: #fff;
+  background: none;
+  -webkit-text-fill-color: #fff;
+}
+.flash-sale.theme-orange .flash-sale__icon {
+  color: #fff;
+}
+.flash-sale.theme-orange .timer-block {
+  background: #333;
+  color: #fff;
+}
+.flash-sale.theme-orange .timer-sep {
+  color: #fff;
+}
+.flash-sale.theme-orange .flash-sale__more {
+  color: #fff;
+  background: transparent;
+  padding: 6px 16px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+}
+.flash-sale.theme-orange .flash-sale__more:hover {
+  background: rgba(255,255,255,0.1);
+  text-decoration: none;
 }
 </style>

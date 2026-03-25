@@ -2,7 +2,7 @@
   <section class="banner-slider" v-if="banners.length > 0">
     <div class="banner-slider__track" :style="{ transform: `translateX(-${activeIndex * 100}%)` }">
       <div v-for="(b, i) in banners" :key="b.id || i" class="banner-slider__slide">
-        <img v-if="b.image" :src="b.image" :alt="b.title" class="banner-slider__img" />
+        <img v-if="b.image" :src="b.image" :alt="b.title" class="banner-slider__img" referrerpolicy="no-referrer" />
         <div class="banner-slider__gradient"></div>
         <div class="banner-slider__content">
           <h2 class="banner-slider__title">{{ b.title }}</h2>
