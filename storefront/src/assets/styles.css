@@ -10,6 +10,7 @@
   --sf-bg-secondary: #12121a;
   --sf-bg-card: #1a1a25;
   --sf-bg-card-hover: #22222f;
+  --sf-bg-surface: #1a1a25;
   --sf-border: rgba(255, 255, 255, 0.08);
   --sf-border-hover: rgba(255, 255, 255, 0.15);
   --sf-text-primary: #f0f0f5;
@@ -23,6 +24,8 @@
   --sf-scrollbar-thumb: rgba(255, 255, 255, 0.08);
   --sf-scrollbar-hover: #6a6a80;
   --sf-overlay: rgba(0, 0, 0, 0.6);
+  --sf-danger: #ef4444;
+  --sf-success: #10b981;
 }
 
 /* ── Light Mode ── */
@@ -31,6 +34,7 @@
   --sf-bg-secondary: #ffffff;
   --sf-bg-card: #ffffff;
   --sf-bg-card-hover: #f3f4f8;
+  --sf-bg-surface: #ffffff;
   --sf-border: rgba(0, 0, 0, 0.08);
   --sf-border-hover: rgba(0, 0, 0, 0.15);
   --sf-text-primary: #1a1a2e;
@@ -47,6 +51,8 @@
   --sf-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
   --sf-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
   --sf-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.1);
+  --sf-danger: #ef4444;
+  --sf-success: #10b981;
 }
 
 /* ── Accent Colors (fallback defaults — overridden by useTheme.js from CMS config) ── */
@@ -92,7 +98,24 @@ body {
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; }
-input, select, textarea { font-family: inherit; }
+
+/* Global input reset: đảm bảo text luôn visible ở cả light và dark mode.
+   Một số browser (Safari, Chrome) không inherit color/background từ body cho input. */
+input, select, textarea {
+  font-family: inherit;
+  color: var(--sf-text-primary);
+  background: var(--sf-input-bg);
+}
+
+/* Override browser autofill styling — tránh chữ màu nhạt trên nền nhạt ở light mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--sf-text-primary) !important;
+  -webkit-box-shadow: 0 0 0 1000px var(--sf-input-bg) inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

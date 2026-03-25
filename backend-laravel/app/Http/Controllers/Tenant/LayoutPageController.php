@@ -214,8 +214,15 @@ class LayoutPageController extends Controller
     {
         $tenantId = tenant('id') ?? 'default';
 
-        // Cache key cho storefront (slug-based)
-        Cache::forget("tenant:{$tenantId}:page:{$slug}");
+        // Clear for all possible locales
+        $locales = ['', 'vi', 'en', 'ja', 'ko', 'zh', 'fr', 'de', 'th'];
+        foreach ($locales as $locale) {
+            $suffix = $locale ? ":{$locale}" : '';
+            // Storefront uses: tenant:{tenant_id}:page:{slug}:{locale} if locale is there
+            // Also clear the non-locale versions
+            Cache::forget("tenant:{$tenantId}:page:{$slug}{$suffix}");
+            Cache::forget("tenant:{$tenantId}:page:{$slug}");
+        }
 
         // Clear siteConfig cache (homepage dùng layout_pages)
         StorefrontController::clearSiteConfigCache($tenantId);

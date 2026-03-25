@@ -233,9 +233,10 @@ async function submitForm() {
   border: 1px solid var(--sf-border);
   border-radius: var(--sf-radius-md);
   font-size: 15px;
-  background: var(--sf-bg-surface);
+  background: var(--sf-input-bg);
   color: var(--sf-text-primary);
   transition: all var(--sf-transition);
+  width: 100%;
 }
 .form-control:focus {
   border-color: var(--sf-accent);
