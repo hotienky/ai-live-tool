@@ -96,22 +96,15 @@ class ModuleRegistry
             return ['success' => false, 'message' => "Module trả phí — vui lòng sử dụng 'Yêu cầu cài đặt'", 'require_payment' => true];
         }
 
-        $data = [
+        TenantModuleSubscription::create([
             'tenant_id' => $tenantId,
             'module_id' => $moduleId,
             'is_active' => true,
             'status' => 'active',
             'installed_at' => now(),
             'installed_by' => $userId,
-        ];
-
-        // Add version tracking if column exists (requires migration)
-        $connection = config('tenancy.database.central_connection', 'master');
-        if (\Illuminate\Support\Facades\Schema::connection($connection)->hasColumn('tenant_module_subscriptions', 'installed_version')) {
-            $data['installed_version'] = $module->version ?? '1.0.0';
-        }
-
-        TenantModuleSubscription::create($data);
+            'installed_version' => $module->version ?? '1.0.0',
+        ]);
 
         // Run module-specific migrations if they exist
         static::runModuleMigrations($moduleId);

@@ -2,11 +2,6 @@ import AccountingDashboard from './components/AccountingDashboard.vue'
 import PaymentVoucherManager from './components/PaymentVoucherManager.vue'
 
 const PLUGIN_ID = 'accounting'
-const bridge = window.__APP_BRIDGE__
-const hooks = bridge?.hooks || window.__APP_HOOKS__
-const t = bridge?.t || ((k, fb) => fb)
-
-// ── Register via Hooks ──
 
 const initHooks = () => {
   const bridge = window.__APP_BRIDGE__
@@ -49,13 +44,6 @@ const plugin = {
   components: {
     'accounting': AccountingDashboard,
     'payment-vouchers': PaymentVoucherManager,
-  },
-  sidebar: {
-    group: 'Bán hàng',
-    items: [
-      { key: 'accounting', label: 'Kế toán', icon: 'DollarSign', route: 'orders/accounting' },
-      { key: 'payment-vouchers', label: 'Thu/Chi', icon: 'Wallet', route: 'warehouse/payment-vouchers' },
-    ],
   },
 }
 

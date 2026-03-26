@@ -54,9 +54,10 @@ class ModuleController extends Controller
             'installed' => ModuleRegistry::installedModuleIds($this->tenantId()),
         ] : [];
 
-        // Fire event for plugins
         if ($result['success']) {
+            $module = \App\Models\Module::where('module_id', $moduleId)->first();
             ModuleInstalled::dispatch($moduleId, $this->tenantId());
+            \App\Events\Subscription\ModuleSubscribed::dispatch($moduleId, $module?->name ?? $moduleId, true);
         }
 
         return response()->json([
@@ -78,9 +79,10 @@ class ModuleController extends Controller
             'installed' => ModuleRegistry::installedModuleIds($this->tenantId()),
         ] : [];
 
-        // Fire event for plugins
         if ($result['success']) {
+            $module = \App\Models\Module::where('module_id', $moduleId)->first();
             ModuleUninstalled::dispatch($moduleId, $this->tenantId());
+            \App\Events\Subscription\ModuleSubscribed::dispatch($moduleId, $module?->name ?? $moduleId, false);
         }
 
         return response()->json([
@@ -110,14 +112,13 @@ class ModuleController extends Controller
         ], $result['success'] ? 200 : 422);
     }
 
-    // Get sidebar items (installed modules only)
+    // Get installed module IDs for current tenant (sidebar built by frontend hooks)
     public function sidebar()
     {
         return response()->json([
             'type' => 'success',
             'data' => [
                 'installed' => ModuleRegistry::installedModuleIds($this->tenantId()),
-                'sidebar' => ModuleRegistry::getSidebarItems($this->tenantId()),
             ],
         ]);
     }
@@ -125,7 +126,8 @@ class ModuleController extends Controller
     // Serve from public/plugins/ directory
     public function serveBundle($moduleId, $file)
     {
-        if (!in_array($file, ['bundle.js', 'style.css'])) {
+        $allowed = ['bundle.js', 'storefront.js', 'style.css', 'storefront.css'];
+        if (!in_array($file, $allowed)) {
             return response('Not Found', 404);
         }
 

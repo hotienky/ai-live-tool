@@ -374,15 +374,16 @@ async function onModulesChanged() {
 }
 
 // Fetch on mount
-onMounted(() => {
+onMounted(async () => {
+  // Bridge MUST be initialized before fetchInstalledModules() so that
+  // plugin.initHooks() can safely call bridge.registerBlock() etc.
+  const { initBridge } = usePluginLoader()
+  initBridge()
+
   fetchTenantFeatures()
   fetchPermissionsIfEmpty()
   fetchInstalledModules()
   initI18n() // load languages + translations for language switcher
-
-  // Initialize plugin bridge for dynamic module bundles
-  const { initBridge } = usePluginLoader()
-  initBridge()
 })
 
 const { pluginVersion, getPluginComponent } = usePluginLoader()

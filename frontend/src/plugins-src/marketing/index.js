@@ -2,11 +2,6 @@ import PromotionManager from './components/PromotionManager.vue'
 import FlashSaleManager from './components/FlashSaleManager.vue'
 
 const PLUGIN_ID = 'marketing'
-const bridge = window.__APP_BRIDGE__
-const hooks = bridge?.hooks || window.__APP_HOOKS__
-const t = bridge?.t || ((k, fb) => fb)
-
-// ── Register via Hooks ──
 
 const initHooks = () => {
   const bridge = window.__APP_BRIDGE__
@@ -49,13 +44,6 @@ const plugin = {
   components: {
     'promotions': PromotionManager,
     'flash-sales': FlashSaleManager,
-  },
-  sidebar: {
-    group: 'Marketing',
-    items: [
-      { key: 'promotions', label: 'Khuyến mãi', icon: 'Tag', route: 'shop/promotions' },
-      { key: 'flash-sales', label: 'Flash Sale', icon: 'Zap', route: 'shop/flash-sales' },
-    ],
   },
 }
 

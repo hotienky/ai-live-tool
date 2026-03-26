@@ -13,10 +13,7 @@ use App\Events\Tenant\SettingsChanged;
 use App\Events\Subscription\PlanExpiring;
 use App\Events\Subscription\ModuleSubscribed;
 
-use App\Events\ModuleInstalled;
-
 use App\Listeners\NotificationEventListener;
-use App\Listeners\RunModuleMigrations;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -45,9 +42,7 @@ class EventServiceProvider extends ServiceProvider
         ModuleSubscribed::class => [
             [NotificationEventListener::class, 'handleModuleSubscribed'],
         ],
-        ModuleInstalled::class => [
-            RunModuleMigrations::class,
-        ],
+
     ];
 
     public function boot(): void {}

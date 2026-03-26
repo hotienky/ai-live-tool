@@ -180,21 +180,22 @@ class PluginResolverRegistrar
     {
         return [
             // ── E-Commerce Module ──
+            // Canonical types use underscore. Hyphen aliases are normalized
+            // by LayoutResolver before reaching here.
             'ecom' => [
-                'featured_products' => self::makeProductResolver(),
-                'featured-products' => self::makeProductResolver(),
-                'product-listing'   => self::makeProductResolver(),
-                'new_arrivals'      => self::makeNewArrivalsResolver(),
-                'categories'        => self::makeCategoriesResolver(),
-                'product-categories' => self::makeCategoriesResolver(),
-                'flash_sale'        => self::makeFlashSaleResolver(),
+                'featured_products'  => self::makeProductResolver(),
+                'product_listing'    => self::makeProductResolver(),
+                'new_arrivals'       => self::makeNewArrivalsResolver(),
+                'categories'         => self::makeCategoriesResolver(),
+                'product_categories' => self::makeCategoriesResolver(),
+                'flash_sale'         => self::makeFlashSaleResolver(),
             ],
 
             // ── Blog Module ──
             'blog' => [
                 'blog_posts'      => self::makeBlogResolver(),
-                'blog-collection' => self::makeBlogResolver(),
-                'latest-posts'    => self::makeBlogResolver(),
+                'blog_collection' => self::makeBlogResolver(),
+                'latest_posts'    => self::makeBlogResolver(),
             ],
 
             // ── Events Module ──

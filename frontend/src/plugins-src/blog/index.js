@@ -7,10 +7,6 @@ import CommentManager from './components/CommentManager.vue'
 import BlogSettings from './components/BlogSettings.vue'
 
 const PLUGIN_ID = 'blog'
-const bridge = window.__APP_BRIDGE__
-const hooks = bridge?.hooks || window.__APP_HOOKS__
-const t = bridge?.t || ((k, fb) => fb)
-const Icons = window.LucideVueNext || {}
 
 const initHooks = () => {
   const bridge = window.__APP_BRIDGE__

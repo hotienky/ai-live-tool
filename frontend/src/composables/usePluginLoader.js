@@ -26,7 +26,7 @@ window.__APP_HOOKS__ = hooks
 
 const loadedPlugins = reactive({})
 const pluginComponents = reactive({})
-const pluginSidebar = reactive({})
+
 const loadingPlugin = ref(null)
 const pluginVersion = ref(0) // Reactive counter — increments after each plugin load
 // Track hook IDs per plugin for cleanup
@@ -120,9 +120,7 @@ async function loadPlugin(moduleId) {
       }
     }
 
-    if (plugin.sidebar) {
-      pluginSidebar[moduleId] = plugin.sidebar
-    }
+
 
     loadedPlugins[moduleId] = plugin
 
@@ -153,7 +151,7 @@ function unloadPlugin(moduleId) {
   }
 
   delete loadedPlugins[moduleId]
-  delete pluginSidebar[moduleId]
+
   for (const key of Object.keys(pluginComponents)) {
     if (key.startsWith(`${moduleId}:`)) delete pluginComponents[key]
   }
@@ -168,7 +166,7 @@ function getPluginComponent(moduleId, tabKey) {
 
 export function usePluginLoader() {
   return {
-    loadedPlugins, pluginComponents, pluginSidebar, loadingPlugin, pluginVersion,
+    loadedPlugins, pluginComponents, loadingPlugin, pluginVersion,
     initBridge, loadPlugin, unloadPlugin, getPluginComponent, hooks,
   }
 }

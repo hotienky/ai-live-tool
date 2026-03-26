@@ -34,22 +34,43 @@ const { currentLang, defaultLangCode } = useI18n()
 const injectedPluginSections = inject('pluginSections', ref([]))
 
 /**
+ * Normalize hyphen types to underscore canonical form (or vice versa).
+ * This keeps the registry DRY — no need to register both variants.
+ * Backend (PluginResolverRegistrar) uses underscore as canonical.
+ */
+const TYPE_ALIASES = {
+  'featured-products':  'featured_products',
+  'product-listing':    'product_listing',
+  'product-categories': 'product_categories',
+  'blog-collection':    'blog_collection',
+  'latest-posts':       'latest_posts',
+  'new-arrivals':       'new_arrivals',
+  'flash-sale':         'flash_sale',
+  'cms-pages':          'cms_pages',
+  'blog-posts':         'blog_posts',
+}
+
+/**
  * P3 – Component whitelist: chỉ render component có trong registry.
  * Lazy load để tối ưu bundle size.
  *
- * Hỗ trợ cả hai format:
- *   - Old Shopify-style sections: type dùng underscore (banner, featured_products, …)
- *   - New block-builder sections: type dùng hyphen (hero-banner, rich-text, …)
+ * Canonical type format: underscore (featured_products, blog_posts, …)
+ * Block-builder hyphen types (hero-banner, rich-text, …) are kept as-is
+ * since they have no underscore equivalent.
  */
 const coreRegistry = {
-  // ── Old Shopify-style sections ──
-  banner:            defineAsyncComponent(() => import('../views/sections/BannerSection.vue')),
-  categories:        defineAsyncComponent(() => import('../views/sections/CategoriesSection.vue')),
-  flash_sale:        defineAsyncComponent(() => import('./FlashSale.vue')),
-  featured_products: defineAsyncComponent(() => import('../views/sections/FeaturedProductsSection.vue')),
-  new_arrivals:      defineAsyncComponent(() => import('../views/sections/NewArrivalsSection.vue')),
-  cms_pages:         defineAsyncComponent(() => import('../views/sections/CmsPagesSection.vue')),
-  blog_posts:        defineAsyncComponent(() => import('../views/sections/BlogPostsSection.vue')),
+  // ── Core sections (underscore canonical) ──
+  banner:             defineAsyncComponent(() => import('../views/sections/BannerSection.vue')),
+  categories:         defineAsyncComponent(() => import('../views/sections/CategoriesSection.vue')),
+  flash_sale:         defineAsyncComponent(() => import('./FlashSale.vue')),
+  featured_products:  defineAsyncComponent(() => import('../views/sections/FeaturedProductsSection.vue')),
+  new_arrivals:       defineAsyncComponent(() => import('../views/sections/NewArrivalsSection.vue')),
+  cms_pages:          defineAsyncComponent(() => import('../views/sections/CmsPagesSection.vue')),
+  blog_posts:         defineAsyncComponent(() => import('../views/sections/BlogPostsSection.vue')),
+  blog_collection:    defineAsyncComponent(() => import('../views/sections/BlogCollectionSection.vue')),
+  latest_posts:       defineAsyncComponent(() => import('../views/sections/BlogCollectionSection.vue')),
+  product_listing:    defineAsyncComponent(() => import('../views/sections/ProductListingSection.vue')),
+  product_categories: defineAsyncComponent(() => import('../views/sections/ProductCategoriesSection.vue')),
 
   // ── Custom library sections ──
   testimonials:  defineAsyncComponent(() => import('./sections/HomeSectionTestimonials.vue')),
@@ -68,17 +89,11 @@ const coreRegistry = {
   custom_block: defineAsyncComponent(() => import('../views/sections/CustomBlockSection.vue')),
   grid:         defineAsyncComponent(() => import('./sections/GridSection.vue')),
 
-  // ── New block-builder types (hyphen format) ──
-  'hero-banner':       defineAsyncComponent(() => import('../views/sections/HeroBannerSection.vue')),
-  'rich-text':         defineAsyncComponent(() => import('../views/sections/RichTextSection.vue')),
-  'image-banner':      defineAsyncComponent(() => import('../views/sections/ImageBannerSection.vue')),
-  'spacer':            defineAsyncComponent(() => import('../views/sections/SpacerSection.vue')),
-  'html-embed':        defineAsyncComponent(() => import('../views/sections/HtmlEmbedSection.vue')),
-  'blog-collection':   defineAsyncComponent(() => import('../views/sections/BlogCollectionSection.vue')),
-  'latest-posts':      defineAsyncComponent(() => import('../views/sections/BlogCollectionSection.vue')),
-  'product-listing':   defineAsyncComponent(() => import('../views/sections/ProductListingSection.vue')),
-  'featured-products': defineAsyncComponent(() => import('../views/sections/FeaturedProductsSection.vue')),
-  'product-categories':defineAsyncComponent(() => import('../views/sections/ProductCategoriesSection.vue')),
+  // ── Block-builder types with no underscore equivalent ──
+  'hero-banner': defineAsyncComponent(() => import('../views/sections/HeroBannerSection.vue')),
+  'rich-text':   defineAsyncComponent(() => import('../views/sections/RichTextSection.vue')),
+  'spacer':      defineAsyncComponent(() => import('../views/sections/SpacerSection.vue')),
+  'html-embed':  defineAsyncComponent(() => import('../views/sections/HtmlEmbedSection.vue')),
 }
 
 const component = computed(() => {
@@ -87,14 +102,17 @@ const component = computed(() => {
     return props.section._pluginComponent
   }
 
+  // Normalize type: hyphen aliases → underscore canonical
+  const type = TYPE_ALIASES[props.section.type] ?? props.section.type
+
   // 2. Fallback injected array (older pattern)
-  const pluginMatch = injectedPluginSections.value.find(p => p.type === props.section.type)
+  const pluginMatch = injectedPluginSections.value.find(p => p.type === type || p.type === props.section.type)
   if (pluginMatch?.component) {
     return pluginMatch.component
   }
 
   // 3. Core registry — P3: chỉ render component có trong registry
-  return coreRegistry[props.section.type] || null
+  return coreRegistry[type] || null
 })
 
 /**

@@ -1,11 +1,6 @@
 import TaxManagement from './components/TaxManagement.vue'
 
 const PLUGIN_ID = 'tax'
-const bridge = window.__APP_BRIDGE__
-const hooks = bridge?.hooks || window.__APP_HOOKS__
-const t = bridge?.t || ((k, fb) => fb)
-
-// ── Register via Hooks ──
 
 const initHooks = () => {
   const bridge = window.__APP_BRIDGE__
@@ -39,12 +34,6 @@ const plugin = {
   version: '1.0.0',
   components: {
     'tax': TaxManagement,
-  },
-  sidebar: {
-    group: 'Bán hàng',
-    items: [
-      { key: 'tax', label: 'Thuế', icon: 'Receipt', route: 'shop/tax' },
-    ],
   },
 }
 

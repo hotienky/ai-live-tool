@@ -5,11 +5,6 @@ import PurchaseOrderManager from './components/PurchaseOrderManager.vue'
 import InventoryReportPanel from './components/InventoryReportPanel.vue'
 
 const PLUGIN_ID = 'warehouse'
-const bridge = window.__APP_BRIDGE__
-const hooks = bridge?.hooks || window.__APP_HOOKS__
-const t = bridge?.t || ((k, fb) => fb)
-
-// ── Register via Hooks ──
 
 const initHooks = () => {
   const bridge = window.__APP_BRIDGE__
@@ -57,15 +52,6 @@ const plugin = {
     'suppliers': SupplierManager,
     'purchase-orders': PurchaseOrderManager,
     'inventory-reports': InventoryReportPanel,
-  },
-  sidebar: {
-    group: 'Kho & Tài chính',
-    items: [
-      { key: 'stock-receipts', label: 'Phiếu kho', icon: 'ClipboardList', route: 'warehouse/stock-receipts' },
-      { key: 'suppliers', label: 'Nhà cung cấp', icon: 'Briefcase', route: 'warehouse/suppliers' },
-      { key: 'purchase-orders', label: 'Đơn Nhập Hàng', icon: 'ShoppingCart', route: 'warehouse/purchase-orders' },
-      { key: 'inventory-reports', label: 'Báo cáo kho', icon: 'BarChart2', route: 'warehouse/inventory-reports' },
-    ],
   },
 }
 

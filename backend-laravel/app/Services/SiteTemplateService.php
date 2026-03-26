@@ -86,19 +86,83 @@ class SiteTemplateService
                 }
             }
 
-            // 4. Set Custom Storefront Layout Sections
-            if (!empty($template['layout_sections'])) {
-                $layoutData = json_encode($template['layout_sections']);
-                DB::table('system_configs')->updateOrInsert(
-                    ['key' => 'storefront.layout.home'],
-                    [
-                        'group_name' => 'storefront',
-                        'type' => 'json',
-                        'value' => $layoutData,
-                        'created_at' => now(),
-                        'updated_at' => now()
+            // 4. Create proper Home LayoutPage if missing
+            if (Schema::hasTable('layout_pages')) {
+                // Determine layout payload from template, use empty if blank
+                $sections = $template['layout_sections'] ?? [];
+                
+                $headerConfig = [
+                    'layout' => 'standard', 'sticky' => true, 'bgColor' => '#ffffff', 'textColor' => '#333333', 'showTopBar' => true,
+                    'topBarBg' => '#f1f5f9', 'topBarText' => '#64748b', 'contactPhone' => '1900 1234', 'promoText' => 'Freeship cho đơn từ 300k'
+                ];
+                if (!empty($template['header_config'])) {
+                    $headerConfig = array_merge($headerConfig, $template['header_config']);
+                }
+
+                $footerConfig = [
+                    'layout' => 'standard', 'bgColor' => '#ffffff', 'textColor' => '#475569', 'copyrightText' => '© 2026 Bản quyền thuộc về MebiSoft.',
+                    'columns' => [
+                        ['title' => 'Về chúng tôi', 'links' => [['label' => 'Giới thiệu', 'url' => '/about'], ['label' => 'Liên hệ', 'url' => '/contact']]],
+                        ['title' => 'Hỗ trợ khách hàng', 'links' => [['label' => 'Câu hỏi thường gặp', 'url' => '/faq'], ['label' => 'Chính sách bảo hành', 'url' => '/warranty']]]
                     ]
-                );
+                ];
+                if (!empty($template['footer_config'])) {
+                    $footerConfig = array_merge($footerConfig, $template['footer_config']);
+                }
+
+                // Construct standard meta
+                $meta = [
+                    'pages' => ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],
+                    'template' => 'full_store',
+                    'customCss' => '',
+                    'headerConfig' => $headerConfig,
+                    'footerConfig' => $footerConfig
+                ];
+
+                $home = DB::table('layout_pages')->where('slug', 'home')->first();
+                if ($home) {
+                    DB::table('layout_pages')->where('slug', 'home')->update([
+                        'layout_json' => json_encode($sections),
+                        'meta' => json_encode($meta),
+                        'status' => 'published',
+                        'version' => $home->version + 1,
+                        'updated_at' => now(),
+                        'published_at' => now()
+                    ]);
+                } else {
+                    DB::table('layout_pages')->insert([
+                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'slug' => 'home',
+                        'title' => 'Trang Chủ',
+                        'layout_json' => json_encode($sections),
+                        'meta' => json_encode($meta),
+                        'status' => 'published',
+                        'is_system' => true,
+                        'is_dynamic' => false,
+                        'version' => 1,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                        'published_at' => now()
+                    ]);
+                }
+            }
+
+            // 4.5 Insert Nav Links
+            if (!empty($template['nav_links']) && Schema::hasTable('nav_links')) {
+                DB::table('nav_links')->where('group', 'menu')->delete();
+                foreach ($template['nav_links'] as $idx => $link) {
+                    DB::table('nav_links')->insert([
+                        'id' => (string) \Illuminate\Support\Str::uuid(),
+                        'title' => $link['title'],
+                        'url' => $link['url'] ?? '#',
+                        'group' => $link['group'] ?? 'menu',
+                        'type' => $link['type'] ?? 'single',
+                        'sort_order' => $link['sort_order'] ?? $idx,
+                        'is_active' => true,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             // 5. Apply Site Info
