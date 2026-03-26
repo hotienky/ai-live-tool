@@ -504,12 +504,13 @@ import {
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
   Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
-  History
+  History, Tag, Shield, LayoutGrid, Newspaper
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useI18n } from '../composables/useI18n.js'
 import { sectionMeta as sectionMetaRegistry, getAllSectionsWithAvailability } from './storefront/sectionSchemas.js'
+import { industryTemplates } from './storefront/templatePresets.js'
 
 const { t, formatCurrency } = useI18n()
 
@@ -522,10 +523,10 @@ const activeTemplate = ref('full_store')
 const saving = ref(false)
 const expandedSection = ref(null)
 const showLibrary = ref(false)
-const previewMode = ref('wireframe')
+const previewMode = ref('live')
 const previewWidth = ref('100%')
 const previewKey = ref(0)
-const storefrontUrl = ref('')
+const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
 const showBlockEditorFor = ref(null)
@@ -898,11 +899,16 @@ async function loadCategories() {
 // ─── Section Meta ───
 const sectionMeta = {
   banner: { label: 'Banner', icon: Image, pvHeight: '50px' },
+  image_banner: { label: 'Promo Banner', icon: Tag, pvHeight: '40px' },
+  feature_links: { label: 'Tính năng nhanh', icon: Zap, pvHeight: '25px' },
   categories: { label: t('admin.msg_53d8de58', 'Danh mục'), icon: Grid3x3, pvHeight: '25px' },
   flash_sale: { label: 'Flash Sale', icon: Zap, pvHeight: '35px' },
   featured_products: { label: t('admin.msg_c90c3bbc', 'Sản phẩm nổi bật'), icon: Sparkles, pvHeight: '60px' },
   new_arrivals: { label: t('admin.msg_f0676ad7', 'Hàng mới về'), icon: Clock, pvHeight: '60px' },
   cms_pages: { label: 'Trang CMS', icon: BookOpen, pvHeight: '30px' },
+  blog_posts: { label: 'Bài viết gần đây', icon: Newspaper, pvHeight: '45px' },
+  trust_badges: { label: 'Trust Badges', icon: Shield, pvHeight: '25px' },
+  grid: { label: 'Lưới bố cục', icon: LayoutGrid, pvHeight: '50px' },
   // Library sections (Phase 3)
   testimonials: { label: t('admin.msg_a4e1b16a', 'Đánh giá KH'), icon: MessageSquareQuote, pvHeight: '45px' },
   faq: { label: 'FAQ', icon: HelpCircle, pvHeight: '40px' },
@@ -971,27 +977,12 @@ const pageList = [
 
 // ─── Templates ───
 const templates = [
-  { key: 'full_store', name: 'Full Store', desc: t('admin.msg_49c6f2e0', 'Tất cả sections'), icon: Store },
-  { key: 'catalog', name: 'Catalog', desc: t('admin.msg_c6498131', 'Danh mục + SP'), icon: Package },
-  { key: 'minimal', name: 'Minimal', desc: t('admin.msg_f6c79663', 'Banner + SP nổi bật'), icon: Target },
-  { key: 'landing', name: 'Landing Page', desc: 'Banner + CMS', icon: BookOpen },
-  { key: 'restaurant', name: 'Nhà Hàng', desc: 'Banner + Thực đơn + CMS', icon: BookOpen },
-  { key: 'booking', name: 'Đặt Lịch', desc: 'Banner + Dịch vụ + CMS', icon: Clock },
-  { key: 'salon', name: 'Spa & Salon', desc: 'Banner + Dịch vụ + CMS', icon: Sparkles },
-  { key: 'realestate', name: 'Bất Động Sản', desc: 'Banner + BĐS + CMS', icon: Image },
-  { key: 'events', name: 'Sự Kiện', desc: 'Banner + Sự kiện + CMS', icon: Zap },
+  { key: 'pharmacy', name: 'Nhà Thuốc / Y Tế', desc: 'Bán lẻ dược phẩm', icon: Store },
+  { key: 'fashion', name: 'Thời Trang', desc: 'Quần áo, phụ kiện', icon: Package },
+  { key: 'restaurant', name: 'Nhà Hàng / F&B', desc: 'Menu, đặt bàn', icon: BookOpen },
+  { key: 'spa', name: 'Spa & Salon', desc: 'Dịch vụ, Đặt lịch', icon: Sparkles },
+  { key: 'realestate', name: 'Bất Động Sản', desc: 'Dự án, Tin tức', icon: Image },
 ]
-const templatePresets = {
-  full_store: { sections: ['banner', 'categories', 'flash_sale', 'featured_products', 'new_arrivals', 'cms_pages'] },
-  catalog: { sections: ['banner', 'categories', 'featured_products', 'new_arrivals'] },
-  minimal: { sections: ['banner', 'featured_products'] },
-  landing: { sections: ['banner', 'cms_pages'] },
-  restaurant: { sections: ['banner', 'restaurant_menu', 'cms_pages'] },
-  booking: { sections: ['banner', 'booking_services', 'testimonials', 'cms_pages'] },
-  salon: { sections: ['banner', 'salon_services', 'testimonials', 'cms_pages'] },
-  realestate: { sections: ['banner', 'property_listings', 'cms_pages'] },
-  events: { sections: ['banner', 'upcoming_events', 'cms_pages'] },
-}
 
 const activeSections = computed(() =>
   sections.value.filter(s => s.enabled).sort((a, b) => a.order - b.order)
@@ -999,64 +990,66 @@ const activeSections = computed(() =>
 
 function applyTemplate(key) {
   activeTemplate.value = key
-  const preset = templatePresets[key]
-  if (!preset) return
-  // All known section types to control
-  const allKnown = Object.keys(sectionMeta)
-  sections.value.forEach(s => {
-    if (allKnown.includes(s.type)) {
-      s.enabled = preset.sections.includes(s.type)
+  const preset = industryTemplates[key]
+  if (preset) {
+    if (confirm('Áp dụng mẫu này sẽ ghi đè toàn bộ bố cục trang chủ hiện tại. Bạn có chắc chắn muốn tiếp tục?')) {
+      pushUndo()
+      sections.value = JSON.parse(JSON.stringify(preset))
+      showToast('Đã áp dụng mẫu bố cục thành công', 'success')
     }
-  })
-  // Add missing sections that are in the preset but not yet in sections
-  preset.sections.forEach((type, idx) => {
-    if (!sections.value.some(s => s.type === type)) {
-      sections.value.push({
-        type,
-        enabled: true,
-        order: idx,
-        params: { ...defaultParams[type] },
-        content: [],
-      })
-    }
-  })
-  const order = preset.sections
-  sections.value.sort((a, b) => {
-    const aIdx = order.indexOf(a.type)
-    const bIdx = order.indexOf(b.type)
-    return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
-  })
-  sections.value.forEach((s, i) => { s.order = i })
+  }
 }
 
 // ─── Live Preview (postMessage-based) ───
 const livePreviewBaseUrl = computed(() => {
   if (!storefrontUrl.value) return ''
-  const path = activePageId.value ? `/page/${dynamicPages.value.find(p => p.id === activePageId.value)?.alias || ''}` : ''
+  let path = ''
+  if (activePageId.value) {
+    if (String(activePageId.value).startsWith('__')) {
+       const mapped = {
+         '__products': '/products',
+         '__productDetail': '/product/preview-demo',
+         '__checkout': '/checkout',
+         '__cart': '/cart',
+         '__auth': '/auth',
+         '__account': '/account',
+         '__wishlist': '/wishlist',
+         '__order_tracking': '/order-tracking',
+         '__blog': '/blog'
+       }
+       path = mapped[activePageId.value] || ''
+    } else {
+       const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
+       path = dyn?.alias ? `/page/${dyn.alias}` : ''
+    }
+  }
   return `${storefrontUrl.value}${path}?preview=true`
 })
 
 // Payload sent via postMessage to the storefront iframe
-const layoutPayload = computed(() => ({
-  sections: sections.value,
-  pages: pages.value,
-  customCss: customCss.value,
-  template: activeTemplate.value,
-  pageConfigs: pageConfigs.value,
-  headerConfig: headerConfig.value,
-  footerConfig: footerConfig.value,
-}))
+const layoutPayload = ref({
+  sections: [], pages: {}, customCss: '', template: 'full_store',
+  pageConfigs: {}, headerConfig: {}, footerConfig: {}
+})
 
 // Debounced preview refresh
-let previewTimer
 let undoTimer
-watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs, promoConfig], () => {
-  clearTimeout(previewTimer)
-  previewTimer = setTimeout(() => { previewKey.value++ }, 800)
+watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate], () => {
+  // Update layoutPayload with deep clone to forcefully trigger re-render in LayoutPreviewPanel
+  layoutPayload.value = {
+    sections: sections.value,
+    pages: pages.value,
+    customCss: customCss.value,
+    template: activeTemplate.value,
+    pageConfigs: pageConfigs.value,
+    headerConfig: headerConfig.value,
+    footerConfig: footerConfig.value,
+  }
+
   // Push undo snapshot on changes (debounced)
   clearTimeout(undoTimer)
   undoTimer = setTimeout(() => pushUndo(), 1500)
-}, { deep: true })
+}, { deep: true, immediate: true })
 
 // ─── Load / Save ───
 function ensureParams(sections) {
@@ -1103,7 +1096,7 @@ async function loadLayout() {
         if (meta.pages) pages.value = meta.pages
         if (meta.template) activeTemplate.value = meta.template
         if (meta.customCss) customCss.value = meta.customCss
-        if (meta.storefrontUrl) storefrontUrl.value = meta.storefrontUrl
+        // if (meta.storefrontUrl) storefrontUrl.value = meta.storefrontUrl
         if (meta.pageConfigs) {
           pageConfigs.value = {
             products: { ...defaultPageConfigs.products, ...meta.pageConfigs.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(meta.pageConfigs.products?.showFilters || {}) } },
@@ -1160,7 +1153,7 @@ async function loadLayout() {
     pages.value = map.layout_pages ? JSON.parse(map.layout_pages) : defaultPages
     activeTemplate.value = map.layout_template || 'full_store'
     customCss.value = map.layout_custom_css || ''
-    storefrontUrl.value = map.storefront_url || ''
+    // if (map.storefront_url) storefrontUrl.value = map.storefront_url
     const parsedPC = map.layout_page_configs ? JSON.parse(map.layout_page_configs) : null
     if (parsedPC) {
       pageConfigs.value = {
@@ -1480,7 +1473,12 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .btn-save:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.layout-builder__body { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
+.layout-builder__body { display: grid; grid-template-columns: 440px 1fr; gap: 24px; min-height: calc(100vh - 130px); align-items: start; }
+.layout-builder__controls { display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 130px); padding-right: 12px; }
+
+/* Scrollbar for controls */
+.layout-builder__controls::-webkit-scrollbar { width: 6px; }
+.layout-builder__controls::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
 
 .lb-section { margin-bottom: 24px; }
 .lb-section__title {
@@ -1879,7 +1877,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   border: 1px solid var(--glass-border); border-radius: 12px; overflow: hidden;
   transition: max-width 0.3s ease; margin: 0 auto;
 }
-.preview-iframe { width: 100%; height: 600px; border: none; background: #fff; }
+.preview-iframe { width: 100%; height: calc(100vh - 130px); border: none; background: #fff; }
 .preview-no-url {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 40px 20px; color: var(--color-text-muted); text-align: center;

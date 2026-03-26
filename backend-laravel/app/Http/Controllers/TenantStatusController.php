@@ -23,18 +23,15 @@ class TenantStatusController extends Controller
 
         $cacheKey = "tenant_status:{$slug}";
         $status = Cache::remember($cacheKey, 60, function () use ($slug) {
-            $tenant = \App\Models\Tenant::where('slug', $slug)->first(['status', 'name', 'features', 'settings']);
+            $tenant = \App\Models\Tenant::where('slug', $slug)->first(['id', 'slug', 'status', 'name', 'data', 'settings']);
             // Fallback: try matching db_name = 'tenant_{slug}' (handles events/event mismatch etc.)
             if (!$tenant) {
-                $tenant = \App\Models\Tenant::where('db_name', 'tenant_' . $slug)->first(['status', 'name', 'features', 'settings']);
+                $tenant = \App\Models\Tenant::where('db_name', 'tenant_' . $slug)->first(['id', 'slug', 'status', 'name', 'data', 'settings']);
             }
             if (!$tenant) return null;
             
-            // Safely decode settings — may be a raw JSON string
-            $settings = $tenant->settings;
-            if (is_string($settings)) {
-                $settings = json_decode($settings, true) ?: [];
-            }
+            // Safely decode settings — prefer dedicated column, fallback to data JSON
+            $settings = $tenant->settings ?? ($tenant->data['settings'] ?? []);
             if (!is_array($settings)) {
                 $settings = [];
             }
@@ -42,7 +39,7 @@ class TenantStatusController extends Controller
             return [
                 'status' => $tenant->status, 
                 'name' => $tenant->name, 
-                'features' => $tenant->features ?? 'all',
+                'features' => $tenant->data['features'] ?? 'all',
                 'onboarded' => $settings['onboarded'] ?? false,
             ];
         });

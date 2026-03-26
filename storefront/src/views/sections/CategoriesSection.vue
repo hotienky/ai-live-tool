@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import CategoryGrid from '../../components/CategoryGrid.vue'
 import { Grid as GridIcon } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
@@ -22,12 +22,28 @@ const props = defineProps({
   section: { type: Object, default: () => ({}) }
 })
 
+const isPreviewMode = inject('isPreviewMode', false)
+
+// Dummy category generator for preview
+const dummyCategories = Array.from({ length: 6 }).map((_, i) => ({
+  id: `dummy-cat-${i}`,
+  name: `Danh mục ${i + 1}`,
+  slug: `danh-muc-${i + 1}`,
+  image: `https://loremflickr.com/200/200/fashion,food?random=${i}`,
+  products_count: Math.floor(Math.random() * 50) + 10,
+  is_featured: true
+}))
+
 const categoriesData = computed(() => {
   let allCats = []
   if (props.params?.resolvedData) {
     allCats = props.params.resolvedData
   } else {
     allCats = window.__STOREFRONT_DATA__?.categories || []
+  }
+  
+  if (allCats.length === 0 && isPreviewMode) {
+    allCats = dummyCategories
   }
   
   // Filter if layout params specified max/featured

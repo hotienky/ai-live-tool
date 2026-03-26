@@ -171,7 +171,7 @@ function sendLayoutToIframe() {
   if (!iframeRef.value?.contentWindow || !props.layoutPayload) return
   iframeRef.value.contentWindow.postMessage({
     type: 'layout-preview-update',
-    payload: props.layoutPayload,
+    payload: JSON.parse(JSON.stringify(props.layoutPayload)),
   }, '*')
 }
 

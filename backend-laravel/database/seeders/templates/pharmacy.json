@@ -1,0 +1,112 @@
+{
+  "id": "pharmacy",
+  "name": "Nhà Thuốc / Y Tế",
+  "icon": "Store",
+  "description": "Giải pháp toàn diện để bán lẻ dược phẩm, thực phẩm chức năng, thiết bị y tế.",
+  "preview": "pharmacy-preview.png",
+  "modules": ["ecom"],
+  "theme": "default",
+  "header_config": {
+    "bgColor": "#ffffff",
+    "textColor": "#0e7490",
+    "topBarBg": "#0891b2",
+    "topBarText": "#ffffff",
+    "promoText": "Dược Sĩ Tư Vấn Tận Tâm 24/7"
+  },
+  "footer_config": {
+    "bgColor": "#f8fafc",
+    "textColor": "#334155",
+    "columns": [
+      { "title": "Nhà Thuốc", "links": [{ "label": "Giới thiệu", "url": "/about" }, { "label": "Hệ thống cửa hàng", "url": "/stores" }] },
+      { "title": "Khách Hàng", "links": [{ "label": "Chính sách đổi trả", "url": "/return-policy" }, { "label": "Tra cứu đơn hàng", "url": "/order-tracking" }] }
+    ]
+  },
+  "nav_links": [
+    { "title": "Trang Chủ", "url": "/", "type": "single", "sort_order": 0, "group": "menu" },
+    { "title": "Hệ Thống Nhà Thuốc", "url": "/stores", "type": "single", "sort_order": 1, "group": "menu" },
+    { "title": "Tra Cứu Đơn Hàng", "url": "/order-tracking", "type": "single", "sort_order": 2, "group": "menu" }
+  ],
+  "layout_sections": [
+    {
+      "id": "pharmacy_banner",
+      "type": "banner",
+      "enabled": true,
+      "order": 0,
+      "params": { "height": "lg", "autoplay": true, "interval": 4000 },
+      "content": [
+        {
+          "link": "#",
+          "image": "https://production-cdn.pharmacity.io/digital/1590x0/plain/e-com/images/banners/20260323021629-0-Slidebanner_Desktop.png",
+          "title": "Sức khỏe vươn xa"
+        },
+        {
+          "link": "#",
+          "image": "https://production-cdn.pharmacity.io/digital/1590x0/plain/e-com/images/banners/20260302094351-0-thangcuanang-web.png",
+          "title": "Quà tặng phái đẹp"
+        }
+      ]
+    },
+    {
+      "id": "pharmacy_feature_links",
+      "type": "feature_links",
+      "enabled": true,
+      "order": 1,
+      "params": { "columns": 4, "style": "card", "fullWidth": false },
+      "content": [
+        { "url": "#", "title": "Tư vấn mua thuốc", "icon": "https://cdn-icons-png.flaticon.com/512/3004/3004381.png", "bgColor": "#fdf2f8", "subtitle": "Trực tuyến 24/7" },
+        { "url": "#", "title": "Chat cùng Dược Sĩ", "icon": "https://cdn-icons-png.flaticon.com/512/3008/3008432.png", "bgColor": "#eff6ff", "subtitle": "Zalo/Hotline" },
+        { "url": "#", "title": "Hệ thống nhà thuốc", "icon": "https://cdn-icons-png.flaticon.com/512/4320/4320350.png", "bgColor": "#f0fdf4", "subtitle": "Gần bạn nhất" },
+        { "url": "#", "title": "Đơn thuốc cá nhân", "icon": "https://cdn-icons-png.flaticon.com/512/2966/2966327.png", "bgColor": "#fefce8", "subtitle": "Theo dõi dễ dàng" }
+      ]
+    },
+    {
+      "id": "pharmacy_categories",
+      "type": "categories",
+      "enabled": true,
+      "order": 2,
+      "params": { "title": "Danh mục nổi bật", "columns": 6, "showCount": false, "layoutStyle": "circle_icon" },
+      "content": []
+    },
+    {
+      "id": "pharmacy_flash_sale",
+      "type": "flash_sale",
+      "enabled": true,
+      "order": 3,
+      "params": { "title": "Giờ vàng giá sốc", "count": 5, "theme": "orange_strip", "columns": 5, "showTimer": true },
+      "content": []
+    },
+    {
+      "id": "pharmacy_featured_1",
+      "type": "featured_products",
+      "enabled": true,
+      "order": 4,
+      "params": { "title": "Thuốc Giao Nhanh", "count": 8, "columns": 4, "layoutStyle": "carousel", "autoplay": false, "sortOrder": "bestselling" },
+      "content": []
+    },
+    {
+      "id": "pharmacy_trust_badges",
+      "type": "trust_badges",
+      "enabled": true,
+      "order": 5,
+      "params": { "layout": "grid", "background": "#f8f9fa", "columns": 3 },
+      "content": [
+        { "title": "Thuốc Chính Hãng", "icon": "https://cdn-icons-png.flaticon.com/512/190/190411.png", "description": "100% thuốc có nguồn gốc rõ ràng" },
+        { "title": "Giao Hàng 2H", "icon": "https://cdn-icons-png.flaticon.com/512/2769/2769339.png", "description": "Freeship cho đơn trên 300k" },
+        { "title": "Đổi Trả 15 Ngày", "icon": "https://cdn-icons-png.flaticon.com/512/2313/2313131.png", "description": "Đổi thuốc miễn phí tận nơi" }
+      ]
+    },
+    {
+      "id": "pharmacy_blogs",
+      "type": "blog_posts",
+      "enabled": true,
+      "order": 6,
+      "params": { "title": "Góc Sức Khoẻ", "count": 3, "layoutView": "grid" },
+      "content": []
+    }
+  ],
+  "default_pages": [
+    { "title": "Giới thiệu", "slug": "about", "template": "about" },
+    { "title": "Hệ thống nhà thuốc", "slug": "stores", "template": "stores" },
+    { "title": "Chính sách đổi trả", "slug": "return-policy", "template": "policy" }
+  ]
+}

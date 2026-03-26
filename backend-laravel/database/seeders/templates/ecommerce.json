@@ -1,110 +1,108 @@
 {
   "id": "ecommerce",
-  "name": "Cửa hàng Online (E-commerce)",
+  "name": "Thời Trang (Fashion)",
   "icon": "ShoppingCart",
-  "description": "Giải pháp toàn diện để bán hàng trực tuyến với giỏ hàng, thanh toán và quản lý đơn hàng.",
+  "description": "Giải pháp toàn diện để bán hàng thời trang với hình ảnh bắt mắt.",
   "preview": "ecommerce-preview.png",
-  "modules": [
-    "ecom"
-  ],
+  "modules": ["ecom"],
   "theme": "ecommerce-modern",
+  "header_config": {
+    "bgColor": "#ffffff",
+    "textColor": "#000000",
+    "topBarBg": "#111827",
+    "topBarText": "#ffffff",
+    "promoText": "SALE 50% MỖI NGÀY",
+    "logoPosition": "center"
+  },
+  "footer_config": {
+    "bgColor": "#111827",
+    "textColor": "#d1d5db",
+    "columns": [
+      { "title": "Mua Sắm", "links": [{ "label": "Hàng Mới Về", "url": "/collections/new" }, { "label": "Giảm Giá", "url": "/collections/sale" }] },
+      { "title": "Hỗ Trợ", "links": [{ "label": "Chính sách trả hàng", "url": "/return-policy" }, { "label": "Câu hỏi thường gặp", "url": "/faq" }] }
+    ]
+  },
+  "nav_links": [
+    { "title": "Trang Chủ", "url": "/", "type": "single", "sort_order": 0, "group": "menu" },
+    { "title": "Hàng Mới", "url": "/collections/new", "type": "single", "sort_order": 1, "group": "menu" },
+    { "title": "Khuyến Mãi", "url": "/collections/sale", "type": "single", "sort_order": 2, "group": "menu" }
+  ],
   "layout_sections": [
     {
+      "id": "fashion_banner",
       "type": "banner",
       "enabled": true,
-      "params": {
-        "title": "Summer Collection 2026",
-        "height": "lg",
-        "autoplay": true,
-        "interval": 5000
-      }
+      "order": 0,
+      "params": { "height": "fullscreen", "autoplay": true, "interval": 5000 },
+      "content": [
+        {
+          "link": "#",
+          "image": "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2671&auto=format&fit=crop",
+          "title": "BỘ SƯU TẬP MÙA HÈ 2026",
+          "caption": "Khám phá ngay xu hướng mới nhất"
+        },
+        {
+          "link": "#",
+          "image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=2670&auto=format&fit=crop",
+          "title": "SANG TRỌNG & TINH TẾ",
+          "caption": "Phong cách Minimalism lên ngôi"
+        }
+      ]
     },
     {
-      "type": "categories",
+      "id": "fashion_feature_links",
+      "type": "feature_links",
       "enabled": true,
-      "params": {
-        "columns": 4,
-        "showDescription": false,
-        "showCount": true,
-        "layoutStyle": "grid"
-      }
+      "order": 1,
+      "params": { "columns": 3, "style": "minimal", "fullWidth": true },
+      "content": [
+        { "url": "#", "title": "MẪU MỚI NHẤT", "icon": "https://cdn-icons-png.flaticon.com/512/863/863684.png" },
+        { "url": "#", "title": "BEST SELLERS", "icon": "https://cdn-icons-png.flaticon.com/512/411/411763.png" },
+        { "url": "#", "title": "GÓC ƯU ĐÃI", "icon": "https://cdn-icons-png.flaticon.com/512/879/879757.png" }
+      ]
     },
     {
+      "id": "fashion_featured_1",
       "type": "featured_products",
       "enabled": true,
-      "params": {
-        "title": "Sản phẩm nổi bật",
-        "count": 8,
-        "columns": 4,
-        "sortOrder": "bestselling"
-      }
+      "order": 2,
+      "params": { "title": "SẢN PHẨM NỔI BẬT", "count": 8, "columns": 4, "layoutStyle": "grid", "sortOrder": "newest" },
+      "content": []
     },
     {
-      "type": "flash_sale",
+      "id": "fashion_image_banner",
+      "type": "image_banner",
       "enabled": true,
-      "params": {
-        "showTimer": true,
-        "showProgress": true,
-        "count": 4,
-        "columns": 4
-      }
+      "order": 3,
+      "params": { "fullWidth": true, "desktopImage": "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=2670&auto=format&fit=crop" },
+      "content": []
     },
     {
-      "type": "new_arrivals",
-      "enabled": true,
-      "params": {
-        "title": "Hàng mới về",
-        "count": 8,
-        "columns": 4
-      }
-    },
-    {
-      "type": "newsletter",
-      "enabled": true,
-      "params": {
-        "title": "Đăng ký nhận tin",
-        "subtitle": "Nhận mã giảm giá 10% cho đơn hàng đầu tiên",
-        "buttonText": "Đăng ký",
-        "sectionBgColor": "#f8fafc"
-      }
-    },
-    {
-      "type": "social_feed",
-      "enabled": true,
-      "params": {
-        "title": "Theo dõi Instagram"
-      }
-    },
-    {
+      "id": "fashion_brands",
       "type": "brands_slider",
       "enabled": true,
-      "params": {
-        "title": "Thương hiệu nổi bật",
-        "animationSpeed": 20
-      }
+      "order": 4,
+      "params": { "title": "Thương hiệu nổi bật", "slidesPerView": 5 },
+      "content": [
+        { "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/1200px-Adidas_Logo.svg.png", "url": "#" },
+        { "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/1200px-Logo_NIKE.svg.png", "url": "#" },
+        { "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Zara_Logo.svg/1200px-Zara_Logo.svg.png", "url": "#" },
+        { "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Lacoste_logo.svg/1200px-Lacoste_logo.svg.png", "url": "#" },
+        { "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Under_armour_logo.svg/1200px-Under_armour_logo.svg.png", "url": "#" }
+      ]
+    },
+    {
+      "id": "fashion_newsletter",
+      "type": "newsletter",
+      "enabled": true,
+      "order": 5,
+      "params": { "title": "Đăng Ký Nhận Bản Tin", "description": "Giảm ngay 10% cho đơn hàng đầu tiên của bạn", "buttonText": "Đăng ký" },
+      "content": []
     }
   ],
   "default_pages": [
-    {
-      "title": "Giới thiệu",
-      "slug": "about",
-      "template": "about"
-    },
-    {
-      "title": "Hệ thống cửa hàng",
-      "slug": "stores",
-      "template": "stores"
-    },
-    {
-      "title": "Chính sách đổi trả",
-      "slug": "return-policy",
-      "template": "policy"
-    }
-  ],
-  "sample_data": {
-    "products": 12,
-    "categories": 5,
-    "banners": 3
-  },
-  "image": "/images/templates/ecommerce.png"
+    { "title": "Giới thiệu", "slug": "about", "template": "about" },
+    { "title": "Hệ thống cửa hàng", "slug": "stores", "template": "stores" },
+    { "title": "Chính sách đổi trả", "slug": "return-policy", "template": "policy" }
+  ]
 }

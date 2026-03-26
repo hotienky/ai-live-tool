@@ -146,15 +146,20 @@ const resolvedContent = computed(() => {
   return c
 })
 
+const paddingMap = { sm: '16px 0', md: '32px 0', lg: '48px 0', xl: '64px 0' }
+
 const sectionWrapStyle = computed(() => {
   const p = resolvedParams.value
   if (!p) return {}
+  const bgColor = p.sectionBgColor || p.bgColor || undefined
+  const padKey = p.sectionPadding
   return {
+    padding: padKey && paddingMap[padKey] ? paddingMap[padKey] : undefined,
     paddingTop: p.paddingTop ? `${p.paddingTop}px` : undefined,
     paddingBottom: p.paddingBottom ? `${p.paddingBottom}px` : undefined,
     marginTop: p.marginTop ? `${p.marginTop}px` : undefined,
     marginBottom: p.marginBottom ? `${p.marginBottom}px` : undefined,
-    backgroundColor: p.bgColor || undefined,
+    backgroundColor: bgColor,
     backgroundImage: p.bgImage ? `url(${p.bgImage})` : undefined,
     backgroundSize: 'cover',
     backgroundPosition: 'center',

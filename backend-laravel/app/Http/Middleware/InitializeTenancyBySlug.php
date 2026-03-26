@@ -95,25 +95,25 @@ class InitializeTenancyBySlug
             || str_ends_with($hostname, '.localhost')
             || $hostname === 'localhost';
 
+        // Custom domain — lookup in domains table FIRST (even for platform domains)
+        $customDomain = $this->resolveCustomDomain($hostname);
+        if ($customDomain) {
+            return $customDomain;
+        }
+
+        // Fallback: try without www prefix
+        if ($subdomain === 'www' && count($parts) > 2) {
+            $bareHost = implode('.', array_slice($parts, 1));
+            $customDomain = $this->resolveCustomDomain($bareHost);
+            if ($customDomain) {
+                return $customDomain;
+            }
+        }
+
         if ($isPlatformDomain) {
             // Subdomain extraction for platform domains
             if (!\in_array($subdomain, ['localhost', '127', '0'])) {
                 return ['slug' => $subdomain];
-            }
-        } else {
-            // Custom domain — lookup in domains table FIRST
-            $customDomain = $this->resolveCustomDomain($hostname);
-            if ($customDomain) {
-                return $customDomain;
-            }
-
-            // Fallback: try without www prefix
-            if ($subdomain === 'www' && count($parts) > 2) {
-                $bareHost = implode('.', array_slice($parts, 1));
-                $customDomain = $this->resolveCustomDomain($bareHost);
-                if ($customDomain) {
-                    return $customDomain;
-                }
             }
         }
 

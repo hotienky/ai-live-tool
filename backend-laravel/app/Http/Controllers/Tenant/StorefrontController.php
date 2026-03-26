@@ -373,14 +373,14 @@ class StorefrontController extends Controller
             'modules' => $installedModules,
             'storefrontPlugins' => $storefrontPlugins,
             'layout' => [
-                'sections' => $sections,
-                'pages' => json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true],
-                'pageConfigs' => json_decode($layoutMap['layout_page_configs'] ?? 'null', true) ?: [],
-                'template' => $layoutMap['layout_template'] ?? 'full_store',
-                'customCss' => $layoutMap['layout_custom_css'] ?? '',
-                'headerConfig' => json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig,
-                'footerConfig' => json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig,
-                'promoBar' => json_decode($layoutMap['layout_promo_config'] ?? 'null', true) ?: ['enabled' => true, 'text' => '', 'link' => '/products', 'ctaText' => ''],
+                'sections' => $this->layoutResolver->resolve($sections, $locale),
+                'pages' => $layoutPageMeta['pages'] ?? (json_decode($layoutMap['layout_pages'] ?? 'null', true) ?: ['cart' => true, 'account' => true, 'auth' => true, 'order_tracking' => true, 'products' => true]),
+                'pageConfigs' => $layoutPageMeta['pageConfigs'] ?? (json_decode($layoutMap['layout_page_configs'] ?? 'null', true) ?: []),
+                'template' => $layoutPageMeta['template'] ?? ($layoutMap['layout_template'] ?? 'full_store'),
+                'customCss' => $layoutPageMeta['customCss'] ?? ($layoutMap['layout_custom_css'] ?? ''),
+                'headerConfig' => $layoutPageMeta['headerConfig'] ?? (json_decode($layoutMap['layout_header_config'] ?? 'null', true) ?: $defaultHeaderConfig),
+                'footerConfig' => $layoutPageMeta['footerConfig'] ?? (json_decode($layoutMap['layout_footer_config'] ?? 'null', true) ?: $defaultFooterConfig),
+                'promoBar' => $layoutPageMeta['promoConfig'] ?? (json_decode($layoutMap['layout_promo_config'] ?? 'null', true) ?: ['enabled' => true, 'text' => '', 'link' => '/products', 'ctaText' => '']),
                 'meta' => $layoutPageMeta,
             ],
             'navLinks' => $nestedLinks->values(),
@@ -435,7 +435,7 @@ class StorefrontController extends Controller
                     ->orderBy('published_at', 'desc')
                     ->limit(6)
                     ->get()
-                    ->map(fn($p) => $p->toArray())
+                    ->map(fn($p) => is_array($p) ? $p : (is_object($p) && method_exists($p, 'toArray') ? $p->toArray() : (array)$p))
                     ->values()
                     ->all();
             } catch (\Exception) {

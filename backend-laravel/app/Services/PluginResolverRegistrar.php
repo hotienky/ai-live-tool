@@ -233,12 +233,38 @@ class PluginResolverRegistrar
             $p = array_merge($node['params'] ?? [], $node['settings'] ?? []);
             $limit = (int) ($p['limit'] ?? $p['count'] ?? 12);
             try {
-                $repo = app(\App\Repositories\Product\ProductRepositoryInterface::class);
-                return collect($repo->getProducts($limit)->items())
+                $query = \App\Models\Product::query()->where('is_active', true);
+
+                if (!empty($p['filterCategory'])) {
+                    $query->where('category_id', $p['filterCategory']);
+                }
+
+                if (!empty($p['sortOrder'])) {
+                    switch ($p['sortOrder']) {
+                        case 'bestselling':
+                            // Fallback to random if no sales count column
+                            $query->inRandomOrder();
+                            break;
+                        case 'price_asc':
+                            $query->orderBy('price', 'asc');
+                            break;
+                        case 'price_desc':
+                            $query->orderBy('price', 'desc');
+                            break;
+                        case 'newest':
+                        default:
+                            $query->orderByDesc('created_at')->orderByDesc('id');
+                            break;
+                    }
+                } else {
+                    $query->orderByDesc('created_at')->orderByDesc('id');
+                }
+
+                return collect($query->limit($limit)->get())
                     ->map(fn($p) => is_array($p) ? $p : $p->toArray())
                     ->all();
             } catch (\Exception $e) {
-                Log::debug("[PluginResolver:ecom] Product resolve failed: {$e->getMessage()}");
+                \Illuminate\Support\Facades\Log::debug("[PluginResolver:ecom] Product resolve failed: {$e->getMessage()}");
                 return [];
             }
         };
@@ -263,9 +289,13 @@ class PluginResolverRegistrar
     private static function makeCategoriesResolver(): callable
     {
         return function (array $node, ?string $locale) {
+            $p = array_merge($node['params'] ?? [], $node['settings'] ?? []);
             try {
-                $repo = app(\App\Repositories\Category\CategoryRepositoryInterface::class);
-                return collect($repo->getCategories())
+                $query = \App\Models\ProductCategory::query();
+                if (!empty($p['selectedCategoryIds']) && is_array($p['selectedCategoryIds'])) {
+                    $query->whereIn('id', $p['selectedCategoryIds']);
+                }
+                return collect($query->get())
                     ->map(fn($c) => is_array($c) ? $c : $c->toArray())
                     ->values()
                     ->all();
@@ -305,7 +335,7 @@ class PluginResolverRegistrar
                     ->orderByDesc('published_at')
                     ->limit($limit)
                     ->get()
-                    ->map(fn($p) => $p->toArray())
+                    ->map(fn($p) => is_array($p) ? $p : (is_object($p) && method_exists($p, 'toArray') ? $p->toArray() : (array)$p))
                     ->all();
             } catch (\Exception $e) {
                 return [];

@@ -1,51 +1,53 @@
 <template>
-  <section v-if="sales.length > 0" class="flash-sale" :class="{ 'theme-orange': params?.theme === 'orange_strip' }">
-    <div class="flash-sale__header">
-      <div class="flash-sale__title">
-        <span class="flash-sale__icon"><Zap :size="24" /></span>
-        <h2>Flash Sale</h2>
-        <div class="flash-sale__timer" v-if="countdown">
-          <span class="timer-block">{{ countdown.hours }}</span>
-          <span class="timer-sep">:</span>
-          <span class="timer-block">{{ countdown.minutes }}</span>
-          <span class="timer-sep">:</span>
-          <span class="timer-block">{{ countdown.seconds }}</span>
+  <section v-if="resolvedSales.length > 0" class="flash-sale-wrap container">
+    <div class="flash-sale" :class="['theme-' + (params?.theme || 'default')]">
+      <div class="flash-sale__header">
+        <div class="flash-sale__title">
+          <span class="flash-sale__icon"><Zap :size="24" /></span>
+          <h2>Flash Sale</h2>
+          <div class="flash-sale__timer" v-if="countdown">
+            <span class="timer-block">{{ countdown.hours }}</span>
+            <span class="timer-sep">:</span>
+            <span class="timer-block">{{ countdown.minutes }}</span>
+            <span class="timer-sep">:</span>
+            <span class="timer-block">{{ countdown.seconds }}</span>
+          </div>
         </div>
+        <router-link to="/products?flash=1" class="flash-sale__more">{{ t('storefront.view_all') || 'Xem tất cả' }} →</router-link>
       </div>
-      <router-link to="/products?flash=1" class="flash-sale__more">{{ t('storefront.view_all') || 'Xem tất cả' }} →</router-link>
-    </div>
 
-    <div class="flash-sale__grid">
-      <router-link
-        v-for="item in displayItems"
-        :key="item.id"
-        :to="`/product/${item.slug || item.product_id}`"
-        class="flash-item"
-      >
-        <div class="flash-item__image">
-          <img :src="item.image || 'https://placehold.co/300x300/1a1a2e/7c3aed?text=SP'" :alt="item.name" />
-          <span class="flash-item__badge">-{{ discountPercent(item) }}%</span>
-        </div>
-        <div class="flash-item__info">
-          <h3 class="flash-item__name">{{ item.name }}</h3>
-          <div class="flash-item__prices">
-            <span class="flash-item__sale">{{ formatPrice(item.sale_price) }}</span>
-            <span class="flash-item__original">{{ formatPrice(item.price) }}</span>
+      <div class="flash-sale__grid">
+        <router-link
+          v-for="item in displayItems"
+          :key="item.id"
+          :to="`/product/${item.slug || item.product_id}`"
+          class="flash-item"
+        >
+          <div class="flash-item__image">
+            <img :src="item.image || 'https://placehold.co/300x300/1a1a2e/7c3aed?text=SP'" :alt="item.name" />
+            <span class="flash-item__badge">-{{ discountPercent(item) }}%</span>
           </div>
-          <div class="flash-item__progress" v-if="item.stock_limit">
-            <div class="progress-bar">
-              <div class="progress-fill" :style="{ width: soldPercent(item) + '%' }"></div>
+          <div class="flash-item__info">
+            <h3 class="flash-item__name">{{ item.name }}</h3>
+            <div class="flash-item__prices">
+              <span class="flash-item__sale">{{ formatPrice(item.sale_price) }}</span>
+              <span class="flash-item__original">{{ formatPrice(item.price) }}</span>
             </div>
-            <span class="progress-text">{{ t('storefront.sold') || 'Đã bán' }} {{ item.sold_count || 0 }}/{{ item.stock_limit }}</span>
+            <div class="flash-item__progress" v-if="item.stock_limit">
+              <div class="progress-bar">
+                <div class="progress-fill" :style="{ width: soldPercent(item) + '%' }"></div>
+              </div>
+              <span class="progress-text">{{ t('storefront.sold') || 'Đã bán' }} {{ item.sold_count || 0 }}/{{ item.stock_limit }}</span>
+            </div>
           </div>
-        </div>
-      </router-link>
+        </router-link>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import { Zap } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
 import { useI18n } from '../composables/useI18n.js'
@@ -56,14 +58,37 @@ const props = defineProps({
   params: { type: Object, default: () => ({}) },
 })
 
+const isPreviewMode = inject('isPreviewMode', false)
+
+const dummyFlashSale = [{
+  end_date: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
+  items: Array.from({ length: 4 }).map((_, i) => ({
+    id: `dummy-fs-${i}`,
+    product_id: `prod-${i}`,
+    name: `Sản phẩm Flash Sale ${i + 1}`,
+    sale_price: 99000 + i * 10000,
+    price: 250000 + i * 50000,
+    image: `https://loremflickr.com/400/400/sale?random=${i}`,
+    stock_limit: 100,
+    sold_count: 50 + i * 10
+  }))
+}]
+
 const sales = ref([])
 const countdown = ref(null)
 let timer = null
 
+const resolvedSales = computed(() => {
+  if (sales.value.length === 0 && isPreviewMode) {
+    return dummyFlashSale
+  }
+  return sales.value
+})
+
 const displayItems = computed(() => {
-  if (sales.value.length === 0) return []
+  if (resolvedSales.value.length === 0) return []
   const count = props.params?.count || 8
-  return sales.value[0].items?.slice(0, count) || []
+  return resolvedSales.value[0].items?.slice(0, count) || []
 })
 
 function discountPercent(item) {
@@ -81,8 +106,8 @@ function formatPrice(p) {
 }
 
 function updateCountdown() {
-  if (sales.value.length === 0) return
-  const endDate = new Date(sales.value[0].end_date)
+  if (resolvedSales.value.length === 0) return
+  const endDate = new Date(resolvedSales.value[0].end_date)
   const now = new Date()
   const diff = endDate - now
 
@@ -101,20 +126,29 @@ onMounted(async () => {
   try {
     // Use BFF data from siteConfig.initialData if available — avoids extra API call
     const cached = window.__STOREFRONT_DATA__?.flashSales
-    sales.value = cached ?? await apiFetch('/flash-sales')
-    updateCountdown()
-    timer = setInterval(updateCountdown, 1000)
-  } catch {
+    if (cached) {
+      sales.value = cached
+    } else {
+      sales.value = await apiFetch('/flash-sales')
+    }
+  } catch (e) {
     sales.value = []
   }
+  updateCountdown()
+  timer = setInterval(updateCountdown, 1000)
 })
 
 onUnmounted(() => clearInterval(timer))
 </script>
 
 <style scoped>
+/* Outer wrapper — layout spacing, never overridden by themes */
+.flash-sale-wrap {
+  margin: 40px auto;
+}
+
+/* Inner box — visual theme styling */
 .flash-sale {
-  margin: 40px 0;
   padding: 24px;
   border-radius: var(--sf-radius-lg, 16px);
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(249, 115, 22, 0.05));
@@ -206,37 +240,39 @@ onUnmounted(() => clearInterval(timer))
 }
 
 /* Orange Strip Theme (Pharmacity Style) */
-.flash-sale.theme-orange {
-  background: #f15822; /* Pharmacity orange */
+.flash-sale.theme-orange_strip {
+  background: #f15822;
   border: none;
-  border-radius: 0;
-  margin: 0;
-  padding: 32px var(--sf-container-px, 16px);
+  border-radius: 12px;
+  padding: 28px 24px;
 }
-.flash-sale.theme-orange .flash-sale__title h2 {
-  color: #fff;
-  background: none;
-  -webkit-text-fill-color: #fff;
+.flash-sale.theme-orange_strip .flash-sale__title h2 { color: #fff; background: none; -webkit-text-fill-color: #fff; }
+.flash-sale.theme-orange_strip .flash-sale__icon { color: #fff; }
+.flash-sale.theme-orange_strip .timer-block { background: #333; color: #fff; }
+.flash-sale.theme-orange_strip .timer-sep { color: #fff; }
+.flash-sale.theme-orange_strip .flash-sale__more { color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 6px 16px; border-radius: 20px; }
+.flash-sale.theme-orange_strip .flash-sale__more:hover { background: rgba(255,255,255,0.1); text-decoration: none; }
+
+/* Dark Mode Theme */
+.flash-sale.theme-dark_mode {
+  background: #111827;
+  border: 1px solid #374151;
 }
-.flash-sale.theme-orange .flash-sale__icon {
-  color: #fff;
-}
-.flash-sale.theme-orange .timer-block {
-  background: #333;
-  color: #fff;
-}
-.flash-sale.theme-orange .timer-sep {
-  color: #fff;
-}
-.flash-sale.theme-orange .flash-sale__more {
-  color: #fff;
+.flash-sale.theme-dark_mode .flash-sale__title h2 { color: #f9fafb; background: none; -webkit-text-fill-color: #f9fafb; }
+.flash-sale.theme-dark_mode .flash-item { background: #1f2937; border-color: #374151; color: #f9fafb; }
+.flash-sale.theme-dark_mode .flash-item__name { color: #e5e7eb; }
+
+/* Rounded Cards Theme */
+.flash-sale.theme-rounded_cards {
   background: transparent;
-  padding: 6px 16px;
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 20px;
+  border: none;
 }
-.flash-sale.theme-orange .flash-sale__more:hover {
-  background: rgba(255,255,255,0.1);
-  text-decoration: none;
+.flash-sale.theme-rounded_cards .flash-item {
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  border: none;
+}
+.flash-sale.theme-rounded_cards .flash-item__image {
+  border-radius: 24px 24px 0 0;
 }
 </style>

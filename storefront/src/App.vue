@@ -244,6 +244,7 @@ provide('navLinks', navLinks)
 provide('installedModules', installedModules)
 provide('template', computed(() => layoutConfig.value?.template || 'full_store'))
 provide('pluginSections', pluginSections)
+provide('isPreviewMode', isPostMessagePreview)
 </script>
 
 <style scoped>

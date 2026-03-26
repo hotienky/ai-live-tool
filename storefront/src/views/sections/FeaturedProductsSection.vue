@@ -1,5 +1,5 @@
 <template>
-  <section class="home-section container" v-if="productsData.length > 0">
+  <section class="home-section container" v-if="productsData.length > 0" :class="['layout-' + (params?.layoutStyle || 'grid')]">
     <div class="home-section__header">
       <h2 class="section-title">
         <Sparkles :size="22" class="section-title__accent" />
@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import ProductCard from '../../components/ProductCard.vue'
 import { Sparkles, ArrowRight } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
@@ -34,6 +34,20 @@ const props = defineProps({
   section: { type: Object, default: () => ({}) }
 })
 
+const isPreviewMode = inject('isPreviewMode', false)
+
+// Dummy product generator for preview
+const dummyProducts = Array.from({ length: 8 }).map((_, i) => ({
+  id: `dummy-${i}`,
+  name: `Sản phẩm mẫu ${i + 1}`,
+  slug: `san-pham-mau-${i + 1}`,
+  price: 199000 + i * 50000,
+  base_price: 250000 + i * 50000,
+  image: `https://loremflickr.com/400/400/product?random=${i}`,
+  category: { name: 'Danh mục mẫu' },
+  is_dummy: true
+}))
+
 const productsData = computed(() => {
   let allProducts = []
   if (props.params?.resolvedData) {
@@ -41,6 +55,10 @@ const productsData = computed(() => {
   } else {
     // Fallback during architectural transition
     allProducts = window.__STOREFRONT_DATA__?.products || []
+  }
+  
+  if (allProducts.length === 0 && isPreviewMode) {
+    allProducts = dummyProducts
   }
   
   const count = props.params?.count || 8
@@ -97,5 +115,40 @@ const gridStyle = computed(() => {
   .product-carousel {
     --cols: 1.5 !important;
   }
+}
+
+/* Elegant Layout */
+.layout-elegant :deep(.product-card) {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.layout-elegant :deep(.product-card__image-container) {
+  border-radius: 0 !important;
+}
+.layout-elegant :deep(.product-card:hover) {
+  transform: none !important;
+}
+.layout-elegant :deep(.product-card__title) {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  text-align: center;
+  margin-top: 12px;
+}
+.layout-elegant :deep(.product-card__prices) {
+  justify-content: center;
+}
+
+/* Minimal Layout */
+.layout-minimal :deep(.product-card) {
+  border: none !important;
+  border-bottom: 1px solid var(--sf-border) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding-bottom: 16px;
+}
+.layout-minimal :deep(.product-card:hover) {
+  transform: translateY(-2px) !important;
+  box-shadow: none !important;
 }
 </style>

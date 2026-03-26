@@ -70,52 +70,39 @@ function initBridge() {
   }
 }
 
-// Load a plugin bundle dynamically via fetch + eval (no script tag race conditions)
+import { STATIC_PLUGINS } from '../pluginRegistry.js'
+
 async function loadPlugin(moduleId) {
   if (loadedPlugins[moduleId]) return loadedPlugins[moduleId]
 
   loadingPlugin.value = moduleId
 
   try {
-    // Load CSS via apiFetch (auth required) + inject as inline style
-    if (!document.getElementById(`plugin-css-${moduleId}`)) {
-      try {
-        const cssRes = await apiFetch(`/modules/${moduleId}/style.css?v=${Date.now()}`)
-        if (cssRes.ok) {
-          const cssText = await cssRes.text()
-          const style = document.createElement('style')
-          style.id = `plugin-css-${moduleId}`
-          style.textContent = cssText
-          document.head.appendChild(style)
-        }
-      } catch (_) { /* CSS optional */ }
+    // Check registration
+    const plugin = Object.assign({}, STATIC_PLUGINS[moduleId])
+    if (!plugin || Object.keys(plugin).length === 0) {
+      if (moduleId === 'cms') return null // some plugins may not exist in frontend bundle
+      return null
     }
 
-    // Fetch JS bundle as text (use apiFetch for auth token)
-    const v = Date.now()
-    const res = await apiFetch(`/modules/${moduleId}/bundle.js?v=${v}`)
-    if (!res.ok) {
-      // 404 = backend-only module with no frontend bundle — skip silently
-      if (res.status === 404) return null
-      throw new Error(`HTTP ${res.status} loading plugin ${moduleId}`)
-    }
-    const code = await res.text()
+    // Assign to registry
+    window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}
+    window.__PLUGIN_REGISTRY__[moduleId] = plugin
 
-    // Ensure globals before execution
+    // Ensure globals
     window.Vue = window.Vue || Vue
     window.LucideVueNext = window.LucideVueNext || LucideVueNext
-    window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}
 
     // Track hook registrations by capturing counter before/after
     const hookIdBefore = hooks._idCounter
 
-    // Execute the IIFE bundle
-    try {
-      new Function(code)()
-    } catch (evalError) {
-      console.error(`[PluginLoader] Error executing ${moduleId} bundle:`, evalError)
-      throw new Error(`Plugin ${moduleId} có lỗi code: ${evalError.message}`)
+    // Execute the hook registration logic
+    if (plugin.initHooks) {
+      plugin.initHooks()
     }
+
+    // Call any extra initialization if present in the plugin file body
+    // ...
 
     // Record hook IDs registered by this plugin (for cleanup on unload)
     const hookIdAfter = hooks._idCounter
@@ -124,12 +111,6 @@ async function loadPlugin(moduleId) {
         { length: hookIdAfter - hookIdBefore },
         (_, i) => hookIdBefore + i + 1
       )
-    }
-
-    // Check registration
-    const plugin = window.__PLUGIN_REGISTRY__[moduleId]
-    if (!plugin) {
-      throw new Error(`Plugin ${moduleId} loaded nhưng không đăng ký được`)
     }
 
     // Mark components as raw (prevent Vue reactivity wrapping)

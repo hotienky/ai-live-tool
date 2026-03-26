@@ -26,15 +26,28 @@
           <div class="section-item__drag-handle">
             <GripVertical :size="14" />
           </div>
-          <component :is="sectionMeta[section.type]?.icon" :size="14" />
+          <span class="section-item__icon">
+            <component v-if="sectionMeta[section.type]?.icon" :is="sectionMeta[section.type].icon" :size="14" />
+            <span v-else>📦</span>
+          </span>
           <span>{{ sectionMeta[section.type]?.label || section.type }}</span>
         </div>
         <div class="section-item__right">
           <button
-            class="btn-params"
+            class="btn-action btn-action--style"
             @click.stop="toggleExpand(section.type)"
-            title="Tùy chỉnh"
+            :title="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
           ><Settings2 :size="13" /></button>
+          <button
+            class="btn-action btn-action--dup"
+            @click.stop="duplicateSection(idx)"
+            title="Nhân đôi"
+          ><Copy :size="12" /></button>
+          <button
+            class="btn-action btn-action--del"
+            @click.stop="deleteSection(idx)"
+            title="Xoá section"
+          ><Trash2 :size="12" /></button>
           <label class="toggle-switch" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
             <span class="toggle-slider"></span>
@@ -45,6 +58,23 @@
       <!-- Expanded Section Parameters -->
       <transition name="expand">
         <div v-if="expandedSection === section.type" class="section-params">
+
+          <!-- ★ Visual Template Picker (NEW) -->
+          <SectionStylePicker
+            :section-type="section.type"
+            :params="getParams(section)"
+            @apply-template="config => applyTemplateConfig(section, config)"
+          />
+
+          <!-- Advanced Config (collapsible) -->
+          <details class="advanced-config" :open="!hasVisualTemplates(section.type)">
+            <summary class="advanced-config__toggle">
+              <SlidersHorizontal :size="12" />
+              <span>Tinh chỉnh nâng cao</span>
+              <ChevronDown :size="12" class="advanced-config__arrow" />
+            </summary>
+            <div class="advanced-config__body">
+
           <!-- Schema-Driven Inputs -->
           <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
             
@@ -201,6 +231,9 @@
               </div>
             </template>
           </details>
+
+            </div><!-- /.advanced-config__body -->
+          </details><!-- /.advanced-config -->
         </div>
       </transition>
     </div>
@@ -209,10 +242,12 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2 } from 'lucide-vue-next'
+import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2, Copy, SlidersHorizontal, ChevronDown } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { sectionSchemas, styleSchema } from './sectionSchemas.js'
+import { hasVisualTemplates } from './sectionTemplates.js'
+import SectionStylePicker from './SectionStylePicker.vue'
 import LanguageTabs from '../LanguageTabs.vue'
 import MediaPicker from '../MediaPicker.vue'
 import RichTextEditor from '../RichTextEditor.vue'
@@ -260,6 +295,34 @@ function onDrop(targetIdx) {
 
 function toggleExpand(type) {
   expandedSection.value = expandedSection.value === type ? null : type
+}
+
+// ── Quick Actions ──
+function duplicateSection(idx) {
+  const original = list.value[idx]
+  const clone = JSON.parse(JSON.stringify(original))
+  clone.type = original.type
+  clone.order = idx + 1
+  const currentList = [...list.value]
+  currentList.splice(idx + 1, 0, clone)
+  currentList.forEach((s, i) => { s.order = i })
+  list.value = currentList
+}
+
+function deleteSection(idx) {
+  if (!confirm('Bạn có chắc muốn xoá section này?')) return
+  const currentList = [...list.value]
+  currentList.splice(idx, 1)
+  currentList.forEach((s, i) => { s.order = i })
+  list.value = currentList
+  expandedSection.value = null
+}
+
+function applyTemplateConfig(section, config) {
+  // Merge template config into section params
+  Object.keys(config).forEach(k => {
+    section.params[k] = config[k]
+  })
 }
 
 // Multi-language Helpers
@@ -459,5 +522,84 @@ async function autoTranslateSection(section) {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* ── Quick Action Buttons ── */
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  transition: all 0.15s;
+  padding: 0;
+}
+.btn-action:hover {
+  background: var(--color-bg-card-hover, #f1f5f9);
+  color: var(--color-text-primary, #334155);
+  border-color: var(--color-border, #e2e8f0);
+}
+.btn-action--style:hover {
+  color: var(--color-accent-primary, #6366f1);
+  background: var(--color-accent-glow, rgba(99, 102, 241, 0.08));
+}
+.btn-action--dup:hover {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.08);
+}
+.btn-action--del:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Section Icon ── */
+.section-item__icon {
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Advanced Config Collapsible ── */
+.advanced-config {
+  margin-top: 8px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.advanced-config__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted, #94a3b8);
+  cursor: pointer;
+  user-select: none;
+  background: var(--glass-bg, #f8fafc);
+  border: none;
+  list-style: none;
+  transition: all 0.15s;
+}
+.advanced-config__toggle:hover {
+  color: var(--color-text-primary, #334155);
+  background: var(--color-bg-card-hover, #f1f5f9);
+}
+.advanced-config__toggle::-webkit-details-marker { display: none; }
+.advanced-config__arrow {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+.advanced-config[open] .advanced-config__arrow {
+  transform: rotate(180deg);
+}
+.advanced-config__body {
+  padding: 8px 10px 12px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
 }
 </style>

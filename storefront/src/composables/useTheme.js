@@ -91,12 +91,12 @@ function deriveColors(hex) {
 }
 
 const state = reactive({
-  mode: localStorage.getItem(THEME_KEY) || 'dark',
+  mode: localStorage.getItem(THEME_KEY) || 'light',
   font: 'Inter',
   radius: '12',
   cardStyle: 'glass',
   loaded: false,
-  tenantDefaultMode: 'dark',
+  tenantDefaultMode: 'light',
   // Per-mode accent colors
   dark: { accent: '#7c3aed' },
   light: { accent: '#6d28d9' },

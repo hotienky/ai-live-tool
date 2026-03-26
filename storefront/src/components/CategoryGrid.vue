@@ -1,5 +1,5 @@
 <template>
-  <section class="category-grid" :class="{ 'style-circle': layout === 'circle_icon' }">
+  <section class="category-grid" :class="['style-' + layout]">
     <router-link
       v-for="cat in categories"
       :key="cat.id"
@@ -139,5 +139,34 @@ defineProps({
 .category-grid.style-circle .category-card__name {
   font-size: 13px;
   font-weight: 500;
+}
+
+/* Masonry Style */
+.category-grid.style-masonry {
+  display: block;
+  columns: 3 200px;
+  gap: 16px;
+}
+.category-grid.style-masonry .category-card {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  background: var(--sf-bg-surface, #fff);
+  border: 1px solid var(--sf-border, #eaeaea);
+  border-radius: var(--sf-radius-lg, 16px);
+}
+.category-grid.style-masonry .category-card__icon {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16/9;
+  border-radius: var(--sf-radius-md, 12px);
+  margin-bottom: 12px;
+}
+.category-grid.style-masonry .category-card__name {
+  font-size: 16px;
+  font-weight: 700;
 }
 </style>

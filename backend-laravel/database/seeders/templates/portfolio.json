@@ -1,57 +1,82 @@
 {
   "id": "portfolio",
-  "name": "Portfolio / Cá nhân",
-  "icon": "User",
-  "description": "Trưng bày dự án, kỹ năng và tóm tắt tiểu sử dành cho freelancer & agency.",
+  "name": "Bất Động Sản (Real Estate)",
+  "icon": "Image",
+  "description": "Giới thiệu các dự án bất động sản, thiết kế nội thất với giao diện sang trọng.",
   "preview": "portfolio-preview.png",
-  "modules": [],
-  "theme": "starter",
+  "modules": ["blog"],
+  "theme": "portfolio-dark",
+  "header_config": {
+    "bgColor": "#ffffff",
+    "textColor": "#1f2937",
+    "topBarBg": "#1f2937",
+    "topBarText": "#f9fafb",
+    "promoText": "☎ Hotline phòng kinh doanh: 090 123 4567"
+  },
+  "footer_config": {
+    "bgColor": "#1f2937",
+    "textColor": "#9ca3af",
+    "columns": [
+      { "title": "Công Ty", "links": [{ "label": "Về chúng tôi", "url": "/about" }, { "label": "Tuyển dụng", "url": "/careers" }] },
+      { "title": "Dự Án", "links": [{ "label": "Phân phối", "url": "/projects" }, { "label": "Ký gửi", "url": "/contact" }] }
+    ]
+  },
+  "nav_links": [
+    { "title": "Trang Chủ", "url": "/", "type": "single", "sort_order": 0, "group": "menu" },
+    { "title": "Dự Án Đang Bán", "url": "/projects", "type": "single", "sort_order": 1, "group": "menu" },
+    { "title": "Tin Tức Địa Ốc", "url": "/blog", "type": "single", "sort_order": 2, "group": "menu" },
+    { "title": "Liên Hệ", "url": "/contact", "type": "single", "sort_order": 3, "group": "menu" }
+  ],
   "layout_sections": [
     {
-      "type": "banner",
+      "id": "re_banner",
+      "type": "image_banner",
       "enabled": true,
-      "params": {
-        "title": "Hi, I'm a Creative Professional",
-        "height": "lg"
-      }
+      "order": 0,
+      "params": { "desktopImage": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=2670&auto=format&fit=crop", "fullWidth": true, "height": "600px" },
+      "content": []
     },
     {
+      "id": "re_links",
+      "type": "feature_links",
+      "enabled": true,
+      "order": 1,
+      "params": { "columns": 4, "style": "card", "fullWidth": false },
+      "content": [
+        { "url": "#", "title": "Căn Hộ Cao Cấp", "icon": "https://cdn-icons-png.flaticon.com/512/2060/2060001.png", "bgColor": "#fff" },
+        { "url": "#", "title": "Nhà Phố Yên Tĩnh", "icon": "https://cdn-icons-png.flaticon.com/512/2060/2060046.png", "bgColor": "#fff" },
+        { "url": "#", "title": "Đất Nền Đầu Tư", "icon": "https://cdn-icons-png.flaticon.com/512/2060/2060064.png", "bgColor": "#fff" },
+        { "url": "#", "title": "Mặt Bằng Cho Thuê", "icon": "https://cdn-icons-png.flaticon.com/512/2060/2060139.png", "bgColor": "#fff" }
+      ]
+    },
+    {
+      "id": "re_featured",
+      "type": "featured_products",
+      "enabled": true,
+      "order": 2,
+      "params": { "title": "Dự Án Nổi Bật", "count": 6, "columns": 3, "layoutStyle": "grid", "sortOrder": "newest" },
+      "content": []
+    },
+    {
+      "id": "re_text",
       "type": "text_block",
       "enabled": true,
-      "params": {
-        "title": "Về tôi"
-      },
-      "content": "<h1>Creative Director & Designer</h1><p>Với hơn 10 năm kinh nghiệm trong ngành...</p>"
+      "order": 3,
+      "params": { "content": "<h2 style='text-align:center;'>Vì Sao Chọn Chúng Tôi?</h2><div style='display:flex;justify-content:space-around;max-width:800px;margin:20px auto;color:#555;'><div>💼 Pháp lý rõ ràng 100%</div><div>⚡ Khởi thông tính thanh khoản siêu tốc</div><div>🏦 Ngân hàng đối tác hỗ trợ đến 70% giá trị dự án</div></div>", "alignment": "center" },
+      "content": []
     },
     {
-      "type": "image_gallery",
+      "id": "re_blogs",
+      "type": "blog_posts",
       "enabled": true,
-      "params": {
-        "title": "Dự án tiêu biểu",
-        "columns": 3
-      }
-    },
-    {
-      "type": "testimonials",
-      "enabled": true,
-      "params": {
-        "title": "Khách hàng nói gì",
-        "columns": 2
-      }
+      "order": 4,
+      "params": { "title": "Tin Tức Thị Trường", "count": 3, "layoutView": "grid" },
+      "content": []
     }
   ],
   "default_pages": [
-    {
-      "title": "My Resume",
-      "slug": "resume",
-      "template": "blank"
-    },
-    {
-      "title": "Contact Me",
-      "slug": "contact",
-      "template": "contact"
-    }
-  ],
-  "sample_data": null,
-  "image": "/images/templates/portfolio.png"
+    { "title": "Về Chúng Tôi", "slug": "about", "template": "about" },
+    { "title": "Dự Án Đã Thực Hiện", "slug": "projects", "template": "projects" },
+    { "title": "Liên hệ", "slug": "contact", "template": "contact" }
+  ]
 }

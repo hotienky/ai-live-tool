@@ -329,6 +329,7 @@ function onOnboardingComplete() {
   needsOnboarding.value = false
   fetchTenantFeatures()
   fetchInstalledModules()
+  navigateTo('shop/layout')
 }
 
 // ── Installed Modules ──

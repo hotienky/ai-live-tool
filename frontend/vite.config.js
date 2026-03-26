@@ -14,9 +14,12 @@ export default defineConfig({
   server: {
     allowedHosts: true,
     proxy: {
-      '/api': 'http://localhost:3000',
+      '/api': {
+        target: 'http://localhost',
+        changeOrigin: false,
+      },
       '/socket.io': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost',
         ws: true,
       },
     },

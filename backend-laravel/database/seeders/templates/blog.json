@@ -1,56 +1,91 @@
 {
   "id": "blog",
-  "name": "Blog / Tin tức",
-  "icon": "FileText",
-  "description": "Giao diện tối ưu cho người viết lách, báo chí và nhà sáng tạo nội dung.",
+  "name": "Nhà Hàng / F&B (Restaurant)",
+  "icon": "Coffee",
+  "description": "Giao diện dành riêng cho nhà hàng, quán cafe với thực đơn và đặt bàn trực tuyến.",
   "preview": "blog-preview.png",
-  "modules": [
-    "blog"
+  "modules": ["blog"],
+  "theme": "blog-minimal",
+  "header_config": {
+    "bgColor": "#ffffff",
+    "textColor": "#27272a",
+    "topBarBg": "#18181b",
+    "topBarText": "#fafafa",
+    "promoText": "Đặt bàn ngay để nhận ưu đãi 10% hôm nay"
+  },
+  "footer_config": {
+    "bgColor": "#18181b",
+    "textColor": "#a1a1aa",
+    "columns": [
+      { "title": "Giờ Mở Cửa", "links": [{ "label": "Tất cả các ngày trong tuần", "url": "#" }, { "label": "10:00 Sáng - 22:00 Tối", "url": "#" }] },
+      { "title": "Chi Nhánh", "links": [{ "label": "Quận 1, TP. HCM", "url": "/stores" }, { "label": "Quận Hai Bà Trưng, HN", "url": "/stores" }] }
+    ]
+  },
+  "nav_links": [
+    { "title": "Trang Chủ", "url": "/", "type": "single", "sort_order": 0, "group": "menu" },
+    { "title": "Thực Đơn", "url": "/menu", "type": "single", "sort_order": 1, "group": "menu" },
+    { "title": "Khuyến Mãi", "url": "/promotions", "type": "single", "sort_order": 2, "group": "menu" },
+    { "title": "Đặt Bàn", "url": "/booking", "type": "single", "sort_order": 3, "group": "menu" }
   ],
-  "theme": "blog-magazine",
   "layout_sections": [
     {
+      "id": "res_banner",
       "type": "banner",
       "enabled": true,
-      "params": {
-        "title": "Đọc tin tức mỗi ngày",
-        "height": "md"
-      }
+      "order": 0,
+      "params": { "height": "fullscreen", "autoplay": true, "interval": 6000 },
+      "content": [
+        {
+          "link": "#",
+          "image": "https://images.unsplash.com/photo-1544025162-8315ea070d40?q=80&w=2574&auto=format&fit=crop",
+          "title": "HƯƠNG VỊ ĐỈNH CAO",
+          "caption": "Khám phá ẩm thực tuyệt vời tại nhà hàng của chúng tôi"
+        }
+      ]
     },
     {
-      "type": "cms_pages",
+      "id": "res_feature_links",
+      "type": "feature_links",
       "enabled": true,
-      "params": {
-        "title": "Bài viết mới nhất",
-        "layout": "grid",
-        "maxPages": 6
-      }
+      "order": 1,
+      "params": { "columns": 3, "style": "card", "fullWidth": false },
+      "content": [
+        { "url": "#", "title": "Đặt Bàn Ngay", "icon": "https://cdn-icons-png.flaticon.com/512/2821/2821814.png", "bgColor": "#fff1e6", "subtitle": "Nhanh chóng & Tiện lợi" },
+        { "url": "#", "title": "Khám Phá Menu", "icon": "https://cdn-icons-png.flaticon.com/512/1046/1046772.png", "bgColor": "#e0fbfc", "subtitle": "Hơn 50+ món ngon" },
+        { "url": "#", "title": "Ưu Đãi", "icon": "https://cdn-icons-png.flaticon.com/512/879/879757.png", "bgColor": "#ecf39e", "subtitle": "Giảm giá đặc biệt" }
+      ]
     },
     {
-      "type": "newsletter",
+      "id": "res_featured",
+      "type": "featured_products",
       "enabled": true,
-      "params": {
-        "title": "Bản tin tuần",
-        "subtitle": "Không bỏ lỡ những bài viết hay nhất",
-        "buttonText": "Đăng ký"
-      }
+      "order": 2,
+      "params": { "title": "CÁC MÓN SIGNATURE", "count": 6, "columns": 3, "layoutStyle": "grid", "sortOrder": "bestselling" },
+      "content": []
+    },
+    {
+      "id": "res_testimonials",
+      "type": "testimonials",
+      "enabled": true,
+      "order": 3,
+      "params": { "title": "Thực Khách Nói Gì Về Chúng Tôi" },
+      "content": [
+        { "name": "Anh Nam", "role": "Khách hàng thường xuyên", "avatar": "https://i.pravatar.cc/150?u=1", "comment": "Đồ ăn rất ngon, không gian ấm cúng. Rất phù hợp cho gia đình cuối tuần." },
+        { "name": "Chị Hoa", "role": "Reviewer", "avatar": "https://i.pravatar.cc/150?u=2", "comment": "Bò bít tết ở đây tuyệt vời, thịt mềm rụm, sốt tiêu đen đậm đà!" }
+      ]
+    },
+    {
+      "id": "res_text",
+      "type": "text_block",
+      "enabled": true,
+      "order": 4,
+      "params": { "content": "<h2 style='text-align:center;'>Không Gian Ấm Cúng</h2><p style='text-align:center;color:#666;'>Tọa lạc tại trung tâm thành phố, nhà hàng cung cấp một không gian lý tưởng cho các buổi hẹn hò, họp mặt gia đình hay thiết đãi đối tác.</p>", "alignment": "center" },
+      "content": []
     }
   ],
   "default_pages": [
-    {
-      "title": "Về tác giả",
-      "slug": "about-author",
-      "template": "about"
-    },
-    {
-      "title": "Liên hệ hợp tác",
-      "slug": "contact",
-      "template": "contact"
-    }
-  ],
-  "sample_data": {
-    "posts": 8,
-    "categories": 3
-  },
-  "image": "/images/templates/blog.png"
+    { "title": "Thực đơn", "slug": "menu", "template": "menu" },
+    { "title": "Đặt bàn", "slug": "booking", "template": "booking" },
+    { "title": "Liên hệ", "slug": "contact", "template": "contact" }
+  ]
 }

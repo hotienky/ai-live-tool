@@ -1,0 +1,452 @@
+<template>
+  <!-- Form view -->
+  <PurchaseOrderForm v-if="viewMode === 'form'" :editId="editId" @saved="onFormSaved" @back="viewMode = 'list'" />
+  <!-- Detail view -->
+  <PurchaseOrderDetail v-else-if="viewMode === 'detail'" :editId="detailId" @back="viewMode = 'list'" @refresh="fetchOrders" />
+  <!-- List view -->
+  <div v-else class="po-mgr">
+    <div class="po-header">
+      <h2><ShoppingCart :size="20" style="vertical-align:middle" />{{ t('admin.purchase_orders', 'Đơn Nhập Hàng') }}</h2>
+      <div class="header-actions">
+        <input v-model="searchTerm" class="search-input" :placeholder="t('admin.msg_8e2a27', 'Tìm mã PO, ghi chú...')"  @input="debouncedSearch" />
+        <select v-model="filterStatus" class="filter-select">
+          <option value="">{{ t('admin.msg_6869b8d8', 'Tất cả TT') }}</option>
+          <option value="draft">{{ t('admin.msg_867cf3b9', 'Nháp') }}</option>
+          <option value="ordered">{{ t('admin.msg_e9b9aa84', 'Đã đặt') }}</option>
+          <option value="partial">{{ t('admin.msg_da42ebfc', 'Nhận 1 phần') }}</option>
+          <option value="received">{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</option>
+          <option value="cancelled">{{ t('admin.msg_1a46e024', 'Đã hủy') }}</option>
+        </select>
+        <button class="btn-primary" @click="openCreate"><Plus :size="14" />{{ t('admin.msg_23275279', 'Tạo đơn') }}</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="po-stats">
+      <div class="stat-card"><div class="stat-icon"><ShoppingCart :size="20" /></div><div class="stat-value">{{ poStats.total_orders || 0 }}</div><div class="stat-label">{{ t('admin.order_total', 'Tổng đơn') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--green"><DollarSign :size="20" /></div><div class="stat-value">{{ formatCurrency(poStats.total_value || 0) }}</div><div class="stat-label">{{ t('admin.msg_b71668e4', 'Tổng giá trị') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--warn"><Clock :size="20" /></div><div class="stat-value">{{ poStats.pending || 0 }}</div><div class="stat-label">{{ t('admin.msg_2bfffc09', 'Đang chờ') }}</div></div>
+      <div class="stat-card"><div class="stat-icon stat-icon--red"><AlertCircle :size="20" /></div><div class="stat-value">{{ poStats.unpaid || 0 }}</div><div class="stat-label">{{ t('admin.msg_956718c7', 'Chưa thanh toán') }}</div></div>
+    </div>
+
+    <!-- Table -->
+    <div class="po-table">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('admin.msg_177be34e', 'Mã PO') }}</th><th>{{ t('admin.supplier', 'Nhà cung cấp') }}</th><th>SP</th><th>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</th>
+            <th>{{ t('admin.status', 'Trạng thái') }}</th><th>{{ t('admin.payment', 'Thanh toán') }}</th><th>{{ t('admin.order_date', 'Ngày đặt') }}</th><th>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</th><th>{{ t('admin.msg_71d52075', 'Thao tác') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="po in orders" :key="po.id">
+            <td class="mono">{{ po.po_number }}</td>
+            <td>{{ po.supplier?.name || '—' }}</td>
+            <td>{{ (po.items || []).length }} SP</td>
+            <td class="amount">{{ formatCurrency(po.total_amount) }}</td>
+            <td><span class="status-badge" :class="po.status">{{ statusLabel(po.status) }}</span></td>
+            <td><span class="pay-badge" :class="po.payment_status">{{ payLabel(po.payment_status) }}</span></td>
+            <td class="date">{{ formatDate(po.order_date) }}</td>
+            <td class="date">{{ formatDate(po.expected_date) }}</td>
+            <td>
+              <div class="action-btns">
+                <button class="act-btn act-view" @click="viewPO(po)"><Eye :size="13" /> Xem</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-send" @click="sendPO(po)"><Send :size="13" />{{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+                <button v-if="['ordered','partial'].includes(po.status)" class="act-btn act-confirm" @click="openReceive(po)"><PackageCheck :size="13" />{{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
+                <button v-if="po.status !== 'received' && po.status !== 'cancelled'" class="act-btn act-cancel" @click="cancelPO(po)"><X :size="13" /> {{ t('admin.cancel', 'Hủy') }}</button>
+                <button v-if="po.status === 'draft'" class="act-btn act-cancel" @click="deletePO(po)"><Trash2 :size="13" /> {{ t('admin.delete', 'Xóa') }}</button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="orders.length === 0">
+            <td colspan="9" class="empty"><div class="empty-state"><ShoppingCart :size="40" class="empty-state__icon" /><p class="empty-state__title">{{ t('admin.msg_258ce7bb', 'Chưa có Đơn Nhập Hàng') }}</p></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" v-if="pagination.last_page > 1">
+      <button @click="currentPage = Math.max(1, currentPage - 1)" :disabled="currentPage <= 1" class="page-btn"><ChevronLeft :size="14" /></button>
+      <span class="page-info">{{ currentPage }} / {{ pagination.last_page }}</span>
+      <button @click="currentPage = Math.min(pagination.last_page, currentPage + 1)" :disabled="currentPage >= pagination.last_page" class="page-btn"><ChevronRight :size="14" /></button>
+    </div>
+
+    <!-- Create PO Modal -->
+    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+      <div class="modal modal--wide">
+        <h3><ShoppingCart :size="16" style="vertical-align:middle" /> {{ editingId ? t('admin.msg_013bf51f', 'Sửa Đơn Nhập Hàng') : t('admin.msg_805c1530', 'Tạo Đơn Nhập Hàng') }}</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>{{ t('admin.msg_9c58fc66', 'Nhà cung cấp *') }}</label>
+            <select v-model="form.supplier_id">
+              <option :value="null" disabled>{{ t('admin.msg_435bf321', '— Chọn NCC —') }}</option>
+              <option v-for="s in suppliers" :key="s.id" :value="s.id">{{ s.name }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>{{ t('admin.order_date', 'Ngày đặt') }}</label>
+            <input type="date" v-model="form.order_date" />
+          </div>
+          <div class="form-group">
+            <label>{{ t('admin.msg_610dee1b', 'Ngày nhận dự kiến') }}</label>
+            <input type="date" v-model="form.expected_date" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>{{ t('admin.msg_98b9f1c4', 'Thêm sản phẩm') }}</label>
+          <div class="product-search-wrap">
+            <input v-model="productSearch" class="product-search" :placeholder="t('admin.msg_c20e39', 'Tìm tên SP, SKU...')"  @input="searchProducts" />
+            <div class="product-dropdown" v-if="productResults.length > 0">
+              <div v-for="p in productResults" :key="p.id" class="product-result" @click="addProduct(p)">
+                <span class="pr-name">{{ p.name }}</span>
+                <span class="pr-sku">{{ p.sku || '' }}</span>
+                <span class="pr-price">{{ formatCurrency(p.price || 0) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="items-table" v-if="form.items.length > 0">
+          <table>
+            <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th style="width:90px">SL</th><th style="width:130px">{{ t('admin.unit_price', 'Đơn giá') }}</th><th style="width:110px">{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th><th style="width:40px"></th></tr></thead>
+            <tbody>
+              <tr v-for="(item, idx) in form.items" :key="idx">
+                <td>{{ item.product_name }}</td>
+                <td class="sku">{{ item.sku || '—' }}</td>
+                <td><input type="number" v-model.number="item.qty" min="1" class="item-input" @change="recalcTotal" /></td>
+                <td><input type="number" v-model.number="item.unit_price" min="0" class="item-input" @change="recalcTotal" /></td>
+                <td class="amount">{{ formatCurrency(item.qty * item.unit_price) }}</td>
+                <td><button @click="form.items.splice(idx, 1); recalcTotal()" class="btn-rm"><Trash2 :size="12" /></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>{{ t('admin.tax', 'Thuế') }}</label><input type="number" v-model.number="form.tax_amount" min="0" @change="recalcTotal" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_6b272d01', 'Giảm giá') }}</label><input type="number" v-model.number="form.discount_amount" min="0" @change="recalcTotal" /></div>
+          <div class="form-group"><label>{{ t('admin.msg_d0a16ea2', 'Tổng tiền') }}</label><input type="number" v-model.number="form.total_amount" readonly class="total-input" /></div>
+        </div>
+        <div class="form-group"><label>{{ t('admin.notes', 'Ghi chú') }}</label><textarea v-model="form.notes" rows="2"></textarea></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
+          <button class="btn-create" @click="savePO">{{ editingId ? t('admin.msg_3b7db4b6', 'Cập nhật') : t('admin.msg_23275279', 'Tạo đơn') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View PO Detail Modal -->
+    <div class="modal-overlay" v-if="showDetail" @click.self="showDetail = false">
+      <div class="modal modal--wide">
+        <h3>
+          {{ detailPO.po_number }}
+          <span class="status-badge" :class="detailPO.status" style="margin-left:8px">{{ statusLabel(detailPO.status) }}</span>
+          <span class="pay-badge" :class="detailPO.payment_status" style="margin-left:6px">{{ payLabel(detailPO.payment_status) }}</span>
+        </h3>
+        <div class="detail-info">
+          <div><strong>NCC:</strong> {{ detailPO.supplier?.name }}</div>
+          <div><strong>{{ t('admin.msg_ab0e5d07', 'Ngày đặt:') }}</strong> {{ formatDate(detailPO.order_date) }}</div>
+          <div v-if="detailPO.expected_date"><strong>{{ t('admin.msg_516a4bdf', 'Dự kiến:') }}</strong> {{ formatDate(detailPO.expected_date) }}</div>
+          <div v-if="detailPO.received_date"><strong>{{ t('admin.msg_8f5ec689', 'Đã nhận:') }}</strong> {{ formatDate(detailPO.received_date) }}</div>
+          <div v-if="detailPO.notes"><strong>{{ t('admin.msg_1f871388', 'Ghi chú:') }}</strong> {{ detailPO.notes }}</div>
+        </div>
+        <table class="detail-table">
+          <thead><tr><th>#</th><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>SKU</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.unit_price', 'Đơn giá') }}</th><th>{{ t('admin.msg_b860ba79', 'Thành tiền') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="(item, idx) in (detailPO.items || [])" :key="idx">
+              <td>{{ idx + 1 }}</td>
+              <td>{{ item.product_name }}</td>
+              <td class="sku">{{ item.sku || '—' }}</td>
+              <td>{{ item.qty }}</td>
+              <td>
+                <span :class="item.received_qty >= item.qty ? 'received-full' : item.received_qty > 0 ? 'received-partial' : ''">
+                  {{ item.received_qty || 0 }} / {{ item.qty }}
+                </span>
+              </td>
+              <td>{{ formatCurrency(item.unit_price) }}</td>
+              <td class="amount">{{ formatCurrency(item.total || item.qty * item.unit_price) }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr><td colspan="6" style="text-align:right;font-weight:700">{{ t('admin.msg_e014dd77', 'Tạm tính:') }}</td><td class="amount">{{ formatCurrency(detailPO.subtotal) }}</td></tr>
+            <tr v-if="detailPO.tax_amount"><td colspan="6" style="text-align:right">{{ t('admin.msg_500aedd2', 'Thuế') }}:</td><td>{{ formatCurrency(detailPO.tax_amount) }}</td></tr>
+            <tr v-if="detailPO.discount_amount"><td colspan="6" style="text-align:right">{{ t('admin.msg_1286d2de', 'Giảm giá:') }}</td><td>-{{ formatCurrency(detailPO.discount_amount) }}</td></tr>
+            <tr><td colspan="6" style="text-align:right;font-weight:800">{{ t('admin.msg_d369e261', 'Tổng cộng:') }}</td><td class="amount" style="font-weight:800;font-size:15px">{{ formatCurrency(detailPO.total_amount) }}</td></tr>
+          </tfoot>
+        </table>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showDetail = false">{{ t('admin.close', 'Đóng') }}</button>
+          <button v-if="detailPO.status === 'draft'" class="btn-send-lg" @click="showDetail = false; sendPO(detailPO)"><Send :size="14" />{{ t('admin.msg_f15a8810', 'Đặt hàng') }}</button>
+          <button v-if="['ordered','partial'].includes(detailPO.status)" class="btn-create" @click="showDetail = false; openReceive(detailPO)"><PackageCheck :size="14" />{{ t('admin.msg_9a66ac4c', 'Nhận hàng') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receive Modal -->
+    <div class="modal-overlay" v-if="showReceiveModal" @click.self="showReceiveModal = false">
+      <div class="modal modal--wide">
+        <h3><PackageCheck :size="16" style="vertical-align:middle" /> {{ t('admin.msg_9a66ac4c', 'Nhận hàng') }} — {{ receivePO?.po_number }}</h3>
+        <p class="receive-hint">{{ t('admin.msg_593dbed2', 'Nhập số lượng thực nhận cho từng sản phẩm:') }}</p>
+        <table class="receive-table">
+          <thead><tr><th>{{ t('admin.product', 'Sản phẩm') }}</th><th>{{ t('admin.msg_f0cfcd97', 'SL đặt') }}</th><th>{{ t('admin.msg_e2bd2937', 'Đã nhận') }}</th><th>{{ t('admin.msg_b95a3ecb', 'Còn lại') }}</th><th style="width:100px">{{ t('admin.msg_fd2a54c9', 'Nhận lần này') }}</th></tr></thead>
+          <tbody>
+            <tr v-for="(item, idx) in receiveItems" :key="idx">
+              <td>{{ item.product_name }}</td>
+              <td>{{ item.qty }}</td>
+              <td>{{ item.received_qty }}</td>
+              <td>{{ item.remaining }}</td>
+              <td><input type="number" v-model.number="item.receive_qty" :min="0" :max="item.remaining" class="item-input" /></td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="form-group" style="margin-top:12px"><label>{{ t('admin.notes', 'Ghi chú') }}</label><input v-model="receiveNotes" :placeholder="t('admin.msg_87cb2f', 'Ghi chú nhận hàng...')"  /></div>
+        <div class="modal-actions">
+          <button class="btn-cancel" @click="showReceiveModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
+          <button class="btn-create" @click="submitReceive"><PackageCheck :size="14" />{{ t('admin.msg_dc8ea8a6', 'Xác nhận nhận hàng') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useI18n } from '../helpers.js'
+import { apiFetch } from '../helpers.js'
+import { useToast } from '../helpers.js'
+import {
+  ShoppingCart, Plus, Eye, Send, PackageCheck, X, Trash2, DollarSign,
+  Clock, AlertCircle, ChevronLeft, ChevronRight
+} from 'lucide-vue-next'
+import PurchaseOrderForm from './PurchaseOrderForm.vue'
+import PurchaseOrderDetail from './PurchaseOrderDetail.vue'
+
+const { t, formatCurrency } = useI18n()
+const { showToast } = useToast()
+
+const orders = ref([])
+const pagination = ref({ total: 0, per_page: 20, current_page: 1, last_page: 1 })
+const poStats = ref({})
+const suppliers = ref([])
+const searchTerm = ref('')
+const filterStatus = ref('')
+const currentPage = ref(1)
+
+// View state: 'list' | 'form' | 'detail'
+const viewMode = ref('list')
+const editId = ref(null)
+const detailId = ref(null)
+
+function statusLabel(s) {
+  return { draft: t('admin.msg_867cf3b9', 'Nháp'), ordered: t('admin.msg_e9b9aa84', 'Đã đặt'), partial: t('admin.msg_da42ebfc', 'Nhận 1 phần'), received: t('admin.msg_e2bd2937', 'Đã nhận'), cancelled: t('admin.msg_1a46e024', 'Đã hủy') }[s] || s
+}
+function payLabel(p) {
+  return { unpaid: t('admin.msg_e8a83705', 'Chưa TT'), partial: t('admin.msg_ee9c77ad', 'TT 1 phần'), paid: t('admin.msg_04b5eaed', 'Đã TT') }[p] || p
+}
+
+onMounted(() => { fetchOrders(); fetchStats(); fetchSuppliers() })
+watch([filterStatus, currentPage], fetchOrders)
+
+let timer = null
+function debouncedSearch() {
+  clearTimeout(timer)
+  timer = setTimeout(() => { currentPage.value = 1; fetchOrders() }, 300)
+}
+
+async function fetchOrders() {
+  try {
+    let url = `/purchase-orders?page=${currentPage.value}&per_page=20`
+    if (filterStatus.value) url += `&status=${filterStatus.value}`
+    if (searchTerm.value) url += `&search=${searchTerm.value}`
+    const res = await apiFetch(url)
+    const data = await res.json()
+    orders.value = data.data?.items || data.items || []
+    pagination.value = data.data?.pagination || data.pagination || pagination.value
+  } catch { orders.value = [] }
+}
+
+async function fetchStats() {
+  try {
+    const res = await apiFetch('/purchase-orders/stats')
+    const data = await res.json()
+    poStats.value = data.data || data
+  } catch { /* silent */ }
+}
+
+async function fetchSuppliers() {
+  try {
+    const res = await apiFetch('/suppliers?active_only=true')
+    const data = await res.json()
+    suppliers.value = data.data || data || []
+  } catch { suppliers.value = [] }
+}
+
+// Product search
+let prodTimer = null
+async function searchProducts() {
+  clearTimeout(prodTimer)
+  if (!productSearch.value || productSearch.value.length < 2) { productResults.value = []; return }
+  prodTimer = setTimeout(async () => {
+    try {
+      const res = await apiFetch(`/products?search=${productSearch.value}`)
+      const data = await res.json()
+      productResults.value = (Array.isArray(data) ? data : data.data || []).slice(0, 8)
+    } catch { productResults.value = [] }
+  }, 300)
+}
+
+function addProduct(p) {
+  if (form.value.items.find(i => i.product_id === p.id)) { showToast('Đã có trong danh sách', 'warning'); return }
+  form.value.items.push({
+    product_id: p.id, product_name: p.name,
+    variant_id: null, sku: p.sku || '',
+    qty: 1, unit_price: p.cost_price || p.price || 0,
+  })
+  productSearch.value = ''; productResults.value = []
+  recalcTotal()
+}
+
+function recalcTotal() {
+  const subtotal = form.value.items.reduce((s, i) => s + i.qty * i.unit_price, 0)
+  form.value.total_amount = subtotal + (form.value.tax_amount || 0) - (form.value.discount_amount || 0)
+}
+
+function openCreate() {
+  editId.value = null
+  viewMode.value = 'form'
+}
+
+function onFormSaved() {
+  viewMode.value = 'list'
+  fetchOrders()
+  fetchStats()
+}
+
+function viewPO(po) {
+  detailId.value = po.id
+  viewMode.value = 'detail'
+}
+
+async function sendPO(po) {
+  if (!confirm(`${t('admin.msg_f15a8810', 'Đặt hàng')} ${po.po_number} — ${t('admin.msg_1bd55351', 'chuyển sang trạng thái')} t('admin.msg_e9b9aa84', "Đã đặt")?`)) return
+  try {
+    await apiFetch(`/purchase-orders/${po.id}/send`, { method: 'POST' })
+    showToast('Đã chuyển sang Đã đặt', 'success')
+    fetchOrders(); fetchStats()
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
+}
+
+
+async function cancelPO(po) {
+  if (!confirm(`${t('admin.msg_380ade01', 'Hủy đơn')} ${po.po_number}?`)) return
+  try {
+    await apiFetch(`/purchase-orders/${po.id}/cancel`, { method: 'POST' })
+    showToast('Đã hủy', 'success')
+    fetchOrders(); fetchStats()
+  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
+}
+
+async function deletePO(po) {
+  if (!confirm(`${t('admin.delete', 'Xóa')} ${t('admin.msg_395bb28e', 'đơn')} ${po.po_number}?`)) return
+  try {
+    await apiFetch(`/purchase-orders/${po.id}`, { method: 'DELETE' })
+    showToast(t('admin.msg_ce5fa64f', 'Đã xóa'), 'success')
+    fetchOrders(); fetchStats()
+  } catch { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' ' + t('admin.msg_66d6a761', 'xóa'), 'error') }
+}
+
+// formatCurrency provided by useI18n
+function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
+</script>
+
+<style scoped>
+.po-mgr { padding: 24px; overflow-y: auto; height: 100%; }
+.po-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.po-header h2 { margin: 0; font-size: 20px; font-weight: 800; }
+.header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.search-input { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px; min-width: 180px; outline: none; }
+.search-input:focus { border-color: var(--color-accent-primary); }
+.filter-select { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); padding: 10px 14px; border-radius: 10px; font-size: 13px; outline: none; }
+.filter-select option { background: var(--color-bg-card-solid); color: var(--color-text-primary); }
+.btn-primary { background: var(--accent-gradient); color: #fff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--accent-shadow); }
+
+.po-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.stat-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 14px; padding: 20px; text-align: center; transition: all 0.3s; }
+.stat-card:hover { transform: translateY(-2px); border-color: var(--color-border-hover); }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; background: var(--color-accent-glow); color: var(--accent-light); }
+.stat-icon--green { background: rgba(52,211,153,0.12); color: #34d399; }
+.stat-icon--warn { background: rgba(251,191,36,0.12); color: #fbbf24; }
+.stat-icon--red { background: rgba(248,113,113,0.12); color: #f87171; }
+.stat-value { font-size: 22px; font-weight: 800; color: var(--color-text-primary); }
+.stat-label { font-size: 11px; color: var(--color-text-muted); margin-top: 6px; font-weight: 600; }
+
+.po-table { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+thead { background: var(--color-bg-elevated); }
+th { padding: 12px 14px; text-align: left; color: var(--color-text-muted); font-weight: 700; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--color-border); }
+td { padding: 12px 14px; border-bottom: 1px solid var(--color-border); color: var(--color-text-primary); }
+tr:hover { background: var(--color-accent-glow); }
+.mono { font-family: monospace; font-weight: 700; font-size: 12px; }
+.amount { font-weight: 700; color: #34d399; }
+.date { font-size: 12px; color: var(--color-text-muted); }
+.sku { font-family: monospace; font-size: 12px; color: var(--color-text-muted); }
+
+.status-badge { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.status-badge.draft { background: rgba(251,191,36,0.1); color: #fbbf24; }
+.status-badge.ordered { background: rgba(96,165,250,0.1); color: #60a5fa; }
+.status-badge.partial { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.status-badge.received { background: rgba(52,211,153,0.1); color: #34d399; }
+.status-badge.cancelled { background: rgba(248,113,113,0.1); color: #f87171; }
+
+.pay-badge { padding: 3px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+.pay-badge.unpaid { background: rgba(248,113,113,0.08); color: #f87171; }
+.pay-badge.partial { background: rgba(251,191,36,0.08); color: #fbbf24; }
+.pay-badge.paid { background: rgba(52,211,153,0.08); color: #34d399; }
+
+.action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.empty { text-align: center; padding: 40px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.empty-state__icon { color: var(--color-text-muted); opacity: 0.4; }
+.empty-state__title { font-size: 15px; font-weight: 600; color: var(--color-text-secondary); margin: 0; }
+
+.pagination { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; }
+.page-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--color-text-primary); border-radius: 8px; padding: 6px 10px; cursor: pointer; display: flex; align-items: center; }
+.page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.page-info { font-size: 13px; color: var(--color-text-secondary); font-weight: 600; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+.modal { background: var(--color-bg-secondary); border: 1px solid var(--color-border); border-radius: 16px; padding: 28px; width: 500px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: slideUp 0.3s ease-out; max-height: 85vh; overflow-y: auto; }
+.modal--wide { width: 780px; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.modal h3 { margin: 0 0 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-row:has(> :nth-child(3)) { grid-template-columns: 1fr 1fr 1fr; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; font-weight: 700; }
+.form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent); color: var(--color-text-primary); font-size: 13px; outline: none; box-sizing: border-box; }
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--color-accent-primary); }
+.product-search-wrap { position: relative; }
+.product-dropdown { position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 10; background: var(--color-bg-secondary); border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.product-result { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; transition: background 0.15s; font-size: 13px; }
+.product-result:hover { background: var(--color-accent-glow); }
+.pr-name { flex: 1; font-weight: 600; }
+.pr-sku, .pr-price { font-size: 11px; color: var(--color-text-muted); }
+.items-table { margin: 8px 0; border: 1px solid var(--glass-border); border-radius: 10px; overflow: hidden; }
+.items-table table { margin: 0; }
+.item-input { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--glass-border); background: var(--color-input-bg, transparent); color: var(--color-text-primary); font-size: 13px; outline: none; box-sizing: border-box; }
+.btn-rm { background: rgba(239,68,68,0.08); border: none; color: #ef4444; border-radius: 6px; padding: 4px; cursor: pointer; }
+.total-input { font-weight: 800; color: #34d399 !important; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+.btn-cancel { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: var(--color-text-secondary); font-weight: 600; cursor: pointer; }
+.btn-create { padding: 10px 20px; border-radius: 10px; border: none; background: var(--accent-gradient); color: #fff; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.btn-send-lg { padding: 10px 20px; border-radius: 10px; border: none; background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.detail-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; background: var(--glass-bg); border-radius: 10px; margin-bottom: 16px; font-size: 13px; }
+.detail-table tfoot td { border-top: 2px solid var(--color-border); }
+.received-full { color: #34d399; font-weight: 700; }
+.received-partial { color: #fbbf24; font-weight: 700; }
+.receive-hint { font-size: 13px; color: var(--color-text-muted); margin: 0 0 12px; }
+.receive-table { margin: 0; }
+</style>

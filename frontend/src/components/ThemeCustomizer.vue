@@ -170,12 +170,12 @@ const accentPresets = [
 // ── Theme Presets ──
 const themePresets = [
   {
-    key: 'modern_dark', name: 'Modern Dark', mode: 'dark', font: 'Inter', radius: '12', card_style: 'glass', bg: '#0a0a0f',
-    dark: { accent: '#7c3aed' }, light: { accent: '#6d28d9' },
-  },
-  {
     key: 'clean_light', name: 'Clean Light', mode: 'light', font: 'Inter', radius: '10', card_style: 'solid', bg: '#f8f9fc',
     dark: { accent: '#3b82f6' }, light: { accent: '#2563eb' },
+  },
+  {
+    key: 'modern_dark', name: 'Modern Dark', mode: 'dark', font: 'Inter', radius: '12', card_style: 'glass', bg: '#0a0a0f',
+    dark: { accent: '#7c3aed' }, light: { accent: '#6d28d9' },
   },
   {
     key: 'warm', name: 'Warm', mode: 'light', font: 'Plus Jakarta Sans', radius: '14', card_style: 'solid', bg: '#f8f9fc',
@@ -196,13 +196,13 @@ const themePresets = [
 ]
 
 const form = ref({
-  mode: 'dark',
+  mode: 'light',
   font: 'Inter',
-  radius: '12',
-  card_style: 'glass',
-  preset: 'modern_dark',
-  dark: { accent: '#7c3aed' },
-  light: { accent: '#6d28d9' },
+  radius: '10',
+  card_style: 'solid',
+  preset: 'clean_light',
+  dark: { accent: '#3b82f6' },
+  light: { accent: '#2563eb' },
 })
 
 // ── Color helpers ──

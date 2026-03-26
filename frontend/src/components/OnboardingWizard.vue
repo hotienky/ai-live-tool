@@ -87,41 +87,16 @@
           </div>
         </div>
 
-        <!-- STEP 2: Language -->
+        <!-- STEP 2: Basic Info & Language -->
         <div v-else-if="step === 1" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
           <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Ngôn ngữ mặc định</h2>
-            <p class="text-gray-600">Chọn ngôn ngữ chính cho website của bạn. Có thể thêm ngôn ngữ khác trong phần Cài đặt sau này.</p>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div 
-              v-for="lang in languages" :key="lang.code"
-              @click="siteInfo.language = lang.code"
-              class="bg-white rounded-xl border p-6 cursor-pointer transition-all flex items-center space-x-4"
-              :class="siteInfo.language === lang.code ? 'border-indigo-500 ring-2 ring-indigo-500 bg-indigo-50/50' : 'hover:border-indigo-300'"
-            >
-              <div class="text-4xl">{{ lang.flag }}</div>
-              <div class="flex-1">
-                <h3 class="text-xl font-bold text-gray-900">{{ lang.name }}</h3>
-                <p class="text-sm text-gray-500">{{ lang.code.toUpperCase() }}</p>
-              </div>
-              <div v-if="siteInfo.language === lang.code" class="text-indigo-600">
-                <LucideCheckCircle class="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 3: Basic Info -->
-        <div v-else-if="step === 2" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
-          <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Tên cửa hàng / website của bạn</h2>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Thông tin cửa hàng</h2>
             <p class="text-gray-600">Những thông tin này có thể được chỉnh sửa sau trong phần Cài đặt.</p>
           </div>
           
           <div class="bg-white rounded-xl shadow-sm border p-8 space-y-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tên gọi</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Tên gọi (Bắt buộc)</label>
               <input
                 v-model="siteInfo.name"
                 type="text"
@@ -133,16 +108,31 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
               <textarea
                 v-model="siteInfo.description"
-                rows="3"
+                rows="2"
                 class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg resize-none text-gray-900 bg-white"
                 placeholder="Tóm tắt về sản phẩm hoặc dịch vụ..."
               ></textarea>
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Ngôn ngữ mặc định</label>
+              <div class="grid grid-cols-2 gap-4">
+                <div 
+                  v-for="lang in languages" :key="lang.code"
+                  @click="siteInfo.language = lang.code"
+                  class="bg-white rounded-lg border p-4 cursor-pointer transition-all flex items-center space-x-3"
+                  :class="siteInfo.language === lang.code ? 'border-indigo-500 bg-indigo-50' : 'hover:border-indigo-300'"
+                >
+                  <div class="text-2xl">{{ lang.flag }}</div>
+                  <div class="flex-1 font-medium text-gray-900">{{ lang.name }}</div>
+                  <div v-if="siteInfo.language === lang.code" class="text-indigo-600"><LucideCheckCircle class="w-5 h-5"/></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- STEP 4: Confirm & Process -->
-        <div v-else-if="step === 3" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
+        <!-- STEP 3: Confirm & Process -->
+        <div v-else-if="step === 2" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
           <div v-if="!isApplying" class="text-center">
             <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <component :is="getIcon(selectedTemplate.icon)" class="w-10 h-10" />
@@ -192,7 +182,7 @@
       <div v-else></div> <!-- Spacer -->
 
       <button 
-        v-if="step < 3"
+        v-if="step < 2"
         @click="nextStep"
         :disabled="step === 0 && !selectedTemplate"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
@@ -201,7 +191,7 @@
       </button>
 
       <button 
-        v-if="step === 3"
+        v-if="step === 2"
         @click="processOnboarding"
         class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium shadow-md transition-all hover:-translate-y-0.5 flex items-center"
       >
@@ -222,7 +212,7 @@ const { ShoppingCart, FileText, User, Target, LayoutGrid, Rocket, Check, ArrowRi
 const toast = useToast()
 const emit = defineEmits(['complete'])
 
-const steps = ['Bố cục', 'Ngôn ngữ', 'Thông tin', 'Xác nhận']
+const steps = ['Bố cục', 'Thông tin', 'Xác nhận']
 const step = ref(0)
 const templates = ref([])
 const selectedTemplate = ref(null)
