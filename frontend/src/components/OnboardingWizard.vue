@@ -35,11 +35,40 @@
       
       <div class="max-w-6xl mx-auto h-full flex flex-col relative z-10">
         
-        <!-- STEP 1: Choose Template -->
+        <!-- STEP 0: Choose Industry (Shopify-style) -->
         <div v-if="step === 0" class="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Khởi đầu hoàn hảo cho Website của bạn</h2>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Chọn một bộ khung giao diện mẫu phù hợp với mục tiêu kinh doanh. Bạn luôn có thể tuỳ biến mọi chi tiết sau này.</p>
+            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Bạn muốn tạo website cho lĩnh vực nào?</h2>
+            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Hệ thống sẽ tự động cài đặt mọi tính năng phù hợp. Bạn luôn có thể thay đổi sau.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="ind in industries" :key="ind.id"
+              @click="selectedIndustry = ind"
+              class="bg-white rounded-2xl border cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl group relative overflow-hidden"
+              :class="selectedIndustry?.id === ind.id ? 'border-indigo-500 shadow-lg ring-4 ring-indigo-500/20' : 'border-gray-200 hover:border-indigo-300'"
+            >
+              <div class="p-8 text-center">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 text-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-sm border border-indigo-100">
+                  <component :is="getIcon(ind.icon)" class="w-8 h-8" />
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">{{ ind.label }}</h3>
+                <p class="text-gray-500 text-sm leading-relaxed">{{ ind.description }}</p>
+                <div class="mt-4 text-xs text-indigo-600 font-medium">{{ ind.modules.length }} tính năng tự động</div>
+              </div>
+              <div v-if="selectedIndustry?.id === ind.id" class="absolute top-4 right-4 text-white bg-indigo-600 rounded-full p-1 shadow-lg">
+                <LucideCheckCircle class="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 1: Choose Template -->
+        <div v-if="step === 1" class="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div class="text-center mb-12">
+            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Chọn giao diện cho Website</h2>
+            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Chọn bố cục phù hợp. Bạn luôn có thể tùy biến mọi chi tiết sau này.</p>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -87,8 +116,8 @@
           </div>
         </div>
 
-        <!-- STEP 2: Basic Info & Language -->
-        <div v-else-if="step === 1" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
+        <!-- STEP 2: Basic Info & Language (was step 1) -->
+        <div v-else-if="step === 2" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
           <div class="text-center mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-4">Thông tin cửa hàng</h2>
             <p class="text-gray-600">Những thông tin này có thể được chỉnh sửa sau trong phần Cài đặt.</p>
@@ -131,8 +160,8 @@
           </div>
         </div>
 
-        <!-- STEP 3: Confirm & Process -->
-        <div v-else-if="step === 2" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
+        <!-- STEP 3: Confirm & Process (was step 2) -->
+        <div v-else-if="step === 3" class="max-w-lg mx-auto w-full py-10 animate-in fade-in slide-in-from-right-8 duration-500">
           <div v-if="!isApplying" class="text-center">
             <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <component :is="getIcon(selectedTemplate.icon)" class="w-10 h-10" />
@@ -182,16 +211,16 @@
       <div v-else></div> <!-- Spacer -->
 
       <button 
-        v-if="step < 2"
+        v-if="step < 3"
         @click="nextStep"
-        :disabled="step === 0 && !selectedTemplate"
+        :disabled="(step === 0 && !selectedIndustry) || (step === 1 && !selectedTemplate)"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
       >
         Tiếp tục <LucideArrowRight class="ml-2 w-5 h-5" />
       </button>
 
       <button 
-        v-if="step === 2"
+        v-if="step === 3"
         @click="processOnboarding"
         class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium shadow-md transition-all hover:-translate-y-0.5 flex items-center"
       >
@@ -212,8 +241,10 @@ const { ShoppingCart, FileText, User, Target, LayoutGrid, Rocket, Check, ArrowRi
 const toast = useToast()
 const emit = defineEmits(['complete'])
 
-const steps = ['Bố cục', 'Thông tin', 'Xác nhận']
+const steps = ['Lĩnh vực', 'Bố cục', 'Thông tin', 'Xác nhận']
 const step = ref(0)
+const industries = ref([])
+const selectedIndustry = ref(null)
 const templates = ref([])
 const selectedTemplate = ref(null)
 const siteInfo = ref({ name: '', description: '', language: 'vi' })
@@ -225,6 +256,18 @@ const isApplying = ref(false)
 
 const getIcon = (iconName) => {
   return LucideIcons[iconName] || LucideIcons.LayoutGrid
+}
+
+const fetchIndustries = async () => {
+  try {
+    const res = await apiFetch('/onboarding/industries')
+    const json = await res.json()
+    if (json && json.success) {
+      industries.value = json.data
+    }
+  } catch (err) {
+    console.error('Failed to load industries:', err)
+  }
 }
 
 const fetchTemplates = async () => {
@@ -240,6 +283,7 @@ const fetchTemplates = async () => {
 }
 
 onMounted(() => {
+  fetchIndustries()
   fetchTemplates()
 })
 
@@ -248,7 +292,11 @@ const selectTemplate = (tpl) => {
 }
 
 const nextStep = () => {
-  if (step.value === 0 && !selectedTemplate.value) {
+  if (step.value === 0 && !selectedIndustry.value) {
+    toast.error('Vui lòng chọn lĩnh vực cho website của bạn.')
+    return
+  }
+  if (step.value === 1 && !selectedTemplate.value) {
     toast.error('Vui lòng chọn một giao diện để bắt đầu.')
     return
   }
@@ -263,7 +311,8 @@ const processOnboarding = async () => {
       method: 'POST',
       body: JSON.stringify({
         template_id: selectedTemplate.value.id,
-        site_info: siteInfo.value
+        site_info: siteInfo.value,
+        industry: selectedIndustry.value?.id || 'ecommerce',
       })
     })
 
