@@ -59,9 +59,12 @@
       </div>
     </div>
 
-    <div class="layout-builder__body">
+    <div class="layout-builder__body" :class="{ 'layout-builder__body--collapsed': controlsCollapsed }">
       <!-- Left: Controls -->
-      <div class="layout-builder__controls">
+      <div class="layout-builder__controls" :class="{ 'layout-builder__controls--collapsed': controlsCollapsed }">
+        <button class="lb-controls-toggle" @click="controlsCollapsed = !controlsCollapsed" :title="controlsCollapsed ? 'Mở menu' : 'Đóng menu'">
+          <ChevronLeft :size="14" :style="{ transform: controlsCollapsed ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }" />
+        </button>
 
         <!-- Templates -->
         <div class="lb-section" v-show="!activePageId">
@@ -290,19 +293,46 @@
               <Save :size="14" /> {{ saving ? t('admin.saving', 'Đang lưu...') : t('admin.save_config', 'Lưu cấu hình') }}
             </button>
           </div>
-          <!-- Section List (sub-component) -->
-          <LayoutSectionManager
-            v-show="!activeBuiltinPage"
-            v-model:sections="sections"
-            :section-meta="sectionMeta"
-            :all-categories="allCategories"
-            @open-block-editor="s => showBlockEditorFor = s"
-          />
+          <!-- Structrual Page Layout -->
+          <div class="lb-page-structure" v-show="!activeBuiltinPage">
+            <!-- HEADER -->
+            <div class="lb-structure-item lb-structure-header" @click="showSiteConfig = true; siteConfigTab = 'header'">
+              <div class="lb-structure-item__drag"></div>
+              <PanelTop :size="16" class="lb-structure-item__icon" />
+              <div class="lb-structure-item__content">
+                <span class="lb-structure-item__title">Header</span>
+                <span class="lb-structure-item__subtitle">{{ t('admin.global_element', 'Thay đổi áp dụng toàn cục') }}</span>
+              </div>
+              <button class="btn-icon-soft"><Settings :size="14"/></button>
+            </div>
 
-          <!-- Add Section Button (only for homepage and CMS dynamic pages, not builtin pages) -->
-          <button class="btn-add-section" @click="showLibrary = true" v-show="!activeBuiltinPage">
-            <Plus :size="14" /> {{ t('admin.msg_09acbe8c', 'Thêm section') }}
-          </button>
+            <!-- BODY SECTIONS -->
+            <div class="lb-structure-body">
+              <div class="lb-structure-body__label">Nội dung trang</div>
+              <LayoutSectionManager
+                v-model:sections="sections"
+                :section-meta="sectionMeta"
+                :all-categories="allCategories"
+                @open-block-editor="s => showBlockEditorFor = s"
+              />
+              
+              <!-- Add Section Button -->
+              <button class="btn-add-section" @click="showLibrary = true">
+                <Plus :size="14" /> {{ t('admin.msg_09acbe8c', 'Thêm section') }}
+              </button>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="lb-structure-item lb-structure-footer" @click="showSiteConfig = true; siteConfigTab = 'footer'">
+              <div class="lb-structure-item__drag"></div>
+              <PanelBottom :size="16" class="lb-structure-item__icon" />
+              <div class="lb-structure-item__content">
+                <span class="lb-structure-item__title">Footer</span>
+                <span class="lb-structure-item__subtitle">{{ t('admin.global_element', 'Thay đổi áp dụng toàn cục') }}</span>
+              </div>
+              <button class="btn-icon-soft"><Settings :size="14"/></button>
+            </div>
+          </div>
         </div>
 
         <!-- Page Toggles -->
@@ -328,6 +358,13 @@
           :page-configs="pageConfigs"
           :active-page-id="activePageId"
           @update:page-configs="v => pageConfigs = v"
+        />
+
+        <!-- CMS Pages Management (integrated from CMS plugin) -->
+        <LayoutPageManager
+          :active-page-id="activePageId"
+          @select-page="selectPage"
+          @pages-updated="loadDynamicPages"
         />
 
         <!-- PromoBar Config -->
@@ -385,6 +422,7 @@
 
       <!-- Right: Preview (sub-component) -->
       <LayoutPreviewPanel
+        ref="previewPanelRef"
         :preview-mode="previewMode"
         v-model:preview-width="previewWidth"
         :preview-key="previewKey"
@@ -401,6 +439,14 @@
         :header-config="headerConfig"
         :layout-payload="layoutPayload"
         @refresh-live="previewKey++"
+        @section-selected="onPreviewSectionSelected"
+        @section-hover="onPreviewSectionHover"
+        @section-reorder="onPreviewSectionReorder"
+        @inline-edit="onPreviewInlineEdit"
+        @section-delete="onPreviewSectionDelete"
+        @section-toggle="onPreviewSectionToggle"
+        @add-section-at="onPreviewAddSectionAt"
+        @open-config="onPreviewOpenConfig"
       />
     </div>
 
@@ -494,6 +540,7 @@ import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
+import LayoutPageManager from './storefront/LayoutPageManager.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
 import { useToast } from '../composables/useToast.js'
@@ -504,7 +551,7 @@ import {
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
   Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
-  History, Tag, Shield, LayoutGrid, Newspaper
+  History, Tag, Shield, LayoutGrid, Newspaper, ChevronLeft, PanelTop, PanelBottom
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -558,6 +605,9 @@ const showVersionHistory = ref(false)
 const showPublishDialog = ref(false)
 const publishNote = ref('')
 const publishNoteInput = ref(null)
+
+// ─── Controls panel toggle ───
+const controlsCollapsed = ref(false)
 
 // ─── AI Generate Layout ───
 const showAiPanel = ref(false)
@@ -872,6 +922,90 @@ function toggleExpand(type) {
   expandedSection.value = expandedSection.value === type ? null : type
 }
 
+// ─── Builder Bridge: Preview Overlay Event Handlers ───
+const previewPanelRef = ref(null)
+const addSectionAtInsertIndex = ref(null)
+
+function onPreviewSectionSelected({ type, index }) {
+  if (type === 'header') {
+    showSiteConfig.value = true
+    siteConfigTab.value = 'header'
+    return
+  }
+  if (type === 'footer') {
+    showSiteConfig.value = true
+    siteConfigTab.value = 'footer'
+    return
+  }
+  // Find matching section and expand it in the left panel
+  const section = sections.value.find(s => s.type === type)
+  if (section) {
+    expandedSection.value = type
+    // Scroll the section into view in the left panel
+    nextTick(() => {
+      const el = document.querySelector(`[data-section-panel="${type}"]`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }
+}
+
+function onPreviewSectionHover({ type }) {
+  // Optional: highlight the section in the left panel
+}
+
+function onPreviewSectionReorder({ fromIndex, toIndex }) {
+  if (fromIndex < 0 || toIndex < 0 || fromIndex >= sections.value.length || toIndex >= sections.value.length) return
+  pushUndo()
+  const list = [...sections.value]
+  const [moved] = list.splice(fromIndex, 1)
+  list.splice(toIndex, 0, moved)
+  list.forEach((s, i) => { s.order = i })
+  sections.value = list
+  showToast(t('admin.msg_reorder_ok', 'Đã di chuyển section'), 'success')
+}
+
+function onPreviewInlineEdit({ type, field, value }) {
+  // Find section by type and update the specific field in params
+  const section = sections.value.find(s => s.type === type)
+  if (section && section.params) {
+    section.params[field] = value
+    showToast(`✏️ ${field}: "${value.substring(0, 30)}${value.length > 30 ? '...' : ''}"`, 'success')
+  }
+}
+
+function onPreviewSectionDelete({ type, index }) {
+  if (!confirm(`Xóa section "${sectionMeta[type]?.label || type}"?`)) return
+  pushUndo()
+  const idx = sections.value.findIndex(s => s.type === type)
+  if (idx >= 0) {
+    sections.value.splice(idx, 1)
+    sections.value.forEach((s, i) => { s.order = i })
+    expandedSection.value = null
+    showToast(t('admin.msg_section_deleted', 'Đã xóa section'), 'success')
+  }
+}
+
+function onPreviewSectionToggle({ type }) {
+  const section = sections.value.find(s => s.type === type)
+  if (section) {
+    section.enabled = !section.enabled
+    showToast(section.enabled ? 'Đã bật section' : 'Đã tắt section', 'success')
+  }
+}
+
+function onPreviewAddSectionAt({ index }) {
+  addSectionAtInsertIndex.value = index
+  showLibrary.value = true
+}
+
+function onPreviewOpenConfig({ type }) {
+  expandedSection.value = type
+  nextTick(() => {
+    const el = document.querySelector(`[data-section-panel="${type}"]`)
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
 // ─── Content item helpers ───
 function addContentItem(section, defaultItem) {
   if (!section.content) section.content = []
@@ -955,13 +1089,24 @@ function addLibrarySection(lib) {
     showToast(t('admin.msg_7dfff8', 'Section đã tồn tại'), 'error')
     return
   }
-  sections.value.push({
+  const newSection = {
     type: lib.type,
     enabled: true,
     order: sections.value.length,
     params: { ...defaultParams[lib.type] },
     content: [],
-  })
+  }
+  
+  // Support insert at specific index (from preview overlay "+" button)
+  const insertIdx = addSectionAtInsertIndex.value
+  if (insertIdx !== null && insertIdx >= 0 && insertIdx <= sections.value.length) {
+    sections.value.splice(insertIdx, 0, newSection)
+    sections.value.forEach((s, i) => { s.order = i })
+    addSectionAtInsertIndex.value = null
+  } else {
+    sections.value.push(newSection)
+  }
+  
   showLibrary.value = false
   expandedSection.value = lib.type
 }
@@ -1473,8 +1618,15 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .btn-save:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.layout-builder__body { display: grid; grid-template-columns: 440px 1fr; gap: 24px; min-height: calc(100vh - 130px); align-items: start; }
-.layout-builder__controls { display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 130px); padding-right: 12px; }
+.layout-builder__body { display: grid; grid-template-columns: 440px 1fr; gap: 24px; min-height: calc(100vh - 130px); align-items: start; transition: grid-template-columns 0.25s ease; }
+.layout-builder__body--collapsed { grid-template-columns: 36px 1fr; gap: 12px; }
+.layout-builder__controls { display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 130px); padding-right: 12px; position: relative; transition: padding 0.25s ease; }
+.layout-builder__controls--collapsed { overflow: hidden; padding: 0; }
+.layout-builder__controls--collapsed > *:not(.lb-controls-toggle) { display: none; }
+
+.lb-controls-toggle { position: absolute; right: -16px; top: 0; z-index: 10; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); transition: background 0.15s, color 0.15s; }
+.lb-controls-toggle:hover { background: var(--accent-color, #6366f1); color: #fff; }
+.layout-builder__controls--collapsed .lb-controls-toggle { position: static; margin: 4px auto; }
 
 /* Scrollbar for controls */
 .layout-builder__controls::-webkit-scrollbar { width: 6px; }
@@ -2009,6 +2161,74 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .hl-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; background: rgba(245,158,11,0.12); color: #f59e0b; text-transform: uppercase; flex-shrink: 0; }
 .btn-edit-hl { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border: 1px solid var(--color-border); border-radius: 5px; background: none; color: var(--color-text-muted); cursor: pointer; flex-shrink: 0; transition: all 0.15s; }
 .btn-edit-hl:hover { border-color: var(--color-accent-primary); color: var(--color-accent-primary); }
+
+/* ── Page Structure (Header -> Body -> Footer) ── */
+.lb-page-structure {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+.lb-structure-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.lb-structure-item:hover {
+  border-color: var(--accent-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.lb-structure-item__drag {
+  width: 4px; height: 16px;
+  border-radius: 2px;
+  background: var(--border-color);
+  opacity: 0.5;
+}
+.lb-structure-item__icon {
+  color: var(--accent-color);
+  background: var(--bg-hover);
+  padding: 6px;
+  border-radius: 6px;
+  width: 28px; height: 28px;
+}
+.lb-structure-item__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.lb-structure-item__title {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+}
+.lb-structure-item__subtitle {
+  font-size: 11px; color: var(--text-muted);
+}
+.lb-structure-body {
+  border: 1px dashed var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(0,0,0,0.01);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lb-structure-body__label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-align: center;
+}
 .hl-empty { text-align: center; padding: 16px; font-size: 12px; color: var(--color-text-muted); }
 /* Page Selector */
 .page-selector { display: flex; gap: 6px; }

@@ -98,7 +98,7 @@ const initHooks = () => {
     hooks.addFilter('sidebar_items', (items) => {
       items.push({
         key: 'shop/cms',
-        label: t('cms.pages', 'Trang CMS'),
+        label: t('cms.pages', 'Trang nội dung'),
         icon: 'BookOpen',
         featureGroup: 'store',
         moduleId: 'cms',

@@ -5,6 +5,7 @@
       v-for="(section, idx) in list"
       :key="section.type"
       class="section-item-wrap"
+      :data-section-panel="section.type"
     >
       <div
         class="section-item"

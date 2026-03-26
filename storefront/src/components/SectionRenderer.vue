@@ -1,5 +1,12 @@
 <template>
-  <div v-if="component" :id="section.params?.anchorId" :class="section.params?.cssClass" :style="sectionWrapStyle">
+  <div
+    v-if="component"
+    :id="section.params?.anchorId"
+    :class="['sf-section', section.params?.cssClass]"
+    :style="sectionWrapStyle"
+    :data-section-type="section.type"
+    :data-section-index="section.order ?? 0"
+  >
     <component
       :is="component"
       :params="resolvedParams"

@@ -51,8 +51,13 @@ const visible = ref(false)
 
 onMounted(() => {
   if (!isEnabled.value) return
+  const isPreviewMode = !!new URLSearchParams(window.location.search).get('preview')
   const dismissed = sessionStorage.getItem(props.storageKey)
-  if (!dismissed) visible.value = true
+  
+  // Show if not dismissed, OR if we are in preview mode (ignore dismiss in preview)
+  if (!dismissed || isPreviewMode) {
+    visible.value = true
+  }
 })
 
 function dismiss() {

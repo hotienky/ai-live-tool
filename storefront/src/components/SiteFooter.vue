@@ -1,5 +1,5 @@
 <template>
-  <footer class="site-footer" :style="footerStyle">
+  <footer class="site-footer" :style="footerStyle" data-section-type="footer">
     <div class="site-footer__inner container">
 
       <!-- Dynamic Columns -->

@@ -1,7 +1,7 @@
 <template>
   <div class="storefront-app">
-    <PromoBar v-if="!isPreviewMode" />
-    <SiteHeader v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
+    <PromoBar />
+    <SiteHeader :storeName="storeInfo?.shop_name" />
     <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
       <div v-if="!appReady" class="global-loading" style="display:flex;justify-content:center;padding:100px;">
         <div class="loader"></div>
@@ -14,10 +14,12 @@
         </transition>
       </router-view>
     </main>
-    <SiteFooter v-if="!isPreviewMode" :storeName="storeInfo?.shop_name" />
+    <SiteFooter :storeName="storeInfo?.shop_name" />
     <SfToastContainer />
     <BackToTop />
     <RouteLoader />
+    <!-- Builder Overlay: inline visual editing when in preview mode -->
+    <BuilderOverlay v-if="isPostMessagePreview" />
   </div>
 </template>
 
@@ -33,6 +35,7 @@ import BackToTop from './components/BackToTop.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
 import RouteLoader from './components/RouteLoader.vue'
 import PromoBar from './components/PromoBar.vue'
+import BuilderOverlay from './components/BuilderOverlay.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
 import { useRouter } from 'vue-router'
@@ -257,11 +260,7 @@ provide('isPreviewMode', isPostMessagePreview)
   flex: 1;
   padding-top: var(--sf-header-height);
 }
-.storefront-main--preview {
-  padding-top: 0;
-}
 .loader {
-  border: 4px solid var(--sf-border);
   border-top-color: var(--sf-accent);
   border-radius: 50%;
   width: 40px;

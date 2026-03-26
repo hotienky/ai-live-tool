@@ -1,5 +1,5 @@
 <template>
-  <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }">
+  <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }" data-section-type="header">
     <div class="site-header__inner container">
       <!-- Logo -->
       <router-link :to="'/'" class="site-header__logo">
@@ -259,7 +259,7 @@ function onSearchBlur() {
 
 const headerCfg = computed(() => {
   const defaults = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
-  // Use provided headerConfig from App.vue (via site-config) or fallback to layoutConfig
+  // Provide headerConfig from App.vue updates in real-time in preview
   const hc = providedHeaderConfig.value && Object.keys(providedHeaderConfig.value).length > 0
     ? providedHeaderConfig.value
     : layoutConfig.value?.headerConfig

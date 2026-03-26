@@ -156,7 +156,11 @@ const props = defineProps({
   layoutPayload: { type: Object, default: null },
 })
 
-const emit = defineEmits(['update:previewWidth', 'update:storefrontUrl', 'refresh-live'])
+const emit = defineEmits([
+  'update:previewWidth', 'update:storefrontUrl', 'refresh-live',
+  'section-selected', 'section-hover', 'section-reorder',
+  'inline-edit', 'section-delete', 'section-toggle', 'add-section-at', 'open-config'
+])
 
 const iframeRef = ref(null)
 
@@ -182,5 +186,61 @@ watch(() => props.layoutPayload, () => {
   postMessageTimer = setTimeout(sendLayoutToIframe, 300)
 }, { deep: true })
 
-onBeforeUnmount(() => clearTimeout(postMessageTimer))
+// ── Builder Bridge: Listen for messages from BuilderOverlay in iframe ──
+import { onMounted } from 'vue'
+
+function handleIframeMessage(event) {
+  const { type, payload } = event.data || {}
+  switch (type) {
+    case 'builder:section-selected':
+      emit('section-selected', payload)
+      break
+    case 'builder:section-hover':
+      emit('section-hover', payload)
+      break
+    case 'builder:section-reorder':
+      emit('section-reorder', payload)
+      break
+    case 'builder:inline-edit':
+      emit('inline-edit', payload)
+      break
+    case 'builder:section-delete':
+      emit('section-delete', payload)
+      break
+    case 'builder:section-toggle':
+      emit('section-toggle', payload)
+      break
+    case 'builder:add-section-at':
+      emit('add-section-at', payload)
+      break
+    case 'builder:open-config':
+      emit('open-config', payload)
+      break
+    case 'builder:ready':
+      // Overlay is ready — send current builder mode
+      sendToIframe('builder:mode', { mode: 'edit' })
+      break
+  }
+}
+
+// Send commands TO the iframe overlay
+function sendToIframe(type, payload) {
+  if (!iframeRef.value?.contentWindow) return
+  iframeRef.value.contentWindow.postMessage({ type, payload }, '*')
+}
+
+// Expose for parent component
+defineExpose({
+  highlightSection: (index) => sendToIframe('builder:highlight-section', { index }),
+  selectSection: (index) => sendToIframe('builder:select-section', { index }),
+})
+
+onMounted(() => {
+  window.addEventListener('message', handleIframeMessage)
+})
+
+onBeforeUnmount(() => {
+  clearTimeout(postMessageTimer)
+  window.removeEventListener('message', handleIframeMessage)
+})
 </script>
