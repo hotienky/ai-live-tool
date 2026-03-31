@@ -60,6 +60,21 @@
       </button>
     </div>
 
+    <!-- Inline Image Editing overlays -->
+    <div v-if="selectedIndex > -1">
+      <div
+        v-for="(img, imgIdx) in editableImageRects"
+        :key="'img-' + imgIdx"
+        class="bo-image-overlay"
+        :style="{ top: img.top + 'px', left: img.left + 'px', width: img.width + 'px', height: img.height + 'px' }"
+        @click.stop="triggerImageEdit(img)"
+      >
+        <div class="bo-img-edit-btn">
+          <ImageIcon :size="16" /> Thay ảnh
+        </div>
+      </div>
+    </div>
+
     <!-- Inline Text Editing indicator -->
     <div v-if="editingField" class="bo-editing-indicator">
       <Pen :size="14" /> Đang sửa: {{ editingField.label }}
@@ -137,6 +152,23 @@ const editableFields = {
   text_block: [{ key: 'title', selector: 'h2, .section-title' }],
 }
 
+// Editable image fields per section type
+const editableImages = {
+  header: [{ key: 'logo', selector: 'img.site-logo, .site-logo img' }],
+  banner: [{ key: 'content.image', selector: '.banner-bg, img.banner-img' }],
+  image_banner: [{ key: 'image', selector: 'img.promo-banner-img, .promo-banner-bg' }],
+  categories: [{ key: 'content.image', selector: '.category-card img' }],
+  featured_products: [{ key: 'banner', selector: '.fp-banner img, .fp-banner' }],
+  image_gallery: [{ key: 'content.image', selector: '.gallery-item img' }],
+  blog_posts: [{ key: 'content.image', selector: '.blog-card img' }],
+  testimonials: [{ key: 'content.avatar', selector: '.testimonial-avatar' }],
+  brands_slider: [{ key: 'content.image', selector: '.brand-item img' }],
+  trust_badges: [{ key: 'content.icon', selector: '.trust-icon img' }],
+}
+
+const editableImageRects = ref([])
+
+
 // Computed add button positions (between sections only, ignore around header/footer)
 const addButtonPositions = computed(() => {
   if (!sectionRects.value.length) return []
@@ -178,6 +210,12 @@ function updateSectionRects() {
     })
   })
   sectionRects.value = rects
+
+  if (selectedIndex.value > -1) {
+    updateImageRects(rects[selectedIndex.value])
+  } else {
+    editableImageRects.value = []
+  }
 }
 
 // Event handlers
@@ -198,9 +236,52 @@ function onSelect(idx) {
 
   // Enable inline editing for this section
   enableInlineEditing(info)
+  updateImageRects(info)
   
   // Smooth scroll to section
   info.element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function updateImageRects(info) {
+  if (!info || selectedIndex.value === -1) {
+    editableImageRects.value = []
+    return
+  }
+  const rules = editableImages[info.type]
+  if (!rules) {
+    editableImageRects.value = []
+    return
+  }
+
+  const rects = []
+  const scrollTop = window.scrollY || document.documentElement.scrollTop
+  rules.forEach(rule => {
+    const els = info.element.querySelectorAll(rule.selector)
+    els.forEach((el, elIdx) => {
+      const rect = el.getBoundingClientRect()
+      rects.push({
+        type: info.type,
+        index: selectedIndex.value, // this is the array index in the layout builder
+        key: rule.key,
+        itemIndex: rule.key.includes('content.') ? elIdx : null, // If it's a list like content.image
+        top: rect.top + scrollTop,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+        element: el
+      })
+    })
+  })
+  editableImageRects.value = rects
+}
+
+function triggerImageEdit(img) {
+  sendToParent('builder:edit-image', {
+    type: img.type,
+    index: img.index,
+    key: img.key,
+    itemIndex: img.itemIndex
+  })
 }
 
 function openConfig(idx) {
@@ -600,6 +681,31 @@ watch(layoutConfig, () => {
 }
 
 /* Inline Editing Styles */
+/* Inline Image Edit Overlay */
+.bo-image-overlay {
+  position: absolute;
+  z-index: 10000;
+  border: 2px dashed var(--ob-accent);
+  background: rgba(0, 102, 255, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  border-radius: 8px; /* Assuming most modern images have slight border radius */
+}
+.bo-image-overlay:hover {
+  background: rgba(0, 102, 255, 0.25);
+}
+.bo-img-edit-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--ob-accent); color: white;
+  padding: 8px 14px; border-radius: 20px;
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+  opacity: 0; transform: translateY(10px); transition: all 0.2s;
+}
+.bo-image-overlay:hover .bo-img-edit-btn {
+  opacity: 1; transform: translateY(0);
+}
+
 .bo-editable {
   outline: 2px dashed rgba(0, 102, 255, 0.4) !important;
   outline-offset: 2px;

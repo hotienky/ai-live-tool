@@ -1,8 +1,19 @@
 <template>
   <div
     v-if="component"
+    ref="sectionEl"
     :id="section.params?.anchorId"
-    :class="['sf-section', section.params?.cssClass]"
+    :class="[
+      'sf-section',
+      section.params?.cssClass,
+      section.params?.animation ? ('sf-anim-' + section.params.animation) : '',
+      {
+        'sf-full-width': section.params?.fullWidth,
+        'hide-desktop': section.params?.hideDesktop,
+        'hide-tablet': section.params?.hideTablet,
+        'hide-mobile': section.params?.hideMobile
+      }
+    ]"
     :style="sectionWrapStyle"
     :data-section-type="section.type"
     :data-section-index="section.order ?? 0"
@@ -26,7 +37,7 @@
 </template>
 
 <script setup>
-import { computed, defineAsyncComponent, inject, ref } from 'vue'
+import { computed, defineAsyncComponent, inject, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from '../composables/useI18n.js'
 import SectionRenderer from './SectionRenderer.vue'
 
@@ -39,6 +50,25 @@ const props = defineProps({
 
 const { currentLang, defaultLangCode } = useI18n()
 const injectedPluginSections = inject('pluginSections', ref([]))
+const sectionEl = ref(null)
+
+// ── Scroll animation observer ──
+let animObserver = null
+onMounted(() => {
+  if (!props.section.params?.animation || !sectionEl.value) return
+  animObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('sf-anim-visible')
+        animObserver?.unobserve(entry.target)
+      }
+    }
+  }, { threshold: 0.15 })
+  animObserver.observe(sectionEl.value)
+})
+onBeforeUnmount(() => {
+  animObserver?.disconnect()
+})
 
 /**
  * Normalize hyphen types to underscore canonical form (or vice versa).
@@ -191,3 +221,49 @@ const sectionWrapStyle = computed(() => {
   }
 })
 </script>
+
+<style scoped>
+/* ── Full Width ── */
+.sf-full-width {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+}
+
+/* ── Scroll Animations ── */
+.sf-anim-fade-up,
+.sf-anim-fade-in,
+.sf-anim-slide-left,
+.sf-anim-slide-right,
+.sf-anim-zoom-in {
+  opacity: 0;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.sf-anim-fade-up { transform: translateY(30px); }
+.sf-anim-slide-left { transform: translateX(-40px); }
+.sf-anim-slide-right { transform: translateX(40px); }
+.sf-anim-zoom-in { transform: scale(0.92); }
+
+.sf-anim-fade-up.sf-anim-visible,
+.sf-anim-fade-in.sf-anim-visible,
+.sf-anim-slide-left.sf-anim-visible,
+.sf-anim-slide-right.sf-anim-visible,
+.sf-anim-zoom-in.sf-anim-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Responsive Visibility ── */
+@media (min-width: 1025px) {
+  .hide-desktop { display: none !important; }
+}
+@media (min-width: 768px) and (max-width: 1024px) {
+  .hide-tablet { display: none !important; }
+}
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+}
+</style>

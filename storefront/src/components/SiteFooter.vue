@@ -13,9 +13,9 @@
             <ul class="sf-link-list">
               <li v-for="(link, li) in (col.links || [])" :key="li">
                 <router-link v-if="link.url?.startsWith('/')" :to="link.url" class="sf-link">
-                  {{ link.label }}
+                  {{ link.label || link.text || link.name || '—' }}
                 </router-link>
-                <a v-else :href="link.url" target="_blank" class="sf-link">{{ link.label }}</a>
+                <a v-else :href="link.url || '#'" target="_blank" class="sf-link">{{ link.label || link.text || link.name || '—' }}</a>
               </li>
             </ul>
           </template>
@@ -47,11 +47,11 @@
 
         <!-- Social + Payment + Badges (last column or separate section) -->
         <div class="site-footer__col site-footer__col--extras" v-if="hasSocialOrBadges">
-          <template v-if="cfg.social?.length">
+          <template v-if="resolvedCfg.social?.length">
             <h4 class="site-footer__col-title">{{ t('storefront.footer.follow_us', 'Theo dõi chúng tôi') }}</h4>
             <div class="sf-social-row">
               <a
-                v-for="s in cfg.social"
+                v-for="s in resolvedCfg.social"
                 :key="s.platform"
                 :href="s.url"
                 target="_blank"
@@ -64,11 +64,11 @@
             </div>
           </template>
 
-          <template v-if="cfg.badges?.length">
+          <template v-if="resolvedCfg.badges?.length">
             <h4 class="site-footer__col-title sf-mt">{{ t('storefront.footer.certifications', 'Chứng nhận') }}</h4>
             <div class="sf-badges-row">
               <a
-                v-for="b in cfg.badges"
+                v-for="b in resolvedCfg.badges"
                 :key="b.label"
                 :href="b.url || '#'"
                 :target="b.url ? '_blank' : undefined"
@@ -97,14 +97,14 @@
       </div>
 
       <!-- Legal / Company Info -->
-      <div class="site-footer__legal" v-if="cfg.legalText">
-        <ShortcodeRenderer class="sf-legal-text" :html="nl2br(cfg.legalText)" />
+      <div class="site-footer__legal" v-if="resolvedCfg.legalText">
+        <ShortcodeRenderer class="sf-legal-text" :html="nl2br(resolvedCfg.legalText)" />
       </div>
 
       <!-- Copyright -->
       <div class="site-footer__bottom">
         <p class="site-footer__copy">
-          {{ cfg.copyrightText || `© ${year} ${info?.shop_name || storeName || 'Shop'}. All rights reserved.` }}
+          {{ resolvedCfg.copyrightText || `© ${year} ${info?.shop_name || storeName || 'Shop'}. All rights reserved.` }}
         </p>
       </div>
     </div>
@@ -123,7 +123,7 @@ import { useModules } from '../composables/useModules.js'
 import ShortcodeRenderer from './ShortcodeRenderer.vue'
 import NewsletterForm from './NewsletterForm.vue'
 
-const { t } = useI18n()
+const { t, currentLang, defaultLangCode } = useI18n()
 
 import { useSanitize } from '../composables/useSanitize.js'
 const { sanitize } = useSanitize()
@@ -150,24 +150,27 @@ const cfg = computed(() => {
     bgColor: '',
   }
   // Use provided footerConfig from App.vue (via site-config) or fallback to layoutConfig
-  const fc = providedFooterConfig.value && Object.keys(providedFooterConfig.value).length > 0
-    ? providedFooterConfig.value
-    : layoutConfig.value?.footerConfig
+  const pfc = providedFooterConfig.value
+  const hasProvided = pfc && typeof pfc === 'object' && Object.keys(pfc).length > 0
+  const fc = hasProvided ? pfc : layoutConfig.value?.footerConfig
+
   if (!fc) return defaults
-  // Backward compat: old format had columns as a number
-  if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
+  
+  // Backward compat: old format had columns as a number or missing
+  const cols = fc.columns
+  if (typeof cols === 'number' || (cols !== undefined && !Array.isArray(cols))) {
     // Auto-build columns from storeInfo
     const i = info.value
-    const cols = []
+    const autoCols = []
     // About column
-    cols.push({ title: i.shop_name || 'Shop', type: 'text', content: i.description || i.shop_tagline || '' })
+    autoCols.push({ title: i.shop_name || 'Shop', type: 'text', content: i.description || i.shop_tagline || '' })
     // Contact column
     const contactItems = []
     if (i.phone) contactItems.push({ icon: 'phone', label: t('storefront.footer.hotline', 'Hotline'), value: i.phone })
     if (i.email) contactItems.push({ icon: 'email', label: 'Email', value: i.email })
     if (i.address) contactItems.push({ icon: 'address', label: t('storefront.footer.address', 'Địa chỉ'), value: i.address })
     if (i.working_hours) contactItems.push({ icon: 'clock', label: t('storefront.footer.working_hours', 'Giờ làm việc'), value: i.working_hours })
-    if (contactItems.length) cols.push({ title: t('storefront.footer.contact', 'Liên hệ'), type: 'contact', items: contactItems })
+    if (contactItems.length) autoCols.push({ title: t('storefront.footer.contact', 'Liên hệ'), type: 'contact', items: contactItems })
     // Social from storeInfo
     const social = []
     if (i.facebook) social.push({ platform: 'facebook', url: i.facebook })
@@ -177,17 +180,39 @@ const cfg = computed(() => {
     if (i.zalo) social.push({ platform: 'zalo', url: `https://zalo.me/${i.zalo}` })
     return {
       ...defaults,
-      columns: cols,
+      columns: autoCols,
       social,
       copyrightText: fc.copyrightText || i.copyright || '',
       paymentMethods: fc.showPaymentIcons ? ['cod', 'bank', 'momo', 'vnpay'] : [],
     }
   }
-  return { ...defaults, ...fc }
+  
+  // Ensure each column has links/items arrays (backwards compat for data saved without them)
+  const result = { ...defaults, ...fc }
+  if (Array.isArray(result.columns)) {
+    result.columns = result.columns.map(col => ({
+      ...col,
+      links: col.links || [],
+      items: col.items || [],
+      content: col.content || '',
+    }))
+  }
+  return result
+})
+
+const resolvedCfg = computed(() => {
+  const c = cfg.value
+  const lang = currentLang.value
+  if (!lang || lang === defaultLangCode.value) return c
+  
+  if (c.translations && c.translations[lang]) {
+    return { ...c, ...c.translations[lang] }
+  }
+  return c
 })
 
 const isDarkBg = computed(() => {
-  const bg = cfg.value.bgColor
+  const bg = resolvedCfg.value.bgColor
   if (!bg) return false
   // Parse hex color and check luminance
   const hex = bg.replace('#', '')
@@ -198,7 +223,7 @@ const isDarkBg = computed(() => {
 })
 
 const footerStyle = computed(() => {
-  const bg = cfg.value.bgColor
+  const bg = resolvedCfg.value.bgColor
   if (!bg) return {}
   const style = { background: bg }
   if (isDarkBg.value) {
@@ -212,9 +237,11 @@ const footerStyle = computed(() => {
   return style
 })
 
-// Filter out empty footer columns
+// Filter out truly empty footer columns (show if has title OR has content)
 const nonEmptyCols = computed(() => {
-  return (cfg.value.columns || []).filter(col => {
+  return (resolvedCfg.value.columns || []).filter(col => {
+    // Always show if column has a title
+    if (col.title && col.title.trim()) return true
     if (col.type === 'links') return col.links?.length > 0
     if (col.type === 'contact') return col.items?.length > 0
     if (col.type === 'text') return !!(col.content && col.content.trim())
@@ -229,7 +256,7 @@ const totalCols = computed(() => {
 })
 
 const hasSocialOrBadges = computed(() =>
-  cfg.value.social?.length || cfg.value.badges?.length || activePayments.value.length
+  resolvedCfg.value.social?.length || resolvedCfg.value.badges?.length || activePayments.value.length
 )
 
 const allPaymentMap = {
@@ -246,7 +273,7 @@ const allPaymentMap = {
 }
 
 const activePayments = computed(() =>
-  (cfg.value.paymentMethods || []).map(code => ({ code, label: allPaymentMap[code] || code }))
+  (resolvedCfg.value.paymentMethods || []).map(code => ({ code, label: allPaymentMap[code] || code }))
 )
 
 function contactIcon(type) {

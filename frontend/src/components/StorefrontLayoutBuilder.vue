@@ -62,10 +62,10 @@
     <div class="layout-builder__body" :class="{ 'layout-builder__body--collapsed': controlsCollapsed }">
       <!-- Left: Controls -->
       <div class="layout-builder__controls" :class="{ 'layout-builder__controls--collapsed': controlsCollapsed }">
-        <button class="lb-controls-toggle" @click="controlsCollapsed = !controlsCollapsed" :title="controlsCollapsed ? 'Mở menu' : 'Đóng menu'">
-          <ChevronLeft :size="14" :style="{ transform: controlsCollapsed ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }" />
-        </button>
 
+        <!-- Theme Config -->
+        <LayoutThemeConfig v-model="themeConfig" />
+        
         <!-- Templates -->
         <div class="lb-section" v-show="!activePageId">
           <h4 class="lb-section__title"><Palette :size="14" /> {{ t('admin.msg_34b3019f', 'Mẫu bố cục') }}</h4>
@@ -101,8 +101,8 @@
                 placeholder="Mô tả trang bạn muốn tạo... VD: Trang giới thiệu công ty sản xuất nội thất, có phần về chúng tôi, đội ngũ, FAQ và form liên hệ"
               />
               <button class="lb-ai-btn" @click="generateLayout" :disabled="aiLoading || !aiPrompt.trim()">
-                <component :is="aiLoading ? 'Loader2' : 'Sparkles'" :size="13" :class="{ spin: aiLoading }" />
-                {{ aiLoading ? 'Đang tạo...' : '✨ Tạo layout bằng AI' }}
+                <component :is="aiLoading ? 'Loader2' : 'Sparkles'" :size="13" :class="{ spin: aiLoading }" style="margin-right:4px"/>
+                {{ aiLoading ? 'Đang tạo...' : 'Tạo layout bằng AI' }}
               </button>
               <p class="lb-ai-hint">AI sẽ tạo các sections phù hợp. Bạn có thể chỉnh sửa sau.</p>
             </div>
@@ -370,7 +370,7 @@
         <!-- PromoBar Config -->
         <div v-if="activePageId === null" class="layout-section layout-section--global">
           <div class="layout-section__header" @click="promoOpen = !promoOpen">
-            <span>{{ t('admin.msg_223e2d8a', '🎉 Thanh thông báo (Promo Bar)') }}</span>
+            <span><Megaphone :size="14" style="margin-right:4px"/> {{ t('admin.msg_223e2d8a', 'Thanh thông báo (Promo Bar)') }}</span>
             <ChevronDown :size="14" :class="{ 'rotate-180': promoOpen }" />
           </div>
           <div v-if="promoOpen" class="layout-section__body">
@@ -380,7 +380,7 @@
             </label>
             <div class="form-group" v-if="promoConfig.enabled">
               <label>{{ t('admin.msg_ee7ca513', 'Nội dung') }}</label>
-              <input v-model="promoConfig.text" :placeholder="t('admin.msg_7d1920', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!')" />
+              <input v-model="promoConfig.text" :placeholder="t('admin.msg_7d1920', 'Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!')" />
             </div>
             <div class="form-group" v-if="promoConfig.enabled">
               <label>Link</label>
@@ -420,6 +420,11 @@
         </div>
       </div>
 
+      <!-- Toggle button between panels -->
+      <button class="lb-controls-toggle" @click="controlsCollapsed = !controlsCollapsed" :title="controlsCollapsed ? 'Mở menu' : 'Đóng menu'">
+        <ChevronLeft :size="14" :style="{ transform: controlsCollapsed ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }" />
+      </button>
+
       <!-- Right: Preview (sub-component) -->
       <LayoutPreviewPanel
         ref="previewPanelRef"
@@ -447,8 +452,17 @@
         @section-toggle="onPreviewSectionToggle"
         @add-section-at="onPreviewAddSectionAt"
         @open-config="onPreviewOpenConfig"
+        @edit-image="onPreviewEditImage"
       />
     </div>
+
+    <!-- Hidden MediaPicker for Inline Overlay Actions -->
+    <MediaPicker
+      ref="globalImagePicker"
+      style="display: none"
+      :modelValue="''"
+      @update:modelValue="onGlobalImagePicked"
+    />
 
     <!-- Section Library Modal (Phase 3) -->
     <div class="modal-overlay" v-if="showLibrary" @click.self="showLibrary = false">
@@ -472,11 +486,11 @@
                 @click="lib.available ? addLibrarySection(lib) : null"
                 :disabled="!lib.available"
               >
-                <span class="library-card__icon">{{ lib.icon }}</span>
+                <span class="library-card__icon"><component :is="sectionIconMap[lib.icon] || Box" :size="22" /></span>
                 <strong>{{ lib.label }}</strong>
                 <span class="library-card__desc">{{ lib.description }}</span>
                 <span v-if="lib.moduleId && lib.available" class="library-card__module">{{ lib.moduleId }}</span>
-                <span v-if="!lib.available" class="library-card__unavailable">⚠ Module "{{ lib.moduleId }}" chưa cài</span>
+                <span v-if="!lib.available" class="library-card__unavailable"><AlertCircle :size="12" /> Module "{{ lib.moduleId }}" chưa cài</span>
                 <span v-else-if="sections.some(s => s.type === lib.type)" class="library-card__badge">{{ t('admin.msg_606e67a5', 'Đã thêm') }}</span>
               </button>
             </div>
@@ -511,7 +525,7 @@
     <!-- Publish Note Dialog -->
     <div v-if="showPublishDialog" class="modal-overlay" @click.self="showPublishDialog = false">
       <div class="publish-dialog">
-        <h3>📦 {{ t('admin.msg_pub_title', 'Xuất bản layout') }}</h3>
+        <h3><Package :size="16" style="margin-right:4px"/> {{ t('admin.msg_pub_title', 'Xuất bản layout') }}</h3>
         <p class="publish-dialog__desc">{{ t('admin.msg_pub_desc', 'Ghi chú cho lần publish này (tuỳ chọn)') }}</p>
         <input
           v-model="publishNote"
@@ -534,6 +548,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick, inject } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import LayoutThemeConfig from './storefront/LayoutThemeConfig.vue'
 import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
 import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
 import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
@@ -543,6 +558,7 @@ import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
 import LayoutPageManager from './storefront/LayoutPageManager.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
+import MediaPicker from './MediaPicker.vue'
 import { useToast } from '../composables/useToast.js'
 import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
@@ -551,7 +567,9 @@ import {
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
   Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
-  History, Tag, Shield, LayoutGrid, Newspaper, ChevronLeft, PanelTop, PanelBottom
+  History, Tag, Shield, LayoutGrid, Newspaper, ChevronLeft, PanelTop, PanelBottom,
+  Aperture, Megaphone, FolderOpen, ShieldCheck, Star, Film, Box,
+  CalendarDays, UtensilsCrossed, Flower2, Building2, PartyPopper
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -566,6 +584,14 @@ const { showToast } = useToast()
 const sections = ref([])
 const pages = ref({})
 const customCss = ref('')
+const themeConfig = ref({
+  primaryColor: '#6366f1',
+  accentColor: '#10b981',
+  backgroundColor: '#f9fafb',
+  textColor: '#1f2937',
+  fontFamily: "'Inter', sans-serif",
+  borderRadius: '8px'
+})
 const activeTemplate = ref('full_store')
 const saving = ref(false)
 const expandedSection = ref(null)
@@ -596,6 +622,13 @@ const groupedLibraryItems = computed(() => {
   }
   return groups
 })
+
+// ── Icon name → component map for library cards ──
+const sectionIconMap = {
+  Image, Tag, Zap, FileText, Type, Images, Film, Star, HelpCircle, Mail, Share2,
+  ShieldCheck, Award, LayoutGrid, Box, FolderOpen, ShoppingBag, Sparkles, FileEdit,
+  UtensilsCrossed, CalendarDays, Flower2, Building2, PartyPopper
+}
 
 // ── Layout Page Integration ──
 const layoutPageId = ref(null)
@@ -698,23 +731,74 @@ function handlePickerFocusout(e) {
   if (!e.currentTarget.contains(next)) pageDropdownOpen.value = false
 }
 
-// Undo stack
+// Undo/Redo stack for layout history
+import { onBeforeUnmount } from 'vue'
 const undoStack = ref([])
-const MAX_UNDO = 20
-function pushUndo() {
-  const snap = JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value, promoConfig: promoConfig.value })
-  undoStack.value.push(snap)
-  if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
+const redoStack = ref([])
+const MAX_UNDO = 30
+let isTrackingHistory = false
+
+function getSnapshot() {
+  return JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value, promoConfig: promoConfig.value })
 }
+
+function pushUndo() {
+  if (isTrackingHistory) return
+  undoStack.value.push(getSnapshot())
+  if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
+  redoStack.value = [] // Clear redo
+}
+
+watch(sections, () => pushUndo(), { deep: true })
+
 function undo() {
-  if (!undoStack.value.length) return
-  const snap = JSON.parse(undoStack.value.pop())
-  sections.value = ensureParams(snap.sections || [])
+  if (undoStack.value.length <= 1) return
+  isTrackingHistory = true
+  redoStack.value.push(undoStack.value.pop()) // Save current for redo
+  const snap = JSON.parse(undoStack.value[undoStack.value.length - 1])
+  
+  sections.value = snap.sections || []
   if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
   if (snap.headerConfig) headerConfig.value = snap.headerConfig
   if (snap.footerConfig) footerConfig.value = snap.footerConfig
   if (snap.promoConfig) promoConfig.value = snap.promoConfig
+
+  showToast('Đã hoàn tác (Undo)', 'info')
+  nextTick(() => { isTrackingHistory = false })
 }
+
+function redo() {
+  if (redoStack.value.length === 0) return
+  isTrackingHistory = true
+  const nextSnapStr = redoStack.value.pop()
+  undoStack.value.push(nextSnapStr)
+  const snap = JSON.parse(nextSnapStr)
+  
+  sections.value = snap.sections || []
+  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
+  if (snap.headerConfig) headerConfig.value = snap.headerConfig
+  if (snap.footerConfig) footerConfig.value = snap.footerConfig
+  if (snap.promoConfig) promoConfig.value = snap.promoConfig
+
+  showToast('Đã làm lại (Redo)', 'info')
+  nextTick(() => { isTrackingHistory = false })
+}
+
+function handleGlobalKeydown(e) {
+  if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === 'z') {
+      e.preventDefault()
+      if (e.shiftKey) redo()
+      else undo()
+    } else if (e.key === 'y') {
+      e.preventDefault()
+      redo()
+    }
+  }
+}
+onMounted(() => { window.addEventListener('keydown', handleGlobalKeydown) })
+onBeforeUnmount(() => { window.removeEventListener('keydown', handleGlobalKeydown) })
 
 // Header / Footer config
 const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
@@ -998,6 +1082,53 @@ function onPreviewAddSectionAt({ index }) {
   showLibrary.value = true
 }
 
+// ── Inline Image Editing via Builder Overlay ──
+const globalImagePicker = ref(null)
+const globalImagePickerTarget = ref(null)
+
+function onPreviewEditImage(payload) {
+  // payload: { type, index, key, itemIndex }
+  globalImagePickerTarget.value = payload
+  if (globalImagePicker.value) {
+    globalImagePicker.value.openPicker()
+  }
+}
+
+function onGlobalImagePicked(newUrl) {
+  const target = globalImagePickerTarget.value
+  if (!target || !newUrl) return
+  const { type, index, key, itemIndex } = target
+  
+  if (type === 'header') {
+    headerConfig.value[key] = newUrl
+  } else if (type === 'footer') {
+    // For future if footer has image/logo
+    footerConfig.value[key] = newUrl
+  } else {
+    // Body Block Section Tracker
+    const sec = sections.value[index]
+    if (!sec) return
+    const segments = key.split('.')
+    
+    // Ensure translation object exists just in case
+    if (!sec.i18n) Object.assign(sec, { i18n: {} })
+    const lang = window.localStorage.getItem('sf_admin_lang') || 'vi'
+    if (!sec.i18n[lang]) sec.i18n[lang] = JSON.parse(JSON.stringify(sec.params || {}))
+    
+    if (segments[0] === 'content' && typeof itemIndex === 'number') {
+      if (!sec.i18n[lang].content) sec.i18n[lang].content = []
+      const contentList = sec.i18n[lang].content
+      if (contentList[itemIndex]) {
+        contentList[itemIndex][segments[1]] = newUrl
+      }
+    } else {
+      sec.i18n[lang][key] = newUrl
+    }
+  }
+  showToast(t('admin.msg_image_updated', 'Đã thay ảnh trực tiếp thành công!'), 'success')
+  globalImagePickerTarget.value = null
+}
+
 function onPreviewOpenConfig({ type }) {
   expandedSection.value = type
   nextTick(() => {
@@ -1179,17 +1310,45 @@ const layoutPayload = ref({
 
 // Debounced preview refresh
 let undoTimer
-watch([sections, pages, customCss, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate], () => {
+watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate], () => {
+  const tCfg = themeConfig.value
+  // Derive lighter accent for hover/active states
+  const accentHex = tCfg.primaryColor || '#6366f1'
+  const rr = parseInt(accentHex.slice(1, 3), 16) || 99
+  const gg = parseInt(accentHex.slice(3, 5), 16) || 102
+  const bb = parseInt(accentHex.slice(5, 7), 16) || 241
+  const themeCss = `:root {
+  --sf-accent: ${accentHex};
+  --sf-accent-light: ${tCfg.accentColor || accentHex};
+  --sf-accent-glow: rgba(${rr}, ${gg}, ${bb}, 0.15);
+  --sf-accent-gradient: linear-gradient(135deg, ${accentHex}, ${tCfg.accentColor || accentHex});
+  --sf-shadow-accent: 0 8px 24px rgba(${rr}, ${gg}, ${bb}, 0.25);
+  --sf-bg-primary: ${tCfg.backgroundColor};
+  --sf-text-primary: ${tCfg.textColor};
+  --sf-font-family: ${tCfg.fontFamily};
+  --sf-radius: ${tCfg.borderRadius};
+  --sf-radius-sm: ${parseInt(tCfg.borderRadius) > 4 ? (parseInt(tCfg.borderRadius) - 4) + 'px' : tCfg.borderRadius};
+  --sf-radius-md: ${tCfg.borderRadius};
+  --sf-radius-lg: ${parseInt(tCfg.borderRadius) + 4}px;
+  --sf-radius-xl: ${parseInt(tCfg.borderRadius) + 8}px;
+  --sf-button-radius: ${tCfg.borderRadius};
+  --sf-container-width: ${tCfg.containerWidth || '1200px'};
+  --sf-button-style: ${tCfg.buttonStyle || 'solid'};
+}
+body { background: ${tCfg.backgroundColor}; color: ${tCfg.textColor}; font-family: ${tCfg.fontFamily}; }
+.sf-container { max-width: var(--sf-container-width); margin: 0 auto; padding: 0 16px; }`
+
   // Update layoutPayload with deep clone to forcefully trigger re-render in LayoutPreviewPanel
-  layoutPayload.value = {
+  layoutPayload.value = JSON.parse(JSON.stringify({
     sections: sections.value,
     pages: pages.value,
-    customCss: customCss.value,
+    customCss: themeCss + '\n' + (customCss.value || ''),
     template: activeTemplate.value,
     pageConfigs: pageConfigs.value,
     headerConfig: headerConfig.value,
     footerConfig: footerConfig.value,
-  }
+    promoConfig: promoConfig.value,
+  }))
 
   // Push undo snapshot on changes (debounced)
   clearTimeout(undoTimer)
@@ -1254,6 +1413,7 @@ async function loadLayout() {
         }
         if (meta.headerConfig) headerConfig.value = { ...defaultHeaderConfig, ...meta.headerConfig }
         if (meta.promoConfig) promoConfig.value = { ...defaultPromoConfig, ...meta.promoConfig }
+        if (meta.themeConfig) themeConfig.value = { ...themeConfig.value, ...meta.themeConfig }
         if (meta.footerConfig) {
           const fc = meta.footerConfig
           if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
@@ -1353,6 +1513,7 @@ function buildMeta() {
     headerConfig: headerConfig.value,
     footerConfig: footerConfig.value,
     promoConfig: promoConfig.value,
+    themeConfig: themeConfig.value,
   }
 }
 
@@ -1430,6 +1591,7 @@ async function saveLayout() {
             { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
             { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
             { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
+            { key: 'layout_theme_config', value: JSON.stringify(themeConfig.value) },
             { key: 'storefront_url', value: storefrontUrl.value },
           ],
         }),
@@ -1493,6 +1655,7 @@ async function saveDraft() {
             { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
             { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
             { key: 'layout_draft_promo_config', value: JSON.stringify(promoConfig.value) },
+            { key: 'layout_draft_theme_config', value: JSON.stringify(themeConfig.value) },
           ],
         }),
       })
@@ -1618,15 +1781,13 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .btn-save:hover { transform: translateY(-1px); box-shadow: var(--accent-shadow); }
 .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.layout-builder__body { display: grid; grid-template-columns: 440px 1fr; gap: 24px; min-height: calc(100vh - 130px); align-items: start; transition: grid-template-columns 0.25s ease; }
-.layout-builder__body--collapsed { grid-template-columns: 36px 1fr; gap: 12px; }
-.layout-builder__controls { display: flex; flex-direction: column; overflow-y: auto; max-height: calc(100vh - 130px); padding-right: 12px; position: relative; transition: padding 0.25s ease; }
-.layout-builder__controls--collapsed { overflow: hidden; padding: 0; }
-.layout-builder__controls--collapsed > *:not(.lb-controls-toggle) { display: none; }
+.layout-builder__body { display: grid; grid-template-columns: 440px 20px 1fr; gap: 0 8px; min-height: calc(100vh - 130px); align-items: start; transition: grid-template-columns 0.25s ease; }
+.layout-builder__body--collapsed { grid-template-columns: 0px 20px 1fr; }
+.layout-builder__controls { display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; max-height: calc(100vh - 130px); padding-right: 12px; transition: opacity 0.2s; min-width: 0; }
+.layout-builder__controls--collapsed { opacity: 0; pointer-events: none; }
 
-.lb-controls-toggle { position: absolute; right: -16px; top: 0; z-index: 10; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); transition: background 0.15s, color 0.15s; }
-.lb-controls-toggle:hover { background: var(--accent-color, #6366f1); color: #fff; }
-.layout-builder__controls--collapsed .lb-controls-toggle { position: static; margin: 4px auto; }
+.lb-controls-toggle { position: sticky; top: 8px; width: 20px; height: 36px; border-radius: 6px; border: 1px solid var(--glass-border); background: var(--glass-bg); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); transition: background 0.15s, color 0.15s; padding: 0; flex-shrink: 0; }
+.lb-controls-toggle:hover { background: var(--accent-color, #6366f1); color: #fff; border-color: var(--accent-color, #6366f1); }
 
 /* Scrollbar for controls */
 .layout-builder__controls::-webkit-scrollbar { width: 6px; }
@@ -2076,7 +2237,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   border-style: dashed;
 }
 .library-card--disabled:hover { transform: none; border-color: var(--glass-border); }
-.library-card__icon { font-size: 24px; line-height: 1; }
+.library-card__icon { color: var(--color-accent-primary); display: flex; align-items: center; justify-content: center; }
 .library-card__desc { font-size: 11px; color: var(--color-text-muted); }
 .library-card__module {
   position: absolute; top: 6px; left: 6px;

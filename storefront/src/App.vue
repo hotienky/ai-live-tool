@@ -58,6 +58,7 @@ const storeInfo = ref(null)
 const layoutConfig = ref(null)
 const headerConfig = ref({})
 const footerConfig = ref({})
+const promoConfig = ref({})
 const navLinks = ref([])
 const installedModules = ref([])
 const storefrontPlugins = ref([])
@@ -84,6 +85,7 @@ async function loadSiteConfig() {
       }
       headerConfig.value = parsed.headerConfig || {}
       footerConfig.value = parsed.footerConfig || {}
+      promoConfig.value = parsed.promoConfig || {}
       injectCustomCss(layoutConfig.value.customCss)
       return
     } catch { /* fall through to API */ }
@@ -110,6 +112,7 @@ async function loadSiteConfig() {
     }
     headerConfig.value = config.layout?.headerConfig || {}
     footerConfig.value = config.layout?.footerConfig || {}
+    promoConfig.value = config.layout?.promoConfig || config.layout?.promoBar || {}
     navLinks.value = config.navLinks || []
 
     // Init theme from siteConfig — eliminates separate /theme API call
@@ -231,6 +234,7 @@ onMounted(async () => {
       }
       if (payload.headerConfig) headerConfig.value = payload.headerConfig
       if (payload.footerConfig) footerConfig.value = payload.footerConfig
+      if (payload.promoConfig) promoConfig.value = payload.promoConfig
       if (payload.customCss !== undefined) injectCustomCss(payload.customCss)
     })
   }
@@ -243,6 +247,7 @@ provide('storeInfo', storeInfo)
 provide('layoutConfig', layoutConfig)
 provide('headerConfig', headerConfig)
 provide('footerConfig', footerConfig)
+provide('promoConfig', promoConfig)
 provide('navLinks', navLinks)
 provide('installedModules', installedModules)
 provide('template', computed(() => layoutConfig.value?.template || 'full_store'))

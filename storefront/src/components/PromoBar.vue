@@ -26,6 +26,7 @@ import { useModules } from '../composables/useModules.js'
 const { t } = useI18n()
 const { isEcom } = useModules()
 const layoutConfig = inject('layoutConfig', ref(null))
+const providedPromoConfig = inject('promoConfig', ref({}))
 
 const props = defineProps({
   text: { type: String, default: '' },
@@ -34,11 +35,17 @@ const props = defineProps({
   storageKey: { type: String, default: 'sf_promo_dismissed' },
 })
 
-// Read promo config from layout config (CMS) → props → i18n fallback
-const promoConfig = computed(() => layoutConfig?.value?.promoBar || {})
+// Read promo config from App.vue injected Ref -> or Layout Config fallback
+const promoConfig = computed(() => {
+  return (providedPromoConfig.value && Object.keys(providedPromoConfig.value).length > 0)
+    ? providedPromoConfig.value 
+    : (layoutConfig?.value?.promoConfig || layoutConfig?.value?.promoBar || {})
+})
+
 const hasCustomText = computed(() => !!(promoConfig.value.text || props.text))
 const isEnabled = computed(() => {
   if (promoConfig.value.enabled === false) return false
+  if (promoConfig.value.enabled === true) return true
   // If no custom text, only show for ecom (default text is ecom-specific)
   if (!hasCustomText.value && !isEcom.value) return false
   return true
@@ -47,21 +54,22 @@ const displayText = computed(() => promoConfig.value.text || props.text || t('st
 const displayCta = computed(() => promoConfig.value.ctaText || props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
 const promoLink = computed(() => promoConfig.value.link || props.link || '/products')
 
-const visible = ref(false)
-
-onMounted(() => {
-  if (!isEnabled.value) return
+// Make visible fully reactive to enabled state so it toggles ON/OFF physically inside the Builder without requiring F5
+const visible = computed(() => {
+  if (!isEnabled.value) return false
   const isPreviewMode = !!new URLSearchParams(window.location.search).get('preview')
   const dismissed = sessionStorage.getItem(props.storageKey)
   
   // Show if not dismissed, OR if we are in preview mode (ignore dismiss in preview)
-  if (!dismissed || isPreviewMode) {
-    visible.value = true
-  }
+  return (!dismissed || isPreviewMode) && !userDismissed.value
 })
 
+const userDismissed = ref(false)
+
+onMounted(() => {})
+
 function dismiss() {
-  visible.value = false
+  userDismissed.value = true
   sessionStorage.setItem(props.storageKey, '1')
 }
 </script>

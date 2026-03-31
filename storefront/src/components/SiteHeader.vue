@@ -1,4 +1,19 @@
 <template>
+  <!-- Announcement Bar -->
+  <div v-if="headerCfg.showAnnouncement && headerCfg.announcementText" 
+       class="announcement-bar" 
+       :style="{ backgroundColor: headerCfg.announcementBg || 'var(--sf-accent)', color: headerCfg.announcementColor || '#fff' }">
+    <div class="container announcement-bar__inner">
+      <router-link v-if="headerCfg.announcementLink?.startsWith('/')" :to="headerCfg.announcementLink" class="announcement-bar__link">
+        {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
+      </router-link>
+      <a v-else-if="headerCfg.announcementLink" :href="headerCfg.announcementLink" class="announcement-bar__link">
+        {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
+      </a>
+      <span v-else>{{ headerCfg.announcementText }}</span>
+    </div>
+  </div>
+
   <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }" data-section-type="header">
     <div class="site-header__inner container">
       <!-- Logo -->
@@ -814,5 +829,24 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
   color: var(--sf-accent-light, #f59e0b);
   background: var(--sf-bg-card-hover);
   transform: rotate(15deg);
+}
+
+/* Announcement Bar */
+.announcement-bar {
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  z-index: 100;
+  position: relative;
+}
+.announcement-bar__link {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.announcement-bar__link:hover {
+  opacity: 0.8;
 }
 </style>

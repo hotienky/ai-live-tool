@@ -34,6 +34,46 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
+    
+    <div class="param-divider"></div>
+    <details class="header-extra-section">
+      <summary><Megaphone :size="14" style="margin-right:4px"/> Thanh thông báo (Announcement Bar)</summary>
+      <div class="param-row" style="margin-top: 8px;">
+        <label>Hiển thị</label>
+        <label class="toggle-switch toggle-switch--sm" @click.stop>
+          <input type="checkbox" v-model="config.showAnnouncement" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <template v-if="config.showAnnouncement">
+        <div class="param-row">
+          <label>Nội dung</label>
+          <input type="text" v-model="config.announcementText" class="param-input param-input--wide" placeholder="VD: Freeship mọi đơn hàng từ 500k!" />
+        </div>
+        <div class="param-row">
+          <label>Link (Tùy chọn)</label>
+          <input type="text" v-model="config.announcementLink" class="param-input param-input--wide" placeholder="/promotions" />
+        </div>
+        <div class="footer-colors" style="margin-top: 10px;">
+          <div class="footer-color-row">
+            <div class="footer-color-item">
+              <label>Màu nền</label>
+              <div class="footer-color-pick">
+                <input type="color" v-model="config.announcementBg" class="param-color" />
+                <button v-if="config.announcementBg" @click="config.announcementBg=''" class="btn-clear-color"><X :size="10"/></button>
+              </div>
+            </div>
+            <div class="footer-color-item">
+              <label>Màu chữ</label>
+              <div class="footer-color-pick">
+                <input type="color" v-model="config.announcementColor" class="param-color" />
+                <button v-if="config.announcementColor" @click="config.announcementColor=''" class="btn-clear-color"><X :size="10"/></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+    </details>
   </div>
 
   <!-- Header Navigation Links -->
@@ -81,20 +121,20 @@
                 <option value="custom">{{ t('admin.msg_5874029a', 'Nhập tùy chỉnh') }}</option>
               </select>
               <select v-if="pageSelectMode === 'builtin'" v-model="navLinkForm.url" class="page-selector__select">
-                <option value="/">{{ t('admin.msg_b76bc823', '🏠 Trang chủ') }}</option>
-                <option value="/products">{{ t('admin.msg_fa0ad915', '🛍️ Sản phẩm') }}</option>
-                <option value="/categories">{{ t('admin.msg_03271d9c', '📂 Danh mục') }}</option>
-                <option value="/brands">{{ t('admin.msg_d65682fb', '🏷️ Thương hiệu') }}</option>
-                <option value="/cart">{{ t('admin.msg_7e22a7c7', '🛒 Giỏ hàng') }}</option>
-                <option value="/promotions">{{ t('admin.msg_e396ee81', '🎁 Khuyến mãi') }}</option>
-                <option value="/wishlist">{{ t('admin.msg_26cbb569', '❤️ Yêu thích') }}</option>
-                <option value="/order-tracking">{{ t('admin.msg_d4c1a27d', '📦 Theo dõi đơn hàng') }}</option>
-                <option value="/account">{{ t('admin.msg_3227aedb', '👤 Tài khoản') }}</option>
-                <option value="/auth">{{ t('admin.msg_64b10bc9', '🔐 Đăng nhập') }}</option>
+                <option value="/">{{ t('admin.msg_b76bc823', 'Trang chủ') }}</option>
+                <option value="/products">{{ t('admin.msg_fa0ad915', 'Sản phẩm') }}</option>
+                <option value="/categories">{{ t('admin.msg_03271d9c', 'Danh mục') }}</option>
+                <option value="/brands">{{ t('admin.msg_d65682fb', 'Thương hiệu') }}</option>
+                <option value="/cart">{{ t('admin.msg_7e22a7c7', 'Giỏ hàng') }}</option>
+                <option value="/promotions">{{ t('admin.msg_e396ee81', 'Khuyến mãi') }}</option>
+                <option value="/wishlist">{{ t('admin.msg_26cbb569', 'Yêu thích') }}</option>
+                <option value="/order-tracking">{{ t('admin.msg_d4c1a27d', 'Theo dõi đơn hàng') }}</option>
+                <option value="/account">{{ t('admin.msg_3227aedb', 'Tài khoản') }}</option>
+                <option value="/auth">{{ t('admin.msg_64b10bc9', 'Đăng nhập') }}</option>
               </select>
               <select v-else-if="pageSelectMode === 'cms'" v-model="navLinkForm.url" class="page-selector__select">
                 <option value="" disabled>{{ t('admin.msg_79d6ff05', '— Chọn trang CMS —') }}</option>
-                <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">📄 {{ cp.title }}</option>
+                <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">{{ cp.title }}</option>
               </select>
               <input v-else v-model="navLinkForm.url" class="page-selector__input" :placeholder="t('admin.msg_d910f3', '/custom-url hoặc https://...')" />
             </div>
@@ -138,7 +178,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, Link, Pencil, Trash2, Plus, X, Save } from 'lucide-vue-next'
+import { LayoutDashboard, Link, Pencil, Trash2, Plus, X, Save, Megaphone } from 'lucide-vue-next'
 import { apiFetch } from '../../composables/useApi.js'
 import { useNavLinks } from '../../composables/useNavLinks.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
@@ -218,3 +258,59 @@ async function deleteNavLink(link) {
 
 onMounted(() => { fetchNavLinks(); fetchCmsPageList() })
 </script>
+
+<style scoped>
+.header-extra-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 10px;
+}
+.header-extra-section summary {
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  list-style: none; /* Hide default arrow */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header-extra-section summary::-webkit-details-marker {
+  display: none;
+}
+.header-extra-section summary::after {
+  content: '▼';
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: transform 0.2s;
+}
+.header-extra-section[open] summary::after {
+  transform: rotate(180deg);
+}
+.footer-colors {
+  background: var(--input-bg);
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+.footer-color-row {
+  display: flex;
+  gap: 12px;
+}
+.footer-color-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.footer-color-item label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.footer-color-pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+</style>

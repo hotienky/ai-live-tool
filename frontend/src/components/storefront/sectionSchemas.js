@@ -12,48 +12,49 @@
 // ══════════════════════════════════════════
 export const sectionMeta = {
   // ── Core sections (always available) ──
-  banner:        { label: 'Banner / Slider',     moduleId: null, category: 'Cơ bản',       icon: '🖼️', description: 'Slideshow ảnh quảng cáo' },
-  image_banner:  { label: 'Promo Banner',        moduleId: null, category: 'Cơ bản',       icon: '🏷️', description: 'Banner ảnh đơn (FullWidth)' },
-  feature_links: { label: 'Tính năng nhanh',     moduleId: null, category: 'Cơ bản',       icon: '⚡', description: 'Các thẻ chức năng nổi bật' },
-  cms_pages:     { label: 'Trang CMS',           moduleId: 'cms', category: 'Cơ bản',      icon: '📄', description: 'Hiển thị danh sách trang' },
-  text_block:    { label: 'Khối văn bản',        moduleId: null, category: 'Cơ bản',       icon: '📝', description: 'Đoạn text tùy chỉnh' },
-  image_gallery: { label: 'Bộ sưu tập ảnh',     moduleId: null, category: 'Cơ bản',       icon: '🖼️', description: 'Gallery hình ảnh' },
-  video_embed:   { label: 'Video nhúng',         moduleId: null, category: 'Cơ bản',       icon: '🎬', description: 'YouTube/Vimeo embed' },
-  testimonials:  { label: 'Đánh giá khách hàng', moduleId: null, category: 'Cơ bản',       icon: '⭐', description: 'Testimonials / Reviews' },
-  faq:           { label: 'Câu hỏi thường gặp', moduleId: null, category: 'Cơ bản',       icon: '❓', description: 'FAQ accordion' },
-  newsletter:    { label: 'Đăng ký nhận tin',    moduleId: null, category: 'Cơ bản',       icon: '📧', description: 'Form đăng ký email' },
-  social_feed:   { label: 'Mạng xã hội',        moduleId: null, category: 'Cơ bản',       icon: '📱', description: 'Links social media' },
-  trust_badges:  { label: 'Trust Badges',        moduleId: null, category: 'Cơ bản',       icon: '🛡️', description: 'Huy hiệu uy tín' },
-  brands_slider: { label: 'Thương hiệu',        moduleId: null, category: 'Cơ bản',       icon: '🏷️', description: 'Slide logo đối tác' },
+  banner:        { label: 'Banner / Slider',     moduleId: null, category: 'Cơ bản',       icon: 'Image', description: 'Slideshow ảnh quảng cáo' },
+  image_banner:  { label: 'Promo Banner',        moduleId: null, category: 'Cơ bản',       icon: 'Tag', description: 'Banner ảnh đơn (FullWidth)' },
+  feature_links: { label: 'Tính năng nhanh',     moduleId: null, category: 'Cơ bản',       icon: 'Zap', description: 'Các thẻ chức năng nổi bật' },
+  cms_pages:     { label: 'Trang CMS',           moduleId: 'cms', category: 'Cơ bản',      icon: 'FileText', description: 'Hiển thị danh sách trang' },
+  text_block:    { label: 'Khối văn bản',        moduleId: null, category: 'Cơ bản',       icon: 'Type', description: 'Đoạn text tùy chỉnh' },
+  image_gallery: { label: 'Bộ sưu tập ảnh',     moduleId: null, category: 'Cơ bản',       icon: 'Images', description: 'Gallery hình ảnh' },
+  video_embed:   { label: 'Video nhúng',         moduleId: null, category: 'Cơ bản',       icon: 'Film', description: 'YouTube/Vimeo embed' },
+  testimonials:  { label: 'Đánh giá khách hàng', moduleId: null, category: 'Cơ bản',       icon: 'Star', description: 'Testimonials / Reviews' },
+  faq:           { label: 'Câu hỏi thường gặp', moduleId: null, category: 'Cơ bản',       icon: 'HelpCircle', description: 'FAQ accordion' },
+  newsletter:    { label: 'Đăng ký nhận tin',    moduleId: null, category: 'Cơ bản',       icon: 'Mail', description: 'Form đăng ký email' },
+  social_feed:   { label: 'Mạng xã hội',        moduleId: null, category: 'Cơ bản',       icon: 'Share2', description: 'Links social media' },
+  trust_badges:  { label: 'Trust Badges',        moduleId: null, category: 'Cơ bản',       icon: 'ShieldCheck', description: 'Huy hiệu uy tín' },
+  brands_slider: { label: 'Thương hiệu',        moduleId: null, category: 'Cơ bản',       icon: 'Award', description: 'Slide logo đối tác' },
 
   // ── Layout / Structure ──
-  grid:          { label: 'Lưới bố cục',         moduleId: null, category: 'Bố cục',       icon: '📐', description: 'Layout grid nhiều cột' },
-  custom_block:  { label: 'Visual Block',        moduleId: null, category: 'Bố cục',       icon: '🔲', description: 'Block builder nâng cao' },
+  grid:          { label: 'Lưới bố cục',         moduleId: null, category: 'Bố cục',       icon: 'LayoutGrid', description: 'Layout grid nhiều cột' },
+  custom_block:  { label: 'Visual Block',        moduleId: null, category: 'Bố cục',       icon: 'Box', description: 'Block builder nâng cao' },
 
   // ── E-Commerce (requires 'ecom' module) ──
-  categories:        { label: 'Danh mục SP',         moduleId: 'ecom', category: 'E-Commerce', icon: '📁', description: 'Hiển thị danh mục sản phẩm' },
-  featured_products: { label: 'Sản phẩm nổi bật',    moduleId: 'ecom', category: 'E-Commerce', icon: '🛒', description: 'Grid sản phẩm nổi bật' },
-  new_arrivals:      { label: 'Hàng mới về',         moduleId: 'ecom', category: 'E-Commerce', icon: '🆕', description: 'Sản phẩm mới nhất' },
-  flash_sale:        { label: 'Flash Sale',           moduleId: 'ecom', category: 'E-Commerce', icon: '⚡', description: 'Đếm ngược giảm giá' },
+  categories:        { label: 'Danh mục SP',         moduleId: 'ecom', category: 'E-Commerce', icon: 'FolderOpen', description: 'Hiển thị danh mục sản phẩm' },
+  featured_products: { label: 'Sản phẩm nổi bật',    moduleId: 'ecom', category: 'E-Commerce', icon: 'ShoppingBag', description: 'Grid sản phẩm nổi bật' },
+  new_arrivals:      { label: 'Hàng mới về',         moduleId: 'ecom', category: 'E-Commerce', icon: 'Sparkles', description: 'Sản phẩm mới nhất' },
+  flash_sale:        { label: 'Flash Sale',           moduleId: 'ecom', category: 'E-Commerce', icon: 'Zap', description: 'Đếm ngược giảm giá' },
 
   // ── Blog (requires 'blog' module) ──
-  blog_posts:        { label: 'Bài viết gần đây',    moduleId: 'blog', category: 'Blog',       icon: '✏️', description: 'Danh sách bài viết mới' },
+  blog_posts:        { label: 'Bài viết gần đây',    moduleId: 'blog', category: 'Blog',       icon: 'FileEdit', description: 'Danh sách bài viết mới' },
 
   // ── Restaurant (requires 'restaurant' module) ──
-  restaurant_menu:   { label: 'Thực đơn',            moduleId: 'restaurant', category: 'Nhà hàng', icon: '🍽️', description: 'Hiển thị thực đơn' },
+  restaurant_menu:   { label: 'Thực đơn',            moduleId: 'restaurant', category: 'Nhà hàng', icon: 'UtensilsCrossed', description: 'Hiển thị thực đơn' },
 
   // ── Booking (requires 'booking' module) ──
-  booking_services:  { label: 'Dịch vụ đặt lịch',    moduleId: 'booking', category: 'Đặt lịch',   icon: '📅', description: 'Danh sách dịch vụ đặt lịch' },
+  booking_services:  { label: 'Dịch vụ đặt lịch',    moduleId: 'booking', category: 'Đặt lịch',   icon: 'CalendarDays', description: 'Danh sách dịch vụ đặt lịch' },
 
   // ── Salon (requires 'salon' module) ──
-  salon_services:    { label: 'Dịch vụ Spa/Salon',   moduleId: 'salon', category: 'Spa & Salon', icon: '💆', description: 'Danh sách dịch vụ spa' },
+  salon_services:    { label: 'Dịch vụ Spa/Salon',   moduleId: 'salon', category: 'Spa & Salon', icon: 'Flower2', description: 'Danh sách dịch vụ spa' },
 
   // ── Real Estate (requires 'realestate' module) ──
-  property_listings: { label: 'Bất động sản',        moduleId: 'realestate', category: 'BĐS',    icon: '🏠', description: 'Tin đăng BĐS mới nhất' },
+  property_listings: { label: 'Bất động sản',        moduleId: 'realestate', category: 'BĐS',    icon: 'Building2', description: 'Tin đăng BĐS mới nhất' },
 
   // ── Events (requires 'events' module) ──
-  upcoming_events:   { label: 'Sự kiện sắp tới',     moduleId: 'events', category: 'Sự kiện',    icon: '🎉', description: 'Danh sách sự kiện' },
+  upcoming_events:   { label: 'Sự kiện sắp tới',     moduleId: 'events', category: 'Sự kiện',    icon: 'PartyPopper', description: 'Danh sách sự kiện' },
 }
+
 
 // ══════════════════════════════════════════
 // Section Config Schemas — used by config panel

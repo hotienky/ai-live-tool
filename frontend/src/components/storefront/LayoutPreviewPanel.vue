@@ -87,7 +87,7 @@
             </template>
             <template v-else-if="col.type === 'contact'">
               <div v-for="(item, ii) in col.items" :key="ii" class="pv-footer__contact" :style="footerConfig.textColor ? { color: footerConfig.textColor } : {}">
-                <span>{{ { phone:'📞', email:'📧', address:'📍', clock:'🕐', text:'💬' }[item.icon] || '•' }}</span>
+                <component :is="{ phone: PhoneIcon, email: MailIcon, address: MapPinIcon, clock: ClockIcon }[item.icon] || CircleDot" :size="10" style="flex-shrink:0" />
                 {{ item.value || item.label || '—' }}
               </div>
             </template>
@@ -133,7 +133,7 @@
 
 <script setup>
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { Eye, Monitor, Tablet, Smartphone, AlertCircle } from 'lucide-vue-next'
+import { Eye, Monitor, Tablet, Smartphone, AlertCircle, Phone as PhoneIcon, Mail as MailIcon, MapPin as MapPinIcon, Clock as ClockIcon, CircleDot } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -159,7 +159,8 @@ const props = defineProps({
 const emit = defineEmits([
   'update:previewWidth', 'update:storefrontUrl', 'refresh-live',
   'section-selected', 'section-hover', 'section-reorder',
-  'inline-edit', 'section-delete', 'section-toggle', 'add-section-at', 'open-config'
+  'inline-edit', 'section-delete', 'section-toggle', 'add-section-at', 'open-config',
+  'edit-image'
 ])
 
 const iframeRef = ref(null)
@@ -179,9 +180,14 @@ function sendLayoutToIframe() {
   }, '*')
 }
 
-// Watch layoutPayload changes and send via postMessage (debounced)
+// Watch layoutPayload and specific deeply nested configs to ensure changes trigger postMessage
 let postMessageTimer
-watch(() => props.layoutPayload, () => {
+watch([
+  () => props.layoutPayload,
+  () => props.footerConfig,
+  () => props.headerConfig,
+  () => props.pageConfigs
+], () => {
   clearTimeout(postMessageTimer)
   postMessageTimer = setTimeout(sendLayoutToIframe, 300)
 }, { deep: true })
@@ -216,9 +222,13 @@ function handleIframeMessage(event) {
     case 'builder:open-config':
       emit('open-config', payload)
       break
+    case 'builder:edit-image':
+      emit('edit-image', payload)
+      break
     case 'builder:ready':
-      // Overlay is ready — send current builder mode
+      // Overlay is ready — send current builder mode and full layout payload
       sendToIframe('builder:mode', { mode: 'edit' })
+      sendLayoutToIframe()
       break
   }
 }

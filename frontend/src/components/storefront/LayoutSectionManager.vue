@@ -29,7 +29,7 @@
           </div>
           <span class="section-item__icon">
             <component v-if="sectionMeta[section.type]?.icon" :is="sectionMeta[section.type].icon" :size="14" />
-            <span v-else>📦</span>
+            <Box v-else :size="14" />
           </span>
           <span>{{ sectionMeta[section.type]?.label || section.type }}</span>
         </div>
@@ -56,9 +56,18 @@
         </div>
       </div>
 
-      <!-- Expanded Section Parameters -->
-      <transition name="expand">
-        <div v-if="expandedSection === section.type" class="section-params">
+      <!-- Expanded Section Parameters (Sliding Panel) -->
+      <transition name="slide-panel">
+        <div v-if="expandedSection === section.type" class="section-params section-params--fullscreen">
+          <div class="sp-header">
+            <button class="sp-back-btn" @click="$emit('update:expandedSection', null); expandedSection = null" title="Trở lại">
+              <ChevronLeft :size="16" /> Bố cục
+            </button>
+            <span class="sp-title">{{ sectionMeta[section.type]?.label || section.type }}</span>
+            <span class="sp-fill"></span>
+          </div>
+          <div class="sp-body">
+
 
           <!-- ★ Visual Template Picker (NEW) -->
           <SectionStylePicker
@@ -210,7 +219,7 @@
           </div>
 
           <details class="section-style-details">
-            <summary>🎨 Style & Advanced</summary>
+            <summary><Palette :size="12" style="margin-right:4px"/> Style & Advanced</summary>
             <template v-for="sfield in styleSchema" :key="sfield.key">
               <div class="param-row">
                 <label>{{ sfield.label }}</label>
@@ -235,6 +244,7 @@
 
             </div><!-- /.advanced-config__body -->
           </details><!-- /.advanced-config -->
+          </div><!-- /.sp-body -->
         </div>
       </transition>
     </div>
@@ -243,7 +253,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2, Copy, SlidersHorizontal, ChevronDown } from 'lucide-vue-next'
+import { GripVertical, Settings2, Trash2, Plus, X, Sparkles, Loader2, Copy, SlidersHorizontal, ChevronDown, ChevronLeft, Box, Palette } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { sectionSchemas, styleSchema } from './sectionSchemas.js'
@@ -602,5 +612,55 @@ async function autoTranslateSection(section) {
 .advanced-config__body {
   padding: 8px 10px 12px;
   border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+/* Slider panel for focused config */
+.section-params--fullscreen {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg-1, #1a1a2e);
+  z-index: 50;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  animation: slidePanelIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.sp-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05));
+  background: var(--bg-card, rgba(0,0,0,0.2));
+}
+
+.sp-back-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: none;
+  color: var(--color-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  padding: 4px 8px; border-radius: 6px;
+  margin-left: -8px; transition: all 0.2s;
+}
+.sp-back-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
+
+.sp-title { font-size: 14px; font-weight: 700; color: #fff; text-transform: capitalize; }
+.sp-fill { flex: 1; }
+
+.sp-body {
+  flex: 1; overflow-y: auto; padding: 16px;
+}
+.sp-body::-webkit-scrollbar { width: 6px; }
+.sp-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+/* Slide transition */
+.slide-panel-enter-active, .slide-panel-leave-active {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.slide-panel-enter-from, .slide-panel-leave-to {
+  transform: translateX(20px); opacity: 0;
+}
+
+@keyframes slidePanelIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 </style>

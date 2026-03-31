@@ -48,9 +48,9 @@
         <div class="param-row">
           <label>{{ t('admin.msg_b6451e4f', 'Loại nội dung') }}</label>
           <select v-model="col.type" class="param-select">
-            <option value="links">🔗 Links</option>
-            <option value="contact">{{ t('admin.msg_e281954b', '📞 Liên hệ') }}</option>
-            <option value="text">{{ t('admin.msg_5d783e26', '📝 Nội dung tự do') }}</option>
+            <option value="links">Links</option>
+            <option value="contact">{{ t('admin.msg_e281954b', 'Liên hệ') }}</option>
+            <option value="text">{{ t('admin.msg_5d783e26', 'Nội dung tự do') }}</option>
           </select>
         </div>
 
@@ -101,11 +101,11 @@
           >
             <GripVertical :size="10" class="footer-link-row__grip" />
             <select v-model="item.icon" class="param-select param-select--sm">
-              <option value="phone">{{ t('admin.msg_f8c3838a', '📞 SĐT') }}</option>
-              <option value="email">📧 Email</option>
-              <option value="address">{{ t('admin.msg_2696d719', '📍 Địa chỉ') }}</option>
-              <option value="clock">{{ t('admin.msg_d291a43e', '🕐 Giờ') }}</option>
-              <option value="text">{{ t('admin.msg_075c2f8b', '💬 Ghi chú') }}</option>
+              <option value="phone">{{ t('admin.msg_f8c3838a', 'SĐT') }}</option>
+              <option value="email">Email</option>
+              <option value="address">{{ t('admin.msg_2696d719', 'Địa chỉ') }}</option>
+              <option value="clock">{{ t('admin.msg_d291a43e', 'Giờ') }}</option>
+              <option value="text">{{ t('admin.msg_075c2f8b', 'Ghi chú') }}</option>
             </select>
             <input v-model="item.label" class="param-input" :placeholder="t('admin.msg_ed5d37', 'Nhãn')" />
             <input v-model="item.value" class="param-input" :placeholder="t('admin.msg_1fc558', 'Giá trị')" />
@@ -126,10 +126,11 @@
         <Plus :size="14" /> Thêm cột (hiện có {{ config.columns.length }} cột)
       </button>
     </div>
+    <div class="param-divider"></div>
 
     <!-- Social Links -->
     <details class="footer-extra-section" open>
-      <summary>{{ t('admin.msg_d9fce95a', '🌐 Mạng xã hội') }}</summary>
+      <summary><Share2 :size="14" style="margin-right:4px"/> {{ t('admin.msg_d9fce95a', 'Mạng xã hội') }}</summary>
       <div v-for="(s, si) in config.social" :key="si" class="footer-link-row">
         <select v-model="s.platform" class="param-select param-select--sm">
           <option value="facebook">Facebook</option>
@@ -151,7 +152,10 @@
 
     <!-- Payment Methods -->
     <details class="footer-extra-section">
-      <summary>{{ t('admin.msg_cb525e58', '💳 Phương thức thanh toán') }}</summary>
+      <summary><CreditCard :size="14" style="margin-right:4px"/> {{ t('admin.msg_cb525e58', 'Phương thức thanh toán') }}</summary>
+      <div class="param-row" style="margin-top: 8px;">
+        <label>{{ t('admin.msg_db60dfb5', 'Hiển thị icon') }}</label>
+      </div>
       <div class="footer-badges-grid">
         <label v-for="pm in allPaymentMethods" :key="pm.code" class="footer-badge-check">
           <input type="checkbox" :value="pm.code" v-model="config.paymentMethods" />
@@ -162,7 +166,10 @@
 
     <!-- Certification Badges -->
     <details class="footer-extra-section">
-      <summary>{{ t('admin.msg_21b4fe91', '🏅 Chứng nhận / Badge') }}</summary>
+      <summary><Award :size="14" style="margin-right:4px"/> {{ t('admin.msg_21b4fe91', 'Chứng nhận / Badge') }}</summary>
+      <div class="param-row" style="margin-top: 8px;">
+        <label>{{ t('admin.msg_db60dfb5', 'Hiển thị badge') }}</label>
+      </div>
       <div v-for="(b, bi) in config.badges" :key="bi" class="footer-link-row">
         <input v-model="b.label" class="param-input" :placeholder="t('admin.msg_293fe7', 'Tên (VD: DMCA)')" />
         <MediaPicker v-model="b.imageUrl" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
@@ -176,33 +183,36 @@
 
     <!-- Bottom Info -->
     <details class="footer-extra-section">
-      <summary>{{ t('admin.msg_5ec1847d', '📋 Thông tin pháp lý (dòng cuối)') }}</summary>
-      <textarea v-model="config.legalText" class="param-input param-input--wide footer-textarea" rows="3" :placeholder="t('admin.msg_40e8f5', 'VD: Công Ty TNHH ABC\nTrụ sở: 123 Đường A, Quận B, TP.HCM\nMST: 0123456789')"></textarea>
-      <div class="param-row" style="margin-top:8px">
-        <label>Copyright</label>
-        <input type="text" v-model="config.copyrightText" class="param-input param-input--wide" placeholder="© 2026 Shop Name" />
+      <summary><FileText :size="14" style="margin-right:4px"/> {{ t('admin.msg_5ec1847d', 'Thông tin pháp lý (dòng cuối)') }}</summary>
+      <div style="margin-top: 8px;">
+        <textarea v-model="config.legalText" class="param-input param-input--wide footer-textarea" rows="3" :placeholder="t('admin.msg_40e8f5', 'VD: Công Ty TNHH ABC\nTrụ sở: 123 Đường A, Quận B, TP.HCM\nMST: 0123456789')"></textarea>
+        <div class="param-row" style="margin-top:8px">
+          <label>Copyright</label>
+          <input type="text" v-model="config.copyrightText" class="param-input param-input--wide" placeholder="© 2026 Shop Name" />
+        </div>
       </div>
     </details>
 
+    <div class="param-divider"></div>
     <!-- Footer Colors -->
     <div class="footer-colors" style="margin-top:12px">
       <div class="footer-color-row">
         <div class="footer-color-item">
-          <label>{{ t('admin.msg_1e7ba6d1', '🎨 Nền') }}</label>
+          <label><Palette :size="10" style="margin-right:2px"/> {{ t('admin.msg_1e7ba6d1', 'Nền') }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.bgColor" class="param-color" />
             <button v-if="config.bgColor" class="btn-clear-color" @click="config.bgColor = ''" title="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
-          <label>{{ t('admin.msg_a24a546f', '📝 Tiêu đề') }}</label>
+          <label><Type :size="10" style="margin-right:2px"/> {{ t('admin.msg_a24a546f', 'Tiêu đề') }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.headingColor" class="param-color" />
             <button v-if="config.headingColor" class="btn-clear-color" @click="config.headingColor = ''" title="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
-          <label>{{ t('admin.msg_6466b19a', '✏️ Chữ') }}</label>
+          <label><AlignLeft :size="10" style="margin-right:2px"/> {{ t('admin.msg_6466b19a', 'Chữ') }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.textColor" class="param-color" />
             <button v-if="config.textColor" class="btn-clear-color" @click="config.textColor = ''" title="Xóa"><X :size="10" /></button>
@@ -215,7 +225,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { LayoutDashboard, GripVertical, Trash2, Plus, X, Sparkles, Loader2 } from 'lucide-vue-next'
+import { LayoutDashboard, GripVertical, Trash2, Plus, X, Sparkles, Loader2, Share2, CreditCard, Award, FileText, Palette, Type, AlignLeft } from 'lucide-vue-next'
 import { apiFetch } from '../../composables/useApi.js'
 import { useCmsPages } from '../../composables/useCmsPages.js'
 import { useI18n } from '../../composables/useI18n.js'
