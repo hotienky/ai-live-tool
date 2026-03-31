@@ -39,6 +39,7 @@ import BuilderOverlay from './components/BuilderOverlay.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
 import { useRouter, useRoute } from 'vue-router'
+import { generateDynamicCss, injectDynamicCss } from './composables/useDynamicCssEngine.js'
 
 import { useSeo } from './composables/useSeo.js'
 
@@ -89,6 +90,7 @@ async function loadSiteConfig() {
       headerConfig.value = parsed.headerConfig || {}
       footerConfig.value = parsed.footerConfig || {}
       promoConfig.value = parsed.promoConfig || {}
+      // Note: we will trigger dynamic CSS via a global watcher on layoutConfig
       injectCustomCss(layoutConfig.value.customCss)
       return
     } catch { /* fall through to API */ }
@@ -244,6 +246,14 @@ onMounted(async () => {
 
   appReady.value = true
 })
+
+// Bơm CSS động từ FSE Nodes (Dynamic CSS Engine) và CSS Variables
+watch(() => [layoutConfig.value?.sections, layoutConfig.value?.theme], ([sections, theme]) => {
+  if (sections) {
+    const css = generateDynamicCss(sections, theme || {})
+    injectDynamicCss(css)
+  }
+}, { deep: true, immediate: true })
 
 // Provide store info, layout config, header/footer config, modules globally
 provide('storeInfo', storeInfo)

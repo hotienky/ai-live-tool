@@ -192,7 +192,7 @@
 
       <!-- Social Links -->
       <details class="ft-details" open>
-        <summary>{{ t('admin.msg_d9fce95a', '🌐 Mạng xã hội') }}</summary>
+        <summary><component :is="icons.Share2" :size="14" style="margin-right:4px"/> {{ stripEmoji(t('admin.msg_d9fce95a', 'Mạng xã hội')) }}</summary>
         <div v-for="(s, si) in currentFooter.social" :key="si" class="footer-link-row">
           <select v-model="s.platform" class="ft-select ft-select--sm">
             <option value="facebook">Facebook</option>
@@ -214,7 +214,7 @@
 
       <!-- Payment Methods -->
       <details class="ft-details">
-        <summary>{{ t('admin.msg_cb525e58', '💳 Phương thức thanh toán') }}</summary>
+        <summary><component :is="icons.CreditCard" :size="14" style="margin-right:4px"/> {{ stripEmoji(t('admin.msg_cb525e58', 'Phương thức thanh toán')) }}</summary>
         <div class="footer-badges-grid">
           <label v-for="pm in allPaymentMethods" :key="pm.code" class="footer-badge-check">
             <input type="checkbox" :value="pm.code" v-model="currentFooter.paymentMethods" />
@@ -225,7 +225,7 @@
 
       <!-- Badges -->
       <details class="ft-details">
-        <summary>{{ t('admin.msg_21b4fe91', '🏅 Chứng nhận / Badge') }}</summary>
+        <summary><component :is="icons.Award" :size="14" style="margin-right:4px"/> {{ stripEmoji(t('admin.msg_21b4fe91', 'Chứng nhận / Badge')) }}</summary>
         <div v-for="(b, bi) in currentFooter.badges" :key="bi" class="footer-link-row">
           <input v-model="b.label" class="ft-input" :placeholder="t('admin.msg_2aa8ef', 'Tên')" />
           <MediaPicker v-model="b.imageUrl" :placeholder="t('admin.msg_2204d8', 'Chọn hoặc nhập URL hình ảnh...')" accept="image/*" />
@@ -239,7 +239,7 @@
 
       <!-- Legal & Copyright -->
       <details class="ft-details">
-        <summary>{{ t('admin.msg_9a94c383', '📋 Thông tin pháp lý') }}</summary>
+        <summary><component :is="icons.FileText" :size="14" style="margin-right:4px"/> {{ stripEmoji(t('admin.msg_9a94c383', 'Thông tin pháp lý')) }}</summary>
         <textarea v-model="currentFooter.legalText" class="ft-input ft-input--wide ft-textarea" rows="3"
           :placeholder="t('admin.msg_40e8f5', 'VD: Công Ty TNHH ABC\nTrụ sở: 123 Đường A, Quận B, TP.HCM\nMST: 0123456789')"></textarea>
         <div class="ft-param-row" style="margin-top:8px">
@@ -250,24 +250,24 @@
 
       <!-- Footer Colors -->
       <div class="footer-colors">
-        <h5>{{ t('admin.msg_712a71f0', '🎨 Màu sắc Footer') }}</h5>
+        <h5><component :is="icons.Palette" :size="14" style="margin-right:4px; vertical-align: middle"/> {{ stripEmoji(t('admin.msg_712a71f0', 'Màu sắc Footer')) }}</h5>
         <div class="footer-color-row">
           <div class="footer-color-item">
-            <label>{{ t('admin.msg_8821399e', 'Nền') }}</label>
+            <label><component :is="icons.Palette" :size="10" /> {{ stripEmoji(t('admin.msg_8821399e', 'Nền')) }}</label>
             <div class="footer-color-pick">
               <input type="color" v-model="currentFooter.bgColor" class="ft-color" />
               <button v-if="currentFooter.bgColor" class="btn-remove-item" @click="currentFooter.bgColor = ''"><component :is="icons.X" :size="10" /></button>
             </div>
           </div>
           <div class="footer-color-item">
-            <label>{{ t('admin.title', 'Tiêu đề') }}</label>
+            <label><component :is="icons.Type" :size="10" /> {{ stripEmoji(t('admin.title', 'Tiêu đề')) }}</label>
             <div class="footer-color-pick">
               <input type="color" v-model="currentFooter.headingColor" class="ft-color" />
               <button v-if="currentFooter.headingColor" class="btn-remove-item" @click="currentFooter.headingColor = ''"><component :is="icons.X" :size="10" /></button>
             </div>
           </div>
           <div class="footer-color-item">
-            <label>{{ t('admin.msg_aa2ec9a5', 'Chữ') }}</label>
+            <label><component :is="icons.AlignLeft" :size="10" /> {{ stripEmoji(t('admin.msg_aa2ec9a5', 'Chữ')) }}</label>
             <div class="footer-color-pick">
               <input type="color" v-model="currentFooter.textColor" class="ft-color" />
               <button v-if="currentFooter.textColor" class="btn-remove-item" @click="currentFooter.textColor = ''"><component :is="icons.X" :size="10" /></button>
@@ -410,7 +410,7 @@ import {
   GripVertical, PanelBottom
 } from 'lucide-vue-next'
 
-const { t, formatCurrency } = useI18n()
+const { t, formatCurrency, stripEmoji } = useI18n()
 
 const icons = {
   Menu, Home, ShoppingBag, ShoppingCart, Tag, Star, Phone, Info,
@@ -772,7 +772,7 @@ onMounted(() => {
 .footer-colors h5 { font-size: 13px; font-weight: 700; color: var(--color-text-primary); margin: 0 0 8px; }
 .footer-color-row { display: flex; gap: 12px; }
 .footer-color-item { flex: 1; }
-.footer-color-item label { display: block; font-size: 11px; color: var(--color-text-muted); margin-bottom: 4px; }
+.footer-color-item label { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--color-text-muted); margin-bottom: 4px; }
 .footer-color-pick { display: flex; align-items: center; gap: 6px; }
 
 /* Preview */

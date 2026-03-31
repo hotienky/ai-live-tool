@@ -1,11 +1,26 @@
 <template>
   <div class="advanced-style-panel">
+    <!-- State Configurator -->
+    <div class="asp-switcher">
+      <div class="asp-tabs device-tabs">
+        <button :class="{ active: activeDevice === 'desktop' }" @click="activeDevice = 'desktop'" title="Desktop"><Monitor :size="14" /></button>
+        <button :class="{ active: activeDevice === 'tablet' }" @click="activeDevice = 'tablet'" title="Tablet"><Tablet :size="14" /></button>
+        <button :class="{ active: activeDevice === 'mobile' }" @click="activeDevice = 'mobile'" title="Mobile"><Smartphone :size="14" /></button>
+      </div>
+      <div class="asp-tabs state-tabs">
+        <button :class="{ active: activeState === 'normal' }" @click="activeState = 'normal'">Normal</button>
+        <button :class="{ active: activeState === 'hover' }" @click="activeState = 'hover'">Hover</button>
+      </div>
+    </div>
     
     <!-- 1. Content/Settings logic for elements -->
     <div class="asp-section" v-if="hasContentConfig">
       <h4 class="asp-section-title">Nội dung ({{ type }})</h4>
       <div v-if="type === 'text' || type === 'heading'" class="asp-row">
-        <label>Văn bản</label>
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          Văn bản
+          <button @click="openWand('content')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+        </label>
         <textarea v-model="section.content" rows="3" class="asp-input" placeholder="Nhập văn bản..."></textarea>
       </div>
       <div v-if="type === 'heading'" class="asp-row" style="margin-top: 8px">
@@ -22,11 +37,17 @@
         </select>
       </div>
       <div v-else-if="type === 'button'" class="asp-row">
-        <label>Nhãn nút</label>
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          Nhãn nút
+          <button @click="openWand('content')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+        </label>
         <input v-model="section.content" type="text" class="asp-input" />
       </div>
       <div v-else-if="type === 'image'" class="asp-row">
-        <label>Đường dẫn thẻ ảnh (URL)</label>
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          Đường dẫn thẻ ảnh (URL)
+          <button @click="openWand('src')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+        </label>
         <input v-model="safeSettings.src" type="text" class="asp-input" placeholder="https://..." />
         <label style="margin-top: 8px">Căn ảnh (Object Fit)</label>
         <select v-model="safeStyle.objectFit" class="asp-input asp-input--select">
@@ -99,6 +120,12 @@
         <div class="asp-col">
           <label>Màu chữ</label>
           <input v-model="safeStyle.color" type="text" class="asp-input asp-input--sm" placeholder="#000000" />
+          <div class="color-tokens">
+            <button class="token-dot" style="background:var(--sf-primary)" @click="safeStyle.color = 'var(--sf-primary)'" title="Primary"></button>
+            <button class="token-dot" style="background:var(--sf-accent)" @click="safeStyle.color = 'var(--sf-accent)'" title="Accent"></button>
+            <button class="token-dot" style="background:var(--sf-bg)" @click="safeStyle.color = 'var(--sf-bg)'" title="Background"></button>
+            <button class="token-dot" style="background:var(--sf-text)" @click="safeStyle.color = 'var(--sf-text)'" title="Text Color"></button>
+          </div>
         </div>
       </div>
     </div>
@@ -230,6 +257,19 @@
       </div>
     </div>
 
+    <!-- 6. Hiệu ứng (Effects) -->
+    <div class="asp-section">
+      <h4 class="asp-section-title">Trạng thái & Hiệu Ứng</h4>
+      <div class="asp-row">
+        <label>Biến đổi hình học (Transform)</label>
+        <input v-model="safeStyle.transform" type="text" class="asp-input" placeholder="scale(1.05) translateY(-5px)" />
+      </div>
+      <div class="asp-row" style="margin-top: 8px">
+        <label>Gia tốc chuyển động (Transition)</label>
+        <input v-model="safeStyle.transition" type="text" class="asp-input" placeholder="all 0.3s ease" />
+      </div>
+    </div>
+
     <!-- 6. CSS Nâng cao -->
     <div class="asp-section">
       <h4 class="asp-section-title">Lớp CSS Tùy Chỉnh</h4>
@@ -239,11 +279,26 @@
       </div>
     </div>
 
+    <!-- Magic Wand Popover -->
+    <div v-if="wandOpenFor" class="wand-popover">
+      <div class="wand-header">
+        Chèn Biến Dữ Liệu
+        <button @click="wandOpenFor = null" class="btn-icon-soft"><X :size="12" /></button>
+      </div>
+      <div class="wand-list">
+        <button v-for="v in dynamicVariables" :key="v.key" @click="insertVariable(v.key)" class="wand-item">
+          <span class="wand-key">{{ v.key }}</span>
+          <span class="wand-desc">{{ v.desc }}</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { Monitor, Tablet, Smartphone, Wand2, X } from 'lucide-vue-next'
 
 const props = defineProps({
   section: {
@@ -256,18 +311,59 @@ const emit = defineEmits(['update:section'])
 
 const type = computed(() => props.section.type)
 
+const activeDevice = ref('desktop')
+const activeState = ref('normal')
+
+const wandOpenFor = ref(null)
+
+const dynamicVariables = [
+  { key: '{{ item.id }}', desc: 'ID' },
+  { key: '{{ item.title }}', desc: 'Tiêu đề' },
+  { key: '{{ item.excerpt }}', desc: 'Đoạn trích' },
+  { key: '{{ item.price }}', desc: 'Giá bán' },
+  { key: '{{ item.compare_price }}', desc: 'Giá gốc' },
+  { key: '{{ item.image }}', desc: 'Ảnh đại diện' },
+  { key: '{{ item.url }}', desc: 'Đường dẫn' }
+]
+
+function openWand(field) {
+  wandOpenFor.value = field
+}
+
+function insertVariable(val) {
+  if (wandOpenFor.value === 'content') {
+    if (!props.section.content) props.section.content = ''
+    props.section.content += (props.section.content ? ' ' : '') + val
+  } else if (wandOpenFor.value === 'src') {
+    if (!props.section.settings) props.section.settings = { style: {} }
+    props.section.settings.src = val
+  }
+  wandOpenFor.value = null
+}
+
 const safeSettings = computed(() => {
   if (!props.section.settings) {
-    props.section.settings = { style: {} }
+    props.section.settings = { style: {}, hoverStyle: {}, tabletStyle: {}, mobileStyle: {} }
   }
   return props.section.settings
 })
 
 const safeStyle = computed(() => {
-  if (!safeSettings.value.style) {
-    safeSettings.value.style = {}
+  if (!safeSettings.value) return {}
+  
+  let key = 'style'
+  if (activeDevice.value === 'desktop') {
+    key = activeState.value === 'hover' ? 'hoverStyle' : 'style'
+  } else if (activeDevice.value === 'tablet') {
+    key = activeState.value === 'hover' ? 'tabletHoverStyle' : 'tabletStyle'
+  } else if (activeDevice.value === 'mobile') {
+    key = activeState.value === 'hover' ? 'mobileHoverStyle' : 'mobileStyle'
   }
-  return safeSettings.value.style
+
+  if (!safeSettings.value[key]) {
+    safeSettings.value[key] = {}
+  }
+  return safeSettings.value[key]
 })
 
 const hasContentConfig = computed(() => {
@@ -281,6 +377,44 @@ const hasContentConfig = computed(() => {
   flex-direction: column;
   gap: 16px;
   color: #e2e8f0;
+}
+.asp-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 4px;
+}
+.asp-tabs {
+  display: flex;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 2px;
+}
+.asp-tabs button {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.asp-tabs button:hover {
+  color: #fff;
+}
+.asp-tabs button.active {
+  background: #4f46e5;
+  color: #fff;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .asp-section {
   background: var(--bg-card, rgba(0,0,0,0.15));
@@ -335,5 +469,88 @@ label {
   background-position: right 8px center;
   background-size: 14px;
   padding-right: 28px;
+}
+.btn-icon-soft {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.btn-icon-soft:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+.color-tokens {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.color-tokens .token-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.color-tokens .token-dot:hover {
+  transform: scale(1.1);
+}
+.wand-popover {
+  position: absolute;
+  top: 40px;
+  left: 10px;
+  right: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  z-index: 1000;
+  overflow: hidden;
+}
+.wand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.1);
+}
+.wand-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+.wand-item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.wand-item:hover {
+  background: rgba(255,255,255,0.05);
+  color: #fff;
+}
+.wand-item .wand-key {
+  font-family: monospace;
+  color: var(--accent);
+}
+.wand-item .wand-desc {
+  opacity: 0.7;
 }
 </style>

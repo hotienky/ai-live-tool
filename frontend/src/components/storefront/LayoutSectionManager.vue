@@ -1,6 +1,7 @@
 <template>
   <div class="section-list">
     <div class="element-palette">
+      <!-- Mẫu Nguyên Thuỷ -->
       <div 
         v-for="e in ['container', 'grid', 'card', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video']" 
         :key="e"
@@ -10,6 +11,22 @@
         :title="'Kéo thả ' + e"
       >
         <span>{{ e }}</span>
+      </div>
+    </div>
+    <div class="element-palette-saved" v-if="savedCustomBlocks.length > 0">
+      <div class="eps-title"><FolderOpen :size="12" /> Mẫu Của Tôi</div>
+      <div class="element-palette">
+        <div 
+          v-for="(b, bIndex) in savedCustomBlocks" 
+          :key="b.bId"
+          class="ep-item ep-item--saved" 
+          draggable="true" 
+          @dragstart="onDragStartSavedBlock($event, b.data)"
+          :title="b.name"
+        >
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ b.name }}</span>
+          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" title="Xoá mẫu"><Trash2 :size="10"/></button>
+        </div>
       </div>
     </div>
     
@@ -56,6 +73,22 @@
             @click.stop="duplicateSection(idx)"
             title="Nhân đôi"
           ><Copy :size="12" /></button>
+          <button
+            class="btn-action btn-action--save"
+            @click.stop="saveAsBlock(section)"
+            title="Lưu thành Mẫu"
+          ><FolderPlus :size="12" /></button>
+          <button
+            class="btn-action btn-action--style"
+            @click.stop="copyStyle(section)"
+            title="Copy Style"
+          ><ClipboardCopy :size="12" /></button>
+          <button
+            class="btn-action btn-action--style"
+            @click.stop="pasteStyle(section)"
+            title="Paste Style"
+            :disabled="!hasCopiedStyle"
+          ><ClipboardPaste :size="12" /></button>
           <button
             class="btn-action btn-action--del"
             @click.stop="deleteSection(idx)"
@@ -108,9 +141,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy } from 'lucide-vue-next'
+import { ref, computed, watch } from 'vue'
+import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+
+// Module-level global to share cloned styles across section managers
+let copiedStylePayload = null
+const currentCopiedTs = ref(Date.now())
 import SectionConfigEditor from './SectionConfigEditor.vue'
 import LanguageTabs from '../LanguageTabs.vue'
 
@@ -138,7 +175,65 @@ const dragNewType = ref(null)
 
 // Drag Drop Logic
 const dragIndex = ref(null)
+
+const hasCopiedStyle = computed(() => {
+  // Use currentCopiedTs to make it reactive
+  return currentCopiedTs.value && copiedStylePayload !== null
+})
+
+function copyStyle(section) {
+  if (!section.settings) return
+  copiedStylePayload = {
+    style: JSON.parse(JSON.stringify(section.settings.style || {})),
+    hoverStyle: JSON.parse(JSON.stringify(section.settings.hoverStyle || {})),
+    tabletStyle: JSON.parse(JSON.stringify(section.settings.tabletStyle || {})),
+    tabletHoverStyle: JSON.parse(JSON.stringify(section.settings.tabletHoverStyle || {})),
+    mobileStyle: JSON.parse(JSON.stringify(section.settings.mobileStyle || {})),
+    mobileHoverStyle: JSON.parse(JSON.stringify(section.settings.mobileHoverStyle || {})),
+  }
+  currentCopiedTs.value = Date.now()
+  // alert('Đã copy style!') // optional UX
+}
+
+function pasteStyle(section) {
+  if (!copiedStylePayload) return
+  if (!section.settings) section.settings = {}
+  Object.assign(section.settings, JSON.parse(JSON.stringify(copiedStylePayload)))
+  // force update tracking or rely on deep watch
+  emit('update:sections', [...props.sections])
+}
 const dragOverIndex = ref(null)
+
+const dragNewSavedBlock = ref(null)
+const savedCustomBlocks = ref(JSON.parse(localStorage.getItem('sf_saved_blocks') || '[]'))
+
+function saveAsBlock(section) {
+  const name = prompt('Đặt tên cho Mẫu (Block) này:', 'Custom ' + section.type)
+  if (!name) return
+  const clone = JSON.parse(JSON.stringify(section))
+  const newBlock = { bId: Date.now(), name, data: clone }
+  savedCustomBlocks.value.push(newBlock)
+  localStorage.setItem('sf_saved_blocks', JSON.stringify(savedCustomBlocks.value))
+}
+
+function removeSavedBlock(idx) {
+  savedCustomBlocks.value.splice(idx, 1)
+  localStorage.setItem('sf_saved_blocks', JSON.stringify(savedCustomBlocks.value))
+}
+
+function onDragStartSavedBlock(e, blockData) {
+  dragNewSavedBlock.value = blockData
+  dragIndex.value = null
+  e.dataTransfer.effectAllowed = 'copy'
+}
+
+function regenerateIds(node) {
+  if (!node) return
+  node.id = 'sf_node_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6)
+  if (node.children && Array.isArray(node.children)) {
+    node.children.forEach(regenerateIds)
+  }
+}
 
 function onDragStartNew(e, type) {
   dragNewType.value = type
@@ -147,10 +242,10 @@ function onDragStartNew(e, type) {
   e.dataTransfer.setData('text/plain', 'new:' + type)
 }
 
-function onDragStart(e, idx) { dragIndex.value = idx; dragNewType.value = null; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)) }
-function onDragEnd() { dragIndex.value = null; dragNewType.value = null; dragOverIndex.value = null }
-function onDragOver(e) { e.dataTransfer.dropEffect = dragNewType.value ? 'copy' : 'move' }
-function onDragEnter(idx) { if ((dragIndex.value !== null && dragIndex.value !== idx) || dragNewType.value) dragOverIndex.value = idx }
+function onDragStart(e, idx) { dragIndex.value = idx; dragNewType.value = null; dragNewSavedBlock.value = null; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)) }
+function onDragEnd() { dragIndex.value = null; dragNewType.value = null; dragNewSavedBlock.value = null; dragOverIndex.value = null }
+function onDragOver(e) { e.dataTransfer.dropEffect = (dragNewType.value || dragNewSavedBlock.value) ? 'copy' : 'move' }
+function onDragEnter(idx) { if ((dragIndex.value !== null && dragIndex.value !== idx) || dragNewType.value || dragNewSavedBlock.value) dragOverIndex.value = idx }
 function onDragLeave(idx) { if (dragOverIndex.value === idx) dragOverIndex.value = null }
 
 function onDrop(targetIdx) {
@@ -195,6 +290,17 @@ function onDrop(targetIdx) {
     dragNewType.value = null
     return
   }
+  
+  if (dragNewSavedBlock.value) {
+    const newEl = JSON.parse(JSON.stringify(dragNewSavedBlock.value))
+    regenerateIds(newEl)
+    const currentList = [...list.value]
+    currentList.splice(targetIdx, 0, newEl)
+    currentList.forEach((s, i) => { s.order = i })
+    list.value = currentList
+    dragNewSavedBlock.value = null
+    return
+  }
 
   const fromIdx = dragIndex.value
   dragIndex.value = null
@@ -216,6 +322,7 @@ function duplicateSection(idx) {
   const clone = JSON.parse(JSON.stringify(original))
   clone.type = original.type
   clone.order = idx + 1
+  regenerateIds(clone)
   const currentList = [...list.value]
   currentList.splice(idx + 1, 0, clone)
   currentList.forEach((s, i) => { s.order = i })
@@ -349,5 +456,42 @@ function deleteSection(idx) {
 @keyframes slidePanelIn {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+.btn-action--save {
+  color: #fb923c;
+  background: rgba(251, 146, 60, 0.1);
+}
+.btn-action--save:hover {
+  background: #fb923c;
+  color: #fff;
+}
+.element-palette-saved {
+  margin-top: 12px;
+  border-top: 1px dashed rgba(255,255,255,0.1);
+  padding-top: 12px;
+}
+.eps-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ep-item--saved {
+  background: rgba(251, 146, 60, 0.1) !important;
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.2);
+  display: flex;
+  justify-content: space-between;
+  text-transform: none;
+}
+.ep-item--saved:hover {
+  background: rgba(251, 146, 60, 0.2) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
 }
 </style>

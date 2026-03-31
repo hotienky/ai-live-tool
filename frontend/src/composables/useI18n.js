@@ -127,5 +127,10 @@ export function useI18n() {
     return 'đ'
   }
 
-  return { t, currentLang, languages, setLang, init, loadLanguages, loadTranslations, formatCurrency, currencyLocale, currencySymbol }
+  function stripEmoji(str) {
+    if (typeof str !== 'string') return str
+    return str.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]\s*/gu, '').trim()
+  }
+
+  return { t, currentLang, languages, setLang, init, loadLanguages, loadTranslations, formatCurrency, currencyLocale, currencySymbol, stripEmoji }
 }

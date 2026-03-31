@@ -198,21 +198,21 @@
     <div class="footer-colors" style="margin-top:12px">
       <div class="footer-color-row">
         <div class="footer-color-item">
-          <label><Palette :size="10" style="margin-right:2px"/> {{ t('admin.msg_1e7ba6d1', 'Nền') }}</label>
+          <label><Palette :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_1e7ba6d1', 'Nền')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.bgColor" class="param-color" />
             <button v-if="config.bgColor" class="btn-clear-color" @click="config.bgColor = ''" title="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
-          <label><Type :size="10" style="margin-right:2px"/> {{ t('admin.msg_a24a546f', 'Tiêu đề') }}</label>
+          <label><Type :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_a24a546f', 'Tiêu đề')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.headingColor" class="param-color" />
             <button v-if="config.headingColor" class="btn-clear-color" @click="config.headingColor = ''" title="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
-          <label><AlignLeft :size="10" style="margin-right:2px"/> {{ t('admin.msg_6466b19a', 'Chữ') }}</label>
+          <label><AlignLeft :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_6466b19a', 'Chữ')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.textColor" class="param-color" />
             <button v-if="config.textColor" class="btn-clear-color" @click="config.textColor = ''" title="Xóa"><X :size="10" /></button>
@@ -233,7 +233,7 @@ import LanguageTabs from '../LanguageTabs.vue'
 import MediaPicker from '../MediaPicker.vue'
 import { useLanguages } from '../../composables/useLanguages.js'
 
-const { t } = useI18n()
+const { t, stripEmoji } = useI18n()
 
 const props = defineProps({
   footerConfig: { type: Object, required: true },

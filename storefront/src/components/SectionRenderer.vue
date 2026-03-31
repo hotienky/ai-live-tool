@@ -9,6 +9,7 @@
       section.settings?.classes,
       section.params?.cssClass,
       section.params?.animation ? ('sf-anim-' + section.params.animation) : '',
+      section.id ? 'sf-node-' + section.id : '',
       {
         'sf-full-width': section.params?.fullWidth,
         'hide-desktop': section.params?.hideDesktop,
@@ -16,7 +17,6 @@
         'hide-mobile': section.params?.hideMobile
       }
     ]"
-    :style="section.settings?.style"
     v-bind="primitiveAttrs"
   >
     <template v-if="section.children && section.children.length > 0">
@@ -41,6 +41,7 @@
     :id="section.params?.anchorId"
     :class="[
       'sf-section',
+      section.id ? 'sf-node-' + section.id : '',
       section.params?.cssClass,
       section.params?.animation ? ('sf-anim-' + section.params.animation) : '',
       {

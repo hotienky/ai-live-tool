@@ -56,6 +56,14 @@
         <button class="btn-preview-toggle" @click="startTour" :title="t('admin.tour', 'Hướng dẫn')">
           <HelpCircle :size="14" /> {{ t('admin.tour', 'Hướng dẫn') }}
         </button>
+        <div class="undo-redo-group" style="display:flex; gap:4px; margin-right: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 12px">
+          <button class="btn-preview-toggle" @click="undo" :disabled="undoStack.length <= 1" :title="t('admin.undo', 'Hoàn tác (Ctrl+Z)')">
+            <Undo2 :size="14" />
+          </button>
+          <button class="btn-preview-toggle" @click="redo" :disabled="redoStack.length === 0" :title="t('admin.redo', 'Làm lại (Ctrl+Shift+Z)')">
+            <Redo2 :size="14" />
+          </button>
+        </div>
         <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
           <FileEdit :size="14" /> {{ t('admin.msg_867cf3b9', 'Nháp') }}
         </button>
@@ -645,7 +653,7 @@ import {
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
   MessageSquareQuote, HelpCircle, Images, Video, Type, Mail, Share2, Award,
-  Trash2, Undo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
+  Trash2, Undo2, Redo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
   History, Tag, Shield, LayoutGrid, Newspaper, ChevronLeft, PanelTop, PanelBottom,
   Aperture, Megaphone, FolderOpen, ShieldCheck, Star, Film, Box,
   CalendarDays, UtensilsCrossed, Flower2, Building2, PartyPopper
@@ -667,6 +675,25 @@ Object.keys(sectionMetaRegistry).forEach(type => {
 
 const showVisualBuilderPro = ref(false)
 const { t, formatCurrency } = useI18n()
+
+// Keyboard shortcuts for Undo/Redo
+onMounted(() => {
+  window.addEventListener('keydown', (e) => {
+    // Ignore input fields so we don't interfere with standard text undo
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) {
+      return
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault()
+      if (e.shiftKey) redo()
+      else undo()
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+      e.preventDefault()
+      redo()
+    }
+  })
+})
 
 const { showToast } = useToast()
 
@@ -844,11 +871,15 @@ function getSnapshot() {
   return JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value, promoConfig: promoConfig.value })
 }
 
+let pushUndoTimer = null
 function pushUndo() {
   if (isTrackingHistory) return
-  undoStack.value.push(getSnapshot())
-  if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
-  redoStack.value = [] // Clear redo
+  if (pushUndoTimer) clearTimeout(pushUndoTimer)
+  pushUndoTimer = setTimeout(() => {
+    undoStack.value.push(getSnapshot())
+    if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
+    redoStack.value = [] // Clear redo
+  }, 250)
 }
 
 watch(sections, () => pushUndo(), { deep: true })
@@ -1937,7 +1968,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 /* Footer color pickers */
 .footer-color-row { display: flex; gap: 12px; }
 .footer-color-item { flex: 1; }
-.footer-color-item label { display: block; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.footer-color-item label { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
 .footer-color-pick { display: flex; align-items: center; gap: 6px; }
 
 /* Builtin page config panel */
