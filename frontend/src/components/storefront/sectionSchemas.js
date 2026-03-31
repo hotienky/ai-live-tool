@@ -22,6 +22,7 @@ export const sectionMeta = {
   testimonials:  { label: 'Đánh giá khách hàng', moduleId: null, category: 'Cơ bản',       icon: 'Star', description: 'Testimonials / Reviews' },
   faq:           { label: 'Câu hỏi thường gặp', moduleId: null, category: 'Cơ bản',       icon: 'HelpCircle', description: 'FAQ accordion' },
   newsletter:    { label: 'Đăng ký nhận tin',    moduleId: null, category: 'Cơ bản',       icon: 'Mail', description: 'Form đăng ký email' },
+  form:          { label: 'Biểu mẫu (Form)',     moduleId: 'forms',category: 'Cơ bản',     icon: 'MousePointerClick', description: 'Biểu mẫu tương tác' },
   social_feed:   { label: 'Mạng xã hội',        moduleId: null, category: 'Cơ bản',       icon: 'Share2', description: 'Links social media' },
   trust_badges:  { label: 'Trust Badges',        moduleId: null, category: 'Cơ bản',       icon: 'ShieldCheck', description: 'Huy hiệu uy tín' },
   brands_slider: { label: 'Thương hiệu',        moduleId: null, category: 'Cơ bản',       icon: 'Award', description: 'Slide logo đối tác' },
@@ -158,6 +159,13 @@ export const sectionSchemas = {
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'subtitle', type: 'text', label: 'Phụ đề' },
     { key: 'buttonText', type: 'text', label: 'Nút bấm' }
+  ],
+  form: [
+    { key: 'title', type: 'text', label: 'Tiêu đề (Tùy chọn)' },
+    { key: 'subtitle', type: 'text', label: 'Phụ đề (Tùy chọn)' },
+    { key: 'formId', type: 'formSelect', label: 'Chọn Biểu mẫu' },
+    { key: 'submitText', type: 'text', label: 'Chữ Nút Gửi', placeholder: 'Gửi ngay' },
+    { key: 'successMsg', type: 'textarea', label: 'Lời cảm ơn', placeholder: 'Kịch bản khi gửi thành công' }
   ],
   social_feed: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },

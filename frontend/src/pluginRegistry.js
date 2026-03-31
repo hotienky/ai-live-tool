@@ -2,6 +2,7 @@ import accountingPlugin from './plugins-src/accounting/index.js';
 import blogPlugin from './plugins-src/blog/index.js';
 import cmsPlugin from './plugins-src/cms/index.js';
 import ecomPlugin from './plugins-src/ecom/index.js';
+import formsPlugin from './plugins-src/forms/index.js';
 import livestreamPlugin from './plugins-src/livestream/index.js';
 import marketingPlugin from './plugins-src/marketing/index.js';
 import shippingPlugin from './plugins-src/shipping/index.js';
@@ -13,6 +14,7 @@ export const STATIC_PLUGINS = {
   'blog': blogPlugin,
   'cms': cmsPlugin,
   'ecom': ecomPlugin,
+  'forms': formsPlugin,
   'livestream': livestreamPlugin,
   'marketing': marketingPlugin,
   'shipping': shippingPlugin,

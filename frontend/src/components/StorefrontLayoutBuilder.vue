@@ -39,32 +39,26 @@
         <span v-if="layoutPageVersion" class="lb-status-badge" :class="'lb-status-badge--' + layoutPageStatus">
           v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? '✅ Published' : '📝 Draft' }}
         </span>
-        <button v-if="undoStack.length" class="btn-undo" @click="undo" :title="t('admin.msg_96ce272e', 'Hoàn tác')">
-          <Undo2 :size="14" />
-        </button>
-        <button v-if="layoutPageId" class="btn-preview-toggle" @click="showVersionHistory = true" :title="t('admin.msg_vh_title', 'Lịch sử phiên bản')">
+        <button v-if="layoutPageId" class="btn-preview-toggle" @click="showVersionHistory = true" :data-tooltip="t('admin.msg_vh_title', 'Lịch sử phiên bản')">
           <History :size="14" /> {{ t('admin.msg_vh_short', 'Versions') }}
-        </button>
-        <button class="btn-preview-toggle" @click="showVisualBuilderPro = true" style="color: #a855f7; border-color: #a855f7" title="Mở Trình Kéo Thả 100% Canvas (Beta)">
-          <Sparkles :size="14" /> Visual Builder Pro
         </button>
         <button class="btn-preview-toggle" @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'">
           <Monitor v-if="previewMode === 'wireframe'" :size="14" />
           <Eye v-else :size="14" />
           {{ previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe' }}
         </button>
-        <button class="btn-preview-toggle" @click="startTour" :title="t('admin.tour', 'Hướng dẫn')">
+        <button class="btn-preview-toggle" @click="startTour" :data-tooltip="t('admin.tour', 'Hướng dẫn')">
           <HelpCircle :size="14" /> {{ t('admin.tour', 'Hướng dẫn') }}
         </button>
         <div class="undo-redo-group" style="display:flex; gap:4px; margin-right: 12px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 12px">
-          <button class="btn-preview-toggle" @click="undo" :disabled="undoStack.length <= 1" :title="t('admin.undo', 'Hoàn tác (Ctrl+Z)')">
+          <button class="btn-preview-toggle" @click="undo" :disabled="undoStack.length <= 1" :data-tooltip="t('admin.undo', 'Hoàn tác (Ctrl+Z)')">
             <Undo2 :size="14" />
           </button>
-          <button class="btn-preview-toggle" @click="redo" :disabled="redoStack.length === 0" :title="t('admin.redo', 'Làm lại (Ctrl+Shift+Z)')">
+          <button class="btn-preview-toggle" @click="redo" :disabled="redoStack.length === 0" :data-tooltip="t('admin.redo', 'Làm lại (Ctrl+Shift+Z)')">
             <Redo2 :size="14" />
           </button>
         </div>
-        <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
+        <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :data-tooltip="t('admin.save_draft', 'Lưu nháp')" >
           <FileEdit :size="14" /> {{ t('admin.msg_867cf3b9', 'Nháp') }}
         </button>
         <button class="btn-save" @click="handlePublish" :disabled="saving">
@@ -339,7 +333,8 @@
               <LayoutNavigator
                 v-if="activeSidebarTab === 'navigator'"
                 :sections="sections"
-                @select-node="id => expandedSection = id"
+                :expanded-section="expandedSection"
+                @select-node="handleNavigatorSelect"
               />
               
               <!-- Add Section Button -->
@@ -447,7 +442,7 @@
       </div>
 
       <!-- Toggle button between panels -->
-      <button class="lb-controls-toggle" @click="controlsCollapsed = !controlsCollapsed" :title="controlsCollapsed ? 'Mở menu' : 'Đóng menu'">
+      <button class="lb-controls-toggle" @click="controlsCollapsed = !controlsCollapsed" :data-tooltip="controlsCollapsed ? 'Mở menu' : 'Đóng menu'">
         <ChevronLeft :size="14" :style="{ transform: controlsCollapsed ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }" />
       </button>
 
@@ -1160,26 +1155,31 @@ const addSectionAtInsertIndex = ref(null)
 function onPreviewSectionSelected({ type, index, id }) {
   if (id === '__promo' || type === 'promo-bar') {
     promoOpen.value = true
-    const el = document.querySelector('.layout-section--global')
-    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
   }
-  if (id === '__header' || type === 'header') {
-    // header config is now handled via LayoutHeaderConfig component which automatically shows up if its props change or it might be embedded
-    return
-  }
-  if (id === '__footer' || type === 'footer') {
-    return
-  }
-  // Find matching section and expand it in the left panel
-  const section = sections.value.find(s => s.type === type)
+  if (id === '__header' || type === 'header') return
+  if (id === '__footer' || type === 'footer') return
+  
+  // Use index to find the exact section in activeSections
+  const section = activeSections.value[index] || sections.value.find(s => s.type === type)
+  
   if (section) {
-    expandedSection.value = type
+    expandedSection.value = section.type
+    // Switch to properties tab if needed
     // Scroll the section into view in the left panel
     nextTick(() => {
-      const el = document.querySelector(`[data-section-panel="${type}"]`)
+      const el = document.querySelector(`[data-section-panel="${section.type}"]`)
       el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
+  }
+}
+
+function handleNavigatorSelect(typeOrId) {
+  expandedSection.value = typeOrId
+  // Also tell IFrame to highlight this section!
+  const activeIdx = activeSections.value.findIndex(s => s.type === typeOrId)
+  if (activeIdx !== -1 && previewPanelRef.value) {
+    previewPanelRef.value.selectSection(activeIdx)
   }
 }
 
@@ -1188,11 +1188,22 @@ function onPreviewSectionHover({ type }) {
 }
 
 function onPreviewSectionReorder({ fromIndex, toIndex }) {
-  if (fromIndex < 0 || toIndex < 0 || fromIndex >= sections.value.length || toIndex >= sections.value.length) return
+  const fromSec = activeSections.value[fromIndex]
+  const toSec = activeSections.value[toIndex]
+  if (!fromSec || !toSec) return
+  
+  const realFrom = sections.value.indexOf(fromSec)
+  const realTo = sections.value.indexOf(toSec)
+  
+  if (realFrom === -1 || realTo === -1) return
+
   pushUndo()
   const list = [...sections.value]
-  const [moved] = list.splice(fromIndex, 1)
-  list.splice(toIndex, 0, moved)
+  const [moved] = list.splice(realFrom, 1)
+  
+  // To place it exactly at realTo's current position (or after)
+  list.splice(realTo, 0, moved)
+  
   list.forEach((s, i) => { s.order = i })
   sections.value = list
   showToast(t('admin.msg_reorder_ok', 'Đã di chuyển section'), 'success')
@@ -2585,4 +2596,53 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .btn-cancel-hl { padding: 8px 16px; border-radius: 7px; border: 1px solid var(--color-border); background: none; color: var(--color-text-secondary); font-size: 12px; font-weight: 600; cursor: pointer; }
 .btn-save-hl { display: flex; align-items: center; gap: 5px; padding: 8px 20px; border-radius: 7px; border: none; background: var(--accent-gradient, var(--accent)); color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: var(--accent-shadow); }
 .btn-save-hl:hover { transform: translateY(-1px); }
+
+/* Custom Tooltip for Action Buttons */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px) scale(0.95);
+  background: var(--color-bg-inverse, #1f2937);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 99999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+[data-tooltip]::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  border-width: 4px;
+  border-style: solid;
+  border-color: var(--color-bg-inverse, #1f2937) transparent transparent transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 99999;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0) scale(1);
+}
 </style>

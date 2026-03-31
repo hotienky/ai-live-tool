@@ -62,6 +62,14 @@
               </select>
             </template>
 
+            <template v-else-if="field.type === 'formSelect'">
+              <select v-model="getParams()[field.key]" class="param-select">
+                <option value="" disabled selected>-- Chọn Form --</option>
+                <option v-for="f in availableForms" :key="f.id" :value="f.id">{{ f.title || f.id }}</option>
+              </select>
+              <button v-if="!availableForms.length" class="btn-save" style="margin-top:4px; font-size:10px" @click.prevent="alert('Chưa có Form nào. Hãy đến Tab Quản lý Biểu mẫu ở CMS để tạo mới.')">Chưa có form</button>
+            </template>
+
             <template v-else-if="field.type === 'visualEditor'">
               <button class="btn-save" style="width: 100%; justify-content: center; background: var(--accent-gradient); min-width: 100%;" @click.stop="$emit('open-block-editor', section)">
                 <Sparkles :size="14" /> {{ field.label }}
@@ -184,6 +192,7 @@ import { ref, computed } from 'vue'
 import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
+import { useForms } from '../../composables/useForms.js'
 import { sectionSchemas, styleSchema } from './sectionSchemas.js'
 import { hasVisualTemplates } from './sectionTemplates.js'
 import SectionStylePicker from './SectionStylePicker.vue'
@@ -200,6 +209,12 @@ const props = defineProps({
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
 const emit = defineEmits(['open-block-editor'])
 const { t } = useI18n()
+const { forms: availableForms, fetchForms } = useForms()
+
+import { onMounted } from 'vue'
+onMounted(() => {
+  fetchForms()
+})
 
 // Content & Lang Data Initializer
 function getParams() {

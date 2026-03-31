@@ -39,7 +39,7 @@
             <GripVertical :size="12" class="footer-col-card__grip" />
             <span class="footer-col-card__num">Cột {{ ci + 1 }}</span>
           </div>
-          <button class="btn-remove-item" @click="config.columns.splice(ci, 1)" title="Xóa cột">
+          <button class="btn-remove-item" @click="config.columns.splice(ci, 1)" data-tooltip="Xóa cột">
             <Trash2 :size="12" />
           </button>
         </div>
@@ -84,7 +84,7 @@
               <option v-for="cp in cmsPageList" :key="cp.id" :value="'/page/' + cp.slug">{{ cp.title }}</option>
             </select>
             <input v-else v-model="link.url" class="param-input" placeholder="/page/..." style="flex:1" />
-            <button class="btn-remove-item" @click="col.links.splice(li, 1)" title="Xóa"><X :size="10" /></button>
+            <button class="btn-remove-item" @click="col.links.splice(li, 1)" data-tooltip="Xóa"><X :size="10" /></button>
           </div>
           <button class="btn-add-item" @click="col.links.push({ label: '', url: '', urlMode: 'custom' })">
             <Plus :size="12" /> Thêm link
@@ -109,7 +109,7 @@
             </select>
             <input v-model="item.label" class="param-input" :placeholder="t('admin.msg_ed5d37', 'Nhãn')" />
             <input v-model="item.value" class="param-input" :placeholder="t('admin.msg_1fc558', 'Giá trị')" />
-            <button class="btn-remove-item" @click="col.items.splice(ii, 1)" title="Xóa"><X :size="10" /></button>
+            <button class="btn-remove-item" @click="col.items.splice(ii, 1)" data-tooltip="Xóa"><X :size="10" /></button>
           </div>
           <button class="btn-add-item" @click="col.items.push({ icon: 'phone', label: '', value: '' })">
             <Plus :size="12" /> Thêm dòng
@@ -201,21 +201,21 @@
           <label><Palette :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_1e7ba6d1', 'Nền')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.bgColor" class="param-color" />
-            <button v-if="config.bgColor" class="btn-clear-color" @click="config.bgColor = ''" title="Xóa"><X :size="10" /></button>
+            <button v-if="config.bgColor" class="btn-clear-color" @click="config.bgColor = ''" data-tooltip="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
           <label><Type :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_a24a546f', 'Tiêu đề')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.headingColor" class="param-color" />
-            <button v-if="config.headingColor" class="btn-clear-color" @click="config.headingColor = ''" title="Xóa"><X :size="10" /></button>
+            <button v-if="config.headingColor" class="btn-clear-color" @click="config.headingColor = ''" data-tooltip="Xóa"><X :size="10" /></button>
           </div>
         </div>
         <div class="footer-color-item">
           <label><AlignLeft :size="10" style="margin-right:2px"/> {{ stripEmoji(t('admin.msg_6466b19a', 'Chữ')) }}</label>
           <div class="footer-color-pick">
             <input type="color" v-model="config.textColor" class="param-color" />
-            <button v-if="config.textColor" class="btn-clear-color" @click="config.textColor = ''" title="Xóa"><X :size="10" /></button>
+            <button v-if="config.textColor" class="btn-clear-color" @click="config.textColor = ''" data-tooltip="Xóa"><X :size="10" /></button>
           </div>
         </div>
       </div>

@@ -3,9 +3,10 @@
     <!-- Nút hiển thị của Node này -->
     <div 
       class="ln-node" 
+      :class="{ 'is-selected': expandedSection === node.id || expandedSection === node.type }"
       :style="{ paddingLeft: (level * 16 + 8) + 'px' }"
       @click="toggleExpand"
-      @dblclick="$emit('select-node', node.id)"
+      @dblclick="$emit('select-node', node.id || node.type)"
     >
       <!-- Icon tương ứng với Loại Component -->
       <span class="ln-icon">
@@ -24,13 +25,13 @@
       />
     </div>
 
-    <!-- Danh sách các node con (Đệ quy) -->
     <div v-if="hasChildren && isExpanded" class="ln-children">
       <LayoutNavigatorNode 
         v-for="child in node.children" 
         :key="child.id" 
         :node="child" 
         :level="level + 1"
+        :expanded-section="expandedSection"
         @select-node="$emit('select-node', $event)"
       />
     </div>
@@ -47,7 +48,8 @@ import {
 
 const props = defineProps({
   node: Object,
-  level: { type: Number, default: 0 }
+  level: { type: Number, default: 0 },
+  expandedSection: { type: [String, Number], default: null }
 })
 const emit = defineEmits(['select-node'])
 
@@ -65,7 +67,7 @@ function toggleExpand(e) {
   if (hasChildren.value) {
     isExpanded.value = !isExpanded.value
   } else {
-    emit('select-node', props.node.id)
+    emit('select-node', props.node.id || props.node.type)
   }
 }
 

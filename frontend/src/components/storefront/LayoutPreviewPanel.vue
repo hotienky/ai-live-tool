@@ -3,9 +3,9 @@
     <div class="preview-toolbar">
       <h4 class="lb-section__title"><Eye :size="14" /> {{ t('admin.msg_1507b51c', 'Xem trước') }}</h4>
       <div class="preview-responsive" v-if="previewMode === 'live'">
-        <button :class="{ active: previewWidth === '100%' }" @click="emit('update:previewWidth', '100%')" title="Desktop"><Monitor :size="12" /></button>
-        <button :class="{ active: previewWidth === '768px' }" @click="emit('update:previewWidth', '768px')" title="Tablet"><Tablet :size="12" /></button>
-        <button :class="{ active: previewWidth === '375px' }" @click="emit('update:previewWidth', '375px')" title="Mobile"><Smartphone :size="12" /></button>
+        <button :class="{ active: previewWidth === '100%' }" @click="emit('update:previewWidth', '100%')" data-tooltip="Desktop"><Monitor :size="12" /></button>
+        <button :class="{ active: previewWidth === '768px' }" @click="emit('update:previewWidth', '768px')" data-tooltip="Tablet"><Tablet :size="12" /></button>
+        <button :class="{ active: previewWidth === '375px' }" @click="emit('update:previewWidth', '375px')" data-tooltip="Mobile"><Smartphone :size="12" /></button>
       </div>
     </div>
 

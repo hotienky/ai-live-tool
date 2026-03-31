@@ -3,7 +3,7 @@
     <div class="element-palette">
       <!-- Mẫu Nguyên Thuỷ -->
       <div 
-        v-for="e in ['container', 'grid', 'card', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video']" 
+        v-for="e in ['container', 'grid', 'card', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video', 'form']" 
         :key="e"
         class="ep-item" 
         draggable="true" 
@@ -66,35 +66,35 @@
           <button
             class="btn-action btn-action--style"
             @click.stop="toggleExpand(section.type)"
-            :title="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
+            :data-tooltip="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
           ><Settings2 :size="13" /></button>
           <button
             class="btn-action btn-action--dup"
             @click.stop="duplicateSection(idx)"
-            title="Nhân đôi"
+            data-tooltip="Nhân đôi"
           ><Copy :size="12" /></button>
           <button
             class="btn-action btn-action--save"
             @click.stop="saveAsBlock(section)"
-            title="Lưu thành Mẫu"
+            data-tooltip="Lưu thành Mẫu"
           ><FolderPlus :size="12" /></button>
           <button
             class="btn-action btn-action--style"
             @click.stop="copyStyle(section)"
-            title="Copy Style"
+            data-tooltip="Copy Style"
           ><ClipboardCopy :size="12" /></button>
           <button
             class="btn-action btn-action--style"
             @click.stop="pasteStyle(section)"
-            title="Paste Style"
+            data-tooltip="Paste Style"
             :disabled="!hasCopiedStyle"
           ><ClipboardPaste :size="12" /></button>
           <button
             class="btn-action btn-action--del"
             @click.stop="deleteSection(idx)"
-            title="Xoá section"
+            data-tooltip="Xoá section"
           ><Trash2 :size="12" /></button>
-          <label class="toggle-switch" @click.stop>
+          <label class="toggle-switch" data-tooltip="Hiển thị" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
             <span class="toggle-slider"></span>
           </label>
@@ -494,4 +494,5 @@ function deleteSection(idx) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
 }
+
 </style>

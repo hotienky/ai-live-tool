@@ -88,8 +88,8 @@
           <span class="hl-item__url">{{ link.url || '#' }}</span>
         </div>
         <span v-if="link.type === 'collection'" class="hl-badge">Dropdown</span>
-        <button class="btn-edit-hl" @click="openEditNavLink(link)" title="Sửa"><Pencil :size="12" /></button>
-        <button class="btn-remove-item" @click="deleteNavLink(link)" title="Xóa"><Trash2 :size="12" /></button>
+        <button class="btn-edit-hl" @click="openEditNavLink(link)" data-tooltip="Sửa"><Pencil :size="12" /></button>
+        <button class="btn-remove-item" @click="deleteNavLink(link)" data-tooltip="Xóa"><Trash2 :size="12" /></button>
       </div>
       <div v-if="!navLinks.length" class="hl-empty">{{ t('admin.msg_6f5a17e0', 'Chưa có link nào. Thêm link bên dưới.') }}</div>
     </div>

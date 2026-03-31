@@ -4,7 +4,7 @@
     <div class="lb-section">
       <h4 class="lb-section__title">
         <component :is="icons.FileStack" :size="14" /> {{ t('admin.msg_6a466765', 'Quản lý Trang') }}
-        <button class="pp-add-btn" @click="openCreateDialog" :title="t('admin.msg_47eef3e5', 'Thêm trang')">
+        <button class="pp-add-btn" @click="openCreateDialog" :data-tooltip="t('admin.msg_47eef3e5', 'Thêm trang')">
           <component :is="icons.Plus" :size="12" />
         </button>
       </h4>
@@ -33,7 +33,7 @@
               class="pp-status-dot"
               :class="page.status ? 'pp-status-dot--active' : 'pp-status-dot--draft'"
               @click.stop="togglePageStatus(page)"
-              :title="page.status ? 'Published — Click để chuyển sang Draft' : 'Draft — Click để Published'"
+              :data-tooltip="page.status ? 'Published — Click để chuyển sang Draft' : 'Draft — Click để Published'"
             >
               {{ page.status ? '✓' : '○' }}
             </span>
@@ -41,14 +41,14 @@
               v-if="page.is_dynamic"
               class="pp-action-btn pp-action-btn--builder"
               @click.stop="$emit('select-page', page.id)"
-              :title="t('admin.msg_open_builder', 'Mở bố cục trang')"
+              :data-tooltip="t('admin.msg_open_builder', 'Mở bố cục trang')"
             >
               <component :is="icons.Paintbrush" :size="11" />
             </button>
             <button
               class="pp-action-btn pp-action-btn--edit"
               @click.stop="openEditDialog(page)"
-              :title="t('admin.edit', 'Sửa')"
+              :data-tooltip="t('admin.edit', 'Sửa')"
             >
               <component :is="icons.Pencil" :size="11" />
             </button>
@@ -56,7 +56,7 @@
               v-if="!page.is_system"
               class="pp-action-btn pp-action-btn--del"
               @click.stop="handleDeletePage(page)"
-              :title="t('admin.delete', 'Xóa')"
+              :data-tooltip="t('admin.delete', 'Xóa')"
             >
               <component :is="icons.Trash2" :size="11" />
             </button>

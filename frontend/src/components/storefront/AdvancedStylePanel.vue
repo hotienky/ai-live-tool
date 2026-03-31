@@ -3,9 +3,9 @@
     <!-- State Configurator -->
     <div class="asp-switcher">
       <div class="asp-tabs device-tabs">
-        <button :class="{ active: activeDevice === 'desktop' }" @click="activeDevice = 'desktop'" title="Desktop"><Monitor :size="14" /></button>
-        <button :class="{ active: activeDevice === 'tablet' }" @click="activeDevice = 'tablet'" title="Tablet"><Tablet :size="14" /></button>
-        <button :class="{ active: activeDevice === 'mobile' }" @click="activeDevice = 'mobile'" title="Mobile"><Smartphone :size="14" /></button>
+        <button :class="{ active: activeDevice === 'desktop' }" @click="activeDevice = 'desktop'" data-tooltip="Desktop"><Monitor :size="14" /></button>
+        <button :class="{ active: activeDevice === 'tablet' }" @click="activeDevice = 'tablet'" data-tooltip="Tablet"><Tablet :size="14" /></button>
+        <button :class="{ active: activeDevice === 'mobile' }" @click="activeDevice = 'mobile'" data-tooltip="Mobile"><Smartphone :size="14" /></button>
       </div>
       <div class="asp-tabs state-tabs">
         <button :class="{ active: activeState === 'normal' }" @click="activeState = 'normal'">Normal</button>
@@ -19,7 +19,7 @@
       <div v-if="type === 'text' || type === 'heading'" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Văn bản
-          <button @click="openWand('content')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+          <button @click="openWand('content')" class="btn-icon-soft" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
         </label>
         <textarea v-model="section.content" rows="3" class="asp-input" placeholder="Nhập văn bản..."></textarea>
       </div>
@@ -39,14 +39,14 @@
       <div v-else-if="type === 'button'" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Nhãn nút
-          <button @click="openWand('content')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+          <button @click="openWand('content')" class="btn-icon-soft" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
         </label>
         <input v-model="section.content" type="text" class="asp-input" />
       </div>
       <div v-else-if="type === 'image'" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Đường dẫn thẻ ảnh (URL)
-          <button @click="openWand('src')" class="btn-icon-soft" title="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+          <button @click="openWand('src')" class="btn-icon-soft" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
         </label>
         <input v-model="safeSettings.src" type="text" class="asp-input" placeholder="https://..." />
         <label style="margin-top: 8px">Căn ảnh (Object Fit)</label>
@@ -102,7 +102,7 @@
             @keyup.enter="applyOmniCommand"
             class="asp-input omni-input" 
             placeholder="Bạn muốn tuỳ chỉnh gì? (Chưa hỗ trợ NLP)" 
-            title="Tính năng NLP đang phát triển..."
+            data-tooltip="Tính năng NLP đang phát triển..."
             disabled
           />
         </div>

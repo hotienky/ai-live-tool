@@ -9,6 +9,7 @@
         :key="section.id || idx" 
         :node="section" 
         :level="0"
+        :expanded-section="expandedSection"
         @select-node="handleSelectNode"
       />
     </div>
@@ -20,7 +21,8 @@ import { provide } from 'vue'
 import LayoutNavigatorNode from './LayoutNavigatorNode.vue'
 
 const props = defineProps({
-  sections: { type: Array, required: true }
+  sections: { type: Array, required: true },
+  expandedSection: { type: [String, Number], default: null }
 })
 const emit = defineEmits(['select-node'])
 

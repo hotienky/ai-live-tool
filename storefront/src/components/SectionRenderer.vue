@@ -162,6 +162,7 @@ const coreRegistry = {
   video_embed:   defineAsyncComponent(() => import('./sections/HomeSectionVideo.vue')),
   text_block:    defineAsyncComponent(() => import('./sections/HomeSectionTextBlock.vue')),
   newsletter:    defineAsyncComponent(() => import('./sections/HomeSectionNewsletter.vue')),
+  form:          defineAsyncComponent(() => import('./sections/HomeSectionForm.vue')),
   social_feed:   defineAsyncComponent(() => import('./sections/HomeSectionSocial.vue')),
   brands_slider: defineAsyncComponent(() => import('./sections/HomeSectionBrands.vue')),
   trust_badges:  defineAsyncComponent(() => import('./sections/HomeSectionTrustBadges.vue')),
