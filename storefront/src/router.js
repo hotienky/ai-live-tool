@@ -16,6 +16,7 @@ const coreRoutes = [
   { path: '/', name: 'home', component: HomePage },
   { path: '/auth', name: 'auth', component: AuthPage },
   { path: '/account', name: 'account', component: AccountPage },
+  { path: '/_builder/template-preview', name: 'template-preview', component: () => import('./views/TemplatePreviewPage.vue') },
 ]
 
 // ── E-commerce routes (requires 'ecom' module) ──

@@ -1398,7 +1398,9 @@ const livePreviewBaseUrl = computed(() => {
          '__account': '/account',
          '__wishlist': '/wishlist',
          '__order_tracking': '/order-tracking',
-         '__blog': '/blog'
+         '__blog': '/blog',
+         '__template_product_card': '/_builder/template-preview?type=card',
+         '__template_blog_card': '/_builder/template-preview?type=card',
        }
        path = mapped[activePageId.value] || ''
     } else {

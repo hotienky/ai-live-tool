@@ -1,8 +1,8 @@
 <template>
-  <div class="storefront-app">
-    <PromoBar />
-    <SiteHeader :storeName="storeInfo?.shop_name" />
-    <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode }">
+  <div class="storefront-app" :class="{ 'is-template-preview': isTemplatePreview }">
+    <PromoBar v-if="!isTemplatePreview" />
+    <SiteHeader v-if="!isTemplatePreview" :storeName="storeInfo?.shop_name" />
+    <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode, 'storefront-main--template': isTemplatePreview }">
       <div v-if="!appReady" class="global-loading" style="display:flex;justify-content:center;padding:100px;">
         <div class="loader"></div>
       </div>
@@ -14,7 +14,7 @@
         </transition>
       </router-view>
     </main>
-    <SiteFooter :storeName="storeInfo?.shop_name" />
+    <SiteFooter v-if="!isTemplatePreview" :storeName="storeInfo?.shop_name" />
     <SfToastContainer />
     <BackToTop />
     <RouteLoader />
@@ -38,7 +38,7 @@ import PromoBar from './components/PromoBar.vue'
 import BuilderOverlay from './components/BuilderOverlay.vue'
 import { useTheme } from './composables/useTheme.js'
 import { useI18n } from './composables/useI18n.js'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 import { useSeo } from './composables/useSeo.js'
 
@@ -53,6 +53,9 @@ const { init: initI18n, initLanguagesFromConfig } = useI18n()
 const { setOrganizationSeo } = useSeo()
 const { pluginSections, pluginRoutes } = useStorefrontPlugins()
 const router = useRouter()
+const route = useRoute()
+
+const isTemplatePreview = computed(() => route.name === 'template-preview')
 
 const storeInfo = ref(null)
 const layoutConfig = ref(null)
