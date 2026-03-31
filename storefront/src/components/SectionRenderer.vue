@@ -5,6 +5,8 @@
     :id="section.params?.anchorId"
     :data-builder-id="section.id"
     :data-builder-type="section.type"
+    :data-aos="section.settings?.aosAnim || undefined"
+    :data-aos-delay="section.settings?.aosAnim ? (section.settings?.aosDelay || 0) : undefined"
     :class="[
       section.settings?.classes,
       section.params?.cssClass,
@@ -55,6 +57,8 @@
     :data-builder-id="section.id"
     :data-section-type="section.type"
     :data-section-index="section.order ?? 0"
+    :data-aos="section.settings?.aosAnim || undefined"
+    :data-aos-delay="section.settings?.aosAnim ? (section.settings?.aosDelay || 0) : undefined"
   >
     <component
       :is="component"

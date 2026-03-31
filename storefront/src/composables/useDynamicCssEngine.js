@@ -76,6 +76,17 @@ export function generateDynamicCss(sections, themeConfig = {}) {
       if (st.mobileHoverStyle && Object.keys(st.mobileHoverStyle).length > 0) {
         mobileCss += `${selector}:hover { ${toCssString(st.mobileHoverStyle)} }\n`;
       }
+      
+      // Visibility Constraints
+      if (st.hiddenDesktop) {
+        desktopCss += `@media (min-width: 1025px) { ${selector} { display: none !important; } }\n`;
+      }
+      if (st.hiddenTablet) {
+        desktopCss += `@media (min-width: 769px) and (max-width: 1024px) { ${selector} { display: none !important; } }\n`;
+      }
+      if (st.hiddenMobile) {
+        desktopCss += `@media (max-width: 768px) { ${selector} { display: none !important; } }\n`;
+      }
 
       if (node.children && node.children.length > 0) {
         traverse(node.children);

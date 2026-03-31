@@ -130,7 +130,7 @@
 
     <!-- Social Links -->
     <details class="footer-extra-section" open>
-      <summary><Share2 :size="14" style="margin-right:4px"/> {{ t('admin.msg_d9fce95a', 'Mạng xã hội') }}</summary>
+      <summary style="display:flex;align-items:center;gap:6px;"><Share2 :size="14"/> {{ t('admin.msg_d9fce95a', 'Mạng xã hội') }}</summary>
       <div v-for="(s, si) in config.social" :key="si" class="footer-link-row">
         <select v-model="s.platform" class="param-select param-select--sm">
           <option value="facebook">Facebook</option>
@@ -152,7 +152,7 @@
 
     <!-- Payment Methods -->
     <details class="footer-extra-section">
-      <summary><CreditCard :size="14" style="margin-right:4px"/> {{ t('admin.msg_cb525e58', 'Phương thức thanh toán') }}</summary>
+      <summary style="display:flex;align-items:center;gap:6px;"><CreditCard :size="14"/> {{ t('admin.msg_cb525e58', 'Phương thức thanh toán') }}</summary>
       <div class="param-row" style="margin-top: 8px;">
         <label>{{ t('admin.msg_db60dfb5', 'Hiển thị icon') }}</label>
       </div>
@@ -166,7 +166,7 @@
 
     <!-- Certification Badges -->
     <details class="footer-extra-section">
-      <summary><Award :size="14" style="margin-right:4px"/> {{ t('admin.msg_21b4fe91', 'Chứng nhận / Badge') }}</summary>
+      <summary style="display:flex;align-items:center;gap:6px;"><Award :size="14"/> {{ t('admin.msg_21b4fe91', 'Chứng nhận / Badge') }}</summary>
       <div class="param-row" style="margin-top: 8px;">
         <label>{{ t('admin.msg_db60dfb5', 'Hiển thị badge') }}</label>
       </div>
@@ -183,7 +183,7 @@
 
     <!-- Bottom Info -->
     <details class="footer-extra-section">
-      <summary><FileText :size="14" style="margin-right:4px"/> {{ t('admin.msg_5ec1847d', 'Thông tin pháp lý (dòng cuối)') }}</summary>
+      <summary style="display:flex;align-items:center;gap:6px;"><FileText :size="14"/> {{ t('admin.msg_5ec1847d', 'Thông tin pháp lý (dòng cuối)') }}</summary>
       <div style="margin-top: 8px;">
         <textarea v-model="config.legalText" class="param-input param-input--wide footer-textarea" rows="3" :placeholder="t('admin.msg_40e8f5', 'VD: Công Ty TNHH ABC\nTrụ sở: 123 Đường A, Quận B, TP.HCM\nMST: 0123456789')"></textarea>
         <div class="param-row" style="margin-top:8px">

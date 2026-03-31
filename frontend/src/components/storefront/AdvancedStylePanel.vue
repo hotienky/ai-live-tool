@@ -86,196 +86,134 @@
       </div>
     </div>
 
-    <!-- 2. Typography -->
-    <div class="asp-section" v-if="['text', 'heading', 'button', 'link'].includes(type)">
-      <h4 class="asp-section-title">Kiểu chữ</h4>
-      <div class="asp-grid">
-        <div class="asp-col">
-          <label>Cỡ (Kích thước)</label>
-          <input v-model="safeStyle.fontSize" type="text" class="asp-input asp-input--sm" placeholder="e.g. 16px" />
-        </div>
-        <div class="asp-col">
-          <label>Độ đậm</label>
-          <select v-model="safeStyle.fontWeight" class="asp-input asp-input--select">
-            <option value="">Mặc định</option>
-            <option value="400">Normal (400)</option>
-            <option value="500">Medium (500)</option>
-            <option value="600">Semi Bold (600)</option>
-            <option value="700">Bold (700)</option>
-            <option value="800">Extra Bold (800)</option>
-          </select>
-        </div>
-      </div>
-      <div class="asp-grid" style="margin-top: 8px">
-        <div class="asp-col">
-          <label>Căn lề (Align)</label>
-          <select v-model="safeStyle.textAlign" class="asp-input asp-input--select">
-            <option value="">None</option>
-            <option value="left">Left</option>
-            <option value="center">Center</option>
-            <option value="right">Right</option>
-            <option value="justify">Justify</option>
-          </select>
-        </div>
-        <div class="asp-col">
-          <label>Màu chữ</label>
-          <input v-model="safeStyle.color" type="text" class="asp-input asp-input--sm" placeholder="#000000" />
-          <div class="color-tokens">
-            <button class="token-dot" style="background:var(--sf-primary)" @click="safeStyle.color = 'var(--sf-primary)'" title="Primary"></button>
-            <button class="token-dot" style="background:var(--sf-accent)" @click="safeStyle.color = 'var(--sf-accent)'" title="Accent"></button>
-            <button class="token-dot" style="background:var(--sf-bg)" @click="safeStyle.color = 'var(--sf-bg)'" title="Background"></button>
-            <button class="token-dot" style="background:var(--sf-text)" @click="safeStyle.color = 'var(--sf-text)'" title="Text Color"></button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3. Layout (Flex) -->
-    <div class="asp-section" v-if="['container', 'grid', 'row', 'col', 'card'].includes(type)">
-      <h4 class="asp-section-title">Bố cục (Layout)</h4>
-      <div class="asp-grid">
-        <div class="asp-col">
-          <label>Hiển thị (Display)</label>
-          <select v-model="safeStyle.display" class="asp-input asp-input--select">
-            <option value="">Block</option>
-            <option value="flex">Flexbox</option>
-            <option value="grid">Grid</option>
-            <option value="inline-block">Inline Block</option>
-            <option value="none">None</option>
-          </select>
-        </div>
-        <div class="asp-col">
-          <label>Tràn (Overflow)</label>
-          <select v-model="safeStyle.overflow" class="asp-input asp-input--select">
-            <option value="">Default</option>
-            <option value="hidden">Hidden</option>
-            <option value="visible">Visible</option>
-            <option value="auto">Auto / Scroll</option>
-          </select>
-        </div>
-      </div>
+    <!-- THUẬT TOÁN CHIẾT XUẤT Ý ĐỊNH (OMNI COMMAND & SMART DNA PILLS) -->
+    <div class="asp-section asp-section--zen">
+      <h4 class="asp-section-title" style="display:flex;align-items:center;">
+        <Sparkles :size="14" style="margin-right: 6px; color: #a855f7" /> 
+        Trợ lý thiết kế ý định (Zen UI)
+      </h4>
       
-      <template v-if="safeStyle.display === 'flex'">
-        <div class="asp-grid" style="margin-top: 8px">
-          <div class="asp-col">
-            <label>Hướng</label>
-            <select v-model="safeStyle.flexDirection" class="asp-input asp-input--select">
-              <option value="row">Ngang (Row)</option>
-              <option value="column">Dọc (Col)</option>
-            </select>
-          </div>
-          <div class="asp-col">
-            <label>Căn ngang</label>
-            <select v-model="safeStyle.justifyContent" class="asp-input asp-input--select">
-              <option value="flex-start">Start</option>
-              <option value="center">Center</option>
-              <option value="flex-end">End</option>
-              <option value="space-between">Space Between</option>
-            </select>
-          </div>
-        </div>
-        <div class="asp-grid" style="margin-top: 8px">
-          <div class="asp-col">
-            <label>Căn dọc</label>
-            <select v-model="safeStyle.alignItems" class="asp-input asp-input--select">
-              <option value="stretch">Stretch</option>
-              <option value="flex-start">Start</option>
-              <option value="center">Center</option>
-              <option value="flex-end">End</option>
-            </select>
-          </div>
-          <div class="asp-col">
-            <label>Khoảng cách (Gap)</label>
-            <input v-model="safeStyle.gap" type="text" class="asp-input asp-input--sm" placeholder="e.g. 16px" />
-          </div>
-        </div>
-      </template>
-
-      <template v-if="safeStyle.display === 'grid'">
-         <div class="asp-row" style="margin-top: 8px">
-          <label>Lưới cột (Template Columns)</label>
-          <input v-model="safeStyle.gridTemplateColumns" type="text" class="asp-input asp-input--sm" placeholder="1fr 1fr" />
-        </div>
-        <div class="asp-row" style="margin-top: 8px">
-          <label>Khoảng cách (Gap)</label>
-          <input v-model="safeStyle.gap" type="text" class="asp-input asp-input--sm" placeholder="16px" />
-        </div>
-      </template>
-    </div>
-
-    <!-- 4. Spacing -->
-    <div class="asp-section">
-      <h4 class="asp-section-title">Khoảng cách</h4>
-      <div class="asp-grid">
-        <div class="asp-col">
-          <label>Padding (Trong)</label>
-          <input v-model="safeStyle.padding" type="text" class="asp-input asp-input--sm" placeholder="10px 16px" />
-        </div>
-        <div class="asp-col">
-          <label>Margin (Ngoài)</label>
-          <input v-model="safeStyle.margin" type="text" class="asp-input asp-input--sm" placeholder="0 auto" />
-        </div>
-      </div>
-      <div class="asp-grid" style="margin-top: 8px">
-        <div class="asp-col">
-          <label>Chiều rộng (Width)</label>
-          <input v-model="safeStyle.width" type="text" class="asp-input asp-input--sm" placeholder="100%" />
-        </div>
-        <div class="asp-col">
-          <label>Chiều cao (Height)</label>
-          <input v-model="safeStyle.height" type="text" class="asp-input asp-input--sm" placeholder="auto" />
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. Background & Border -->
-    <div class="asp-section">
-      <h4 class="asp-section-title">Trang trí (Background/Border)</h4>
-      <div class="asp-grid">
-        <div class="asp-col">
-          <label>Màu nền</label>
-          <input v-model="safeStyle.backgroundColor" type="text" class="asp-input asp-input--sm" placeholder="#ffffff" />
-        </div>
-        <div class="asp-col">
-          <label>Bo góc (Radius)</label>
-          <input v-model="safeStyle.borderRadius" type="text" class="asp-input asp-input--sm" placeholder="4px" />
-        </div>
-      </div>
-      <div class="asp-grid" style="margin-top: 8px">
-        <div class="asp-col">
-          <label>Viền (Border)</label>
-          <input v-model="safeStyle.border" type="text" class="asp-input asp-input--sm" placeholder="1px solid #ccc" />
-        </div>
-        <div class="asp-col">
-          <label>Bóng đổ (Shadow)</label>
-          <input v-model="safeStyle.boxShadow" type="text" class="asp-input asp-input--sm" placeholder="0 4px 6px rgba(0,0,0,0.1)" />
-        </div>
-      </div>
-      <div class="asp-row" style="margin-top: 8px">
-        <label>Ảnh nền (URL)</label>
-        <input v-model="safeStyle.backgroundImage" type="text" class="asp-input asp-input--sm" placeholder="url(...)" />
-      </div>
-    </div>
-
-    <!-- 6. Hiệu ứng (Effects) -->
-    <div class="asp-section">
-      <h4 class="asp-section-title">Trạng thái & Hiệu Ứng</h4>
+      <!-- Omni Command Input -->
       <div class="asp-row">
-        <label>Biến đổi hình học (Transform)</label>
-        <input v-model="safeStyle.transform" type="text" class="asp-input" placeholder="scale(1.05) translateY(-5px)" />
+        <div class="omni-search-box">
+          <input 
+            type="text" 
+            v-model="omniQuery" 
+            @keyup.enter="applyOmniCommand"
+            class="asp-input omni-input" 
+            placeholder="Bạn muốn tuỳ chỉnh gì? (Chưa hỗ trợ NLP)" 
+            title="Tính năng NLP đang phát triển..."
+            disabled
+          />
+        </div>
+        <div class="omni-hint" v-if="omniFeedback">{{ omniFeedback }}</div>
       </div>
-      <div class="asp-row" style="margin-top: 8px">
-        <label>Gia tốc chuyển động (Transition)</label>
-        <input v-model="safeStyle.transition" type="text" class="asp-input" placeholder="all 0.3s ease" />
+
+      <!-- Contextual Smart Pills -->
+      <div class="asp-row" style="margin-top: 16px">
+        <label style="font-size: 10px; color: #94a3b8; text-transform: uppercase; margin-bottom: 8px; display: block; letter-spacing: 0.5px;">Phím tắt cho {{ type }}</label>
+        
+        <div class="smart-pills-container">
+          <!-- Text constraints -->
+          <template v-if="['text', 'heading', 'button', 'link'].includes(type)">
+            <button class="smart-pill" :class="{ active: safeStyle.textAlign === 'center' }" @click="toggleStyle('textAlign', 'center', '')">Căn giữa</button>
+            <button class="smart-pill" :class="{ active: safeStyle.textAlign === 'right' }" @click="toggleStyle('textAlign', 'right', '')">Căn phải</button>
+            <button class="smart-pill" :class="{ active: safeStyle.fontWeight === '700' }" @click="toggleStyle('fontWeight', '700', '')">In đậm</button>
+            <button class="smart-pill" :class="{ active: safeStyle.color === 'var(--sf-primary)' }" @click="toggleStyle('color', 'var(--sf-primary)', '')">Màu hệ thống</button>
+            <button class="smart-pill" :class="{ active: safeStyle.fontSize === '24px' }" @click="toggleStyle('fontSize', '24px', '')">Cỡ to (24px)</button>
+          </template>
+
+          <!-- Box constraints -->
+          <template v-if="['container', 'grid', 'card', 'col', 'row', 'image'].includes(type) || type === 'button'">
+            <button class="smart-pill" :class="{ active: safeStyle.borderRadius === '8px' }" @click="toggleStyle('borderRadius', '8px', '0')">Bo mềm (8px)</button>
+            <button class="smart-pill" :class="{ active: safeStyle.borderRadius === '999px' }" @click="toggleStyle('borderRadius', '999px', '0')">Bo tròn xoe</button>
+            <button class="smart-pill" :class="{ active: safeStyle.boxShadow }" @click="toggleStyle('boxShadow', '0 10px 15px -3px rgba(0,0,0,0.1)', '')">Bóng đổ nổi</button>
+            <button class="smart-pill" :class="{ active: safeStyle.border }" @click="toggleStyle('border', '1px solid rgba(255,255,255,0.15)', '')">Có viền mỏng</button>
+          </template>
+
+          <!-- Layout constraints -->
+          <template v-if="['container', 'grid', 'card', 'col', 'row'].includes(type)">
+            <button class="smart-pill" :class="{ active: safeStyle.backgroundColor === 'rgba(255,255,255,0.05)' }" @click="toggleStyle('backgroundColor', 'rgba(255,255,255,0.05)', '')">Nền xám mờ</button>
+            <button class="smart-pill" :class="{ active: safeStyle.padding === '16px' }" @click="toggleStyle('padding', '16px', '0')">Đệm vừa (p-4)</button>
+            <button class="smart-pill" :class="{ active: safeStyle.padding === '32px' }" @click="toggleStyle('padding', '32px', '0')">Đệm to (p-8)</button>
+            <button class="smart-pill" :class="{ active: safeStyle.display === 'flex' }" @click="applyFlexCenter">Lưới Flex Center</button>
+            <button class="smart-pill" :class="{ active: safeStyle.width === '100%' }" @click="toggleStyle('width', '100%', 'auto')">Rộng 100%</button>
+            <button class="smart-pill" :class="{ active: safeStyle.margin === '0 auto' }" @click="toggleStyle('margin', '0 auto', '0')">Chính giữa trang</button>
+          </template>
+
+          <!-- Gap constraints -->
+          <template v-if="safeStyle.display === 'flex' || safeStyle.display === 'grid' || type === 'grid'">
+             <button class="smart-pill" :class="{ active: safeStyle.gap === '16px' }" @click="toggleStyle('gap', '16px', '0')">Giãn cách (16px)</button>
+          </template>
+
+          <!-- Grid constraints -->
+          <template v-if="type === 'grid'">
+             <button class="smart-pill" :class="{ active: safeStyle.gridTemplateColumns === '1fr 1fr' }" @click="toggleStyle('gridTemplateColumns', '1fr 1fr', '')">Chia 2 cột</button>
+             <button class="smart-pill" :class="{ active: safeStyle.gridTemplateColumns === '1fr 1fr 1fr' }" @click="toggleStyle('gridTemplateColumns', '1fr 1fr 1fr', '')">Chia 3 cột</button>
+          </template>
+
+          <!-- Hover constraints -->
+          <template v-if="activeState === 'hover'">
+            <button class="smart-pill" :class="{ active: safeStyle.transform === 'scale(1.05)' }" @click="toggleStyle('transform', 'scale(1.05)', '')">Phóng to (Zoom)</button>
+            <button class="smart-pill" :class="{ active: safeStyle.transform === 'translateY(-10px)' }" @click="toggleStyle('transform', 'translateY(-10px)', '')">Nảy lên nhè nhẹ</button>
+            <button class="smart-pill" :class="{ active: safeStyle.opacity === '0.7' }" @click="toggleStyle('opacity', '0.7', '1')">Mờ đi (Opacity)</button>
+          </template>
+        </div>
       </div>
     </div>
 
-    <!-- 6. CSS Nâng cao -->
+    <!-- 7. Hiển thị Responsive (Visibility) -->
+    <div class="asp-section">
+      <h4 class="asp-section-title">Khả năng hiển thị theo Thiết bị</h4>
+      <div class="asp-row">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" v-model="safeSettings.hiddenDesktop"> Ẩn trên máy tính (Desktop >1024px)
+        </label>
+      </div>
+      <div class="asp-row">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" v-model="safeSettings.hiddenTablet"> Ẩn trên máy tính bảng (Tablet)
+        </label>
+      </div>
+      <div class="asp-row">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" v-model="safeSettings.hiddenMobile"> Ẩn trên điện thoại (Mobile <768px)
+        </label>
+      </div>
+    </div>
+
+    <!-- 8. Animate On Scroll (AOS) -->
+    <div class="asp-section">
+      <h4 class="asp-section-title">Hiệu ứng cuộn trang (AOS)</h4>
+      <div class="asp-row">
+        <label>Kiểu xuất hiện (Animation)</label>
+        <select v-model="safeSettings.aosAnim" class="asp-input asp-input--select">
+          <option value="">Không có (Mặc định)</option>
+          <option value="fade-up">Fade Up</option>
+          <option value="fade-down">Fade Down</option>
+          <option value="fade-left">Fade Left</option>
+          <option value="fade-right">Fade Right</option>
+          <option value="zoom-in">Zoom In</option>
+          <option value="zoom-in-up">Zoom In Up</option>
+          <option value="flip-left">Flip Left</option>
+          <option value="flip-up">Flip Up</option>
+        </select>
+      </div>
+      <div class="asp-row" style="margin-top:8px" v-if="safeSettings.aosAnim">
+        <label>Độ trễ thời gian (Delay: ms)</label>
+        <div style="display:flex; gap:8px; align-items:center">
+          <input type="range" v-model.number="safeSettings.aosDelay" min="0" max="1500" step="50" style="flex:1" />
+          <span style="font-size:11px;color:#94a3b8;width:35px">{{ safeSettings.aosDelay || 0 }}ms</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Lớp CSS Tùy Chỉnh -->
     <div class="asp-section">
       <h4 class="asp-section-title">Lớp CSS Tùy Chỉnh</h4>
       <div class="asp-row">
         <label>Tailwind / Custom Classes</label>
-        <input v-model="safeSettings.classes" type="text" class="asp-input" placeholder="e.g. shadow-lg relative hidden-xs" />
+        <input v-model="safeSettings.classes" type="text" class="asp-input" placeholder="e.g. shadow-lg relative" />
       </div>
     </div>
 
@@ -298,7 +236,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Monitor, Tablet, Smartphone, Wand2, X } from 'lucide-vue-next'
+import { Monitor, Tablet, Smartphone, Wand2, X, Sparkles, Search } from 'lucide-vue-next'
 
 const props = defineProps({
   section: {
@@ -369,6 +307,42 @@ const safeStyle = computed(() => {
 const hasContentConfig = computed(() => {
   return ['text', 'heading', 'image', 'button', 'link', 'iframe', 'video'].includes(type.value)
 })
+
+// === OMNI COMMAND & SMART PILLS LOGIC ===
+const omniQuery = ref('')
+const omniFeedback = ref('')
+
+function toggleStyle(key, value, defaultVal = '') {
+  if (safeStyle.value[key] === value) {
+    safeStyle.value[key] = defaultVal
+  } else {
+    safeStyle.value[key] = value
+  }
+}
+
+function applyFlexCenter() {
+  if (safeStyle.value.display === 'flex') {
+    safeStyle.value.display = ''
+    safeStyle.value.flexDirection = ''
+    safeStyle.value.justifyContent = ''
+    safeStyle.value.alignItems = ''
+  } else {
+    safeStyle.value.display = 'flex'
+    safeStyle.value.flexDirection = 'column'
+    safeStyle.value.justifyContent = 'center'
+    safeStyle.value.alignItems = 'center'
+  }
+}
+
+function applyHoverPop() {
+  toggleStyle('transform', 'translateY(-5px) scale(1.02)', '')
+  toggleStyle('boxShadow', '0 20px 25px -5px rgba(0,0,0,0.1)', '')
+}
+
+function applyOmniCommand() {
+  omniFeedback.value = "NLP Bot đang được nâng cấp... Hãy dùng tạm Nút Bấm bên dưới nhé!"
+  setTimeout(() => omniFeedback.value = "", 3000)
+}
 </script>
 
 <style scoped>
@@ -552,5 +526,67 @@ label {
 }
 .wand-item .wand-desc {
   opacity: 0.7;
+}
+
+/* ZEN UI: OMNI COMMAND & PILLS */
+.asp-section--zen {
+  background: rgba(168, 85, 247, 0.05); /* very light purple tint */
+  border: 1px dashed rgba(168, 85, 247, 0.2);
+}
+.omni-search-box {
+  position: relative;
+  width: 100%;
+}
+.omni-icon {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+.omni-input {
+  width: 100%;
+  padding-left: 28px;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff;
+  transition: all 0.2s;
+}
+.omni-input:focus {
+  border-color: #a855f7;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2);
+}
+.omni-hint {
+  font-size: 10px;
+  color: #a855f7;
+  margin-top: 4px;
+}
+.smart-pills-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.smart-pill {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.smart-pill:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+}
+.smart-pill.active {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
 }
 </style>

@@ -322,12 +322,24 @@
 
             <!-- BODY SECTIONS -->
             <div class="lb-structure-body">
-              <div class="lb-structure-body__label">Nội dung trang</div>
+              <div class="lb-structure-body__label" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Nội dung trang</span>
+                <div class="navigator-tabs" style="display:flex;background:var(--color-bg-card-hover, rgba(0,0,0,0.05));border-radius:4px;overflow:hidden;border:1px solid var(--color-border)">
+                  <button :class="{ active: activeSidebarTab === 'elements' }" @click="activeSidebarTab = 'elements'" style="padding:4px 8px;font-size:10px;border:none;background:transparent;cursor:pointer;color:var(--color-text-muted)" :style="activeSidebarTab==='elements'?'background:#3b82f6;color:#fff':''">Elements</button>
+                  <button :class="{ active: activeSidebarTab === 'navigator' }" @click="activeSidebarTab = 'navigator'" style="padding:4px 8px;font-size:10px;border:none;background:transparent;cursor:pointer;color:var(--color-text-muted)" :style="activeSidebarTab==='navigator'?'background:#a855f7;color:#fff':''">Layers</button>
+                </div>
+              </div>
               <LayoutSectionManager
+                v-if="activeSidebarTab === 'elements'"
                 v-model:sections="sections"
                 :section-meta="sectionMeta"
                 :all-categories="allCategories"
                 @open-block-editor="s => showBlockEditorFor = s"
+              />
+              <LayoutNavigator
+                v-if="activeSidebarTab === 'navigator'"
+                :sections="sections"
+                @select-node="id => expandedSection = id"
               />
               
               <!-- Add Section Button -->
@@ -639,6 +651,7 @@ import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
 import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
 import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
+import LayoutNavigator from './storefront/LayoutNavigator.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
 import LayoutPageManager from './storefront/LayoutPageManager.vue'
@@ -801,6 +814,7 @@ async function generateLayout() {
 }
 
 const activePageId = ref(null)
+const activeSidebarTab = ref('elements')
 const dynamicPages = ref([])
 const pageDropdownOpen = ref(false)
 

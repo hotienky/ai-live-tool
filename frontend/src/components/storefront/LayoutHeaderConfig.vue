@@ -37,7 +37,7 @@
     
     <div class="param-divider"></div>
     <details class="header-extra-section">
-      <summary><Megaphone :size="14" style="margin-right:4px"/> Thanh thông báo (Announcement Bar)</summary>
+      <summary style="display:flex;align-items:center;gap:6px;"><Megaphone :size="14"/> Thanh thông báo (Announcement Bar)</summary>
       <div class="param-row" style="margin-top: 8px;">
         <label>Hiển thị</label>
         <label class="toggle-switch toggle-switch--sm" @click.stop>

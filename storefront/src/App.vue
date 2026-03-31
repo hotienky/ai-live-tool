@@ -245,6 +245,10 @@ onMounted(async () => {
   }
 
   appReady.value = true
+
+  if (window.AOS) {
+    window.AOS.init({ duration: 800, once: true, offset: 50 })
+  }
 })
 
 // Bơm CSS động từ FSE Nodes (Dynamic CSS Engine) và CSS Variables
@@ -252,6 +256,7 @@ watch(() => [layoutConfig.value?.sections, layoutConfig.value?.theme], ([section
   if (sections) {
     const css = generateDynamicCss(sections, theme || {})
     injectDynamicCss(css)
+    setTimeout(() => { if (window.AOS) window.AOS.refresh() }, 100)
   }
 }, { deep: true, immediate: true })
 
