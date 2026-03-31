@@ -131,6 +131,10 @@ const TYPE_ALIASES = {
   'flash-sale':         'flash_sale',
   'cms-pages':          'cms_pages',
   'blog-posts':         'blog_posts',
+  'columns-2':          'columns',
+  'columns-3':          'columns',
+  'columns-left':       'columns',
+  'columns-right':      'columns',
 }
 
 /**
@@ -169,9 +173,9 @@ const coreRegistry = {
   feature_links: defineAsyncComponent(() => import('./sections/HomeSectionFeatureLinks.vue')),
   image_banner:  defineAsyncComponent(() => import('./sections/HomeSectionImageBanner.vue')),
 
-  // ── Structural ──
   custom_block: defineAsyncComponent(() => import('../views/sections/CustomBlockSection.vue')),
   grid:         defineAsyncComponent(() => import('./sections/GridSection.vue')),
+  columns:      defineAsyncComponent(() => import('./sections/CmsColumnsSection.vue')),
 
   // ── Block-builder types with no underscore equivalent ──
   'hero-banner': defineAsyncComponent(() => import('../views/sections/HeroBannerSection.vue')),

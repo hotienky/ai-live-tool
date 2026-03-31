@@ -11,14 +11,21 @@
           <span class="badge badge--dynamic"><Layers :size="10" /> Page Builder</span>
         </div>
       </div>
-      <div class="cpb-header__right">
+        <!-- Toggle Preview Mode -->
+        <div class="cpb-preview-toggle">
+          <button :class="{ active: previewMode === 'wireframe' }" @click="previewMode = 'wireframe'" title="Giao diện kéo thả (Wireframe)">
+            <Layout :size="14" />
+          </button>
+          <button :class="{ active: previewMode === 'live' }" @click="previewMode = 'live'" title="Xem trước trực tiếp (Live)">
+            <Monitor :size="14" />
+          </button>
+        </div>
         <span class="cpb-block-count">{{ blocks.length }} block{{ blocks.length !== 1 ? 's' : '' }}</span>
         <button class="btn-save" @click="saveLayout" :disabled="saving || loading">
           <Loader2 v-if="saving" :size="14" class="spin" />
           <Save v-else :size="14" />
           {{ saving ? 'Đang lưu...' : 'Lưu layout' }}
         </button>
-      </div>
     </div>
 
     <!-- ── Loading ── -->
@@ -31,8 +38,18 @@
       <!-- Left: Block Palette -->
       <BlockPalette @add-block="addBlockAtEnd" />
 
-      <!-- Center: Canvas -->
+      <!-- Center: Canvas / Preview -->
+      <div v-if="previewMode === 'live'" class="cpb-preview-wrapper">
+        <iframe
+          ref="previewIframe"
+          class="cpb-preview-frame"
+          :src="livePreviewUrl"
+          @load="syncPreviewData"
+        ></iframe>
+      </div>
+      
       <BlockCanvas
+        v-else
         :blocks="blocks"
         :selected-id="selectedId"
         @select="selectedId = $event"
@@ -53,8 +70,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { ChevronLeft, Save, Loader2, Layers } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from 'vue'
+import { ChevronLeft, Save, Loader2, Layers, Layout, Monitor } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import BlockPalette from './builder/BlockPalette.vue'
@@ -74,16 +91,53 @@ const bridge = window.__APP_BRIDGE__ || {}
 const loading = ref(true)
 const saving = ref(false)
 const pageTitle = ref('')
+const pageSlug = ref('')
 const blocks = ref([])
 const selectedId = ref(null)
+const previewMode = ref('wireframe')
+const previewIframe = ref(null)
 
 // ── Derived ────────────────────────────────────────────
-const selectedBlock = computed(() =>
-  blocks.value.find(b => b.id === selectedId.value) || null
-)
-const selectedBlockDef = computed(() =>
-  selectedBlock.value ? bridge.getBlockByType?.(selectedBlock.value.type) || null : null
-)
+const livePreviewUrl = computed(() => {
+  let base = import.meta.env.VITE_STOREFRONT_URL
+  if (!base) {
+    const host = window.location.hostname
+    const port = window.location.port
+    // Auto-resolve Multi-tenant domain (e.g. tenant.cms.localhost -> tenant.localhost)
+    if (host.includes('.cms.')) {
+      const newHost = host.replace('.cms.', '.')
+      base = `${window.location.protocol}//${newHost}${port ? ':' + port : ''}`
+    } else if (port === '5175') {
+      // Docker mapping: frontend-cms is 5175, storefront is 5173
+      base = `${window.location.protocol}//${host}:5173`
+    } else if (port === '5173' || port === '8080') {
+      // Local npm run dev mapping: frontend is 5173, storefront is 5174
+      base = `${window.location.protocol}//${host}:5174`
+    } else {
+      base = window.location.origin
+    }
+  }
+  return `${base}/page/${pageSlug.value}?preview=true&hide_layout=true`
+})
+
+// Sync block data to IFrame via postMessage
+function syncPreviewData() {
+  if (previewMode.value === 'live' && previewIframe.value) {
+    previewIframe.value.contentWindow?.postMessage({
+      type: 'cms-preview-update',
+      payload: { blocks: blocks.value }
+    }, '*')
+  }
+}
+
+watch(blocks, syncPreviewData, { deep: true })
+onMounted(() => {
+  window.addEventListener('message', (e) => {
+    if (e.data?.type === 'cms-preview-ready') {
+      syncPreviewData()
+    }
+  })
+})
 
 // ── Helpers ────────────────────────────────────────────
 function genId() {
@@ -92,62 +146,109 @@ function genId() {
 
 function makeBlock(type) {
   const def = bridge.getBlockByType?.(type)
-  return {
+  const block = {
     id: genId(),
     type,
     plugin: def?.plugin || 'cms',
     settings: { ...(def?.defaultSettings || {}) },
   }
+  if (type.startsWith('columns')) {
+    const cols = block.settings.columns || 2
+    block.children = Array(cols).fill(0).map(() => [])
+  }
+  return block
 }
+
+function resolvePath(pathStr) {
+  if (!pathStr) return { arr: blocks.value, idx: blocks.value.length }
+  const parts = String(pathStr).split('.')
+  let arr = blocks.value
+  for (let i = 0; i < parts.length - 1; i++) {
+    const p = parts[i]
+    if (p === 'children') {
+      const colIdx = parseInt(parts[++i])
+      arr = arr[colIdx]
+    } else {
+      arr = arr[parseInt(p)].children
+    }
+  }
+  return { arr, idx: parseInt(parts[parts.length - 1]) }
+}
+
+function findBlockDeep(arr, id) {
+  for (const b of arr) {
+    if (b.id === id) return b
+    if (b.children) {
+      for (const col of b.children) {
+        const f = findBlockDeep(col, id)
+        if (f) return f
+      }
+    }
+  }
+  return null
+}
+
+const selectedBlock = computed(() => findBlockDeep(blocks.value, selectedId.value))
+const selectedBlockDef = computed(() => selectedBlock.value ? bridge.getBlockByType?.(selectedBlock.value.type) || null : null)
 
 // ── Block CRUD ─────────────────────────────────────────
 
-/** Thêm block vào cuối */
 function addBlockAtEnd(type) {
   const block = makeBlock(type)
   blocks.value.push(block)
   selectedId.value = block.id
 }
 
-/** Thêm block tại vị trí index (từ drag-drop palette) */
-function addBlockAt(type, index) {
+function addBlockAt(type, path) {
   const block = makeBlock(type)
-  blocks.value.splice(index, 0, block)
+  const { arr, idx } = resolvePath(path)
+  arr.splice(idx, 0, block)
   selectedId.value = block.id
 }
 
-/** Xóa block theo id */
-function removeBlock(id) {
-  const idx = blocks.value.findIndex(b => b.id === id)
-  if (idx === -1) return
-  blocks.value.splice(idx, 1)
-  if (selectedId.value === id) {
-    selectedId.value = blocks.value[idx - 1]?.id || blocks.value[0]?.id || null
+function removeBlock(path) {
+  const { arr, idx } = resolvePath(path)
+  const removed = arr.splice(idx, 1)[0]
+  if (removed && selectedId.value === removed.id) {
+    selectedId.value = null
   }
 }
 
-/** Di chuyển block: lên/xuống (từ nút ↑↓) */
-function moveBlock(fromIndex, toIndex) {
-  if (toIndex < 0 || toIndex >= blocks.value.length) return
-  const item = blocks.value.splice(fromIndex, 1)[0]
-  blocks.value.splice(toIndex, 0, item)
+function moveBlock(fromPath, toPath) {
+  const from = resolvePath(fromPath)
+  let to = resolvePath(toPath)
+  if (to.idx < 0 || to.idx >= to.arr.length) return
+  const item = from.arr.splice(from.idx, 1)[0]
+  to = resolvePath(toPath) // Re-resolve in case splicing changed index
+  to.arr.splice(to.idx, 0, item)
 }
 
-/** Sắp xếp lại từ drag-drop canvas */
-function reorderBlock(fromIndex, toIndex) {
-  if (fromIndex === toIndex) return
-  const item = blocks.value.splice(fromIndex, 1)[0]
-  // Adjust toIndex after splice
-  const adjustedTo = toIndex > fromIndex ? toIndex - 1 : toIndex
-  blocks.value.splice(adjustedTo, 0, item)
+function reorderBlock(fromPath, toPath) {
+  if (fromPath === toPath) return
+  const from = resolvePath(fromPath)
+  let to = resolvePath(toPath)
+  const item = from.arr.splice(from.idx, 1)[0]
+  // Adjust to.idx if it's the same array and we removed an item before it
+  if (from.arr === to.arr && from.idx < to.idx) {
+    to.idx--
+  }
+  to.arr.splice(to.idx, 0, item)
 }
 
-/** Cập nhật một setting của block đang chọn */
 function updateSetting(key, value) {
   if (!selectedId.value) return
-  const block = blocks.value.find(b => b.id === selectedId.value)
+  const block = findBlockDeep(blocks.value, selectedId.value)
   if (!block) return
+  
   block.settings = { ...block.settings, [key]: value }
+
+  // Logic đặc biệt cho columns: tự động thêm list rỗng nếu tăng số cột
+  if (block.type.startsWith('columns') && key === 'columns') {
+    const desired = parseInt(value)
+    if (!block.children) block.children = []
+    while(block.children.length < desired) block.children.push([])
+    if (block.children.length > desired) block.children.splice(desired)
+  }
 }
 
 // ── Persist ────────────────────────────────────────────
@@ -158,6 +259,7 @@ async function loadPage() {
     const data = await fetchPage(props.pageId)
     const page = data.data || data
     pageTitle.value = page.title || 'Trang'
+    pageSlug.value = page.alias || page.id
     const layout = page.layout_data
     if (layout && Array.isArray(layout.blocks)) {
       blocks.value = layout.blocks
@@ -231,6 +333,29 @@ onMounted(loadPage)
 .cpb-title__page { font-size: 14px; font-weight: 700; color: var(--text-1); }
 
 .cpb-block-count { font-size: 12px; color: var(--text-3); }
+.cpb-preview-toggle {
+  display: flex;
+  background: var(--bg-2, #f9fafb);
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.cpb-preview-toggle button {
+  background: transparent;
+  border: none;
+  padding: 6px 12px;
+  color: var(--text-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.cpb-preview-toggle button:hover { color: var(--text-2); background: rgba(0,0,0,0.03); }
+.cpb-preview-toggle button.active {
+  background: var(--accent, #7c3aed);
+  color: #fff;
+}
 
 .btn-save {
   display: flex;
@@ -253,6 +378,23 @@ onMounted(loadPage)
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+.cpb-preview-wrapper {
+  flex: 1;
+  background: #e5e7eb;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+.cpb-preview-frame {
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* ── Loading ── */

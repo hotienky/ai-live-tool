@@ -94,12 +94,7 @@ const loading = ref(true)
  * Không cần fetch thêm API trong component.
  */
 const activeSections = computed(() => {
-  if (isPreviewMode && layoutConfig.value?.sections) {
-    return [...layoutConfig.value.sections].filter(s => s.enabled).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-  }
-
   if (!page.value?.layout_data) return []
-
   const ld = page.value.layout_data
 
   // New builder format: { version, blocks }
@@ -138,13 +133,55 @@ async function loadPage() {
       })
     }
   } catch (err) {
-    console.error('[CmsPage] Load failed:', err)
-    page.value = null
+    if (useRoute().query.preview === 'true' || window.location.search.includes('preview=')) {
+      console.warn('[CmsPage] Page not found on server, but entering preview mode anyway.')
+      if (!page.value) {
+        page.value = { id: props.slug, title: 'Preview Page', is_dynamic: false, layout_data: { version: '1.0', blocks: [] } }
+      }
+    } else {
+      console.error('[CmsPage] Load failed:', err)
+      page.value = null
+    }
   }
+  
+  // Re-apply preview blocks in case API load just overwrote them
+  if (previewBlocksCache && page.value) {
+    page.value.layout_data = { version: '1.0', blocks: previewBlocksCache }
+  }
+  
   loading.value = false
 }
 
-onMounted(() => loadPage())
+let previewBlocksCache = null
+
+function handleCmsPreview(e) {
+  if (e.data?.type === 'cms-preview-update') {
+    const payload = e.data.payload
+    if (payload?.blocks) {
+      previewBlocksCache = payload.blocks
+      if (!page.value) {
+        page.value = { id: 'preview', title: 'Preview', is_dynamic: false }
+      }
+      page.value.layout_data = { version: '1.0', blocks: previewBlocksCache }
+    }
+  }
+}
+
+onMounted(() => {
+  loadPage()
+  if (useRoute().query.preview === 'true' || window.location.search.includes('preview=')) {
+    window.addEventListener('message', handleCmsPreview)
+    // Signal parent that we're ready to receive blocks (fixes blank canvas race condition)
+    window.parent?.postMessage({ type: 'cms-preview-ready' }, '*')
+  }
+})
+
+import { onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
+onUnmounted(() => {
+  window.removeEventListener('message', handleCmsPreview)
+})
+
 watch(() => props.slug, () => loadPage())
 </script>
 

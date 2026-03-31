@@ -605,8 +605,8 @@ function onAddToCart(data) {
 function viewFromPath() {
   const path = window.location.pathname.replace(/^\//, '')
   let resolved
-  // Match CMS edit with ID: shop/cms/edit/123
-  if (path.startsWith('shop/cms/edit/'))          resolved = 'shop/cms/edit'
+  // Match CMS nested routes
+  if (path.startsWith('shop/cms/') || path === 'shop/cms') resolved = 'shop/cms'
   else if (path.startsWith('shop/products/edit/')) resolved = 'shop/products/edit'
   else if (path.startsWith('shop/categories/edit/')) resolved = 'shop/categories/edit'
   else if (path === 'shop/flash-sales/create')    resolved = 'shop/flash-sales/create'

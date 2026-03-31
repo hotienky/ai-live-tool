@@ -4,14 +4,14 @@
     <CmsPageBuilder
       v-if="builderPageId !== null"
       :pageId="builderPageId"
-      @back="builderPageId = null; fetchPages({})"
+      @back="goBack"
     />
 
     <!-- EDITOR VIEW -->
     <CmsEditor
       v-else-if="editId !== null"
       :editId="editId"
-      @back="editId = null"
+      @back="goBack"
       @saved="onSaved"
     />
 
@@ -19,7 +19,7 @@
     <template v-else>
       <div class="cm-header">
         <h3><FileText :size="16" />{{ t('admin.msg_a503d10c', 'Trang nội dung CMS') }}</h3>
-        <button class="btn-add" @click="editId = ''">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
+        <button class="btn-add" @click="goCreate">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
       </div>
 
       <div class="cm-list" v-if="pages.length">
@@ -48,12 +48,12 @@
             <button
               v-if="p.is_dynamic"
               class="btn-sm btn-builder"
-              @click="builderPageId = p.id"
+              @click="goBuilder(p.id)"
               title="Mở Page Builder"
             >
               <Layout :size="12" />
             </button>
-            <button class="btn-sm btn-edit" @click="editId = p.id">{{ t('admin.edit', 'Sửa') }}</button>
+            <button class="btn-sm btn-edit" @click="goEdit(p.id)">{{ t('admin.edit', 'Sửa') }}</button>
             <button
               v-if="!p.is_system"
               class="btn-sm btn-del"
@@ -88,7 +88,7 @@
               : previewData.content"
           ></div>
           <div v-if="previewData.is_dynamic" class="preview-footer">
-            <button class="btn-builder-modal" @click="builderPageId = previewData.id; showPreview = false">
+            <button class="btn-builder-modal" @click="goBuilder(previewData.id); showPreview = false">
               <Layout :size="13" /> Mở Page Builder
             </button>
           </div>
@@ -100,7 +100,8 @@
 
 <script setup>
 import { useI18n, useToast, apiFetch } from '../helpers.js'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { FileText, Lock, Layers, Layout } from 'lucide-vue-next'
 import CmsEditor from './CmsEditor.vue'
@@ -110,17 +111,60 @@ const { showToast } = useToast()
 const { t } = useI18n()
 const { pages, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)
 
+const route = useRoute()
+const router = useRouter()
+
 // editId: null = list, '' = create, <number> = edit
 const editId = ref(null)
 const builderPageId = ref(null)
 const showPreview = ref(false)
 const previewData = ref({})
 
+// Sync state with route path
+watch(() => route.path, (newPath) => {
+  const p = newPath.replace(/^\//, '')
+  if (p === 'shop/cms') {
+    editId.value = null
+    builderPageId.value = null
+  } else if (p === 'shop/cms/create') {
+    editId.value = ''
+    builderPageId.value = null
+  } else {
+    // Check edit metadata
+    let m = p.match(/^shop\/cms\/(\d+)\/edit/)
+    if (m) {
+      editId.value = Number(m[1])
+      builderPageId.value = null
+      return
+    }
+    // Check page builder
+    m = p.match(/^shop\/cms\/(\d+)/)
+    if (m) {
+      editId.value = null
+      builderPageId.value = Number(m[1])
+      return
+    }
+  }
+}, { immediate: true })
+
 onMounted(() => fetchPages({}))
 
-function onSaved() {
-  editId.value = null
+function goBack() {
+  router.push('/shop/cms')
   fetchPages({})
+}
+function goCreate() {
+  router.push('/shop/cms/create')
+}
+function goEdit(id) {
+  router.push(`/shop/cms/${id}/edit`)
+}
+function goBuilder(id) {
+  router.push(`/shop/cms/${id}`)
+}
+
+function onSaved() {
+  goBack()
 }
 
 function previewPage(p) {

@@ -54,6 +54,59 @@ const initHooks = () => {
       ],
     })
 
+    const columnSettingsSchema = [
+      { key: 'columns', type: 'select', label: 'Số Cột', options: [
+        { value: 2, label: '2 Cột' },
+        { value: 3, label: '3 Cột' }
+      ]},
+      { key: 'layout', type: 'select', label: 'Tỷ lệ phân chia', options: [
+        { value: '50-50', label: 'Căn đều (50-50)' },
+        { value: '60-40', label: 'Lệch phải (60-40)' },
+        { value: '40-60', label: 'Lệch trái (40-60)' },
+        { value: '33-33-33', label: 'Căn đều (3 cột)' },
+      ]},
+    ]
+  
+    bridge.registerBlock({
+      type: 'columns-2',
+      plugin: 'cms',
+      name: '2 Cột đều (50-50)',
+      icon: 'Columns',
+      description: 'Chia bố cục thành 2 cột cân bằng',
+      defaultSettings: { columns: 2, layout: '50-50' },
+      settingsSchema: columnSettingsSchema,
+    })
+
+    bridge.registerBlock({
+      type: 'columns-3',
+      plugin: 'cms',
+      name: '3 Cột đều (33%)',
+      icon: 'Columns',
+      description: 'Chia bố cục thành 3 cột cân bằng',
+      defaultSettings: { columns: 3, layout: '33-33-33' },
+      settingsSchema: columnSettingsSchema,
+    })
+
+    bridge.registerBlock({
+      type: 'columns-left',
+      plugin: 'cms',
+      name: '2 Cột Lệch Trái',
+      icon: 'Columns',
+      description: 'Trái 40%, Phải 60%',
+      defaultSettings: { columns: 2, layout: '40-60' },
+      settingsSchema: columnSettingsSchema,
+    })
+
+    bridge.registerBlock({
+      type: 'columns-right',
+      plugin: 'cms',
+      name: '2 Cột Lệch Phải',
+      icon: 'Columns',
+      description: 'Trái 60%, Phải 40%',
+      defaultSettings: { columns: 2, layout: '60-40' },
+      settingsSchema: columnSettingsSchema,
+    })
+
     bridge.registerBlock({
       type: 'image-banner',
       plugin: 'cms',

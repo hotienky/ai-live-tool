@@ -8,46 +8,52 @@
     draggable="true"
     @dragstart="onDragStart"
     @dragend="isDragging = false"
-    @click="$emit('click')"
+    @click.stop="$emit('click')"
   >
-    <!-- Drag handle -->
-    <div class="bcard__handle" title="Kéo để sắp xếp lại">⠿</div>
+    <!-- Card Header -->
+    <div class="bcard__header">
+      <!-- Drag handle -->
+      <div class="bcard__handle" title="Kéo để sắp xếp lại">⠿</div>
 
-    <!-- Icon -->
-    <div class="bcard__icon">
-      <component :is="resolveIcon(blockDef?.icon)" :size="16" />
-    </div>
+      <!-- Icon -->
+      <div class="bcard__icon">
+        <component :is="resolveIcon(blockDef?.icon)" :size="16" />
+      </div>
 
-    <!-- Info -->
-    <div class="bcard__info">
-      <span class="bcard__name">{{ blockDef?.name || block.type }}</span>
-      <span class="bcard__summary">{{ summary }}</span>
-    </div>
+      <!-- Info -->
+      <div class="bcard__info">
+        <span class="bcard__name">{{ blockDef?.name || block.type }}</span>
+        <span class="bcard__summary">{{ summary }}</span>
+      </div>
 
-    <!-- Actions (always visible on hover/select) -->
-    <div class="bcard__actions" @click.stop>
-      <button
-        class="bcard__btn"
-        @click="$emit('move-up')"
-        :disabled="index === 0"
-        title="Di lên"
-      >↑</button>
-      <button
-        class="bcard__btn"
-        @click="$emit('move-down')"
-        :disabled="index === total - 1"
-        title="Di xuống"
-      >↓</button>
-      <button class="bcard__btn bcard__btn--del" @click="$emit('remove')" title="Xóa block">
-        <X :size="12" />
-      </button>
+      <!-- Actions (always visible on hover/select) -->
+      <div class="bcard__actions" @click.stop>
+        <button
+          class="bcard__btn"
+          @click="$emit('move-up')"
+          :disabled="index === 0"
+          title="Di lên"
+        >↑</button>
+        <button
+          class="bcard__btn"
+          @click="$emit('move-down')"
+          :disabled="index === total - 1"
+          title="Di xuống"
+        >↓</button>
+        <button class="bcard__btn bcard__btn--del" @click="$emit('remove')" title="Xóa block">
+          <X :size="12" />
+        </button>
+      </div>
     </div>
+    
+    <!-- Slot for nested content (like columns) -->
+    <slot></slot>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { X, Box, Image, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, ImageIcon } from 'lucide-vue-next'
+import { X, Box, Image, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, ImageIcon, Columns } from 'lucide-vue-next'
 
 const props = defineProps({
   block: { type: Object, required: true },
@@ -63,7 +69,7 @@ const isDragging = ref(false)
 
 const ICON_MAP = {
   Image, FileText, Minus, Code, BookOpen, TrendingUp,
-  ShoppingBag, Star, FolderTree, Box, ImageIcon,
+  ShoppingBag, Star, FolderTree, Box, ImageIcon, Columns
 }
 
 function resolveIcon(name) {
@@ -77,6 +83,7 @@ const summary = computed(() => {
   if (s.content) return s.content.replace(/<[^>]+>/g, '').slice(0, 50) + (s.content.length > 50 ? '...' : '')
   if (s.html) return s.html.slice(0, 40) + '...'
   if (s.height) return `Height: ${s.height}`
+  if (s.columns) return `Columns: ${s.columns} (${s.layout || '50-50'})`
   return props.block.type
 })
 
@@ -93,9 +100,7 @@ function onDragStart(event) {
 <style scoped>
 .bcard {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  flex-direction: column;
   background: var(--bg-1, #fff);
   border: 1.5px solid var(--border, #e5e7eb);
   border-radius: 10px;
@@ -103,14 +108,21 @@ function onDragStart(event) {
   transition: border-color .15s, box-shadow .15s, opacity .15s;
   user-select: none;
   position: relative;
+  overflow: hidden;
+}
+.bcard__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
 }
 .bcard:hover {
   border-color: var(--accent, #7c3aed);
-  box-shadow: 0 2px 8px rgba(124,58,237,.1);
+  box-shadow: 0 4px 12px rgba(124,58,237,.08);
 }
 .bcard--selected {
   border-color: var(--accent, #7c3aed);
-  background: rgba(124,58,237,.03);
+  background: rgba(124,58,237,.02);
   box-shadow: 0 0 0 3px rgba(124,58,237,.12);
 }
 .bcard--dragging { opacity: .4; }

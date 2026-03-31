@@ -56,7 +56,7 @@ const { pluginSections, pluginRoutes } = useStorefrontPlugins()
 const router = useRouter()
 const route = useRoute()
 
-const isTemplatePreview = computed(() => route.name === 'template-preview')
+const isTemplatePreview = computed(() => route.name === 'template-preview' || route.query.hide_layout === 'true')
 
 const storeInfo = ref(null)
 const layoutConfig = ref(null)

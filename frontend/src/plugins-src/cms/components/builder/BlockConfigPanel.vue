@@ -18,14 +18,22 @@
         <div v-for="field in schema" :key="field.key" class="bcp-field">
           <label class="bcp-label">{{ field.label }}</label>
 
-          <!-- text / image (URL) -->
+          <!-- text -->
           <input
-            v-if="field.type === 'text' || field.type === 'image'"
+            v-if="field.type === 'text'"
             :value="settings[field.key] ?? field.default ?? ''"
             @input="emit('update', field.key, $event.target.value)"
             type="text"
             class="bcp-input"
             :placeholder="field.placeholder || ''"
+          />
+
+          <!-- image -->
+          <MediaPicker
+            v-else-if="field.type === 'image'"
+            :model-value="settings[field.key] ?? field.default ?? ''"
+            @update:model-value="emit('update', field.key, $event)"
+            :placeholder="field.placeholder || 'Chọn hình ảnh...'"
           />
 
           <!-- number -->
@@ -123,6 +131,7 @@
 
 <script setup>
 import { computed, watch, reactive } from 'vue'
+import MediaPicker from '../../../../components/MediaPicker.vue'
 import {
   Settings, Box, Image, FileText, Minus, Code,
   BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, ImageIcon,
