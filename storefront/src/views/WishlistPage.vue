@@ -1,5 +1,6 @@
 <template>
-  <div class="wishlist-page container">
+  <SystemPageWrapper slug="wishlist">
+    <div class="wishlist-page container">
     <!-- Header -->
     <div class="wl-header">
       <h1 class="wl-title">
@@ -68,6 +69,7 @@
       </div>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -75,6 +77,7 @@ import { Heart, HeartOff, Trash2, X, Package, ShoppingBag, ShoppingCart } from '
 import { useWishlist } from '../composables/useWishlist.js'
 import { useCart } from '../composables/useCart.js'
 import { useToast } from '../composables/useToast.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -185,7 +188,7 @@ function addToCartFromWishlist(item) {
 .wl-card__info { padding: 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .wl-card__name {
   font-weight: 600; font-size: 14px; color: inherit; text-decoration: none;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   line-height: 1.4;
 }
 .wl-card__name:hover { color: var(--sf-accent); }

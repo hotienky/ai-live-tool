@@ -14,7 +14,7 @@
     </div>
   </div>
 
-  <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }" data-section-type="header">
+  <header class="site-header" :class="{ 'site-header--sticky': headerCfg.sticky, 'site-header--logo-center': headerCfg.logoPosition === 'center' }" data-section-type="header" data-vvb-section-id="__header" data-vvb-global="true">
     <div class="site-header__inner container">
       <!-- Logo -->
       <router-link :to="'/'" class="site-header__logo">

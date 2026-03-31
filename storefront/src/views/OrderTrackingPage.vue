@@ -1,5 +1,6 @@
 <template>
-  <div class="tracking-page container">
+  <SystemPageWrapper slug="order_tracking">
+    <div class="tracking-page container">
     <h1 class="page-title"><Search :size="24" /> {{ t('storefront.track_order') || 'Tra cứu đơn hàng' }}</h1>
 
     <!-- Search Form -->
@@ -174,6 +175,7 @@
       </div>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -183,6 +185,7 @@ import {
   Search, Package, ShoppingBag, ArrowLeft, CheckCircle, Clock, Circle, Building, Truck, ClipboardList
 } from 'lucide-vue-next'
 import { apiFetch } from '../api.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()

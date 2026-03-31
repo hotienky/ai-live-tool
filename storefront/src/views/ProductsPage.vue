@@ -1,5 +1,6 @@
 <template>
-  <div class="products-page container">
+  <SystemPageWrapper slug="products">
+    <div class="products-page container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
       <router-link to="/">{{ t('storefront.home') || 'Trang chủ' }}</router-link>
@@ -187,6 +188,7 @@
       </div>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -194,6 +196,7 @@ import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import ProductCard from '../components/ProductCard.vue'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'

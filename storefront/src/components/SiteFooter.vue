@@ -1,5 +1,5 @@
 <template>
-  <footer class="site-footer" :style="footerStyle" data-section-type="footer">
+  <footer class="site-footer" :style="footerStyle" data-section-type="footer" data-vvb-section-id="__footer" data-vvb-global="true">
     <div class="site-footer__inner container">
 
       <!-- Dynamic Columns -->

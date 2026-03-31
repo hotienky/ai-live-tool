@@ -1,139 +1,140 @@
 <template>
-  <div class="blog-page">
-    <!-- Blog List -->
-    <div v-if="!currentSlug" class="container">
-      <header class="blog-header">
-        <h1><BookOpen :size="28" class="blog-header__icon" /> Blog</h1>
-        <p class="blog-header__desc">Tin tức, hướng dẫn và chia sẻ hữu ích</p>
-      </header>
-
-      <!-- Loading -->
-      <div v-if="loading" class="blog-grid" :class="'blog-grid--cols-' + pageConfig.gridColumns">
-        <div v-for="i in 6" :key="i" class="blog-card blog-card--skeleton">
-          <div class="skeleton" style="width:100%;aspect-ratio:16/9"></div>
-          <div style="padding:16px">
-            <div class="skeleton" style="height:20px;width:70%;margin-bottom:8px"></div>
-            <div class="skeleton" style="height:14px;width:100%"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Posts -->
-      <div v-else-if="posts.length > 0" class="blog-grid" :class="'blog-grid--cols-' + pageConfig.gridColumns">
-        <article
-          v-for="post in posts"
-          :key="post.id"
-          class="blog-card"
-          @click="$router.push(`/blog/${post.slug || post.id}`)"
-        >
-          <div class="blog-card__img-wrap">
-            <img v-if="post.image || post.featured_image" :src="post.image || post.featured_image" :alt="post.title" class="blog-card__img" loading="lazy" />
-            <div v-else class="blog-card__img blog-card__img--empty">
-              <FileText :size="32" />
-            </div>
-            <span v-if="post.category_name" class="blog-card__category">{{ post.category_name }}</span>
-          </div>
-          <div class="blog-card__body">
-            <h3 class="blog-card__title">{{ post.title }}</h3>
-            <p class="blog-card__excerpt">{{ stripHtml(post.excerpt || post.body).slice(0, 160) }}...</p>
-            <div class="blog-card__meta">
-              <time><Calendar :size="12" /> {{ formatDate(post.created_at) }}</time>
-              <span v-if="post.author_name" class="blog-card__author">
-                <User :size="12" /> {{ post.author_name }}
-              </span>
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <!-- Empty -->
-      <div v-else class="blog-empty">
-        <BookOpen :size="48" />
-        <h3>Chưa có bài viết nào</h3>
-        <p>Blog sẽ sớm được cập nhật</p>
-      </div>
-    </div>
-
-    <!-- Blog Detail -->
-    <div v-else class="container">
-      <!-- Loading -->
-      <div v-if="loadingDetail" class="blog-detail-loading">
-        <div class="skeleton" style="height:36px;width:60%;margin-bottom:12px"></div>
-        <div class="skeleton" style="height:16px;width:30%;margin-bottom:24px"></div>
-        <div class="skeleton" style="height:300px;width:100%"></div>
-      </div>
-
-      <!-- Post Detail -->
-      <article v-else-if="currentPost" class="blog-detail">
-        <nav class="breadcrumb">
-          <router-link to="/">Trang chủ</router-link>
-          <ChevronRight :size="12" />
-          <router-link to="/blog">Blog</router-link>
-          <ChevronRight :size="12" />
-          <span>{{ currentPost.title }}</span>
-        </nav>
-
-        <header class="blog-detail__header">
-          <h1>{{ currentPost.title }}</h1>
-          <div class="blog-detail__meta">
-            <time><Calendar :size="14" /> {{ formatDate(currentPost.created_at) }}</time>
-            <span v-if="currentPost.author_name"><User :size="14" /> {{ currentPost.author_name }}</span>
-            <span v-if="currentPost.category_name" class="blog-detail__cat">
-              <Tag :size="14" /> {{ currentPost.category_name }}
-            </span>
-          </div>
+  <SystemPageWrapper slug="blog">
+    <div class="blog-page">
+      <!-- Blog List -->
+      <div v-if="!currentSlug" class="container">
+        <header class="blog-header">
+          <h1><BookOpen :size="28" class="blog-header__icon" /> Blog</h1>
+          <p class="blog-header__desc">Tin tức, hướng dẫn và chia sẻ hữu ích</p>
         </header>
 
-        <div v-if="currentPost.image || currentPost.featured_image" class="blog-detail__banner">
-          <img :src="currentPost.image || currentPost.featured_image" :alt="currentPost.title" />
-        </div>
-
-        <ShortcodeRenderer class="blog-detail__content" :html="currentPost.body" />
-
-        <!-- Comments Section -->
-        <section v-if="comments.length > 0 || true" class="blog-comments">
-          <h3><MessageCircle :size="20" /> Bình luận ({{ comments.length }})</h3>
-
-          <!-- Comment Form -->
-          <form @submit.prevent="submitComment" class="comment-form">
-            <input v-model="commentForm.author_name" placeholder="Tên của bạn" required class="comment-input" />
-            <textarea v-model="commentForm.body" placeholder="Viết bình luận..." required rows="3" class="comment-textarea"></textarea>
-            <button type="submit" class="btn btn--primary btn--sm" :disabled="submitting">
-              <Send :size="14" /> {{ submitting ? 'Đang gửi...' : 'Gửi bình luận' }}
-            </button>
-          </form>
-
-          <!-- Comment List -->
-          <div v-for="c in comments" :key="c.id" class="comment-item">
-            <div class="comment-item__avatar">{{ (c.author_name || c.name || 'A')[0].toUpperCase() }}</div>
-            <div class="comment-item__body">
-              <div class="comment-item__top">
-                <strong>{{ c.author_name || c.name || 'Ẩn danh' }}</strong>
-                <time>{{ formatDate(c.created_at) }}</time>
-              </div>
-              <p>{{ c.body }}</p>
+        <!-- Loading -->
+        <div v-if="loading" class="blog-grid" :class="'blog-grid--cols-' + pageConfig.gridColumns">
+          <div v-for="i in 6" :key="i" class="blog-card blog-card--skeleton">
+            <div class="skeleton" style="width:100%;aspect-ratio:16/9"></div>
+            <div style="padding:16px">
+              <div class="skeleton" style="height:20px;width:70%;margin-bottom:8px"></div>
+              <div class="skeleton" style="height:14px;width:100%"></div>
             </div>
           </div>
-        </section>
+        </div>
 
-        <!-- Back to Blog -->
-        <div class="blog-detail__back">
-          <router-link to="/blog" class="btn btn--outline">
+        <!-- Posts -->
+        <div v-else-if="posts.length > 0" class="blog-grid" :class="'blog-grid--cols-' + pageConfig.gridColumns">
+          <article
+            v-for="post in posts"
+            :key="post.id"
+            class="blog-card"
+            @click="$router.push(`/blog/${post.slug || post.id}`)"
+          >
+            <div class="blog-card__img-wrap">
+              <img v-if="post.image || post.featured_image" :src="post.image || post.featured_image" :alt="post.title" class="blog-card__img" loading="lazy" />
+              <div v-else class="blog-card__img blog-card__img--empty">
+                <FileText :size="32" />
+              </div>
+              <span v-if="post.category_name" class="blog-card__category">{{ post.category_name }}</span>
+            </div>
+            <div class="blog-card__body">
+              <h3 class="blog-card__title">{{ post.title }}</h3>
+              <p class="blog-card__excerpt">{{ stripHtml(post.excerpt || post.body).slice(0, 160) }}...</p>
+              <div class="blog-card__meta">
+                <time><Calendar :size="12" /> {{ formatDate(post.created_at) }}</time>
+                <span v-if="post.author_name" class="blog-card__author">
+                  <User :size="12" /> {{ post.author_name }}
+                </span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Empty -->
+        <div v-else class="blog-empty">
+          <BookOpen :size="48" />
+          <h3>Chưa có bài viết nào</h3>
+          <p>Blog sẽ sớm được cập nhật</p>
+        </div>
+      </div>
+
+      <!-- Blog Detail -->
+      <div v-else class="container">
+        <!-- ... existing detail ... -->
+        <div v-if="loadingDetail" class="blog-detail-loading">
+          <div class="skeleton" style="height:36px;width:60%;margin-bottom:12px"></div>
+          <div class="skeleton" style="height:16px;width:30%;margin-bottom:24px"></div>
+          <div class="skeleton" style="height:300px;width:100%"></div>
+        </div>
+
+        <article v-else-if="currentPost" class="blog-detail">
+          <nav class="breadcrumb">
+            <router-link to="/">Trang chủ</router-link>
+            <ChevronRight :size="12" />
+            <router-link to="/blog">Blog</router-link>
+            <ChevronRight :size="12" />
+            <span>{{ currentPost.title }}</span>
+          </nav>
+
+          <header class="blog-detail__header">
+            <h1>{{ currentPost.title }}</h1>
+            <div class="blog-detail__meta">
+              <time><Calendar :size="14" /> {{ formatDate(currentPost.created_at) }}</time>
+              <span v-if="currentPost.author_name"><User :size="14" /> {{ currentPost.author_name }}</span>
+              <span v-if="currentPost.category_name" class="blog-detail__cat">
+                <Tag :size="14" /> {{ currentPost.category_name }}
+              </span>
+            </div>
+          </header>
+
+          <div v-if="currentPost.image || currentPost.featured_image" class="blog-detail__banner">
+            <img :src="currentPost.image || currentPost.featured_image" :alt="currentPost.title" />
+          </div>
+
+          <ShortcodeRenderer class="blog-detail__content" :html="currentPost.body" />
+
+          <!-- Comments Section -->
+          <section v-if="comments.length > 0 || true" class="blog-comments">
+            <h3><MessageCircle :size="20" /> Bình luận ({{ comments.length }})</h3>
+
+            <!-- Comment Form -->
+            <form @submit.prevent="submitComment" class="comment-form">
+              <input v-model="commentForm.author_name" placeholder="Tên của bạn" required class="comment-input" />
+              <textarea v-model="commentForm.body" placeholder="Viết bình luận..." required rows="3" class="comment-textarea"></textarea>
+              <button type="submit" class="btn btn--primary btn--sm" :disabled="submitting">
+                <Send :size="14" /> {{ submitting ? 'Đang gửi...' : 'Gửi bình luận' }}
+              </button>
+            </form>
+
+            <!-- Comment List -->
+            <div v-for="c in comments" :key="c.id" class="comment-item">
+              <div class="comment-item__avatar">{{ (c.author_name || c.name || 'A')[0].toUpperCase() }}</div>
+              <div class="comment-item__body">
+                <div class="comment-item__top">
+                  <strong>{{ c.author_name || c.name || 'Ẩn danh' }}</strong>
+                  <time>{{ formatDate(c.created_at) }}</time>
+                </div>
+                <p>{{ c.body }}</p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Back to Blog -->
+          <div class="blog-detail__back">
+            <router-link to="/blog" class="btn btn--outline">
+              <ArrowLeft :size="16" /> Quay lại Blog
+            </router-link>
+          </div>
+        </article>
+
+        <!-- Not Found -->
+        <div v-else class="blog-empty">
+          <FileQuestion :size="48" />
+          <h3>Bài viết không tồn tại</h3>
+          <router-link to="/blog" class="btn btn--primary">
             <ArrowLeft :size="16" /> Quay lại Blog
           </router-link>
         </div>
-      </article>
-
-      <!-- Not Found -->
-      <div v-else class="blog-empty">
-        <FileQuestion :size="48" />
-        <h3>Bài viết không tồn tại</h3>
-        <router-link to="/blog" class="btn btn--primary">
-          <ArrowLeft :size="16" /> Quay lại Blog
-        </router-link>
       </div>
     </div>
-  </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -147,6 +148,7 @@ import {
   MessageCircle, Send, Tag, FileQuestion
 } from 'lucide-vue-next'
 import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useSanitize } from '../composables/useSanitize.js'
 
 const { t } = useI18n()
@@ -303,11 +305,11 @@ watch(currentSlug, (slug) => {
 .blog-card__title {
   font-size: 17px; font-weight: 700; margin: 0 0 8px;
   color: var(--sf-text-primary); line-height: 1.3;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .blog-card__excerpt {
   font-size: 13px; color: var(--sf-text-muted); margin: 0 0 12px; line-height: 1.5;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .blog-card__meta {
   display: flex; align-items: center; gap: 16px;

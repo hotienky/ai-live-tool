@@ -1,5 +1,6 @@
 <template>
-  <div class="detail-page container">
+  <SystemPageWrapper slug="product_detail">
+    <div class="detail-page container">
     <!-- Mobile back button (hidden on desktop, shown on mobile) -->
     <button class="mobile-back-btn" @click="$router.back()">
       <ArrowLeft :size="16" />
@@ -317,6 +318,7 @@
       </div>
     </transition>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -335,6 +337,7 @@ import { useRecentlyViewed } from '../composables/useRecentlyViewed.js'
 import { useI18n } from '../composables/useI18n.js'
 import ProductCard from '../components/ProductCard.vue'
 import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useSanitize } from '../composables/useSanitize.js'
 
 const { sanitize } = useSanitize()

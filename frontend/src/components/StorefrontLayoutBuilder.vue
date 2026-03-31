@@ -45,6 +45,9 @@
         <button v-if="layoutPageId" class="btn-preview-toggle" @click="showVersionHistory = true" :title="t('admin.msg_vh_title', 'Lịch sử phiên bản')">
           <History :size="14" /> {{ t('admin.msg_vh_short', 'Versions') }}
         </button>
+        <button class="btn-preview-toggle" @click="showVisualBuilderPro = true" style="color: #a855f7; border-color: #a855f7" title="Mở Trình Kéo Thả 100% Canvas (Beta)">
+          <Sparkles :size="14" /> Visual Builder Pro
+        </button>
         <button class="btn-preview-toggle" @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'">
           <Monitor v-if="previewMode === 'wireframe'" :size="14" />
           <Eye v-else :size="14" />
@@ -294,7 +297,7 @@
             </button>
           </div>
           <!-- Structrual Page Layout -->
-          <div class="lb-page-structure" v-show="!activeBuiltinPage">
+          <div class="lb-page-structure">
             <!-- HEADER -->
             <div class="lb-structure-item lb-structure-header" @click="showSiteConfig = true; siteConfigTab = 'header'">
               <div class="lb-structure-item__drag"></div>
@@ -542,6 +545,59 @@
         </div>
       </div>
     </div>
+
+    <!-- Visual Builder Library Overlay -->
+    <Teleport to="body">
+      <div v-if="showVisualBuilderPro" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:999999;background:#000;">
+        <VisualBuilder
+           :initial-data="sections"
+           :canvas-url="livePreviewBaseUrl"
+           @update:data="val => sections = val"
+           @save="saveDraft"
+        >
+           <template #header-left>
+             <button @click="showVisualBuilderPro = false" class="vvb-btn-text" style="color:#ef4444; font-size:13px; font-weight:700">← Đóng / Về Admin Mở Rộng</button>
+           </template>
+           <template #header-right>
+             <button @click="saveDraft(); showVisualBuilderPro = false" class="vvb-btn-text" style="background:#6366f1;color:#fff; padding:6px 14px; font-size:13px">
+               <Save :size="14" style="margin-right:2px"/> Lưu Mọi Chỉnh Sửa
+             </button>
+           </template>
+           <template #properties="{ sectionId }">
+             <div v-if="sectionId === '__header'" style="padding:16px; background:#fff; color:#000; border-radius:8px; margin:16px; overflow:auto; max-height: calc(100vh - 80px);">
+                <h4 style="margin:0 0 16px;font-size:14px;border-bottom:1px solid #eee;padding-bottom:8px;">Cấu hình Header</h4>
+                <LayoutHeaderConfig :header-config="headerConfig" :active-page-id="null" @update:header-config="v => headerConfig = v" />
+             </div>
+             <div v-else-if="sectionId === '__footer'" style="padding:16px; background:#fff; color:#000; border-radius:8px; margin:16px; overflow:auto; max-height: calc(100vh - 80px);">
+                <h4 style="margin:0 0 16px;font-size:14px;border-bottom:1px solid #eee;padding-bottom:8px;">Cấu hình Footer</h4>
+                <LayoutFooterConfig :footer-config="footerConfig" :active-page-id="null" @update:footer-config="v => footerConfig = v" />
+             </div>
+             <div v-else-if="sectionId === '__promo'" style="padding:16px; background:#fff; color:#000; border-radius:8px; margin:16px; overflow:auto; max-height: calc(100vh - 80px);">
+                <h4 style="margin:0 0 16px;font-size:14px;border-bottom:1px solid #eee;padding-bottom:8px;">Cấu hình Promo Bar</h4>
+                <label class="toggle-row" style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                  <input type="checkbox" v-model="promoConfig.enabled" />
+                  <span style="font-size:13px;">Hiển thị thanh thông báo</span>
+                </label>
+                <div v-if="promoConfig.enabled">
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Nội dung</label>
+                    <input v-model="promoConfig.text" class="param-input" style="width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:4px;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Link</label>
+                    <input v-model="promoConfig.link" class="param-input" style="width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:4px;" />
+                  </div>
+                  <div class="form-group" style="margin-bottom:12px;">
+                    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px;">Nút CTA</label>
+                    <input v-model="promoConfig.ctaText" class="param-input" style="width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:4px;" />
+                  </div>
+                </div>
+             </div>
+             <StyleControlPanel v-else :sectionId="sectionId" />
+           </template>
+        </VisualBuilder>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -559,6 +615,7 @@ import LayoutPageManager from './storefront/LayoutPageManager.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
 import MediaPicker from './MediaPicker.vue'
+import { VisualBuilder, BuilderRegistry, StyleControlPanel } from '../lib/vue-visual-builder'
 import { useToast } from '../composables/useToast.js'
 import {
   LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
@@ -577,6 +634,16 @@ import { useI18n } from '../composables/useI18n.js'
 import { sectionMeta as sectionMetaRegistry, getAllSectionsWithAvailability } from './storefront/sectionSchemas.js'
 import { industryTemplates } from './storefront/templatePresets.js'
 
+Object.keys(sectionMetaRegistry).forEach(type => {
+  BuilderRegistry.registerBlock(type, {
+    label: sectionMetaRegistry[type].label,
+    icon: sectionMetaRegistry[type].icon,
+    category: sectionMetaRegistry[type].category || 'General',
+    schema: [] // Expand this iteratively
+  })
+})
+
+const showVisualBuilderPro = ref(false)
 const { t, formatCurrency } = useI18n()
 
 const { showToast } = useToast()
@@ -1010,15 +1077,18 @@ function toggleExpand(type) {
 const previewPanelRef = ref(null)
 const addSectionAtInsertIndex = ref(null)
 
-function onPreviewSectionSelected({ type, index }) {
-  if (type === 'header') {
-    showSiteConfig.value = true
-    siteConfigTab.value = 'header'
+function onPreviewSectionSelected({ type, index, id }) {
+  if (id === '__promo' || type === 'promo-bar') {
+    promoOpen.value = true
+    const el = document.querySelector('.layout-section--global')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     return
   }
-  if (type === 'footer') {
-    showSiteConfig.value = true
-    siteConfigTab.value = 'footer'
+  if (id === '__header' || type === 'header') {
+    // header config is now handled via LayoutHeaderConfig component which automatically shows up if its props change or it might be embedded
+    return
+  }
+  if (id === '__footer' || type === 'footer') {
     return
   }
   // Find matching section and expand it in the left panel
@@ -1189,9 +1259,11 @@ const sectionMeta = {
   salon_services: { label: 'Dịch vụ Spa & Salon', icon: Sparkles, pvHeight: '60px' },
   property_listings: { label: 'Bất Động Sản', icon: Image, pvHeight: '70px' },
   upcoming_events: { label: 'Sự Kiện Sắp Tới', icon: Zap, pvHeight: '60px' },
+  system_page_content: { label: 'Lõi Trang Hệ Thống', icon: Box, pvHeight: '100px' },
 }
 
 const defaultParams = {
+  system_page_content: { title: '' },
   banner: { autoplay: true, interval: 4000, height: 'md' },
   categories: { columns: 6, showDescription: false, layoutStyle: 'grid', showCount: false, selectedCategoryIds: [] },
   flash_sale: { showTimer: true, showProgress: true, count: 8, columns: 4 },
@@ -1366,10 +1438,10 @@ function ensureParams(sections) {
 
 async function loadLayout() {
   try {
-    // Skip load for builtin __key pages — they use shared pageConfigs
-    if (activeBuiltinPage.value) return
+    const isBuiltin = !!activeBuiltinPage.value
+    const slug = activeBuiltinPage.value || 'home'
 
-    if (activePageId.value) {
+    if (activePageId.value && !isBuiltin) {
       const res = await apiFetch(`/cms-pages/${activePageId.value}`)
       const data = await res.json()
       sections.value = ensureParams(data.layout_data || [])
@@ -1382,25 +1454,17 @@ async function loadLayout() {
       const lpRes = await apiFetch('/layout-pages')
       const lpData = await lpRes.json()
       const lpList = lpData.data || []
+      
+      // 1. Always load Global Meta from 'home' page if it exists
       const homePage = lpList.find(p => p.slug === 'home')
       if (homePage) {
-        // Found a LayoutPage for home — load full data
         const detailRes = await apiFetch(`/layout-pages/${homePage.id}`)
         const detail = await detailRes.json()
-        const page = detail.data || detail
-        layoutPageId.value = page.id
-        layoutPageVersion.value = page.version || 0
-        layoutPageStatus.value = page.status || 'draft'
-
-        const layoutJson = page.layout_json || []
-        sections.value = ensureParams(layoutJson)
-
-        // Load meta (global configs stored alongside layout)
-        const meta = page.meta || {}
+        const meta = (detail.data || detail).meta || {}
+        
         if (meta.pages) pages.value = meta.pages
         if (meta.template) activeTemplate.value = meta.template
         if (meta.customCss) customCss.value = meta.customCss
-        // if (meta.storefrontUrl) storefrontUrl.value = meta.storefrontUrl
         if (meta.pageConfigs) {
           pageConfigs.value = {
             products: { ...defaultPageConfigs.products, ...meta.pageConfigs.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(meta.pageConfigs.products?.showFilters || {}) } },
@@ -1421,15 +1485,35 @@ async function loadLayout() {
             if (fc.copyrightText) footerConfig.value.copyrightText = fc.copyrightText
           } else {
             footerConfig.value = {
-              ...JSON.parse(JSON.stringify(defaultFooterConfig)),
-              ...fc,
+              ...JSON.parse(JSON.stringify(defaultFooterConfig)), ...fc,
               columns: fc.columns || defaultFooterConfig.columns.map(c => ({ ...c })),
-              social: fc.social || [],
-              badges: fc.badges || [],
-              paymentMethods: fc.paymentMethods || ['cod', 'bank'],
+              social: fc.social || [], badges: fc.badges || [], paymentMethods: fc.paymentMethods || ['cod', 'bank'],
             }
           }
         }
+      }
+
+      // 2. Locate the specific page layout (e.g. 'home', 'blog', 'products')
+      const targetPage = lpList.find(p => p.slug === slug)
+      if (targetPage) {
+        const detailRes = await apiFetch(`/layout-pages/${targetPage.id}`)
+        const detail = await detailRes.json()
+        const page = detail.data || detail
+        layoutPageId.value = page.id
+        layoutPageVersion.value = page.version || 0
+        layoutPageStatus.value = page.status || 'draft'
+
+        const layoutJson = page.layout_json || []
+        if (layoutJson.length === 0 && isBuiltin) {
+          sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+        } else {
+          sections.value = ensureParams(layoutJson)
+        }
+        loadedFromLayoutPages = true
+      } else if (isBuiltin) {
+        // Build an empty wrapper layout for a system page if it doesn't exist yet
+        layoutPageId.value = null
+        sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
         loadedFromLayoutPages = true
       }
     } catch { /* layout-pages not available, fall back to system-config */ }
@@ -1517,19 +1601,20 @@ function buildMeta() {
   }
 }
 
-// Ensure a LayoutPage record exists for 'home', create if needed
+// Ensure a LayoutPage record exists for the active slug, create if needed
 async function ensureLayoutPage() {
   if (layoutPageId.value) return layoutPageId.value
+  const slug = activeBuiltinPage.value || 'home'
   try {
     const res = await apiFetch('/layout-pages', {
       method: 'POST',
       body: JSON.stringify({
-        slug: 'home',
-        title: 'Trang chủ',
+        slug: slug,
+        title: 'Trang ' + slug,
         layout_json: sections.value,
         status: 'draft',
         is_system: true,
-        meta: buildMeta(),
+        meta: slug === 'home' ? buildMeta() : {},
       }),
     })
     const data = await res.json()
@@ -1546,6 +1631,7 @@ async function ensureLayoutPage() {
 
 async function saveLayout() {
   saving.value = true
+  const slug = activeBuiltinPage.value || 'home'
   try {
     // CMS dynamic page (numeric ID) — save layout_data to CMS page
     if (activePageId.value && !activeBuiltinPage.value) {
@@ -1568,11 +1654,13 @@ async function saveLayout() {
           note: publishNote.value || null,
         }),
       })
-      // Update meta separately
-      await apiFetch(`/layout-pages/${pageId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ meta: buildMeta() }),
-      })
+      // Update meta separately, but only for home page so it acts as the global meta
+      if (slug === 'home') {
+        await apiFetch(`/layout-pages/${pageId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ meta: buildMeta() }),
+        })
+      }
       layoutPageVersion.value++
       layoutPageStatus.value = 'published'
       publishNote.value = ''

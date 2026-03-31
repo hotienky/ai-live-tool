@@ -1,5 +1,6 @@
 <template>
-  <div class="auth-page">
+  <SystemPageWrapper slug="auth">
+    <div class="auth-page">
     <div class="auth-card" :style="{ maxWidth: authConfig.cardMaxWidth + 'px' }">
       <!-- Tab switch -->
       <div class="auth-tabs">
@@ -70,6 +71,7 @@
       </form>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -77,6 +79,7 @@ import { ref, reactive, inject, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 import { useI18n } from '../composables/useI18n.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 
 const { t } = useI18n()
 const router = useRouter()

@@ -127,6 +127,7 @@ const sectionNames = {
   trust_badges: 'Trust Badges',
   grid: 'Lưới bố cục',
   custom_block: 'Visual Block',
+  system_page_content: 'Lõi Trang Hệ Thống',
 }
 
 const sectionIcons = {
@@ -135,7 +136,7 @@ const sectionIcons = {
   flash_sale: Zap, featured_products: ShoppingBag, new_arrivals: Sparkles, cms_pages: FileText,
   blog_posts: FileEdit, testimonials: Star, faq: HelpCircle, image_gallery: ImageIcon,
   video_embed: Film, text_block: Type, newsletter: Mail, social_feed: Smartphone,
-  brands_slider: Tag, trust_badges: ShieldCheck, grid: LayoutGrid, custom_block: Box,
+  brands_slider: Tag, trust_badges: ShieldCheck, grid: LayoutGrid, custom_block: Box, system_page_content: Box,
 }
 
 // Editable text fields per section type
@@ -201,7 +202,7 @@ function updateSectionRects() {
     rects.push({
       type,
       index: parseInt(el.getAttribute('data-section-index') || '0'),
-      isFixed: type === 'header' || type === 'footer',
+      isFixed: type === 'header' || type === 'footer' || type === 'promo-bar' || type === 'system_page_content',
       top: rect.top + scrollTop,
       left: rect.left,
       width: rect.width,
@@ -232,7 +233,9 @@ function onSelect(idx) {
   selectedIndex.value = idx
   const info = sectionRects.value[idx]
   if (!info) return
-  sendToParent('builder:section-selected', { type: info.type, index: idx })
+  
+  const sectionId = info.element.getAttribute('data-vvb-section-id') || null
+  sendToParent('builder:section-selected', { type: info.type, index: info.index, id: sectionId })
 
   // Enable inline editing for this section
   enableInlineEditing(info)

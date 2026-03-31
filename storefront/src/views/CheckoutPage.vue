@@ -1,5 +1,6 @@
 <template>
-  <div class="checkout-page container">
+  <SystemPageWrapper slug="checkout">
+    <div class="checkout-page container">
     <!-- Success State -->
     <div v-if="orderSuccess" class="checkout-success">
       <!-- Progress Steps -->
@@ -438,6 +439,7 @@
       </div>
     </template>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -452,6 +454,7 @@ import { useCart } from '../composables/useCart.js'
 import { useAuth } from '../composables/useAuth.js'
 import { useShipping } from '../composables/useShipping.js'
 import { useI18n } from '../composables/useI18n.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { apiFetch, apiPost } from '../api.js'
 
 const { t, currentLang, defaultLangCode } = useI18n()

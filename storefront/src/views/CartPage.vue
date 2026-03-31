@@ -1,5 +1,6 @@
 <template>
-  <div class="cart-page container">
+  <SystemPageWrapper slug="cart">
+    <div class="cart-page container">
     <h1 class="page-title"><ShoppingCart :size="24" /> {{ t('storefront.cart_title') || 'Giỏ hàng' }} ({{ cartCount }})</h1>
 
     <!-- Free Shipping Progress Bar -->
@@ -124,6 +125,7 @@
       </div>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -134,6 +136,7 @@ import {
 } from 'lucide-vue-next'
 import { useCart } from '../composables/useCart.js'
 import { useCoupon } from '../composables/useCoupon.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import { useI18n } from '../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -257,7 +260,7 @@ onMounted(() => { revalidateCoupon(cartTotal.value) })
   width: 48px; text-align: center; border: none;
   border-left: 1px solid var(--sf-border); border-right: 1px solid var(--sf-border);
   background: var(--sf-bg-primary); color: var(--sf-text-primary);
-  font-weight: 700; outline: none; -moz-appearance: textfield;
+  font-weight: 700; outline: none; -moz-appearance: textfield; appearance: textfield;
 }
 .cart-item__qty input::-webkit-outer-spin-button,
 .cart-item__qty input::-webkit-inner-spin-button { -webkit-appearance: none; }

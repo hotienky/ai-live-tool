@@ -1,6 +1,6 @@
 <template>
   <transition name="promo-slide">
-    <div v-if="visible" class="promo-bar">
+    <div v-if="visible" class="promo-bar" data-vvb-section-id="__promo" data-vvb-global="true" data-section-type="promo-bar">
       <div class="promo-bar__content container">
         <span class="promo-bar__text">
           <Sparkles :size="14" />

@@ -1,5 +1,6 @@
 <template>
-  <div class="account-page">
+  <SystemPageWrapper slug="account">
+    <div class="account-page">
     <div class="account-container" :class="{ 'account-container--right': accountConfig.sidebarPosition === 'right' }">
       <!-- Sidebar -->
       <aside class="account-sidebar">
@@ -263,6 +264,7 @@
       </main>
     </div>
   </div>
+  </SystemPageWrapper>
 </template>
 
 <script setup>
@@ -270,6 +272,7 @@ import { ref, reactive, computed, inject, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../composables/useAuth.js'
 import { useI18n } from '../composables/useI18n.js'
+import SystemPageWrapper from '../components/SystemPageWrapper.vue'
 import {
   User, Package, MapPin, Lock, LogOut, Save, Check, X,
   ShoppingBag, Plus, Pencil, Trash2

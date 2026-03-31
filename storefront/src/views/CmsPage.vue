@@ -69,9 +69,13 @@ import { useI18n } from '../composables/useI18n.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft } from 'lucide-vue-next'
 import SectionRenderer from '../components/SectionRenderer.vue'
 import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
+import { inject } from 'vue'
 
 const { t } = useI18n()
 const { setPageSeo } = useSeo()
+
+const layoutConfig = inject('layoutConfig', ref(null))
+const isPreviewMode = inject('isPreviewMode', false)
 
 const props = defineProps({
   slug: { type: String, required: true },
@@ -90,6 +94,10 @@ const loading = ref(true)
  * Không cần fetch thêm API trong component.
  */
 const activeSections = computed(() => {
+  if (isPreviewMode && layoutConfig.value?.sections) {
+    return [...layoutConfig.value.sections].filter(s => s.enabled).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }
+
   if (!page.value?.layout_data) return []
 
   const ld = page.value.layout_data
