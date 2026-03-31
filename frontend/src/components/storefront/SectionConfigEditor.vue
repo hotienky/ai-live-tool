@@ -1,5 +1,15 @@
 <template>
   <div class="section-config-editor">
+    <template v-if="isPrimitiveNode">
+      <AdvancedStylePanel :section="section" />
+      <div v-if="['container', 'grid', 'card', 'row', 'col'].includes(section.type)" class="param-row" style="flex-direction:column; margin-top:16px;">
+        <label>Thành phần con (Elements)</label>
+        <div class="sub-elements-box" style="border: 1px dashed var(--border-color, rgba(255,255,255,0.2)); border-radius: 4px; padding: 4px; min-height: 50px;">
+          <slot name="children-editor" :section="section"></slot>
+        </div>
+      </div>
+    </template>
+    <template v-else>
     <!-- Visual Template Picker -->
     <SectionStylePicker
       :section-type="section.type"
@@ -165,11 +175,12 @@
 
       </div><!-- /.advanced-config__body -->
     </details><!-- /.advanced-config -->
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
@@ -178,6 +189,7 @@ import { hasVisualTemplates } from './sectionTemplates.js'
 import SectionStylePicker from './SectionStylePicker.vue'
 import MediaPicker from '../MediaPicker.vue'
 import RichTextEditor from '../RichTextEditor.vue'
+import AdvancedStylePanel from './AdvancedStylePanel.vue'
 
 const props = defineProps({
   section: { type: Object, required: true },
@@ -185,6 +197,7 @@ const props = defineProps({
   currentLang: { type: String, required: true },
   defaultLangCode: { type: String, required: true }
 })
+const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
 const emit = defineEmits(['open-block-editor'])
 const { t } = useI18n()
 

@@ -1,9 +1,21 @@
 <template>
   <div class="section-list">
-    <LanguageTabs v-model="currentLang" style="margin-bottom: 16px" />
+    <div class="element-palette">
+      <div 
+        v-for="e in ['container', 'grid', 'card', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video']" 
+        :key="e"
+        class="ep-item" 
+        draggable="true" 
+        @dragstart="onDragStartNew($event, e)"
+        :title="'Kéo thả ' + e"
+      >
+        <span>{{ e }}</span>
+      </div>
+    </div>
+    
     <div
       v-for="(section, idx) in list"
-      :key="section.type"
+      :key="section.id || section.type + idx"
       class="section-item-wrap"
       :data-section-panel="section.type"
     >
@@ -122,18 +134,69 @@ const list = computed({
 
 const expandedSection = ref(null)
 
+const dragNewType = ref(null)
+
 // Drag Drop Logic
 const dragIndex = ref(null)
 const dragOverIndex = ref(null)
 
-function onDragStart(e, idx) { dragIndex.value = idx; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)) }
-function onDragEnd() { dragIndex.value = null; dragOverIndex.value = null }
-function onDragOver(e) { e.dataTransfer.dropEffect = 'move' }
-function onDragEnter(idx) { if (dragIndex.value !== null && dragIndex.value !== idx) dragOverIndex.value = idx }
+function onDragStartNew(e, type) {
+  dragNewType.value = type
+  dragIndex.value = null
+  e.dataTransfer.effectAllowed = 'copy'
+  e.dataTransfer.setData('text/plain', 'new:' + type)
+}
+
+function onDragStart(e, idx) { dragIndex.value = idx; dragNewType.value = null; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(idx)) }
+function onDragEnd() { dragIndex.value = null; dragNewType.value = null; dragOverIndex.value = null }
+function onDragOver(e) { e.dataTransfer.dropEffect = dragNewType.value ? 'copy' : 'move' }
+function onDragEnter(idx) { if ((dragIndex.value !== null && dragIndex.value !== idx) || dragNewType.value) dragOverIndex.value = idx }
 function onDragLeave(idx) { if (dragOverIndex.value === idx) dragOverIndex.value = null }
+
 function onDrop(targetIdx) {
-  const fromIdx = dragIndex.value
   dragOverIndex.value = null
+  
+  if (dragNewType.value) {
+    const type = dragNewType.value
+    const newEl = {
+      id: type + '-' + Date.now(),
+      type: type,
+      enabled: true,
+      settings: { style: {} },
+      children: []
+    }
+    
+    // Thêm nội dung mẫu
+    if (['text', 'heading', 'button', 'link'].includes(type)) {
+      newEl.content = 'New ' + type
+    } else if (type === 'image') {
+      newEl.settings.src = 'https://placehold.co/600x400?text=Image'
+    } else if (type === 'container') {
+      newEl.settings.style = { minHeight: '50px', padding: '16px', border: '1px dashed #ccc' }
+    } else if (type === 'grid') {
+      newEl.settings.style = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', minHeight: '50px', padding: '16px', border: '1px dashed #ccc' }
+    } else if (type === 'card') {
+      newEl.settings.style = { padding: '24px', borderRadius: '12px', backgroundColor: '#ffffff', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }
+    } else if (type === 'divider') {
+      newEl.settings.style = { borderTop: '1px solid #e2e8f0', margin: '24px 0', width: '100%' }
+    } else if (type === 'iframe') {
+      newEl.settings.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+      newEl.settings.style = { width: '100%', minHeight: '350px' }
+    } else if (type === 'video') {
+      newEl.settings.src = 'https://www.w3schools.com/html/mov_bbb.mp4'
+      newEl.settings.controls = true
+      newEl.settings.style = { width: '100%', borderRadius: '8px' }
+    }
+
+    const currentList = [...list.value]
+    currentList.splice(targetIdx, 0, newEl)
+    currentList.forEach((s, i) => { s.order = i })
+    list.value = currentList
+    dragNewType.value = null
+    return
+  }
+
+  const fromIdx = dragIndex.value
   dragIndex.value = null
   if (fromIdx === null || fromIdx === targetIdx) return
   const currentList = [...list.value]
@@ -203,6 +266,32 @@ function deleteSection(idx) {
 .btn-action--del:hover {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Element Palette ── */
+.element-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05));
+}
+.ep-item {
+  background: var(--bg-card, rgba(0,0,0,0.2));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: grab;
+  color: var(--color-text-primary, #e2e8f0);
+  transition: all 0.2s;
+  text-transform: capitalize;
+}
+.ep-item:hover {
+  background: var(--color-accent-primary, #6366f1);
+  color: #fff;
+  border-color: var(--color-accent-primary, #6366f1);
 }
 
 /* ── Section Icon ── */

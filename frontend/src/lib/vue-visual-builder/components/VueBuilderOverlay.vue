@@ -56,13 +56,16 @@ const selectedIndex = ref(-1)
 const dragState = ref({ dragging: false, fromIndex: -1, overIndex: -1 })
 
 function updateSectionRects() {
-  const elements = document.querySelectorAll('[data-section-type]') // The generic selector MUST be consistent
+  const elements = document.querySelectorAll('[data-builder-id]')
   const rects = []
   elements.forEach((el) => {
     const rect = el.getBoundingClientRect()
-    const type = el.getAttribute('data-section-type')
+    if (rect.width === 0 || rect.height === 0) return
+    const id = el.getAttribute('data-builder-id')
+    const type = el.getAttribute('data-builder-type') || el.getAttribute('data-section-type')
     const scrollTop = window.scrollY || document.documentElement.scrollTop
     rects.push({
+      id,
       type,
       index: parseInt(el.getAttribute('data-section-index') || '0'),
       isFixed: type === 'header' || type === 'footer' || el.hasAttribute('data-fixed'),
@@ -107,7 +110,8 @@ function onLeave(idx) {
 
 function onSelect(idx) {
   selectedIndex.value = idx
-  sendToParent('builder:section-selected', { index: idx })
+  const info = sectionRects.value[idx]
+  sendToParent('builder:section-selected', { index: idx, id: info?.id, type: info?.type })
 }
 
 function moveSection(idx, direction) {

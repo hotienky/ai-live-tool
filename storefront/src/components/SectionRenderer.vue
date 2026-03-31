@@ -1,6 +1,41 @@
 <template>
+  <component
+    v-if="isPrimitiveNode"
+    :is="primitiveTag"
+    :id="section.params?.anchorId"
+    :data-builder-id="section.id"
+    :data-builder-type="section.type"
+    :class="[
+      section.settings?.classes,
+      section.params?.cssClass,
+      section.params?.animation ? ('sf-anim-' + section.params.animation) : '',
+      {
+        'sf-full-width': section.params?.fullWidth,
+        'hide-desktop': section.params?.hideDesktop,
+        'hide-tablet': section.params?.hideTablet,
+        'hide-mobile': section.params?.hideMobile
+      }
+    ]"
+    :style="section.settings?.style"
+    v-bind="primitiveAttrs"
+  >
+    <template v-if="section.children && section.children.length > 0">
+      <SectionRenderer
+        v-for="(child, index) in section.children"
+        :key="child.id || `${child.type}-${index}`"
+        :section="child"
+      />
+    </template>
+    <template v-else-if="section.content">
+      <template v-if="['text', 'heading', 'link', 'button'].includes(section.type)">
+        <span v-html="section.content"></span>
+      </template>
+      <template v-else>{{ section.content }}</template>
+    </template>
+  </component>
+
   <div
-    v-if="component"
+    v-else-if="component"
     ref="sectionEl"
     :id="section.params?.anchorId"
     :class="[
@@ -15,6 +50,7 @@
       }
     ]"
     :style="sectionWrapStyle"
+    :data-builder-id="section.id"
     :data-section-type="section.type"
     :data-section-index="section.order ?? 0"
   >
@@ -219,6 +255,47 @@ const sectionWrapStyle = computed(() => {
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   }
+})
+
+// === Cấu trúc Primitive Nodes ===
+const PRIMITIVE_TYPES = {
+  container: 'div',
+  card: 'div',
+  row: 'div',
+  col: 'div',
+  grid: 'div',
+  text: 'p',
+  heading: 'h2',
+  image: 'img',
+  button: 'button',
+  link: 'a',
+  divider: 'hr',
+  iframe: 'iframe',
+  video: 'video'
+}
+const isPrimitiveNode = computed(() => !!PRIMITIVE_TYPES[props.section.type])
+const primitiveTag = computed(() => props.section.settings?.tag || PRIMITIVE_TYPES[props.section.type] || 'div')
+const primitiveAttrs = computed(() => {
+  const t = props.section.type
+  const attrs = {}
+  if (t === 'image' && props.section.settings?.src) {
+    attrs.src = props.section.settings.src
+    attrs.alt = props.section.settings.alt || ''
+  } else if (t === 'link') {
+    attrs.href = props.section.settings?.href || '#'
+    attrs.target = props.section.settings?.target || '_self'
+  } else if (t === 'iframe' && props.section.settings?.src) {
+    attrs.src = props.section.settings.src
+    attrs.frameborder = '0'
+    attrs.allowfullscreen = true
+  } else if (t === 'video') {
+    attrs.src = props.section.settings?.src || ''
+    if (props.section.settings?.autoplay) attrs.autoplay = true
+    if (props.section.settings?.loop) attrs.loop = true
+    if (props.section.settings?.muted) attrs.muted = true
+    if (props.section.settings?.controls !== false) attrs.controls = true
+  }
+  return attrs
 })
 </script>
 
