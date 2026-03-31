@@ -90,7 +90,7 @@ const coreIndex = computed(() => {
 const topSections = computed(() => {
   const sections = currentSections.value
   const idx = coreIndex.value
-  if (idx === -1) return [] // If no core block, we don't render them blindly to avoid layout breaking, or maybe render all as top? We will render nothing for safety, forcing them to have a core block.
+  if (idx === -1) return sections.filter(s => s.enabled)
   return sections.slice(0, idx).filter(s => s.enabled)
 })
 

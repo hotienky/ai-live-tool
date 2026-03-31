@@ -24,13 +24,14 @@
         v-for="(child, index) in section.children"
         :key="child.id || `${child.type}-${index}`"
         :section="child"
+        :loop-context="loopContext"
       />
     </template>
-    <template v-else-if="section.content">
+    <template v-else-if="interpolatedContent !== undefined && interpolatedContent !== null && interpolatedContent !== ''">
       <template v-if="['text', 'heading', 'link', 'button'].includes(section.type)">
-        <span v-html="section.content"></span>
+        <span v-html="interpolatedContent"></span>
       </template>
-      <template v-else>{{ section.content }}</template>
+      <template v-else>{{ interpolatedContent }}</template>
     </template>
   </component>
 
@@ -60,12 +61,12 @@
       :content="resolvedContent"
       :section="section"
     >
-      <!-- Đệ quy children cho grid/nested layouts -->
       <template v-if="section.children && section.children.length > 0">
         <SectionRenderer
           v-for="(child, index) in section.children"
           :key="child.id || `${child.type}-${index}`"
           :section="child"
+          :loop-context="loopContext"
         />
       </template>
     </component>
@@ -82,6 +83,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  loopContext: {
+    type: Object,
+    default: null
+  }
 })
 
 const { currentLang, defaultLangCode } = useI18n()
@@ -274,26 +279,57 @@ const PRIMITIVE_TYPES = {
   video: 'video'
 }
 const isPrimitiveNode = computed(() => !!PRIMITIVE_TYPES[props.section.type])
-const primitiveTag = computed(() => props.section.settings?.tag || PRIMITIVE_TYPES[props.section.type] || 'div')
+// === Interpolation Logic ===
+function interpolateContext(str, context) {
+  if (!str || typeof str !== 'string' || !context) return str;
+  return str.replace(/\{\{\s*([a-zA-Z0-9_\.]+)\s*\}\}/g, (match, path) => {
+    let val = { item: context }; // Wraps context so {{ item.name }} works
+    let fallback = false;
+    const keys = path.split('.');
+    for (const k of keys) {
+      if (val == null) {
+        fallback = true;
+        break;
+      }
+      val = val[k];
+    }
+    return (!fallback && val !== undefined && val !== null) ? val : match;
+  });
+}
+
+const interpolatedContent = computed(() => {
+  if (typeof props.section.content === 'string') {
+    return interpolateContext(props.section.content, props.loopContext)
+  }
+  return props.section.content
+})
+
+const getInterpSetting = (key) => {
+  const val = props.section.settings?.[key];
+  if (typeof val === 'string') return interpolateContext(val, props.loopContext);
+  return val;
+}
+
+const primitiveTag = computed(() => getInterpSetting('tag') || PRIMITIVE_TYPES[props.section.type] || 'div')
 const primitiveAttrs = computed(() => {
   const t = props.section.type
   const attrs = {}
   if (t === 'image' && props.section.settings?.src) {
-    attrs.src = props.section.settings.src
-    attrs.alt = props.section.settings.alt || ''
+    attrs.src = getInterpSetting('src')
+    attrs.alt = getInterpSetting('alt') || ''
   } else if (t === 'link') {
-    attrs.href = props.section.settings?.href || '#'
-    attrs.target = props.section.settings?.target || '_self'
+    attrs.href = getInterpSetting('href') || '#'
+    attrs.target = getInterpSetting('target') || '_self'
   } else if (t === 'iframe' && props.section.settings?.src) {
-    attrs.src = props.section.settings.src
+    attrs.src = getInterpSetting('src')
     attrs.frameborder = '0'
     attrs.allowfullscreen = true
   } else if (t === 'video') {
-    attrs.src = props.section.settings?.src || ''
-    if (props.section.settings?.autoplay) attrs.autoplay = true
-    if (props.section.settings?.loop) attrs.loop = true
-    if (props.section.settings?.muted) attrs.muted = true
-    if (props.section.settings?.controls !== false) attrs.controls = true
+    attrs.src = getInterpSetting('src') || ''
+    if (getInterpSetting('autoplay')) attrs.autoplay = true
+    if (getInterpSetting('loop')) attrs.loop = true
+    if (getInterpSetting('muted')) attrs.muted = true
+    if (getInterpSetting('controls') !== false) attrs.controls = true
   }
   return attrs
 })

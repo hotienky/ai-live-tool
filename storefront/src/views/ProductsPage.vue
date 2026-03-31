@@ -157,7 +157,12 @@
 
         <!-- Products Grid -->
         <div v-else-if="products.length > 0" class="product-grid" :class="'grid-cols--' + pageConfig.gridColumns">
-          <ProductCard v-for="p in products" :key="p.id" :product="p" />
+          <template v-if="customCardTemplate">
+            <SectionRenderer v-for="p in products" :key="p.id" :section="customCardTemplate" :loopContext="p" />
+          </template>
+          <template v-else>
+            <ProductCard v-for="p in products" :key="p.id" :product="p" />
+          </template>
         </div>
 
         <!-- Empty -->
@@ -197,6 +202,7 @@ import { useRoute } from 'vue-router'
 import { apiFetch } from '../api.js'
 import ProductCard from '../components/ProductCard.vue'
 import SystemPageWrapper from '../components/SystemPageWrapper.vue'
+import SectionRenderer from '../components/SectionRenderer.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { SlidersHorizontal, FolderOpen, Award, X, Search, SearchX, ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -360,7 +366,26 @@ async function reload() {
 }
 
 watch(() => props.slug, (v) => { selectedCategory.value = v; page.value = 1; reload() })
-onMounted(async () => { await loadFilters(); await reload() })
+const customCardTemplate = ref(null)
+onMounted(async () => { 
+  await loadFilters(); 
+  await reload() 
+  
+  try {
+     const res = await apiFetch('/layout-pages')
+     const data = await res.json()
+     const list = data.data || []
+     const target = list.find(p => p.slug === 'template_product_card')
+     if (target) {
+       const detailRes = await apiFetch(`/layout-pages/${target.id}`)
+       const detail = await detailRes.json()
+       const page = detail.data || detail
+       if (page.layout_json && page.layout_json.length > 0) {
+         customCardTemplate.value = page.layout_json[0]
+       }
+     }
+  } catch(e) {}
+})
 
 function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 </script>

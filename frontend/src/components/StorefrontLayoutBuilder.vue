@@ -53,6 +53,9 @@
           <Eye v-else :size="14" />
           {{ previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe' }}
         </button>
+        <button class="btn-preview-toggle" @click="startTour" :title="t('admin.tour', 'Hướng dẫn')">
+          <HelpCircle :size="14" /> {{ t('admin.tour', 'Hướng dẫn') }}
+        </button>
         <button class="btn-save btn-save--draft" @click="saveDraft" :disabled="saving" :title="t('admin.save_draft', 'Lưu nháp')" >
           <FileEdit :size="14" /> {{ t('admin.msg_867cf3b9', 'Nháp') }}
         </button>
@@ -114,7 +117,7 @@
 
         <!-- Sections heading -->
         <div class="lb-section">
-          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? t('admin.msg_ff9d51ad', 'Cấu hình trang') : (activePageId ? 'Sections trong trang' : t('admin.msg_f6791831', 'Sections trang chủ')) }}</h4>
+          <h4 class="lb-section__title"><Rows3 :size="14" /> {{ activeBuiltinPage ? t('admin.msg_ff9d51ad', 'Cấu hình trang') : (activePageId ? (activeTemplatePage ? 'Thiết kế ' + builtinPageOptions.find(p=>p.id===activePageId)?.label : 'Sections trong trang') : t('admin.msg_f6791831', 'Sections trang chủ')) }}</h4>
           <!-- Builtin page config panel: shown instead of sections list -->
           <div v-if="activeBuiltinPage" class="builtin-page-config">
             <!-- Language Tabs for i18n -->
@@ -602,6 +605,25 @@
 </template>
 
 <script setup>
+import { driver } from "driver.js"
+import "driver.js/dist/driver.css"
+
+// ====== TOUR GUIDE ======
+function startTour() {
+  const driverObj = driver({
+    showProgress: true,
+    steps: [
+      { popover: { title: 'Chào mừng bạn đến với Mebifarm Builder', description: 'Trang bị engine nâng cấp mới nhất, giờ đây bạn có thể trực tiếp tuỳ chỉnh từng thẻ HTML (Text, Image, Button, Grid) như Webflow.' } },
+      { element: '.element-palette', popover: { title: '1. Element Palette (Khối Sơ Cấp)', description: 'Đây là bộ nguyên liệu gốc. Bạn có thể kéo thả bất kỳ Container, Text, Image, Button từ đây thả ngẫu nhiên vào Canvas hoặc vào sơ đồ Layout Tree.' } },
+      { element: '.lb-structure-body', popover: { title: '2. Cây Thư Mục (Layout Tree)', description: 'Nơi quản lý cấu trúc dọc của các thẻ. Bạn có thể kéo thả để re-order khối nhỏ ngẫu nhiên, hay nhấp chọn 1 phần tử.' } },
+      { element: '.layout-builder__preview', popover: { title: '3. Live Canvas', description: 'Trình xem trước trang Storefront. Rê chuột vào nội dung nào sẽ tự bôi khung ngay đó. Nhấp trái 1 cái để chỉnh CSS nâng cao ngay lập tức.' } },
+      { element: '.lb-controls-toggle', popover: { title: '4. Panel Thu Gọn', description: 'Bấm vào nút này để ẩn giao diện Layout dọc, nhường không gian cho Canvas to hơn.' } },
+      { element: '.preview-responsive', popover: { title: '5. Responsive View', description: 'Góc tinh chỉnh Mobile / Tablet. Mọi kích thước màn hình đều có thể chỉnh sửa tại Viewport này.' } }
+    ]
+  });
+  driverObj.drive();
+}
+
 import { ref, computed, onMounted, watch, nextTick, inject } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import LayoutThemeConfig from './storefront/LayoutThemeConfig.vue'
@@ -765,7 +787,13 @@ const builtinPageOptions = [
   { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
   { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
   { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
+  { id: '__products',       label: 'Danh sách Sản phẩm',                            icon: ShoppingBag },
+  { id: '__productDetail',  label: 'Chi tiết Sản phẩm',                             icon: Tag },
+  { id: '__cart',           label: 'Giỏ hàng & Checkout',                           icon: ShoppingCart },
+  { id: '__account',        label: 'Tài khoản, Đăng nhập, Đăng ký',               icon: User },
   { id: '__blog',           label: 'Blog',                                          icon: BookOpen },
+  { id: '__template_product_card', label: '[Template] Thẻ Sản phẩm',            icon: Layers },
+  { id: '__template_blog_card',    label: '[Template] Thẻ Bài viết',            icon: Layers },
 ]
 
 // Computed: current active page display (icon + label)
@@ -779,10 +807,17 @@ const activePage = computed(() => {
 })
 
 // Extracts 'products'/'productDetail'/etc from '__products'/'__productDetail'
-// Returns null if not a builtin __key selection
 const activeBuiltinPage = computed(() => {
-  if (typeof activePageId.value === 'string' && activePageId.value.startsWith('__')) {
-    return activePageId.value.slice(2) // strip the '__'
+  if (typeof activePageId.value === 'string') {
+    if (activePageId.value.startsWith('__template_')) return null
+    if (activePageId.value.startsWith('__')) return activePageId.value.slice(2)
+  }
+  return null
+})
+
+const activeTemplatePage = computed(() => {
+  if (typeof activePageId.value === 'string' && activePageId.value.startsWith('__template_')) {
+    return activePageId.value.slice(11) // e.g. 'product_card'
   }
   return null
 })
@@ -1439,7 +1474,7 @@ function ensureParams(sections) {
 async function loadLayout() {
   try {
     const isBuiltin = !!activeBuiltinPage.value
-    const slug = activeBuiltinPage.value || 'home'
+    const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
 
     if (activePageId.value && !isBuiltin) {
       const res = await apiFetch(`/cms-pages/${activePageId.value}`)
@@ -1604,7 +1639,7 @@ function buildMeta() {
 // Ensure a LayoutPage record exists for the active slug, create if needed
 async function ensureLayoutPage() {
   if (layoutPageId.value) return layoutPageId.value
-  const slug = activeBuiltinPage.value || 'home'
+  const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
   try {
     const res = await apiFetch('/layout-pages', {
       method: 'POST',
@@ -1631,7 +1666,7 @@ async function ensureLayoutPage() {
 
 async function saveLayout() {
   saving.value = true
-  const slug = activeBuiltinPage.value || 'home'
+  const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
   try {
     // CMS dynamic page (numeric ID) — save layout_data to CMS page
     if (activePageId.value && !activeBuiltinPage.value) {
