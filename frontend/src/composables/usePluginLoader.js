@@ -62,6 +62,25 @@ function initBridge() {
     },
     // ── Hooks System ──
     hooks,
+    // ── CMS Page Builder Blocks ──
+    registerBlock: (blockDef) => {
+      window.__CMS_BLOCKS__ = window.__CMS_BLOCKS__ || {}
+      window.__CMS_BLOCKS__[blockDef.type] = blockDef
+      window.dispatchEvent(new CustomEvent('block:registered'))
+    },
+    getBlockByType: (type) => {
+      return (window.__CMS_BLOCKS__ || {})[type] || null
+    },
+    getBlocksGrouped: () => {
+      const blocks = window.__CMS_BLOCKS__ || {}
+      const groups = {}
+      for (const b of Object.values(blocks)) {
+        const g = b.plugin || 'other'
+        if (!groups[g]) groups[g] = []
+        groups[g].push(b)
+      }
+      return groups
+    },
     // ── Plugin Registration (for plugins that use bridge.registerPlugin) ──
     registerPlugin: (moduleId, plugin) => {
       window.__PLUGIN_REGISTRY__ = window.__PLUGIN_REGISTRY__ || {}

@@ -19,7 +19,13 @@ export function useForms() {
     try {
       // Thử gọi Real API trước
       const res = await apiFetch('/api/forms')
-      forms.value = res.data || []
+      if (res.ok) {
+        const data = await res.json()
+        forms.value = Array.isArray(data) ? data : (data?.items || [])
+      } else {
+        // API trả về lỗi (401, 404, ...), fallback sang Local
+        forms.value = _getLocal(STORAGE_KEY_FORMS)
+      }
     } catch (e) {
       console.warn('Real API for forms failed, fallback to Local Storage', e)
       forms.value = _getLocal(STORAGE_KEY_FORMS)

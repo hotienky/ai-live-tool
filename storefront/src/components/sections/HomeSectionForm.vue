@@ -70,6 +70,9 @@
 import { ref, watch, onMounted } from 'vue'
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-vue-next'
 
+const STORAGE_KEY_FORMS = 'mock_forms_db'
+const STORAGE_KEY_SUBS = 'mock_form_submissions_db'
+
 const props = defineProps({
   params: Object,
   section: Object
@@ -84,25 +87,24 @@ onMounted(async () => {
   await loadFormSchema()
 })
 
-watch(() => props.params.formId, async () => {
+watch(() => props.params?.formId, async () => {
   await loadFormSchema()
 })
 
 async function loadFormSchema() {
-  if (!props.params.formId) return
+  if (!props.params?.formId) return
   try {
-    // Dynamic import to fallback to LocalStorage mock from 'useForms' 
-    // Usually in real prod, Storefront would hit an API: apiFetch(`/api/forms/${props.params.formId}`)
-    const { useForms } = await import('../../../../frontend/src/composables/useForms.js')
-    const { forms, fetchForms } = useForms()
-    await fetchForms()
-    formData.value = forms.value.find(f => f.id === props.params.formId)
+    // Read form definitions from shared LocalStorage (same origin)
+    const allForms = JSON.parse(localStorage.getItem(STORAGE_KEY_FORMS) || '[]')
+    formData.value = allForms.find(f => f.id === props.params.formId) || null
 
     // Init payload
     if (formData.value && formData.value.fields) {
+      const p = {}
       formData.value.fields.forEach(f => {
-        payload.value[f.name] = ''
+        p[f.name] = ''
       })
+      payload.value = p
     }
   } catch (e) {
     console.error('Failed to load form', e)
@@ -119,12 +121,19 @@ async function handleSubmit() {
   if (!formData.value) return
   isSubmitting.value = true
   try {
-    const { useForms } = await import('../../../../frontend/src/composables/useForms.js')
-    const { submitForm } = useForms()
-    
     // Simulate network delay
     await new Promise(r => setTimeout(r, 600))
-    await submitForm(formData.value.id, { ...payload.value })
+    
+    // Push submission to shared LocalStorage
+    const sub = {
+      id: 'sub_' + Date.now(),
+      formId: formData.value.id,
+      payload: { ...payload.value },
+      createdAt: new Date().toISOString()
+    }
+    const list = JSON.parse(localStorage.getItem(STORAGE_KEY_SUBS) || '[]')
+    list.push(sub)
+    localStorage.setItem(STORAGE_KEY_SUBS, JSON.stringify(list))
     
     isSuccess.value = true
   } catch(e) {

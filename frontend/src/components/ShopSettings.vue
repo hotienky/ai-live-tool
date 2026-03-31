@@ -391,13 +391,14 @@
       </div>
 
       <!-- ═══ Tab: CMS Pages (Plugin) ═══ -->
-      <div v-if="activeTab === 'cms'" class="settings__panel">
-        <CmsPageForm
-          v-if="cmsFormMode"
-          :pageId="cmsFormMode === 'edit' ? cmsFormEditId : null"
-          :languagesInstalled="isModuleInstalled('languages')"
-          @navigate="onCmsFormNavigate"
-        />
+      <div v-if="activeTab === 'cms'" class="settings__panel settings__panel--fullheight settings__panel--no-padding">
+        <div style="padding: 20px; height: 100%; display: flex; flex-direction: column; overflow: hidden;" v-if="cmsFormMode">
+          <CmsPageForm
+            :pageId="cmsFormMode === 'edit' ? cmsFormEditId : null"
+            :languagesInstalled="isModuleInstalled('languages')"
+            @navigate="onCmsFormNavigate"
+          />
+        </div>
         <PluginRenderer v-else moduleId="cms" tabKey="cms" @navigate="onCmsNavigate" />
       </div>
 
@@ -1669,6 +1670,9 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__panel--fullheight {
   flex: 1; display: flex; flex-direction: column; min-height: 0;
+}
+.settings__panel--no-padding {
+  padding: 0;
 }
 
 /* ═══ Appearance Split Layout ═══ */

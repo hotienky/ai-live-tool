@@ -147,11 +147,12 @@ async function handleDelete(p) {
 
 <style scoped>
 .cms-mgr { padding: 0; }
-.cm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.cms-mgr { display: flex; flex-direction: column; flex: 1; height: 100%; min-height: 0; }
+.cm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 20px 20px 0 20px; }
 .cm-header h3 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: .4rem; }
 .btn-add { background: var(--accent); color: #fff; border: none; padding: .5rem 1rem; border-radius: 8px; cursor: pointer; font-size: .85rem; font-weight: 600; }
 .btn-add:hover { filter: brightness(1.1); }
-.cm-list { display: flex; flex-direction: column; gap: .4rem; }
+.cm-list { display: flex; flex-direction: column; gap: .4rem; padding: 0 20px 20px 20px; overflow-y: auto; flex: 1; }
 .cm-card { display: flex; align-items: center; justify-content: space-between; padding: .6rem .8rem; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; gap: .5rem; }
 .cm-card__info { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; flex: 1; }
 .cm-card__title-row { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }

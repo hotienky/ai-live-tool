@@ -44,6 +44,10 @@
               <input :type="field.type" v-model="getParams()[field.key]" class="param-input" :class="{'param-input--wide': field.type!=='number'}" :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
             </template>
 
+            <template v-else-if="field.type === 'textarea'">
+              <textarea v-model="getParams()[field.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="field.placeholder"></textarea>
+            </template>
+
             <template v-else-if="field.type === 'range'">
               <input type="range" v-model.number="getParams()[field.key]" :min="field.min" :max="field.max" :step="field.step" class="param-range" />
               <span class="param-value">{{ getParams()[field.key] || field.min }}</span>
@@ -188,7 +192,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
@@ -211,7 +215,7 @@ const emit = defineEmits(['open-block-editor'])
 const { t } = useI18n()
 const { forms: availableForms, fetchForms } = useForms()
 
-import { onMounted } from 'vue'
+
 onMounted(() => {
   fetchForms()
 })

@@ -8,7 +8,7 @@
         class="ep-item" 
         draggable="true" 
         @dragstart="onDragStartNew($event, e)"
-        :title="'Kéo thả ' + e"
+        :data-tooltip="'Kéo thả ' + e"
       >
         <span>{{ e }}</span>
       </div>
@@ -22,10 +22,10 @@
           class="ep-item ep-item--saved" 
           draggable="true" 
           @dragstart="onDragStartSavedBlock($event, b.data)"
-          :title="b.name"
+          :data-tooltip="b.name"
         >
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ b.name }}</span>
-          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" title="Xoá mẫu"><Trash2 :size="10"/></button>
+          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" data-tooltip="Xoá mẫu"><Trash2 :size="10"/></button>
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@
       <transition name="slide-panel">
         <div v-if="expandedSection === section.type" class="section-params section-params--fullscreen">
           <div class="sp-header">
-            <button class="sp-back-btn" @click="$emit('update:expandedSection', null); expandedSection = null" title="Trở lại">
+            <button class="sp-back-btn" @click="$emit('update:expandedSection', null); expandedSection = null" data-tooltip="Trở lại">
               <ChevronLeft :size="16" /> Bố cục
             </button>
             <span class="sp-title">{{ sectionMeta[section.type]?.label || section.type }}</span>
