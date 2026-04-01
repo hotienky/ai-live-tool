@@ -63,37 +63,39 @@
           <span>{{ sectionMeta[section.type]?.label || section.type }}</span>
         </div>
         <div class="section-item__right">
-          <button
-            class="btn-action btn-action--style"
-            @click.stop="toggleExpand(section.type)"
-            :data-tooltip="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
-          ><Settings2 :size="13" /></button>
-          <button
-            class="btn-action btn-action--dup"
-            @click.stop="duplicateSection(idx)"
-            data-tooltip="Nhân đôi"
-          ><Copy :size="12" /></button>
-          <button
-            class="btn-action btn-action--save"
-            @click.stop="saveAsBlock(section)"
-            data-tooltip="Lưu thành Mẫu"
-          ><FolderPlus :size="12" /></button>
-          <button
-            class="btn-action btn-action--style"
-            @click.stop="copyStyle(section)"
-            data-tooltip="Copy Style"
-          ><ClipboardCopy :size="12" /></button>
-          <button
-            class="btn-action btn-action--style"
-            @click.stop="pasteStyle(section)"
-            data-tooltip="Paste Style"
-            :disabled="!hasCopiedStyle"
-          ><ClipboardPaste :size="12" /></button>
-          <button
-            class="btn-action btn-action--del"
-            @click.stop="deleteSection(idx)"
-            data-tooltip="Xoá section"
-          ><Trash2 :size="12" /></button>
+          <div class="section-actions-hover">
+            <button
+              class="btn-action btn-action--style"
+              @click.stop="toggleExpand(section.type)"
+              :data-tooltip="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
+            ><Settings2 :size="13" /></button>
+            <button
+              class="btn-action btn-action--dup"
+              @click.stop="duplicateSection(idx)"
+              data-tooltip="Nhân đôi"
+            ><Copy :size="12" /></button>
+            <button
+              class="btn-action btn-action--save"
+              @click.stop="saveAsBlock(section)"
+              data-tooltip="Lưu thành Mẫu"
+            ><FolderPlus :size="12" /></button>
+            <button
+              class="btn-action btn-action--style"
+              @click.stop="copyStyle(section)"
+              data-tooltip="Copy Style"
+            ><ClipboardCopy :size="12" /></button>
+            <button
+              class="btn-action btn-action--style"
+              @click.stop="pasteStyle(section)"
+              data-tooltip="Paste Style"
+              :disabled="!hasCopiedStyle"
+            ><ClipboardPaste :size="12" /></button>
+            <button
+              class="btn-action btn-action--del"
+              @click.stop="deleteSection(idx)"
+              data-tooltip="Xoá section"
+            ><Trash2 :size="12" /></button>
+          </div>
           <label class="toggle-switch" data-tooltip="Hiển thị" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
             <span class="toggle-slider"></span>
@@ -341,31 +343,57 @@ function deleteSection(idx) {
 </script>
 
 <style scoped>
+.section-list { padding-top: 8px; }
+.section-item-wrap { margin-bottom: 4px; }
+.section-item {
+  position: relative;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; border-radius: 6px; background: var(--bg-2, #f3f4f6);
+  border: 1px solid transparent; cursor: pointer; transition: 0.2s;
+  min-height: 44px;
+}
+.section-item__left { 
+  display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-1); 
+  flex: 1; min-width: 0; padding-right: 8px;
+}
+.section-item__left > span:last-child {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+}
+.section-item:hover { border-color: var(--border); background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.section-item.expanded { border-color: var(--accent); background: rgba(124, 58, 237, 0.05); }
+.section-item.dragging { opacity: 0.5; }
+.section-item.drag-over { border-top: 2px solid var(--accent); }
+.section-item__drag-handle { color: var(--text-3); cursor: grab; }
+.section-item.disabled { opacity: 0.6; text-decoration: line-through; }
+.section-item__right { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 
-/* ── Quick Action Buttons ── */
-.btn-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: none;
-  color: var(--color-text-muted, #94a3b8);
-  cursor: pointer;
-  transition: all 0.15s;
-  padding: 0;
+.section-actions-hover {
+  display: flex; align-items: center; gap: 2px;
+  position: absolute; right: 46px; /* Before toggle switch */
+  top: 50%; transform: translateY(-50%);
+  background: #fff; /* Match item hover background */
+  padding: 4px 4px 4px 12px;
+  border-radius: 6px 0 0 6px;
+  box-shadow: -15px 0 15px #fff;
+  opacity: 0; pointer-events: none; transition: 0.2s;
 }
-.btn-action:hover {
-  background: var(--color-bg-card-hover, #f1f5f9);
-  color: var(--color-text-primary, #334155);
-  border-color: var(--color-border, #e2e8f0);
+.section-item:hover .section-actions-hover, .section-actions-hover:focus-within {
+  opacity: 1; pointer-events: auto;
 }
-.btn-action--style:hover {
-  color: var(--color-accent-primary, #6366f1);
-  background: var(--color-accent-glow, rgba(99, 102, 241, 0.08));
-}
+
+/* ── Toggle Switch ── */
+.toggle-switch { position: relative; display: inline-block; width: 28px; height: 16px; cursor: pointer; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .2s; border-radius: 16px; }
+.toggle-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; }
+input:checked + .toggle-slider { background-color: #10b981; }
+input:checked + .toggle-slider:before { transform: translateX(12px); }
+
+
+/* Quick Action Buttons */
+.btn-action { width: 24px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; background: transparent; border: none; color: var(--text-2); cursor: pointer; transition: 0.2s; }
+.btn-action:hover { background: var(--bg-1, #e5e7eb); color: var(--text-1); }
+.btn-action--style:hover { color: var(--accent); background: rgba(124, 58, 237, 0.1); }
 .btn-action--dup:hover {
   color: #10b981;
   background: rgba(16, 185, 129, 0.08);
@@ -375,31 +403,10 @@ function deleteSection(idx) {
   background: rgba(239, 68, 68, 0.08);
 }
 
-/* ── Element Palette ── */
-.element-palette {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05));
-}
-.ep-item {
-  background: var(--bg-card, rgba(0,0,0,0.2));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.1));
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 11px;
-  cursor: grab;
-  color: var(--color-text-primary, #e2e8f0);
-  transition: all 0.2s;
-  text-transform: capitalize;
-}
-.ep-item:hover {
-  background: var(--color-accent-primary, #6366f1);
-  color: #fff;
-  border-color: var(--color-accent-primary, #6366f1);
-}
+/* Element Palette */
+.element-palette { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.ep-item { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: grab; color: var(--text-2); transition: 0.2s; text-transform: capitalize; font-weight: 500; }
+.ep-item:hover { background: rgba(124, 58, 237, 0.05); color: var(--accent); border-color: var(--accent); }
 
 /* ── Section Icon ── */
 .section-item__icon {
@@ -408,35 +415,18 @@ function deleteSection(idx) {
   flex-shrink: 0;
 }
 
-/* Slider panel for focused config */
+/* Slider panel */
 .section-params--fullscreen {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-  background: var(--bg-1, #1a1a2e);
-  z-index: 50;
-  display: flex; flex-direction: column;
-  overflow: hidden;
-  border-radius: 8px;
+  background: var(--bg-1, #fcfcfc);
+  z-index: 50; display: flex; flex-direction: column;
+  overflow: hidden; border-radius: 8px;
   animation: slidePanelIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-.sp-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color, rgba(255,255,255,0.05));
-  background: var(--bg-card, rgba(0,0,0,0.2));
-}
-
-.sp-back-btn {
-  display: flex; align-items: center; gap: 4px;
-  background: none; border: none;
-  color: var(--color-text-secondary);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  padding: 4px 8px; border-radius: 6px;
-  margin-left: -8px; transition: all 0.2s;
-}
-.sp-back-btn:hover { background: rgba(255,255,255,0.05); color: #fff; }
-
-.sp-title { font-size: 14px; font-weight: 700; color: #fff; text-transform: capitalize; }
+.sp-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: #fff; }
+.sp-back-btn { display: flex; align-items: center; gap: 4px; background: none; border: none; color: var(--text-2); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 6px; margin-left: -8px; transition: 0.2s; }
+.sp-back-btn:hover { background: var(--bg-2); color: var(--text-1); }
+.sp-title { font-size: 14px; font-weight: 700; color: var(--text-1); text-transform: capitalize; }
 .sp-fill { flex: 1; }
 
 .sp-body {

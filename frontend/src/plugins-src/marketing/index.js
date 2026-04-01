@@ -35,6 +35,28 @@ const initHooks = () => {
     })
     return config
   })
+  
+  // Register Marketing blocks for CMS Page Builder
+  if (bridge?.registerBlock) {
+    bridge.registerBlock({
+      type: 'flash-sale-list',
+      plugin: 'marketing',
+      name: 'Flash Sale (Giờ Vàng)',
+      icon: 'Zap', // Map to Zap or similar later
+      description: 'Hiển thị danh sách sản phẩm Flash Sale đang diễn ra kèm đồng hồ đếm ngược',
+      defaultSettings: {
+        title: '⚡ FLASH SALE ĐANG DIỄN RA',
+        limit: 5,
+        show_countdown: true,
+      },
+      settingsSchema: [
+        { key: 'title', type: 'text', label: 'Tiêu đề' },
+        { key: 'limit', type: 'number', label: 'Số sản phẩm', placeholder: '5' },
+        { key: 'show_countdown', type: 'toggle', label: 'Hiển thị đếm ngược' },
+      ],
+    })
+  }
+  
   }
 }
 const plugin = {

@@ -1,198 +1,178 @@
 <template>
   <div
-    class="bcard"
-    :class="{
-      'bcard--selected': selected,
-      'bcard--dragging': isDragging,
-    }"
+    class="bc-wrap"
+    :class="{ 'bc-wrap--selected': isSelected }"
+    :data-id="block.id"
+    :data-path="path"
     draggable="true"
-    @dragstart="onDragStart"
-    @dragend="isDragging = false"
-    @click.stop="$emit('click')"
+    @dragstart.stop="onDragStart"
+    @click.stop="$emit('select', block.id)"
   >
-    <!-- Card Header -->
-    <div class="bcard__header">
-      <!-- Drag handle -->
-      <div class="bcard__handle" title="Kéo để sắp xếp lại">⠿</div>
+    <!-- Visual Block Preview (Replaces Wireframe) -->
+    <BlockPreview :block="block" :blockDef="blockDef">
+      <slot></slot>
+    </BlockPreview>
 
-      <!-- Icon -->
-      <div class="bcard__icon">
-        <component :is="resolveIcon(blockDef?.icon)" :size="16" />
-      </div>
-
-      <!-- Info -->
-      <div class="bcard__info">
-        <span class="bcard__name">{{ blockDef?.name || block.type }}</span>
-        <span class="bcard__summary">{{ summary }}</span>
-      </div>
-
-      <!-- Actions (always visible on hover/select) -->
-      <div class="bcard__actions" @click.stop>
-        <button
-          class="bcard__btn"
-          @click="$emit('move-up')"
-          :disabled="index === 0"
-          title="Di lên"
-        >↑</button>
-        <button
-          class="bcard__btn"
-          @click="$emit('move-down')"
-          :disabled="index === total - 1"
-          title="Di xuống"
-        >↓</button>
-        <button class="bcard__btn bcard__btn--del" @click="$emit('remove')" title="Xóa block">
-          <X :size="12" />
+    <!-- Hover Floating Toolbar (Contextual Actions) -->
+    <div class="bc-toolbar drag-handle" @click.stop v-if="isSelected">
+      <div class="bc-toolbar__inner">
+        <button class="bc-btn bc-btn--drag" title="Kéo thả để di chuyển">
+          <GripHorizontal :size="14" />
+        </button>
+        <button class="bc-btn" title="Lên trên" @click="$emit('move', block.id, -1)" :disabled="isFirst">
+          <ArrowUp :size="14" />
+        </button>
+        <button class="bc-btn" title="Xuống dưới" @click="$emit('move', block.id, 1)" :disabled="isLast">
+          <ArrowDown :size="14" />
+        </button>
+        <div class="bc-divider"></div>
+        <button class="bc-btn" title="Nhân bản (Ctrl+D)" @click="$emit('duplicate', block.id)">
+          <Copy :size="14" />
+        </button>
+        <button class="bc-btn bc-btn--danger" title="Xóa (Delete)" @click="$emit('remove', block.id)">
+          <Trash2 :size="14" />
         </button>
       </div>
     </div>
-    
-    <!-- Slot for nested content (like columns) -->
-    <slot></slot>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { X, Box, Image, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, ImageIcon, Columns } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { GripHorizontal, ArrowUp, ArrowDown, Copy, Trash2 } from 'lucide-vue-next'
+import BlockPreview from './BlockPreview.vue'
 
 const props = defineProps({
   block: { type: Object, required: true },
-  blockDef: { type: Object, default: null },
-  selected: { type: Boolean, default: false },
-  index: { type: Number, required: true },
-  total: { type: Number, required: true },
+  isSelected: { type: Boolean, default: false },
+  isFirst: { type: Boolean, default: false },
+  isLast: { type: Boolean, default: false },
+  path: { type: String, required: true },
+  level: { type: Number, default: 0 },
 })
 
-defineEmits(['click', 'remove', 'move-up', 'move-down', 'dragstart'])
+defineEmits(['select', 'remove', 'move', 'duplicate'])
 
-const isDragging = ref(false)
+const bridge = window.__APP_BRIDGE__ || {}
 
-const ICON_MAP = {
-  Image, FileText, Minus, Code, BookOpen, TrendingUp,
-  ShoppingBag, Star, FolderTree, Box, ImageIcon, Columns
-}
-
-function resolveIcon(name) {
-  return ICON_MAP[name] || Box
-}
-
-// Build a short summary from settings
-const summary = computed(() => {
-  const s = props.block.settings || {}
-  if (s.title) return s.title
-  if (s.content) return s.content.replace(/<[^>]+>/g, '').slice(0, 50) + (s.content.length > 50 ? '...' : '')
-  if (s.html) return s.html.slice(0, 40) + '...'
-  if (s.height) return `Height: ${s.height}`
-  if (s.columns) return `Columns: ${s.columns} (${s.layout || '50-50'})`
-  return props.block.type
+const blockDef = computed(() => {
+  return bridge.getBlockByType?.(props.block.type) || null
 })
 
-function onDragStart(event) {
-  isDragging.value = true
-  event.dataTransfer.setData('source', 'canvas')
-  event.dataTransfer.setData('block-index', String(props.index))
-  event.dataTransfer.effectAllowed = 'move'
-  // Prevent the click event from firing after drag
-  event.stopPropagation()
+function onDragStart(e) {
+  e.dataTransfer.setData('source', 'canvas')
+  e.dataTransfer.setData('block-index', props.path)
+  e.dataTransfer.effectAllowed = 'move'
+  
+  // Custom ghost for canvas reordering
+  const ghost = document.createElement('div')
+  ghost.style.position = 'absolute'
+  ghost.style.top = '-1000px'
+  ghost.style.padding = '8px 16px'
+  ghost.style.background = '#7c3aed'
+  ghost.style.color = '#fff'
+  ghost.style.borderRadius = '6px'
+  ghost.style.fontWeight = '600'
+  ghost.style.fontSize = '12px'
+  ghost.textContent = 'Trượt để di chuyển'
+  document.body.appendChild(ghost)
+  e.dataTransfer.setDragImage(ghost, 20, 20)
+  setTimeout(() => ghost.remove(), 0)
 }
 </script>
 
 <style scoped>
-.bcard {
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-1, #fff);
-  border: 1.5px solid var(--border, #e5e7eb);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color .15s, box-shadow .15s, opacity .15s;
-  user-select: none;
+.bc-wrap {
   position: relative;
-  overflow: hidden;
-}
-.bcard__header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-}
-.bcard:hover {
-  border-color: var(--accent, #7c3aed);
-  box-shadow: 0 4px 12px rgba(124,58,237,.08);
-}
-.bcard--selected {
-  border-color: var(--accent, #7c3aed);
-  background: rgba(124,58,237,.02);
-  box-shadow: 0 0 0 3px rgba(124,58,237,.12);
-}
-.bcard--dragging { opacity: .4; }
-
-.bcard__handle {
-  color: var(--text-3, #9ca3af);
-  cursor: grab;
-  font-size: 14px;
-  line-height: 1;
-  padding: 2px;
-  flex-shrink: 0;
-}
-.bcard__handle:active { cursor: grabbing; }
-
-.bcard__icon {
-  color: var(--accent, #7c3aed);
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
+  background: var(--bg-1, #fff);
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Soft baseline shadow */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 8px; /* Give room for dropzone */
+  outline: none;
 }
 
-.bcard__info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.bcard__name {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-1, #1f2937);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.bcard__summary {
-  font-size: 11px;
-  color: var(--text-3, #9ca3af);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Hover state: slight elevation + purple tint */
+.bc-wrap:hover {
+  border-color: rgba(124, 58, 237, 0.4); /* Tailwind violet-600 with opacity */
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);
+  z-index: 1; /* Pop above siblings */
 }
 
-.bcard__actions {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
+/* Selected state: thick vibrant border */
+.bc-wrap--selected {
+  border-color: var(--accent, #7c3aed) !important;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.15) !important;
+  z-index: 2;
+}
+
+/* Floating Toolbar (Glassmorphic Bento style) */
+.bc-toolbar {
+  position: absolute;
+  top: -14px; right: 12px;
+  z-index: 10;
   opacity: 0;
-  transition: opacity .15s;
+  transform: translateY(4px);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none; /* Let hover trigger purely from parent wrap initially */
 }
-.bcard:hover .bcard__actions,
-.bcard--selected .bcard__actions { opacity: 1; }
 
-.bcard__btn {
+.bc-wrap:hover .bc-toolbar,
+.bc-wrap--selected .bc-toolbar {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.bc-toolbar__inner {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-1, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  padding: 4px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  backdrop-filter: blur(8px);
+}
+
+.bc-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border, #e5e7eb);
+  margin: 0 2px;
+}
+
+.bc-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-2, #f9fafb);
-  color: var(--text-2);
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-2, #4b5563);
   cursor: pointer;
-  font-size: 11px;
-  transition: all .15s;
+  transition: all 0.15s;
 }
-.bcard__btn:hover { border-color: var(--accent); color: var(--accent); }
-.bcard__btn:disabled { opacity: .3; cursor: not-allowed; pointer-events: none; }
-.bcard__btn--del:hover { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.06); }
+
+.bc-btn:hover:not(:disabled) {
+  background: var(--bg-2, #f3f4f6);
+  color: var(--text-1, #111827);
+}
+
+.bc-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.bc-btn--drag { cursor: grab; }
+.bc-btn--drag:active { cursor: grabbing; }
+.bc-btn--danger:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
 </style>

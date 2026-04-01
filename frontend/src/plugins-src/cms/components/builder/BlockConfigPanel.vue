@@ -1,298 +1,215 @@
 <template>
-  <div class="bcp">
-    <!-- Empty state -->
-    <div v-if="!block" class="bcp-empty">
-      <Settings :size="28" class="bcp-empty__icon" />
-      <p>Chọn một block để cấu hình</p>
+  <div class="cp" v-if="block">
+    <div class="cp-header">
+      <div class="cp-title">
+        <component :is="resolveIcon(blockDef?.icon)" :size="16" class="cp-icon" />
+        <h4>{{ blockDef?.name || block.type }}</h4>
+      </div>
     </div>
 
-    <template v-else>
-      <!-- Panel header -->
-      <div class="bcp-header">
-        <component :is="resolveIcon(blockDef?.icon)" :size="15" class="bcp-header__icon" />
-        <h3 class="bcp-header__title">{{ blockDef?.name || block.type }}</h3>
-      </div>
+    <div class="cp-tabs">
+      <button class="cp-tab" :class="{ 'cp-tab--active': activeTab === 'content' }" @click="activeTab = 'content'">
+        <Type :size="14" /> Nội dung
+      </button>
+      <button class="cp-tab" :class="{ 'cp-tab--active': activeTab === 'style' }" @click="activeTab = 'style'">
+        <Palette :size="14" /> Kiểu dáng
+      </button>
+    </div>
 
-      <!-- Settings fields -->
-      <div class="bcp-body">
-        <div v-for="field in schema" :key="field.key" class="bcp-field">
-          <label class="bcp-label">{{ field.label }}</label>
+    <div class="cp-scroll">
+      <!-- CONTENT TAB -->
+      <div v-show="activeTab === 'content'" class="cp-body">
+        <template v-for="field in (blockDef?.settingsSchema || [])" :key="field.key">
+          
+          <div class="cp-field" v-if="field.type === 'text'">
+            <label>{{ field.label }}</label>
+            <input type="text" :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" />
+          </div>
 
-          <!-- text -->
-          <input
-            v-if="field.type === 'text'"
-            :value="settings[field.key] ?? field.default ?? ''"
-            @input="emit('update', field.key, $event.target.value)"
-            type="text"
-            class="bcp-input"
-            :placeholder="field.placeholder || ''"
-          />
+          <div class="cp-field" v-else-if="field.type === 'textarea'">
+            <label>{{ field.label }}</label>
+            <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="3"></textarea>
+          </div>
 
-          <!-- image -->
-          <MediaPicker
-            v-else-if="field.type === 'image'"
-            :model-value="settings[field.key] ?? field.default ?? ''"
-            @update:model-value="emit('update', field.key, $event)"
-            :placeholder="field.placeholder || 'Chọn hình ảnh...'"
-          />
+          <div class="cp-field" v-else-if="field.type === 'richtext' || field.type === 'code'">
+            <label>{{ field.label }}</label>
+            <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="6" style="font-family: monospace; font-size: 12px;"></textarea>
+            <p class="cp-help" v-if="field.type === 'richtext'">Hỗ trợ HTML cơ bản.</p>
+          </div>
 
-          <!-- number -->
-          <input
-            v-else-if="field.type === 'number'"
-            :value="settings[field.key] ?? field.default ?? ''"
-            @input="emit('update', field.key, Number($event.target.value) || 0)"
-            type="number"
-            class="bcp-input"
-            :placeholder="field.placeholder || ''"
-          />
+          <div class="cp-field" v-else-if="field.type === 'select'">
+            <label>{{ field.label }}</label>
+            <div class="cp-select-wrap">
+              <select :value="s[field.key]" @change="update(field.key, $event.target.value)">
+                <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+              </select>
+              <ChevronDown :size="14" class="cp-select-icon" />
+            </div>
+          </div>
 
-          <!-- textarea -->
-          <textarea
-            v-else-if="field.type === 'textarea'"
-            :value="settings[field.key] ?? field.default ?? ''"
-            @input="emit('update', field.key, $event.target.value)"
-            class="bcp-input bcp-textarea"
-            rows="3"
-            :placeholder="field.placeholder || ''"
-          ></textarea>
-
-          <!-- code / richtext / html-embed -->
-          <textarea
-            v-else-if="['code', 'richtext', 'html'].includes(field.type)"
-            :value="settings[field.key] ?? field.default ?? ''"
-            @input="emit('update', field.key, $event.target.value)"
-            class="bcp-input bcp-code"
-            rows="6"
-            :placeholder="field.placeholder || ''"
-            spellcheck="false"
-          ></textarea>
-
-          <!-- select -->
-          <select
-            v-else-if="field.type === 'select'"
-            :value="settings[field.key] ?? field.default ?? ''"
-            @change="emit('update', field.key, $event.target.value)"
-            class="bcp-input"
-          >
-            <option
-              v-for="opt in field.options"
-              :key="opt.value ?? opt"
-              :value="opt.value ?? opt"
-            >{{ opt.label ?? opt }}</option>
-          </select>
-
-          <!-- radio -->
-          <div v-else-if="field.type === 'radio'" class="bcp-radios">
-            <label
-              v-for="opt in field.options"
-              :key="opt.value ?? opt"
-              class="bcp-radio"
-              :class="{ active: (settings[field.key] ?? field.default) === (opt.value ?? opt) }"
-            >
-              <input
-                type="radio"
-                :checked="(settings[field.key] ?? field.default) === (opt.value ?? opt)"
-                @change="emit('update', field.key, opt.value ?? opt)"
-              />
-              {{ opt.label ?? opt }}
+          <div class="cp-field" v-else-if="field.type === 'toggle'">
+            <label class="cp-check-label">
+              <input type="checkbox" :checked="s[field.key]" @change="update(field.key, $event.target.checked)" />
+              <span>{{ field.label }}</span>
             </label>
           </div>
 
-          <!-- toggle -->
-          <div
-            v-else-if="field.type === 'toggle'"
-            class="bcp-toggle"
-            :class="{ active: settings[field.key] ?? field.default ?? false }"
-            @click="emit('update', field.key, !(settings[field.key] ?? field.default ?? false))"
-          >
-            <div class="bcp-toggle__knob"></div>
+          <div class="cp-field" v-else-if="field.type === 'image'">
+            <label>{{ field.label }}</label>
+            <MediaPicker :modelValue="s[field.key]" @update:modelValue="update(field.key, $event)" />
           </div>
 
-          <!-- api-select: shows text input with async options below -->
-          <div v-else-if="field.type === 'api-select'" class="bcp-api-select">
-            <select
-              :value="settings[field.key] ?? ''"
-              @change="emit('update', field.key, $event.target.value || null)"
-              class="bcp-input"
-            >
-              <option value="">{{ field.placeholder || 'Tất cả' }}</option>
-              <option
-                v-for="item in (apiOptions[field.key] || [])"
-                :key="item.id ?? item.value"
-                :value="item.id ?? item.value"
-              >{{ item.name ?? item.label ?? item.title }}</option>
-            </select>
+        </template>
+        <p v-if="!blockDef?.settingsSchema?.length" class="cp-empty">Block này không có tùy chọn nội dung.</p>
+      </div>
+
+      <!-- STYLE TAB -->
+      <div v-show="activeTab === 'style'" class="cp-body cp-style">
+        
+        <div class="cp-field">
+          <label>Màu nền</label>
+          <div class="cp-color">
+            <input type="color" :value="s.bg_color || '#ffffff'" @input="update('bg_color', $event.target.value)" />
+            <input type="text" :value="s.bg_color" @input="update('bg_color', $event.target.value)" placeholder="#ffffff" />
+            <button v-if="s.bg_color" class="cp-btn-icon" @click="update('bg_color', '')"><X :size="12" /></button>
           </div>
         </div>
+
+        <div class="cp-field">
+          <label>Căn Lề (Padding)</label>
+          <div class="cp-spacing">
+            <input type="text" :value="s.pt" @input="update('pt', $event.target.value)" placeholder="Top" title="Padding Top" />
+            <input type="text" :value="s.pr" @input="update('pr', $event.target.value)" placeholder="Right" title="Padding Right" />
+            <input type="text" :value="s.pb" @input="update('pb', $event.target.value)" placeholder="Bottom" title="Padding Bottom" />
+            <input type="text" :value="s.pl" @input="update('pl', $event.target.value)" placeholder="Left" title="Padding Left" />
+          </div>
+          <p class="cp-help">Ví dụ: 20px, 1rem, 5%</p>
+        </div>
+
+        <div class="cp-field">
+          <label>Khoảng Cách (Margin)</label>
+          <div class="cp-spacing">
+            <input type="text" :value="s.mt" @input="update('mt', $event.target.value)" placeholder="Top" title="Margin Top" />
+            <input type="text" :value="s.mr" @input="update('mr', $event.target.value)" placeholder="Right" title="Margin Right" />
+            <input type="text" :value="s.mb" @input="update('mb', $event.target.value)" placeholder="Bottom" title="Margin Bottom" />
+            <input type="text" :value="s.ml" @input="update('ml', $event.target.value)" placeholder="Left" title="Margin Left" />
+          </div>
+        </div>
+
+        <div class="cp-field">
+          <label>Bo góc (Border Radius)</label>
+          <input type="text" :value="s.border_radius" @input="update('border_radius', $event.target.value)" placeholder="e.g. 8px, 50%" />
+        </div>
+
+        <div class="cp-field">
+          <label>CSS Class Tùy chỉnh</label>
+          <input type="text" :value="s.custom_class" @input="update('custom_class', $event.target.value)" placeholder="e.g. hide-on-mobile dark-theme" />
+        </div>
+
       </div>
-    </template>
+    </div>
+
+
   </div>
 </template>
 
 <script setup>
-import { computed, watch, reactive } from 'vue'
+import { ref, computed } from 'vue'
+import { Settings, Image as ImageIcon, X, Palette, Type, ChevronDown, Box, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, Columns, Layers } from 'lucide-vue-next'
 import MediaPicker from '../../../../components/MediaPicker.vue'
-import {
-  Settings, Box, Image, FileText, Minus, Code,
-  BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, ImageIcon,
-} from 'lucide-vue-next'
-import { apiFetch } from '../../helpers.js'
 
 const props = defineProps({
-  block: { type: Object, default: null },
-  blockDef: { type: Object, default: null },
+  block: { type: Object, default: null }
 })
+
 const emit = defineEmits(['update'])
 
-const ICON_MAP = {
-  Image, FileText, Minus, Code, BookOpen, TrendingUp,
-  ShoppingBag, Star, FolderTree, Box, ImageIcon,
-}
+const bridge = window.__APP_BRIDGE__ || {}
+
+const activeTab = ref('content')
+
+const blockDef = computed(() => {
+  if (!props.block) return null
+  return bridge.getBlockByType?.(props.block.type) || null
+})
+
+const s = computed(() => props.block?.settings || {})
+
+const ICON_MAP = { Image: ImageIcon, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, Box, ImageIcon, Columns, Layers }
 function resolveIcon(name) { return ICON_MAP[name] || Box }
 
-const settings = computed(() => props.block?.settings || {})
-const schema = computed(() => props.blockDef?.settingsSchema || [])
-
-// Fetch options for api-select fields
-const apiOptions = reactive({})
-
-async function loadApiOptions(field) {
-  if (!field.endpoint) return
-  try {
-    const res = await apiFetch(field.endpoint)
-    const json = await res.json()
-    apiOptions[field.key] = Array.isArray(json) ? json : (json.data || [])
-  } catch {
-    apiOptions[field.key] = []
-  }
+function update(key, val) {
+  emit('update', props.block.id, key, val)
 }
 
-watch(() => props.blockDef, (def) => {
-  if (!def) return
-  for (const field of (def.settingsSchema || [])) {
-    if (field.type === 'api-select' && field.endpoint && !apiOptions[field.key]) {
-      loadApiOptions(field)
-    }
-  }
-}, { immediate: true })
 </script>
 
 <style scoped>
-.bcp {
-  width: 260px;
-  min-width: 240px;
+.cp { display: flex; flex-direction: column; height: 100%; background: var(--bg-1, #fff); border-left: 1px solid var(--border, #e5e7eb); }
+
+.cp-header {
+  padding: 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cp-title { display: flex; align-items: center; gap: 8px; }
+.cp-title h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-1); }
+.cp-icon { color: var(--accent, #7c3aed); }
+
+.cp-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
   background: var(--bg-2, #f9fafb);
-  border-left: 1px solid var(--border, #e5e7eb);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
 }
+.cp-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 0; background: none; border: none; font-size: 12px; font-weight: 600;
+  color: var(--text-3); cursor: pointer; transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+.cp-tab:hover { color: var(--text-2); background: rgba(0,0,0,0.02); }
+.cp-tab--active { color: var(--accent); border-bottom-color: var(--accent); background: #fff; }
 
-.bcp-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-3, #9ca3af);
-  gap: 10px;
-  padding: 24px;
-  text-align: center;
-}
-.bcp-empty__icon { opacity: .4; }
-.bcp-empty p { margin: 0; font-size: 13px; }
+.cp-scroll { flex: 1; overflow-y: auto; }
+.cp-body { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
 
-.bcp-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 16px 10px;
-  border-bottom: 1px solid var(--border);
+.cp-field { display: flex; flex-direction: column; gap: 6px; }
+.cp-field label { font-size: 12px; font-weight: 600; color: var(--text-2); }
+.cp-field input[type="text"], .cp-field textarea, .cp-field select {
+  width: 100%; width: -moz-available; width: -webkit-fill-available; box-sizing: border-box;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13px; color: var(--text-1); background: #fff; outline: none; transition: border-color .2s;
 }
-.bcp-header__icon { color: var(--accent, #7c3aed); }
-.bcp-header__title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-1);
+.cp-field input[type="text"]:focus, .cp-field textarea:focus, .cp-field select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.1);
 }
+.cp-help { font-size: 11px; color: var(--text-3); margin: 0; }
 
-.bcp-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+.cp-select-wrap { position: relative; }
+.cp-select-wrap select { appearance: none; padding-right: 30px; cursor: pointer; }
+.cp-select-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--text-3); }
 
-.bcp-field { display: flex; flex-direction: column; gap: 5px; }
-.bcp-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-2, #6b7280);
-  text-transform: uppercase;
-  letter-spacing: .4px;
-}
+.cp-check-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.cp-check-label input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
 
-.bcp-input {
-  width: 100%;
-  padding: 7px 10px;
-  border-radius: 7px;
-  border: 1px solid var(--border, #e5e7eb);
-  background: var(--bg-1, #fff);
-  color: var(--text-1);
-  font-size: 13px;
-  box-sizing: border-box;
-}
-.bcp-input:focus { outline: none; border-color: var(--accent, #7c3aed); }
-.bcp-textarea { resize: vertical; min-height: 64px; }
-.bcp-code {
-  font-family: monospace;
-  font-size: 11px;
-  resize: vertical;
-  min-height: 80px;
-}
 
-.bcp-radios { display: flex; gap: 6px; flex-wrap: wrap; }
-.bcp-radio {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-1);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all .15s;
-}
-.bcp-radio input { display: none; }
-.bcp-radio.active { border-color: var(--accent); color: var(--accent); background: rgba(124,58,237,.06); }
-.bcp-radio:hover:not(.active) { border-color: var(--accent); }
 
-.bcp-toggle {
-  width: 38px;
-  height: 22px;
-  border-radius: 11px;
-  background: var(--border, #d1d5db);
-  position: relative;
-  cursor: pointer;
-  transition: background .2s;
-}
-.bcp-toggle.active { background: var(--accent, #7c3aed); }
-.bcp-toggle__knob {
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform .2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,.2);
-}
-.bcp-toggle.active .bcp-toggle__knob { transform: translateX(16px); }
+/* Buttons */
+.cp-btn-secondary { background: #fff; border: 1px solid var(--border); padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--text-2); }
+.cp-btn-secondary:hover { border-color: var(--text-3); color: var(--text-1); }
+.cp-btn-icon { background: none; border: none; padding: 4px; color: var(--text-3); cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.cp-btn-icon:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-.bcp-api-select { display: flex; flex-direction: column; gap: 4px; }
+/* Style Specific */
+.cp-color { display: flex; align-items: center; gap: 8px; }
+.cp-color input[type="color"] {
+  width: 32px; height: 32px; padding: 0; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; background: none;
+}
+.cp-color input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.cp-color input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+
+.cp-spacing { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; }
+.cp-spacing input { text-align: center; padding: 8px 4px !important; }
+
+.cp-empty { font-size: 13px; color: var(--text-3); text-align: center; padding: 30px 0; }
+
 </style>

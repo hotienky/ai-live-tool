@@ -1,223 +1,202 @@
 <template>
   <div class="bp">
-    <div class="bp-title">Thư viện Blocks</div>
-
-    <div class="bp-search-wrap">
-      <Search :size="13" class="bp-search-icon" />
-      <input v-model="search" type="text" placeholder="Tìm block..." class="bp-search" />
+    <div class="bp-search">
+      <Search :size="14" class="bp-search-icon" />
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Tìm kiếm block..."
+        class="bp-search-input"
+        @focus="isFocused = true"
+        @blur="isFocused = false"
+      />
+      <button v-if="searchQuery" class="bp-clear" @click="searchQuery = ''"><X :size="12" /></button>
     </div>
 
-    <div class="bp-scroll">
-      <template v-for="(blockList, plugin) in filteredGroups" :key="plugin">
-        <div class="bp-group-title">{{ pluginLabel(plugin) }}</div>
-
-        <div
-          v-for="block in blockList"
-          :key="block.type"
-          class="bp-item"
-          draggable="true"
-          @dragstart="onDragStart($event, block)"
-          @dragend="dragging = null"
-          @click="$emit('add-block', block.type)"
-          :class="{ 'bp-item--dragging': dragging === block.type }"
-          :title="block.description"
-        >
-          <span class="bp-item__icon">
-            <component :is="resolveIcon(block.icon)" :size="14" />
-          </span>
-          <span class="bp-item__name">{{ block.name }}</span>
-          <Plus :size="11" class="bp-item__plus" />
+    <div class="bp-list">
+      <div v-for="(group, groupIdx) in filteredGroups" :key="groupIdx" class="bp-group">
+        <h4 v-if="filteredGroups.length > 1" class="bp-group-title">{{ group.label }}</h4>
+        <div class="bp-grid">
+          <div
+            v-for="b in group.items"
+            :key="b.type"
+            class="bp-item"
+            draggable="true"
+            @dragstart="onDragStart($event, b)"
+            @dragend="onDragEnd"
+            @click="onBlockClick(b)"
+            :title="b.description || b.name"
+          >
+            <component :is="resolveIcon(b.icon)" :size="24" class="bp-item-icon" />
+            <span class="bp-item-name">{{ b.name }}</span>
+          </div>
         </div>
-      </template>
-
-      <p v-if="hasNoResults" class="bp-empty">Không tìm thấy block nào</p>
+      </div>
+      
+      <div v-if="filteredGroups.length === 0" class="bp-empty">
+        <FileQuestion :size="24" />
+        <p>Không tìm thấy block nào khớp với "{{ searchQuery }}"</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import {
-  Search, Plus, Image, FileText, Minus, Code, BookOpen,
-  TrendingUp, ShoppingBag, Star, FolderTree, Box, ImageIcon,
-  Layout, Layers,
-} from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Search, X, Box, Image as ImageIcon, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, Columns, Layers, FileQuestion, Zap } from 'lucide-vue-next'
 
-defineEmits(['add-block'])
+const props = defineProps({
+  blockDefinitions: { type: Array, required: true }
+})
 
-const bridge = window.__APP_BRIDGE__ || {}
-const search = ref('')
-const dragging = ref(null)
-const groups = ref({})
+const emit = defineEmits(['add-block'])
 
-const ICON_MAP = {
-  Image, FileText, Minus, Code, BookOpen, TrendingUp,
-  ShoppingBag, Star, FolderTree, Box, ImageIcon, Layout, Layers,
-}
-const PLUGIN_LABELS = {
-  cms: 'CMS cơ bản',
-  blog: 'Blog',
-  ecom: 'Sản phẩm',
-  lms: 'Học tập',
-  'lucky-draw': 'Lucky Draw',
-}
+const searchQuery = ref('')
+const isFocused = ref(false)
 
-function resolveIcon(name) {
-  return ICON_MAP[name] || Box
-}
-function pluginLabel(id) {
-  return PLUGIN_LABELS[id] || id
-}
+const ICON_MAP = { Image: ImageIcon, FileText, Minus, Code, BookOpen, TrendingUp, ShoppingBag, Star, FolderTree, Box, ImageIcon, Columns, Layers, Zap }
+function resolveIcon(name) { return ICON_MAP[name] || Box }
 
-function loadGroups() {
-  groups.value = bridge.getBlocksGrouped?.() || {}
-}
+const groupedBlocks = computed(() => {
+  const layouts = props.blockDefinitions.filter(b => b.type.startsWith('columns') || b.type === 'spacer')
+  const content = props.blockDefinitions.filter(b => ['rich-text', 'hero-banner'].includes(b.type))
+  const media = props.blockDefinitions.filter(b => ['image-banner'].includes(b.type))
+  const used = new Set([...layouts, ...content, ...media].map(b => b.type))
+  
+  const groups = [
+    { label: 'Bố cục', items: layouts },
+    { label: 'Nội dung', items: content },
+    { label: 'Truyền thông', items: media },
+  ]
+  
+  const remaining = props.blockDefinitions.filter(b => !used.has(b.type))
+  const pluginMap = {
+    'ecom': 'Cửa hàng / E-com',
+    'blog': 'Bài viết / Tin tức',
+    'marketing': 'Khuyến mãi / Sale'
+  }
+  
+  const others = {}
+  remaining.forEach(b => {
+    const p = b.plugin || 'other'
+    const label = pluginMap[p] || (p === 'cms' ? 'Nâng cao' : p)
+    if (!others[label]) others[label] = []
+    others[label].push(b)
+  })
+  
+  Object.keys(others).forEach(label => {
+    groups.push({ label, items: others[label] })
+  })
+
+  return groups.filter(g => g.items.length > 0)
+})
 
 const filteredGroups = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return groups.value
-  const result = {}
-  for (const [plugin, list] of Object.entries(groups.value)) {
-    const filtered = list.filter(b =>
-      b.name.toLowerCase().includes(q) ||
-      (b.description || '').toLowerCase().includes(q)
-    )
-    if (filtered.length) result[plugin] = filtered
-  }
-  return result
+  if (!searchQuery.value) return groupedBlocks.value
+  
+  const q = searchQuery.value.toLowerCase()
+  return groupedBlocks.value.map(group => ({
+    label: group.label,
+    items: group.items.filter(b => b.name.toLowerCase().includes(q) || (b.description && b.description.toLowerCase().includes(q)))
+  })).filter(group => group.items.length > 0)
 })
 
-const hasNoResults = computed(() =>
-  search.value.trim() && Object.keys(filteredGroups.value).length === 0
-)
-
-function onDragStart(event, block) {
-  dragging.value = block.type
-  event.dataTransfer.setData('source', 'palette')
-  event.dataTransfer.setData('block-type', block.type)
-  event.dataTransfer.effectAllowed = 'copy'
+function onDragStart(e, blockDef) {
+  e.dataTransfer.setData('source', 'palette')
+  e.dataTransfer.setData('block-type', blockDef.type)
+  e.dataTransfer.setData('application/json', JSON.stringify({
+    type: blockDef.type,
+    settings: { ...blockDef.defaultSettings }
+  }))
+  e.dataTransfer.effectAllowed = 'copy'
+  
+  // Try to create a small ghost
+  const ghost = document.createElement('div')
+  ghost.style.position = 'absolute'
+  ghost.style.top = '-1000px'
+  ghost.style.width = '80px'
+  ghost.style.height = '80px'
+  ghost.style.background = '#fff'
+  ghost.style.border = '2px solid #7c3aed'
+  ghost.style.borderRadius = '8px'
+  document.body.appendChild(ghost)
+  e.dataTransfer.setDragImage(ghost, 40, 40)
+  setTimeout(() => ghost.remove(), 0)
 }
 
-let unsubscribe = null
-onMounted(() => {
-  loadGroups()
-  unsubscribe = bridge.onBlockRegistered?.(loadGroups)
-  window.addEventListener('block:registered', loadGroups)
-})
-onUnmounted(() => {
-  unsubscribe?.()
-  window.removeEventListener('block:registered', loadGroups)
-})
+function onDragEnd() {
+  // Cleanup
+}
+
+function onBlockClick(blockDef) {
+  emit('add-block', {
+    type: blockDef.type,
+    settings: { ...blockDef.defaultSettings }
+  })
+}
 </script>
 
 <style scoped>
-.bp {
-  width: 240px;
-  min-width: 240px;
-  background: var(--bg-1, #ffffff);
-  border-right: 1px solid var(--border, #e5e7eb);
-  box-shadow: 2px 0 12px rgba(0,0,0,0.02);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 10;
-}
-.bp-title {
-  padding: 16px 16px 12px;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--text-1, #111827);
-}
-.bp-search-wrap {
-  position: relative;
-  margin: 0 14px 12px;
-}
-.bp-search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-3);
-  pointer-events: none;
-}
+.bp { display: flex; flex-direction: column; height: 100%; background: var(--bg-1, #fff); }
+
 .bp-search {
-  width: 100%;
-  padding: 8px 12px 8px 32px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-2, #f9fafb);
-  font-size: 13px;
-  color: var(--text-1);
-  box-sizing: border-box;
-  transition: all 0.2s ease;
+  position: relative; padding: 12px 14px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
 }
-.bp-search:focus {
-  outline: none;
-  border-color: var(--accent, #7c3aed);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+.bp-search-icon { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: var(--text-3); }
+.bp-search-input {
+  width: 100%; width: -moz-available; width: -webkit-fill-available;
+  padding: 8px 30px 8px 32px;
+  border: 1px solid var(--border); border-radius: 6px;
+  font-size: 13px; background: var(--bg-2, #f9fafb);
+  transition: all 0.2s; outline: none; box-sizing: border-box;
+}
+.bp-search-input:focus {
+  background: #fff; border-color: var(--accent, #7c3aed);
+  box-shadow: 0 0 0 2px rgba(124,58,237,0.1);
+}
+.bp-clear {
+  position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; padding: 4px; color: var(--text-3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; border-radius: 50%;
+}
+.bp-clear:hover { background: var(--border); color: var(--text-1); }
+
+.bp-list { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 20px; }
+
+.bp-group-title {
+  font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.5px; margin: 0 0 10px 4px;
 }
 
-.bp-scroll { flex: 1; overflow-y: auto; padding: 0 10px 16px; }
-.bp-group-title {
-  padding: 14px 6px 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .5px;
-  color: var(--text-3, #9ca3af);
-}
+.bp-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
 .bp-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  cursor: grab;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  aspect-ratio: 1; padding: 12px;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px;
+  cursor: grab; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
-  transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-  margin-bottom: 4px;
-  border: 1px solid transparent;
-  background: transparent;
 }
 .bp-item:hover {
-  background: var(--bg-1, #ffffff);
-  border-color: var(--border, #e5e7eb);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-  transform: translateY(-1px);
+  border-color: rgba(124,58,237,0.4);
+  background: rgba(124,58,237,0.02);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.bp-item:active {
-  transform: scale(0.98);
-  cursor: grabbing;
-}
-.bp-item:hover .bp-item__plus { opacity: 1; transform: translateX(0); }
+.bp-item:active { cursor: grabbing; transform: scale(0.96); }
 
-.bp-item--dragging {
-  background: rgba(124,58,237,.08);
-  border-color: rgba(124,58,237,.2);
-}
+.bp-item-icon { color: var(--accent, #7c3aed); transition: transform 0.2s; }
+.bp-item:hover .bp-item-icon { transform: scale(1.1); }
 
-.bp-item__icon { color: var(--accent, #7c3aed); display: flex; align-items: center; flex-shrink: 0; }
-.bp-item__name { font-size: 13px; font-weight: 500; color: var(--text-2, #374151); flex: 1; }
-
-.bp-item__plus {
-  color: var(--accent);
-  opacity: 0;
-  padding: 4px;
-  border-radius: 4px;
-  background: rgba(124,58,237,.1);
-  display: flex;
-  align-items: center;
-  transition: all .2s ease;
-  transform: translateX(-4px);
-  flex-shrink: 0;
+.bp-item-name {
+  font-size: 11px; font-weight: 500; color: var(--text-2); text-align: center;
+  line-height: 1.3;
 }
-.bp-item__plus:hover { background: var(--accent); color: #fff; }
 
 .bp-empty {
-  padding: 30px 10px;
-  text-align: center;
-  color: var(--text-3);
-  font-size: 13px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; color: var(--text-3); text-align: center; padding: 40px 20px;
 }
+.bp-empty p { font-size: 13px; margin: 0; }
 </style>

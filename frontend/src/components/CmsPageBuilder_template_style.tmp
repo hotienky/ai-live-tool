@@ -104,7 +104,6 @@
   </div>
 </template>
 
-<script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { apiFetch, useToast } from '../helpers.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -348,7 +347,6 @@ async function savePage() {
   }
   isSaving.value = false
 }
-</script>
 
 <style scoped>
 .cpb {

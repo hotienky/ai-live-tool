@@ -10,7 +10,7 @@
     <div v-if="!blocks.length" class="bc-empty">
       <div class="bc-empty__inner" :class="{ 'bc-empty__inner--active': dropPath === '0' }">
         <!-- The empty state acts as drop-zone '0' -->
-        <component :is="'Inbox'" :size="48" class="bc-empty-icon" />
+        <component :is="Inbox" :size="48" class="bc-empty-icon" />
         <p>Kéo block từ bảng bên trái vào đây</p>
         <p class="bc-empty__hint">hoặc click vào block để thêm nhanh</p>
       </div>

@@ -403,7 +403,7 @@
       </div>
 
       <!-- ═══ Tab: Storefront Layout ═══ -->
-      <div v-if="activeTab === 'storefront-layout'" class="settings__panel">
+      <div v-if="activeTab === 'storefront-layout'" class="settings__panel settings__panel--fullheight settings__panel--no-padding" style="border: none; border-radius: 0;">
         <StorefrontLayoutBuilder />
       </div>
 

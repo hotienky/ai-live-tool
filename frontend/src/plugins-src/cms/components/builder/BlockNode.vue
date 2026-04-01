@@ -22,11 +22,11 @@
           @move-down="$emit('move', getPath(i), getPath(i + 1))"
         >
           <!-- Recursively render children if it's a layout block (columns) -->
-          <div v-if="block.type.startsWith('columns')" class="bc-columns-wrap">
+          <template v-if="block.type.startsWith('columns')">
             <div
               v-for="colIdx in (block.settings?.columns || 2)"
               :key="colIdx"
-              class="bc-column"
+              class="bc-col"
               :style="{ width: getColumnWidth(block.settings?.layout, colIdx - 1) }"
             >
               <!-- Inside each column, we have a drop zone 0 -->
@@ -47,7 +47,7 @@
                 @move="$emit('move', $arguments[0], $arguments[1])"
               />
             </div>
-          </div>
+          </template>
         </BlockCard>
 
         <!-- Drop zone after the block -->
@@ -64,6 +64,8 @@
 <script setup>
 import { computed } from 'vue'
 import BlockCard from './BlockCard.vue'
+
+defineOptions({ name: 'BlockNode' })
 
 const props = defineProps({
   blocks: { type: Array, default: () => [] },
@@ -117,12 +119,14 @@ function getColumnWidth(layoutParams, colIdx) {
   height: 24px; background: rgba(124,58,237,.15);
   border: 2px dashed rgba(124,58,237,.4); border-radius: 6px;
 }
-.bc-columns-wrap {
-  display: flex; gap: 12px; margin-top: 12px;
-  padding: 8px; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px dashed rgba(0,0,0,0.1);
-}
-.bc-column {
-  display: flex; flex-direction: column; min-height: 40px;
+.bc-col {
+  background: rgba(124,58,237,0.03);
+  border: 1.5px dashed rgba(124,58,237,0.2);
+  border-radius: 6px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
 }
 .bc-drop-zone--nested {
   height: 20px; border: 1px dashed transparent; margin-bottom: 4px;
