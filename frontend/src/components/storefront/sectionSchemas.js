@@ -54,6 +54,21 @@ export const sectionMeta = {
 
   // ── Events (requires 'events' module) ──
   upcoming_events:   { label: 'Sự kiện sắp tới',     moduleId: 'events', category: 'Sự kiện',    icon: 'PartyPopper', description: 'Danh sách sự kiện' },
+
+  // ── System Page Sections (dynamic page composition) ──
+  page_breadcrumb:     { label: 'Breadcrumb',           moduleId: null, category: 'Hệ thống', icon: 'ChevronRight', description: 'Thanh điều hướng breadcrumb' },
+  page_heading:        { label: 'Tiêu đề trang',        moduleId: null, category: 'Hệ thống', icon: 'Type',         description: 'Heading + mô tả trang' },
+  product_grid:        { label: 'Lưới sản phẩm',        moduleId: 'ecom', category: 'Hệ thống', icon: 'LayoutGrid',  description: 'Danh sách SP có filter/sidebar' },
+  product_detail_view: { label: 'Chi tiết sản phẩm',    moduleId: 'ecom', category: 'Hệ thống', icon: 'Package',     description: 'Gallery + thông tin SP' },
+  product_reviews:     { label: 'Đánh giá sản phẩm',    moduleId: 'ecom', category: 'Hệ thống', icon: 'Star',        description: 'Danh sách đánh giá SP' },
+  related_products:    { label: 'SP liên quan',          moduleId: 'ecom', category: 'Hệ thống', icon: 'ShoppingBag', description: 'Sản phẩm liên quan' },
+  cart_summary:        { label: 'Giỏ hàng',              moduleId: 'ecom', category: 'Hệ thống', icon: 'ShoppingCart', description: 'Nội dung giỏ hàng' },
+  checkout_form:       { label: 'Form thanh toán',       moduleId: 'ecom', category: 'Hệ thống', icon: 'CreditCard',  description: 'Form checkout' },
+  auth_form:           { label: 'Đăng nhập/Đăng ký',    moduleId: null, category: 'Hệ thống', icon: 'Lock',        description: 'Form xác thực' },
+  account_dashboard:   { label: 'Dashboard tài khoản',   moduleId: null, category: 'Hệ thống', icon: 'User',        description: 'Trang tài khoản' },
+  order_history:       { label: 'Lịch sử đơn hàng',     moduleId: 'ecom', category: 'Hệ thống', icon: 'FileStack',   description: 'Danh sách đơn hàng' },
+  blog_listing:        { label: 'Danh sách bài viết',    moduleId: 'blog', category: 'Hệ thống', icon: 'BookOpen',    description: 'Trang blog listing' },
+  wishlist_grid:       { label: 'Danh sách yêu thích',   moduleId: 'ecom', category: 'Hệ thống', icon: 'Heart',       description: 'Sản phẩm yêu thích' },
 }
 
 
@@ -76,7 +91,11 @@ export const sectionSchemas = {
     { key: 'desktopImage', type: 'media', label: 'Ảnh Desktop' },
     { key: 'mobileImage', type: 'media', label: 'Ảnh Mobile (Tùy chọn)' },
     { key: 'link', type: 'url', label: 'Đường dẫn (Link)' },
-    { key: 'fullWidth', type: 'boolean', label: 'Rộng toàn màn hình' }
+    { key: 'fullWidth', type: 'boolean', label: 'Rộng toàn màn hình' },
+    { key: 'height', type: 'text', label: 'Chiều cao (VD: 400px, 50vh)', placeholder: 'auto' },
+    { key: 'altText', type: 'text', label: 'Alt text (SEO)' },
+    { key: 'overlay', type: 'boolean', label: 'Lớp phủ tối' },
+    { key: 'overlayOpacity', type: 'range', label: 'Độ mờ overlay', condition: 'overlay', min: 10, max: 80, step: 5 },
   ],
   feature_links: [
     { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 6 },
@@ -164,7 +183,11 @@ export const sectionSchemas = {
   newsletter: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'subtitle', type: 'text', label: 'Phụ đề' },
-    { key: 'buttonText', type: 'text', label: 'Nút bấm' }
+    { key: 'buttonText', type: 'text', label: 'Nút bấm' },
+    { key: 'bgColor', type: 'color', label: 'Màu nền' },
+    { key: 'textColor', type: 'color', label: 'Màu chữ' },
+    { key: 'theme', type: 'select', label: 'Giao diện', options: [{value:'light',label:'Sáng'},{value:'dark',label:'Tối'},{value:'gradient',label:'Gradient'}] },
+    { key: 'placeholderText', type: 'text', label: 'Placeholder', placeholder: 'Nhập email...' },
   ],
   form: [
     { key: 'title', type: 'text', label: 'Tiêu đề (Tùy chọn)' },
@@ -175,8 +198,11 @@ export const sectionSchemas = {
   ],
   social_feed: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'displayStyle', type: 'select', label: 'Kiểu hiển thị', options: [{value:'icons',label:'Chỉ icon'},{value:'buttons',label:'Nút bấm'},{value:'cards',label:'Thẻ'}] },
+    { key: 'showLabels', type: 'boolean', label: 'Hiện tên MXH' },
+    { key: 'iconSize', type: 'select', label: 'Kích thước', options: [{value:'sm',label:'Nhỏ'},{value:'md',label:'Vừa'},{value:'lg',label:'Lớn'}] },
     { key: '_content', type: 'list', label: 'Liên kết', fields: [
-      { key: 'platform', type: 'select', options: [{value:'facebook',label:'Facebook'}, {value:'instagram',label:'Instagram'}, {value:'youtube',label:'YouTube'}, {value:'tiktok',label:'TikTok'}] },
+      { key: 'platform', type: 'select', options: [{value:'facebook',label:'Facebook'}, {value:'instagram',label:'Instagram'}, {value:'youtube',label:'YouTube'}, {value:'tiktok',label:'TikTok'}, {value:'zalo',label:'Zalo'}, {value:'twitter',label:'Twitter/X'}, {value:'shopee',label:'Shopee'}, {value:'lazada',label:'Lazada'}] },
       { key: 'url', type: 'url', placeholder: 'URL' }
     ]}
   ],
@@ -220,6 +246,115 @@ export const sectionSchemas = {
     { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 12 },
     { key: 'gap', type: 'range', label: 'Khoảng cách (px)', min: 0, max: 64, step: 4 },
     { key: '_children', type: 'children', label: 'Nội dung lưới' }
+  ],
+
+  // ── Trust Badges (was missing entirely) ──
+  trust_badges: [
+    { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'row',label:'Hàng ngang'},{value:'grid',label:'Lưới'},{value:'carousel',label:'Carousel'}] },
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 6 },
+    { key: 'background', type: 'color', label: 'Màu nền' },
+    { key: 'iconSize', type: 'select', label: 'Kích thước icon', options: [{value:'sm',label:'Nhỏ'},{value:'md',label:'Vừa'},{value:'lg',label:'Lớn'}] },
+    { key: '_content', type: 'list', label: 'Badges', defaults: { icon: '' }, fields: [
+      { key: 'title', type: 'text', placeholder: 'Tiêu đề badge' },
+      { key: 'description', type: 'text', placeholder: 'Mô tả' },
+      { key: 'icon', type: 'media', placeholder: 'URL icon/ảnh' },
+    ]}
+  ],
+
+  // ── Blog Posts (enhanced) ──
+  blog_posts: [
+    { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'subtitle', type: 'text', label: 'Phụ đề' },
+    { key: 'layoutView', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'list',label:'Danh sách'},{value:'carousel',label:'Carousel'},{value:'featured',label:'Bài nổi bật + lưới'}] },
+    { key: 'count', type: 'range', label: 'Số bài', min: 3, max: 12 },
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 4 },
+    { key: 'showExcerpt', type: 'boolean', label: 'Hiện trích dẫn' },
+    { key: 'showDate', type: 'boolean', label: 'Hiện ngày đăng' },
+    { key: 'showImage', type: 'boolean', label: 'Hiện ảnh đại diện' },
+    { key: 'showAuthor', type: 'boolean', label: 'Hiện tác giả' },
+    { key: 'showReadMore', type: 'boolean', label: 'Hiện nút Xem thêm' },
+  ],
+
+  // ══════════════════════════════════════════
+  // System Page Section Schemas (dynamic composition)
+  // ══════════════════════════════════════════
+  page_breadcrumb: [
+    { key: 'showHome', type: 'boolean', label: 'Hiện link Trang chủ' },
+    { key: 'separator', type: 'select', label: 'Ký tự phân cách', options: [{value:'/',label:'/'},{value:'>',label:'>'},{value:'»',label:'»'},{value:'→',label:'→'}] },
+  ],
+  page_heading: [
+    { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'subtitle', type: 'text', label: 'Phụ đề' },
+    { key: 'alignment', type: 'select', label: 'Căn chỉnh', options: [{value:'left',label:'Trái'},{value:'center',label:'Giữa'},{value:'right',label:'Phải'}] },
+    { key: 'tag', type: 'select', label: 'Thẻ HTML', options: [{value:'h1',label:'H1'},{value:'h2',label:'H2'},{value:'h3',label:'H3'}] },
+  ],
+  product_grid: [
+    { key: 'columns', type: 'range', label: 'Số cột SP', min: 2, max: 5 },
+    { key: 'itemsPerPage', type: 'select', label: 'SP mỗi trang', options: [{value:8,label:'8'},{value:12,label:'12'},{value:16,label:'16'},{value:24,label:'24'}] },
+    { key: 'sidebarPosition', type: 'select', label: 'Sidebar', options: [{value:'left',label:'Bên trái'},{value:'right',label:'Bên phải'},{value:'hidden',label:'Ẩn'}] },
+    { key: 'showFilters_category', type: 'boolean', label: 'Filter danh mục' },
+    { key: 'showFilters_brand', type: 'boolean', label: 'Filter thương hiệu' },
+    { key: 'showFilters_price', type: 'boolean', label: 'Filter giá' },
+    { key: 'sortDefault', type: 'select', label: 'Sắp xếp mặc định', options: [{value:'newest',label:'Mới nhất'},{value:'bestselling',label:'Bán chạy'},{value:'price_asc',label:'Giá tăng'},{value:'price_desc',label:'Giá giảm'}] },
+    { key: 'cardStyle', type: 'select', label: 'Kiểu thẻ SP', options: [{value:'default',label:'Mặc định'},{value:'minimal',label:'Tối giản'},{value:'overlay',label:'Overlay'}] },
+  ],
+  product_detail_view: [
+    { key: 'galleryStyle', type: 'select', label: 'Gallery', options: [{value:'thumbnails',label:'Thumbnail'},{value:'grid',label:'Grid'},{value:'carousel',label:'Carousel'}] },
+    { key: 'layoutRatio', type: 'select', label: 'Tỷ lệ layout', options: [{value:'50-50',label:'50/50'},{value:'60-40',label:'60/40'},{value:'40-60',label:'40/60'}] },
+    { key: 'showBreadcrumb', type: 'boolean', label: 'Breadcrumb' },
+    { key: 'showSKU', type: 'boolean', label: 'Hiện mã SKU' },
+    { key: 'showStock', type: 'boolean', label: 'Hiện tồn kho' },
+    { key: 'showShare', type: 'boolean', label: 'Nút chia sẻ' },
+  ],
+  product_reviews: [
+    { key: 'showRatingSummary', type: 'boolean', label: 'Hiện tổng hợp đánh giá' },
+    { key: 'showWriteReview', type: 'boolean', label: 'Cho phép viết đánh giá' },
+    { key: 'perPage', type: 'select', label: 'Số đánh giá/trang', options: [{value:5,label:'5'},{value:10,label:'10'},{value:20,label:'20'}] },
+  ],
+  related_products: [
+    { key: 'title', type: 'text', label: 'Tiêu đề' },
+    { key: 'count', type: 'range', label: 'Số SP', min: 4, max: 12 },
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'carousel',label:'Carousel'}] },
+  ],
+  cart_summary: [
+    { key: 'showThumbnails', type: 'boolean', label: 'Hiện ảnh SP' },
+    { key: 'showQuantityControls', type: 'boolean', label: 'Nút tăng/giảm SL' },
+    { key: 'showCoupon', type: 'boolean', label: 'Ô nhập mã giảm giá' },
+    { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'full',label:'Toàn trang'},{value:'sidebar',label:'Có sidebar'}] },
+  ],
+  checkout_form: [
+    { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'two-column',label:'2 cột'},{value:'single-column',label:'1 cột'}] },
+    { key: 'showCoupon', type: 'boolean', label: 'Mã giảm giá' },
+    { key: 'showNotes', type: 'boolean', label: 'Ghi chú đơn hàng' },
+    { key: 'showSteps', type: 'boolean', label: 'Thanh tiến trình' },
+  ],
+  auth_form: [
+    { key: 'allowRegister', type: 'boolean', label: 'Cho phép đăng ký' },
+    { key: 'allowForgotPassword', type: 'boolean', label: 'Quên mật khẩu' },
+    { key: 'cardMaxWidth', type: 'range', label: 'Chiều rộng card (px)', min: 360, max: 600, step: 20 },
+    { key: 'showSocialLogin', type: 'boolean', label: 'Đăng nhập MXH' },
+  ],
+  account_dashboard: [
+    { key: 'sidebarPosition', type: 'select', label: 'Sidebar', options: [{value:'left',label:'Bên trái'},{value:'right',label:'Bên phải'}] },
+    { key: 'showOrders', type: 'boolean', label: 'Tab đơn hàng' },
+    { key: 'showAddresses', type: 'boolean', label: 'Tab địa chỉ' },
+    { key: 'showPasswordChange', type: 'boolean', label: 'Tab đổi mật khẩu' },
+  ],
+  order_history: [
+    { key: 'perPage', type: 'select', label: 'Đơn hàng/trang', options: [{value:5,label:'5'},{value:10,label:'10'},{value:20,label:'20'}] },
+    { key: 'showStatus', type: 'boolean', label: 'Hiện trạng thái' },
+  ],
+  blog_listing: [
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 4 },
+    { key: 'postsPerPage', type: 'select', label: 'Bài/trang', options: [{value:6,label:'6'},{value:9,label:'9'},{value:12,label:'12'}] },
+    { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'list',label:'Danh sách'},{value:'masonry',label:'Masonry'}] },
+    { key: 'showSidebar', type: 'boolean', label: 'Sidebar' },
+  ],
+  wishlist_grid: [
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'emptyMessage', type: 'text', label: 'Thông báo khi trống', placeholder: 'Chưa có sản phẩm yêu thích' },
   ]
 };
 

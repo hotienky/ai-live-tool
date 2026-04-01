@@ -99,7 +99,7 @@
       <iframe
         v-if="storefrontUrl"
         ref="iframeRef"
-        :src="livePreviewBaseUrl"
+        :src="iframeInitialSrc"
         class="preview-iframe"
         :key="previewKey"
         @load="sendLayoutToIframe"
@@ -155,6 +155,23 @@ const emit = defineEmits([
 ])
 
 const iframeRef = ref(null)
+
+// Initial src — only the base URL with ?preview=true, no page path
+// Page navigation is done via postMessage to avoid iframe reload
+const iframeInitialSrc = computed(() => {
+  if (!props.storefrontUrl) return ''
+  return `${props.storefrontUrl}?preview=true`
+})
+
+// When the target page changes, navigate via postMessage instead of reloading iframe
+watch(() => props.livePreviewBaseUrl, (newUrl) => {
+  if (!newUrl || !iframeRef.value?.contentWindow) return
+  try {
+    const url = new URL(newUrl)
+    const path = url.pathname + url.search.replace('?preview=true', '').replace('preview=true', '') || '/'
+    sendToIframe('builder:navigate', { path: path || '/' })
+  } catch {}
+})
 
 const footerPreviewStyle = computed(() => {
   const s = {}

@@ -1,5 +1,10 @@
 <template>
   <div class="section-list">
+    <!-- Section Count Badge -->
+    <div class="section-list__header" v-if="list.length > 0">
+      <span class="section-list__count">{{ list.length }} section{{ list.length !== 1 ? 's' : '' }}</span>
+      <span class="section-list__active-count">{{ list.filter(s => s.enabled).length }} active</span>
+    </div>
     <div class="element-palette">
       <!-- Mẫu Nguyên Thuỷ -->
       <div 
@@ -32,11 +37,19 @@
       </div>
     </div>
     
+    <!-- Quick Search -->
+    <div class="section-search" v-if="list.length > 0">
+      <Search class="section-search__icon" :size="14" />
+      <input type="text" v-model="searchQuery" placeholder="Tìm kiếm section..." class="section-search__input" />
+      <button v-if="searchQuery" class="section-search__clear" @click="searchQuery = ''"><X :size="12" /></button>
+    </div>
+
     <div
       v-for="(section, idx) in list"
       :key="section.id || section.type + idx"
       class="section-item-wrap"
       :data-section-panel="section.type"
+      v-show="isMatch(section)"
     >
       <div
         class="section-item"
@@ -45,8 +58,10 @@
           dragging: dragIndex === idx,
           'drag-over': dragOverIndex === idx && dragIndex !== idx,
           expanded: expandedSection === section.type,
+          'section-item--active': activeConfig === ('section-' + (section.id || section.type)),
         }"
         draggable="true"
+        @click="openSectionConfig(section)"
         @dragstart="onDragStart($event, idx)"
         @dragend="onDragEnd"
         @dragover.prevent="onDragOver($event, idx)"
@@ -63,7 +78,23 @@
             <component v-if="sectionMeta[section.type]?.icon" :is="sectionMeta[section.type].icon" :size="14" />
             <Box v-else :size="14" />
           </span>
-          <span>{{ sectionMeta[section.type]?.label || section.type }}</span>
+          <span 
+            v-if="renamingIndex !== idx" 
+            class="section-item__name"
+            @dblclick.stop="startRename(idx, section)"
+            title="Nhấp đúp để đổi tên"
+          >
+            {{ section.customName || sectionMeta[section.type]?.label || section.type }}
+          </span>
+          <input 
+            v-else
+            v-model="renameValue"
+            class="section-item__rename-input"
+            @blur="finishRename(section, idx)"
+            @keyup.enter="finishRename(section, idx)"
+            @keyup.esc="cancelRename"
+            @click.stop
+          />
         </div>
         <div class="section-item__right">
           <div class="section-actions-hover">
@@ -99,6 +130,11 @@
               data-tooltip="Xoá section"
             ><Trash2 :size="12" /></button>
           </div>
+          <!-- Move Up/Down -->
+          <div class="section-move-btns">
+            <button class="btn-move" :disabled="idx === 0" @click.stop="moveSection(idx, -1)" title="Di chuyển lên">▲</button>
+            <button class="btn-move" :disabled="idx === list.length - 1" @click.stop="moveSection(idx, 1)" title="Di chuyển xuống">▼</button>
+          </div>
           <label class="toggle-switch" data-tooltip="Hiển thị" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
             <span class="toggle-slider"></span>
@@ -124,12 +160,19 @@
         </ul>
       </div>
     </Teleport>
+
+    <!-- Empty State -->
+    <div v-if="list.length === 0" class="section-empty-state">
+      <Box :size="32" style="color: #94a3b8" />
+      <p class="section-empty-state__title">Chưa có section nào</p>
+      <p class="section-empty-state__desc">Nhấn <strong>+ Thêm Section</strong> hoặc kéo thả elements từ palette ở trên để bắt đầu.</p>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square } from 'lucide-vue-next'
+import { ref, computed, watch, nextTick } from 'vue'
+import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X } from 'lucide-vue-next'
 
 const primitiveElements = [
   { type: 'container', label: 'Container', icon: Box },
@@ -204,7 +247,8 @@ function cmAction(actionType) {
 const props = defineProps({
   sections: { type: Array, required: true },
   sectionMeta: { type: Object, required: true },
-  allCategories: { type: Array, default: () => [] }
+  allCategories: { type: Array, default: () => [] },
+  activeConfig: { default: null },
 })
 const emit = defineEmits(['update:sections', 'open-block-editor', 'active-change'])
 
@@ -216,6 +260,46 @@ const list = computed({
 const expandedSection = ref(null)
 
 const dragNewType = ref(null)
+
+const renamingIndex = ref(null)
+const renameValue = ref('')
+
+function startRename(idx, section) {
+  renamingIndex.value = idx
+  renameValue.value = section.customName || props.sectionMeta[section.type]?.label || section.type
+  nextTick(() => {
+    const input = document.querySelector('.section-item__rename-input')
+    if (input) {
+      input.focus()
+      input.select()
+    }
+  })
+}
+
+function finishRename(section, idx) {
+  if (renamingIndex.value !== idx) return
+  const val = renameValue.value.trim()
+  if (val) {
+    if (val !== (props.sectionMeta[section.type]?.label || section.type)) {
+      section.customName = val
+    } else {
+      delete section.customName
+    }
+  }
+  renamingIndex.value = null
+}
+
+function cancelRename() {
+  renamingIndex.value = null
+}
+
+const searchQuery = ref('')
+function isMatch(section) {
+  if (!searchQuery.value) return true
+  const query = searchQuery.value.toLowerCase()
+  const label = props.sectionMeta[section.type]?.label || section.type
+  return label.toLowerCase().includes(query) || section.type.toLowerCase().includes(query)
+}
 
 // Drag Drop Logic
 const dragIndex = ref(null)
@@ -387,9 +471,89 @@ function deleteSection(idx) {
   expandedSection.value = null
 }
 
+function moveSection(idx, direction) {
+  const targetIdx = idx + direction
+  if (targetIdx < 0 || targetIdx >= list.value.length) return
+  const currentList = [...list.value]
+  const [moved] = currentList.splice(idx, 1)
+  currentList.splice(targetIdx, 0, moved)
+  currentList.forEach((s, i) => { s.order = i })
+  list.value = currentList
+}
+
 </script>
 
 <style scoped>
+/* Section List Header */
+.section-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+}
+.section-list__count {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+.section-list__active-count {
+  font-size: 10px;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Section Search */
+.section-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.section-search__icon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+}
+.section-search__input {
+  width: 100%;
+  padding: 8px 30px 8px 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+.section-search__input:focus {
+  outline: none;
+  background: #fff;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+.section-search__clear {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.section-search__clear:hover {
+  background: #e2e8f0;
+  color: #475569;
+}
+
 .section-list { padding-top: 8px; }
 .section-item-wrap { margin-bottom: 4px; }
 .section-item {
@@ -403,8 +567,25 @@ function deleteSection(idx) {
   display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-1); 
   flex: 1; min-width: 0; padding-right: 8px;
 }
-.section-item__left > span:last-child {
+.section-item__left > span:last-child, .section-item__name {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+}
+.section-item__name {
+  user-select: none;
+}
+.section-item__rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  border: 1px solid #6366f1;
+  border-radius: 4px;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+  color: #1e293b;
 }
 .section-item:hover { border-color: var(--border); background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .section-item.expanded { border-color: var(--accent); background: rgba(124, 58, 237, 0.05); }
@@ -412,6 +593,11 @@ function deleteSection(idx) {
 .section-item.drag-over { border-top: 2px solid var(--accent); }
 .section-item__drag-handle { color: var(--text-3); cursor: grab; }
 .section-item.disabled { opacity: 0.6; text-decoration: line-through; }
+.section-item--active {
+  border-color: #6366f1 !important;
+  background: rgba(99, 102, 241, 0.08) !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), 0 2px 8px rgba(99, 102, 241, 0.1) !important;
+}
 .section-item__right { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
 
 .section-actions-hover {
@@ -600,5 +786,61 @@ input:checked + .toggle-slider:before { transform: translateX(12px); }
 .context-menu li.cm-danger { color: #ef4444; }
 .context-menu li.cm-danger:hover { background: rgba(239, 68, 68, 0.1); }
 .cm-divider { height: 1px; background: var(--border, #e5e7eb); margin: 4px 0; padding: 0 !important; cursor: default; }
+
+/* Move Buttons */
+.section-move-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.btn-move {
+  width: 18px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 8px;
+  border-radius: 3px;
+  transition: all 0.15s;
+  padding: 0;
+  line-height: 1;
+}
+.btn-move:hover:not(:disabled) {
+  background: #e2e8f0;
+  color: #334155;
+}
+.btn-move:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.section-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  text-align: center;
+}
+.section-empty-state__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #475569;
+}
+.section-empty-state__desc {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+.section-empty-state__desc strong {
+  color: #6366f1;
+}
 
 </style>

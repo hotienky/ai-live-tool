@@ -100,7 +100,7 @@
         <div class="cpb-sidebar-content">
           <!-- THEME TAB -->
           <div v-show="leftTab === 'theme'" class="side-pad scroll-y">
-            <LayoutThemeConfig v-model="themeConfig" />
+            <LayoutThemeConfig v-model="themeConfig" :active-page-id="activePageId" />
             
             <!-- Templates (Only show on Global page) -->
             <div class="lb-section" style="margin-top: 16px;" v-if="!activePageId">
@@ -150,7 +150,14 @@
                 @select-node="handleNavigatorSelect"
               />
 
-              <button class="cpb-btn-add" @click="showLibrary = true"><Plus :size="14"/> Thêm section</button>
+              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <button class="cpb-btn-add" style="flex: 1;" @click="showLibrary = true"><Plus :size="14"/> Thêm section</button>
+                <div style="display: flex; gap: 4px;">
+                  <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Export JSON" @click="exportJson"><Download :size="14"/></button>
+                  <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Import JSON" @click="triggerJsonImport"><Upload :size="14"/></button>
+                  <input type="file" ref="jsonInputRef" accept=".json" style="display:none" @change="onJsonImportFile" />
+                </div>
+              </div>
 
               <!-- Global Footer -->
               <div v-if="!activePageId" style="margin-top:8px">
@@ -242,22 +249,64 @@
               <input type="checkbox" v-model="promoConfig.enabled" />
               <span>Hiển thị thanh thông báo (Promo Bar)</span>
             </label>
-            <div class="form-group" v-if="promoConfig.enabled" style="margin-top: 12px">
-              <label>Nội dung</label>
-              <input v-model="promoConfig.text" class="param-input" placeholder="Miễn phí vận chuyển..." />
-            </div>
-            <div class="form-group" v-if="promoConfig.enabled" style="margin-top: 12px">
-              <label>Link trỏ tới</label>
-              <input v-model="promoConfig.link" class="param-input" placeholder="/products" />
-            </div>
-            <div class="form-group" v-if="promoConfig.enabled" style="margin-top: 12px">
-              <label>Tên Nút (CTA Text)</label>
-              <input v-model="promoConfig.ctaText" class="param-input" placeholder="Mua ngay" />
-            </div>
+            <template v-if="promoConfig.enabled">
+              <div class="form-group" style="margin-top: 12px">
+                <label>Nội dung</label>
+                <input v-model="promoConfig.text" class="param-input" placeholder="Miễn phí vận chuyển..." />
+              </div>
+              <div class="form-group" style="margin-top: 12px">
+                <label>Link trỏ tới</label>
+                <input v-model="promoConfig.link" class="param-input" placeholder="/products" />
+              </div>
+              <div class="form-group" style="margin-top: 12px">
+                <label>Tên Nút (CTA Text)</label>
+                <input v-model="promoConfig.ctaText" class="param-input" placeholder="Mua ngay" />
+              </div>
+              <div class="param-divider"></div>
+              <div class="form-group">
+                <label>Màu nền</label>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="color" v-model="promoConfig.bgColor" class="param-color" />
+                  <input v-model="promoConfig.bgColor" class="param-input" placeholder="#7c3aed" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Màu chữ</label>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="color" v-model="promoConfig.textColor" class="param-color" />
+                  <input v-model="promoConfig.textColor" class="param-input" placeholder="#ffffff" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Cỡ chữ</label>
+                <select v-model="promoConfig.fontSize" class="param-select">
+                  <option value="12px">Nhỏ (12px)</option>
+                  <option value="13px">Vừa (13px)</option>
+                  <option value="14px">Lớn (14px)</option>
+                  <option value="15px">Rất lớn (15px)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Có thể đóng</label>
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="promoConfig.dismissible" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </template>
           </div>
           
-          <!-- Section Config -->
-          <StyleControlPanel v-else-if="String(activeConfig).startsWith('section-')" :sectionId="activeConfig" />
+          <!-- Section Config (Content + Style) -->
+          <template v-else-if="activeSectionObj">
+            <SectionConfigEditor
+              :section="activeSectionObj"
+              :all-categories="allCategories"
+              :current-lang="'vi'"
+              :default-lang-code="'vi'"
+              @open-block-editor="s => showBlockEditorFor = s"
+              @navigate-tab="tab => { activeConfig = null; $emit('navigate-tab', tab) }"
+            />
+          </template>
 
         </div>
       </div>
@@ -397,6 +446,7 @@ import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
 import LayoutFooterConfig from './storefront/LayoutFooterConfig.vue'
 import LayoutPageConfigs from './storefront/LayoutPageConfigs.vue'
 import LayoutSectionManager from './storefront/LayoutSectionManager.vue'
+import SectionConfigEditor from './storefront/SectionConfigEditor.vue'
 import LayoutNavigator from './storefront/LayoutNavigator.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
@@ -408,7 +458,7 @@ import MediaPicker from './MediaPicker.vue'
 import { VisualBuilder, BuilderRegistry, StyleControlPanel } from '../lib/vue-visual-builder'
 import { useToast } from '../composables/useToast.js'
 import {
-  LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown,
+  LayoutDashboard, Save, Palette, Rows3, GripVertical, Settings2, ChevronUp, ChevronDown, Download, Upload,
   Eye, ShoppingBag, ShoppingCart, User, Truck, FileStack, Plus, X, Code,
   Image, Grid3x3, Zap, Sparkles, Clock, BookOpen, Store, Target, Package,
   Monitor, Tablet, Smartphone, AlertCircle, Layers, CreditCard,
@@ -423,6 +473,7 @@ import { useCmsPages } from '../composables/useCmsPages.js'
 import { useI18n } from '../composables/useI18n.js'
 import { sectionMeta as sectionMetaRegistry, getAllSectionsWithAvailability } from './storefront/sectionSchemas.js'
 import { industryTemplates } from './storefront/templatePresets.js'
+import { getDefaultSectionsForPage, getPageSlugFromId } from './storefront/defaultPageSections.js'
 
 Object.keys(sectionMetaRegistry).forEach(type => {
   BuilderRegistry.registerBlock(type, {
@@ -449,44 +500,8 @@ function toggleZenMode() {
   }
 }
 
-// Keyboard shortcuts for Undo/Redo & Zen
-onMounted(() => {
-  window.addEventListener('keydown', (e) => {
-    // Ignore input fields so we don't interfere with standard text typing
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) {
-      return
-    }
-    
-    // Esc to exit fullscreen or zen
-    if (e.key === 'Escape') {
-      if (isFullscreen.value) isFullscreen.value = false
-      if (activeConfig.value) activeConfig.value = null
-    }
-    
-    // F to toggle Zen Mode
-    if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault()
-      toggleZenMode()
-    }
-    
-    // X to toggle X-Ray
-    if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault()
-      toggleXRay()
-    }
-    
-    // Undo / Redo
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-      e.preventDefault()
-      if (e.shiftKey) redo()
-      else undo()
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-      e.preventDefault()
-      redo()
-    }
-  })
-})
+// Keyboard shortcuts — consolidated into handleGlobalKeydown below (line ~786)
+// Removed duplicate onMounted listener to prevent double-firing.
 
 const { showToast } = useToast()
 
@@ -662,10 +677,6 @@ const builtinPageOptions = [
   { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
   { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
   { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
-  { id: '__products',       label: 'Danh sách Sản phẩm',                            icon: ShoppingBag },
-  { id: '__productDetail',  label: 'Chi tiết Sản phẩm',                             icon: Tag },
-  { id: '__cart',           label: 'Giỏ hàng & Checkout',                           icon: ShoppingCart },
-  { id: '__account',        label: 'Tài khoản, Đăng nhập, Đăng ký',               icon: User },
   { id: '__blog',           label: 'Blog',                                          icon: BookOpen },
   { id: '__template_product_card', label: '[Template] Thẻ Sản phẩm',            icon: Layers },
   { id: '__template_blog_card',    label: '[Template] Thẻ Bài viết',            icon: Layers },
@@ -774,16 +785,47 @@ function redo() {
 
 
 function handleGlobalKeydown(e) {
-  if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return
-  if (e.metaKey || e.ctrlKey) {
-    if (e.key === 'z') {
-      e.preventDefault()
-      if (e.shiftKey) redo()
-      else undo()
-    } else if (e.key === 'y') {
-      e.preventDefault()
-      redo()
-    }
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return
+  
+  // Esc to exit fullscreen or close panel
+  if (e.key === 'Escape') {
+    if (isFullscreen.value) isFullscreen.value = false
+    if (activeConfig.value) activeConfig.value = null
+  }
+  
+  // F to toggle Zen Mode
+  if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault()
+    toggleZenMode()
+  }
+  
+  // X to toggle X-Ray
+  if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault()
+    toggleXRay()
+  }
+  
+  // Ctrl+K to open command palette
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault()
+    showCommandPalette.value = !showCommandPalette.value
+  }
+  
+  // Ctrl+S to save
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    handlePublish()
+  }
+  
+  // Undo / Redo
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault()
+    if (e.shiftKey) redo()
+    else undo()
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+    e.preventDefault()
+    redo()
   }
 }
 onMounted(() => { window.addEventListener('keydown', handleGlobalKeydown) })
@@ -812,7 +854,11 @@ const defaultPromoConfig = {
   enabled: true, 
   text: '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!', 
   link: '/products', 
-  ctaText: 'Mua sắm' 
+  ctaText: 'Mua sắm',
+  bgColor: '#7c3aed',
+  textColor: '#ffffff',
+  fontSize: '13px',
+  dismissible: true,
 }
 const promoConfig = ref({ ...defaultPromoConfig })
 const promoOpen = ref(false)
@@ -820,6 +866,12 @@ const promoOpen = ref(false)
 const leftTab = ref('structure')
 const leftCollapsed = ref(false)
 const activeConfig = ref(null)
+const activeSectionObj = computed(() => {
+  const id = activeConfig.value
+  if (!id || id === 'header' || id === 'footer' || id === 'promo') return null
+  // Match by section id or type
+  return sections.value.find(s => s.id === id || s.type === id) || null
+})
 const showCustomCss = ref(false)
 
 const activePageLabel = computed(() => {
@@ -835,7 +887,10 @@ const activeConfigName = computed(() => {
   if (activeConfig.value === 'header') return 'Header'
   if (activeConfig.value === 'footer') return 'Footer'
   if (activeConfig.value === 'promo') return 'Promo Bar'
-  if (String(activeConfig.value).startsWith('section-')) return 'Section'
+  if (activeSectionObj.value) {
+    const meta = sectionMeta[activeSectionObj.value.type]
+    return meta?.label || activeSectionObj.value.type
+  }
   return 'Tùy chỉnh'
 })
 
@@ -1237,6 +1292,20 @@ const sectionMeta = {
   property_listings: { label: 'Bất Động Sản', icon: Image, pvHeight: '70px' },
   upcoming_events: { label: 'Sự Kiện Sắp Tới', icon: Zap, pvHeight: '60px' },
   system_page_content: { label: 'Lõi Trang Hệ Thống', icon: Box, pvHeight: '100px' },
+  // System page sections (dynamic composition)
+  page_breadcrumb:     { label: 'Breadcrumb',        icon: Target,  pvHeight: '15px' },
+  page_heading:        { label: 'Tiêu đề trang',     icon: Type,    pvHeight: '25px' },
+  product_grid:        { label: 'Lưới sản phẩm',     icon: LayoutGrid, pvHeight: '80px' },
+  product_detail_view: { label: 'Chi tiết SP',       icon: Package, pvHeight: '100px' },
+  product_reviews:     { label: 'Đánh giá SP',        icon: Star,    pvHeight: '60px' },
+  related_products:    { label: 'SP liên quan',       icon: Sparkles, pvHeight: '60px' },
+  cart_summary:        { label: 'Giỏ hàng',           icon: ShoppingCart, pvHeight: '80px' },
+  checkout_form:       { label: 'Form thanh toán',    icon: CreditCard, pvHeight: '100px' },
+  auth_form:           { label: 'Đăng nhập/ĐK',      icon: Lock,    pvHeight: '80px' },
+  account_dashboard:   { label: 'Tài khoản',          icon: User,    pvHeight: '80px' },
+  order_history:       { label: 'Lịch sử đơn',       icon: FileStack, pvHeight: '60px' },
+  blog_listing:        { label: 'DS bài viết',       icon: BookOpen, pvHeight: '80px' },
+  wishlist_grid:       { label: 'Yêu thích',          icon: Heart,   pvHeight: '60px' },
 }
 
 const defaultParams = {
@@ -1261,6 +1330,20 @@ const defaultParams = {
   salon_services: { title: 'Dịch Vụ Spa & Salon', subtitle: 'Thư giãn và làm mới bản thân', count: 6 },
   property_listings: { title: 'Bất Động Sản Nổi Bật', subtitle: 'Tìm ngôi nhà mơ ước của bạn', count: 6 },
   upcoming_events: { title: 'Sự Kiện Sắp Tới', subtitle: 'Đừng bỏ lỡ những trải nghiệm tuyệt vời', count: 6 },
+  // System page section defaults
+  page_breadcrumb: { showHome: true, separator: '»' },
+  page_heading: { title: '', subtitle: '', alignment: 'left', tag: 'h1' },
+  product_grid: { columns: 4, itemsPerPage: 12, sidebarPosition: 'left', showFilters_category: true, showFilters_brand: true, showFilters_price: true, sortDefault: 'newest', cardStyle: 'default' },
+  product_detail_view: { galleryStyle: 'thumbnails', layoutRatio: '50-50', showBreadcrumb: true, showSKU: true, showStock: true, showShare: true },
+  product_reviews: { showRatingSummary: true, showWriteReview: true, perPage: 10 },
+  related_products: { title: 'Sản phẩm liên quan', count: 6, columns: 4, layoutStyle: 'carousel' },
+  cart_summary: { showThumbnails: true, showQuantityControls: true, showCoupon: true, layout: 'full' },
+  checkout_form: { layout: 'two-column', showCoupon: true, showNotes: true, showSteps: true },
+  auth_form: { allowRegister: true, allowForgotPassword: true, cardMaxWidth: 440, showSocialLogin: false },
+  account_dashboard: { sidebarPosition: 'left', showOrders: true, showAddresses: true, showPasswordChange: true },
+  order_history: { perPage: 10, showStatus: true },
+  blog_listing: { columns: 3, postsPerPage: 9, layout: 'grid', showSidebar: false },
+  wishlist_grid: { columns: 4, emptyMessage: 'Chưa có sản phẩm yêu thích' },
 }
 
 // ─── Library (now uses sectionMeta from sectionSchemas.js) ───
@@ -1491,15 +1574,28 @@ async function loadLayout() {
         }
 
         if (layoutJson.length === 0 && isBuiltin) {
-          sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+          // Use dynamic page composition defaults instead of legacy system_page_content
+          const pageSlug = getPageSlugFromId(activePageId.value)
+          const defaultSecs = getDefaultSectionsForPage(pageSlug)
+          if (defaultSecs.length > 0) {
+            sections.value = ensureParams(defaultSecs)
+          } else {
+            sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+          }
         } else {
           sections.value = ensureParams(layoutJson)
         }
         loadedFromLayoutPages = true
       } else if (isBuiltin) {
-        // Build an empty wrapper layout for a system page if it doesn't exist yet
+        // No saved layout yet — generate composable default sections
         layoutPageId.value = null
-        sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+        const pageSlug = getPageSlugFromId(activePageId.value)
+        const defaultSecs = getDefaultSectionsForPage(pageSlug)
+        if (defaultSecs.length > 0) {
+          sections.value = ensureParams(defaultSecs)
+        } else {
+          sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+        }
         loadedFromLayoutPages = true
       }
     } catch { /* layout-pages not available, fall back to system-config */ }
@@ -1578,6 +1674,45 @@ async function loadLayout() {
     ])
     pages.value = { cart: true, account: true, auth: true, order_tracking: true, products: true }
   }
+}
+
+// ─── JSON Import / Export ───
+const jsonInputRef = ref(null)
+
+function exportJson() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sections.value, null, 2))
+  const downloadAnchorNode = document.createElement('a')
+  downloadAnchorNode.setAttribute("href", dataStr)
+  downloadAnchorNode.setAttribute("download", `storefront_sections_${activePageId.value || 'home'}.json`)
+  document.body.appendChild(downloadAnchorNode)
+  downloadAnchorNode.click()
+  downloadAnchorNode.remove()
+}
+
+function triggerJsonImport() {
+  if (jsonInputRef.value) jsonInputRef.value.click()
+}
+
+function onJsonImportFile(e) {
+  const file = e.target.files[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (evt) => {
+    try {
+      const parsed = JSON.parse(evt.target.result)
+      if (Array.isArray(parsed)) {
+        pushUndo()
+        sections.value = parsed
+        showToast('Nhập JSON Layout thành công!', 'success')
+      } else {
+        showToast('Định dạng file không hợp lệ (cần mảng array).', 'error')
+      }
+    } catch {
+      showToast('Lỗi đọc file JSON.', 'error')
+    }
+  }
+  reader.readAsText(file)
+  e.target.value = ''
 }
 
 // Build the meta object containing all global configs
@@ -1870,12 +2005,18 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; }
 .cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 .cpb-btn-secondary--active { background: rgba(124, 58, 237, 0.1) !important; color: var(--accent) !important; border-color: rgba(124, 58, 237, 0.3) !important; }
+.cpb-section-shortcut { display: flex; align-items: center; gap: 6px; padding: 7px 10px; margin-bottom: 10px; background: var(--color-bg-secondary, rgba(0,0,0,0.04)); border: 1px solid var(--color-border); border-radius: 8px; font-size: 12px; color: var(--color-text-muted); }
+.cpb-section-shortcut span { flex: 1; }
+.cpb-shortcut-btn { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.cpb-shortcut-btn:hover { filter: brightness(1.12); }
 .cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
 .cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
 .cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
 
 /* Status badge */
-.cpb-status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.cpb-status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+.cpb-status-badge--published { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
+.cpb-status-badge--draft { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2); }
 /* Body Area */
 .cpb-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
@@ -1914,7 +2055,7 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .cpb-canvas-wrap { width: 100%; min-height: 100%; background: transparent; display: flex; flex-direction: column; transition: max-width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-sizing: border-box; padding: 24px; }
 
 /* Right Panel */
-.cpb-right { width: 320px; background: #fff; border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); flex-shrink: 0; z-index: 5; box-shadow: -4px 0 24px rgba(0,0,0,0.04); }
+.cpb-right { width: 380px; background: #fff; border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); flex-shrink: 0; z-index: 5; box-shadow: -4px 0 24px rgba(0,0,0,0.04); }
 .cpb-right:not(.cpb-right--open) { transform: translateX(100%); position: absolute; right: 0; height: 100%; }
 .cpb-prop-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
 .cpb-prop-header h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-1); }

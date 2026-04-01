@@ -68,7 +68,7 @@
 
       <!-- Typography -->
       <div class="param-row">
-        <label>Phông chữ (Font Family)</label>
+        <label>Phông chữ chính (Body)</label>
         <select v-model="theme.fontFamily" class="param-select">
           <option value="'Inter', sans-serif">Inter (Mặc định)</option>
           <option value="'Roboto', sans-serif">Roboto</option>
@@ -78,10 +78,26 @@
           <option value="'Nunito', sans-serif">Nunito</option>
           <option value="'Lato', sans-serif">Lato</option>
           <option value="'Outfit', sans-serif">Outfit</option>
-          <option value="'Playfair Display', serif">Playfair Display (Sang trọng)</option>
           <option value="'DM Sans', sans-serif">DM Sans</option>
-          <option value="system-ui, sans-serif">System UI (Mặc định hệ thống)</option>
+          <option value="system-ui, sans-serif">System UI</option>
         </select>
+        <span class="font-preview" :style="{ fontFamily: theme.fontFamily }">Xin chào 123</span>
+      </div>
+
+      <!-- Heading Font -->
+      <div class="param-row">
+        <label>Phông tiêu đề (Heading)</label>
+        <select v-model="theme.headingFontFamily" class="param-select">
+          <option value="">Giống phông chính</option>
+          <option value="'Playfair Display', serif">Playfair Display (Sang trọng)</option>
+          <option value="'Montserrat', sans-serif">Montserrat</option>
+          <option value="'Poppins', sans-serif">Poppins</option>
+          <option value="'Outfit', sans-serif">Outfit</option>
+          <option value="'DM Serif Display', serif">DM Serif Display</option>
+          <option value="'Merriweather', serif">Merriweather</option>
+          <option value="'Raleway', sans-serif">Raleway</option>
+        </select>
+        <span v-if="theme.headingFontFamily" class="font-preview font-preview--heading" :style="{ fontFamily: theme.headingFontFamily }">Tiêu Đề</span>
       </div>
 
       <!-- Border Radius -->
@@ -122,6 +138,19 @@
           <option value="gradient">Gradient</option>
         </select>
       </div>
+
+      <div class="param-divider"></div>
+
+      <!-- Spacing Scale -->
+      <div class="param-row">
+        <label>Mật độ khoảng cách (Spacing)</label>
+        <select v-model="theme.spacingScale" class="param-select">
+          <option value="compact">Chặt (Compact)</option>
+          <option value="normal">Chuẩn (Normal)</option>
+          <option value="relaxed">Thoáng (Relaxed)</option>
+          <option value="spacious">Rộng rãi (Spacious)</option>
+        </select>
+      </div>
       
     </div>
   </div>
@@ -139,7 +168,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 const { t } = useI18n()
 
-const isOpen = ref(false)
+const isOpen = ref(true)
 
 const presets = [
   { name: 'Modern Blue', primaryColor: '#3b82f6', accentColor: '#06b6d4', backgroundColor: '#ffffff', textColor: '#1e293b' },
@@ -169,9 +198,11 @@ const theme = ref({
   backgroundColor: props.modelValue?.backgroundColor || '#ffffff',
   textColor: props.modelValue?.textColor || '#1f2937',
   fontFamily: props.modelValue?.fontFamily || "'Inter', sans-serif",
+  headingFontFamily: props.modelValue?.headingFontFamily || '',
   borderRadius: props.modelValue?.borderRadius || '8px',
   containerWidth: props.modelValue?.containerWidth || '1200px',
   buttonStyle: props.modelValue?.buttonStyle || 'solid',
+  spacingScale: props.modelValue?.spacingScale || 'normal',
 })
 
 watch(theme, (newVal) => {
@@ -274,5 +305,19 @@ watch(() => props.modelValue, (newVal) => {
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+.font-preview {
+  display: block;
+  margin-top: 4px;
+  padding: 4px 8px;
+  font-size: 13px;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+.font-preview--heading {
+  font-size: 16px;
+  font-weight: 700;
 }
 </style>

@@ -10,6 +10,18 @@
       </div>
     </template>
     <template v-else>
+
+    <!-- Data Source Quick Links (for data-bound sections) -->
+    <div v-if="dataSourceLink" class="data-source-link">
+      <div class="data-source-link__info">
+        <Database :size="13" />
+        <span>Dữ liệu lấy từ <strong>{{ dataSourceLink.label }}</strong></span>
+      </div>
+      <button class="data-source-link__btn" @click="$emit('navigate-tab', dataSourceLink.tab)">
+        <ExternalLink :size="12" />
+        Quản lý {{ dataSourceLink.label }}
+      </button>
+    </div>
     <!-- Visual Template Picker -->
     <SectionStylePicker
       :section-type="section.type"
@@ -177,7 +189,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette } from 'lucide-vue-next'
+import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, Database, ExternalLink } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { useForms } from '../../composables/useForms.js'
@@ -195,7 +207,28 @@ const props = defineProps({
   defaultLangCode: { type: String, required: true }
 })
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
-const emit = defineEmits(['open-block-editor'])
+
+// Map section types to their external management tabs
+const dataSourceMap = {
+  categories: { tab: 'categories', label: 'Danh mục' },
+  featured_products: { tab: 'products', label: 'Sản phẩm' },
+  new_arrivals: { tab: 'products', label: 'Sản phẩm' },
+  product_listing: { tab: 'products', label: 'Sản phẩm' },
+  flash_sale: { tab: 'flash-sales', label: 'Flash Sale' },
+  cms_pages: { tab: 'cms', label: 'Trang CMS' },
+  blog_posts: { tab: 'blog-posts', label: 'Bài viết Blog' },
+  blog_collection: { tab: 'blog-posts', label: 'Bài viết Blog' },
+  form: { tab: 'forms', label: 'Biểu mẫu' },
+  reviews: { tab: 'reviews', label: 'Đánh giá' },
+  restaurant_menu: { tab: 'restaurant', label: 'Nhà hàng' },
+  booking_services: { tab: 'booking', label: 'Đặt lịch' },
+  salon_services: { tab: 'salon', label: 'Salon' },
+  property_listings: { tab: 'realestate', label: 'Bất động sản' },
+  upcoming_events: { tab: 'events', label: 'Sự kiện' },
+}
+const dataSourceLink = computed(() => dataSourceMap[props.section.type] || null)
+
+const emit = defineEmits(['open-block-editor', 'navigate-tab'])
 const { t } = useI18n()
 const { forms: availableForms, fetchForms } = useForms()
 
@@ -463,8 +496,8 @@ async function autoTranslateSection() {
 }
 
 .section-style-details {
-  background: var(--bg-card, rgba(0,0,0,0.15));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.05));
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
   margin-top: 16px;
@@ -473,17 +506,44 @@ async function autoTranslateSection() {
   padding: 10px 12px;
   font-size: 11px;
   font-weight: 700;
-  color: #fbbf24;
+  color: #6366f1;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  background: rgba(255,255,255,0.03);
+  background: #f1f5f9;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   list-style: none;
   user-select: none;
+  transition: background 0.15s;
 }
 .section-style-details summary::-webkit-details-marker { display: none; }
-.section-style-details summary:hover { background: rgba(255,255,255,0.06); }
+.section-style-details summary:hover { background: #e2e8f0; }
+
+/* Data Source Quick Link */
+.data-source-link {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 8px;
+}
+.data-source-link__info {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-2, #6b7280);
+}
+.data-source-link__info strong { color: var(--text-1, #374151); }
+.data-source-link__btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(99, 102, 241, 0.12); color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 6px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  align-self: flex-start;
+}
+.data-source-link__btn:hover {
+  background: #6366f1; color: #fff;
+  border-color: #6366f1;
+}
 </style>

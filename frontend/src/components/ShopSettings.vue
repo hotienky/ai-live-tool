@@ -424,7 +424,7 @@
 
       <!-- ═══ Tab: Storefront Layout ═══ -->
       <div v-if="activeTab === 'storefront-layout'" class="settings__panel settings__panel--fullheight settings__panel--no-padding" style="border: none; border-radius: 0;">
-        <StorefrontLayoutBuilder />
+        <StorefrontLayoutBuilder @navigate-tab="tab => activeTab = tab" />
       </div>
 
 
@@ -637,7 +637,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import {
   Settings, Store, Save, Plus, Trash2, Minus,
   Link, ShoppingBag, Key, MessageCircle, Shield, Package,
@@ -1444,6 +1444,10 @@ async function saveModerationConfig() {
     showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error')
   }
 }
+function handleCmsNavigate(e) {
+  onSidebarClick(e.detail)
+}
+
 onMounted(() => {
   loadStorefrontUrl()
   if (props.currentShop) {
@@ -1458,6 +1462,11 @@ onMounted(() => {
     fetchCategories(props.currentShop.id)
     fetchBrands(props.currentShop.id)
   }
+  window.addEventListener('cms:navigate', handleCmsNavigate)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('cms:navigate', handleCmsNavigate)
 })
 
 

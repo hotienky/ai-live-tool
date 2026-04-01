@@ -241,6 +241,9 @@ onMounted(async () => {
         if (payload.footerConfig) footerConfig.value = payload.footerConfig
         if (payload.promoConfig) promoConfig.value = payload.promoConfig
         if (payload.customCss !== undefined) injectCustomCss(payload.customCss)
+      } else if (event.data?.type === 'builder:navigate') {
+        const path = event.data.payload?.path
+        if (path) router.push(path).catch(() => {})
       } else if (event.data?.type === 'toggle-xray') {
         if (event.data.payload) {
           document.body.classList.add('x-ray-active')

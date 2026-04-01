@@ -19,7 +19,7 @@
       <div v-if="['text', 'heading', 'button', 'link'].includes(type)" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Văn bản
-          <button @click="openWand('content')" class="btn-icon-soft" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+          <button @click="openWand('content')" class="asp-btn-icon" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
         </label>
         <textarea v-if="['text','heading'].includes(type)" v-model="section.content" rows="3" class="asp-input" placeholder="Nhập văn bản..."></textarea>
         <input v-else v-model="section.content" type="text" class="asp-input" />
@@ -34,7 +34,7 @@
       <div v-else-if="type === 'image'" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Image URL
-          <button @click="openWand('src')" class="btn-icon-soft" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
+          <button @click="openWand('src')" class="asp-btn-icon" data-tooltip="Biến dữ liệu động" style="height:20px;width:20px;padding:2px"><Wand2 :size="12"/></button>
         </label>
         <input v-model="safeSettings.src" type="text" class="asp-input" placeholder="https://..." />
         <label style="margin-top: 8px">Object Fit</label>
@@ -59,7 +59,7 @@
         <label>Liên kết (Href)</label>
         <input v-model="safeSettings.href" type="text" class="asp-input" placeholder="/about" />
         <div class="asp-row" style="margin-top: 8px;">
-          <label>Mở Tab Nới</label>
+          <label>Mở Tab Mới</label>
           <select v-model="safeSettings.target" class="asp-input asp-input--select">
             <option value="">Không</option>
             <option value="_blank">Có (_blank)</option>
@@ -69,8 +69,11 @@
     </div>
 
     <!-- Layout & Spacing Panel -->
-    <details class="asp-accordion">
-      <summary><LayoutGrid :size="14" /> Layout & Spacing <ChevronDown :size="14" class="asp-arr" /></summary>
+    <details class="asp-accordion" open>
+      <summary>
+        <LayoutGrid :size="14" /> Layout & Spacing 
+        <ChevronDown :size="14" class="asp-arr" />
+      </summary>
       <div class="asp-accordion-body">
         <div class="asp-grid" style="margin-bottom:8px">
           <div class="asp-col">
@@ -101,6 +104,7 @@
               <option value="center">Center</option>
               <option value="flex-end">End</option>
               <option value="space-between">Space Between</option>
+              <option value="space-around">Space Around</option>
             </select>
           </div>
           <div class="asp-col">
@@ -113,10 +117,29 @@
             </select>
           </div>
         </div>
+
+        <div class="asp-grid" style="margin-bottom:8px" v-if="safeStyle.display === 'flex'">
+          <div class="asp-col">
+            <label>Quấn dòng (Flex Wrap)</label>
+            <select v-model="safeStyle.flexWrap" class="asp-input asp-input--select">
+              <option value="">Không</option>
+              <option value="wrap">Wrap</option>
+              <option value="wrap-reverse">Wrap Reverse</option>
+            </select>
+          </div>
+          <div class="asp-col">
+            <label>Khoảng cách (Gap)</label>
+            <input v-model="safeStyle.gap" class="asp-input" placeholder="Ví dụ: 16px" />
+          </div>
+        </div>
         
-        <div class="asp-row" v-if="safeStyle.display === 'flex' || safeStyle.display === 'grid'" style="margin-bottom:12px">
+        <div class="asp-row" v-if="safeStyle.display === 'grid'" style="margin-bottom:12px">
+          <label>Grid Columns</label>
+          <input v-model="safeStyle.gridTemplateColumns" class="asp-input" placeholder="1fr 1fr 1fr" />
+        </div>
+        <div class="asp-row" v-if="safeStyle.display === 'grid'" style="margin-bottom:12px">
           <label>Khoảng cách (Gap)</label>
-          <input v-model="safeStyle.gap" class="asp-input" placeholder="Ví dụ: 16px" />
+          <input v-model="safeStyle.gap" class="asp-input" placeholder="16px" />
         </div>
 
         <div class="asp-grid" style="margin-bottom:12px">
@@ -172,10 +195,12 @@
             <label>Độ đậm (Weight)</label>
             <select v-model="safeStyle.fontWeight" class="asp-input asp-input--select">
               <option value="">Normal (400)</option>
+              <option value="300">Light (300)</option>
               <option value="500">Medium (500)</option>
               <option value="600">Semibold (600)</option>
               <option value="700">Bold (700)</option>
               <option value="800">ExtraBold (800)</option>
+              <option value="900">Black (900)</option>
             </select>
           </div>
           <div class="asp-col">
@@ -200,6 +225,30 @@
             </div>
           </div>
         </div>
+        <div class="asp-grid" style="margin-bottom:8px">
+          <div class="asp-col">
+            <label>Khoảng chữ (Letter Spacing)</label>
+            <input v-model="safeStyle.letterSpacing" class="asp-input" placeholder="normal" />
+          </div>
+          <div class="asp-col">
+            <label>Trang trí (Decoration)</label>
+            <select v-model="safeStyle.textDecoration" class="asp-input asp-input--select">
+              <option value="">Không</option>
+              <option value="underline">Gạch dưới</option>
+              <option value="line-through">Gạch ngang</option>
+              <option value="overline">Gạch trên</option>
+            </select>
+          </div>
+        </div>
+        <div class="asp-row">
+          <label>Chuyển kiểu chữ (Transform)</label>
+          <select v-model="safeStyle.textTransform" class="asp-input asp-input--select">
+            <option value="">Không</option>
+            <option value="uppercase">IN HOA</option>
+            <option value="lowercase">viết thường</option>
+            <option value="capitalize">Viết Hoa Đầu</option>
+          </select>
+        </div>
       </div>
     </details>
 
@@ -212,6 +261,8 @@
           <input type="color" v-model="safeStyle.backgroundColor" class="color-picker" />
           <input v-model="safeStyle.backgroundColor" class="asp-input" style="flex:1" placeholder="transparent" />
         </div>
+        <label>Gradient (Background)</label>
+        <input v-model="safeStyle.background" class="asp-input" placeholder="linear-gradient(135deg, #667eea, #764ba2)" style="margin-bottom:8px" />
         <label>Ảnh nền (Background Image)</label>
         <input v-model="safeStyle.backgroundImage" class="asp-input" placeholder="url('...')" style="margin-bottom:8px" />
         
@@ -276,14 +327,63 @@
           <option value="">Hiển thị (Visible)</option>
           <option value="hidden">Cắt đi (Hidden)</option>
           <option value="auto">Cuộn (Auto)</option>
+          <option value="scroll">Scroll</option>
         </select>
         
         <label>Bóng đổ (Box Shadow)</label>
+        <div class="asp-shadow-presets">
+          <button v-for="preset in shadowPresets" :key="preset.name" 
+            class="asp-shadow-chip" 
+            :class="{ active: safeStyle.boxShadow === preset.value }"
+            @click="safeStyle.boxShadow = safeStyle.boxShadow === preset.value ? '' : preset.value"
+            :title="preset.name">
+            {{ preset.label }}
+          </button>
+        </div>
         <input v-model="safeStyle.boxShadow" class="asp-input" placeholder="0 4px 6px rgba(0,0,0,0.1)" style="margin-bottom:8px" />
 
         <label>Biến hình (Transform)</label>
         <input v-model="safeStyle.transform" class="asp-input" placeholder="scale(1.05) translateY(-5px)" />
-        <small v-if="activeState === 'hover'" style="color:#fbbf24; font-size:10px; display:block; margin-top:4px">Kéo thả Transform vào thẻ Hover rất hữu ích!</small>
+        <small v-if="activeState === 'hover'" class="asp-hint-hover">Tip: Transform + Transition rất hữu ích cho Hover!</small>
+
+        <label style="margin-top:8px">Chuyển cảnh (Transition)</label>
+        <input v-model="safeStyle.transition" class="asp-input" placeholder="all 0.3s ease" />
+
+        <label style="margin-top:8px">Con trỏ (Cursor)</label>
+        <select v-model="safeStyle.cursor" class="asp-input asp-input--select">
+          <option value="">Mặc định</option>
+          <option value="pointer">Pointer (Tay)</option>
+          <option value="grab">Grab</option>
+          <option value="not-allowed">Not Allowed</option>
+          <option value="zoom-in">Zoom In</option>
+        </select>
+      </div>
+    </details>
+
+    <!-- Position Panel -->
+    <details class="asp-accordion">
+      <summary><Move :size="14" /> Vị trí (Position) <ChevronDown :size="14" class="asp-arr" /></summary>
+      <div class="asp-accordion-body">
+        <div class="asp-row">
+          <label>Position</label>
+          <select v-model="safeStyle.position" class="asp-input asp-input--select">
+            <option value="">Static (Mặc định)</option>
+            <option value="relative">Relative</option>
+            <option value="absolute">Absolute</option>
+            <option value="fixed">Fixed</option>
+            <option value="sticky">Sticky</option>
+          </select>
+        </div>
+        <div class="asp-grid" style="margin-top:8px" v-if="safeStyle.position && safeStyle.position !== 'static'">
+          <div class="asp-col"><label>Top</label><input v-model="safeStyle.top" class="asp-input" placeholder="auto" /></div>
+          <div class="asp-col"><label>Right</label><input v-model="safeStyle.right" class="asp-input" placeholder="auto" /></div>
+          <div class="asp-col"><label>Bottom</label><input v-model="safeStyle.bottom" class="asp-input" placeholder="auto" /></div>
+          <div class="asp-col"><label>Left</label><input v-model="safeStyle.left" class="asp-input" placeholder="auto" /></div>
+        </div>
+        <div class="asp-row" style="margin-top:8px" v-if="safeStyle.position && safeStyle.position !== 'static'">
+          <label>Z-Index</label>
+          <input v-model="safeStyle.zIndex" class="asp-input" placeholder="auto" />
+        </div>
       </div>
     </details>
 
@@ -304,13 +404,17 @@
         <label>Tailwind / Custom Classes</label>
         <input v-model="safeSettings.classes" type="text" class="asp-input" placeholder="e.g. max-w-lg mx-auto" />
       </div>
+      <div class="asp-row" style="margin-top:8px">
+        <label>Custom CSS ID</label>
+        <input v-model="safeSettings.cssId" type="text" class="asp-input" placeholder="my-element" />
+      </div>
     </div>
 
     <!-- Magic Wand Popover -->
     <div v-if="wandOpenFor" class="wand-popover">
       <div class="wand-header">
         Chèn Biến Dữ Liệu
-        <button @click="wandOpenFor = null" class="btn-icon-soft"><X :size="12" /></button>
+        <button @click="wandOpenFor = null" class="asp-btn-icon"><X :size="12" /></button>
       </div>
       <div class="wand-list">
         <button v-for="v in dynamicVariables" :key="v.key" @click="insertVariable(v.key)" class="wand-item">
@@ -324,7 +428,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Monitor, Tablet, Smartphone, Wand2, X, Sparkles, LayoutGrid, Type, Image as ImageIcon, ChevronDown, AlignLeft, AlignCenter, AlignRight } from 'lucide-vue-next'
+import { Monitor, Tablet, Smartphone, Wand2, X, Sparkles, LayoutGrid, Type, Image as ImageIcon, ChevronDown, AlignLeft, AlignCenter, AlignRight, Move } from 'lucide-vue-next'
 
 const props = defineProps({
   section: {
@@ -340,6 +444,16 @@ const type = computed(() => props.section.type)
 const activeDevice = ref('desktop')
 const activeState = ref('normal')
 const wandOpenFor = ref(null)
+
+const shadowPresets = [
+  { name: 'Không', label: '✕', value: '' },
+  { name: 'Nhẹ', label: 'S', value: '0 1px 3px rgba(0,0,0,0.08)' },
+  { name: 'Vừa', label: 'M', value: '0 4px 12px rgba(0,0,0,0.1)' },
+  { name: 'Mạnh', label: 'L', value: '0 8px 24px rgba(0,0,0,0.12)' },
+  { name: 'XL', label: 'XL', value: '0 16px 40px rgba(0,0,0,0.15)' },
+  { name: 'Card', label: '◻', value: '0 2px 8px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)' },
+  { name: 'Nổi', label: '⬆', value: '0 20px 60px -12px rgba(0,0,0,0.25)' },
+]
 
 const dynamicVariables = [
   { key: '{{ item.id }}', desc: 'ID' },
@@ -420,92 +534,104 @@ function toggleStyle(key, value, defaultVal = '') {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  color: #e2e8f0;
+  color: #334155;
 }
 .asp-switcher {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(0,0,0,0.15);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   padding: 4px;
 }
 .asp-tabs {
   display: flex;
   align-items: center;
-  background: rgba(0,0,0,0.2);
-  border-radius: 6px;
+  background: #e2e8f0;
+  border-radius: 8px;
   padding: 2px;
 }
 .asp-tabs button {
   background: transparent;
-  color: #94a3b8;
+  color: #64748b;
   border: none;
   font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 5px 10px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 500;
 }
 .asp-tabs button:hover {
-  color: #fff;
+  color: #1e293b;
+  background: rgba(255,255,255,0.5);
 }
 .asp-tabs button.active {
-  background: #4f46e5;
-  color: #fff;
-  font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  background: #fff;
+  color: var(--accent, #6366f1);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 .asp-section {
-  background: var(--bg-card, rgba(0,0,0,0.15));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.05));
-  border-radius: 8px;
-  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
 }
 .asp-section-title {
   margin: 0 0 12px 0;
   font-size: 12px;
   font-weight: 700;
-  color: #fff;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding-bottom: 6px;
+  color: #1e293b;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 /* Accordions */
 .asp-accordion {
-  background: var(--bg-card, rgba(0,0,0,0.15));
-  border: 1px solid var(--border-color, rgba(255,255,255,0.05));
-  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
   overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.asp-accordion:hover {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 .asp-accordion summary {
-  padding: 10px 12px;
-  font-size: 11px;
+  padding: 10px 14px;
+  font-size: 12px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: #334155;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  background: rgba(255,255,255,0.03);
+  background: #fafbfc;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   list-style: none;
   user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.15s;
 }
 .asp-accordion summary::-webkit-details-marker { display: none; }
-.asp-accordion summary:hover { background: rgba(255,255,255,0.06); }
+.asp-accordion summary:hover { background: #f1f5f9; }
+.asp-accordion[open] > summary { 
+  border-bottom-color: #e2e8f0; 
+  color: var(--accent, #6366f1);
+}
 .asp-arr { margin-left: auto; transition: transform 0.2s; color: #94a3b8; }
 .asp-accordion[open] .asp-arr { transform: rotate(180deg); }
 .asp-accordion-body {
-  padding: 12px;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  padding: 14px;
+  background: #fff;
 }
 
 .asp-row { margin-bottom: 8px; }
@@ -519,27 +645,28 @@ function toggleStyle(key, value, defaultVal = '') {
   flex-direction: column;
 }
 label {
-  font-size: 10px;
-  color: #94a3b8;
+  font-size: 11px;
+  color: #64748b;
   margin-bottom: 4px;
   display: block;
-  font-weight: 500;
+  font-weight: 600;
 }
 .asp-input {
   width: 100%;
-  padding: 6px 10px;
+  padding: 7px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
-  background: #0f1115;
-  color: #e2e8f0;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1e293b;
   font-size: 12px;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .asp-input:focus {
   outline: none;
-  border-color: #6366f1;
+  border-color: var(--accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
 }
-.asp-input::placeholder { color: #475569; }
+.asp-input::placeholder { color: #94a3b8; }
 .asp-input--select {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -552,41 +679,45 @@ label {
 .color-wrap {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 .color-picker {
   width: 28px;
   height: 28px;
   padding: 0;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
   cursor: pointer;
   background: none;
+  flex-shrink: 0;
 }
+.color-picker::-webkit-color-swatch-wrapper { padding: 2px; }
+.color-picker::-webkit-color-swatch { border: none; border-radius: 4px; }
 
 .group-btn {
   display: flex;
   border-radius: 6px;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 .group-btn button {
   flex: 1;
-  background: #0f1115;
-  color: #94a3b8;
+  background: #fff;
+  color: #64748b;
   border: none;
   padding: 6px 0;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid #e2e8f0;
+  transition: all 0.15s;
 }
 .group-btn button:last-child { border-right: none }
-.group-btn button:hover { background: rgba(255,255,255,0.05); color: #fff; }
-.group-btn button.active { background: rgba(99,102,241,0.2); color: #818cf8; }
+.group-btn button:hover { background: #f8fafc; color: #1e293b; }
+.group-btn button.active { background: rgba(99,102,241,0.1); color: var(--accent, #6366f1); }
 
-.btn-icon-soft {
+.asp-btn-icon {
   background: transparent;
   border: none;
   color: #94a3b8;
@@ -597,36 +728,70 @@ label {
   justify-content: center;
   transition: all 0.2s;
 }
-.btn-icon-soft:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.asp-btn-icon:hover { background: #f1f5f9; color: var(--accent, #6366f1); }
+
+/* Shadow Presets */
+.asp-shadow-presets {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0;
+  flex-wrap: wrap;
+}
+.asp-shadow-chip {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.asp-shadow-chip:hover { border-color: #cbd5e1; background: #f8fafc; }
+.asp-shadow-chip.active {
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent, #6366f1);
+  border-color: var(--accent, #6366f1);
+}
+
+.asp-hint-hover {
+  color: var(--accent, #6366f1);
+  font-size: 10px;
+  display: block;
+  margin-top: 4px;
+  font-weight: 500;
+}
 
 /* Box Model Graphic */
 .box-model {
   position: relative;
-  background: #0f1115;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   width: 100%;
-  max-width: 250px;
+  max-width: 260px;
   padding: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 0 auto;
+  margin: 8px auto 0;
   user-select: none;
   font-family: monospace;
 }
-.bm-header { position: absolute; top: 4px; left: 6px; font-size: 9px; color: #475569; font-weight: 700; width: 100%; pointer-events: none;}
+.bm-header { position: absolute; top: 4px; left: 6px; font-size: 9px; color: #94a3b8; font-weight: 700; width: 100%; pointer-events: none;}
 .bm-input {
   position: absolute;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 11px;
   text-align: center;
-  width: 30px;
+  width: 32px;
   z-index: 2;
+  border-radius: 4px;
 }
-.bm-input:hover, .bm-input:focus { background: rgba(255,255,255,0.05); color: #fff; outline: none; border-radius: 4px; }
+.bm-input:hover, .bm-input:focus { background: #e2e8f0; color: #1e293b; outline: none; }
 .bm-mt { top: 4px; left: 50%; transform: translateX(-50%); }
 .bm-mb { bottom: 4px; left: 50%; transform: translateX(-50%); }
 .bm-ml { left: 4px; top: 50%; transform: translateY(-50%); }
@@ -634,9 +799,9 @@ label {
 
 .bm-inner {
   position: relative;
-  background: rgba(255,255,255,0.03);
-  border: 1px dashed rgba(255,255,255,0.15);
-  border-radius: 4px;
+  background: #fff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
   padding: 24px;
   width: 100%;
   display: flex;
@@ -649,8 +814,8 @@ label {
 .bm-pr { right: 4px; top: 50%; transform: translateY(-50%); }
 
 .bm-core {
-  background: rgba(255,255,255,0.1);
-  border-radius: 2px;
+  background: #e2e8f0;
+  border-radius: 4px;
   width: 100%;
   height: 20px;
 }
@@ -660,10 +825,10 @@ label {
   top: 40px;
   left: 10px;
   right: 10px;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
   z-index: 1000;
   overflow: hidden;
 }
@@ -671,11 +836,12 @@ label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  border-bottom: 1px solid #334155;
-  font-size: 11px;
-  font-weight: 600;
-  background: rgba(0,0,0,0.2);
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  background: #fafbfc;
 }
 .wand-list {
   max-height: 200px;
@@ -686,20 +852,20 @@ label {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 8px 14px;
   background: none;
   border: none;
-  font-size: 11px;
-  color: #cbd5e1;
+  font-size: 12px;
+  color: #475569;
   text-align: left;
   cursor: pointer;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
-  transition: background 0.2s;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
 }
 .wand-item:hover {
-  background: rgba(99,102,241,0.2);
-  color: #fff;
+  background: rgba(99,102,241,0.06);
+  color: #1e293b;
 }
-.wand-item .wand-key { font-family: monospace; color: #818cf8; }
-.wand-item .wand-desc { opacity: 0.7; }
+.wand-item .wand-key { font-family: monospace; color: var(--accent, #6366f1); font-weight: 600; font-size: 11px; }
+.wand-item .wand-desc { font-size: 11px; color: #94a3b8; }
 </style>
