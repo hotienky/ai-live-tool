@@ -226,21 +226,28 @@ onMounted(async () => {
   // PostMessage-based preview: listen for real-time layout updates from CMS builder
   if (isPostMessagePreview) {
     window.addEventListener('message', (event) => {
-      if (event.data?.type !== 'layout-preview-update') return
-      const payload = event.data.payload
-      if (!payload) return
+      if (event.data?.type === 'layout-preview-update') {
+        const payload = event.data.payload
+        if (!payload) return
 
-      layoutConfig.value = {
-        sections: payload.sections || layoutConfig.value?.sections || [],
-        pages: payload.pages || layoutConfig.value?.pages || {},
-        pageConfigs: payload.pageConfigs || layoutConfig.value?.pageConfigs || {},
-        template: payload.template || layoutConfig.value?.template || 'full_store',
-        customCss: payload.customCss || '',
+        layoutConfig.value = {
+          sections: payload.sections || layoutConfig.value?.sections || [],
+          pages: payload.pages || layoutConfig.value?.pages || {},
+          pageConfigs: payload.pageConfigs || layoutConfig.value?.pageConfigs || {},
+          template: payload.template || layoutConfig.value?.template || 'full_store',
+          customCss: payload.customCss || '',
+        }
+        if (payload.headerConfig) headerConfig.value = payload.headerConfig
+        if (payload.footerConfig) footerConfig.value = payload.footerConfig
+        if (payload.promoConfig) promoConfig.value = payload.promoConfig
+        if (payload.customCss !== undefined) injectCustomCss(payload.customCss)
+      } else if (event.data?.type === 'toggle-xray') {
+        if (event.data.payload) {
+          document.body.classList.add('x-ray-active')
+        } else {
+          document.body.classList.remove('x-ray-active')
+        }
       }
-      if (payload.headerConfig) headerConfig.value = payload.headerConfig
-      if (payload.footerConfig) footerConfig.value = payload.footerConfig
-      if (payload.promoConfig) promoConfig.value = payload.promoConfig
-      if (payload.customCss !== undefined) injectCustomCss(payload.customCss)
     })
   }
 
@@ -272,6 +279,17 @@ provide('template', computed(() => layoutConfig.value?.template || 'full_store')
 provide('pluginSections', pluginSections)
 provide('isPreviewMode', isPostMessagePreview)
 </script>
+
+<style>
+/* X-Ray Mode Debugging Styles */
+body.x-ray-active * {
+  outline: 1px dashed rgba(239, 68, 68, 0.4) !important;
+  background-color: rgba(239, 68, 68, 0.02) !important;
+}
+body.x-ray-active img, body.x-ray-active iframe {
+  opacity: 0.5 !important;
+}
+</style>
 
 <style scoped>
 .storefront-app {

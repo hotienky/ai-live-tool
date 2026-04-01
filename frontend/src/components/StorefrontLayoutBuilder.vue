@@ -1,5 +1,5 @@
 <template>
-  <div class="cpb">
+  <div class="cpb" :class="{ 'cpb--fullscreen': isFullscreen, 'cpb--zen': isFullscreen && leftCollapsed && !activeConfig }">
     <!-- Header Toolbar -->
     <header class="cpb-header">
       <div class="cpb-header__left">
@@ -42,13 +42,32 @@
             <Eye v-if="previewMode === 'wireframe'" :size="16" />
             <Aperture v-else :size="16" />
           </button>
+          <button @click="toggleXRay" :class="{ 'cpb-btn-icon--active': isXRayMode }" style="margin-left: 8px;" title="Chế độ quét khung xương (X)">
+            <Scan :size="16" />
+          </button>
         </div>
       </div>
 
       <div class="cpb-header__right">
-        <div class="cpb-history">
-          <button @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="14" /></button>
+        <div class="cpb-history cpb-history-container" @focusout="handleHistoryFocusout" tabindex="-1">
+          <div class="cpb-history__btn-group">
+            <button @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="14" /></button>
+            <button @click="historyDropdownOpen = !historyDropdownOpen" :disabled="undoStack.length <= 1" class="history-dropdown-toggle"><ChevronDown :size="12" /></button>
+          </div>
           <button @click="redo" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="14" /></button>
+          
+          <div v-if="historyDropdownOpen" class="history-dropdown-menu">
+            <div class="history-dropdown-header">Lịch sử khôi phục</div>
+            <div class="history-dropdown-list">
+              <button v-for="(item, idx) in undoStack.slice().reverse()" :key="idx" class="history-dropdown-item" @click="restoreHistory(undoStack.length - 1 - idx)">
+                <div class="history-dropdown-info">
+                  <span class="history-time">{{ item.time }}</span>
+                  <span class="history-label" :class="{'current-state': idx === 0}">{{ idx === 0 ? 'Hiện tại' : item.label }}</span>
+                </div>
+                <Check v-if="idx === 0" :size="14" class="history-current-icon" />
+              </button>
+            </div>
+          </div>
         </div>
         
         <span class="cpb-save-status">
@@ -56,6 +75,13 @@
           <span v-else class="status-saved">✅ Đã lưu</span>
         </span>
 
+        <button class="cpb-btn-secondary" @click="toggleZenMode" :title="leftCollapsed && !activeConfig ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed && !activeConfig }">
+          <Focus :size="14" />
+        </button>
+        <button class="cpb-btn-secondary" @click="isFullscreen = !isFullscreen" :title="isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'">
+          <Minimize v-if="isFullscreen" :size="14" />
+          <Maximize v-else :size="14" />
+        </button>
         <button class="cpb-btn-secondary" @click="showCustomCss = true"><Code :size="14" /> CSS</button>
         <button class="cpb-btn-secondary" @click="saveDraft" :disabled="saving">Nháp</button>
         <button class="cpb-btn-save" @click="handlePublish" :disabled="saving">Xuất bản</button>
@@ -314,7 +340,34 @@
       @rollback="onRollback"
     />
 
+    <!-- Zen Mode Floating Bar -->
+    <div class="zen-floating-bar" :class="{ 'zen-floating-bar--visible': isFullscreen && leftCollapsed && !activeConfig }">
+      <div class="zen-actions">
+        <button class="zen-btn" @click="toggleZenMode" title="Thoát chế độ tập trung (F)"><Focus :size="16" /></button>
+        <div class="zen-divider"></div>
+        <button class="zen-btn" @click="previewWidth = '100%'" :class="{ active: previewWidth === '100%' }"><Monitor :size="16" /></button>
+        <button class="zen-btn" @click="previewWidth = '768px'" :class="{ active: previewWidth === '768px' }"><Tablet :size="16" /></button>
+        <button class="zen-btn" @click="previewWidth = '375px'" :class="{ active: previewWidth === '375px' }"><Smartphone :size="16" /></button>
+        <div class="zen-divider"></div>
+        <button class="zen-btn" @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="16" /></button>
+        <button class="zen-btn" @click="redo" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="16" /></button>
+        <div class="zen-divider"></div>
+        <button class="zen-btn zen-btn--publish" @click="handlePublish" :disabled="saving">
+          <Loader2 v-if="saving" :size="14" class="spin"/> 
+          <Save v-else :size="14"/> Xuất bản
+        </button>
+      </div>
+    </div>
+
+
     <MediaPicker ref="globalImagePicker" style="display: none" :modelValue="''" @update:modelValue="onGlobalImagePicked" />
+
+    <CommandPalette 
+      :visible="showCommandPalette" 
+      @update:visible="showCommandPalette = $event"
+      :commands="builderCommands"
+      @execute="executeCommand"
+    />
   </div>
 </template>
 \n<script setup>
@@ -348,6 +401,7 @@ import LayoutNavigator from './storefront/LayoutNavigator.vue'
 import LayoutPreviewPanel from './storefront/LayoutPreviewPanel.vue'
 import LayoutVersionHistory from './storefront/LayoutVersionHistory.vue'
 import LayoutPageManager from './storefront/LayoutPageManager.vue'
+import CommandPalette from './storefront/CommandPalette.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
 import MediaPicker from './MediaPicker.vue'
@@ -362,7 +416,7 @@ import {
   Trash2, Undo2, Redo2, FileEdit, Home, Heart, Lock, FileText, Link, Pencil, Paintbrush, Loader2,
   History, Tag, Shield, LayoutGrid, Newspaper, ChevronLeft, PanelTop, PanelBottom,
   Aperture, Megaphone, FolderOpen, ShieldCheck, Star, Film, Box,
-  CalendarDays, UtensilsCrossed, Flower2, Building2, PartyPopper
+  CalendarDays, UtensilsCrossed, Flower2, Building2, PartyPopper, Maximize, Minimize, Focus, Scan
 } from 'lucide-vue-next'
 import { useNavLinks } from '../composables/useNavLinks.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
@@ -380,15 +434,48 @@ Object.keys(sectionMetaRegistry).forEach(type => {
 })
 
 const showVisualBuilderPro = ref(false)
+const isFullscreen = ref(false)
 const { t, formatCurrency } = useI18n()
 
-// Keyboard shortcuts for Undo/Redo
+// VIP Zen Mode Toggle
+function toggleZenMode() {
+  if (leftCollapsed.value && !activeConfig.value) {
+    // Restore
+    leftCollapsed.value = false
+  } else {
+    // Enter Zen
+    leftCollapsed.value = true
+    activeConfig.value = null
+  }
+}
+
+// Keyboard shortcuts for Undo/Redo & Zen
 onMounted(() => {
   window.addEventListener('keydown', (e) => {
-    // Ignore input fields so we don't interfere with standard text undo
+    // Ignore input fields so we don't interfere with standard text typing
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable)) {
       return
     }
+    
+    // Esc to exit fullscreen or zen
+    if (e.key === 'Escape') {
+      if (isFullscreen.value) isFullscreen.value = false
+      if (activeConfig.value) activeConfig.value = null
+    }
+    
+    // F to toggle Zen Mode
+    if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      toggleZenMode()
+    }
+    
+    // X to toggle X-Ray
+    if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault()
+      toggleXRay()
+    }
+    
+    // Undo / Redo
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
       e.preventDefault()
       if (e.shiftKey) redo()
@@ -425,6 +512,60 @@ const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
 const expandedPageConfig = ref(null)
 const allCategories = ref([])
 const showBlockEditorFor = ref(null)
+
+const historyDropdownOpen = ref(false)
+function handleHistoryFocusout(e) {
+  const next = e.relatedTarget
+  if (!e.currentTarget.contains(next)) historyDropdownOpen.value = false
+}
+function restoreHistory(index) {
+  if (index < 0 || index >= undoStack.value.length) return
+  isTrackingHistory = true
+  
+  // Pop items onto redo stack until we reach the desired index
+  while (undoStack.value.length - 1 > index) {
+    redoStack.value.push(undoStack.value.pop())
+  }
+  
+  const item = undoStack.value[index]
+  const snap = JSON.parse(item.snap)
+  
+  sections.value = snap.sections || []
+  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
+  if (snap.headerConfig) headerConfig.value = snap.headerConfig
+  if (snap.footerConfig) footerConfig.value = snap.footerConfig
+  if (snap.promoConfig) promoConfig.value = snap.promoConfig
+
+  historyDropdownOpen.value = false
+  showToast('Đã khôi phục trạng thái', 'info')
+  nextTick(() => { isTrackingHistory = false })
+}
+
+const isXRayMode = ref(false)
+function toggleXRay() {
+  isXRayMode.value = !isXRayMode.value
+  if (previewPanelRef.value) {
+    previewPanelRef.value.postMessageToIframe('toggle-xray', isXRayMode.value)
+  }
+}
+
+const showCommandPalette = ref(false)
+const builderCommands = computed(() => {
+  return [
+    { id: 'zen', title: 'Chế độ Tập trung (Zen Mode)', description: 'Ẩn toàn bộ thanh công cụ để ngắm canvas', shortcut: 'F', icon: Focus, action: toggleZenMode },
+    { id: 'fs', title: 'Toàn màn hình', description: 'Mở rộng Builder lấp đầy màn hình', shortcut: 'Esc', icon: Maximize, action: () => isFullscreen.value = true },
+    { id: 'mobile', title: 'Xem trước trên Mobile', description: 'Thu hẹp khung nhìn xuống 375px', icon: Smartphone, action: () => previewWidth.value = '375px' },
+    { id: 'desktop', title: 'Xem trước trên Desktop', description: 'Mở rộng khung nhìn lên 100%', icon: Monitor, action: () => previewWidth.value = '100%' },
+    { id: 'save', title: 'Xuất bản (Publish)', description: 'Lưu thay đổi lên Live', shortcut: 'Ctrl+S', icon: Save, action: handlePublish },
+  ]
+})
+
+function executeCommand(cmd) {
+  if (typeof cmd.action === 'function') {
+    cmd.action()
+  }
+}
+
 
 // ── Module awareness for section availability ──
 const _injectedModules = inject('installedModules', ref([]))
@@ -583,7 +724,13 @@ function pushUndo() {
   if (isTrackingHistory) return
   if (pushUndoTimer) clearTimeout(pushUndoTimer)
   pushUndoTimer = setTimeout(() => {
-    undoStack.value.push(getSnapshot())
+    // Save structured snapshot
+    const item = {
+      snap: getSnapshot(),
+      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      label: 'Thay đổi cấu trúc'
+    }
+    undoStack.value.push(item)
     if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
     redoStack.value = [] // Clear redo
   }, 250)
@@ -595,7 +742,8 @@ function undo() {
   if (undoStack.value.length <= 1) return
   isTrackingHistory = true
   redoStack.value.push(undoStack.value.pop()) // Save current for redo
-  const snap = JSON.parse(undoStack.value[undoStack.value.length - 1])
+  const item = undoStack.value[undoStack.value.length - 1]
+  const snap = JSON.parse(item.snap)
   
   sections.value = snap.sections || []
   if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
@@ -610,9 +758,9 @@ function undo() {
 function redo() {
   if (redoStack.value.length === 0) return
   isTrackingHistory = true
-  const nextSnapStr = redoStack.value.pop()
-  undoStack.value.push(nextSnapStr)
-  const snap = JSON.parse(nextSnapStr)
+  const nextItem = redoStack.value.pop()
+  undoStack.value.push(nextItem)
+  const snap = JSON.parse(nextItem.snap)
   
   sections.value = snap.sections || []
   if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
@@ -623,6 +771,7 @@ function redo() {
   showToast('Đã làm lại (Redo)', 'info')
   nextTick(() => { isTrackingHistory = false })
 }
+
 
 function handleGlobalKeydown(e) {
   if (['INPUT', 'TEXTAREA'].includes(e.target.tagName) || e.target.isContentEditable) return
@@ -659,7 +808,12 @@ const defaultFooterConfig = {
   headingColor: '',
 }
 const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
-const defaultPromoConfig = { enabled: true, text: '', link: '/products', ctaText: '' }
+const defaultPromoConfig = { 
+  enabled: true, 
+  text: '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!', 
+  link: '/products', 
+  ctaText: 'Mua sắm' 
+}
 const promoConfig = ref({ ...defaultPromoConfig })
 const promoOpen = ref(false)
 
@@ -1638,8 +1792,14 @@ async function deleteNavLink(link) {
 onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLinks(); fetchCmsPageList() })
 </script>\n
 <style scoped>
-.cpb { display: flex; flex-direction: column; height: calc(100vh - 140px); min-height: 600px; background: var(--bg-1, #fcfcfc); overflow: hidden; outline: none; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.cpb-header { display: flex; align-items: center; justify-content: space-between; height: 52px; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--border, #e5e7eb); z-index: 10; font-size: 13px; }
+.cpb { display: flex; flex-direction: column; height: calc(100vh - 140px); min-height: 600px; background: var(--bg-1, #fcfcfc); overflow: hidden; outline: none; border-radius: 8px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+.cpb--fullscreen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9999; border-radius: 0; border: none; box-shadow: none; margin: 0; animation: cpb-fullscreen-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+@keyframes cpb-fullscreen-enter {
+  0% { transform: scale(0.97) translateY(10px); opacity: 0; border-radius: 16px; }
+  100% { transform: scale(1) translateY(0); opacity: 1; border-radius: 0; }
+}
+.cpb-header { display: flex; align-items: center; justify-content: space-between; height: 54px; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--border, #e5e7eb); z-index: 10; font-size: 13px; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; }
+.cpb--zen .cpb-header { transform: translateY(-100%); opacity: 0; pointer-events: none; position: absolute; width: 100%; }
 .cpb-header__left, .cpb-header__center, .cpb-header__right { display: flex; align-items: center; gap: 12px; }
 .cpb-header__left { flex: 1; min-width: 0; }
 .cpb-header__center { flex: 1; justify-content: center; }
@@ -1657,37 +1817,45 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 
 /* Global Toolbar Elements */
 .cpb-viewport { display: flex; background: var(--bg-2); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
-.cpb-viewport button { background: transparent; border: none; width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-3); border-radius: 4px; cursor: pointer; transition: 0.2s; }
-.cpb-viewport button.active { background: #fff; color: var(--accent, #7c3aed); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.cpb-history { display: flex; gap: 4px; border-right: 1px solid var(--border); padding-right: 12px; }
-.cpb-history button { background: transparent; border: none; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-2); border-radius: 4px; cursor: pointer; }
-.cpb-history button:hover:not(:disabled) { background: var(--bg-2); }
-.cpb-history button:disabled { opacity: 0.3; cursor: not-allowed; }
+.cpb-viewport button { background: transparent; border: none; padding: 4px 10px; min-width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-3); border-radius: 4px; cursor: pointer; transition: 0.2s; }
+.cpb-viewport button.active, .cpb-btn-icon--active { background: #fff !important; color: var(--accent, #7c3aed) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.cpb-history-container { position: relative; display: flex; align-items: center; justify-content: flex-end; outline: none; }
+.cpb-history__btn-group { display: flex; align-items: center; border-radius: 4px; background: transparent; transition: 0.2s; }
+.cpb-history__btn-group:hover { background: var(--bg-2, #f3f4f6); }
+.cpb-history__btn-group button { border-radius: 4px; }
+.cpb-history__btn-group button.history-dropdown-toggle { padding: 0 4px; width: 20px; border-left: 1px solid rgba(0,0,0,0.05); border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.cpb-history__btn-group button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
 
-.cpb-save-status { font-size: 11px; font-weight: 600; min-width: 70px; text-align: right; }
-.status-saved { color: #10b981; display: inline-flex; align-items: center; gap: 4px; }
-.status-saving { color: #3b82f6; display: inline-flex; align-items: center; gap: 4px; }
+.history-dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; background: #fff; width: 260px; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; overflow: hidden; }
+.history-dropdown-header { padding: 12px; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg-2); }
+.history-dropdown-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; }
+.history-dropdown-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; transition: 0.2s; }
+.history-dropdown-item:last-child { border-bottom: none; }
+.history-dropdown-item:hover { background: var(--bg-2); }
+.history-dropdown-info { display: flex; flex-direction: column; gap: 2px; }
+.history-time { font-size: 11px; color: var(--text-3); font-family: monospace; }
+.history-label { font-size: 13px; font-weight: 500; color: var(--text-1); }
+.current-state { color: var(--accent); font-weight: 700; }
+.history-current-icon { color: var(--accent); }
 
 .cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; }
-.cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); }
+.cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.cpb-btn-secondary--active { background: rgba(124, 58, 237, 0.1) !important; color: var(--accent) !important; border-color: rgba(124, 58, 237, 0.3) !important; }
 .cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
 .cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
 .cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
 
 /* Status badge */
 .cpb-status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-.cpb-status-badge--published { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.cpb-status-badge--draft { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-
 /* Body Area */
 .cpb-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
 /* Left Panel */
-.cpb-left { width: 280px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; position: relative; flex-shrink: 0; z-index: 5; }
+.cpb-left { width: 280px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; position: relative; flex-shrink: 0; z-index: 5; overflow: hidden; }
 .cpb-left--collapsed { width: 0; border-right: none; }
 .cpb-left--collapsed .cpb-collapse-btn { left: 0; border-radius: 0 8px 8px 0; border-left: none; }
-.cpb-sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); }
-.cpb-sidebar-tabs button { flex: 1; padding: 12px 0; background: transparent; border: none; font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.cpb-sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); overflow: hidden; }
+.cpb-sidebar-tabs button { flex: 1; padding: 12px 0; background: transparent; border: none; font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; overflow: hidden; }
 .cpb-sidebar-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
 .cpb-sidebar-tabs button:hover:not(.active) { color: var(--text-1); background: var(--bg-2); }
 .cpb-sidebar-content { flex: 1; overflow: auto; display: flex; flex-direction: column; }
@@ -1750,7 +1918,6 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .template-card__name { font-size: 12px; font-weight: 700; }
 .template-card__desc { font-size: 11px; color: var(--text-3); }
 
-
 /* Modals */
 .modal-overlay, .media-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
 .media-modal { background: #fff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
@@ -1776,7 +1943,36 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .library-card--disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-2); }
 .btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-3); }
 
-/* Utilities */
+/* Zen Mode Floating Bar */
+.zen-floating-bar {
+  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
+  z-index: 100001; opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.zen-floating-bar--visible {
+  transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto;
+}
+.zen-actions {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 100px;
+  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+.zen-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent;
+  color: var(--text-2); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.zen-btn:hover:not(:disabled) { background: #fff; color: var(--text-1); box-shadow: 0 8px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.zen-btn.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(124,58,237,0.15); }
+.zen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.zen-divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 4px; }
+.zen-btn--publish {
+  width: auto; padding: 0 16px; border-radius: 100px; gap: 6px; font-weight: 600; font-size: 13px;
+  background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+}
+.zen-btn--publish:hover:not(:disabled) { background: var(--accent); filter: brightness(1.1); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(124,58,237,0.4); }
+
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 </style>

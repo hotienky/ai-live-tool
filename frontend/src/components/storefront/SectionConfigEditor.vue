@@ -161,28 +161,12 @@
           </button>
         </div>
 
+        <!-- Bỏ bớt code cũ styleSchema -->
         <details class="section-style-details">
-          <summary><Palette :size="12" style="margin-right:4px"/> Style & Advanced</summary>
-          <template v-for="sfield in styleSchema" :key="sfield.key">
-            <div class="param-row">
-              <label>{{ sfield.label }}</label>
-              
-              <template v-if="sfield.type === 'color'">
-                <input type="color" v-model="section.params[sfield.key]" class="param-color" />
-                <button v-if="section.params[sfield.key]" class="btn-clear-color" @click="section.params[sfield.key] = ''"><X :size="10" /></button>
-              </template>
-              
-              <template v-else-if="sfield.type === 'select'">
-                <select v-model="section.params[sfield.key]" class="param-select">
-                  <option v-for="o in sfield.options" :key="o.value" :value="o.value">{{ o.label }}</option>
-                </select>
-              </template>
-              
-              <template v-else-if="sfield.type === 'text'">
-                <input type="text" v-model="section.params[sfield.key]" class="param-input" />
-              </template>
-            </div>
-          </template>
+          <summary><Palette :size="12" style="margin-right:4px"/> VIP Pro Micro-Controller</summary>
+          <div style="margin-top: 12px">
+            <AdvancedStylePanel :section="section" />
+          </div>
         </details>
 
       </div><!-- /.advanced-config__body -->
@@ -461,6 +445,11 @@ async function autoTranslateSection() {
   opacity: 0.7;
   cursor: not-allowed;
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .btn-ai-badge {
   font-size: 9px;
   font-weight: 800;
@@ -472,8 +461,29 @@ async function autoTranslateSection() {
 .spin {
   animation: spin 1s linear infinite;
 }
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+
+.section-style-details {
+  background: var(--bg-card, rgba(0,0,0,0.15));
+  border: 1px solid var(--border-color, rgba(255,255,255,0.05));
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 16px;
 }
+.section-style-details summary {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.03);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  list-style: none;
+  user-select: none;
+}
+.section-style-details summary::-webkit-details-marker { display: none; }
+.section-style-details summary:hover { background: rgba(255,255,255,0.06); }
 </style>

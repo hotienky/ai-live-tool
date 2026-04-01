@@ -3,14 +3,15 @@
     <div class="element-palette">
       <!-- Mẫu Nguyên Thuỷ -->
       <div 
-        v-for="e in ['container', 'grid', 'card', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video', 'form']" 
-        :key="e"
+        v-for="e in primitiveElements" 
+        :key="e.type"
         class="ep-item" 
         draggable="true" 
-        @dragstart="onDragStartNew($event, e)"
-        :data-tooltip="'Kéo thả ' + e"
+        @dragstart="onDragStartNew($event, e.type)"
+        :title="'Kéo thả ' + e.label"
       >
-        <span>{{ e }}</span>
+        <component :is="e.icon" :size="20" class="ep-icon" />
+        <span>{{ e.label }}</span>
       </div>
     </div>
     <div class="element-palette-saved" v-if="savedCustomBlocks.length > 0">
@@ -22,10 +23,11 @@
           class="ep-item ep-item--saved" 
           draggable="true" 
           @dragstart="onDragStartSavedBlock($event, b.data)"
-          :data-tooltip="b.name"
+          :title="b.name"
         >
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap">{{ b.name }}</span>
-          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" data-tooltip="Xoá mẫu"><Trash2 :size="10"/></button>
+          <Box :size="20" class="ep-icon" />
+          <span class="ep-item-name-saved">{{ b.name }}</span>
+          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" title="Xoá mẫu"><Trash2 :size="12"/></button>
         </div>
       </div>
     </div>
@@ -51,6 +53,7 @@
         @dragenter.prevent="onDragEnter(idx)"
         @dragleave="onDragLeave(idx)"
         @drop.prevent="onDrop(idx)"
+        @contextmenu.prevent="openContextMenu($event, idx)"
       >
         <div class="section-item__left">
           <div class="section-item__drag-handle">
@@ -139,12 +142,43 @@
         </div>
       </transition>
     </div>
+
+    <!-- Context Menu -->
+    <Teleport to="body">
+      <div v-if="contextMenuVisible" class="context-menu-wrapper" :style="{ left: contextMenuPos.x + 'px', top: contextMenuPos.y + 'px' }" @click.stop>
+        <ul class="context-menu">
+          <li @click="cmAction('settings')"><Settings2 :size="14" /> Tuỳ chỉnh</li>
+          <li @click="cmAction('duplicate')"><Copy :size="14" /> Nhân đôi</li>
+          <li @click="cmAction('saveAsBlock')"><FolderPlus :size="14" /> Lưu thành Mẫu</li>
+          <li class="cm-divider"></li>
+          <li @click="cmAction('copyStyle')"><ClipboardCopy :size="14" /> Copy Style</li>
+          <li @click="cmAction('pasteStyle')" :class="{ disabled: !hasCopiedStyle }"><ClipboardPaste :size="14" /> Paste Style</li>
+          <li class="cm-divider"></li>
+          <li @click="cmAction('delete')" class="cm-danger"><Trash2 :size="14" /> Xoá</li>
+        </ul>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen } from 'lucide-vue-next'
+import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square } from 'lucide-vue-next'
+
+const primitiveElements = [
+  { type: 'container', label: 'Container', icon: Box },
+  { type: 'grid', label: 'Grid', icon: LayoutGrid },
+  { type: 'card', label: 'Card', icon: Square },
+  { type: 'heading', label: 'Heading', icon: Type },
+  { type: 'text', label: 'Text', icon: AlignLeft },
+  { type: 'image', label: 'Image', icon: ImageIcon },
+  { type: 'button', label: 'Button', icon: MousePointerClick },
+  { type: 'link', label: 'Link', icon: Link2 },
+  { type: 'divider', label: 'Divider', icon: Minus },
+  { type: 'iframe', label: 'Iframe', icon: Frame },
+  { type: 'video', label: 'Video', icon: Video },
+  { type: 'form', label: 'Form', icon: List }
+]
 import { useI18n } from '../../composables/useI18n.js'
 
 // Module-level global to share cloned styles across section managers
@@ -156,8 +190,50 @@ import LanguageTabs from '../LanguageTabs.vue'
 const { t } = useI18n()
 import { useLanguages } from '../../composables/useLanguages.js'
 const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+import { onMounted, onBeforeUnmount } from 'vue'
+
 loadLangs()
 const currentLang = ref(defaultLangCode.value)
+
+// Context Menu State
+const contextMenuVisible = ref(false)
+const contextMenuPos = ref({ x: 0, y: 0 })
+const contextMenuActiveSectionIndex = ref(null)
+
+function openContextMenu(e, idx) {
+  contextMenuVisible.value = true
+  
+  // ensure menu doesn't overflow screen horizontally
+  let x = e.clientX
+  let y = e.clientY
+  if (window.innerWidth - x < 180) x = window.innerWidth - 180
+  if (window.innerHeight - y < 250) y = window.innerHeight - 250
+
+  contextMenuPos.value = { x, y }
+  contextMenuActiveSectionIndex.value = idx
+}
+
+function closeContextMenu() {
+  contextMenuVisible.value = false
+}
+
+onMounted(() => document.addEventListener('click', closeContextMenu))
+onBeforeUnmount(() => document.removeEventListener('click', closeContextMenu))
+
+function cmAction(actionType) {
+  const idx = contextMenuActiveSectionIndex.value
+  if (idx === null || !list.value[idx]) return
+  
+  const section = list.value[idx]
+  if (actionType === 'settings') toggleExpand(section.type)
+  if (actionType === 'duplicate') duplicateSection(idx)
+  if (actionType === 'delete') deleteSection(idx)
+  if (actionType === 'copyStyle') copyStyle(section)
+  if (actionType === 'pasteStyle') pasteStyle(section)
+  if (actionType === 'saveAsBlock') saveAsBlock(section)
+  
+  contextMenuVisible.value = false
+}
 
 const props = defineProps({
   sections: { type: Array, required: true },
@@ -404,9 +480,46 @@ input:checked + .toggle-slider:before { transform: translateX(12px); }
 }
 
 /* Element Palette */
-.element-palette { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-.ep-item { background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: grab; color: var(--text-2); transition: 0.2s; text-transform: capitalize; font-weight: 500; }
-.ep-item:hover { background: rgba(124, 58, 237, 0.05); color: var(--accent); border-color: var(--accent); }
+.element-palette { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 8px; 
+  margin-bottom: 20px; 
+  padding-bottom: 20px; 
+  border-bottom: 1px dashed var(--border); 
+}
+.ep-item { 
+  background: #fff; 
+  border: 1px solid var(--border); 
+  border-radius: 8px; 
+  padding: 12px 6px; 
+  font-size: 11px; 
+  cursor: grab; 
+  color: var(--text-2); 
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); 
+  text-transform: capitalize; 
+  font-weight: 600; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px; 
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.ep-item:hover { 
+  background: #fff; 
+  color: var(--accent); 
+  border-color: var(--accent); 
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
+}
+.ep-icon {
+  color: var(--text-3);
+  transition: color 0.2s;
+}
+.ep-item:hover .ep-icon {
+  color: var(--accent);
+}
 
 /* ── Section Icon ── */
 .section-item__icon {
@@ -472,17 +585,49 @@ input:checked + .toggle-slider:before { transform: translateX(12px); }
   letter-spacing: 0.5px;
 }
 .ep-item--saved {
-  background: rgba(251, 146, 60, 0.1) !important;
+  background: rgba(251, 146, 60, 0.05) !important;
   color: #fb923c;
-  border: 1px solid rgba(251, 146, 60, 0.2);
-  display: flex;
-  justify-content: space-between;
+  border-color: rgba(251, 146, 60, 0.2);
   text-transform: none;
+  position: relative;
+}
+.ep-item--saved .ep-icon {
+  color: #fb923c;
+  opacity: 0.8;
 }
 .ep-item--saved:hover {
-  background: rgba(251, 146, 60, 0.2) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.2);
+  background: #fff !important;
+  border-color: #fb923c;
+  box-shadow: 0 4px 12px rgba(251, 146, 60, 0.15);
+  color: #fb923c;
 }
+.ep-item--saved:hover .ep-icon { color: #fb923c; opacity: 1; }
+.ep-item-name-saved { width: 100%; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 4px; }
+.btn-icon-soft {
+  position: absolute; right: 4px; top: 4px; width: 20px; height: 20px;
+  background: rgba(239, 68, 68, 0.08); color: #ef4444; border: none; border-radius: 4px; opacity: 0; padding: 0; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+}
+.ep-item--saved:hover .btn-icon-soft { opacity: 1; }
+.btn-icon-soft:hover { background: #ef4444; color: #fff; }
+
+/* Context Menu */
+.context-menu-wrapper {
+  position: fixed; z-index: 100000;
+}
+.context-menu {
+  list-style: none; margin: 0; padding: 4px; background: #fff;
+  border: 1px solid var(--border, #e5e7eb); border-radius: 8px;
+  box-shadow: 0 10px 30px -5px rgba(0,0,0,0.2); width: 180px;
+}
+.context-menu li {
+  padding: 8px 12px; display: flex; align-items: center; gap: 8px;
+  cursor: pointer; font-size: 13px; font-weight: 500; border-radius: 4px; color: var(--text-2, #4b5563);
+  transition: 0.1s;
+}
+.context-menu li:hover { background: var(--bg-2, #f3f4f6); color: var(--text-1, #1f2937); }
+.context-menu li.disabled { opacity: 0.5; cursor: not-allowed; }
+.context-menu li.cm-danger { color: #ef4444; }
+.context-menu li.cm-danger:hover { background: rgba(239, 68, 68, 0.1); }
+.cm-divider { height: 1px; background: var(--border, #e5e7eb); margin: 4px 0; padding: 0 !important; cursor: default; }
 
 </style>

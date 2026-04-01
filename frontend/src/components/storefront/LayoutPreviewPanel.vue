@@ -1,14 +1,5 @@
 <template>
   <div class="layout-builder__preview">
-    <div class="preview-toolbar">
-      <h4 class="lb-section__title"><Eye :size="14" /> {{ t('admin.msg_1507b51c', 'Xem trước') }}</h4>
-      <div class="preview-responsive" v-if="previewMode === 'live'">
-        <button :class="{ active: previewWidth === '100%' }" @click="emit('update:previewWidth', '100%')" data-tooltip="Desktop"><Monitor :size="12" /></button>
-        <button :class="{ active: previewWidth === '768px' }" @click="emit('update:previewWidth', '768px')" data-tooltip="Tablet"><Tablet :size="12" /></button>
-        <button :class="{ active: previewWidth === '375px' }" @click="emit('update:previewWidth', '375px')" data-tooltip="Mobile"><Smartphone :size="12" /></button>
-      </div>
-    </div>
-
     <!-- Wireframe Preview -->
     <div v-if="previewMode === 'wireframe'" class="preview-frame">
       <div class="pv-header">
@@ -243,6 +234,11 @@ function sendToIframe(type, payload) {
 defineExpose({
   highlightSection: (index) => sendToIframe('builder:highlight-section', { index }),
   selectSection: (index) => sendToIframe('builder:select-section', { index }),
+  postMessageToIframe: (type, payload) => {
+    if (iframeRef.value?.contentWindow) {
+      iframeRef.value.contentWindow.postMessage({ type, payload }, '*')
+    }
+  }
 })
 
 onMounted(() => {
@@ -259,10 +255,6 @@ onBeforeUnmount(() => {
 .layout-builder__preview {
   display: flex; flex-direction: column; flex: 1; width: 100%; height: 100%;
 }
-.preview-toolbar {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 0; padding: 12px 20px; border-bottom: 1px solid var(--border, #e5e7eb); background: #fff;
-}
-.preview-toolbar .lb-section__title { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-2, #4b5563); display: flex; align-items: center; gap: 6px; }
 
 /* Responsive controls */
 .preview-responsive { display: flex; gap: 4px; }
