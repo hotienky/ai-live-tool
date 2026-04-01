@@ -339,11 +339,6 @@ const menuLinks = computed(() => {
       if (!isBlog.value && blogUrls.some(u => url === u || url.startsWith(u))) return false
       return true
     })
-  // Auto-inject Blog link if blog module is active but nav doesn't include it
-  if (isBlog.value && !filtered.some(l => (l.url || '').startsWith('/blog'))) {
-    const maxSort = Math.max(0, ...filtered.map(l => l.sort || 0))
-    filtered.push({ id: '__auto_blog', name: 'Blog', url: '/blog', icon: 'BookOpen', sort: maxSort + 1 })
-  }
   return filtered.sort((a, b) => (a.sort || 0) - (b.sort || 0))
 })
 

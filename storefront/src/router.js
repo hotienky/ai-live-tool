@@ -159,6 +159,17 @@ router.beforeEach((to) => {
   // Skip guard until modules are loaded
   if (_installedModules === null) return true
 
+  // Bypass module/template/page gating when in Layout Builder preview mode.
+  // Using window.self !== window.top is a bulletproof check that we are inside the Admin iframe.
+  if (
+    to.query?.preview === 'true' || 
+    window.location.search.includes('preview=true') || 
+    window.location.search.includes('preview_layout=') ||
+    window.self !== window.top
+  ) {
+    return true
+  }
+
   // 1. Module guard
   const requiredModule = routeModuleRequirements[to.name]
   if (requiredModule && !_installedModules.includes(requiredModule)) {

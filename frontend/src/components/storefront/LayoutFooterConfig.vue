@@ -548,36 +548,6 @@ async function autoTranslateFooter() {
   background: #fef2f2;
 }
 
-.param-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.param-row label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #475569;
-  min-width: 90px;
-}
-
-.param-input, .param-select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 12px;
-  color: #1e293b;
-  background: #fff;
-  transition: border-color 0.2s;
-}
-
-.param-input:focus, .param-select:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
-}
 
 .param-select--sm {
   padding: 6px 8px;
@@ -774,44 +744,5 @@ async function autoTranslateFooter() {
   color: #1e293b;
 }
 
-/* Light Theme overrides targeting properties panel since builder might be dark mode */
-.cpb-right .lb-section {
-  color: #e2e8f0;
-}
-.cpb-right .lb-section__title {
-  color: #fff;
-}
-.cpb-right .lb-section__hint {
-  color: #94a3b8;
-}
-.cpb-right .footer-col-card {
-  background: rgba(0,0,0,0.15);
-  border-color: rgba(255,255,255,0.05);
-}
-.cpb-right .footer-col-card__label {
-  color: #e2e8f0;
-}
-.cpb-right .param-row label {
-  color: #94a3b8;
-}
-.cpb-right .param-input, .cpb-right .param-select, .cpb-right .footer-textarea {
-  background: rgba(0,0,0,0.3);
-  border-color: rgba(255,255,255,0.1);
-  color: #fff;
-}
-.cpb-right .footer-link-row, .cpb-right .footer-extra-section, .cpb-right .footer-extra-section summary, .cpb-right .footer-colors, .cpb-right .footer-badge-check {
-  background: rgba(0,0,0,0.2);
-  border-color: rgba(255,255,255,0.1);
-  color: #fff;
-}
-.cpb-right .footer-badge-check { color: #cbd5e1; }
-.cpb-right .btn-add-section {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.1);
-  color: #cbd5e1;
-}
-.cpb-right .btn-add-section:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
+
 </style>

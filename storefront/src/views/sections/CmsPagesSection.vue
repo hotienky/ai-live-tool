@@ -55,3 +55,66 @@ function formatDate(dateString) {
   return new Intl.DateTimeFormat('vi-VN').format(d)
 }
 </script>
+<style scoped>
+.home-pages {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+.home-pages--list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.home-page-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--sf-bg-card, #fff);
+  border: 1px solid var(--sf-border, #e2e8f0);
+  border-radius: var(--sf-radius-lg, 12px);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  color: var(--sf-text-primary, #1e293b);
+}
+.home-page-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sf-shadow-md, 0 10px 15px -3px rgba(0,0,0,0.1));
+  border-color: var(--sf-accent, #6366f1);
+}
+.home-pages--list .home-page-card {
+  align-items: flex-start;
+}
+.home-page-card__img {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--sf-radius-md, 8px);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.home-page-card__img--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sf-bg-card-hover, #f1f5f9);
+  color: var(--sf-text-muted, #94a3b8);
+}
+.home-page-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+.home-page-card__info h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sf-text-primary, #1e293b);
+  line-height: 1.4;
+}
+.home-page-card__date {
+  font-size: 12px;
+  color: var(--sf-text-muted, #64748b);
+}
+</style>

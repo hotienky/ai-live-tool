@@ -136,57 +136,59 @@
 
     </header>
 
-    <!-- ═══ View: Dashboard ═══ -->
-    <DashboardOverview
-      v-if="activeView === 'dashboard'"
-      @navigate="navigateTo"
-    />
+    <div class="app-body">
+      <!-- ═══ View: Dashboard ═══ -->
+      <DashboardOverview
+        v-if="activeView === 'dashboard'"
+        @navigate="navigateTo"
+      />
 
-    <!-- ═══ View: Live Monitor (plugin-based when livestream plugin is installed) ═══ -->
-    <component
-      v-if="activeView === 'live' && liveMonitorComponent"
-      :is="liveMonitorComponent"
-      @openCustomer="openCustomerDetail"
-    />
-    <!-- ═══ View: Live Replay (plugin-based) ═══ -->
-    <component
-      v-else-if="activeView === 'live/replay' && liveReplayComponent"
-      :is="liveReplayComponent"
-    />
+      <!-- ═══ View: Live Monitor (plugin-based when livestream plugin is installed) ═══ -->
+      <component
+        v-if="activeView === 'live' && liveMonitorComponent"
+        :is="liveMonitorComponent"
+        @openCustomer="openCustomerDetail"
+      />
+      <!-- ═══ View: Live Replay (plugin-based) ═══ -->
+      <component
+        v-else-if="activeView === 'live/replay' && liveReplayComponent"
+        :is="liveReplayComponent"
+      />
 
-    <!-- ═══ View: CRM Pipeline ═══ -->
-    <LeadPipeline
-      v-if="activeView === 'crm'"
-      @openCustomer="openCustomerDetail"
-    />
+      <!-- ═══ View: CRM Pipeline ═══ -->
+      <LeadPipeline
+        v-if="activeView === 'crm'"
+        @openCustomer="openCustomerDetail"
+      />
 
-    <!-- ═══ View: Reports ═══ -->
-    <ReportPage
-      v-if="activeView === 'reports'"
-    />
+      <!-- ═══ View: Reports ═══ -->
+      <ReportPage
+        v-if="activeView === 'reports'"
+      />
 
+      <!-- ═══ View: Settings-based Pages (Shop/Live settings/Orders) ═══ -->
+      <ShopSettings
+        v-if="isSettingsView"
+        :currentShop="currentShop"
+        :initialTab="settingsActiveTab"
+        :activeView="activeView"
+        :cmsEditPageId="cmsEditPageId"
+        :productEditId="productEditId"
+        :categoryEditId="categoryEditId"
+        :flashSaleFormMode="flashSaleFormMode"
+        :flashSaleEditId="flashSaleEditId"
+        @openShopSelector="shopSelectorRef?.open()"
+        @navigate="navigateTo"
+        @modulesChanged="onModulesChanged"
+      />
 
-    <!-- ═══ View: Settings-based Pages (Shop/Live settings/Orders) ═══ -->
-    <ShopSettings
-      v-if="isSettingsView"
-      :currentShop="currentShop"
-      :initialTab="settingsActiveTab"
-      :activeView="activeView"
-      :cmsEditPageId="cmsEditPageId"
-      :productEditId="productEditId"
-      :categoryEditId="categoryEditId"
-      :flashSaleFormMode="flashSaleFormMode"
-      :flashSaleEditId="flashSaleEditId"
-      @openShopSelector="shopSelectorRef?.open()"
-      @navigate="navigateTo"
-      @modulesChanged="onModulesChanged"
-    />
-    <!-- ═══ View: All Notifications ═══ -->
-    <NotificationPage
-      v-if="activeView === 'notifications'"
-      :backView="prevView"
-      @navigate="navigateTo"
-    />
+      <!-- ═══ View: All Notifications ═══ -->
+      <NotificationPage
+        v-if="activeView === 'notifications'"
+        :backView="prevView"
+        @navigate="navigateTo"
+      />
+    </div>
 
     <!-- Customer Detail Modal -->
     <CustomerDetail
@@ -194,8 +196,6 @@
       :customer="selectedCustomer"
       @close="showCustomerDetail = false"
     />
-
-
 
     <!-- Keyboard Shortcuts Help -->
     <div class="shortcuts-overlay" v-if="showShortcuts" @click.self="showShortcuts = false">
@@ -826,7 +826,16 @@ async function onCreateShop(shopData) {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow: hidden;
   background: var(--color-bg-primary);
+}
+
+.app-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {

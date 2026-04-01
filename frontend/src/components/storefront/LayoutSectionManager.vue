@@ -69,8 +69,8 @@
           <div class="section-actions-hover">
             <button
               class="btn-action btn-action--style"
-              @click.stop="toggleExpand(section.type)"
-              :data-tooltip="expandedSection === section.type ? 'Thu gọn' : 'Tùy chỉnh'"
+              @click.stop="openSectionConfig(section)"
+              data-tooltip="Tùy chỉnh"
             ><Settings2 :size="13" /></button>
             <button
               class="btn-action btn-action--dup"
@@ -106,41 +106,7 @@
         </div>
       </div>
 
-      <!-- Expanded Section Parameters (Sliding Panel) -->
-      <transition name="slide-panel">
-        <div v-if="expandedSection === section.type" class="section-params section-params--fullscreen">
-          <div class="sp-header">
-            <button class="sp-back-btn" @click="$emit('update:expandedSection', null); expandedSection = null" data-tooltip="Trở lại">
-              <ChevronLeft :size="16" /> Bố cục
-            </button>
-            <span class="sp-title">{{ sectionMeta[section.type]?.label || section.type }}</span>
-            <span class="sp-fill"></span>
-          </div>
-          <div class="sp-body">
-            <SectionConfigEditor
-              :section="section"
-              :all-categories="allCategories"
-              :current-lang="currentLang"
-              :default-lang-code="defaultLangCode"
-              @open-block-editor="$emit('open-block-editor', $event)"
-            >
-              <template #children-editor="{ section: childSection }">
-                <!-- Recursive Call to Self -->
-                <LayoutSectionManager 
-                  v-if="expandedSection === childSection.type"
-                  :sections="childSection.children || (childSection.children = [])"
-                  @update:sections="childSection.children = $event"
-                  :sectionMeta="sectionMeta"
-                  :allCategories="allCategories"
-                />
-                <div v-if="!childSection.children || childSection.children.length === 0" style="text-align: center; padding: 20px; font-size: 11px; color: #888;">
-                  Chưa có component nào tron lưới. Kéo component từ danh sách thả vào đây.
-                </div>
-              </template>
-            </SectionConfigEditor>
-          </div><!-- /.sp-body -->
-        </div>
-      </transition>
+
     </div>
 
     <!-- Context Menu -->
@@ -184,7 +150,7 @@ import { useI18n } from '../../composables/useI18n.js'
 // Module-level global to share cloned styles across section managers
 let copiedStylePayload = null
 const currentCopiedTs = ref(Date.now())
-import SectionConfigEditor from './SectionConfigEditor.vue'
+// SectionConfigEditor moved to right panel in StorefrontLayoutBuilder
 import LanguageTabs from '../LanguageTabs.vue'
 
 const { t } = useI18n()
@@ -225,7 +191,7 @@ function cmAction(actionType) {
   if (idx === null || !list.value[idx]) return
   
   const section = list.value[idx]
-  if (actionType === 'settings') toggleExpand(section.type)
+  if (actionType === 'settings') openSectionConfig(section)
   if (actionType === 'duplicate') duplicateSection(idx)
   if (actionType === 'delete') deleteSection(idx)
   if (actionType === 'copyStyle') copyStyle(section)
@@ -240,7 +206,7 @@ const props = defineProps({
   sectionMeta: { type: Object, required: true },
   allCategories: { type: Array, default: () => [] }
 })
-const emit = defineEmits(['update:sections', 'open-block-editor'])
+const emit = defineEmits(['update:sections', 'open-block-editor', 'active-change'])
 
 const list = computed({
   get: () => props.sections,
@@ -392,6 +358,11 @@ function onDrop(targetIdx) {
 
 function toggleExpand(type) {
   expandedSection.value = expandedSection.value === type ? null : type
+}
+
+function openSectionConfig(section) {
+  // Emit section id to parent so the right panel opens with this section's config
+  emit('active-change', section.id || section.type)
 }
 
 // ── Quick Actions ──

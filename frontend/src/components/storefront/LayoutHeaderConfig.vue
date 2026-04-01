@@ -261,11 +261,12 @@ onMounted(() => { fetchNavLinks(); fetchCmsPageList() })
 
 <style scoped>
 .header-extra-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 .header-extra-section summary {
   font-weight: 600;
@@ -275,6 +276,7 @@ onMounted(() => { fetchNavLinks(); fetchCmsPageList() })
   display: flex;
   align-items: center;
   justify-content: space-between;
+  color: #1e293b;
 }
 .header-extra-section summary::-webkit-details-marker {
   display: none;
@@ -282,35 +284,169 @@ onMounted(() => { fetchNavLinks(); fetchCmsPageList() })
 .header-extra-section summary::after {
   content: '▼';
   font-size: 10px;
-  color: var(--text-secondary);
+  color: #94a3b8;
   transition: transform 0.2s;
 }
 .header-extra-section[open] summary::after {
   transform: rotate(180deg);
 }
+
+
+
 .footer-colors {
-  background: var(--input-bg);
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 .footer-color-row {
   display: flex;
-  gap: 12px;
+  gap: 16px;
 }
 .footer-color-item {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 .footer-color-item label {
   font-size: 11px;
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: #64748b;
 }
 .footer-color-pick {
   display: flex;
   align-items: center;
+  gap: 8px;
+}
+.param-color {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+  transition: transform 0.2s;
+}
+.param-color:hover {
+  transform: scale(1.05);
+}
+.btn-clear-color {
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-clear-color:hover {
+  background: #e2e8f0;
+  color: #ef4444;
+}
+
+/* Nav Links List */
+.header-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hl-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  gap: 12px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.hl-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.hl-item__order {
+  width: 24px;
+  height: 24px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+.hl-item__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.hl-item__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+.hl-item__url {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: monospace;
+}
+.hl-badge {
+  font-size: 10px;
+  background: #e0e7ff;
+  color: #4f46e5;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.btn-edit-hl, .btn-remove-item {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.btn-edit-hl { color: #64748b; }
+.btn-edit-hl:hover { background: #f1f5f9; color: #3b82f6; }
+.btn-remove-item { color: #94a3b8; }
+.btn-remove-item:hover { background: #fef2f2; color: #ef4444; }
+
+.btn-add-item {
+  width: 100%;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-add-item:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.hl-empty {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  color: #94a3b8;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #e2e8f0;
 }
 </style>

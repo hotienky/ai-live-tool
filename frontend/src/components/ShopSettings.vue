@@ -10,8 +10,12 @@
 
     <div class="settings__layout">
       <!-- Sidebar Navigation -->
-      <aside class="settings__sidebar">
-        <div class="sidebar-search">
+      <aside class="settings__sidebar" :class="{ 'settings__sidebar--collapsed': sidebarCollapsed }">
+        <button class="settings__sidebar-toggle" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? 'Mở menu' : 'Thu gọn menu'">
+          <PanelLeftClose v-if="!sidebarCollapsed" :size="16" />
+          <PanelLeftOpen v-else :size="16" />
+        </button>
+        <div class="sidebar-search" v-show="!sidebarCollapsed">
           <Search :size="14" class="sidebar-search__icon" />
           <input
             v-model="sidebarSearch"
@@ -21,22 +25,38 @@
           />
           <button v-if="sidebarSearch" class="sidebar-search__clear" @click="sidebarSearch = ''">&times;</button>
         </div>
-        <div v-for="group in filteredSidebarGroups" :key="group.label" class="settings__sidebar-group">
-          <div class="settings__sidebar-label">{{ group.label }}</div>
-          <button
-            v-for="tab in group.items"
-            :key="tab.key"
-            class="settings__sidebar-item"
-            :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
-            @click="onSidebarClick(tab.key); sidebarSearch = ''"
-          >
-            <component :is="tab.icon" :size="16" />
-            <span>{{ tab.label }}</span>
-          </button>
-        </div>
-        <div v-if="sidebarSearch && filteredSidebarGroups.length === 0" class="sidebar-search__empty">
-          Không tìm thấy "{{ sidebarSearch }}"
-        </div>
+        <template v-if="!sidebarCollapsed">
+          <div v-for="group in filteredSidebarGroups" :key="group.label" class="settings__sidebar-group">
+            <div class="settings__sidebar-label">{{ group.label }}</div>
+            <button
+              v-for="tab in group.items"
+              :key="tab.key"
+              class="settings__sidebar-item"
+              :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
+              @click="onSidebarClick(tab.key); sidebarSearch = ''"
+            >
+              <component :is="tab.icon" :size="16" />
+              <span>{{ tab.label }}</span>
+            </button>
+          </div>
+          <div v-if="sidebarSearch && filteredSidebarGroups.length === 0" class="sidebar-search__empty">
+            Không tìm thấy "{{ sidebarSearch }}"
+          </div>
+        </template>
+        <template v-else>
+          <div v-for="group in filteredSidebarGroups" :key="group.label" class="settings__sidebar-group">
+            <button
+              v-for="tab in group.items"
+              :key="tab.key"
+              class="settings__sidebar-item settings__sidebar-item--icon-only"
+              :class="{ 'settings__sidebar-item--active': activeTab === tab.key }"
+              @click="onSidebarClick(tab.key)"
+              :title="tab.label"
+            >
+              <component :is="tab.icon" :size="16" />
+            </button>
+          </div>
+        </template>
       </aside>
 
       <!-- Content Panel -->
@@ -407,10 +427,7 @@
         <StorefrontLayoutBuilder />
       </div>
 
-      <!-- ═══ Tab: Banners ═══ -->
-      <div v-if="activeTab === 'banners'" class="settings__panel">
-        <BannerManager :languagesInstalled="isModuleInstalled('languages')" />
-      </div>
+
 
       <!-- ═══ Tab: Media Library ═══ -->
       <div v-if="activeTab === 'media'" class="settings__panel">
@@ -633,10 +650,11 @@ import {
   Image as ImageIcon,
   CalendarDays, PartyPopper, MessagesSquare, Building2, Scissors,
   Home, Gift, UserCheck, UtensilsCrossed, GraduationCap,
+  PanelLeftClose, PanelLeftOpen,
 } from 'lucide-vue-next'
 // E-com components removed — loaded dynamically via PluginRenderer
 // Module components removed — loaded dynamically via PluginRenderer
-import BannerManager from './BannerManager.vue'
+
 import MediaLibrary from './MediaLibrary.vue'
 import NavLinkManager from './NavLinkManager.vue'
 import ModuleManager from './ModuleManager.vue'
@@ -784,7 +802,7 @@ const tabPermissions = {
   'promotions': 'promotions.view',
   'flash-sales': 'promotions.view',
   'cms': 'cms.view',
-  'banners': 'banners.view',
+
 
   'appearance': 'settings.view',
   'storefront-layout': 'settings.view',
@@ -826,7 +844,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'banners', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -878,7 +896,7 @@ const tabs = [
   { key: 'shop-customers', label: t('admin.customers', 'Khách hàng'), icon: Users },
   { key: 'promotions', label: t('admin.promotions', 'Khuyến mãi'), icon: Tag },
   { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
-  { key: 'banners', label: 'Banner', icon: Video },
+
 
 ]
 const allTabs = [
@@ -927,7 +945,7 @@ const tabGroups = [
     label: t('admin.theme', 'Giao diện'),
     items: [
       { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
-      { key: 'banners', label: 'Banner', icon: Video },
+
       { key: 'media', label: 'Media', icon: ImageIcon },
       { key: 'appearance', label: 'Theme', icon: Palette },
       { key: 'storefront-layout', label: t('admin.storefront_layout', 'Bố cục Cửa Hàng'), icon: LayoutList },
@@ -1025,7 +1043,7 @@ const tabToRoute = {
   // Marketing
   'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
   // Giao diện
-  'cms': 'shop/cms', 'banners': 'shop/banners', 'media': 'shop/media',
+  'cms': 'shop/cms', 'media': 'shop/media',
   'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
   // Content
   'forms': 'forms', 'form-submissions': 'forms/submissions',
@@ -1083,7 +1101,7 @@ const moduleTabMap = {
   'tax': 'tax',
   // CMS (content management)
   'cms': 'cms',
-  'banners': 'cms',
+
   // Forms
   'forms': 'forms',
   'form-submissions': 'forms',
@@ -1120,7 +1138,7 @@ function isModuleInstalled(moduleId) {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'banners', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value
@@ -1142,6 +1160,9 @@ const activeTabGroups = computed(() => {
     }))
     .filter(g => g.items.length > 0)
 })
+
+// ── Sidebar Collapse ──
+const sidebarCollapsed = ref(false)
 
 // ── Sidebar Search ──
 const sidebarSearch = ref('')
@@ -1476,7 +1497,7 @@ defineExpose({ handleAutoReplyEvent })
 </script>
 
 <style scoped>
-.settings { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+.settings { display: flex; flex-direction: column; overflow: hidden; flex: 1; min-height: 0; }
 .settings__platform-group {
   padding: 14px 16px; border-radius: 10px; background: var(--color-bg-primary);
   border: 1px solid var(--color-border); margin-bottom: 12px;
@@ -1540,10 +1561,12 @@ defineExpose({ handleAutoReplyEvent })
   gap: 0;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 .settings__sidebar {
   width: 200px;
   min-width: 200px;
+  min-height: 0;
   background: var(--color-bg-sidebar, var(--color-bg-primary));
   border-right: 1px solid var(--color-border);
   padding: 12px 8px;
@@ -1551,6 +1574,44 @@ defineExpose({ handleAutoReplyEvent })
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: width 0.2s ease, min-width 0.2s ease;
+}
+.settings__sidebar--collapsed {
+  width: 48px;
+  min-width: 48px;
+  padding: 12px 4px;
+  overflow: hidden;
+}
+.settings__sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+.settings__sidebar-toggle:hover {
+  background: var(--color-bg-hover, rgba(0,0,0,0.06));
+  color: var(--color-text-primary);
+}
+.settings__sidebar--collapsed .settings__sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings__sidebar-item--icon-only {
+  justify-content: center;
+  padding: 6px 0;
+}
+.settings__sidebar-item--icon-only span {
+  display: none;
 }
 
 /* Sidebar Search */
@@ -1656,6 +1717,7 @@ defineExpose({ handleAutoReplyEvent })
 }
 .settings__content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 20px;
 }

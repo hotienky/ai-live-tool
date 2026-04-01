@@ -841,11 +841,20 @@ const activeConfigName = computed(() => {
 
 const rightPanelTitle = activeConfigName
 
-function onPreviewOpenConfig({ type, targetObj }) {
+function onPreviewOpenConfig(payload) {
+  const { type, index, targetObj } = payload || {}
+  
   if (type === 'header') activeConfig.value = 'header'
   else if (type === 'footer') activeConfig.value = 'footer'
   else if (type === 'promo') activeConfig.value = 'promo'
-  else if (type === 'section') activeConfig.value = 'section-' + targetObj.id
+  else if (type === 'promo-bar') activeConfig.value = 'promo'
+  else if (type === 'section' && targetObj && targetObj.id) {
+    activeConfig.value = 'section-' + targetObj.id
+  } else if (index !== undefined && sections.value[index]) {
+    // Map visual builder click index to the actual section ID
+    const sectionId = sections.value[index].id
+    activeConfig.value = 'section-' + sectionId
+  }
 }
 
 
@@ -1473,7 +1482,14 @@ async function loadLayout() {
         layoutPageVersion.value = page.version || 0
         layoutPageStatus.value = page.status || 'draft'
 
-        const layoutJson = page.layout_json || []
+        let layoutJson = page.layout_json || []
+        
+        // Safeguard: If this is a built-in page but the layout is missing the core content block
+        // (due to older bug or accidental deletion), we forcibly auto-inject it.
+        if (isBuiltin && layoutJson.length > 0 && !layoutJson.some(s => s.type === 'system_page_content')) {
+          layoutJson.push({ type: 'system_page_content', enabled: true, order: Math.max(0, ...layoutJson.map(x => x.order || 0)) + 1, params: { title: '' } })
+        }
+
         if (layoutJson.length === 0 && isBuiltin) {
           sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
         } else {
@@ -1508,7 +1524,15 @@ async function loadLayout() {
     const defaultPages = { cart: true, account: true, auth: true, order_tracking: true, products: true }
 
     const parsed = map.layout_sections ? JSON.parse(map.layout_sections) : null
-    sections.value = ensureParams(parsed || defaultSections)
+    
+    // Legacy fallback: If we are not on the global/home page, legacy system didn't support sections.
+    // So we initialize it with a sterile system content wrapper to prevent homepage bleed-through.
+    if (isBuiltin && slug !== 'home') {
+      sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+    } else {
+      sections.value = ensureParams(parsed || defaultSections)
+    }
+
     pages.value = map.layout_pages ? JSON.parse(map.layout_pages) : defaultPages
     activeTemplate.value = map.layout_template || 'full_store'
     customCss.value = map.layout_custom_css || ''
@@ -1637,22 +1661,27 @@ async function saveLayout() {
       showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng') + ` (v${layoutPageVersion.value})`, 'success')
     } else {
       // Fallback to system-config if layout-pages is unavailable
+      const itemsToSave = [
+        { key: 'layout_pages', value: JSON.stringify(pages.value) },
+        { key: 'layout_template', value: activeTemplate.value },
+        { key: 'layout_custom_css', value: customCss.value },
+        { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
+        { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
+        { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
+        { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
+        { key: 'layout_theme_config', value: JSON.stringify(themeConfig.value) },
+        { key: 'storefront_url', value: storefrontUrl.value },
+      ]
+      
+      // Legacy layout_sections only stores global homepage data.
+      // Do not overwrite it with sterile system wrapper if we are on a builtin page.
+      if (!isBuiltin || slug === 'home') {
+        itemsToSave.push({ key: 'layout_sections', value: JSON.stringify(sections.value) })
+      }
+
       await apiFetch('/system-config/group/storefront_layout', {
         method: 'PUT',
-        body: JSON.stringify({
-          items: [
-            { key: 'layout_sections', value: JSON.stringify(sections.value) },
-            { key: 'layout_pages', value: JSON.stringify(pages.value) },
-            { key: 'layout_template', value: activeTemplate.value },
-            { key: 'layout_custom_css', value: customCss.value },
-            { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
-            { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
-            { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
-            { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
-            { key: 'layout_theme_config', value: JSON.stringify(themeConfig.value) },
-            { key: 'storefront_url', value: storefrontUrl.value },
-          ],
-        }),
+        body: JSON.stringify({ items: itemsToSave }),
       })
       showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
     }
@@ -1975,4 +2004,145 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+
+<style>
+/* 
+ * Global Control Panel Utilities for Child Components 
+ * Defines sleek inputs, toggles, selects, and grids for builder configs.
+ */
+.lb-section {
+  font-family: 'Inter', sans-serif;
+  color: #334155;
+  margin-bottom: 24px;
+}
+.lb-section__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: #0f172a;
+}
+.lb-section__hint {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+.param-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.param-row label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  white-space: nowrap;
+}
+.param-input, .param-select {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #0f172a;
+  transition: all 0.2s;
+}
+.param-input:focus, .param-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.param-range {
+  flex: 1;
+  accent-color: #3b82f6;
+  height: 4px;
+  border-radius: 4px;
+  background: #e2e8f0;
+  outline: none;
+}
+.param-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  min-width: 24px;
+  text-align: right;
+}
+.toggle-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  cursor: pointer;
+  display: inline-block;
+  margin: 0;
+  flex-shrink: 0;
+}
+.toggle-switch--sm {
+  width: 32px;
+  height: 18px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 24px;
+}
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: #ffffff;
+  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.toggle-switch--sm .toggle-slider:before {
+  height: 14px;
+  width: 14px;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #3b82f6;
+}
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(18px);
+}
+.toggle-switch--sm input:checked + .toggle-slider:before {
+  transform: translateX(14px);
+}
+.param-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 20px 0;
+}
+.param-color {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+  transition: transform 0.2s;
+}
+.param-color:hover {
+  transform: scale(1.05);
+}
 </style>

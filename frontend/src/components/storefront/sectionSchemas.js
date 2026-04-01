@@ -64,7 +64,13 @@ export const sectionSchemas = {
   banner: [
     { key: 'autoplay', type: 'boolean', label: 'Tự chuyển (Autoplay)' },
     { key: 'interval', type: 'number', label: 'Tốc độ (ms)', condition: 'autoplay', min: 1000, max: 10000, step: 500 },
-    { key: 'height', type: 'select', label: 'Chiều cao', options: [{value: 'sm', label: 'Nhỏ'}, {value: 'md', label: 'Vừa'}, {value: 'lg', label: 'Lớn'}] }
+    { key: 'height', type: 'select', label: 'Chiều cao', options: [{value: 'sm', label: 'Nhỏ'}, {value: 'md', label: 'Vừa'}, {value: 'lg', label: 'Lớn'}] },
+    { key: '_content', type: 'list', label: 'Danh sách Slide', fields: [
+      { key: 'image', type: 'media', placeholder: 'URL ảnh nền (Desktop / Đa năng)' },
+      { key: 'title', type: 'text', placeholder: 'Tiêu đề slide' },
+      { key: 'description', type: 'textarea', placeholder: 'Mô tả ngắn' },
+      { key: 'url', type: 'url', placeholder: 'Đường dẫn đích (link)' }
+    ]}
   ],
   image_banner: [
     { key: 'desktopImage', type: 'media', label: 'Ảnh Desktop' },
