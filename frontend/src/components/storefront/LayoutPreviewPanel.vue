@@ -11,58 +11,52 @@
         </div>
       </div>
       <div class="pv-body">
-        <!-- Built-in page preview -->
-        <template v-if="activeBuiltinPage === 'products'">
-          <div class="pv-page-layout" :class="'pv-page-layout--sidebar-' + (pageConfigs.products?.sidebarPosition || 'left')">
-            <div class="pv-sidebar" v-if="pageConfigs.products?.sidebarPosition !== 'hidden'">
-              <div class="pv-sidebar__label">Sidebar</div>
-              <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.category"></div>
-              <div class="pv-sidebar__block" v-if="pageConfigs.products?.showFilters?.brand"></div>
-              <div class="pv-sidebar__block pv-sidebar__block--sm" v-if="pageConfigs.products?.showFilters?.price"></div>
-            </div>
-            <div class="pv-product-grid">
-              <div class="pv-product-grid__label">Sản phẩm ({{ pageConfigs.products?.gridColumns || 4 }} cột)</div>
-              <div class="pv-product-grid__items" :style="{ gridTemplateColumns: `repeat(${pageConfigs.products?.gridColumns || 4}, 1fr)` }">
-                <div v-for="n in (pageConfigs.products?.itemsPerPage || 12)" :key="n" class="pv-product-item"></div>
+        <template v-for="section in activeSections" :key="section.type">
+          <template v-if="section.type === 'product_grid'">
+            <div class="pv-page-layout" :class="'pv-page-layout--sidebar-' + (section.params?.sidebarPosition || 'left')">
+              <div class="pv-sidebar" v-if="section.params?.sidebarPosition !== 'hidden'">
+                <div class="pv-sidebar__label">Sidebar</div>
+                <div class="pv-sidebar__block"></div>
+                <div class="pv-sidebar__block"></div>
+                <div class="pv-sidebar__block pv-sidebar__block--sm"></div>
+              </div>
+              <div class="pv-product-grid">
+                <div class="pv-product-grid__label">Sản phẩm ({{ section.params?.gridColumns || 4 }} cột)</div>
+                <div class="pv-product-grid__items" :style="{ gridTemplateColumns: `repeat(${section.params?.gridColumns || 4}, 1fr)` }">
+                  <div v-for="n in (section.params?.itemsPerPage || 12)" :key="n" class="pv-product-item"></div>
+                </div>
               </div>
             </div>
-          </div>
-        </template>
-        <template v-else-if="activeBuiltinPage === 'productDetail'">
-          <div class="pv-page-layout pv-page-layout--detail" :style="{ gridTemplateColumns: (pageConfigs.productDetail?.layoutRatio || '50-50').replace('-', 'fr ') + 'fr' }">
-            <div class="pv-detail-gallery">
-              <div class="pv-detail-gallery__main"></div>
-              <div class="pv-detail-gallery__thumbs" v-if="pageConfigs.productDetail?.galleryStyle === 'thumbnails'">
-                <div v-for="n in 4" :key="n" class="pv-thumb"></div>
+          </template>
+          
+          <template v-else-if="section.type === 'product_detail_view'">
+            <div class="pv-page-layout pv-page-layout--detail" :style="{ gridTemplateColumns: (section.params?.layoutRatio || '50-50').replace('-', 'fr ') + 'fr' }">
+              <div class="pv-detail-gallery">
+                <div class="pv-detail-gallery__main"></div>
+                <div class="pv-detail-gallery__thumbs" v-if="section.params?.galleryStyle === 'thumbnails'">
+                  <div v-for="n in 4" :key="n" class="pv-thumb"></div>
+                </div>
+              </div>
+              <div class="pv-detail-info">
+                <div class="pv-detail-info__title"></div>
+                <div class="pv-detail-info__price"></div>
+                <div class="pv-detail-info__btn"></div>
               </div>
             </div>
-            <div class="pv-detail-info">
-              <div class="pv-detail-info__title"></div>
-              <div class="pv-detail-info__price"></div>
-              <div class="pv-detail-info__btn"></div>
+            <div class="pv-section pv-section--related" v-if="section.params?.showRelatedProducts">
+              <div class="pv-section__label">SP liên quan ({{ section.params?.relatedCount || 6 }})</div>
+              <div class="pv-section__visual" style="height:40px"></div>
             </div>
-          </div>
-          <div class="pv-section pv-section--related" v-if="pageConfigs.productDetail?.showRelatedProducts">
-            <div class="pv-section__label">SP liên quan ({{ pageConfigs.productDetail?.relatedCount || 6 }})</div>
-            <div class="pv-section__visual" style="height:40px"></div>
-          </div>
-          <div class="pv-section pv-section--reviews" v-if="pageConfigs.productDetail?.showReviews">
-            <div class="pv-section__label">{{ t('admin.msg_b4292de3', 'Đánh giá') }}</div>
-            <div class="pv-section__visual" style="height:30px"></div>
-          </div>
-        </template>
-        <template v-else-if="activeBuiltinPage">
-          <div class="pv-section">
-            <div class="pv-section__label">{{ builtinPageOptions.find(p => p.id === activePageId)?.label || activeBuiltinPage }}</div>
-            <div class="pv-section__visual" style="height:80px"></div>
-          </div>
-        </template>
-        <!-- Homepage sections preview -->
-        <template v-else>
-          <template v-for="section in activeSections" :key="section.type">
+            <div class="pv-section pv-section--reviews" v-if="section.params?.showReviews">
+              <div class="pv-section__label">{{ t('admin.msg_b4292de3', 'Đánh giá') }}</div>
+              <div class="pv-section__visual" style="height:30px"></div>
+            </div>
+          </template>
+
+          <template v-else>
             <div class="pv-section" :class="'pv-section--' + section.type">
               <div class="pv-section__label">{{ sectionMeta[section.type]?.label || section.type }}</div>
-              <div class="pv-section__visual" :style="{ height: sectionMeta[section.type]?.pvHeight || '30px' }"></div>
+              <div class="pv-section__visual" :style="{ height: sectionMeta[section.type]?.pvHeight || '80px' }"></div>
             </div>
           </template>
         </template>

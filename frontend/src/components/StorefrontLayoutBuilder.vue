@@ -128,7 +128,7 @@
               </div>
 
               <!-- Main Body Content -->
-              <div class="cpb-layer-separator">Nội dung trang {{ activePageLabel }}</div>
+              <div class="cpb-layer-separator">Nội dung {{ activePageLabel }}</div>
 
               <div class="cpb-layer-switch">
                 <button :class="{ active: activeSidebarTab === 'elements' }" @click="activeSidebarTab = 'elements'">Section</button>
@@ -904,11 +904,11 @@ function onPreviewOpenConfig(payload) {
   else if (type === 'promo') activeConfig.value = 'promo'
   else if (type === 'promo-bar') activeConfig.value = 'promo'
   else if (type === 'section' && targetObj && targetObj.id) {
-    activeConfig.value = 'section-' + targetObj.id
+    activeConfig.value = targetObj.id
   } else if (index !== undefined && sections.value[index]) {
     // Map visual builder click index to the actual section ID
     const sectionId = sections.value[index].id
-    activeConfig.value = 'section-' + sectionId
+    activeConfig.value = sectionId || sections.value[index].type
   }
 }
 
@@ -1103,16 +1103,30 @@ const addSectionAtInsertIndex = ref(null)
 function onPreviewSectionSelected({ type, index, id }) {
   if (id === '__promo' || type === 'promo-bar') {
     promoOpen.value = true
+    activeConfig.value = 'promo'
     return
   }
-  if (id === '__header' || type === 'header') return
-  if (id === '__footer' || type === 'footer') return
+  if (id === '__header' || type === 'header') {
+    activeConfig.value = 'header'
+    return
+  }
+  if (id === '__footer' || type === 'footer') {
+    activeConfig.value = 'footer'
+    return
+  }
   
   // Use index to find the exact section in activeSections
-  const section = activeSections.value[index] || sections.value.find(s => s.type === type)
+  let section = null
+  if (index !== undefined && index >= 0) {
+    section = activeSections.value[index]
+  }
+  if (!section) {
+    section = sections.value.find(s => s.id === id || s.type === type)
+  }
   
   if (section) {
-    expandedSection.value = section.type
+    activeConfig.value = section.id || section.type
+    expandedSection.value = section.id || section.type
     // Switch to properties tab if needed
     // Scroll the section into view in the left panel
     nextTick(() => {
@@ -1566,12 +1580,6 @@ async function loadLayout() {
         layoutPageStatus.value = page.status || 'draft'
 
         let layoutJson = page.layout_json || []
-        
-        // Safeguard: If this is a built-in page but the layout is missing the core content block
-        // (due to older bug or accidental deletion), we forcibly auto-inject it.
-        if (isBuiltin && layoutJson.length > 0 && !layoutJson.some(s => s.type === 'system_page_content')) {
-          layoutJson.push({ type: 'system_page_content', enabled: true, order: Math.max(0, ...layoutJson.map(x => x.order || 0)) + 1, params: { title: '' } })
-        }
 
         if (layoutJson.length === 0 && isBuiltin) {
           // Use dynamic page composition defaults instead of legacy system_page_content
@@ -1622,9 +1630,15 @@ async function loadLayout() {
     const parsed = map.layout_sections ? JSON.parse(map.layout_sections) : null
     
     // Legacy fallback: If we are not on the global/home page, legacy system didn't support sections.
-    // So we initialize it with a sterile system content wrapper to prevent homepage bleed-through.
+    // So we initialize it with default dynamic sections or a sterile fallback to prevent homepage bleed-through.
     if (isBuiltin && slug !== 'home') {
-      sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+      const pageSlug = getPageSlugFromId(activePageId.value) || slug
+      const defaultSecs = getDefaultSectionsForPage(pageSlug)
+      if (defaultSecs && defaultSecs.length > 0) {
+        sections.value = ensureParams(defaultSecs)
+      } else {
+        sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
+      }
     } else {
       sections.value = ensureParams(parsed || defaultSections)
     }

@@ -3,16 +3,40 @@
     <button class="spage-back" @click="$emit('back')">
       <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
 
-    <article class="spage-article" v-if="page">
-      <div class="spage-header">
-        <img v-if="page.image" :src="page.image" :alt="page.title" class="spage-cover" />
-        <h1 class="spage-title">{{ page.title }}</h1>
-        <div class="spage-meta">
-          <span v-if="page.created_at"><Calendar :size="12" /> {{ formatDate(page.created_at) }}</span>
+    <div class="spage-wrap" v-if="page">
+      <template v-for="(section, idx) in enabledSections" :key="section.id || section.type">
+        <div :data-builder-id="section.id" :data-section-type="section.type" :data-section-index="idx" class="sf-section-wrapper">
+          <SfMockSection v-if="section.type === 'page_breadcrumb'" :section="section" :index="idx" title="Đường dẫn (Breadcrumb)" />
+          
+          <article class="spage-article" v-else-if="section.type === 'cms_page_content' || section.type === 'system_page_content'">
+            <div class="spage-header">
+              <img v-if="page.image" :src="page.image" :alt="page.title" class="spage-cover" />
+              <h1 class="spage-title">{{ page.title }}</h1>
+              <div class="spage-meta">
+                <span v-if="page.created_at"><Calendar :size="12" /> {{ formatDate(page.created_at) }}</span>
+              </div>
+            </div>
+            <div class="spage-content" v-html="page.content"></div>
+          </article>
+          
+          <SfMockSection v-else :section="section" :index="idx" />
         </div>
+      </template>
+
+      <!-- Fallback when accessed directly without customized layout -->
+      <div v-if="!enabledSections.length" class="sf-section-wrapper" data-section-type="system_page_content" data-section-index="0">
+        <article class="spage-article">
+          <div class="spage-header">
+            <img v-if="page.image" :src="page.image" :alt="page.title" class="spage-cover" />
+            <h1 class="spage-title">{{ page.title }}</h1>
+            <div class="spage-meta">
+              <span v-if="page.created_at"><Calendar :size="12" /> {{ formatDate(page.created_at) }}</span>
+            </div>
+          </div>
+          <div class="spage-content" v-html="page.content"></div>
+        </article>
       </div>
-      <div class="spage-content" v-html="page.content"></div>
-    </article>
+    </div>
 
     <div class="spage-loading" v-else-if="loading">
       <Loader2 :size="24" class="spin" />{{ t('admin.msg_d5fe42f6', 'Đang tải...') }}</div>
@@ -24,9 +48,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { ArrowLeft, Calendar, Loader2, FileX } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
+import { useI18n } from '../composables/useI18n.js'
+import SfMockSection from './storefront/SfMockSection.vue'
+
+const { t } = useI18n()
 
 
 const props = defineProps({
@@ -37,6 +65,19 @@ defineEmits(['back'])
 
 const page = ref(null)
 const loading = ref(true)
+
+const sections = ref([])
+const enabledSections = computed(() => {
+  return sections.value.filter(s => s.enabled !== false).sort((a,b) => (a.order || 0) - (b.order || 0))
+})
+
+// Listen to Visual Builder live layout updates
+function handleBuilderMessage(evt) {
+  const { type, payload } = evt.data || {}
+  if (type === 'layout-preview-update' && payload?.sections) {
+    sections.value = payload.sections
+  }
+}
 
 function formatDate(d) {
   return new Date(d).toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -52,7 +93,13 @@ async function loadPage() {
   loading.value = false
 }
 
-onMounted(() => loadPage())
+onMounted(() => {
+  loadPage()
+  window.addEventListener('message', handleBuilderMessage)
+})
+onUnmounted(() => {
+  window.removeEventListener('message', handleBuilderMessage)
+})
 watch(() => props.pageId, () => loadPage())
 </script>
 

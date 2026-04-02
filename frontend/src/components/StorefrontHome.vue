@@ -69,7 +69,7 @@
 
     <!-- Dynamic Section Renderer -->
     <template v-else>
-      <template v-for="section in enabledSections" :key="section.type">
+      <div v-for="(section, idx) in enabledSections" :key="section.id || section.type" :data-builder-id="section.id" :data-section-type="section.type" :data-section-index="idx" class="sf-section-wrapper">
         <!-- Banner -->
         <SfBannerSection
           v-if="section.type === 'banner'"
@@ -131,13 +131,16 @@
 
         <!-- Content-driven sections: testimonials, faq, gallery, video, text, newsletter, brands, social -->
         <SfContentSection
-          v-if="contentSectionTypes.includes(section.type)"
+          v-else-if="contentSectionTypes.includes(section.type)"
           :type="section.type"
           :content="section.content || []"
           :config="section.params || {}"
           :brands="sectionData.brands"
         />
-      </template>
+
+        <!-- Fallback mocked block for cart, checkout, auth, account, wishlist etc. -->
+        <SfMockSection v-else :section="section" :index="idx" />
+      </div>
     </template>
 
     <!-- Footer -->
@@ -175,6 +178,7 @@ import SfProductGridSection from './storefront/SfProductGridSection.vue'
 import SfFlashSaleSection from './storefront/SfFlashSaleSection.vue'
 import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
 import SfContentSection from './storefront/SfContentSection.vue'
+import SfMockSection from './storefront/SfMockSection.vue'
 import SfBlogSection from './storefront/SfBlogSection.vue'
 
 
@@ -368,7 +372,33 @@ function doSearch() {
   }
 }
 
-onMounted(bootstrap)
+import { onUnmounted } from 'vue'
+
+onMounted(() => {
+  bootstrap()
+  window.addEventListener('message', handleBuilderMessage)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('message', handleBuilderMessage)
+})
+
+function handleBuilderMessage(evt) {
+  const { type, payload } = evt.data || {}
+  if (type === 'layout-preview-update' && payload?.sections) {
+    sections.value = payload.sections
+    if (payload.footerConfig) footerConfig.value = payload.footerConfig
+    if (payload.headerConfig) headerConfig.value = payload.headerConfig
+  } else if (type === 'builder:navigate') {
+    // Used in live preview to dynamically swap out what we're rendering
+    if (payload?.path === '/product/preview-demo') {
+      emit('viewProduct', 'preview')
+    } else if (payload?.path === '/page/preview-demo') {
+      emit('viewPage', 'preview')
+    }
+  }
+}
+
 watch(() => props.storeId, bootstrap)
 </script>
 

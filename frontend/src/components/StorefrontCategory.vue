@@ -3,81 +3,173 @@
     <button class="sc-back" @click="$emit('back')">
       <ArrowLeft :size="16" />{{ t('admin.msg_0033aa16', 'Quay lại') }}</button>
 
-    <div class="sc-layout">
-      <!-- Sidebar Filters -->
-      <aside class="sc-sidebar">
-        <h3 class="sc-sidebar__title"><SlidersHorizontal :size="14" /> {{ t('admin.msg_2762c063', 'Bộ lọc') }}</h3>
+    <div class="sc-wrap">
+      <template v-for="(section, idx) in enabledSections" :key="section.id || section.type">
+        <div :data-builder-id="section.id" :data-section-type="section.type" :data-section-index="idx" class="sf-section-wrapper">
+          <SfMockSection v-if="section.type === 'page_breadcrumb'" :section="section" :index="idx" title="Đường dẫn (Breadcrumb)" />
+          <SfMockSection v-else-if="section.type === 'page_heading'" :section="section" :index="idx" title="Tiêu đề trang" />
 
-        <!-- Categories -->
-        <div class="sc-filter-group" v-if="categories.length">
-          <label class="sc-filter-label">{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
-          <button v-for="c in categories" :key="c.id" class="sc-filter-btn"
-            :class="{ active: selectedCat === c.id }"
-            @click="selectedCat = selectedCat === c.id ? null : c.id; reload()">
-            {{ c.name }}
-          </button>
-        </div>
+          <div class="sc-layout" v-else-if="section.type === 'product_grid' || section.type === 'system_page_content'">
+            <!-- Sidebar Filters -->
+            <aside class="sc-sidebar">
+              <h3 class="sc-sidebar__title"><SlidersHorizontal :size="14" /> {{ t('admin.msg_2762c063', 'Bộ lọc') }}</h3>
 
-        <!-- Brands -->
-        <div class="sc-filter-group" v-if="brands.length">
-          <label class="sc-filter-label">{{ t('admin.msg_161416d9', 'Thương hiệu') }}</label>
-          <button v-for="b in brands" :key="b.id" class="sc-filter-btn"
-            :class="{ active: selectedBrand === b.id }"
-            @click="selectedBrand = selectedBrand === b.id ? null : b.id; reload()">
-            {{ b.name }}
-          </button>
-        </div>
+              <!-- Categories -->
+              <div class="sc-filter-group" v-if="categories.length">
+                <label class="sc-filter-label">{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
+                <button v-for="c in categories" :key="c.id" class="sc-filter-btn"
+                  :class="{ active: selectedCat === c.id }"
+                  @click="selectedCat = selectedCat === c.id ? null : c.id; reload()">
+                  {{ c.name }}
+                </button>
+              </div>
 
-        <!-- Sort -->
-        <div class="sc-filter-group">
-          <label class="sc-filter-label">{{ t('admin.sort', 'Sắp xếp') }}</label>
-          <select v-model="sortBy" @change="reload()" class="sc-select">
-            <option value="created_at:desc">{{ t('admin.newest', 'Mới nhất') }}</option>
-            <option value="price:asc">{{ t('admin.msg_364441dc', 'Giá thấp → cao') }}</option>
-            <option value="price:desc">{{ t('admin.msg_ba874bca', 'Giá cao → thấp') }}</option>
-            <option value="name:asc">{{ t('admin.name_az', 'Tên A-Z') }}</option>
-          </select>
-        </div>
+              <!-- Brands -->
+              <div class="sc-filter-group" v-if="brands.length">
+                <label class="sc-filter-label">{{ t('admin.msg_161416d9', 'Thương hiệu') }}</label>
+                <button v-for="b in brands" :key="b.id" class="sc-filter-btn"
+                  :class="{ active: selectedBrand === b.id }"
+                  @click="selectedBrand = selectedBrand === b.id ? null : b.id; reload()">
+                  {{ b.name }}
+                </button>
+              </div>
 
-        <button class="sc-clear" @click="clearFilters" v-if="selectedCat || selectedBrand">
-          <X :size="12" /> Xoá bộ lọc
-        </button>
-      </aside>
+              <!-- Sort -->
+              <div class="sc-filter-group">
+                <label class="sc-filter-label">{{ t('admin.sort', 'Sắp xếp') }}</label>
+                <select v-model="sortBy" @change="reload()" class="sc-select">
+                  <option value="created_at:desc">{{ t('admin.newest', 'Mới nhất') }}</option>
+                  <option value="price:asc">{{ t('admin.msg_364441dc', 'Giá thấp → cao') }}</option>
+                  <option value="price:desc">{{ t('admin.msg_ba874bca', 'Giá cao → thấp') }}</option>
+                  <option value="name:asc">{{ t('admin.name_az', 'Tên A-Z') }}</option>
+                </select>
+              </div>
 
-      <!-- Products Grid -->
-      <div class="sc-main">
-        <div class="sc-main-header">
-          <h2>{{ headerTitle }} <span class="sc-count">({{ total }})</span></h2>
-          <div class="sc-search">
-            <Search :size="14" />
-            <input v-model="search" type="text" :placeholder="t('admin.search_products', 'Tìm sản phẩm...')" @input="debouncedSearch" />
-          </div>
-        </div>
+              <button class="sc-clear" @click="clearFilters" v-if="selectedCat || selectedBrand">
+                <X :size="12" /> Xoá bộ lọc
+              </button>
+            </aside>
 
-        <div class="sc-products" v-if="products.length">
-          <div v-for="p in products" :key="p.id" class="sc-card" @click="$emit('viewProduct', p.id)">
-            <div class="sc-card__img">
-              <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" />
-              <Package v-else :size="36" class="sc-card__placeholder" />
-              <span class="sc-badge" v-if="hasPromo(p)">
-                -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
-              </span>
-            </div>
-            <div class="sc-card__info">
-              <h4>{{ p.name }}</h4>
-              <div class="sc-card__prices">
-                <span class="sc-price" :class="{ old: hasPromo(p) }">{{ fmt(p.price) }}</span>
-                <span class="sc-price sale" v-if="hasPromo(p)">{{ fmt(p.promotion_price) }}</span>
+            <!-- Products Grid -->
+            <div class="sc-main">
+              <div class="sc-main-header">
+                <h2>{{ headerTitle }} <span class="sc-count">({{ total }})</span></h2>
+                <div class="sc-search">
+                  <Search :size="14" />
+                  <input v-model="search" type="text" :placeholder="t('admin.search_products', 'Tìm sản phẩm...')" @input="debouncedSearch" />
+                </div>
+              </div>
+
+              <div class="sc-products" v-if="products.length">
+                <div v-for="p in products" :key="p.id" class="sc-card" @click="$emit('viewProduct', p.id)">
+                  <div class="sc-card__img">
+                    <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" />
+                    <Package v-else :size="36" class="sc-card__placeholder" />
+                    <span class="sc-badge" v-if="hasPromo(p)">
+                      -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
+                    </span>
+                  </div>
+                  <div class="sc-card__info">
+                    <h4>{{ p.name }}</h4>
+                    <div class="sc-card__prices">
+                      <span class="sc-price" :class="{ old: hasPromo(p) }">{{ fmt(p.price) }}</span>
+                      <span class="sc-price sale" v-if="hasPromo(p)">{{ fmt(p.promotion_price) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="sc-empty">{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>
+
+              <div class="sc-pagination" v-if="lastPage > 1">
+                <button :disabled="page <= 1" @click="page--; reload()"><ChevronLeft :size="14" /></button>
+                <span>{{ page }} / {{ lastPage }}</span>
+                <button :disabled="page >= lastPage" @click="page++; reload()"><ChevronRight :size="14" /></button>
               </div>
             </div>
           </div>
+          <SfMockSection v-else :section="section" :index="idx" />
         </div>
-        <p v-else class="sc-empty">{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>
+      </template>
 
-        <div class="sc-pagination" v-if="lastPage > 1">
-          <button :disabled="page <= 1" @click="page--; reload()"><ChevronLeft :size="14" /></button>
-          <span>{{ page }} / {{ lastPage }}</span>
-          <button :disabled="page >= lastPage" @click="page++; reload()"><ChevronRight :size="14" /></button>
+      <!-- Fallback when accessed directly without customized layout -->
+      <div v-if="!enabledSections.length" class="sf-section-wrapper" data-section-type="product_grid" data-section-index="0">
+        <div class="sc-layout">
+          <!-- Sidebar Filters -->
+          <aside class="sc-sidebar">
+            <h3 class="sc-sidebar__title"><SlidersHorizontal :size="14" /> {{ t('admin.msg_2762c063', 'Bộ lọc') }}</h3>
+
+            <!-- Categories -->
+            <div class="sc-filter-group" v-if="categories.length">
+              <label class="sc-filter-label">{{ t('admin.msg_53d8de58', 'Danh mục') }}</label>
+              <button v-for="c in categories" :key="c.id" class="sc-filter-btn"
+                :class="{ active: selectedCat === c.id }"
+                @click="selectedCat = selectedCat === c.id ? null : c.id; reload()">
+                {{ c.name }}
+              </button>
+            </div>
+
+            <!-- Brands -->
+            <div class="sc-filter-group" v-if="brands.length">
+              <label class="sc-filter-label">{{ t('admin.msg_161416d9', 'Thương hiệu') }}</label>
+              <button v-for="b in brands" :key="b.id" class="sc-filter-btn"
+                :class="{ active: selectedBrand === b.id }"
+                @click="selectedBrand = selectedBrand === b.id ? null : b.id; reload()">
+                {{ b.name }}
+              </button>
+            </div>
+
+            <!-- Sort -->
+            <div class="sc-filter-group">
+              <label class="sc-filter-label">{{ t('admin.sort', 'Sắp xếp') }}</label>
+              <select v-model="sortBy" @change="reload()" class="sc-select">
+                <option value="created_at:desc">{{ t('admin.newest', 'Mới nhất') }}</option>
+                <option value="price:asc">{{ t('admin.msg_364441dc', 'Giá thấp → cao') }}</option>
+                <option value="price:desc">{{ t('admin.msg_ba874bca', 'Giá cao → thấp') }}</option>
+                <option value="name:asc">{{ t('admin.name_az', 'Tên A-Z') }}</option>
+              </select>
+            </div>
+
+            <button class="sc-clear" @click="clearFilters" v-if="selectedCat || selectedBrand">
+              <X :size="12" /> Xoá bộ lọc
+            </button>
+          </aside>
+
+          <!-- Products Grid -->
+          <div class="sc-main">
+            <div class="sc-main-header">
+              <h2>{{ headerTitle }} <span class="sc-count">({{ total }})</span></h2>
+              <div class="sc-search">
+                <Search :size="14" />
+                <input v-model="search" type="text" :placeholder="t('admin.search_products', 'Tìm sản phẩm...')" @input="debouncedSearch" />
+              </div>
+            </div>
+
+            <div class="sc-products" v-if="products.length">
+              <div v-for="p in products" :key="p.id" class="sc-card" @click="$emit('viewProduct', p.id)">
+                <div class="sc-card__img">
+                  <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" />
+                  <Package v-else :size="36" class="sc-card__placeholder" />
+                  <span class="sc-badge" v-if="hasPromo(p)">
+                    -{{ Math.round((1 - p.promotion_price / p.price) * 100) }}%
+                  </span>
+                </div>
+                <div class="sc-card__info">
+                  <h4>{{ p.name }}</h4>
+                  <div class="sc-card__prices">
+                    <span class="sc-price" :class="{ old: hasPromo(p) }">{{ fmt(p.price) }}</span>
+                    <span class="sc-price sale" v-if="hasPromo(p)">{{ fmt(p.promotion_price) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p v-else class="sc-empty">{{ t('admin.msg_5e1cab5b', 'Không tìm thấy sản phẩm') }}</p>
+
+            <div class="sc-pagination" v-if="lastPage > 1">
+              <button :disabled="page <= 1" @click="page--; reload()"><ChevronLeft :size="14" /></button>
+              <span>{{ page }} / {{ lastPage }}</span>
+              <button :disabled="page >= lastPage" @click="page++; reload()"><ChevronRight :size="14" /></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -86,9 +178,10 @@
 
 <script setup>
 import { useI18n } from '../composables/useI18n.js'
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { ArrowLeft, SlidersHorizontal, Search, Package, X, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
+import SfMockSection from './storefront/SfMockSection.vue'
 
 
 const { t } = useI18n()
@@ -109,6 +202,19 @@ const sortBy = ref('created_at:desc')
 const page = ref(1)
 const total = ref(0)
 const lastPage = ref(1)
+
+const sections = ref([])
+const enabledSections = computed(() => {
+  return sections.value.filter(s => s.enabled !== false).sort((a,b) => (a.order || 0) - (b.order || 0))
+})
+
+// Listen to Visual Builder live layout updates
+function handleBuilderMessage(evt) {
+  const { type, payload } = evt.data || {}
+  if (type === 'layout-preview-update' && payload?.sections) {
+    sections.value = payload.sections
+  }
+}
 
 const headerTitle = computed(() => {
   if (selectedCat.value) {
@@ -157,7 +263,14 @@ function hasPromo(p) {
 }
 function fmt(v) { return formatCurrency(v || 0) }
 
-onMounted(async () => { await loadFilters(); await reload() })
+onMounted(async () => {
+  await loadFilters();
+  await reload();
+  window.addEventListener('message', handleBuilderMessage)
+})
+onUnmounted(() => {
+  window.removeEventListener('message', handleBuilderMessage)
+})
 watch(() => props.categoryId, (v) => { selectedCat.value = v; page.value = 1; reload() })
 </script>
 
@@ -198,7 +311,7 @@ watch(() => props.categoryId, (v) => { selectedCat.value = v; page.value = 1; re
 .sc-card__placeholder { color: var(--color-text-muted); }
 .sc-badge { position: absolute; top: 8px; right: 8px; padding: 3px 8px; border-radius: 6px; background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; }
 .sc-card__info { padding: 10px 12px; }
-.sc-card__info h4 { font-size: 13px; font-weight: 600; margin: 0 0 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sc-card__info h4 { font-size: 13px; font-weight: 600; margin: 0 0 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .sc-card__prices { display: flex; gap: 6px; align-items: center; }
 .sc-price { font-size: 14px; font-weight: 700; color: var(--color-accent-primary); }
 .sc-price.old { text-decoration: line-through; color: var(--color-text-muted); font-size: 11px; font-weight: 500; }

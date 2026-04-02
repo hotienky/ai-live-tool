@@ -5,20 +5,7 @@
       <span class="section-list__count">{{ list.length }} section{{ list.length !== 1 ? 's' : '' }}</span>
       <span class="section-list__active-count">{{ list.filter(s => s.enabled).length }} active</span>
     </div>
-    <div class="element-palette">
-      <!-- Mẫu Nguyên Thuỷ -->
-      <div 
-        v-for="e in primitiveElements" 
-        :key="e.type"
-        class="ep-item" 
-        draggable="true" 
-        @dragstart="onDragStartNew($event, e.type)"
-        :title="'Kéo thả ' + e.label"
-      >
-        <component :is="e.icon" :size="20" class="ep-icon" />
-        <span>{{ e.label }}</span>
-      </div>
-    </div>
+    <!-- Removed primitive palette, retaining only the actual page layout section manager and saved custom blocks -->
     <div class="element-palette-saved" v-if="savedCustomBlocks.length > 0">
       <div class="eps-title"><FolderOpen :size="12" /> Mẫu Của Tôi</div>
       <div class="element-palette">
@@ -174,20 +161,7 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X } from 'lucide-vue-next'
 
-const primitiveElements = [
-  { type: 'container', label: 'Container', icon: Box },
-  { type: 'grid', label: 'Grid', icon: LayoutGrid },
-  { type: 'card', label: 'Card', icon: Square },
-  { type: 'heading', label: 'Heading', icon: Type },
-  { type: 'text', label: 'Text', icon: AlignLeft },
-  { type: 'image', label: 'Image', icon: ImageIcon },
-  { type: 'button', label: 'Button', icon: MousePointerClick },
-  { type: 'link', label: 'Link', icon: Link2 },
-  { type: 'divider', label: 'Divider', icon: Minus },
-  { type: 'iframe', label: 'Iframe', icon: Frame },
-  { type: 'video', label: 'Video', icon: Video },
-  { type: 'form', label: 'Form', icon: List }
-]
+// Removed primitiveElements array
 import { useI18n } from '../../composables/useI18n.js'
 
 // Module-level global to share cloned styles across section managers
