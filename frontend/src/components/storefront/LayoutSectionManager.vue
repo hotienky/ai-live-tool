@@ -89,38 +89,22 @@
               class="btn-action btn-action--style"
               @click.stop="openSectionConfig(section)"
               data-tooltip="Tùy chỉnh"
-            ><Settings2 :size="13" /></button>
+            ><Settings2 :size="14" /></button>
             <button
               class="btn-action btn-action--dup"
               @click.stop="duplicateSection(idx)"
               data-tooltip="Nhân đôi"
-            ><Copy :size="12" /></button>
-            <button
-              class="btn-action btn-action--save"
-              @click.stop="saveAsBlock(section)"
-              data-tooltip="Lưu thành Mẫu"
-            ><FolderPlus :size="12" /></button>
-            <button
-              class="btn-action btn-action--style"
-              @click.stop="copyStyle(section)"
-              data-tooltip="Copy Style"
-            ><ClipboardCopy :size="12" /></button>
-            <button
-              class="btn-action btn-action--style"
-              @click.stop="pasteStyle(section)"
-              data-tooltip="Paste Style"
-              :disabled="!hasCopiedStyle"
-            ><ClipboardPaste :size="12" /></button>
+            ><Copy :size="13" /></button>
             <button
               class="btn-action btn-action--del"
               @click.stop="deleteSection(idx)"
               data-tooltip="Xoá section"
-            ><Trash2 :size="12" /></button>
+            ><Trash2 :size="13" /></button>
           </div>
           <!-- Move Up/Down -->
           <div class="section-move-btns">
-            <button class="btn-move" :disabled="idx === 0" @click.stop="moveSection(idx, -1)" title="Di chuyển lên">▲</button>
-            <button class="btn-move" :disabled="idx === list.length - 1" @click.stop="moveSection(idx, 1)" title="Di chuyển xuống">▼</button>
+            <button class="btn-move" :disabled="idx === 0" @click.stop="moveSection(idx, -1)" title="Di chuyển lên"><ChevronUp :size="12" /></button>
+            <button class="btn-move" :disabled="idx === list.length - 1" @click.stop="moveSection(idx, 1)" title="Di chuyển xuống"><ChevronDown :size="12" /></button>
           </div>
           <label class="toggle-switch" data-tooltip="Hiển thị" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
@@ -159,7 +143,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { GripVertical, Settings2, Trash2, Box, ChevronLeft, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X } from 'lucide-vue-next'
+import { GripVertical, Settings2, Trash2, Box, ChevronLeft, ChevronUp, ChevronDown, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X } from 'lucide-vue-next'
 
 // Removed primitiveElements array
 import { useI18n } from '../../composables/useI18n.js'
@@ -572,29 +556,41 @@ function moveSection(idx, direction) {
   background: rgba(99, 102, 241, 0.08) !important;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2), 0 2px 8px rgba(99, 102, 241, 0.1) !important;
 }
-.section-item__right { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
+.section-item__right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; position: relative; }
 
 .section-actions-hover {
-  display: flex; align-items: center; gap: 2px;
-  position: absolute; right: 46px; /* Before toggle switch */
+  display: flex; align-items: center; gap: 4px;
+  position: absolute; right: 54px; /* Fixed distance before move btns and toggle */
   top: 50%; transform: translateY(-50%);
-  background: #fff; /* Match item hover background */
-  padding: 4px 4px 4px 12px;
-  border-radius: 6px 0 0 6px;
-  box-shadow: -15px 0 15px #fff;
+  background: #fff;
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: -10px 0 20px #fff, 0 4px 12px rgba(0,0,0,0.06);
   opacity: 0; pointer-events: none; transition: 0.2s;
+  border: 1px solid var(--border, #f1f5f9);
 }
 .section-item:hover .section-actions-hover, .section-actions-hover:focus-within {
   opacity: 1; pointer-events: auto;
 }
 
+/* ── Move Up/Down Buttons ── */
+.section-move-btns { display: flex; flex-direction: column; gap: 0; }
+.btn-move {
+  width: 18px; height: 14px; background: transparent; border: none;
+  color: var(--text-3, #94a3b8); cursor: pointer; display: flex;
+  align-items: center; justify-content: center; border-radius: 3px;
+  transition: all 0.15s; padding: 0;
+}
+.btn-move:hover:not(:disabled) { background: #e2e8f0; color: #1e293b; }
+.btn-move:disabled { opacity: 0.3; cursor: not-allowed; }
+
 /* ── Toggle Switch ── */
-.toggle-switch { position: relative; display: inline-block; width: 28px; height: 16px; cursor: pointer; }
+.toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; cursor: pointer; }
 .toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .2s; border-radius: 16px; }
-.toggle-slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; }
-input:checked + .toggle-slider { background-color: #10b981; }
-input:checked + .toggle-slider:before { transform: translateX(12px); }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .2s; border-radius: 18px; }
+.toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .2s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+input:checked + .toggle-slider { background-color: #6366f1; }
+input:checked + .toggle-slider:before { transform: translateX(14px); }
 
 
 /* Quick Action Buttons */

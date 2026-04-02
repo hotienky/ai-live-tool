@@ -125,8 +125,11 @@ async function onSubscribe() {
 </script>
 
 <style scoped>
-.sf-section { padding: 24px; }
-.sf-section__title { font-size: 20px; font-weight: 700; margin: 0 0 16px; text-align: center; }
+.sf-section { padding: 32px 24px; }
+.sf-section__title {
+  font-size: 22px; font-weight: 800; margin: 0 0 24px; text-align: center;
+  color: var(--color-text-primary, #1e293b); letter-spacing: -0.5px;
+}
 
 /* Testimonials */
 .sf-testimonials { display: grid; gap: 16px; }

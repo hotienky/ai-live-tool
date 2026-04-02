@@ -96,33 +96,35 @@
           <!-- List / Content Array -->
           <div class="content-editor" v-if="field.type === 'list'">
             <label class="content-editor__label">{{ field.label }}</label>
-            <div v-for="(item, i) in getContent()" :key="i" class="content-item" style="flex-direction:column;gap:4px">
-              <div v-for="subf in field.fields" :key="subf.key" style="display:flex; gap:4px; width: 100%;">
-                
-                <template v-if="subf.type === 'text' || subf.type === 'url'">
-                  <input :type="subf.type" v-model="item[subf.key]" class="param-input param-input--wide" :placeholder="subf.placeholder" style="flex:1" />
-                </template>
-                
-                <template v-else-if="subf.type === 'textarea'">
-                  <textarea v-model="item[subf.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="subf.placeholder" style="flex:1"></textarea>
-                </template>
-
-                <template v-else-if="subf.type === 'select'">
-                  <select v-model="item[subf.key]" class="param-select">
-                    <option v-for="o in subf.options" :key="o.value" :value="o.value">{{ o.label }}</option>
-                  </select>
-                </template>
-                
-                <template v-else-if="subf.type === 'media'">
-                  <MediaPicker v-model="item[subf.key]" :placeholder="subf.placeholder" accept="image/*,video/*" style="flex:1" />
-                </template>
-
-                <!-- Only show delete bin on first field to save space -->
-                <button v-if="subf === field.fields[0]" class="btn-remove-item" @click="removeContentItem(i)"><Trash2 :size="12" /></button>
+            <div class="content-list-wrap">
+              <div v-for="(item, i) in getContent()" :key="i" class="content-card">
+                <div class="content-card__header">
+                  <span class="content-card__title">Item {{ i + 1 }}</span>
+                  <button class="btn-remove-item hover-danger" @click="removeContentItem(i)" :title="t('admin.msg_0be65507', 'Xóa')"><Trash2 :size="14" /></button>
+                </div>
+                <div class="content-card__body">
+                  <div v-for="subf in field.fields" :key="subf.key" class="content-card__field">
+                    <label class="content-card__label" v-if="subf.placeholder || subf.key">{{ subf.placeholder || subf.key }}</label>
+                    <template v-if="subf.type === 'text' || subf.type === 'url'">
+                      <input :type="subf.type" v-model="item[subf.key]" class="param-input param-input--wide" :placeholder="subf.placeholder" />
+                    </template>
+                    <template v-else-if="subf.type === 'textarea'">
+                      <textarea v-model="item[subf.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="subf.placeholder"></textarea>
+                    </template>
+                    <template v-else-if="subf.type === 'select'">
+                      <select v-model="item[subf.key]" class="param-select param-select--wide">
+                        <option v-for="o in subf.options" :key="o.value" :value="o.value">{{ o.label }}</option>
+                      </select>
+                    </template>
+                    <template v-else-if="subf.type === 'media'">
+                      <MediaPicker v-model="item[subf.key]" :placeholder="subf.placeholder" accept="image/*,video/*" />
+                    </template>
+                  </div>
+                </div>
               </div>
             </div>
             <button class="btn-add-item" @click="addContentItem(field.defaults || (field.fields.reduce((acc, f) => { acc[f.key]=''; return acc }, {})))">
-              <Plus :size="12" /> Thêm mục
+              <Plus :size="14" /> {{ t('admin.msg_b6df6ccb', 'Thêm mục') }}
             </button>
           </div>
 
@@ -447,6 +449,90 @@ async function autoTranslateSection() {
   flex-direction: column;
   gap: 12px;
 }
+
+/* List / Content Cards */
+.content-list-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.content-card {
+  background: var(--color-bg-primary, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+}
+.content-card:hover {
+  border-color: var(--color-accent-primary, #6366f1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+}
+.content-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--color-bg-secondary, #f8fafc);
+  border-bottom: 1px solid var(--color-border, #f1f5f9);
+}
+.content-card__title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.btn-remove-item {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.btn-remove-item:hover.hover-danger {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+.content-card__body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.content-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.content-card__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary, #475569);
+}
+.param-select--wide {
+  width: 100%;
+}
+.btn-add-item {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px; border-radius: 10px;
+  border: 1px dashed var(--color-border, #cbd5e1);
+  background: var(--color-bg-secondary, #f8fafc);
+  color: var(--color-text-secondary, #475569);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.btn-add-item:hover {
+  border-color: var(--color-accent-primary, #6366f1);
+  color: var(--color-accent-primary, #6366f1);
+  background: var(--color-accent-glow, rgba(99,102,241,0.05));
+}
+
 
 /* Per-section auto-translate */
 .section-auto-translate {
