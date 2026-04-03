@@ -250,6 +250,7 @@ async function loadUiTranslations() {
 const sections = ref([])
 const headerConfig = ref({})
 const footerConfig = ref({})
+const themeConfig = ref({})
 const customCss = ref('')
 const navLinks = ref([])
 
@@ -277,10 +278,97 @@ const visibleNavLinks = computed(() => {
   return navLinks.value.filter(l => l.is_active !== false).slice(0, max)
 })
 
+// Color derivation logic
+function hexToHSL(hex) {
+  let r = parseInt(hex.slice(1, 3), 16) / 255
+  let g = parseInt(hex.slice(3, 5), 16) / 255
+  let b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b)
+  let h, s, l = (max + min) / 2
+  if (max === min) { h = s = 0 } else {
+    const d = max - min
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break
+      case g: h = ((b - r) / d + 2) / 6; break
+      case b: h = ((r - g) / d + 4) / 6; break
+    }
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 }
+}
+
+function hslToHex(h, s, l) {
+  h /= 360; s /= 100; l /= 100
+  let r, g, b
+  if (s === 0) { r = g = b = l } else {
+    const f = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1/6) return p + (q - p) * 6 * t; if (t < 1/2) return q; if (t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p }
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+    const p = 2 * l - q
+    r = f(p, q, h + 1/3); g = f(p, q, h); b = f(p, q, h - 1/3)
+  }
+  return '#' + [r, g, b].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('')
+}
+
+function deriveColors(hex) {
+  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) hex = '#7c3aed'
+  const rr = parseInt(hex.slice(1, 3), 16)
+  const gg = parseInt(hex.slice(3, 5), 16)
+  const bb = parseInt(hex.slice(5, 7), 16)
+  const hsl = hexToHSL(hex)
+  return {
+    accent: hex,
+    accentLight: hslToHex(hsl.h, Math.min(hsl.s + 5, 100), Math.min(hsl.l + 15, 85)),
+    accentGlow: `rgba(${rr}, ${gg}, ${bb}, 0.15)`,
+    accentGradient: `linear-gradient(135deg, ${hex}, ${hslToHex(hsl.h + 15, hsl.s, Math.min(hsl.l + 10, 80))})`,
+    shadowAccent: `0 8px 24px rgba(${rr}, ${gg}, ${bb}, 0.25)`,
+  }
+}
+
 const customCssVars = computed(() => {
-  // Let the backend theme config override CSS variables
-  return {}
+  const theme = themeConfig.value
+  const mode = theme.mode || 'light'
+  const rawAccent = mode === 'dark' ? (theme.dark_accent || theme.accent) : (theme.light_accent || theme.accent)
+  const accentHex = /^#[0-9A-Fa-f]{6}$/.test(rawAccent) ? rawAccent : '#7c3aed'
+  const colors = deriveColors(accentHex)
+
+  const fontMap = {
+    'Inter': "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    'Roboto': "'Roboto', -apple-system, sans-serif",
+    'Outfit': "'Outfit', -apple-system, sans-serif",
+    'Plus Jakarta Sans': "'Plus Jakarta Sans', -apple-system, sans-serif",
+  }
+  const fontFam = fontMap[theme.font] || fontMap['Inter']
+  
+  const r = parseInt(theme.radius) || 12
+
+  return {
+    '--sf-accent': colors.accent,
+    '--sf-accent-light': colors.accentLight,
+    '--sf-accent-glow': colors.accentGlow,
+    '--sf-accent-gradient': colors.accentGradient,
+    '--sf-shadow-accent': colors.shadowAccent,
+    '--sf-font-family': fontFam,
+    '--sf-radius-sm': `${Math.max(r - 4, 4)}px`,
+    '--sf-radius-md': `${r}px`,
+    '--sf-radius-lg': `${r + 4}px`,
+    '--sf-radius-xl': `${r + 8}px`,
+    'font-family': fontFam,
+  }
 })
+
+watch(() => themeConfig.value.font, (newFont) => {
+  if (newFont && newFont !== 'Inter') {
+    const id = 'sf-admin-google-font'
+    let link = document.getElementById(id)
+    if (!link) {
+      link = document.createElement('link')
+      link.id = id
+      link.rel = 'stylesheet'
+      document.head.appendChild(link)
+    }
+    link.href = `https://fonts.googleapis.com/css2?family=${newFont.replace(/ /g, '+')}:wght@400;500;600;700;800&display=swap`
+  }
+}, { immediate: true })
 
 // API helpers
 async function sfApiFetch(path) {
@@ -306,6 +394,7 @@ async function bootstrap() {
     footerConfig.value = config.layout?.footerConfig || {}
     customCss.value = config.layout?.customCss || ''
     navLinks.value = config.navLinks || []
+    themeConfig.value = config.theme || {}
 
     // Languages
     if (config.languages && config.languages.length > 0) {
@@ -389,6 +478,7 @@ function handleBuilderMessage(evt) {
     sections.value = payload.sections
     if (payload.footerConfig) footerConfig.value = payload.footerConfig
     if (payload.headerConfig) headerConfig.value = payload.headerConfig
+    if (payload.themeConfig) themeConfig.value = payload.themeConfig
   } else if (type === 'builder:navigate') {
     // Used in live preview to dynamically swap out what we're rendering
     if (payload?.path === '/product/preview-demo') {

@@ -1,7 +1,7 @@
 <template>
   <div class="advanced-style-panel">
     <!-- State Configurator -->
-    <div class="asp-switcher">
+    <div class="asp-switcher" v-if="mode === 'style' || mode === 'all'">
       <div class="asp-tabs device-tabs">
         <button :class="{ active: activeDevice === 'desktop' }" @click="activeDevice = 'desktop'" data-tooltip="Desktop"><Monitor :size="14" /></button>
         <button :class="{ active: activeDevice === 'tablet' }" @click="activeDevice = 'tablet'" data-tooltip="Tablet"><Tablet :size="14" /></button>
@@ -14,7 +14,7 @@
     </div>
     
     <!-- 1. Nội dung cấu hình Core -->
-    <div class="asp-section" v-if="hasContentConfig">
+    <div class="asp-section" v-if="hasContentConfig && (mode === 'content' || mode === 'all')">
       <h4 class="asp-section-title">Nội dung ({{ type }})</h4>
       <div v-if="['text', 'heading', 'button', 'link'].includes(type)" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
@@ -69,7 +69,7 @@
     </div>
 
     <!-- Layout & Spacing Panel -->
-    <details class="asp-accordion" open>
+    <details class="asp-accordion" open v-show="mode === 'style' || mode === 'all'">
       <summary>
         <LayoutGrid :size="14" /> Layout & Spacing 
         <ChevronDown :size="14" class="asp-arr" />
@@ -177,7 +177,7 @@
     </details>
 
     <!-- Typography Panel -->
-    <details class="asp-accordion">
+    <details class="asp-accordion" v-show="mode === 'style' || mode === 'all'">
       <summary><Type :size="14" /> Typography <ChevronDown :size="14" class="asp-arr" /></summary>
       <div class="asp-accordion-body">
         <div class="asp-grid" style="margin-bottom:8px">
@@ -253,7 +253,7 @@
     </details>
 
     <!-- Backgrounds Panel -->
-    <details class="asp-accordion">
+    <details class="asp-accordion" v-show="mode === 'style' || mode === 'all'">
       <summary><ImageIcon :size="14" /> Nền (Backgrounds) <ChevronDown :size="14" class="asp-arr" /></summary>
       <div class="asp-accordion-body">
         <label>Màu nền (Background Color)</label>
@@ -289,7 +289,7 @@
     </details>
 
     <!-- Borders & Effects Panel -->
-    <details class="asp-accordion">
+    <details class="asp-accordion" v-show="mode === 'style' || mode === 'all'">
       <summary><Sparkles :size="14" /> Hiệu ứng & Viền <ChevronDown :size="14" class="asp-arr" /></summary>
       <div class="asp-accordion-body">
         <div class="asp-grid" style="margin-bottom:8px">
@@ -361,7 +361,7 @@
     </details>
 
     <!-- Position Panel -->
-    <details class="asp-accordion">
+    <details class="asp-accordion" v-show="mode === 'style' || mode === 'all'">
       <summary><Move :size="14" /> Vị trí (Position) <ChevronDown :size="14" class="asp-arr" /></summary>
       <div class="asp-accordion-body">
         <div class="asp-row">
@@ -387,7 +387,7 @@
       </div>
     </details>
 
-    <div class="asp-section">
+    <div class="asp-section" v-if="mode === 'advanced' || mode === 'all'">
       <h4 class="asp-section-title">Nâng cao (Advanced)</h4>
       <div class="asp-row">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
@@ -434,6 +434,10 @@ const props = defineProps({
   section: {
     type: Object,
     required: true
+  },
+  mode: {
+    type: String,
+    default: 'all' // can be 'all', 'content', 'style', 'advanced'
   }
 })
 

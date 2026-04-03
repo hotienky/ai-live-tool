@@ -1,18 +1,35 @@
 <template>
   <div class="section-config-editor">
-    <template v-if="isPrimitiveNode">
-      <AdvancedStylePanel :section="section" />
-      <div v-if="['container', 'grid', 'card', 'row', 'col'].includes(section.type)" class="param-row" style="flex-direction:column; margin-top:16px;">
-        <label>Thành phần con (Elements)</label>
-        <div class="sub-elements-box" style="border: 1px dashed var(--border-color, rgba(255,255,255,0.2)); border-radius: 4px; padding: 4px; min-height: 50px;">
-          <slot name="children-editor" :section="section"></slot>
-        </div>
-      </div>
-    </template>
-    <template v-else>
+    <!-- TABS Navigation -->
+    <div class="sf-config-tabs">
+      <button :class="{ active: currentTab === 'content' }" @click="currentTab = 'content'">
+        <LayoutList :size="14" /> Nội dung
+      </button>
+      <button :class="{ active: currentTab === 'style' }" @click="currentTab = 'style'">
+        <Palette :size="14" /> Giao diện
+      </button>
+      <button :class="{ active: currentTab === 'advanced' }" @click="currentTab = 'advanced'">
+        <Settings2 :size="14" /> Nâng cao
+      </button>
+    </div>
 
-    <!-- Data Source Quick Links (for data-bound sections) -->
-    <div v-if="dataSourceLink" class="data-source-link">
+    <!-- TABS Body -->
+    <div class="sf-config-body">
+      <!-- ===== TAB: CONTENT ===== -->
+      <div v-show="currentTab === 'content'" class="sf-tab-content">
+        <template v-if="isPrimitiveNode">
+          <AdvancedStylePanel :section="section" mode="content" />
+          <div v-if="['container', 'grid', 'card', 'row', 'col'].includes(section.type)" class="param-row" style="flex-direction:column; margin-top:16px;">
+            <label>Thành phần con (Elements)</label>
+            <div class="sub-elements-box" style="border: 1px dashed var(--border-color, rgba(255,255,255,0.2)); border-radius: 4px; padding: 4px; min-height: 50px;">
+              <slot name="children-editor" :section="section"></slot>
+            </div>
+          </div>
+        </template>
+        <template v-else>
+
+        <!-- Data Source Quick Links (for data-bound sections) -->
+        <div v-if="dataSourceLink" class="data-source-link">
       <div class="data-source-link__info">
         <Database :size="13" />
         <span>Dữ liệu lấy từ <strong>{{ dataSourceLink.label }}</strong></span>
@@ -29,16 +46,8 @@
       @apply-template="applyTemplateConfig"
     />
 
-    <!-- Advanced Config (collapsible) -->
-    <details class="advanced-config" :open="!hasVisualTemplates(section.type)">
-      <summary class="advanced-config__toggle">
-        <SlidersHorizontal :size="12" />
-        <span>Tinh chỉnh nâng cao</span>
-        <ChevronDown :size="12" class="advanced-config__arrow" />
-      </summary>
-      <div class="advanced-config__body">
-
         <!-- Schema-Driven Inputs -->
+        <div class="advanced-config__body" style="padding:0; border:none;">
         <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
           
           <!-- Standard Prop Inputs -->
@@ -175,23 +184,27 @@
           </button>
         </div>
 
-        <!-- Bỏ bớt code cũ styleSchema -->
-        <details class="section-style-details">
-          <summary><Palette :size="12" style="margin-right:4px"/> VIP Pro Micro-Controller</summary>
-          <div style="margin-top: 12px">
-            <AdvancedStylePanel :section="section" />
-          </div>
-        </details>
+        </div><!-- /.advanced-config__body -->
+        </template>
+      </div><!-- /TAB: CONTENT -->
 
-      </div><!-- /.advanced-config__body -->
-    </details><!-- /.advanced-config -->
-    </template>
+      <!-- ===== TAB: STYLE ===== -->
+      <div v-show="currentTab === 'style'" class="sf-tab-content">
+        <AdvancedStylePanel :section="section" mode="style" />
+      </div>
+
+      <!-- ===== TAB: ADVANCED ===== -->
+      <div v-show="currentTab === 'advanced'" class="sf-tab-content">
+        <AdvancedStylePanel :section="section" mode="advanced" />
+      </div>
+
+    </div><!-- /.sf-config-body -->
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, Database, ExternalLink } from 'lucide-vue-next'
+import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { useForms } from '../../composables/useForms.js'
@@ -209,6 +222,8 @@ const props = defineProps({
   defaultLangCode: { type: String, required: true }
 })
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
+
+const currentTab = ref('content')
 
 // Map section types to their external management tabs
 const dataSourceMap = {
@@ -406,42 +421,48 @@ async function autoTranslateSection() {
 </script>
 
 <style scoped>
-.advanced-config {
-  margin-top: 8px;
-  border: 1px solid var(--color-border, #e2e8f0);
+.sf-config-tabs {
+  display: flex;
+  background: var(--color-bg-secondary, #f8fafc);
   border-radius: 8px;
-  overflow: hidden;
+  padding: 4px;
+  margin-bottom: 4px;
 }
-.advanced-config__toggle {
+.sf-config-tabs button {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--color-text-muted, #94a3b8);
-  cursor: pointer;
-  user-select: none;
-  background: var(--glass-bg, #f8fafc);
+  background: transparent;
   border: none;
-  list-style: none;
-  transition: all 0.15s;
+  border-radius: 6px;
+  padding: 8px 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted, #64748b);
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.advanced-config__toggle:hover {
+.sf-config-tabs button:hover {
   color: var(--color-text-primary, #334155);
-  background: var(--color-bg-card-hover, #f1f5f9);
 }
-.advanced-config__toggle::-webkit-details-marker { display: none; }
-.advanced-config__arrow {
-  margin-left: auto;
-  transition: transform 0.2s;
+.sf-config-tabs button.active {
+  background: #fff;
+  color: var(--color-accent-primary, #6366f1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.advanced-config[open] .advanced-config__arrow {
-  transform: rotate(180deg);
+
+.sf-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.2s ease-in-out;
 }
-.advanced-config__body {
-  padding: 8px 10px 12px;
-  border-top: 1px solid var(--color-border, #e2e8f0);
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .section-config-editor {
@@ -581,33 +602,7 @@ async function autoTranslateSection() {
   animation: spin 1s linear infinite;
 }
 
-.section-style-details {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-top: 16px;
-}
-.section-style-details summary {
-  padding: 10px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #6366f1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  background: #f1f5f9;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  list-style: none;
-  user-select: none;
-  transition: background 0.15s;
-}
-.section-style-details summary::-webkit-details-marker { display: none; }
-.section-style-details summary:hover { background: #e2e8f0; }
 
-/* Data Source Quick Link */
 .data-source-link {
   display: flex; flex-direction: column; gap: 8px;
   padding: 10px 12px; margin-bottom: 12px;
