@@ -317,5 +317,103 @@ export const industryTemplates = {
       params: { title: "Tin Tức Thị Trường", count: 3, layoutView: "grid" },
       content: []
     }
+  ],
+
+  blog: [
+    {
+      id: "blog_banner",
+      type: "image_banner",
+      enabled: true,
+      order: 0,
+      params: { desktopImage: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2670&auto=format&fit=crop", fullWidth: true, height: "400px" },
+      content: []
+    },
+    {
+      id: "blog_latest",
+      type: "blog_posts",
+      enabled: true,
+      order: 1,
+      params: { title: "Bài Viết Mới Nhất", count: 6, layoutView: "grid" },
+      content: []
+    },
+    {
+      id: "blog_newsletter",
+      type: "newsletter",
+      enabled: true,
+      order: 2,
+      params: { title: "Đăng Ký Nhận Tin", description: "Cập nhật bài viết hay mỗi tuần", buttonText: "Theo dõi" },
+      content: []
+    }
+  ],
+
+  event: [
+    {
+      id: "event_banner",
+      type: "banner",
+      enabled: true,
+      order: 0,
+      params: { height: "fullscreen", autoplay: true, interval: 5000 },
+      content: [
+        {
+          link: "#",
+          image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop",
+          title: "SỰ KIỆN CÔNG NGHỆ 2026",
+          caption: "Hội tụ những chuyên gia hàng đầu"
+        }
+      ]
+    },
+    {
+      id: "event_flash",
+      type: "flash_sale",
+      enabled: true,
+      order: 1,
+      params: { title: "Đếm ngược mở bán vé Early Bird", count: 4, theme: "orange_strip", columns: 4, showTimer: true },
+      content: []
+    },
+    {
+      id: "event_testimonials",
+      type: "testimonials",
+      enabled: true,
+      order: 2,
+      params: { title: "Người Tham Dự Nói Gì" },
+      content: [
+        { name: "John Doe", role: "CEO Tech", avatar: "https://i.pravatar.cc/150?u=44", comment: "Sự kiện được tổ chức cực kỳ tuyệt vời và mang lại giá trị cao." }
+      ]
+    }
+  ],
+
+  service: [
+    {
+      id: "service_banner",
+      type: "image_banner",
+      enabled: true,
+      order: 0,
+      params: { desktopImage: "https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=2669&auto=format&fit=crop", fullWidth: true, height: "500px" },
+      content: []
+    },
+    {
+      id: "service_feature",
+      type: "feature_links",
+      enabled: true,
+      order: 1,
+      params: { columns: 4, style: "card", fullWidth: false },
+      content: [
+        { url: "#", title: "Dịch Vụ Tư Vấn", icon: "https://cdn-icons-png.flaticon.com/512/3063/3063168.png", bgColor: "#eff6ff" },
+        { url: "#", title: "Triển Khai Phần Mềm", icon: "https://cdn-icons-png.flaticon.com/512/2926/2926317.png", bgColor: "#f0fdf4" },
+        { url: "#", title: "Bảo Trì Hệ Thống", icon: "https://cdn-icons-png.flaticon.com/512/2821/2821814.png", bgColor: "#fdf2f8" },
+        { url: "#", title: "Đào Tạo Chuyên Sâu", icon: "https://cdn-icons-png.flaticon.com/512/2362/2362366.png", bgColor: "#fcfce8" }
+      ]
+    },
+    {
+      id: "service_faq",
+      type: "faq",
+      enabled: true,
+      order: 2,
+      params: { title: "Câu Hỏi Thường Gặp" },
+      content: [
+        { question: "Thời gian triển khai bao lâu?", answer: "Thông thường từ 2-4 tuần." },
+        { question: "Chi phí như thế nào?", answer: "Phụ thuộc vào quy mô dự án của bạn." }
+      ]
+    }
   ]
 }

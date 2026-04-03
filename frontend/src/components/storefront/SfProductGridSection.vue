@@ -41,7 +41,7 @@ defineEmits(['viewProduct'])
 
 const columns = computed(() => props.config.columns || 4)
 const gridStyle = computed(() => ({
-  gridTemplateColumns: `repeat(${columns.value}, 1fr)`,
+  '--col-count': columns.value
 }))
 
 function isOnPromotion(p) {
@@ -71,7 +71,7 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
   background: var(--color-bg-primary, #f1f5f9); padding: 4px 10px; border-radius: 20px;
 }
 
-.sf-products { display: grid; gap: 20px; }
+.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-count, 4), 1fr); }
 .sf-product-card {
   border-radius: 16px; overflow: hidden; background: var(--color-bg-card, #ffffff);
   border: 1px solid var(--color-border, #e2e8f0); cursor: pointer; 

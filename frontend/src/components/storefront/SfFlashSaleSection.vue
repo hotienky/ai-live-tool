@@ -49,7 +49,7 @@ const props = defineProps({
 defineEmits(['viewProduct'])
 
 const columns = computed(() => props.config.columns || 4)
-const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${columns.value}, 1fr)` }))
+const gridStyle = computed(() => ({ '--col-count': columns.value }))
 const timeLeft = ref('')
 let timer = null
 
@@ -95,7 +95,7 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
   font-variant-numeric: tabular-nums; letter-spacing: 1px;
 }
 
-.sf-products { display: grid; gap: 20px; }
+.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-count, 4), 1fr); }
 .sf-product-card {
   border-radius: 16px; overflow: hidden; background: var(--color-bg-card, #ffffff);
   border: 1px solid var(--color-border, #e2e8f0); cursor: pointer;

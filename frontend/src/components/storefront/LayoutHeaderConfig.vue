@@ -449,4 +449,61 @@ onMounted(() => { fetchNavLinks(); fetchCmsPageList() })
   border-radius: 8px;
   border: 1px dashed #e2e8f0;
 }
+
+/* Modal Nav Link */
+.hl-modal-overlay {
+  position: fixed; inset: 0; z-index: 100000;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.hl-modal {
+  width: 480px; max-width: 90vw;
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.hl-modal__header {
+  padding: 16px 20px; border-bottom: 1px solid #e2e8f0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hl-modal__header h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1e293b; }
+.hl-modal__header button {
+  background: none; border: none; color: #64748b; padding: 4px; border-radius: 6px; cursor: pointer; transition: 0.2s;
+}
+.hl-modal__header button:hover { background: #f1f5f9; color: #ef4444; }
+.hl-modal__body { padding: 20px; overflow-y: auto; max-height: 70vh; }
+.hl-form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; flex: 1; }
+.hl-form-group label { font-size: 12px; font-weight: 600; color: #475569; }
+.hl-form-group input, .hl-form-group select {
+  padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px;
+  font-size: 14px; color: #1e293b; background: #fff; outline: none; transition: border-color 0.2s;
+}
+.hl-form-group input:focus, .hl-form-group select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+.hl-form-row { display: flex; gap: 16px; }
+
+.page-selector { display: flex; gap: 8px; }
+.page-selector__mode { width: 140px; }
+.page-selector__select, .page-selector__input { flex: 1; }
+
+.hl-modal__footer {
+  padding: 16px 20px; border-top: 1px solid #e2e8f0; background: #f8fafc;
+  display: flex; justify-content: flex-end; gap: 12px;
+}
+.btn-cancel-hl {
+  padding: 8px 16px; background: transparent; border: 1px solid #cbd5e1; border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: #475569; cursor: pointer; transition: 0.2s;
+}
+.btn-cancel-hl:hover { background: #f1f5f9; color: #1e293b; }
+.btn-save-hl {
+  padding: 8px 20px; background: #6366f1; border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; transition: 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-save-hl:hover { background: #4f46e5; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
 </style>
