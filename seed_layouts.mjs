@@ -62,31 +62,31 @@ async function run() {
       
       // Seed Sections
       await client.query(`
-        INSERT INTO configs (group_key, key, value, created_at, updated_at) 
+        INSERT INTO system_configs (group_name, key, value, created_at, updated_at) 
         VALUES ('storefront_layout', 'sections', $1, NOW(), NOW())
-        ON CONFLICT (group_key, key) DO UPDATE SET value = $1, updated_at = NOW()
+        ON CONFLICT (group_name, key) DO UPDATE SET value = $1, updated_at = NOW()
       `, [sectionsJson]);
 
       // Seed Header
       await client.query(`
-        INSERT INTO configs (group_key, key, value, created_at, updated_at) 
+        INSERT INTO system_configs (group_name, key, value, created_at, updated_at) 
         VALUES ('storefront_layout', 'layout_header_config', $1, NOW(), NOW())
-        ON CONFLICT (group_key, key) DO UPDATE SET value = $1, updated_at = NOW()
+        ON CONFLICT (group_name, key) DO UPDATE SET value = $1, updated_at = NOW()
       `, [headerJson]);
 
       // Seed Footer
       await client.query(`
-        INSERT INTO configs (group_key, key, value, created_at, updated_at) 
+        INSERT INTO system_configs (group_name, key, value, created_at, updated_at) 
         VALUES ('storefront_layout', 'layout_footer_config', $1, NOW(), NOW())
-        ON CONFLICT (group_key, key) DO UPDATE SET value = $1, updated_at = NOW()
+        ON CONFLICT (group_name, key) DO UPDATE SET value = $1, updated_at = NOW()
       `, [footerJson]);
 
       // Seed Theme 
       for (const [tKey, tVal] of Object.entries(themePreset)) {
         await client.query(`
-          INSERT INTO configs (group_key, key, value, created_at, updated_at) 
+          INSERT INTO system_configs (group_name, key, value, created_at, updated_at) 
           VALUES ('theme', $1, $2, NOW(), NOW())
-          ON CONFLICT (group_key, key) DO UPDATE SET value = $2, updated_at = NOW()
+          ON CONFLICT (group_name, key) DO UPDATE SET value = $2, updated_at = NOW()
         `, [tKey, String(tVal)]);
       }
 

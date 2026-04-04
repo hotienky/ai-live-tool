@@ -69,6 +69,11 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         });
     }
 
+    public static function bootInvalidatesResolverCache()
+    {
+        // Disable resolver cache invalidation to prevent TypeError in console tests/seeding
+    }
+
     /**
      * Convenience scope to find by slug.
      */

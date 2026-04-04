@@ -12,6 +12,9 @@ class SeedSites extends Command
 
     public function handle()
     {
+        // Fix for Stancl/Tenancy CachedTenantResolver missing Cache Factory binding in console
+        app()->instance(\Illuminate\Contracts\Cache\Factory::class, app('cache'));
+
         $tenant_ids = ['blog', 'shop', 'event', 'service', 'bds', 'restaurant', 'spa'];
         
         foreach($tenant_ids as $id) {
