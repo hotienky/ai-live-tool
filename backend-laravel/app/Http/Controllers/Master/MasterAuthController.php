@@ -72,7 +72,7 @@ class MasterAuthController extends Controller
                 'role' => $role ? [
                     'id' => $role->id,
                     'name' => $role->name,
-                    'display_name' => $role->display_name,
+                    'display_name' => $role->display_name ?? $role->name,
                 ] : null,
             ],
             'permissions' => $permissions,

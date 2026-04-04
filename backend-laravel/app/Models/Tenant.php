@@ -45,13 +45,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
             'db_name',
             'status',
             'plan',
-            'owner_email',
-            'owner_name',
-            'custom_domain',
-            'logo',
             'settings',
-            'features',
-            'expires_at',
             'plan_expires_at',
             'plan_renewed_at',
         ];

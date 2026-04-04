@@ -55,9 +55,6 @@ class TenantsController extends Controller
                 'slug' => $slug,
                 'plan' => $request->input('plan', 'free'),
                 'status' => 'active',
-                'owner_email' => $ownerEmail,
-                'owner_name' => $ownerName,
-                'features' => $request->input('features', 'all'),
                 'db_name' => 'tenant_' . $slug,
             ];
 

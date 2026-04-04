@@ -19,13 +19,14 @@ class TenantRepository extends BaseEloquentRepository implements TenantRepositor
      */
     public function store($data = [])
     {
+        $data['id'] = $data['id'] ?? (string)\Illuminate\Support\Str::uuid();
         $data['created_at'] = $data['created_at'] ?? now();
         $data['updated_at'] = $data['updated_at'] ?? now();
 
-        $id = DB::connection('master')->table('tenants')->insertGetId($data);
+        DB::connection('master')->table('tenants')->insert($data);
 
         // Retrieve as Tenant model so stancl pipeline can work
-        $tenant = Tenant::find($id);
+        $tenant = Tenant::find($data['id']);
 
         // Fire TenantCreated event to trigger DB creation + migration + seeding
         event(new \Stancl\Tenancy\Events\TenantCreated($tenant));

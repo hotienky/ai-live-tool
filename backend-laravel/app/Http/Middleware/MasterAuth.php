@@ -57,7 +57,7 @@ class MasterAuth
             if ($role) {
                 $permissions = json_decode($role->permissions, true) ?: [];
                 $user->role = $role->name;
-                $user->role_display_name = $role->display_name;
+                $user->role_display_name = $role->display_name ?? $role->name;
             }
         }
 

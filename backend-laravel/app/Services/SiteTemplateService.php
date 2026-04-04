@@ -131,7 +131,6 @@ class SiteTemplateService
                     ]);
                 } else {
                     DB::table('layout_pages')->insert([
-                        'id' => (string) \Illuminate\Support\Str::uuid(),
                         'slug' => 'home',
                         'title' => 'Trang Chủ',
                         'layout_json' => json_encode($sections),
@@ -152,7 +151,6 @@ class SiteTemplateService
                 DB::table('nav_links')->where('group', 'menu')->delete();
                 foreach ($template['nav_links'] as $idx => $link) {
                     DB::table('nav_links')->insert([
-                        'id' => (string) \Illuminate\Support\Str::uuid(),
                         'title' => $link['title'],
                         'url' => $link['url'] ?? '#',
                         'group' => $link['group'] ?? 'menu',
