@@ -69,10 +69,12 @@ import { useI18n } from '../composables/useI18n.js'
 import { ChevronRight, Calendar, FileQuestion, ArrowLeft } from 'lucide-vue-next'
 import SectionRenderer from '../components/SectionRenderer.vue'
 import ShortcodeRenderer from '../components/ShortcodeRenderer.vue'
+import { usePersonalization } from '../composables/usePersonalization.js'
 import { inject } from 'vue'
 
 const { t } = useI18n()
 const { setPageSeo } = useSeo()
+const { evaluateConditions } = usePersonalization()
 
 const layoutConfig = inject('layoutConfig', ref(null))
 const isPreviewMode = inject('isPreviewMode', false)
@@ -99,12 +101,16 @@ const activeSections = computed(() => {
 
   // New builder format: { version, blocks }
   if (ld && typeof ld === 'object' && !Array.isArray(ld) && ld.version && Array.isArray(ld.blocks)) {
-    return [...ld.blocks].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    return [...ld.blocks]
+      .filter(s => s.enabled !== false && evaluateConditions(s.conditions))
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
   }
 
   // Old Shopify-style: [ {...}, {...} ]
   if (Array.isArray(ld)) {
-    return ld.filter(s => s.enabled).sort((a, b) => a.order - b.order)
+    return ld
+      .filter(s => s.enabled && evaluateConditions(s.conditions))
+      .sort((a, b) => a.order - b.order)
   }
 
   return []

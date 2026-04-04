@@ -1,17 +1,40 @@
 <template>
-  <section class="home-section container" v-if="categoriesData.length > 0">
-    <h2 class="section-title">
-      <GridIcon :size="22" class="section-title__accent" />
-      {{ params?.title || t('storefront.categories', 'Danh mục sản phẩm') }}
-    </h2>
-    <CategoryGrid :categories="categoriesData" :layout="params?.layoutStyle" />
+  <section class="sf-categories-section" v-if="categoriesData.length > 0">
+    <div class="sf-cat-container">
+      <div class="sf-cat-header">
+        <h2 class="sf-cat-title">
+          <LayoutGrid :size="24" class="sf-cat-icon-bg" />
+          {{ resolvedParams.title || t('storefront.categories', 'Danh mục sản phẩm') }}
+        </h2>
+        <router-link to="/categories" class="sf-cat-view-all">
+          {{ t('storefront.view_all', 'Xem tất cả') }}
+          <ArrowRight :size="16" />
+        </router-link>
+      </div>
+      
+      <div class="sf-cat-grid" :class="['layout-' + (resolvedParams.layoutStyle || 'circle')]">
+        <router-link 
+          v-for="cat in categoriesData" 
+          :key="cat.id" 
+          :to="`/category/${cat.slug || cat.id}`"
+          class="sf-cat-card"
+        >
+          <div class="sf-cat-image-wrap">
+            <img v-if="cat.image" :src="cat.image" :alt="cat.name" loading="lazy" />
+            <div v-else class="sf-cat-placeholder">
+              <FolderOpen :size="32" />
+            </div>
+          </div>
+          <span class="sf-cat-name">{{ cat.name }}</span>
+        </router-link>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
-import CategoryGrid from '../../components/CategoryGrid.vue'
-import { Grid as GridIcon } from 'lucide-vue-next'
+import { computed, inject, ref, onMounted, onUnmounted } from 'vue'
+import { LayoutGrid, ArrowRight, FolderOpen } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 
 const { t } = useI18n()
@@ -22,37 +45,191 @@ const props = defineProps({
   section: { type: Object, default: () => ({}) }
 })
 
-const isPreviewMode = inject('isPreviewMode', false)
+const isPreviewMode = inject('isPreviewMode', ref(false))
 
-// Dummy category generator for preview
-const dummyCategories = Array.from({ length: 6 }).map((_, i) => ({
-  id: `dummy-cat-${i}`,
-  name: `Danh mục ${i + 1}`,
-  slug: `danh-muc-${i + 1}`,
-  image: `https://loremflickr.com/200/200/fashion,food?random=${i}`,
-  products_count: Math.floor(Math.random() * 50) + 10,
-  is_featured: true
-}))
+// === Embedded Responsive Logic ===
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+
+const isMobile = computed(() => windowWidth.value <= 768)
+const isTablet = computed(() => windowWidth.value > 768 && windowWidth.value <= 1024)
+
+const resolvedParams = computed(() => {
+  const p = { ...(props.params || {}) }
+  const tablet = props.section.tabletParams || {}
+  const mobile = props.section.mobileParams || {}
+  
+  if (isTablet.value || isMobile.value) {
+    for (const k in tablet) if (tablet[k] !== undefined && tablet[k] !== '') p[k] = tablet[k]
+  }
+  if (isMobile.value) {
+    for (const k in mobile) if (mobile[k] !== undefined && mobile[k] !== '') p[k] = mobile[k]
+  }
+  return p
+})
 
 const categoriesData = computed(() => {
-  let allCats = []
+  let list = []
   if (props.params?.resolvedData) {
-    allCats = props.params.resolvedData
+    list = props.params.resolvedData
   } else {
-    allCats = window.__STOREFRONT_DATA__?.categories || []
+    // Fallback if not resolved by BFF
+    list = window.__STOREFRONT_DATA__?.categories || []
   }
   
-  if (allCats.length === 0 && isPreviewMode) {
-    allCats = dummyCategories
+  if (list.length === 0 && isPreviewMode.value) {
+    return Array.from({ length: 8 }).map((_, i) => ({
+      id: i, name: `Danh mục ${i + 1}`, image: `https://loremflickr.com/200/200/medical?random=${i}`
+    }))
   }
-  
-  // Filter if layout params specified max/featured
-  if (props.params?.featuredOnly) {
-    allCats = allCats.filter(c => c.is_featured)
-  }
-  if (props.params?.maxCategories) {
-    allCats = allCats.slice(0, props.params.maxCategories)
-  }
-  return allCats
+
+  const limit = resolvedParams.value.maxCategories || 10
+  return list.slice(0, limit)
 })
 </script>
+
+<style scoped>
+.sf-categories-section {
+  padding: 40px 0;
+  background: #fff;
+}
+
+.sf-cat-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.sf-cat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.sf-cat-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+}
+
+.sf-cat-icon-bg {
+  color: #00305b;
+  background: #f1f5f9;
+  padding: 8px;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+}
+
+.sf-cat-view-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #00305b;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.sf-cat-view-all:hover {
+  opacity: 0.7;
+}
+
+.sf-cat-grid {
+  display: grid;
+  gap: 20px;
+}
+
+/* Circle Layout */
+.sf-cat-grid.layout-circle {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+}
+
+.sf-cat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  gap: 12px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sf-cat-card:hover {
+  transform: translateY(-8px);
+}
+
+.sf-cat-image-wrap {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s;
+}
+
+.sf-cat-card:hover .sf-cat-image-wrap {
+  background: #00305b;
+  border-color: #00305b;
+  box-shadow: 0 10px 25px rgba(0, 48, 91, 0.2);
+}
+
+.sf-cat-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sf-cat-placeholder {
+  color: #94a3b8;
+}
+
+.sf-cat-card:hover .sf-cat-placeholder {
+  color: #fff;
+}
+
+.sf-cat-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  text-align: center;
+  transition: color 0.2s;
+}
+
+.sf-cat-card:hover .sf-cat-name {
+  color: #00305b;
+}
+
+@media (max-width: 768px) {
+  .sf-categories-section { padding: 30px 0; }
+  .sf-cat-title { font-size: 20px; }
+  .sf-cat-grid.layout-circle {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 8px;
+  }
+  .sf-cat-image-wrap {
+    width: 72px;
+    height: 72px;
+  }
+  .sf-cat-name {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sf-cat-grid.layout-circle {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>

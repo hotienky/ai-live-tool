@@ -53,12 +53,24 @@ export function useResponsiveConfig(props) {
       for (const k in tablet) {
         if (tablet[k] !== undefined && tablet[k] !== '') result[k] = tablet[k]
       }
+      for (const k in desktop) {
+        if (k.startsWith('tablet') && desktop[k] !== undefined && desktop[k] !== '') {
+          const baseKey = k.substring(6, 7).toLowerCase() + k.substring(7)
+          result[baseKey] = desktop[k]
+        }
+      }
     }
     
     // Apply mobile overrides
     if (currentDevice.value === 'mobile') {
       for (const k in mobile) {
         if (mobile[k] !== undefined && mobile[k] !== '') result[k] = mobile[k]
+      }
+      for (const k in desktop) {
+        if (k.startsWith('mobile') && desktop[k] !== undefined && desktop[k] !== '') {
+          const baseKey = k.substring(6, 7).toLowerCase() + k.substring(7)
+          result[baseKey] = desktop[k]
+        }
       }
     }
     

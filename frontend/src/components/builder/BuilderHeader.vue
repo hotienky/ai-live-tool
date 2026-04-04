@@ -26,9 +26,7 @@
         </div>
       </div>
 
-      <button v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus" @click="$emit('show-version-history')" :title="t('admin.msg_view_version_history', 'Xem lịch sử các phiên bản')">
-        <History :size="12" style="margin-right: 4px;" /> v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? t('admin.msg_published', 'Đã xuất bản') : t('admin.msg_draft', 'Bản nháp') }}
-      </button>
+      <!-- Remove old status badge location -->
 
       <!-- Language Picker -->
       <div class="cpb-lang-picker" style="margin-left: 12px; display:flex; align-items:center;" v-if="installedLanguages.length > 0">
@@ -89,9 +87,32 @@
         <Minimize v-if="isFullscreen" :size="14" />
         <Maximize v-else :size="14" />
       </button>
-      <button class="cpb-btn-secondary" @click="$emit('start-tour')" :title="t('admin.msg_full_guide', 'Hướng dẫn sử dụng toàn tập Builder')"><HelpCircle :size="14" /></button>
-      <button class="cpb-btn-secondary" @click="$emit('show-custom-css')" :title="t('admin.msg_custom_global_css', 'Tùy chỉnh CSS nâng cao toàn cục')"><Code :size="14" /></button>
-      <button class="cpb-btn-secondary" @click="$emit('show-seo-settings')" :title="t('admin.msg_seo_meta_settings', 'Tùy chỉnh SEO & Thẻ Meta cho trang hiện tại')"><Globe :size="14" /></button>
+
+      <!-- Advanced Options Menu -->
+      <div class="cpb-options-container" @focusout="handleOptionsFocusout" tabindex="-1" style="position: relative; outline: none; display: flex; align-items: center;">
+        <button class="cpb-btn-secondary" @click="optionsDropdownOpen = !optionsDropdownOpen" :title="t('admin.msg_more_options', 'Tuỳ chọn nâng cao')">
+          <MoreVertical :size="14" />
+        </button>
+        
+        <div v-if="optionsDropdownOpen" class="options-dropdown-menu" style="position: absolute; top: calc(100% + 6px); right: 0; background: #fff; width: 200px; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); border: 1px solid var(--border, #e5e7eb); z-index: 100; padding: 6px; display: flex; flex-direction: column;">
+          <div class="dropdown-group-label" style="padding: 6px 10px 4px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">{{ t('admin.msg_system', 'Hệ thống') }}</div>
+          <button class="options-dropdown-item" @click="$emit('show-seo-settings'); optionsDropdownOpen = false"><Globe :size="14" /> SEO & Meta</button>
+          <button class="options-dropdown-item" @click="$emit('show-custom-css'); optionsDropdownOpen = false"><Code :size="14" /> Custom CSS</button>
+          <button class="options-dropdown-item" @click="$emit('start-tour'); optionsDropdownOpen = false"><HelpCircle :size="14" /> Hướng dẫn (Tour)</button>
+
+          <div class="dropdown-divider" style="height: 1px; background: var(--border, #e5e7eb); margin: 4px 0;"></div>
+          
+          <div class="dropdown-group-label" style="padding: 6px 10px 4px; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase;">{{ t('admin.msg_json_data', 'Dữ liệu JSON') }}</div>
+          <button class="options-dropdown-item" @click="$emit('export-json'); optionsDropdownOpen = false"><Download :size="14" /> Cấu hình (Export)</button>
+          <button class="options-dropdown-item" @click="$emit('import-json'); optionsDropdownOpen = false"><Upload :size="14" /> Mẫu (Import)</button>
+          <button class="options-dropdown-item" @click="$emit('show-json-docs'); optionsDropdownOpen = false"><BookOpen :size="14" /> Docs</button>
+        </div>
+      </div>
+
+      <button v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus" @click="$emit('show-version-history')" :title="t('admin.msg_view_version_history', 'Xem lịch sử các phiên bản')">
+        <History :size="12" style="margin-right: 4px;" /> v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? t('admin.msg_published', 'Đã xuất bản') : t('admin.msg_draft', 'Bản nháp') }}
+      </button>
+
       <button class="cpb-btn-secondary" @click="$emit('save-draft')" :disabled="saving" :title="t('admin.msg_save_draft_no_apply', 'Lưu nháp hiện trạng mà chưa áp dụng ngay')"><Save :size="14" /> {{ t('admin.msg_draft', 'Nháp') }}</button>
       <button class="cpb-btn-save" @click="$emit('publish')" :disabled="saving" :title="t('admin.msg_publish_to_live', 'Xuất bản cập nhật lên website live')"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> {{ t('admin.msg_publish', 'Xuất bản') }}</button>
     </div>
@@ -103,7 +124,8 @@ import {
   ChevronDown, Home, FileText,
   Monitor, Tablet, Smartphone, Eye, Aperture, Scan,
   Undo2, Redo2, Check, Loader2,
-  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History, Globe
+  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History, Globe,
+  Download, Upload, BookOpen, MoreVertical
 } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 import { useLanguages } from '../../composables/useLanguages.js'
@@ -145,6 +167,8 @@ const props = defineProps({
   currentLang: { type: String, default: 'vi' }
 })
 
+const optionsDropdownOpen = ref(false)
+
 const emit = defineEmits([
   'update:pageDropdownOpen',
   'update:historyDropdownOpen',
@@ -164,6 +188,9 @@ const emit = defineEmits([
   'save-draft',
   'publish',
   'show-version-history',
+  'export-json',
+  'import-json',
+  'show-json-docs',
 ])
 
 function handlePickerFocusout(e) {
@@ -174,6 +201,11 @@ function handlePickerFocusout(e) {
 function handleHistoryFocusout(e) {
   const next = e.relatedTarget
   if (!e.currentTarget.contains(next)) emit('update:historyDropdownOpen', false)
+}
+
+function handleOptionsFocusout(e) {
+  const next = e.relatedTarget
+  if (!e.currentTarget.contains(next)) optionsDropdownOpen.value = false
 }
 </script>
 
@@ -220,6 +252,10 @@ function handleHistoryFocusout(e) {
 .current-state { color: var(--accent); font-weight: 700; }
 .history-current-icon { color: var(--accent); }
 
+/* Setttings/Options */
+.options-dropdown-item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 8px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; background: none; border: none; color: var(--text-2); transition: 0.2s; }
+.options-dropdown-item:hover { background: var(--bg-2); color: var(--text-1); }
+
 /* Buttons */
 .cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
 .cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -229,7 +265,8 @@ function handleHistoryFocusout(e) {
 .cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
 
 /* Status badge */
-.cpb-status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
+.cpb-status-badge { display: flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid transparent; cursor: pointer; white-space: nowrap; transition: 0.2s; height: 28px; }
+.cpb-status-badge:hover { opacity: 0.8; }
 .cpb-status-badge--published { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
 .cpb-status-badge--draft { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2); }
 </style>

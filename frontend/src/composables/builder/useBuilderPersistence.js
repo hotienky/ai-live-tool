@@ -7,6 +7,7 @@ export function useBuilderPersistence(
     pages,
     customCss,
     themeConfig,
+    globalSettings,
     pageConfigs,
     headerConfig,
     footerConfig,
@@ -85,6 +86,7 @@ export function useBuilderPersistence(
           if (meta.headerConfig) headerConfig.value = { ...defaultHeaderConfig, ...meta.headerConfig }
           if (meta.promoConfig) promoConfig.value = { ...defaultPromoConfig, ...meta.promoConfig }
           if (meta.themeConfig) themeConfig.value = { ...themeConfig.value, ...meta.themeConfig }
+          if (meta.globalSettings && typeof meta.globalSettings === 'object') globalSettings.value = meta.globalSettings
           if (meta.footerConfig) {
             const fc = meta.footerConfig
             if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
@@ -225,6 +227,7 @@ export function useBuilderPersistence(
       footerConfig: footerConfig.value,
       promoConfig: promoConfig.value,
       themeConfig: themeConfig.value,
+      globalSettings: globalSettings.value,
     }
   }
 
@@ -386,14 +389,44 @@ export function useBuilderPersistence(
     await loadLayout()
   }
 
+  // ── Version migration ────────────────────────────────────────────────────
+  function migrate_v1_to_v2(parsed) {
+    // v1 files have no theme/globalSettings — builder will fall back to current defaults
+    // Just normalize the schema identifier and version field
+    return {
+      ...parsed,
+      _schema: 'storefront-layout-template',
+      _version: 2,
+      version: 2,
+    }
+  }
+
+  function resolveImportVersion(parsed) {
+    const v = parsed.version ?? (parsed._schema === 'storefront-layout-template-v1' ? 1 : undefined)
+    if (v === undefined || v === 1) return { data: migrate_v1_to_v2(parsed), migrated: v === 1 }
+    if (v > 2) return { data: parsed, migrated: false, tooNew: true }
+    return { data: parsed, migrated: false }
+  }
+
+  // ── Export: full config template (sections + all meta) ────────────────────
   function exportJson() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sections.value, null, 2))
-    const downloadAnchorNode = document.createElement('a')
-    downloadAnchorNode.setAttribute("href", dataStr)
-    downloadAnchorNode.setAttribute("download", `storefront_sections_${activePageId.value || 'home'}.json`)
-    document.body.appendChild(downloadAnchorNode)
-    downloadAnchorNode.click()
-    downloadAnchorNode.remove()
+    const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
+    const fullTemplate = {
+      _schema: 'storefront-layout-template',
+      _version: 2,
+      _exported_at: new Date().toISOString(),
+      _page: slug,
+      version: 2,
+      sections: sections.value,
+      ...buildMeta(),
+    }
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(fullTemplate, null, 2))
+    const a = document.createElement('a')
+    a.setAttribute('href', dataStr)
+    a.setAttribute('download', `layout_template_${slug}_${Date.now()}.json`)
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
   }
 
   function triggerJsonImport() {
@@ -407,15 +440,61 @@ export function useBuilderPersistence(
     reader.onload = (evt) => {
       try {
         const parsed = JSON.parse(evt.target.result)
+        pushUndo()
+
+        // Legacy: plain array of sections
         if (Array.isArray(parsed)) {
-          pushUndo()
-          sections.value = parsed
-          showToast('Nhập JSON Layout thành công!', 'success')
+          sections.value = ensureParams(parsed)
+          showToast('Nhập JSON sections thành công!', 'success')
+          e.target.value = ''
+          return
+        }
+
+        // Full template format (v1 or v2)
+        if (parsed?._schema === 'storefront-layout-template-v1' || parsed?._schema === 'storefront-layout-template' || parsed?.sections) {
+          const { data: tpl, migrated, tooNew } = resolveImportVersion(parsed)
+
+          if (tooNew) {
+            showToast(`File này được tạo từ phiên bản builder mới hơn (v${parsed.version}). Một số tính năng có thể không được áp dụng.`, 'warning')
+          }
+
+          if (Array.isArray(tpl.sections)) sections.value = ensureParams(tpl.sections)
+          if (tpl.headerConfig && typeof tpl.headerConfig === 'object')
+            headerConfig.value = { ...defaultHeaderConfig, ...tpl.headerConfig }
+          if (tpl.footerConfig && typeof tpl.footerConfig === 'object') {
+            const fc = tpl.footerConfig
+            footerConfig.value = Array.isArray(fc.columns)
+              ? { ...JSON.parse(JSON.stringify(defaultFooterConfig)), ...fc, columns: fc.columns, social: fc.social || [], badges: fc.badges || [], paymentMethods: fc.paymentMethods || ['cod', 'bank'] }
+              : JSON.parse(JSON.stringify(defaultFooterConfig))
+          }
+          if (tpl.promoConfig && typeof tpl.promoConfig === 'object')
+            promoConfig.value = { ...defaultPromoConfig, ...tpl.promoConfig }
+          if (tpl.pages && typeof tpl.pages === 'object') pages.value = tpl.pages
+          if (tpl.pageConfigs && typeof tpl.pageConfigs === 'object') {
+            pageConfigs.value = {
+              products: { ...defaultPageConfigs.products, ...(tpl.pageConfigs.products || {}), showFilters: { ...defaultPageConfigs.products.showFilters, ...(tpl.pageConfigs.products?.showFilters || {}) } },
+              productDetail: { ...defaultPageConfigs.productDetail, ...(tpl.pageConfigs.productDetail || {}) },
+              checkout: { ...defaultPageConfigs.checkout, ...(tpl.pageConfigs.checkout || {}) },
+              auth: { ...defaultPageConfigs.auth, ...(tpl.pageConfigs.auth || {}) },
+              account: { ...defaultPageConfigs.account, ...(tpl.pageConfigs.account || {}) },
+              blog: { ...defaultPageConfigs.blog, ...(tpl.pageConfigs.blog || {}) },
+            }
+          }
+          if (tpl.customCss && typeof tpl.customCss === 'string') customCss.value = tpl.customCss
+          if (tpl.template && typeof tpl.template === 'string') activeTemplate.value = tpl.template
+          if (tpl.storefrontUrl && typeof tpl.storefrontUrl === 'string') storefrontUrl.value = tpl.storefrontUrl
+          // Support both `themeConfig` (builder export) and `theme` (doc spec alias)
+          const importedTheme = tpl.themeConfig ?? tpl.theme
+          if (importedTheme && typeof importedTheme === 'object') themeConfig.value = { ...themeConfig.value, ...importedTheme }
+          if (tpl.globalSettings && typeof tpl.globalSettings === 'object') globalSettings.value = tpl.globalSettings
+
+          const migratedNote = migrated ? ' (đã migrate từ v1)' : ''
+          showToast(`Nhập template JSON thành công${migratedNote}! Nhớ xuất bản để áp dụng.`, 'success')
         } else {
-          showToast('Định dạng file không hợp lệ (cần mảng array).', 'error')
+          showToast('File JSON không đúng định dạng. Cần có trường "sections" hoặc "_schema".', 'error')
         }
       } catch {
-        showToast('Lỗi đọc file JSON.', 'error')
+        showToast('Lỗi đọc file JSON — kiểm tra cú pháp.', 'error')
       }
     }
     reader.readAsText(file)

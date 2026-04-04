@@ -102,7 +102,9 @@ export const sectionSchemas = {
     { key: 'overlayOpacity', type: 'range', label: 'Độ mờ overlay', condition: 'overlay', min: 10, max: 80, step: 5 },
   ],
   feature_links: [
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 6 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 6 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 6 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 4 },
     { key: 'style', type: 'select', label: 'Kiểu dáng', options: [{value: 'card', label: 'Thẻ (Card)'}, {value: 'minimal', label: 'Đơn giản'}] },
     { key: '_content', type: 'list', label: 'Các thẻ tính năng', defaults: { bgColor: '#f8f9fa' }, fields: [
       { key: 'title', type: 'text', placeholder: 'Tiêu đề' },
@@ -113,7 +115,9 @@ export const sectionSchemas = {
     ]}
   ],
   categories: [
-    { key: 'columns', type: 'range', label: 'Số cột', min: 3, max: 10 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 3, max: 10 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 8 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 2, max: 6 },
     { key: 'showDescription', type: 'boolean', label: 'Hiện mô tả' },
     { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}, {value: 'circle_icon', label: 'Icon tròn'}, {value: 'masonry', label: 'Lưới bất đối xứng'}] },
     { key: 'showCount', type: 'boolean', label: 'Hiện số SP' },
@@ -124,7 +128,9 @@ export const sectionSchemas = {
     { key: 'showTimer', type: 'boolean', label: 'Hiện đếm ngược' },
     { key: 'showProgress', type: 'boolean', label: 'Hiện thanh tiến độ' },
     { key: 'count', type: 'range', label: 'Số SP', min: 4, max: 16 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 }
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 }
   ],
   featured_products: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
@@ -135,7 +141,9 @@ export const sectionSchemas = {
       {value: 'newest', label: 'Mới nhất'}, {value: 'bestselling', label: 'Bán chạy'},
       {value: 'price_asc', label: 'Giá tăng'}, {value: 'price_desc', label: 'Giá giảm'}] },
     { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 16 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: 'slidesPerView', type: 'select', label: 'Slides/hàng', options: [{value: 2, label: '2'}, {value: 3, label: '3'}, {value: 4, label: '4'}] },
     { key: 'autoplay', type: 'boolean', label: 'Auto-scroll' },
     { key: 'autoplaySpeed', type: 'range', label: 'Tốc độ (ms)', condition: 'autoplay', min: 2000, max: 8000, step: 500 }
@@ -146,7 +154,9 @@ export const sectionSchemas = {
     { key: 'dataSourceType', type: 'select', label: 'Nguồn dữ liệu (Data Source)', options: [{value: 'auto', label: 'Tự động (Hàng mới nhất)'}, {value: 'manual', label: 'Chọn Danh mục'}] },
     { key: 'filterCategory', type: 'categorySelect', label: 'Lọc danh mục', condition: 'dataSourceType', conditionValue: 'manual' },
     { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 12 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: 'sortOrder', type: 'select', label: 'Sắp xếp', condition: 'dataSourceType', conditionValue: 'auto', options: [
       {value: 'newest', label: 'Mới nhất'}, {value: 'bestselling', label: 'Bán chạy'},
       {value: 'price_asc', label: 'Giá tăng'}, {value: 'price_desc', label: 'Giá giảm'}] },
@@ -167,7 +177,9 @@ export const sectionSchemas = {
   ],
   testimonials: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 4 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 4 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 1, max: 3 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 2 },
     { key: '_content', type: 'list', label: 'Đánh giá', defaults: { rating: 5, avatar: '' }, fields: [
       { key: 'name', type: 'text', placeholder: 'Tên khách hàng' },
       { key: 'text', type: 'textarea', placeholder: 'Nhận xét' }
@@ -204,7 +216,9 @@ export const sectionSchemas = {
   ],
   image_gallery: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 1, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: '_content', type: 'list', label: 'Ảnh', fields: [
       { key: 'url', type: 'media', placeholder: 'URL ảnh' }
     ]}
@@ -298,7 +312,9 @@ export const sectionSchemas = {
   trust_badges: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'row',label:'Hàng ngang'},{value:'grid',label:'Lưới'},{value:'carousel',label:'Carousel'}] },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 6 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 6 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: 'background', type: 'color', label: 'Màu nền' },
     { key: 'iconSize', type: 'select', label: 'Kích thước icon', options: [{value:'sm',label:'Nhỏ'},{value:'md',label:'Vừa'},{value:'lg',label:'Lớn'}] },
     { key: '_content', type: 'list', label: 'Badges', defaults: { icon: '' }, fields: [
@@ -314,7 +330,9 @@ export const sectionSchemas = {
     { key: 'subtitle', type: 'text', label: 'Phụ đề' },
     { key: 'layoutView', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'list',label:'Danh sách'},{value:'carousel',label:'Carousel'},{value:'featured',label:'Bài nổi bật + lưới'}] },
     { key: 'count', type: 'range', label: 'Số bài', min: 3, max: 12 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 4 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 4 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 1, max: 3 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 2 },
     { key: 'showExcerpt', type: 'boolean', label: 'Hiện trích dẫn' },
     { key: 'showDate', type: 'boolean', label: 'Hiện ngày đăng' },
     { key: 'showImage', type: 'boolean', label: 'Hiện ảnh đại diện' },
@@ -361,7 +379,9 @@ export const sectionSchemas = {
   related_products: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'count', type: 'range', label: 'Số SP', min: 4, max: 12 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'carousel',label:'Carousel'}] },
   ],
   cart_summary: [
@@ -393,13 +413,17 @@ export const sectionSchemas = {
     { key: 'showStatus', type: 'boolean', label: 'Hiện trạng thái' },
   ],
   blog_listing: [
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 4 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 4 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 1, max: 3 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 2 },
     { key: 'postsPerPage', type: 'select', label: 'Bài/trang', options: [{value:6,label:'6'},{value:9,label:'9'},{value:12,label:'12'}] },
     { key: 'layout', type: 'select', label: 'Bố cục', options: [{value:'grid',label:'Lưới'},{value:'list',label:'Danh sách'},{value:'masonry',label:'Masonry'}] },
     { key: 'showSidebar', type: 'boolean', label: 'Sidebar' },
   ],
   wishlist_grid: [
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
+    { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 2, max: 5 },
+    { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 4 },
+    { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 3 },
     { key: 'emptyMessage', type: 'text', label: 'Thông báo khi trống', placeholder: 'Chưa có sản phẩm yêu thích' },
   ]
 };

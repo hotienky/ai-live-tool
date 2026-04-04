@@ -37,6 +37,9 @@
       @save-draft="saveDraft"
       @publish="handlePublish"
       @show-version-history="showVersionHistory = true"
+      @export-json="exportJson"
+      @import-json="triggerJsonImport"
+      @show-json-docs="showJsonDocs = true"
     />
 
     <div class="cpb-body">
@@ -166,6 +169,9 @@
       @confirm="confirmPublish"
     />
 
+    <!-- JSON Docs Dialog -->
+    <BuilderJsonDocsDialog v-model="showJsonDocs" />
+
     <!-- Version History Flyout -->
     <LayoutVersionHistory
       :visible="showVersionHistory"
@@ -240,6 +246,7 @@ import BuilderSeoDialog from './builder/BuilderSeoDialog.vue'
 import BuilderCustomCssModal from './builder/BuilderCustomCssModal.vue'
 import BuilderPublishDialog from './builder/BuilderPublishDialog.vue'
 import BuilderZenBar from './builder/BuilderZenBar.vue'
+import BuilderJsonDocsDialog from './builder/BuilderJsonDocsDialog.vue'
 import MediaPicker from './MediaPicker.vue'
 import { BuilderRegistry } from '../lib/vue-visual-builder'
 import { useToast } from '../composables/useToast.js'
@@ -294,6 +301,7 @@ const themeConfig = ref({
   fontFamily: "'Inter', sans-serif",
   borderRadius: '8px'
 })
+const globalSettings = ref({})
 const activeTemplate = ref('full_store')
 const saving = ref(false)
 const expandedSection = ref(null)
@@ -316,6 +324,7 @@ const leftTab = ref('structure')
 const leftCollapsed = ref(true)
 const activeConfig = ref(null)
 const showCustomCss = ref(false)
+const showJsonDocs = ref(false)
 
 const activePageId = ref(null)
 const activeSidebarTab = ref('elements')
@@ -404,7 +413,7 @@ const {
   triggerJsonImport,
   onJsonImportFile,
 } = useBuilderPersistence(
-  { sections, pages, customCss, themeConfig, pageConfigs, headerConfig, footerConfig, promoConfig, activeTemplate, activePageId, storefrontUrl, saving },
+  { sections, pages, customCss, themeConfig, globalSettings, pageConfigs, headerConfig, footerConfig, promoConfig, activeTemplate, activePageId, storefrontUrl, saving },
   { activeBuiltinPage, activeTemplatePage },
   apiFetch,
   showToast,

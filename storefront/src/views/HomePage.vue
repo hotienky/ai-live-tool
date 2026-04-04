@@ -40,10 +40,12 @@ import SectionRenderer from '../components/SectionRenderer.vue'
 import { useSeo } from '../composables/useSeo.js'
 import { useI18n } from '../composables/useI18n.js'
 import { useModules } from '../composables/useModules.js'
+import { usePersonalization } from '../composables/usePersonalization.js'
 
 const { t } = useI18n()
 const { hasModule } = useModules()
 const { setPageSeo } = useSeo()
+const { evaluateConditions } = usePersonalization()
 
 // layoutConfig injected từ App.vue — đã chứa sections với data được resolve BFF
 const layoutConfig = inject('layoutConfig', ref(null))
@@ -72,9 +74,13 @@ const sectionsReady = computed(() => layoutConfig.value !== null)
 const activeSections = computed(() => {
   const raw = layoutConfig.value?.sections || []
 
-  // Filter theo module availability + enabled flag
+  // Filter theo module availability + enabled flag + rule engine (personalization)
   const filtered = raw.filter(s => {
     if (s.enabled === false) return false
+    
+    // Evaluate Personalization Rules
+    if (!evaluateConditions(s.conditions)) return false
+    
     const requiredModule = sectionModuleMap[s.type]
     if (requiredModule && !hasModule(requiredModule)) return false
     return true

@@ -50,7 +50,7 @@
     <!-- Visual Template Picker -->
     <SectionStylePicker
       :section-type="section.type"
-      :params="getParams()"
+      :params="activeParams"
       @apply-template="applyTemplateConfig"
     />
 
@@ -59,44 +59,44 @@
         <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
           
           <!-- Standard Prop Inputs -->
-          <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || (field.conditionValue ? getParams()[field.condition] === field.conditionValue : getParams()[field.condition] !== false))">
+          <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || (field.conditionValue ? activeParams[field.condition] === field.conditionValue : activeParams[field.condition] !== false))">
             <label v-if="field.type !== 'visualEditor'">{{ field.label }}</label>
             
             <template v-if="field.type === 'boolean'">
               <label class="toggle-switch toggle-switch--sm" @click.stop>
-                <input type="checkbox" v-model="getParams()[field.key]" />
+                <input type="checkbox" v-model="activeParams[field.key]" />
                 <span class="toggle-slider"></span>
               </label>
             </template>
             
             <template v-else-if="field.type === 'text' || field.type === 'url' || field.type === 'number'">
-              <input :type="field.type" v-model="getParams()[field.key]" class="param-input" :class="{'param-input--wide': field.type!=='number'}" :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
+              <input :type="field.type" v-model="activeParams[field.key]" class="param-input" :class="{'param-input--wide': field.type!=='number'}" :min="field.min" :max="field.max" :step="field.step" :placeholder="field.placeholder" />
             </template>
 
             <template v-else-if="field.type === 'textarea'">
-              <textarea v-model="getParams()[field.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="field.placeholder"></textarea>
+              <textarea v-model="activeParams[field.key]" class="param-input param-input--wide content-textarea" rows="2" :placeholder="field.placeholder"></textarea>
             </template>
 
             <template v-else-if="field.type === 'range'">
-              <input type="range" v-model.number="getParams()[field.key]" :min="field.min" :max="field.max" :step="field.step" class="param-range" />
-              <span class="param-value">{{ getParams()[field.key] || field.min }}</span>
+              <input type="range" v-model.number="activeParams[field.key]" :min="field.min" :max="field.max" :step="field.step" class="param-range" />
+              <span class="param-value">{{ activeParams[field.key] || field.min }}</span>
             </template>
 
             <template v-else-if="field.type === 'select'">
-              <select v-model="getParams()[field.key]" class="param-select">
+              <select v-model="activeParams[field.key]" class="param-select">
                 <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
             </template>
 
             <template v-else-if="field.type === 'categorySelect'">
-              <select v-model="getParams()[field.key]" class="param-select">
+              <select v-model="activeParams[field.key]" class="param-select">
                 <option value="">{{ t('admin.msg_d8586d08', 'Tất cả') }}</option>
                 <option v-for="c in allCategories" :key="c.id" :value="c.id">{{ c.name }}</option>
               </select>
             </template>
 
             <template v-else-if="field.type === 'formSelect'">
-              <select v-model="getParams()[field.key]" class="param-select">
+              <select v-model="activeParams[field.key]" class="param-select">
                 <option value="" disabled selected>-- Chọn Form --</option>
                 <option v-for="f in availableForms" :key="f.id" :value="f.id">{{ f.title || f.id }}</option>
               </select>
@@ -114,7 +114,7 @@
           <div class="content-editor" v-if="field.type === 'list'">
             <label class="content-editor__label">{{ field.label }}</label>
             <div class="content-list-wrap">
-              <div v-for="(item, i) in getContent()" :key="i" class="content-card">
+              <div v-for="(item, i) in activeContent" :key="i" class="content-card">
                 <div class="content-card__header">
                   <span class="content-card__title">Item {{ i + 1 }}</span>
                   <button class="btn-remove-item hover-danger" @click="removeContentItem(i)" :title="t('admin.msg_0be65507', 'Xóa')"><Trash2 :size="14" /></button>
@@ -151,7 +151,7 @@
             <div v-for="cat in allCategories" :key="cat.id" class="param-row" style="margin-bottom: 4px;">
               <label style="font-size:12px">{{ cat.name }}</label>
               <label class="toggle-switch toggle-switch--sm" @click.stop>
-                <input type="checkbox" :checked="(getParams()[field.key] || []).includes(cat.id)" @change="toggleCategoryId(cat.id, field.key)" />
+                <input type="checkbox" :checked="(activeParams[field.key] || []).includes(cat.id)" @change="toggleCategoryId(cat.id, field.key)" />
                 <span class="toggle-slider"></span>
               </label>
             </div>
@@ -161,7 +161,7 @@
           <!-- RichText -->
           <div class="content-editor" v-if="field.type === 'richtext'">
             <label class="content-editor__label">{{ field.label }}</label>
-            <RichTextEditor :modelValue="getTextBlockContent()" @update:modelValue="setTextBlockContent($event)" :placeholder="t('admin.msg_enter_content', 'Nhập nội dung...')" />
+            <RichTextEditor v-model="activeTextBlockContent" :placeholder="t('admin.msg_enter_content', 'Nhập nội dung...')" />
           </div>
 
           <!-- Nested Children grid component slot injection -->
@@ -170,7 +170,9 @@
               <span>{{ field.label }}</span>
               <span style="font-size: 10px; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px;">{{ t('admin.msg_drag_drop_area', 'Kéo thả phần tử') }}</span>
             </label>
-            <slot name="children-editor" :field="field" :section="section"></slot>
+            <slot name="children-editor" :field="field" :section="section">
+              <div style="text-align: center; color: var(--text-3, #94a3b8); font-size: 12px; padding: 12px;"><i>👉 Bấm vào các thành phần con trên Canvas để sửa</i></div>
+            </slot>
           </div>
 
         </template>
@@ -203,6 +205,34 @@
 
       <!-- ===== TAB: ADVANCED ===== -->
       <div v-show="currentTab === 'advanced'" class="sf-tab-content">
+        <div class="sf-personalization-panel" style="padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(99, 102, 241, 0.05); margin-bottom: 12px;">
+          <h3 style="font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-top: 0; margin-bottom: 12px; color: var(--color-accent-primary, #6366f1)">
+            <Users :size="14"/> {{ t('admin.msg_personalization', 'Điều kiện hiển thị (Personalization)') }}
+          </h3>
+          
+          <div class="param-row">
+            <label>{{ t('admin.msg_target_audience', 'Đối tượng khách hàng') }}</label>
+            <select v-model="activeConditions.userAuth" class="param-select" style="width: 100%">
+              <option value="">{{ t('admin.msg_all_users', 'Tất cả mọi người') }}</option>
+              <option value="logged_in">{{ t('admin.msg_logged_in_only', 'Chỉ thành viên (Đã đăng nhập)') }}</option>
+              <option value="guest">{{ t('admin.msg_guest_only', 'Chỉ khách (Chưa đăng nhập)') }}</option>
+            </select>
+          </div>
+
+          <div class="param-row">
+            <label>{{ t('admin.msg_schedule_start', 'Bắt đầu hiển thị từ') }}</label>
+            <input type="datetime-local" v-model="activeConditions.dateFrom" class="param-input param-input--wide" />
+          </div>
+
+          <div class="param-row">
+            <label>{{ t('admin.msg_schedule_end', 'Ẩn đi sau ngày') }}</label>
+            <input type="datetime-local" v-model="activeConditions.dateTo" class="param-input param-input--wide" />
+          </div>
+          <small style="font-size: 11px; color: var(--color-text-muted); display: block; margin-top: 8px;">
+            Hệ thống Rule Engine sẽ tự động đánh giá và quyết định quyền hiển thị khối giao diện này dựa vào thời gian thực hoặc tài khoản người truy cập.
+          </small>
+        </div>
+
         <AdvancedStylePanel :section="section" mode="advanced" />
       </div>
 
@@ -212,7 +242,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink, AlertTriangle } from 'lucide-vue-next'
+import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink, AlertTriangle, Users } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { useForms } from '../../composables/useForms.js'
@@ -233,6 +263,21 @@ const props = defineProps({
   defaultLangCode: { type: String, required: true }
 })
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
+
+// Ensure conditions proxy for clean Vue reactivity binding without mutating props during render loop
+const activeConditions = new Proxy({}, {
+  get(target, prop) {
+    return props.section.conditions?.[prop] || ''
+  },
+  set(target, prop, value) {
+    // Lazily initialize conditions only when a value is actively modified
+    if (!props.section.conditions) {
+      props.section.conditions = { userAuth: '', dateFrom: '', dateTo: '' }
+    }
+    props.section.conditions[prop] = value
+    return true
+  }
+})
 
 const currentTab = ref('content')
 
@@ -283,106 +328,106 @@ onMounted(() => {
   fetchForms()
 })
 
-// Content & Lang Data Initializer
-function getParams() {
-  const section = props.section;
-  
-  if (props.currentLang === props.defaultLangCode) {
-    return new Proxy(section.params, {
-      get(target, prop) {
-        if (currentDevice.value === 'mobile' && section.mobileParams && section.mobileParams[prop] !== undefined && section.mobileParams[prop] !== '') {
-          return section.mobileParams[prop];
-        }
-        if ((currentDevice.value === 'mobile' || currentDevice.value === 'tablet') && section.tabletParams && section.tabletParams[prop] !== undefined && section.tabletParams[prop] !== '') {
-          return section.tabletParams[prop];
-        }
-        return target[prop];
-      },
-      set(target, prop, value) {
-        if (currentDevice.value === 'mobile') {
-          if (!section.mobileParams) section.mobileParams = {};
-          section.mobileParams[prop] = value;
-        } else if (currentDevice.value === 'tablet') {
-          if (!section.tabletParams) section.tabletParams = {};
-          section.tabletParams[prop] = value;
-        } else {
-          target[prop] = value;
-        }
-        return true;
+// --- Reactivity fix for Section Translations & Params ---
+
+// Keep track of which section's translation is initialized to avoid infinite loops
+const initializedTranslations = ref(new Set())
+
+watch(
+  () => [props.section.id, props.currentLang],
+  ([sectionId, lang]) => {
+    if (lang === props.defaultLangCode) return
+    const key = `${sectionId}-${lang}`
+    if (initializedTranslations.value.has(key)) return
+    
+    if (!props.section.translations) props.section.translations = {}
+    if (!props.section.translations[lang]) {
+      props.section.translations[lang] = {
+        params: { 
+          title: props.section.params.title || '', 
+          subtitle: props.section.params.subtitle || '', 
+          buttonText: props.section.params.buttonText || '' 
+        },
+        content: JSON.parse(JSON.stringify(props.section.content || []))
       }
-    });
-  }
-  
-  if (!section.translations) section.translations = {};
-  if (!section.translations[props.currentLang]) {
-    section.translations[props.currentLang] = {
-      params: { 
-        title: section.params.title || '', 
-        subtitle: section.params.subtitle || '', 
-        buttonText: section.params.buttonText || '' 
-      },
-      content: JSON.parse(JSON.stringify(section.content || []))
-    };
-    if (Array.isArray(section.translations[props.currentLang].content)) {
-      section.translations[props.currentLang].content.forEach(item => {
-        if (typeof item === 'object') {
-          if (item.name !== undefined) item.name = ''; 
-          if (item.text !== undefined) item.text = ''; 
-          if (item.question !== undefined) item.question = ''; 
-          if (item.answer !== undefined) item.answer = '';
-          if (item.label !== undefined) item.label = '';
-        }
-      });
-    } else if (typeof section.translations[props.currentLang].content === 'string') {
-      section.translations[props.currentLang].content = '';
+      
+      const tc = props.section.translations[lang].content
+      if (Array.isArray(tc)) {
+        tc.forEach(item => {
+          if (typeof item === 'object') {
+            if (item.name !== undefined) item.name = ''
+            if (item.text !== undefined) item.text = ''
+            if (item.question !== undefined) item.question = ''
+            if (item.answer !== undefined) item.answer = ''
+            if (item.label !== undefined) item.label = ''
+          }
+        })
+      } else if (typeof tc === 'string') {
+        props.section.translations[lang].content = ''
+      }
+      initializedTranslations.value.add(key)
     }
-  }
-  const baseParams = section.translations[props.currentLang].params;
-  
+  },
+  { immediate: true }
+)
+
+const activeParams = computed(() => {
+  const section = props.section
+  const isDefaultLang = props.currentLang === props.defaultLangCode
+  const baseParams = isDefaultLang 
+    ? section.params 
+    : (section.translations?.[props.currentLang]?.params || {})
+
   return new Proxy(baseParams, {
     get(target, prop) {
       if (currentDevice.value === 'mobile' && section.mobileParams && section.mobileParams[prop] !== undefined && section.mobileParams[prop] !== '') {
-        return section.mobileParams[prop];
+        return section.mobileParams[prop]
       }
       if ((currentDevice.value === 'mobile' || currentDevice.value === 'tablet') && section.tabletParams && section.tabletParams[prop] !== undefined && section.tabletParams[prop] !== '') {
-        return section.tabletParams[prop];
+        return section.tabletParams[prop]
       }
-      return target[prop];
+      return target[prop]
     },
     set(target, prop, value) {
       if (currentDevice.value === 'mobile') {
-        if (!section.mobileParams) section.mobileParams = {};
-        section.mobileParams[prop] = value;
+        if (!section.mobileParams) section.mobileParams = {}
+        section.mobileParams[prop] = value
       } else if (currentDevice.value === 'tablet') {
-        if (!section.tabletParams) section.tabletParams = {};
-        section.tabletParams[prop] = value;
+        if (!section.tabletParams) section.tabletParams = {}
+        section.tabletParams[prop] = value
       } else {
-        target[prop] = value;
+        target[prop] = value
       }
-      return true;
+      return true
     }
-  });
-}
+  })
+})
 
-function getContent() {
-  if (props.currentLang === props.defaultLangCode) return props.section.content;
-  getParams(); // ensure initialized
-  return props.section.translations[props.currentLang].content;
-}
+const activeContent = computed(() => {
+  if (props.currentLang === props.defaultLangCode) return props.section.content
+  return props.section.translations?.[props.currentLang]?.content || []
+})
 
-function getTextBlockContent() {
-  if (props.currentLang === props.defaultLangCode) return typeof props.section.content === 'string' ? props.section.content : '';
-  getParams();
-  return typeof props.section.translations[props.currentLang].content === 'string' ? props.section.translations[props.currentLang].content : '';
-}
-
-function setTextBlockContent(val) {
-  if (props.currentLang === props.defaultLangCode) props.section.content = val;
-  else {
-    getParams();
-    props.section.translations[props.currentLang].content = val;
+const activeTextBlockContent = computed({
+  get() {
+    if (props.currentLang === props.defaultLangCode) {
+      return typeof props.section.content === 'string' ? props.section.content : ''
+    }
+    const tc = props.section.translations?.[props.currentLang]?.content
+    return typeof tc === 'string' ? tc : ''
+  },
+  set(val) {
+    if (props.currentLang === props.defaultLangCode) {
+      props.section.content = val
+    } else {
+      if (!props.section.translations) props.section.translations = {}
+      if (!props.section.translations[props.currentLang]) {
+        props.section.translations[props.currentLang] = { params: {}, content: '' }
+      }
+      props.section.translations[props.currentLang].content = val
+    }
   }
-}
+})
 
 function addContentItem(defaultItem) {
   const section = props.section;
@@ -416,7 +461,7 @@ function removeContentItem(index) {
 }
 
 function toggleCategoryId(catId, key = 'selectedCategoryIds') {
-  const params = props.section.params; // base params handles categories
+  const params = props.section.params; // base params handles categories (not translatable)
   if (!params[key]) params[key] = []
   const idx = params[key].indexOf(catId)
   if (idx >= 0) params[key].splice(idx, 1)
@@ -424,7 +469,6 @@ function toggleCategoryId(catId, key = 'selectedCategoryIds') {
 }
 
 function applyTemplateConfig(config) {
-  // Merge template config into section params
   Object.keys(config).forEach(k => {
     props.section.params[k] = config[k]
   })

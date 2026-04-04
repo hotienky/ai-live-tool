@@ -32,6 +32,9 @@
           {{ t('storefront.sold') || 'Đã bán' }} {{ formatSoldCount(product.sold_count) }}
         </span>
       </div>
+      <button class="product-card__add-btn" @click.prevent.stop="onAddToCart(product)">
+        {{ t('storefront.msg_buy') || '+ Chọn mua' }}
+      </button>
     </div>
   </router-link>
 </template>
@@ -69,6 +72,10 @@ function formatPrice(v) {
 function formatSoldCount(n) {
   if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
   return n
+}
+
+const onAddToCart = (p) => {
+  window.dispatchEvent(new CustomEvent('cart:add', { detail: p }))
 }
 </script>
 
@@ -205,9 +212,32 @@ function formatSoldCount(n) {
   font-weight: 500;
 }
 
+.product-card__add-btn {
+  width: 100%;
+  margin-top: 12px;
+  background: var(--sf-accent, #00305b); /* Fallback to Pharmacity blue */
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+  opacity: 1; /* Always visible for Pharmacity style */
+}
+
+.product-card:hover .product-card__add-btn {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--sf-accent-glow);
+}
+
 @media (max-width: 768px) {
   .product-card { border-radius: 10px; }
   .product-card:hover { transform: none; }
+  .product-card__add-btn { font-size: 11px; padding: 6px 12px; }
   .product-card__image { aspect-ratio: 1; }
   .product-card__body { padding: 10px 10px 12px; }
   .product-card__cat { font-size: 10px; }
