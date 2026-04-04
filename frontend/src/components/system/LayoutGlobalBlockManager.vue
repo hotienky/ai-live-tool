@@ -135,7 +135,7 @@ const editForm = ref({
 async function load() {
   loading.value = true
   try {
-    const res = await apiFetch('/system/layout-global-blocks')
+    const res = await apiFetch('/layout-global-blocks')
     const data = await res.json()
     blocks.value = Array.isArray(data) ? data : (data?.data || [])
   } catch (e) {
@@ -203,14 +203,14 @@ async function saveBlock() {
 
   try {
     if (editForm.value.id) {
-      await apiFetch(`/system/layout-global-blocks/${editForm.value.id}`, {
+      await apiFetch(`/layout-global-blocks/${editForm.value.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       showToast('Đã lưu Global Block', 'success')
     } else {
-      await apiFetch(`/system/layout-global-blocks`, {
+      await apiFetch(`/layout-global-blocks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -229,7 +229,7 @@ function confirmDelete(block) { deleteTarget.value = block }
 
 async function deleteBlock() {
   try {
-    await apiFetch(`/system/layout-global-blocks/${deleteTarget.value.id}`, { method: 'DELETE' })
+    await apiFetch(`/layout-global-blocks/${deleteTarget.value.id}`, { method: 'DELETE' })
     showToast('Đã xóa khối dùng chung', 'success')
     deleteTarget.value = null
     await load()

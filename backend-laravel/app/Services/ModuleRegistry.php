@@ -72,7 +72,16 @@ class ModuleRegistry
                     'installed_at' => now(),
                     'installed_by' => $userId,
                 ]);
-                static::runModuleMigrations($moduleId);
+                if (!tenancy()->initialized) {
+                    $tenant = \App\Models\Tenant::find($tenantId);
+                    if ($tenant) {
+                        $tenant->run(function() use ($moduleId) {
+                            static::runModuleMigrations($moduleId);
+                        });
+                    }
+                } else {
+                    static::runModuleMigrations($moduleId);
+                }
                 static::clearCache($tenantId);
                 return ['success' => true, 'message' => "Đã cài đặt lại {$module->name}"];
             }
@@ -107,7 +116,16 @@ class ModuleRegistry
         ]);
 
         // Run module-specific migrations if they exist
-        static::runModuleMigrations($moduleId);
+        if (!tenancy()->initialized) {
+            $tenant = \App\Models\Tenant::find($tenantId);
+            if ($tenant) {
+                $tenant->run(function() use ($moduleId) {
+                    static::runModuleMigrations($moduleId);
+                });
+            }
+        } else {
+            static::runModuleMigrations($moduleId);
+        }
 
         // Clear caches
         static::clearCache($tenantId);
@@ -196,18 +214,15 @@ class ModuleRegistry
             'installed_at' => now(),
         ]);
 
-        // Run module-specific migrations (create tables if needed)
-        static::runModuleMigrations($sub->module_id);
-
-        // Clear caches
-        static::clearCache($sub->tenant_id);
-
         $module = Module::where('module_id', $sub->module_id)->first();
         
-        // Notify tenant
+        // Notify tenant and run migrations in tenant context
         $tenant = \App\Models\Tenant::find($sub->tenant_id);
         if ($tenant) {
             $tenant->run(function () use ($module, $sub) {
+                // Run module-specific migrations (create tables if needed)
+                static::runModuleMigrations($sub->module_id);
+                
                 \App\Models\Notification::create([
                     'user_id' => $sub->installed_by,
                     'type' => 'system',
@@ -218,6 +233,9 @@ class ModuleRegistry
                 ]);
             });
         }
+
+        // Clear caches
+        static::clearCache($sub->tenant_id);
 
         return ['success' => true, 'message' => "Đã duyệt: {$module->name}"];
     }

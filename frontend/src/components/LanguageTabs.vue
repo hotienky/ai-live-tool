@@ -1,21 +1,5 @@
 <template>
-  <div class="language-tabs">
-    <button
-      v-for="lang in installedLanguages"
-      :key="lang.code"
-      type="button"
-      class="lang-tab"
-      :class="{ active: modelValue === lang.code }"
-      @click="$emit('update:modelValue', lang.code)"
-    >
-      <span class="lang-flag">{{ lang.flag || '🌐' }}</span>
-      <span class="lang-name">{{ lang.name }}</span>
-      <span v-if="lang.is_default" class="lang-badge">{{ t('admin.msg_3a73b238', 'Gốc') }}</span>
-      <span v-else-if="fields && translations" class="lang-completeness" :class="{ done: getCompleteness(lang.code) === 100 }">
-        {{ getCompleteness(lang.code) }}%
-      </span>
-      <span v-if="hasError(lang.code)" class="lang-error">!</span>
-    </button>
+  <div class="language-tabs-wrapper">
     <div class="lang-actions" v-if="modelValue && !activeLangIsDefault && baseData && fields">
       <button class="btn-auto-translate" type="button" @click="doAutoTranslate" :disabled="isTranslating" :class="{ translating: isTranslating }">
         <span class="btn-ai-icon">
@@ -24,6 +8,24 @@
         <span class="btn-ai-text">{{ isTranslating ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}</span>
         <span class="btn-ai-badge">AI</span>
         <span class="btn-shimmer"></span>
+      </button>
+    </div>
+    <div class="language-tabs">
+      <button
+        v-for="lang in installedLanguages"
+        :key="lang.code"
+        type="button"
+        class="lang-tab"
+        :class="{ active: modelValue === lang.code }"
+        @click="$emit('update:modelValue', lang.code)"
+      >
+        <span class="lang-flag">{{ lang.flag || '🌐' }}</span>
+        <span class="lang-name">{{ lang.name }}</span>
+        <span v-if="lang.is_default" class="lang-badge">{{ t('admin.msg_3a73b238', 'Gốc') }}</span>
+        <span v-else-if="fields && translations" class="lang-completeness" :class="{ done: getCompleteness(lang.code) === 100 }">
+          {{ getCompleteness(lang.code) }}%
+        </span>
+        <span v-if="hasError(lang.code)" class="lang-error">!</span>
       </button>
     </div>
   </div>
@@ -151,13 +153,23 @@ async function doAutoTranslate() {
 </script>
 
 <style scoped>
+.language-tabs-wrapper {
+  display: flex;
+  flex-direction: column;
+}
 .language-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   gap: 8px;
   border-bottom: 1px solid var(--color-border);
   margin-bottom: 24px;
-  align-items: flex-end; /* Align tabs to the bottom border */
+  align-items: flex-end;
+  scrollbar-width: none;
+}
+.language-tabs::-webkit-scrollbar {
+  display: none;
 }
 .lang-tab {
   display: flex;
@@ -222,9 +234,8 @@ async function doAutoTranslate() {
 }
 .lang-actions {
   display: flex;
-  margin-left: auto;
-  align-items: center;
-  padding-bottom: 8px;
+  justify-content: flex-end;
+  margin-bottom: 8px; /* space between action button and tabs */
 }
 .btn-auto-translate {
   position: relative;

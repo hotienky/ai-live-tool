@@ -265,12 +265,11 @@ Object.keys(sectionMetaRegistry).forEach(type => {
   })
 })
 
-const showVisualBuilderPro = ref(false)
 const isFullscreen = ref(false)
-const { t, formatCurrency } = useI18n()
+const { t } = useI18n()
 const {
   defaultHeaderConfig, defaultFooterConfig, defaultPromoConfig, defaultPageConfigs,
-  sectionMeta, defaultParams, pageList, templates, builtinPageOptions
+  sectionMeta, defaultParams, templates, builtinPageOptions
 } = createBuilderConstants(t)
 const { showToast } = useToast()
 
@@ -298,7 +297,6 @@ const previewMode = ref('live')
 const previewWidth = ref('100%')
 const previewKey = ref(0)
 const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
-const expandedPageConfig = ref(null)
 const promoOpen = ref(false)
 
 const currentDevice = computed(() => {
@@ -310,8 +308,6 @@ provide('previewDevice', currentDevice)
 
 const isXRayMode = ref(false)
 const showCommandPalette = ref(false)
-const controlsCollapsed = ref(false)
-
 const leftTab = ref('structure')
 const leftCollapsed = ref(true)
 const activeConfig = ref(null)
@@ -351,7 +347,6 @@ const {
   undoStack,
   redoStack,
   historyDropdownOpen,
-  handleHistoryFocusout,
   pushUndo,
   undo,
   redo,
@@ -368,7 +363,6 @@ const activeSections = computed(() =>
 const {
   addSectionAtInsertIndex,
   globalImagePicker,
-  globalImagePickerTarget,
   onPreviewSectionSelected,
   onPreviewSectionHover,
   onPreviewSectionReorder,
@@ -396,12 +390,8 @@ const {
   showPublishDialog,
   publishNote,
   publishSchedule,
-  publishNoteInput,
   jsonInputRef,
   loadLayout,
-  buildMeta,
-  ensureLayoutPage,
-  saveLayout,
   saveDraft,
   handlePublish,
   confirmPublish,
@@ -424,28 +414,11 @@ const {
 )
 
 const {
-  dragIndex,
-  dragOverIndex,
-  showLibrary,
   allCategories,
   showBlockEditorFor,
-  showAiPanel,
-  aiPrompt,
-  aiLoading,
   addLibrarySection,
   applyTemplate,
-  addContentItem,
-  removeContentItem,
-  toggleCategoryId,
   loadCategories,
-  onDragStart,
-  onDragEnd,
-  onDragOver,
-  onDragEnter,
-  onDragLeave,
-  onDrop,
-  toggleExpand,
-  generateLayout,
 } = useBuilderSections(
   { sections, expandedSection, activeConfig, addSectionAtInsertIndex, activeTemplate },
   showToast,
@@ -457,19 +430,8 @@ const {
 )
 
 const {
-  navLinks,
-  collectionNavLinks,
-  cmsPageList,
-  showNavLinkModal,
-  navLinkEditing,
-  navLinkForm,
-  pageSelectMode,
   fetchNavLinks,
   fetchCmsPageList,
-  openCreateNavLink,
-  openEditNavLink,
-  saveNavLink,
-  deleteNavLink,
 } = useBuilderNavLinks(apiFetch, showToast, t)
 
 // Computed: current active page display (icon + label)
@@ -487,11 +449,6 @@ function selectPage(id) {
   pageDropdownOpen.value = false
   loadLayout()
 }
-function handlePickerFocusout(e) {
-  const next = e.relatedTarget
-  if (!e.currentTarget.contains(next)) pageDropdownOpen.value = false
-}
-
 watch(sections, () => pushUndo(), { deep: true })
 
 // ── SEO ──
@@ -507,25 +464,9 @@ const {
 
 // ── Layout helpers (footer drag, currentPageBg, livePreviewBaseUrl, layoutPayload) ──
 const {
-  allPaymentMethods,
-  addFooterCol,
-  removeFooterCol,
-  footerDragIdx,
-  footerDragOverIdx,
-  footerItemDrag,
-  onFooterDragStart,
-  onFooterDragEnd,
-  onFooterDragOver,
-  onFooterDrop,
-  onFooterItemDrop,
-  onFooterContactDrop,
   currentPageBg,
-  builtinPageLang,
-  getPageConfigI18n,
-  setPageConfigI18n,
   livePreviewBaseUrl,
   layoutPayload,
-  footerPreviewStyle,
 } = useBuilderLayout(
   { sections, pages, customCss, themeConfig, headerConfig, footerConfig, promoConfig, pageConfigs, activeTemplate, activePageId, storefrontUrl, dynamicPages },
   { activeBuiltinPage },
@@ -598,44 +539,6 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 /* Center Canvas */
 .cpb-center { flex: 1; background: var(--bg-2, #f1f5f9); overflow-y: auto; display: flex; flex-direction: column; align-items: center; transition: padding 0.3s; }
 .cpb-canvas-wrap { width: 100%; min-height: 100%; background: transparent; display: flex; flex-direction: column; transition: max-width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-sizing: border-box; padding: 24px; }
-
-/* Modals */
-.modal-overlay, .media-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
-.media-modal { background: #fff; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-.media-modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.media-modal-header h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text-1); }
-.media-modal-header button { background: none; border: none; cursor: pointer; color: var(--text-3); }
-.media-modal-header button:hover { color: var(--text-1); }
-
-/* Zen Mode Floating Bar */
-.zen-floating-bar {
-  position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px);
-  z-index: 100001; opacity: 0; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  pointer-events: none;
-}
-.zen-floating-bar--visible {
-  transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto;
-}
-.zen-actions {
-  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 100px;
-  box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-}
-.zen-btn {
-  width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent;
-  color: var(--text-2); display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.zen-btn:hover:not(:disabled) { background: #fff; color: var(--text-1); box-shadow: 0 8px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
-.zen-btn.active { background: #fff; color: var(--accent); box-shadow: 0 4px 12px rgba(124,58,237,0.15); }
-.zen-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.zen-divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); margin: 0 4px; }
-.zen-btn--publish {
-  width: auto; padding: 0 16px; border-radius: 100px; gap: 6px; font-weight: 600; font-size: 13px;
-  background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(124,58,237,0.3);
-}
-.zen-btn--publish:hover:not(:disabled) { background: var(--accent); filter: brightness(1.1); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(124,58,237,0.4); }
 
 /* Buttons used in modals */
 .cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
