@@ -92,6 +92,9 @@
     <div class="cpb-body">
       <!-- LEFT SIDEBAR -->
       <div class="cpb-left" :class="{ 'cpb-left--collapsed': leftCollapsed }">
+        <div style="background: var(--bg-1); border-bottom: 1px solid var(--border);">
+          <LanguageTabs v-model="currentLang" :fields="[]" :baseData="{}" />
+        </div>
         <div class="cpb-sidebar-tabs">
           <button :class="{ active: leftTab === 'theme' }" @click="leftTab = 'theme'" title="Theme"><span>Theme</span></button>
           <button :class="{ active: leftTab === 'structure' }" @click="leftTab = 'structure'" title="Cấu trúc"><span>Cấu trúc</span></button>
@@ -452,7 +455,8 @@
     />
   </div>
 </template>
-\n<script setup>
+
+<script setup>
 import { driver } from "driver.js"
 import "driver.js/dist/driver.css"
 
@@ -476,7 +480,7 @@ function startTour() {
   driverObj.drive();
 }
 
-import { ref, computed, onMounted, watch, nextTick, inject, provide } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick, inject, provide } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import LayoutThemeConfig from './storefront/LayoutThemeConfig.vue'
 import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
@@ -505,42 +509,37 @@ import {
   Aperture, Megaphone, FolderOpen, ShieldCheck, Star, Film, Box,
   CalendarDays, UtensilsCrossed, Flower2, Building2, PartyPopper, Maximize, Minimize, Focus, Scan
 } from 'lucide-vue-next'
-import { useNavLinks } from '../composables/useNavLinks.js'
-import { useCmsPages } from '../composables/useCmsPages.js'
 import { useI18n } from '../composables/useI18n.js'
 import { sectionMeta as sectionMetaRegistry, getAllSectionsWithAvailability } from './storefront/sectionSchemas.js'
 import { industryTemplates } from './storefront/templatePresets.js'
-import { getDefaultSectionsForPage, getPageSlugFromId } from './storefront/defaultPageSections.js'
+import { useLanguages } from '../composables/useLanguages.js'
+
+import { useBuilderHistory } from '../composables/builder/useBuilderHistory.js'
+import { useBuilderPreview } from '../composables/builder/useBuilderPreview.js'
+import { useBuilderPersistence } from '../composables/builder/useBuilderPersistence.js'
+import { useBuilderSections } from '../composables/builder/useBuilderSections.js'
+import { useBuilderNavLinks } from '../composables/builder/useBuilderNavLinks.js'
 
 Object.keys(sectionMetaRegistry).forEach(type => {
   BuilderRegistry.registerBlock(type, {
     label: sectionMetaRegistry[type].label,
     icon: sectionMetaRegistry[type].icon,
     category: sectionMetaRegistry[type].category || 'General',
-    schema: [] // Expand this iteratively
+    schema: []
   })
 })
 
 const showVisualBuilderPro = ref(false)
 const isFullscreen = ref(false)
 const { t, formatCurrency } = useI18n()
-
-// VIP Zen Mode Toggle
-function toggleZenMode() {
-  if (leftCollapsed.value) {
-    // Restore
-    leftCollapsed.value = false
-  } else {
-    // Enter Zen
-    leftCollapsed.value = true
-  }
-}
-
-// Keyboard shortcuts — consolidated into handleGlobalKeydown below (line ~786)
-// Removed duplicate onMounted listener to prevent double-firing.
-
 const { showToast } = useToast()
 
+const { defaultLangCode, loadLanguages } = useLanguages()
+loadLanguages()
+const currentLang = ref(defaultLangCode.value || 'vi')
+provide('currentLang', currentLang)
+
+// ─── Core state ───
 const sections = ref([])
 const pages = ref({})
 const customCss = ref('')
@@ -555,9 +554,12 @@ const themeConfig = ref({
 const activeTemplate = ref('full_store')
 const saving = ref(false)
 const expandedSection = ref(null)
-const showLibrary = ref(false)
 const previewMode = ref('live')
 const previewWidth = ref('100%')
+const previewKey = ref(0)
+const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
+const expandedPageConfig = ref(null)
+const promoOpen = ref(false)
 
 const currentDevice = computed(() => {
   if (previewWidth.value === '375px') return 'mobile'
@@ -566,317 +568,24 @@ const currentDevice = computed(() => {
 })
 provide('previewDevice', currentDevice)
 
-const previewKey = ref(0)
-const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
-const expandedPageConfig = ref(null)
-const allCategories = ref([])
-const showBlockEditorFor = ref(null)
-
-const historyDropdownOpen = ref(false)
-function handleHistoryFocusout(e) {
-  const next = e.relatedTarget
-  if (!e.currentTarget.contains(next)) historyDropdownOpen.value = false
-}
-function restoreHistory(index) {
-  if (index < 0 || index >= undoStack.value.length) return
-  isTrackingHistory = true
-  
-  // Pop items onto redo stack until we reach the desired index
-  while (undoStack.value.length - 1 > index) {
-    redoStack.value.push(undoStack.value.pop())
-  }
-  
-  const item = undoStack.value[index]
-  const snap = JSON.parse(item.snap)
-  
-  sections.value = snap.sections || []
-  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
-  if (snap.headerConfig) headerConfig.value = snap.headerConfig
-  if (snap.footerConfig) footerConfig.value = snap.footerConfig
-  if (snap.promoConfig) promoConfig.value = snap.promoConfig
-
-  historyDropdownOpen.value = false
-  showToast('Đã khôi phục trạng thái', 'info')
-  nextTick(() => { isTrackingHistory = false })
-}
-
 const isXRayMode = ref(false)
-function toggleXRay() {
-  isXRayMode.value = !isXRayMode.value
-  if (previewPanelRef.value) {
-    previewPanelRef.value.postMessageToIframe('toggle-xray', isXRayMode.value)
-  }
-}
-
 const showCommandPalette = ref(false)
-const builderCommands = computed(() => {
-  return [
-    { id: 'zen', title: 'Chế độ Tập trung (Zen Mode)', description: 'Ẩn toàn bộ thanh công cụ để ngắm canvas', shortcut: 'F', icon: Focus, action: toggleZenMode },
-    { id: 'fs', title: 'Toàn màn hình', description: 'Mở rộng Builder lấp đầy màn hình', shortcut: 'Esc', icon: Maximize, action: () => isFullscreen.value = true },
-    { id: 'mobile', title: 'Xem trước trên Mobile', description: 'Thu hẹp khung nhìn xuống 375px', icon: Smartphone, action: () => previewWidth.value = '375px' },
-    { id: 'desktop', title: 'Xem trước trên Desktop', description: 'Mở rộng khung nhìn lên 100%', icon: Monitor, action: () => previewWidth.value = '100%' },
-    { id: 'save', title: 'Xuất bản (Publish)', description: 'Lưu thay đổi lên Live', shortcut: 'Ctrl+S', icon: Save, action: handlePublish },
-  ]
-})
-
-function executeCommand(cmd) {
-  if (typeof cmd.action === 'function') {
-    cmd.action()
-  }
-}
-
-
-// ── Module awareness for section availability ──
-const _injectedModules = inject('installedModules', ref([]))
-const installedModules = computed(() => {
-  const v = _injectedModules.value
-  return Array.isArray(v) ? v : []
-})
-
-// ── Dynamic library items grouped by category ──
-const allLibrarySections = computed(() => getAllSectionsWithAvailability(installedModules.value))
-const groupedLibraryItems = computed(() => {
-  const groups = {}
-  for (const item of allLibrarySections.value) {
-    const cat = item.category || 'Khác'
-    if (!groups[cat]) groups[cat] = []
-    groups[cat].push(item)
-  }
-  return groups
-})
-
-// ── Icon name → component map for library cards ──
-const sectionIconMap = {
-  Image, Tag, Zap, FileText, Type, Images, Film, Star, HelpCircle, Mail, Share2,
-  ShieldCheck, Award, LayoutGrid, Box, FolderOpen, ShoppingBag, Sparkles, FileEdit,
-  UtensilsCrossed, CalendarDays, Flower2, Building2, PartyPopper
-}
-
-// ── Layout Page Integration ──
-const layoutPageId = ref(null)
-const layoutPageVersion = ref(0)
-const layoutPageStatus = ref('draft')
-const showVersionHistory = ref(false)
-const showPublishDialog = ref(false)
-const publishNote = ref('')
-const publishNoteInput = ref(null)
-
-// ─── Controls panel toggle ───
 const controlsCollapsed = ref(false)
 
-// ─── AI Generate Layout ───
-const showAiPanel = ref(false)
-const aiPrompt = ref('')
-const aiLoading = ref(false)
-
-async function generateLayout() {
-  if (!aiPrompt.value.trim()) return
-  aiLoading.value = true
-  try {
-    const res = await apiFetch('/ai/generate', {
-      method: 'POST',
-      body: JSON.stringify({ type: 'layout', prompt: aiPrompt.value }),
-    })
-    const data = await res.json()
-    if (!data.success) { showToast(data.message || 'AI chưa cấu hình', 'error'); return }
-
-    const raw = (data.data?.content || '').replace(/```json\n?|```\n?/g, '').trim()
-    let generated
-    try { generated = JSON.parse(raw) } catch { showToast('AI trả về định dạng không hợp lệ', 'error'); return }
-    if (!Array.isArray(generated)) { showToast('Kết quả không phải JSON array', 'error'); return }
-
-    pushUndo()
-    const base = sections.value.length
-    const newSections = generated.map((s, i) => ({
-      type: s.type || 'text_block',
-      enabled: s.enabled !== false,
-      order: base + i,
-      params: { ...(defaultParams[s.type] || {}), ...(s.params || {}) },
-      content: s.content ?? [],
-    })).filter(s => sectionMeta[s.type])
-
-    sections.value = [...sections.value, ...newSections]
-    aiPrompt.value = ''
-    showAiPanel.value = false
-    showToast(`✨ Đã tạo ${newSections.length} section từ AI`, 'success')
-  } catch (e) {
-    showToast('Lỗi AI: ' + e.message, 'error')
-  } finally {
-    aiLoading.value = false
-  }
-}
+const leftTab = ref('structure')
+const leftCollapsed = ref(true)
+const activeConfig = ref(null)
+const showCustomCss = ref(false)
 
 const activePageId = ref(null)
 const activeSidebarTab = ref('elements')
 const dynamicPages = ref([])
 const pageDropdownOpen = ref(false)
 
-// Builtin page options with proper lucide icons
-const builtinPageOptions = [
-  { id: '__products',       label: t('admin.msg_4c779e64', 'Trang sản phẩm'),    icon: ShoppingBag },
-  { id: '__productDetail',  label: t('admin.msg_6055caf1', 'Chi tiết sản phẩm'), icon: Package },
-  { id: '__checkout',       label: t('admin.msg_d555e4bc', 'Thanh toán'),          icon: CreditCard },
-  { id: '__auth',           label: t('admin.msg_50e04c81', 'Đăng nhập / Đăng ký'), icon: Lock },
-  { id: '__account',        label: t('admin.msg_7bd53616', 'Tài khoản'),           icon: User },
-  { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
-  { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
-  { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
-  { id: '__blog',           label: 'Blog',                                          icon: BookOpen },
-  { id: '__template_product_card', label: '[Template] Thẻ Sản phẩm',            icon: Layers },
-  { id: '__template_blog_card',    label: '[Template] Thẻ Bài viết',            icon: Layers },
-]
+const previewPanelRef = ref(null)
 
-// Computed: current active page display (icon + label)
-const activePage = computed(() => {
-  if (activePageId.value === null) return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
-  const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
-  if (builtin) return builtin
-  const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
-  if (dyn) return { icon: FileText, label: dyn.title }
-  return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
-})
-
-// Extracts 'products'/'productDetail'/etc from '__products'/'__productDetail'
-const activeBuiltinPage = computed(() => {
-  if (typeof activePageId.value === 'string') {
-    if (activePageId.value.startsWith('__template_')) return null
-    if (activePageId.value.startsWith('__')) return activePageId.value.slice(2)
-  }
-  return null
-})
-
-const activeTemplatePage = computed(() => {
-  if (typeof activePageId.value === 'string' && activePageId.value.startsWith('__template_')) {
-    return activePageId.value.slice(11) // e.g. 'product_card'
-  }
-  return null
-})
-
-function selectPage(id) {
-  activePageId.value = id
-  pageDropdownOpen.value = false
-  loadLayout()
-}
-function handlePickerFocusout(e) {
-  // Close dropdown when focus leaves the container entirely
-  const next = e.relatedTarget
-  if (!e.currentTarget.contains(next)) pageDropdownOpen.value = false
-}
-
-// Undo/Redo stack for layout history
-import { onBeforeUnmount } from 'vue'
-const undoStack = ref([])
-const redoStack = ref([])
-const MAX_UNDO = 30
-let isTrackingHistory = false
-
-function getSnapshot() {
-  return JSON.stringify({ sections: sections.value, pageConfigs: pageConfigs.value, headerConfig: headerConfig.value, footerConfig: footerConfig.value, promoConfig: promoConfig.value })
-}
-
-let pushUndoTimer = null
-function pushUndo() {
-  if (isTrackingHistory) return
-  if (pushUndoTimer) clearTimeout(pushUndoTimer)
-  pushUndoTimer = setTimeout(() => {
-    // Save structured snapshot
-    const item = {
-      snap: getSnapshot(),
-      time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      label: 'Thay đổi cấu trúc'
-    }
-    undoStack.value.push(item)
-    if (undoStack.value.length > MAX_UNDO) undoStack.value.shift()
-    redoStack.value = [] // Clear redo
-  }, 250)
-}
-
-watch(sections, () => pushUndo(), { deep: true })
-
-function undo() {
-  if (undoStack.value.length <= 1) return
-  isTrackingHistory = true
-  redoStack.value.push(undoStack.value.pop()) // Save current for redo
-  const item = undoStack.value[undoStack.value.length - 1]
-  const snap = JSON.parse(item.snap)
-  
-  sections.value = snap.sections || []
-  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
-  if (snap.headerConfig) headerConfig.value = snap.headerConfig
-  if (snap.footerConfig) footerConfig.value = snap.footerConfig
-  if (snap.promoConfig) promoConfig.value = snap.promoConfig
-
-  showToast('Đã hoàn tác (Undo)', 'info')
-  nextTick(() => { isTrackingHistory = false })
-}
-
-function redo() {
-  if (redoStack.value.length === 0) return
-  isTrackingHistory = true
-  const nextItem = redoStack.value.pop()
-  undoStack.value.push(nextItem)
-  const snap = JSON.parse(nextItem.snap)
-  
-  sections.value = snap.sections || []
-  if (snap.pageConfigs) pageConfigs.value = snap.pageConfigs
-  if (snap.headerConfig) headerConfig.value = snap.headerConfig
-  if (snap.footerConfig) footerConfig.value = snap.footerConfig
-  if (snap.promoConfig) promoConfig.value = snap.promoConfig
-
-  showToast('Đã làm lại (Redo)', 'info')
-  nextTick(() => { isTrackingHistory = false })
-}
-
-
-function handleGlobalKeydown(e) {
-  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return
-  
-  // Esc to exit fullscreen or close panel
-  if (e.key === 'Escape') {
-    if (isFullscreen.value) isFullscreen.value = false
-    if (activeConfig.value) activeConfig.value = null
-  }
-  
-  // F to toggle Zen Mode
-  if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault()
-    toggleZenMode()
-  }
-  
-  // X to toggle X-Ray
-  if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey) {
-    e.preventDefault()
-    toggleXRay()
-  }
-  
-  // Ctrl+K to open command palette
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault()
-    showCommandPalette.value = !showCommandPalette.value
-  }
-  
-  // Ctrl+S to save
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-    e.preventDefault()
-    handlePublish()
-  }
-  
-  // Undo / Redo
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-    e.preventDefault()
-    if (e.shiftKey) redo()
-    else undo()
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-    e.preventDefault()
-    redo()
-  }
-}
-onMounted(() => { window.addEventListener('keydown', handleGlobalKeydown) })
-onBeforeUnmount(() => { window.removeEventListener('keydown', handleGlobalKeydown) })
-
-// Header / Footer config
-const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true }
+// ─── Defaults ───
+const defaultHeaderConfig = { logoPosition: 'left', maxNavLinks: 5, showSearch: true, sticky: true, showThemeToggle: true, translations: {} }
 const headerConfig = ref({ ...defaultHeaderConfig })
 const defaultFooterConfig = {
   columns: [
@@ -892,12 +601,13 @@ const defaultFooterConfig = {
   bgColor: '',
   textColor: '',
   headingColor: '',
+  translations: {}
 }
 const footerConfig = ref(JSON.parse(JSON.stringify(defaultFooterConfig)))
-const defaultPromoConfig = { 
-  enabled: true, 
-  text: '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!', 
-  link: '/products', 
+const defaultPromoConfig = {
+  enabled: true,
+  text: '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!',
+  link: '/products',
   ctaText: 'Mua sắm',
   bgColor: '#7c3aed',
   textColor: '#ffffff',
@@ -905,124 +615,6 @@ const defaultPromoConfig = {
   dismissible: true,
 }
 const promoConfig = ref({ ...defaultPromoConfig })
-const promoOpen = ref(false)
-
-const leftTab = ref('structure')
-const leftCollapsed = ref(true)
-const activeConfig = ref(null)
-const activeSectionObj = computed(() => {
-  const id = activeConfig.value
-  if (!id || id === 'header' || id === 'footer' || id === 'promo') return null
-  // Match by section id or type
-  return sections.value.find(s => s.id === id || s.type === id) || null
-})
-const showCustomCss = ref(false)
-
-const activePageLabel = computed(() => {
-  if (activePageId.value === null) return 'Trang Chủ (Global)'
-  const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
-  if (builtin) return builtin.label
-  const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
-  if (dyn) return dyn.title
-  return 'Page'
-})
-
-const activeConfigName = computed(() => {
-  if (activeConfig.value === 'header') return 'Header'
-  if (activeConfig.value === 'footer') return 'Footer'
-  if (activeConfig.value === 'promo') return 'Promo Bar'
-  if (activeSectionObj.value) {
-    const meta = sectionMeta[activeSectionObj.value.type]
-    return meta?.label || activeSectionObj.value.type
-  }
-  return 'Tùy chỉnh'
-})
-
-const rightPanelTitle = activeConfigName
-
-function onPreviewOpenConfig(payload) {
-  const { type, index, targetObj } = payload || {}
-  
-  if (type === 'header') activeConfig.value = 'header'
-  else if (type === 'footer') activeConfig.value = 'footer'
-  else if (type === 'promo') activeConfig.value = 'promo'
-  else if (type === 'promo-bar') activeConfig.value = 'promo'
-  else if (type === 'section' && targetObj && targetObj.id) {
-    activeConfig.value = targetObj.id
-  } else if (index !== undefined && sections.value[index]) {
-    // Map visual builder click index to the actual section ID
-    const sectionId = sections.value[index].id
-    activeConfig.value = sectionId || sections.value[index].type
-  }
-}
-
-
-const footerPreviewStyle = computed(() => {
-  const s = {}
-  if (footerConfig.value.bgColor) s.background = footerConfig.value.bgColor
-  return s
-})
-
-const allPaymentMethods = [
-  { code: 'cod', label: 'COD' },
-  { code: 'bank', label: 'Bank Transfer' },
-  { code: 'visa', label: 'VISA' },
-  { code: 'mastercard', label: 'Mastercard' },
-  { code: 'jcb', label: 'JCB' },
-  { code: 'momo', label: 'MoMo' },
-  { code: 'zalopay', label: 'ZaloPay' },
-  { code: 'vnpay', label: 'VNPay' },
-  { code: 'napas', label: 'Napas' },
-  { code: 'applepay', label: 'Apple Pay' },
-]
-
-function addFooterCol() {
-  footerConfig.value.columns.push({ title: '', type: 'links', links: [], items: [], content: '' })
-}
-function removeFooterCol(idx) {
-  footerConfig.value.columns.splice(idx, 1)
-}
-
-// Footer column drag-drop
-const footerDragIdx = ref(-1)
-const footerDragOverIdx = ref(-1)
-const footerItemDrag = ref(null)
-
-function onFooterDragStart(e, idx) {
-  footerDragIdx.value = idx
-  e.dataTransfer.effectAllowed = 'move'
-}
-function onFooterDragEnd() {
-  footerDragIdx.value = -1
-  footerDragOverIdx.value = -1
-}
-function onFooterDragOver(e, idx) {
-  footerDragOverIdx.value = idx
-}
-function onFooterDrop(idx) {
-  const from = footerDragIdx.value
-  if (from < 0 || from === idx) { onFooterDragEnd(); return }
-  const cols = footerConfig.value.columns
-  const [moved] = cols.splice(from, 1)
-  cols.splice(idx, 0, moved)
-  onFooterDragEnd()
-}
-function onFooterItemDrop(ci, targetLi) {
-  const src = footerItemDrag.value
-  if (!src || src.ci !== ci || src.li === targetLi) { footerItemDrag.value = null; return }
-  const arr = footerConfig.value.columns[ci].links
-  const [moved] = arr.splice(src.li, 1)
-  arr.splice(targetLi, 0, moved)
-  footerItemDrag.value = null
-}
-function onFooterContactDrop(ci, targetIi) {
-  const src = footerItemDrag.value
-  if (!src || src.ci !== ci || src.ii === targetIi) { footerItemDrag.value = null; return }
-  const arr = footerConfig.value.columns[ci].items
-  const [moved] = arr.splice(src.ii, 1)
-  arr.splice(targetIi, 0, moved)
-  footerItemDrag.value = null
-}
 
 const defaultPageConfigs = {
   products: {
@@ -1080,261 +672,6 @@ const defaultPageConfigs = {
     pageDescription: '',
     translations: {},
   },
-}
-const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
-
-const currentPageBg = computed({
-  get() {
-    if (!activePageId.value) return ''
-    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
-    return pageConfigs.value[id]?.backgroundColor || ''
-  },
-  set(val) {
-    if (!activePageId.value) return
-    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
-    if (!pageConfigs.value[id]) pageConfigs.value[id] = {}
-    pageConfigs.value[id].backgroundColor = val
-    // Tự động trigger watch
-    pageConfigs.value = { ...pageConfigs.value }
-  }
-})
-
-// ─── Builtin Page i18n ───
-import { useLanguages } from '../composables/useLanguages.js'
-const { defaultLangCode: dfLangCode, loadLanguages: loadLangs2 } = useLanguages()
-loadLangs2()
-const builtinPageLang = ref(dfLangCode.value)
-
-function getPageConfigI18n(pageName, field) {
-  if (builtinPageLang.value === dfLangCode.value) return pageConfigs.value[pageName]?.[field] || ''
-  const t = pageConfigs.value[pageName]?.translations?.[builtinPageLang.value]
-  return t?.[field] || ''
-}
-function setPageConfigI18n(pageName, field, value) {
-  if (builtinPageLang.value === dfLangCode.value) {
-    if (pageConfigs.value[pageName]) pageConfigs.value[pageName][field] = value
-    return
-  }
-  if (!pageConfigs.value[pageName].translations) pageConfigs.value[pageName].translations = {}
-  if (!pageConfigs.value[pageName].translations[builtinPageLang.value]) {
-    pageConfigs.value[pageName].translations[builtinPageLang.value] = { pageTitle: '', pageDescription: '' }
-  }
-  pageConfigs.value[pageName].translations[builtinPageLang.value][field] = value
-}
-
-// ─── Drag & Drop ───
-const dragIndex = ref(null)
-const dragOverIndex = ref(null)
-
-function onDragStart(e, idx) {
-  dragIndex.value = idx
-  e.dataTransfer.effectAllowed = 'move'
-  e.dataTransfer.setData('text/plain', String(idx))
-}
-function onDragEnd() { dragIndex.value = null; dragOverIndex.value = null }
-function onDragOver(e) { e.dataTransfer.dropEffect = 'move' }
-function onDragEnter(idx) {
-  if (dragIndex.value !== null && dragIndex.value !== idx) dragOverIndex.value = idx
-}
-function onDragLeave(idx) {
-  if (dragOverIndex.value === idx) dragOverIndex.value = null
-}
-function onDrop(targetIdx) {
-  const fromIdx = dragIndex.value
-  dragOverIndex.value = null
-  dragIndex.value = null
-  if (fromIdx === null || fromIdx === targetIdx) return
-  const list = [...sections.value]
-  const [moved] = list.splice(fromIdx, 1)
-  list.splice(targetIdx, 0, moved)
-  list.forEach((s, i) => { s.order = i })
-  sections.value = list
-}
-
-// ─── Section expand ───
-function toggleExpand(type) {
-  expandedSection.value = expandedSection.value === type ? null : type
-}
-
-// ─── Builder Bridge: Preview Overlay Event Handlers ───
-const previewPanelRef = ref(null)
-const addSectionAtInsertIndex = ref(null)
-
-function onPreviewSectionSelected({ type, index, id }) {
-  if (id === '__promo' || type === 'promo-bar') {
-    promoOpen.value = true
-    activeConfig.value = 'promo'
-    return
-  }
-  if (id === '__header' || type === 'header') {
-    activeConfig.value = 'header'
-    return
-  }
-  if (id === '__footer' || type === 'footer') {
-    activeConfig.value = 'footer'
-    return
-  }
-  
-  // Use index to find the exact section in activeSections
-  let section = null
-  if (index !== undefined && index >= 0) {
-    section = activeSections.value[index]
-  }
-  if (!section) {
-    section = sections.value.find(s => s.id === id || s.type === type)
-  }
-  
-  if (section) {
-    activeConfig.value = section.id || section.type
-    expandedSection.value = section.id || section.type
-    // Switch to properties tab if needed
-    // Scroll the section into view in the left panel
-    nextTick(() => {
-      const el = document.querySelector(`[data-section-panel="${section.type}"]`)
-      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
-  }
-}
-
-function handleNavigatorSelect(typeOrId) {
-  expandedSection.value = typeOrId
-  // Also tell IFrame to highlight this section!
-  const activeIdx = activeSections.value.findIndex(s => s.type === typeOrId)
-  if (activeIdx !== -1 && previewPanelRef.value) {
-    previewPanelRef.value.selectSection(activeIdx)
-  }
-}
-
-function onPreviewSectionHover({ type }) {
-  // Optional: highlight the section in the left panel
-}
-
-function onPreviewSectionReorder({ fromIndex, toIndex }) {
-  const fromSec = activeSections.value[fromIndex]
-  const toSec = activeSections.value[toIndex]
-  if (!fromSec || !toSec) return
-  
-  const realFrom = sections.value.indexOf(fromSec)
-  const realTo = sections.value.indexOf(toSec)
-  
-  if (realFrom === -1 || realTo === -1) return
-
-  pushUndo()
-  const list = [...sections.value]
-  const [moved] = list.splice(realFrom, 1)
-  
-  // To place it exactly at realTo's current position (or after)
-  list.splice(realTo, 0, moved)
-  
-  list.forEach((s, i) => { s.order = i })
-  sections.value = list
-  showToast(t('admin.msg_reorder_ok', 'Đã di chuyển section'), 'success')
-}
-
-function onPreviewInlineEdit({ type, field, value }) {
-  // Find section by type and update the specific field in params
-  const section = sections.value.find(s => s.type === type)
-  if (section && section.params) {
-    section.params[field] = value
-    showToast(`✏️ ${field}: "${value.substring(0, 30)}${value.length > 30 ? '...' : ''}"`, 'success')
-  }
-}
-
-function onPreviewSectionDelete({ type, index }) {
-  if (!confirm(`Xóa section "${sectionMeta[type]?.label || type}"?`)) return
-  pushUndo()
-  const idx = sections.value.findIndex(s => s.type === type)
-  if (idx >= 0) {
-    sections.value.splice(idx, 1)
-    sections.value.forEach((s, i) => { s.order = i })
-    expandedSection.value = null
-    showToast(t('admin.msg_section_deleted', 'Đã xóa section'), 'success')
-  }
-}
-
-function onPreviewSectionToggle({ type }) {
-  const section = sections.value.find(s => s.type === type)
-  if (section) {
-    section.enabled = !section.enabled
-    showToast(section.enabled ? 'Đã bật section' : 'Đã tắt section', 'success')
-  }
-}
-
-function onPreviewAddSectionAt({ index }) {
-  addSectionAtInsertIndex.value = index
-  activeConfig.value = 'library'
-}
-
-// ── Inline Image Editing via Builder Overlay ──
-const globalImagePicker = ref(null)
-const globalImagePickerTarget = ref(null)
-
-function onPreviewEditImage(payload) {
-  // payload: { type, index, key, itemIndex }
-  globalImagePickerTarget.value = payload
-  if (globalImagePicker.value) {
-    globalImagePicker.value.openPicker()
-  }
-}
-
-function onGlobalImagePicked(newUrl) {
-  const target = globalImagePickerTarget.value
-  if (!target || !newUrl) return
-  const { type, index, key, itemIndex } = target
-  
-  if (type === 'header') {
-    headerConfig.value[key] = newUrl
-  } else if (type === 'footer') {
-    // For future if footer has image/logo
-    footerConfig.value[key] = newUrl
-  } else {
-    // Body Block Section Tracker
-    const sec = sections.value[index]
-    if (!sec) return
-    const segments = key.split('.')
-    
-    // Ensure translation object exists just in case
-    if (!sec.i18n) Object.assign(sec, { i18n: {} })
-    const lang = window.localStorage.getItem('sf_admin_lang') || 'vi'
-    if (!sec.i18n[lang]) sec.i18n[lang] = JSON.parse(JSON.stringify(sec.params || {}))
-    
-    if (segments[0] === 'content' && typeof itemIndex === 'number') {
-      if (!sec.i18n[lang].content) sec.i18n[lang].content = []
-      const contentList = sec.i18n[lang].content
-      if (contentList[itemIndex]) {
-        contentList[itemIndex][segments[1]] = newUrl
-      }
-    } else {
-      sec.i18n[lang][key] = newUrl
-    }
-  }
-  showToast(t('admin.msg_image_updated', 'Đã thay ảnh trực tiếp thành công!'), 'success')
-  globalImagePickerTarget.value = null
-}
-
-// Replaced by generator
-// ─── Content item helpers ───
-function addContentItem(section, defaultItem) {
-  if (!section.content) section.content = []
-  section.content.push({ ...defaultItem })
-}
-function removeContentItem(section, index) {
-  section.content.splice(index, 1)
-}
-
-function toggleCategoryId(section, catId) {
-  if (!section.params.selectedCategoryIds) section.params.selectedCategoryIds = []
-  const idx = section.params.selectedCategoryIds.indexOf(catId)
-  if (idx >= 0) section.params.selectedCategoryIds.splice(idx, 1)
-  else section.params.selectedCategoryIds.push(catId)
-}
-
-async function loadCategories() {
-  try {
-    const res = await apiFetch('/categories')
-    const data = await res.json()
-    allCategories.value = Array.isArray(data) ? data : (data.data || [])
-  } catch { allCategories.value = [] }
 }
 
 // ─── Section Meta ───
@@ -1420,35 +757,6 @@ const defaultParams = {
   wishlist_grid: { columns: 4, emptyMessage: 'Chưa có sản phẩm yêu thích' },
 }
 
-// ─── Library (now uses sectionMeta from sectionSchemas.js) ───
-function addLibrarySection(lib) {
-  if (sections.value.some(s => s.type === lib.type)) {
-    showToast(t('admin.msg_7dfff8', 'Section đã tồn tại'), 'error')
-    return
-  }
-  const newSection = {
-    type: lib.type,
-    enabled: true,
-    order: sections.value.length,
-    params: { ...defaultParams[lib.type] },
-    content: [],
-  }
-  
-  // Support insert at specific index (from preview overlay "+" button)
-  const insertIdx = addSectionAtInsertIndex.value
-  if (insertIdx !== null && insertIdx >= 0 && insertIdx <= sections.value.length) {
-    sections.value.splice(insertIdx, 0, newSection)
-    sections.value.forEach((s, i) => { s.order = i })
-    addSectionAtInsertIndex.value = null
-  } else {
-    sections.value.push(newSection)
-  }
-  
-  showLibrary.value = false
-  expandedSection.value = lib.type
-  activeConfig.value = lib.type
-}
-
 // ─── Page List ───
 const pageList = [
   { key: 'products', label: t('admin.msg_1d1aa192', 'Sản phẩm'), icon: ShoppingBag, path: '/products' },
@@ -1467,20 +775,414 @@ const templates = [
   { key: 'realestate', name: 'Bất Động Sản', desc: 'Dự án, Tin tức', icon: Image },
 ]
 
+const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
+
+// ─── Builtin page computed ───
+const activeBuiltinPage = computed(() => {
+  if (typeof activePageId.value === 'string') {
+    if (activePageId.value.startsWith('__template_')) return null
+    if (activePageId.value.startsWith('__')) return activePageId.value.slice(2)
+  }
+  return null
+})
+
+const activeTemplatePage = computed(() => {
+  if (typeof activePageId.value === 'string' && activePageId.value.startsWith('__template_')) {
+    return activePageId.value.slice(11)
+  }
+  return null
+})
+
+// ─── Composables ───
+const {
+  undoStack,
+  redoStack,
+  historyDropdownOpen,
+  handleHistoryFocusout,
+  pushUndo,
+  undo,
+  redo,
+  restoreHistory,
+} = useBuilderHistory(
+  { sections, pageConfigs, headerConfig, footerConfig, promoConfig },
+  showToast
+)
+
 const activeSections = computed(() =>
   sections.value.filter(s => s.enabled).sort((a, b) => a.order - b.order)
 )
 
-function applyTemplate(key) {
-  activeTemplate.value = key
-  const preset = industryTemplates[key]
-  if (preset) {
-    if (confirm('Áp dụng mẫu này sẽ ghi đè toàn bộ bố cục trang chủ hiện tại. Bạn có chắc chắn muốn tiếp tục?')) {
-      pushUndo()
-      sections.value = JSON.parse(JSON.stringify(preset))
-      showToast('Đã áp dụng mẫu bố cục thành công', 'success')
-    }
+const {
+  addSectionAtInsertIndex,
+  globalImagePicker,
+  globalImagePickerTarget,
+  onPreviewSectionSelected,
+  onPreviewSectionHover,
+  onPreviewSectionReorder,
+  onPreviewInlineEdit,
+  onPreviewSectionDelete,
+  onPreviewSectionToggle,
+  onPreviewAddSectionAt,
+  onPreviewOpenConfig,
+  onPreviewEditImage,
+  onGlobalImagePicked,
+  handleNavigatorSelect,
+} = useBuilderPreview(
+  { sections, activeSections, activeConfig, expandedSection, promoOpen, previewPanelRef, headerConfig, footerConfig },
+  pushUndo,
+  showToast,
+  sectionMeta,
+  t
+)
+
+const {
+  layoutPageId,
+  layoutPageVersion,
+  layoutPageStatus,
+  showVersionHistory,
+  showPublishDialog,
+  publishNote,
+  publishNoteInput,
+  jsonInputRef,
+  loadLayout,
+  buildMeta,
+  ensureLayoutPage,
+  saveLayout,
+  saveDraft,
+  handlePublish,
+  confirmPublish,
+  onRollback,
+  exportJson,
+  triggerJsonImport,
+  onJsonImportFile,
+} = useBuilderPersistence(
+  { sections, pages, customCss, themeConfig, pageConfigs, headerConfig, footerConfig, promoConfig, activeTemplate, activePageId, storefrontUrl, saving },
+  { activeBuiltinPage, activeTemplatePage },
+  apiFetch,
+  showToast,
+  t,
+  pushUndo,
+  defaultParams,
+  defaultPageConfigs,
+  defaultHeaderConfig,
+  defaultFooterConfig,
+  defaultPromoConfig
+)
+
+const {
+  dragIndex,
+  dragOverIndex,
+  showLibrary,
+  allCategories,
+  showBlockEditorFor,
+  showAiPanel,
+  aiPrompt,
+  aiLoading,
+  addLibrarySection,
+  applyTemplate,
+  addContentItem,
+  removeContentItem,
+  toggleCategoryId,
+  loadCategories,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragEnter,
+  onDragLeave,
+  onDrop,
+  toggleExpand,
+  generateLayout,
+} = useBuilderSections(
+  { sections, expandedSection, activeConfig, addSectionAtInsertIndex, activeTemplate },
+  showToast,
+  defaultParams,
+  sectionMeta,
+  t,
+  pushUndo,
+  industryTemplates
+)
+
+const {
+  navLinks,
+  collectionNavLinks,
+  cmsPageList,
+  showNavLinkModal,
+  navLinkEditing,
+  navLinkForm,
+  pageSelectMode,
+  fetchNavLinks,
+  fetchCmsPageList,
+  openCreateNavLink,
+  openEditNavLink,
+  saveNavLink,
+  deleteNavLink,
+} = useBuilderNavLinks(apiFetch, showToast, t)
+
+// ─── Builtin page options ───
+const builtinPageOptions = [
+  { id: '__products',       label: t('admin.msg_4c779e64', 'Trang sản phẩm'),    icon: ShoppingBag },
+  { id: '__productDetail',  label: t('admin.msg_6055caf1', 'Chi tiết sản phẩm'), icon: Package },
+  { id: '__checkout',       label: t('admin.msg_d555e4bc', 'Thanh toán'),          icon: CreditCard },
+  { id: '__auth',           label: t('admin.msg_50e04c81', 'Đăng nhập / Đăng ký'), icon: Lock },
+  { id: '__account',        label: t('admin.msg_7bd53616', 'Tài khoản'),           icon: User },
+  { id: '__wishlist',       label: t('admin.msg_2958eac6', 'Yêu thích'),          icon: Heart },
+  { id: '__cart',           label: t('admin.msg_6b413a7c', 'Giỏ hàng'),           icon: ShoppingCart },
+  { id: '__order_tracking', label: t('admin.msg_45fc7ddf', 'Tra cứu đơn'),        icon: Truck },
+  { id: '__blog',           label: 'Blog',                                          icon: BookOpen },
+  { id: '__template_product_card', label: '[Template] Thẻ Sản phẩm',            icon: Layers },
+  { id: '__template_blog_card',    label: '[Template] Thẻ Bài viết',            icon: Layers },
+]
+
+// Computed: current active page display (icon + label)
+const activePage = computed(() => {
+  if (activePageId.value === null) return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
+  const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
+  if (builtin) return builtin
+  const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
+  if (dyn) return { icon: FileText, label: dyn.title }
+  return { icon: Home, label: t('admin.msg_af830e1f', 'Trang Chủ (Global)') }
+})
+
+function selectPage(id) {
+  activePageId.value = id
+  pageDropdownOpen.value = false
+  loadLayout()
+}
+function handlePickerFocusout(e) {
+  const next = e.relatedTarget
+  if (!e.currentTarget.contains(next)) pageDropdownOpen.value = false
+}
+
+watch(sections, () => pushUndo(), { deep: true })
+
+function toggleZenMode() {
+  if (leftCollapsed.value) {
+    leftCollapsed.value = false
+  } else {
+    leftCollapsed.value = true
   }
+}
+
+function toggleXRay() {
+  isXRayMode.value = !isXRayMode.value
+  if (previewPanelRef.value) {
+    previewPanelRef.value.postMessageToIframe('toggle-xray', isXRayMode.value)
+  }
+}
+
+const builderCommands = computed(() => {
+  return [
+    { id: 'zen', title: 'Chế độ Tập trung (Zen Mode)', description: 'Ẩn toàn bộ thanh công cụ để ngắm canvas', shortcut: 'F', icon: Focus, action: toggleZenMode },
+    { id: 'fs', title: 'Toàn màn hình', description: 'Mở rộng Builder lấp đầy màn hình', shortcut: 'Esc', icon: Maximize, action: () => isFullscreen.value = true },
+    { id: 'mobile', title: 'Xem trước trên Mobile', description: 'Thu hẹp khung nhìn xuống 375px', icon: Smartphone, action: () => previewWidth.value = '375px' },
+    { id: 'desktop', title: 'Xem trước trên Desktop', description: 'Mở rộng khung nhìn lên 100%', icon: Monitor, action: () => previewWidth.value = '100%' },
+    { id: 'save', title: 'Xuất bản (Publish)', description: 'Lưu thay đổi lên Live', shortcut: 'Ctrl+S', icon: Save, action: handlePublish },
+  ]
+})
+
+function executeCommand(cmd) {
+  if (typeof cmd.action === 'function') {
+    cmd.action()
+  }
+}
+
+function handleGlobalKeydown(e) {
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable) return
+
+  if (e.key === 'Escape') {
+    if (isFullscreen.value) isFullscreen.value = false
+    if (activeConfig.value) activeConfig.value = null
+  }
+
+  if ((e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault()
+    toggleZenMode()
+  }
+
+  if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault()
+    toggleXRay()
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault()
+    showCommandPalette.value = !showCommandPalette.value
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    handlePublish()
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+    e.preventDefault()
+    if (e.shiftKey) redo()
+    else undo()
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+    e.preventDefault()
+    redo()
+  }
+}
+onMounted(() => { window.addEventListener('keydown', handleGlobalKeydown) })
+onBeforeUnmount(() => { window.removeEventListener('keydown', handleGlobalKeydown) })
+
+// ── Module awareness for section availability ──
+const _injectedModules = inject('installedModules', ref([]))
+const installedModules = computed(() => {
+  const v = _injectedModules.value
+  return Array.isArray(v) ? v : []
+})
+
+// ── Dynamic library items grouped by category ──
+const allLibrarySections = computed(() => getAllSectionsWithAvailability(installedModules.value))
+const groupedLibraryItems = computed(() => {
+  const groups = {}
+  for (const item of allLibrarySections.value) {
+    const cat = item.category || 'Khác'
+    if (!groups[cat]) groups[cat] = []
+    groups[cat].push(item)
+  }
+  return groups
+})
+
+// ── Icon name → component map for library cards ──
+const sectionIconMap = {
+  Image, Tag, Zap, FileText, Type, Images, Film, Star, HelpCircle, Mail, Share2,
+  ShieldCheck, Award, LayoutGrid, Box, FolderOpen, ShoppingBag, Sparkles, FileEdit,
+  UtensilsCrossed, CalendarDays, Flower2, Building2, PartyPopper
+}
+
+const activeSectionObj = computed(() => {
+  const id = activeConfig.value
+  if (!id || id === 'header' || id === 'footer' || id === 'promo') return null
+  return sections.value.find(s => s.id === id || s.type === id) || null
+})
+
+const activePageLabel = computed(() => {
+  if (activePageId.value === null) return 'Trang Chủ (Global)'
+  const builtin = builtinPageOptions.find(p => p.id === activePageId.value)
+  if (builtin) return builtin.label
+  const dyn = dynamicPages.value.find(p => p.id === activePageId.value)
+  if (dyn) return dyn.title
+  return 'Page'
+})
+
+const activeConfigName = computed(() => {
+  if (activeConfig.value === 'header') return 'Header'
+  if (activeConfig.value === 'footer') return 'Footer'
+  if (activeConfig.value === 'promo') return 'Promo Bar'
+  if (activeSectionObj.value) {
+    const meta = sectionMeta[activeSectionObj.value.type]
+    return meta?.label || activeSectionObj.value.type
+  }
+  return 'Tùy chỉnh'
+})
+
+const rightPanelTitle = activeConfigName
+
+const footerPreviewStyle = computed(() => {
+  const s = {}
+  if (footerConfig.value.bgColor) s.background = footerConfig.value.bgColor
+  return s
+})
+
+const allPaymentMethods = [
+  { code: 'cod', label: 'COD' },
+  { code: 'bank', label: 'Bank Transfer' },
+  { code: 'visa', label: 'VISA' },
+  { code: 'mastercard', label: 'Mastercard' },
+  { code: 'jcb', label: 'JCB' },
+  { code: 'momo', label: 'MoMo' },
+  { code: 'zalopay', label: 'ZaloPay' },
+  { code: 'vnpay', label: 'VNPay' },
+  { code: 'napas', label: 'Napas' },
+  { code: 'applepay', label: 'Apple Pay' },
+]
+
+function addFooterCol() {
+  footerConfig.value.columns.push({ title: '', type: 'links', links: [], items: [], content: '' })
+}
+function removeFooterCol(idx) {
+  footerConfig.value.columns.splice(idx, 1)
+}
+
+// Footer column drag-drop
+const footerDragIdx = ref(-1)
+const footerDragOverIdx = ref(-1)
+const footerItemDrag = ref(null)
+
+function onFooterDragStart(e, idx) {
+  footerDragIdx.value = idx
+  e.dataTransfer.effectAllowed = 'move'
+}
+function onFooterDragEnd() {
+  footerDragIdx.value = -1
+  footerDragOverIdx.value = -1
+}
+function onFooterDragOver(e, idx) {
+  footerDragOverIdx.value = idx
+}
+function onFooterDrop(idx) {
+  const from = footerDragIdx.value
+  if (from < 0 || from === idx) { onFooterDragEnd(); return }
+  const cols = footerConfig.value.columns
+  const [moved] = cols.splice(from, 1)
+  cols.splice(idx, 0, moved)
+  onFooterDragEnd()
+}
+function onFooterItemDrop(ci, targetLi) {
+  const src = footerItemDrag.value
+  if (!src || src.ci !== ci || src.li === targetLi) { footerItemDrag.value = null; return }
+  const arr = footerConfig.value.columns[ci].links
+  const [moved] = arr.splice(src.li, 1)
+  arr.splice(targetLi, 0, moved)
+  footerItemDrag.value = null
+}
+function onFooterContactDrop(ci, targetIi) {
+  const src = footerItemDrag.value
+  if (!src || src.ci !== ci || src.ii === targetIi) { footerItemDrag.value = null; return }
+  const arr = footerConfig.value.columns[ci].items
+  const [moved] = arr.splice(src.ii, 1)
+  arr.splice(targetIi, 0, moved)
+  footerItemDrag.value = null
+}
+
+const currentPageBg = computed({
+  get() {
+    if (!activePageId.value) return ''
+    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
+    return pageConfigs.value[id]?.backgroundColor || ''
+  },
+  set(val) {
+    if (!activePageId.value) return
+    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
+    if (!pageConfigs.value[id]) pageConfigs.value[id] = {}
+    pageConfigs.value[id].backgroundColor = val
+    pageConfigs.value = { ...pageConfigs.value }
+  }
+})
+
+// ─── Builtin Page i18n ───
+const { defaultLangCode: dfLangCode, loadLanguages: loadLangs2 } = useLanguages()
+loadLangs2()
+const builtinPageLang = ref(dfLangCode.value)
+
+function getPageConfigI18n(pageName, field) {
+  if (builtinPageLang.value === dfLangCode.value) return pageConfigs.value[pageName]?.[field] || ''
+  const tObj = pageConfigs.value[pageName]?.translations?.[builtinPageLang.value]
+  return tObj?.[field] || ''
+}
+function setPageConfigI18n(pageName, field, value) {
+  if (builtinPageLang.value === dfLangCode.value) {
+    if (pageConfigs.value[pageName]) pageConfigs.value[pageName][field] = value
+    return
+  }
+  if (!pageConfigs.value[pageName].translations) pageConfigs.value[pageName].translations = {}
+  if (!pageConfigs.value[pageName].translations[builtinPageLang.value]) {
+    pageConfigs.value[pageName].translations[builtinPageLang.value] = { pageTitle: '', pageDescription: '' }
+  }
+  pageConfigs.value[pageName].translations[builtinPageLang.value][field] = value
 }
 
 // ─── Live Preview (postMessage-based) ───
@@ -1514,14 +1216,14 @@ const livePreviewBaseUrl = computed(() => {
 // Payload sent via postMessage to the storefront iframe
 const layoutPayload = ref({
   sections: [], pages: {}, customCss: '', template: 'full_store',
-  pageConfigs: {}, headerConfig: {}, footerConfig: {}
+  pageConfigs: {}, headerConfig: {}, footerConfig: {},
 })
 
 // Debounced preview refresh
 let undoTimer
 watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate, activePageId], () => {
   const tCfg = themeConfig.value
-  
+
   let currentBg = tCfg.backgroundColor || '#ffffff'
   if (activePageId.value) {
     const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
@@ -1530,7 +1232,6 @@ watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, page
     }
   }
 
-  // Derive lighter accent for hover/active states
   const accentHex = tCfg.primaryColor || '#6366f1'
   const rr = parseInt(accentHex.slice(1, 3), 16) || 99
   const gg = parseInt(accentHex.slice(3, 5), 16) || 102
@@ -1558,7 +1259,6 @@ watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, page
 body { background: ${currentBg}; color: ${tCfg.textColor}; font-family: ${tCfg.fontFamily}; }
 .sf-container { max-width: var(--sf-container-width); margin: 0 auto; padding: 0 16px; }`
 
-  // Update layoutPayload with deep clone to forcefully trigger re-render in LayoutPreviewPanel
   layoutPayload.value = JSON.parse(JSON.stringify({
     sections: sections.value,
     pages: pages.value,
@@ -1570,416 +1270,9 @@ body { background: ${currentBg}; color: ${tCfg.textColor}; font-family: ${tCfg.f
     promoConfig: promoConfig.value,
   }))
 
-  // Push undo snapshot on changes (debounced)
   clearTimeout(undoTimer)
   undoTimer = setTimeout(() => pushUndo(), 1500)
 }, { deep: true, immediate: true })
-
-// ─── Load / Save ───
-function ensureParams(sections) {
-  return sections.map(s => ({
-    ...s,
-    params: { ...(defaultParams[s.type] || {}), ...(s.params || {}) },
-    content: s.content || [],
-  }))
-}
-
-async function loadLayout() {
-  try {
-    const isBuiltin = !!activeBuiltinPage.value
-    const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
-
-    if (activePageId.value && !isBuiltin) {
-      const res = await apiFetch(`/cms-pages/${activePageId.value}`)
-      const data = await res.json()
-      sections.value = ensureParams(data.layout_data || [])
-      return
-    }
-
-    // ── Try layout-pages API first (new versioned system) ──
-    let loadedFromLayoutPages = false
-    try {
-      const lpRes = await apiFetch('/layout-pages')
-      const lpData = await lpRes.json()
-      const lpList = lpData.data || []
-      
-      // 1. Always load Global Meta from 'home' page if it exists
-      const homePage = lpList.find(p => p.slug === 'home')
-      if (homePage) {
-        const detailRes = await apiFetch(`/layout-pages/${homePage.id}`)
-        const detail = await detailRes.json()
-        const meta = (detail.data || detail).meta || {}
-        
-        if (meta.pages) pages.value = meta.pages
-        if (meta.template) activeTemplate.value = meta.template
-        if (meta.customCss) customCss.value = meta.customCss
-        if (meta.pageConfigs) {
-          pageConfigs.value = {
-            products: { ...defaultPageConfigs.products, ...meta.pageConfigs.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(meta.pageConfigs.products?.showFilters || {}) } },
-            productDetail: { ...defaultPageConfigs.productDetail, ...meta.pageConfigs.productDetail },
-            checkout: { ...defaultPageConfigs.checkout, ...meta.pageConfigs.checkout },
-            auth: { ...defaultPageConfigs.auth, ...meta.pageConfigs.auth },
-            account: { ...defaultPageConfigs.account, ...meta.pageConfigs.account },
-            blog: { ...defaultPageConfigs.blog, ...(meta.pageConfigs.blog || {}) },
-          }
-        }
-        if (meta.headerConfig) headerConfig.value = { ...defaultHeaderConfig, ...meta.headerConfig }
-        if (meta.promoConfig) promoConfig.value = { ...defaultPromoConfig, ...meta.promoConfig }
-        if (meta.themeConfig) themeConfig.value = { ...themeConfig.value, ...meta.themeConfig }
-        if (meta.footerConfig) {
-          const fc = meta.footerConfig
-          if (typeof fc.columns === 'number' || !Array.isArray(fc.columns)) {
-            footerConfig.value = JSON.parse(JSON.stringify(defaultFooterConfig))
-            if (fc.copyrightText) footerConfig.value.copyrightText = fc.copyrightText
-          } else {
-            footerConfig.value = {
-              ...JSON.parse(JSON.stringify(defaultFooterConfig)), ...fc,
-              columns: fc.columns || defaultFooterConfig.columns.map(c => ({ ...c })),
-              social: fc.social || [], badges: fc.badges || [], paymentMethods: fc.paymentMethods || ['cod', 'bank'],
-            }
-          }
-        }
-      }
-
-      // 2. Locate the specific page layout (e.g. 'home', 'blog', 'products')
-      const targetPage = lpList.find(p => p.slug === slug)
-      if (targetPage) {
-        const detailRes = await apiFetch(`/layout-pages/${targetPage.id}`)
-        const detail = await detailRes.json()
-        const page = detail.data || detail
-        layoutPageId.value = page.id
-        layoutPageVersion.value = page.version || 0
-        layoutPageStatus.value = page.status || 'draft'
-
-        let layoutJson = page.layout_json || []
-
-        if (layoutJson.length === 0 && isBuiltin) {
-          // Use dynamic page composition defaults instead of legacy system_page_content
-          const pageSlug = getPageSlugFromId(activePageId.value)
-          const defaultSecs = getDefaultSectionsForPage(pageSlug)
-          if (defaultSecs.length > 0) {
-            sections.value = ensureParams(defaultSecs)
-          } else {
-            sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
-          }
-        } else {
-          sections.value = ensureParams(layoutJson)
-        }
-        loadedFromLayoutPages = true
-      } else if (isBuiltin) {
-        // No saved layout yet — generate composable default sections
-        layoutPageId.value = null
-        const pageSlug = getPageSlugFromId(activePageId.value)
-        const defaultSecs = getDefaultSectionsForPage(pageSlug)
-        if (defaultSecs.length > 0) {
-          sections.value = ensureParams(defaultSecs)
-        } else {
-          sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
-        }
-        loadedFromLayoutPages = true
-      }
-    } catch { /* layout-pages not available, fall back to system-config */ }
-
-    if (loadedFromLayoutPages) return
-
-    // ── Fallback: legacy system-config ──
-    const res = await apiFetch('/system-config/group/storefront_layout')
-    const data = await res.json()
-    const items = Array.isArray(data) ? data : (data.data || [])
-    const map = {}
-    items.forEach(i => { map[i.key] = i.value })
-
-    const defaultSections = [
-      { type: 'banner', enabled: true, order: 0 },
-      { type: 'categories', enabled: true, order: 1 },
-      { type: 'flash_sale', enabled: true, order: 2 },
-      { type: 'featured_products', enabled: true, order: 3 },
-      { type: 'new_arrivals', enabled: true, order: 4 },
-      { type: 'cms_pages', enabled: true, order: 5 },
-    ]
-    const defaultPages = { cart: true, account: true, auth: true, order_tracking: true, products: true }
-
-    const parsed = map.layout_sections ? JSON.parse(map.layout_sections) : null
-    
-    // Legacy fallback: If we are not on the global/home page, legacy system didn't support sections.
-    // So we initialize it with default dynamic sections or a sterile fallback to prevent homepage bleed-through.
-    if (isBuiltin && slug !== 'home') {
-      const pageSlug = getPageSlugFromId(activePageId.value) || slug
-      const defaultSecs = getDefaultSectionsForPage(pageSlug)
-      if (defaultSecs && defaultSecs.length > 0) {
-        sections.value = ensureParams(defaultSecs)
-      } else {
-        sections.value = ensureParams([{ type: 'system_page_content', enabled: true, order: 0, params: { title: '' } }])
-      }
-    } else {
-      sections.value = ensureParams(parsed || defaultSections)
-    }
-
-    pages.value = map.layout_pages ? JSON.parse(map.layout_pages) : defaultPages
-    activeTemplate.value = map.layout_template || 'full_store'
-    customCss.value = map.layout_custom_css || ''
-    // if (map.storefront_url) storefrontUrl.value = map.storefront_url
-    const parsedPC = map.layout_page_configs ? JSON.parse(map.layout_page_configs) : null
-    if (parsedPC) {
-      pageConfigs.value = {
-        products: { ...defaultPageConfigs.products, ...parsedPC.products, showFilters: { ...defaultPageConfigs.products.showFilters, ...(parsedPC.products?.showFilters || {}) } },
-        productDetail: { ...defaultPageConfigs.productDetail, ...parsedPC.productDetail },
-        checkout: { ...defaultPageConfigs.checkout, ...parsedPC.checkout },
-        auth: { ...defaultPageConfigs.auth, ...parsedPC.auth },
-        account: { ...defaultPageConfigs.account, ...parsedPC.account },
-      }
-    }
-    const parsedHC = map.layout_header_config ? JSON.parse(map.layout_header_config) : null
-    if (parsedHC) headerConfig.value = { ...defaultHeaderConfig, ...parsedHC }
-    const parsedPC2 = map.layout_promo_config ? JSON.parse(map.layout_promo_config) : null
-    if (parsedPC2) promoConfig.value = { ...defaultPromoConfig, ...parsedPC2 }
-    const parsedFC = map.layout_footer_config ? JSON.parse(map.layout_footer_config) : null
-    if (parsedFC) {
-      if (typeof parsedFC.columns === 'number' || !Array.isArray(parsedFC.columns)) {
-        footerConfig.value = JSON.parse(JSON.stringify(defaultFooterConfig))
-        if (parsedFC.copyrightText) footerConfig.value.copyrightText = parsedFC.copyrightText
-      } else {
-        footerConfig.value = {
-          ...JSON.parse(JSON.stringify(defaultFooterConfig)),
-          ...parsedFC,
-          columns: parsedFC.columns || defaultFooterConfig.columns.map(c => ({ ...c })),
-          social: parsedFC.social || [],
-          badges: parsedFC.badges || [],
-          paymentMethods: parsedFC.paymentMethods || ['cod', 'bank'],
-        }
-      }
-    }
-  } catch {
-    sections.value = ensureParams([
-      { type: 'banner', enabled: true, order: 0 },
-      { type: 'categories', enabled: true, order: 1 },
-      { type: 'flash_sale', enabled: true, order: 2 },
-      { type: 'featured_products', enabled: true, order: 3 },
-      { type: 'new_arrivals', enabled: true, order: 4 },
-      { type: 'cms_pages', enabled: true, order: 5 },
-    ])
-    pages.value = { cart: true, account: true, auth: true, order_tracking: true, products: true }
-  }
-}
-
-// ─── JSON Import / Export ───
-const jsonInputRef = ref(null)
-
-function exportJson() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(sections.value, null, 2))
-  const downloadAnchorNode = document.createElement('a')
-  downloadAnchorNode.setAttribute("href", dataStr)
-  downloadAnchorNode.setAttribute("download", `storefront_sections_${activePageId.value || 'home'}.json`)
-  document.body.appendChild(downloadAnchorNode)
-  downloadAnchorNode.click()
-  downloadAnchorNode.remove()
-}
-
-function triggerJsonImport() {
-  if (jsonInputRef.value) jsonInputRef.value.click()
-}
-
-function onJsonImportFile(e) {
-  const file = e.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = (evt) => {
-    try {
-      const parsed = JSON.parse(evt.target.result)
-      if (Array.isArray(parsed)) {
-        pushUndo()
-        sections.value = parsed
-        showToast('Nhập JSON Layout thành công!', 'success')
-      } else {
-        showToast('Định dạng file không hợp lệ (cần mảng array).', 'error')
-      }
-    } catch {
-      showToast('Lỗi đọc file JSON.', 'error')
-    }
-  }
-  reader.readAsText(file)
-  e.target.value = ''
-}
-
-// Build the meta object containing all global configs
-function buildMeta() {
-  return {
-    pages: pages.value,
-    template: activeTemplate.value,
-    customCss: customCss.value,
-    storefrontUrl: storefrontUrl.value,
-    pageConfigs: pageConfigs.value,
-    headerConfig: headerConfig.value,
-    footerConfig: footerConfig.value,
-    promoConfig: promoConfig.value,
-    themeConfig: themeConfig.value,
-  }
-}
-
-// Ensure a LayoutPage record exists for the active slug, create if needed
-async function ensureLayoutPage() {
-  if (layoutPageId.value) return layoutPageId.value
-  const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
-  try {
-    const res = await apiFetch('/layout-pages', {
-      method: 'POST',
-      body: JSON.stringify({
-        slug: slug,
-        title: 'Trang ' + slug,
-        layout_json: sections.value,
-        status: 'draft',
-        is_system: true,
-        meta: slug === 'home' ? buildMeta() : {},
-      }),
-    })
-    const data = await res.json()
-    const page = data.data || data
-    layoutPageId.value = page.id
-    layoutPageVersion.value = page.version || 0
-    layoutPageStatus.value = page.status || 'draft'
-    return page.id
-  } catch (e) {
-    console.warn('[LayoutBuilder] Could not create LayoutPage:', e.message)
-    return null
-  }
-}
-
-async function saveLayout() {
-  saving.value = true
-  const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
-  const isBuiltin = !!activeBuiltinPage.value
-  try {
-    // CMS dynamic page (numeric ID) — save layout_data to CMS page
-    if (activePageId.value && !activeBuiltinPage.value) {
-      await apiFetch(`/cms-pages/${activePageId.value}`, {
-        method: 'PUT',
-        body: JSON.stringify({ layout_data: sections.value }),
-      })
-      showToast(t('admin.msg_a593a4', 'Đã lưu bố cục trang CMS'), 'success')
-      saving.value = false
-      return
-    }
-
-    // ── Layout Pages API (versioned) ──
-    const pageId = await ensureLayoutPage()
-    if (pageId) {
-      await apiFetch(`/layout-pages/${pageId}/publish`, {
-        method: 'POST',
-        body: JSON.stringify({
-          layout_json: sections.value,
-          note: publishNote.value || null,
-        }),
-      })
-      // Update meta separately, but only for home page so it acts as the global meta
-      if (slug === 'home') {
-        await apiFetch(`/layout-pages/${pageId}`, {
-          method: 'PUT',
-          body: JSON.stringify({ meta: buildMeta() }),
-        })
-      }
-      layoutPageVersion.value++
-      layoutPageStatus.value = 'published'
-      publishNote.value = ''
-      showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng') + ` (v${layoutPageVersion.value})`, 'success')
-    } else {
-      // Fallback to system-config if layout-pages is unavailable
-      const itemsToSave = [
-        { key: 'layout_pages', value: JSON.stringify(pages.value) },
-        { key: 'layout_template', value: activeTemplate.value },
-        { key: 'layout_custom_css', value: customCss.value },
-        { key: 'layout_page_configs', value: JSON.stringify(pageConfigs.value) },
-        { key: 'layout_header_config', value: JSON.stringify(headerConfig.value) },
-        { key: 'layout_footer_config', value: JSON.stringify(footerConfig.value) },
-        { key: 'layout_promo_config', value: JSON.stringify(promoConfig.value) },
-        { key: 'layout_theme_config', value: JSON.stringify(themeConfig.value) },
-        { key: 'storefront_url', value: storefrontUrl.value },
-      ]
-      
-      // Legacy layout_sections only stores global homepage data.
-      // Do not overwrite it with sterile system wrapper if we are on a builtin page.
-      if (!isBuiltin || slug === 'home') {
-        itemsToSave.push({ key: 'layout_sections', value: JSON.stringify(sections.value) })
-      }
-
-      await apiFetch('/system-config/group/storefront_layout', {
-        method: 'PUT',
-        body: JSON.stringify({ items: itemsToSave }),
-      })
-      showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng'), 'success')
-    }
-  } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu: ' + e.message, 'error')
-  }
-  saving.value = false
-}
-
-// Show publish dialog (with note input) before publishing
-function handlePublish() {
-  showPublishDialog.value = true
-  publishNote.value = ''
-  nextTick(() => publishNoteInput.value?.focus())
-}
-
-function confirmPublish() {
-  showPublishDialog.value = false
-  saveLayout()
-}
-
-async function saveDraft() {
-  saving.value = true
-  try {
-    // CMS dynamic page (numeric ID)
-    if (activePageId.value && !activeBuiltinPage.value) {
-      await apiFetch(`/cms-pages/${activePageId.value}`, {
-        method: 'PUT',
-        body: JSON.stringify({ layout_data: sections.value }),
-      })
-      showToast(t('admin.msg_d1cb5f', 'Đã lưu nháp bố cục trang CMS'), 'success')
-      saving.value = false
-      return
-    }
-
-    // ── Layout Pages API (draft) ──
-    const pageId = await ensureLayoutPage()
-    if (pageId) {
-      await apiFetch(`/layout-pages/${pageId}/draft`, {
-        method: 'POST',
-        body: JSON.stringify({ layout_json: sections.value }),
-      })
-      // Update meta
-      await apiFetch(`/layout-pages/${pageId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ meta: buildMeta() }),
-      })
-      layoutPageStatus.value = 'draft'
-      showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
-    } else {
-      // Fallback to system-config
-      await apiFetch('/system-config/group/storefront_layout', {
-        method: 'PUT',
-        body: JSON.stringify({
-          items: [
-            { key: 'layout_draft_sections', value: JSON.stringify(sections.value) },
-            { key: 'layout_draft_page_configs', value: JSON.stringify(pageConfigs.value) },
-            { key: 'layout_draft_header_config', value: JSON.stringify(headerConfig.value) },
-            { key: 'layout_draft_footer_config', value: JSON.stringify(footerConfig.value) },
-            { key: 'layout_draft_promo_config', value: JSON.stringify(promoConfig.value) },
-            { key: 'layout_draft_theme_config', value: JSON.stringify(themeConfig.value) },
-          ],
-        }),
-      })
-      showToast(t('admin.msg_b06844', 'Đã lưu nháp'), 'success')
-    }
-  } catch (e) {
-    showToast(t('admin.msg_aaf377aa', 'Lỗi') + ' lưu nháp: ' + e.message, 'error')
-  }
-  saving.value = false
-}
-
-// Handle rollback from version history
-async function onRollback() {
-  await loadLayout()
-}
 
 async function loadDynamicPages() {
   try {
@@ -1987,57 +1280,6 @@ async function loadDynamicPages() {
     const data = await res.json()
     dynamicPages.value = (Array.isArray(data) ? data : (data.data || [])).filter(p => p.is_dynamic)
   } catch (e) {}
-}
-
-// ── Header Nav Links ──
-const { links: navLinksRaw, fetchLinks: fetchNavLinks, createLink: createNavLink, updateLink: updateNavLink, deleteLink: deleteNavLinkApi } = useNavLinks(apiFetch)
-const navLinks = computed(() => (navLinksRaw.value || []).filter(l => l.group === 'menu' || !l.group).sort((a, b) => (a.sort || 0) - (b.sort || 0)))
-const collectionNavLinks = computed(() => (navLinksRaw.value || []).filter(l => l.type === 'collection'))
-
-const showNavLinkModal = ref(false)
-const navLinkEditing = ref(null)
-const navLinkForm = ref({ name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: 0, group: 'menu' })
-const pageSelectMode = ref('builtin')
-
-// CMS pages for page selector
-const { pages: cmsPageListRaw, fetchPages: fetchCmsPageList } = useCmsPages(apiFetch)
-const cmsPageList = computed(() => (cmsPageListRaw.value || []).filter(p => p.status === 'published' || p.is_published))
-
-function openCreateNavLink() {
-  navLinkEditing.value = null
-  navLinkForm.value = { name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: navLinks.value.length, group: 'menu' }
-  pageSelectMode.value = 'builtin'
-  showNavLinkModal.value = true
-}
-function openEditNavLink(link) {
-  navLinkEditing.value = link.id
-  navLinkForm.value = { name: link.name, url: link.url || '', type: link.type, target: link.target || '_self', collectionId: link.collectionId || null, sort: link.sort || 0, group: 'menu' }
-  // Detect page select mode from URL
-  const builtinUrls = ['/', '/products', '/categories', '/brands', '/cart', '/promotions', '/wishlist', '/order-tracking', '/account', '/auth']
-  if (builtinUrls.includes(link.url)) pageSelectMode.value = 'builtin'
-  else if (link.url?.startsWith('/page/')) pageSelectMode.value = 'cms'
-  else pageSelectMode.value = 'custom'
-  showNavLinkModal.value = true
-}
-async function saveNavLink() {
-  if (!navLinkForm.value.name) { showToast(t('admin.msg_c2d389', 'Nhập tên link'), 'error'); return }
-  try {
-    if (navLinkEditing.value) {
-      await updateNavLink(navLinkEditing.value, navLinkForm.value)
-      showToast(t('admin.updated', 'Đã cập nhật'), 'success')
-    } else {
-      await createNavLink(navLinkForm.value)
-      showToast(t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
-    }
-    showNavLinkModal.value = false
-    fetchNavLinks()
-  } catch (e) { showToast(t('admin.msg_aaf377aa', 'Lỗi') + ': ' + e.message, 'error') }
-}
-async function deleteNavLink(link) {
-  if (!confirm(`${t('admin.delete', 'Xóa')} link "${link.name}"?`)) return
-  await deleteNavLinkApi(link.id)
-  fetchNavLinks()
-  showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')
 }
 
 onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLinks(); fetchCmsPageList() })
