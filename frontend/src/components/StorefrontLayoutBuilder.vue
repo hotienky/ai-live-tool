@@ -103,6 +103,23 @@
           <div v-show="leftTab === 'theme'" class="side-pad scroll-y">
             <LayoutThemeConfig v-model="themeConfig" :active-page-id="activePageId" />
             
+            <!-- Per-Page Theme Config -->
+            <div class="lb-section" style="margin-top: 16px;" v-if="activePageId && !String(activePageId).startsWith('__template_')">
+              <h4 class="lb-section__title"><Palette :size="14" /> Cài đặt riêng cho trang này</h4>
+              <p style="font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">Bạn có thể chỉ định màu nền riêng cho <b>{{ activePageLabel }}</b> để ghi đè (override) khai báo màu nền chung của hệ thống.</p>
+              
+              <div class="param-row">
+                <label>Màu nền trang</label>
+                <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
+                  <input type="color" v-model="currentPageBg" class="param-color" style="width:28px; height:28px; border:1px solid #cbd5e1; border-radius:4px; padding:0; background:none; cursor:pointer;" />
+                  <input type="text" v-model="currentPageBg" class="param-input param-input--sm" style="width: 70px" placeholder="Bỏ trống..." />
+                  <button v-if="currentPageBg" @click="currentPageBg = ''" class="btn-clear-color" title="Xóa" style="width: 24px; height: 24px; border:none; background:#f1f5f9; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#ef4444; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">
+                    <X :size="12" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             <!-- Templates (Only show on Global page) -->
             <div class="lb-section" style="margin-top: 16px;" v-if="!activePageId">
               <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục</h4>
@@ -1066,6 +1083,22 @@ const defaultPageConfigs = {
 }
 const pageConfigs = ref(JSON.parse(JSON.stringify(defaultPageConfigs)))
 
+const currentPageBg = computed({
+  get() {
+    if (!activePageId.value) return ''
+    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
+    return pageConfigs.value[id]?.backgroundColor || ''
+  },
+  set(val) {
+    if (!activePageId.value) return
+    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
+    if (!pageConfigs.value[id]) pageConfigs.value[id] = {}
+    pageConfigs.value[id].backgroundColor = val
+    // Tự động trigger watch
+    pageConfigs.value = { ...pageConfigs.value }
+  }
+})
+
 // ─── Builtin Page i18n ───
 import { useLanguages } from '../composables/useLanguages.js'
 const { defaultLangCode: dfLangCode, loadLanguages: loadLangs2 } = useLanguages()
@@ -1486,8 +1519,17 @@ const layoutPayload = ref({
 
 // Debounced preview refresh
 let undoTimer
-watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate], () => {
+watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, pageConfigs, promoConfig, activeTemplate, activePageId], () => {
   const tCfg = themeConfig.value
+  
+  let currentBg = tCfg.backgroundColor || '#ffffff'
+  if (activePageId.value) {
+    const id = String(activePageId.value).startsWith('__') ? activePageId.value.slice(2) : activePageId.value
+    if (pageConfigs.value[id]?.backgroundColor) {
+      currentBg = pageConfigs.value[id].backgroundColor
+    }
+  }
+
   // Derive lighter accent for hover/active states
   const accentHex = tCfg.primaryColor || '#6366f1'
   const rr = parseInt(accentHex.slice(1, 3), 16) || 99
@@ -1499,8 +1541,10 @@ watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, page
   --sf-accent-glow: rgba(${rr}, ${gg}, ${bb}, 0.15);
   --sf-accent-gradient: linear-gradient(135deg, ${accentHex}, ${tCfg.accentColor || accentHex});
   --sf-shadow-accent: 0 8px 24px rgba(${rr}, ${gg}, ${bb}, 0.25);
-  --sf-bg-primary: ${tCfg.backgroundColor};
+  --sf-bg-primary: ${currentBg};
   --sf-text-primary: ${tCfg.textColor};
+  --color-bg-primary: ${currentBg};
+  --color-text-primary: ${tCfg.textColor};
   --sf-font-family: ${tCfg.fontFamily};
   --sf-radius: ${tCfg.borderRadius};
   --sf-radius-sm: ${parseInt(tCfg.borderRadius) > 4 ? (parseInt(tCfg.borderRadius) - 4) + 'px' : tCfg.borderRadius};
@@ -1511,7 +1555,7 @@ watch([sections, pages, customCss, themeConfig, headerConfig, footerConfig, page
   --sf-container-width: ${tCfg.containerWidth || '1200px'};
   --sf-button-style: ${tCfg.buttonStyle || 'solid'};
 }
-body { background: ${tCfg.backgroundColor}; color: ${tCfg.textColor}; font-family: ${tCfg.fontFamily}; }
+body { background: ${currentBg}; color: ${tCfg.textColor}; font-family: ${tCfg.fontFamily}; }
 .sf-container { max-width: var(--sf-container-width); margin: 0 auto; padding: 0 16px; }`
 
   // Update layoutPayload with deep clone to forcefully trigger re-render in LayoutPreviewPanel
@@ -2045,15 +2089,15 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .current-state { color: var(--accent); font-weight: 700; }
 .history-current-icon { color: var(--accent); }
 
-.cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+.cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
 .cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 .cpb-btn-secondary--active { background: rgba(124, 58, 237, 0.1) !important; color: var(--accent) !important; border-color: rgba(124, 58, 237, 0.3) !important; }
 .cpb-section-shortcut { display: flex; align-items: center; gap: 6px; padding: 7px 10px; margin-bottom: 10px; background: var(--color-bg-secondary, rgba(0,0,0,0.04)); border: 1px solid var(--color-border); border-radius: 8px; font-size: 12px; color: var(--color-text-muted); }
 .cpb-section-shortcut span { flex: 1; }
 .cpb-shortcut-btn { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .cpb-shortcut-btn:hover { filter: brightness(1.12); }
-.cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
+.cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+C.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
 .cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
 
 /* Status badge */

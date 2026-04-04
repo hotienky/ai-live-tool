@@ -1,5 +1,22 @@
 <template>
   <div class="sf" :style="customCssVars">
+    <!-- Announcement / Top Utility Bar -->
+    <div class="sf-announcement-border" v-if="headerConfig.showAnnouncement" :style="{ backgroundColor: headerConfig.announcementBg || 'var(--sf-accent)', color: headerConfig.announcementColor || '#fff' }">
+      <div class="sf-announcement-inner" style="max-width: var(--sf-container-width, 1200px); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 4px 16px; font-size: 11px; font-weight: 500;">
+        <div class="sf-announcement__text" style="flex: 1;">
+          <a v-if="headerConfig.announcementLink" :href="headerConfig.announcementLink" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            {{ headerConfig.announcementText || 'Tùy chỉnh thông báo...' }}
+          </a>
+          <span v-else>{{ headerConfig.announcementText || 'Tùy chỉnh thông báo...' }}</span>
+        </div>
+        <div class="sf-announcement__topbar" v-if="headerConfig.topbarLinks && headerConfig.topbarLinks.length" style="display: flex; gap: 16px; align-items: center;">
+          <a v-for="(lnk, idx) in headerConfig.topbarLinks" :key="idx" :href="lnk.url || '#'" class="sf-announcement__toplink" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 4px; opacity: 0.9; cursor: pointer;">
+            {{ lnk.label }}
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <header class="sf-header" :class="{ 'sf-header--sticky': headerConfig.sticky !== false }">
       <button class="sf-hamburger" @click="mobileMenuOpen = !mobileMenuOpen">

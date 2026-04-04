@@ -33,7 +33,7 @@
         <label>Màu chủ đạo (Primary)</label>
         <div class="color-picker-wrapper">
           <input type="color" v-model="theme.primaryColor" class="param-color" />
-          <input type="text" v-model="theme.primaryColor" class="param-input param-input--sm" style="width: 70px" />
+          <input type="text" v-model="theme.primaryColor" class="param-input param-input--sm" style="width: 85px" />
         </div>
       </div>
 
@@ -42,7 +42,7 @@
         <label>Màu nhấn (Secondary/Action)</label>
         <div class="color-picker-wrapper">
           <input type="color" v-model="theme.accentColor" class="param-color" />
-          <input type="text" v-model="theme.accentColor" class="param-input param-input--sm" style="width: 70px" />
+          <input type="text" v-model="theme.accentColor" class="param-input param-input--sm" style="width: 85px" />
         </div>
       </div>
 
@@ -51,7 +51,7 @@
         <label>Màu nền trang</label>
         <div class="color-picker-wrapper">
           <input type="color" v-model="theme.backgroundColor" class="param-color" />
-          <input type="text" v-model="theme.backgroundColor" class="param-input param-input--sm" style="width: 70px" />
+          <input type="text" v-model="theme.backgroundColor" class="param-input param-input--sm" style="width: 85px" />
         </div>
       </div>
 
@@ -60,7 +60,7 @@
         <label>Màu chữ chính</label>
         <div class="color-picker-wrapper">
           <input type="color" v-model="theme.textColor" class="param-color" />
-          <input type="text" v-model="theme.textColor" class="param-input param-input--sm" style="width: 70px" />
+          <input type="text" v-model="theme.textColor" class="param-input param-input--sm" style="width: 85px" />
         </div>
       </div>
 
@@ -68,36 +68,40 @@
 
       <!-- Typography -->
       <div class="param-row">
-        <label>Phông chữ chính (Body)</label>
-        <select v-model="theme.fontFamily" class="param-select">
-          <option value="'Inter', sans-serif">Inter (Mặc định)</option>
-          <option value="'Roboto', sans-serif">Roboto</option>
-          <option value="'Montserrat', sans-serif">Montserrat</option>
-          <option value="'Open Sans', sans-serif">Open Sans</option>
-          <option value="'Poppins', sans-serif">Poppins</option>
-          <option value="'Nunito', sans-serif">Nunito</option>
-          <option value="'Lato', sans-serif">Lato</option>
-          <option value="'Outfit', sans-serif">Outfit</option>
-          <option value="'DM Sans', sans-serif">DM Sans</option>
-          <option value="system-ui, sans-serif">System UI</option>
-        </select>
-        <span class="font-preview" :style="{ fontFamily: theme.fontFamily }">Xin chào 123</span>
+        <label style="flex:1">Phông chữ chính (Body)</label>
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:2;">
+          <select v-model="theme.fontFamily" class="param-select" style="max-width:100%">
+            <option value="'Inter', sans-serif">Inter (Mặc định)</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Open Sans', sans-serif">Open Sans</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Nunito', sans-serif">Nunito</option>
+            <option value="'Lato', sans-serif">Lato</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Sans', sans-serif">DM Sans</option>
+            <option value="system-ui, sans-serif">System UI</option>
+          </select>
+          <span class="font-preview" :style="{ fontFamily: theme.fontFamily }" style="text-align: right; margin-top:0">Xin chào 123</span>
+        </div>
       </div>
 
       <!-- Heading Font -->
       <div class="param-row">
-        <label>Phông tiêu đề (Heading)</label>
-        <select v-model="theme.headingFontFamily" class="param-select">
-          <option value="">Giống phông chính</option>
-          <option value="'Playfair Display', serif">Playfair Display (Sang trọng)</option>
-          <option value="'Montserrat', sans-serif">Montserrat</option>
-          <option value="'Poppins', sans-serif">Poppins</option>
-          <option value="'Outfit', sans-serif">Outfit</option>
-          <option value="'DM Serif Display', serif">DM Serif Display</option>
-          <option value="'Merriweather', serif">Merriweather</option>
-          <option value="'Raleway', sans-serif">Raleway</option>
-        </select>
-        <span v-if="theme.headingFontFamily" class="font-preview font-preview--heading" :style="{ fontFamily: theme.headingFontFamily }">Tiêu Đề</span>
+        <label style="flex:1">Phông tiêu đề (Heading)</label>
+        <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end; flex:2;">
+          <select v-model="theme.headingFontFamily" class="param-select" style="max-width:100%">
+            <option value="">Giống phông chính</option>
+            <option value="'Playfair Display', serif">Playfair Display (Sang trọng)</option>
+            <option value="'Montserrat', sans-serif">Montserrat</option>
+            <option value="'Poppins', sans-serif">Poppins</option>
+            <option value="'Outfit', sans-serif">Outfit</option>
+            <option value="'DM Serif Display', serif">DM Serif Display</option>
+            <option value="'Merriweather', serif">Merriweather</option>
+            <option value="'Raleway', sans-serif">Raleway</option>
+          </select>
+          <span v-if="theme.headingFontFamily" class="font-preview font-preview--heading" :style="{ fontFamily: theme.headingFontFamily }" style="text-align: right; margin-top:0">Tiêu Đề</span>
+        </div>
       </div>
 
       <!-- Border Radius -->
