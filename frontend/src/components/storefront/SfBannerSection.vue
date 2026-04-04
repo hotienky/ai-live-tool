@@ -9,8 +9,8 @@
             <span>Banner Slide</span>
           </div>
         </a>
-        <!-- Text overlay: only if config.showOverlay is true AND b.title exists -->
-        <div class="sf-banner-overlay" v-if="config.showOverlay && b.title">
+        <!-- Text overlay: only if responsiveConfig.showOverlay is true AND b.title exists -->
+        <div class="sf-banner-overlay" v-if="responsiveConfig.showOverlay && b.title">
           <h2 class="sf-banner-title">{{ b.title }}</h2>
           <p class="sf-banner-desc" v-if="b.description">{{ b.description }}</p>
           <a v-if="b.url || b.link" :href="b.url || b.link" class="sf-banner-cta">Xem ngay →</a>
@@ -30,17 +30,22 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-vue-next'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const props = defineProps({
   banners: { type: Array, default: () => [] },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
 })
+
+const { responsiveConfig } = useResponsiveConfig(props)
 
 const currentIdx = ref(0)
 let timer = null
 
-const autoplay = computed(() => props.config.autoplay !== false)
-const interval = computed(() => props.config.interval || 5000)
+const autoplay = computed(() => responsiveConfig.value.autoplay !== false)
+const interval = computed(() => responsiveConfig.value.interval || 5000)
 
 function nextSlide() {
   if (props.banners.length > 1) currentIdx.value = (currentIdx.value + 1) % props.banners.length

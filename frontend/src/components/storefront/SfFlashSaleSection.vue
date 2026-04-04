@@ -8,7 +8,7 @@
       </div>
     </div>
     <div class="sf-products" :style="gridStyle">
-      <div v-for="p in products" :key="p.id" class="sf-product-card sf-product-card--flash" @click="$emit('viewProduct', p.id)">
+      <div v-for="p in visibleProducts" :key="p.id" class="sf-product-card sf-product-card--flash" @click="$emit('viewProduct', p.id)">
         <div class="sf-product-img-wrap">
           <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" class="sf-product-img" />
           <Package v-else :size="40" class="sf-product-placeholder" />
@@ -38,6 +38,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { Zap, Clock, Package } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
@@ -45,11 +46,23 @@ const props = defineProps({
   products: { type: Array, default: () => [] },
   endTime: { type: String, default: null },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
 })
 defineEmits(['viewProduct'])
 
-const columns = computed(() => props.config.columns || 4)
-const gridStyle = computed(() => ({ '--col-count': columns.value }))
+const { responsiveConfig } = useResponsiveConfig(props)
+
+const visibleProducts = computed(() => {
+  const limit = responsiveConfig.value.count || 8
+  return props.products.slice(0, limit)
+})
+
+const gridStyle = computed(() => ({
+  '--col-desktop': props.config?.columns || 4,
+  '--col-tablet': props.tabletConfig?.columns || props.config?.columns || 3,
+  '--col-mobile': props.mobileConfig?.columns || props.tabletConfig?.columns || props.config?.columns || 2,
+}))
 const timeLeft = ref('')
 let timer = null
 
@@ -95,7 +108,7 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
   font-variant-numeric: tabular-nums; letter-spacing: 1px;
 }
 
-.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-count, 4), 1fr); }
+.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-desktop, 4), 1fr); }
 .sf-product-card {
   border-radius: 16px; overflow: hidden; background: var(--color-bg-card, #ffffff);
   border: 1px solid var(--color-border, #e2e8f0); cursor: pointer;
@@ -143,14 +156,14 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 .sf-flash-sold { font-size: 12px; color: var(--color-text-muted, #94a3b8); margin-top: 4px; display: block; }
 
 /* Tablet */
-@media (max-width: 1024px) {
-  .sf-products { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@container sf (max-width: 1024px) {
+  .sf-products { grid-template-columns: repeat(var(--col-tablet, 3), 1fr); gap: 16px; }
 }
 /* Mobile */
-@media (max-width: 768px) {
+@container sf (max-width: 768px) {
   .sf-flash-sale { margin: 0 16px; padding: 24px 16px; border-radius: 16px; }
   .sf-section__title { font-size: 18px; }
-  .sf-products { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .sf-products { grid-template-columns: repeat(var(--col-mobile, 2), 1fr); gap: 12px; }
   .sf-flash-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .sf-product-info { padding: 12px; }
 }

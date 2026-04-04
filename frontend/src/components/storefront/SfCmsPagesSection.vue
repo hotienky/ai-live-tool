@@ -1,7 +1,7 @@
 <template>
   <section class="sf-section" v-if="pages.length > 0">
     <h3 class="sf-section__title"><FileText :size="16" /> {{ t('admin.msg_8b773e3c', 'Trang thông tin') }}</h3>
-    <div class="sf-pages" :class="config.layout === 'list' ? 'sf-pages--list' : 'sf-pages--grid'">
+    <div class="sf-pages" :class="responsiveConfig.layout === 'list' ? 'sf-pages--list' : 'sf-pages--grid'">
       <div v-for="pg in displayPages" :key="pg.id" class="sf-page-card" @click="$emit('viewPage', pg.id)">
         <div class="sf-page-img-wrap">
           <img v-if="pg.image" :src="pg.image" :alt="pg.title" class="sf-page-img" />
@@ -23,16 +23,21 @@
 import { computed } from 'vue'
 import { FileText } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
 const props = defineProps({
   pages: { type: Array, default: () => [] },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
 })
 defineEmits(['viewPage'])
 
-const maxPages = computed(() => props.config.maxPages || 6)
+const { responsiveConfig } = useResponsiveConfig(props)
+
+const maxPages = computed(() => responsiveConfig.value.maxPages || 6)
 const displayPages = computed(() => props.pages.slice(0, maxPages.value))
 </script>
 

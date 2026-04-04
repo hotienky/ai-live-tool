@@ -12,6 +12,11 @@
         <Settings2 :size="14" /> Nâng cao
       </button>
     </div>
+    
+    <div class="sf-device-indicator" v-if="currentDevice !== 'desktop'">
+      <component :is="currentDevice === 'mobile' ? 'Smartphone' : 'Tablet'" :size="14" />
+      <span>Đang cấu hình giao diện {{ currentDevice === 'mobile' ? 'Mobile' : 'Tablet' }}</span>
+    </div>
 
     <!-- TABS Body -->
     <div class="sf-config-body">
@@ -203,7 +208,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, inject } from 'vue'
 import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
@@ -214,6 +219,9 @@ import SectionStylePicker from './SectionStylePicker.vue'
 import MediaPicker from '../MediaPicker.vue'
 import RichTextEditor from '../RichTextEditor.vue'
 import AdvancedStylePanel from './AdvancedStylePanel.vue'
+import { Monitor, Tablet, Smartphone } from 'lucide-vue-next'
+
+const currentDevice = inject('previewDevice', ref('desktop'))
 
 const props = defineProps({
   section: { type: Object, required: true },
@@ -257,7 +265,33 @@ onMounted(() => {
 // Content & Lang Data Initializer
 function getParams() {
   const section = props.section;
-  if (props.currentLang === props.defaultLangCode) return section.params;
+  
+  if (props.currentLang === props.defaultLangCode) {
+    return new Proxy(section.params, {
+      get(target, prop) {
+        if (currentDevice.value === 'mobile' && section.mobileParams && section.mobileParams[prop] !== undefined && section.mobileParams[prop] !== '') {
+          return section.mobileParams[prop];
+        }
+        if ((currentDevice.value === 'mobile' || currentDevice.value === 'tablet') && section.tabletParams && section.tabletParams[prop] !== undefined && section.tabletParams[prop] !== '') {
+          return section.tabletParams[prop];
+        }
+        return target[prop];
+      },
+      set(target, prop, value) {
+        if (currentDevice.value === 'mobile') {
+          if (!section.mobileParams) section.mobileParams = {};
+          section.mobileParams[prop] = value;
+        } else if (currentDevice.value === 'tablet') {
+          if (!section.tabletParams) section.tabletParams = {};
+          section.tabletParams[prop] = value;
+        } else {
+          target[prop] = value;
+        }
+        return true;
+      }
+    });
+  }
+  
   if (!section.translations) section.translations = {};
   if (!section.translations[props.currentLang]) {
     section.translations[props.currentLang] = {
@@ -282,7 +316,31 @@ function getParams() {
       section.translations[props.currentLang].content = '';
     }
   }
-  return section.translations[props.currentLang].params;
+  const baseParams = section.translations[props.currentLang].params;
+  
+  return new Proxy(baseParams, {
+    get(target, prop) {
+      if (currentDevice.value === 'mobile' && section.mobileParams && section.mobileParams[prop] !== undefined && section.mobileParams[prop] !== '') {
+        return section.mobileParams[prop];
+      }
+      if ((currentDevice.value === 'mobile' || currentDevice.value === 'tablet') && section.tabletParams && section.tabletParams[prop] !== undefined && section.tabletParams[prop] !== '') {
+        return section.tabletParams[prop];
+      }
+      return target[prop];
+    },
+    set(target, prop, value) {
+      if (currentDevice.value === 'mobile') {
+        if (!section.mobileParams) section.mobileParams = {};
+        section.mobileParams[prop] = value;
+      } else if (currentDevice.value === 'tablet') {
+        if (!section.tabletParams) section.tabletParams = {};
+        section.tabletParams[prop] = value;
+      } else {
+        target[prop] = value;
+      }
+      return true;
+    }
+  });
 }
 
 function getContent() {
@@ -626,5 +684,12 @@ async function autoTranslateSection() {
 .data-source-link__btn:hover {
   background: #6366f1; color: #fff;
   border-color: #6366f1;
+}
+
+.sf-device-indicator {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: rgba(245, 158, 11, 0.1); color: #d97706; padding: 6px 12px;
+  border-radius: 6px; font-size: 11px; font-weight: 700; margin-bottom: 12px;
+  border: 1px dashed rgba(245, 158, 11, 0.3);
 }
 </style>

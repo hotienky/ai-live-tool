@@ -1,6 +1,6 @@
 <template>
   <section class="sf-section sf-content-section" v-if="hasContent">
-    <h3 class="sf-section__title" v-if="config.title">{{ config.title }}</h3>
+    <h3 class="sf-section__title" v-if="responsiveConfig.title">{{ responsiveConfig.title }}</h3>
     <!-- Testimonials -->
     <div v-if="type === 'testimonials'" class="sf-testimonials" :style="gridStyle">
       <div v-for="(item, i) in content" :key="i" class="sf-testimonial-card">
@@ -44,10 +44,10 @@
 
     <!-- Newsletter -->
     <div v-else-if="type === 'newsletter'" class="sf-newsletter">
-      <p class="sf-newsletter-sub" v-if="config.subtitle">{{ config.subtitle }}</p>
+      <p class="sf-newsletter-sub" v-if="responsiveConfig.subtitle">{{ responsiveConfig.subtitle }}</p>
       <form class="sf-newsletter-form" @submit.prevent="onSubscribe">
         <input type="email" v-model="email" :placeholder="t('admin.msg_1bd44d', 'Email của bạn...')" required />
-        <button type="submit">{{ config.buttonText || t('admin.msg_0bb0951d', 'Đăng ký') }}</button>
+        <button type="submit">{{ responsiveConfig.buttonText || t('admin.msg_0bb0951d', 'Đăng ký') }}</button>
       </form>
       <p v-if="subscribed" class="sf-newsletter-ok">{{ t('admin.msg_15d03db9', '✓ Đăng ký thành công!') }}</p>
     </div>
@@ -72,6 +72,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
@@ -79,13 +80,17 @@ const props = defineProps({
   type: { type: String, required: true },
   content: { type: [Array, String, Object], default: () => [] },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
   brands: { type: Array, default: () => [] },
 })
+
+const { responsiveConfig } = useResponsiveConfig(props)
 
 const email = ref('')
 const subscribed = ref(false)
 
-const columns = computed(() => props.config.columns || 3)
+const columns = computed(() => responsiveConfig.value.columns || 3)
 const gridStyle = computed(() => ({ gridTemplateColumns: `repeat(${columns.value}, 1fr)` }))
 
 const hasContent = computed(() => {
@@ -211,7 +216,6 @@ async function onSubscribe() {
 
 @media (max-width: 768px) {
   .sf-section { padding: 16px; }
-  .sf-testimonials, .sf-gallery { grid-template-columns: 1fr !important; }
   .sf-newsletter-form { flex-direction: column; }
   .sf-videos { grid-template-columns: 1fr; }
 }

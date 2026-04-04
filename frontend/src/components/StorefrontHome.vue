@@ -75,6 +75,8 @@
           v-if="section.type === 'banner'"
           :banners="sectionData.banners"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
         />
 
         <!-- Categories -->
@@ -82,6 +84,8 @@
           v-if="section.type === 'categories'"
           :categories="sectionData.categories"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           @select="onCategorySelect"
         />
 
@@ -91,6 +95,8 @@
           :products="sectionData.flashSaleProducts"
           :end-time="sectionData.flashSaleEndTime"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           @viewProduct="(id) => $emit('viewProduct', id)"
         />
 
@@ -100,6 +106,8 @@
           :products="sectionData.featuredProducts"
           :title="section.params?.title || t('featured_products')"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           @viewProduct="(id) => $emit('viewProduct', id)"
         />
 
@@ -109,6 +117,8 @@
           :products="sectionData.newArrivals"
           :title="section.params?.title || t('new_arrivals')"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           @viewProduct="(id) => $emit('viewProduct', id)"
         />
 
@@ -117,6 +127,8 @@
           v-if="section.type === 'cms_pages'"
           :pages="sectionData.pages"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           @viewPage="(id) => $emit('viewPage', id)"
         />
 
@@ -124,6 +136,8 @@
         <SfBlogSection
           v-if="section.type === 'blog'"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           :storeId="storeId"
           @viewPost="(slug) => $emit('navigate', 'blog-post', slug)"
           @viewAll="$emit('navigate', 'blog')"
@@ -135,6 +149,8 @@
           :type="section.type"
           :content="section.content || []"
           :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
           :brands="sectionData.brands"
         />
 
@@ -493,7 +509,7 @@ watch(() => props.storeId, bootstrap)
 </script>
 
 <style scoped>
-.sf { min-height: 100vh; background: var(--color-bg-primary, #f5f6fa); color: var(--color-text-primary, #18181b); }
+.sf { min-height: 100vh; background: var(--color-bg-primary, #f5f6fa); color: var(--color-text-primary, #18181b); container-type: inline-size; container-name: sf; overflow-x: hidden; }
 
 /* ── Loading ── */
 .sf-loading {

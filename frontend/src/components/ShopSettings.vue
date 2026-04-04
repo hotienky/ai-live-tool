@@ -1163,6 +1163,9 @@ const activeTabGroups = computed(() => {
 
 // ── Sidebar Collapse ──
 const sidebarCollapsed = ref(false)
+watch(activeTab, (tab) => {
+  if (tab === 'storefront-layout') sidebarCollapsed.value = true
+}, { immediate: true })
 
 // ── Sidebar Search ──
 const sidebarSearch = ref('')

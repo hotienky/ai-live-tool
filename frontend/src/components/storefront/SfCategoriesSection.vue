@@ -6,7 +6,7 @@
         <img v-if="cat.image" :src="cat.image" :alt="cat.name" class="sf-cat-img" />
         <FolderOpen v-else :size="20" />
         <span>{{ cat.name }}</span>
-        <span class="sf-cat-count" v-if="config.showCount && cat.products_count != null">({{ cat.products_count }})</span>
+        <span class="sf-cat-count" v-if="responsiveConfig.showCount && cat.products_count != null">({{ cat.products_count }})</span>
       </button>
     </div>
   </section>
@@ -16,20 +16,28 @@
 import { computed } from 'vue'
 import { Grid, FolderOpen } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
 const props = defineProps({
   categories: { type: Array, default: () => [] },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
 })
 defineEmits(['select'])
 
-const layoutStyle = computed(() => props.config.layoutStyle || 'grid')
-const columns = computed(() => props.config.columns || 6)
-const selectedIds = computed(() => props.config.selectedCategoryIds || [])
+const { responsiveConfig } = useResponsiveConfig(props)
+
+const layoutStyle = computed(() => responsiveConfig.value.layoutStyle || 'grid')
+const columns = computed(() => responsiveConfig.value.columns || 6)
+const selectedCategoryIds = computed(() => {
+  // Try to use the original config's category IDs since filtering logic usually isn't responsive
+  return props.config.selectedCategoryIds || []
+})
 const displayCategories = computed(() => {
-  if (selectedIds.value.length > 0) return props.categories.filter(c => selectedIds.value.includes(c.id))
+  if (selectedCategoryIds.value.length > 0) return props.categories.filter(c => selectedCategoryIds.value.includes(c.id))
   return props.categories
 })
 </script>

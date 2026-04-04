@@ -1,5 +1,5 @@
 <template>
-  <div class="cpb" :class="{ 'cpb--fullscreen': isFullscreen, 'cpb--zen': isFullscreen && leftCollapsed && !activeConfig }">
+  <div class="cpb" :class="{ 'cpb--fullscreen': isFullscreen, 'cpb--zen': isFullscreen && leftCollapsed }">
     <!-- Header Toolbar -->
     <header class="cpb-header">
       <div class="cpb-header__left">
@@ -75,7 +75,7 @@
           <span v-else class="status-saved">✅ Đã lưu</span>
         </span>
 
-        <button class="cpb-btn-secondary" @click="toggleZenMode" :title="leftCollapsed && !activeConfig ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed && !activeConfig }">
+        <button class="cpb-btn-secondary" @click="toggleZenMode" :title="leftCollapsed ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed }">
           <Focus :size="14" />
         </button>
         <button class="cpb-btn-secondary" @click="isFullscreen = !isFullscreen" :title="isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'">
@@ -92,9 +92,9 @@
       <!-- LEFT SIDEBAR -->
       <div class="cpb-left" :class="{ 'cpb-left--collapsed': leftCollapsed }">
         <div class="cpb-sidebar-tabs">
-          <button :class="{ active: leftTab === 'theme' }" @click="leftTab = 'theme'">Theme</button>
-          <button :class="{ active: leftTab === 'structure' }" @click="leftTab = 'structure'">Cấu trúc</button>
-          <button :class="{ active: leftTab === 'pages' }" @click="leftTab = 'pages'">Trang</button>
+          <button :class="{ active: leftTab === 'theme' }" @click="leftTab = 'theme'" title="Theme"><span>Theme</span></button>
+          <button :class="{ active: leftTab === 'structure' }" @click="leftTab = 'structure'" title="Cấu trúc"><span>Cấu trúc</span></button>
+          <button :class="{ active: leftTab === 'pages' }" @click="leftTab = 'pages'" title="Trang"><span>Trang</span></button>
         </div>
 
         <div class="cpb-sidebar-content">
@@ -228,6 +228,9 @@
           />
         </div>
       </div>
+
+      <!-- RIGHT PANEL backdrop (click outside to close) -->
+      <div v-if="activeConfig" class="cpb-right-backdrop" @click="activeConfig = null"></div>
 
       <!-- RIGHT PANEL (Properties) -->
       <div class="cpb-right" :class="{ 'cpb-right--open': activeConfig }">
@@ -390,7 +393,7 @@
     />
 
     <!-- Zen Mode Floating Bar -->
-    <div class="zen-floating-bar" :class="{ 'zen-floating-bar--visible': isFullscreen && leftCollapsed && !activeConfig }">
+    <div class="zen-floating-bar" :class="{ 'zen-floating-bar--visible': isFullscreen && leftCollapsed }">
       <div class="zen-actions">
         <button class="zen-btn" @click="toggleZenMode" title="Thoát chế độ tập trung (F)"><Focus :size="16" /></button>
         <div class="zen-divider"></div>
@@ -439,7 +442,7 @@ function startTour() {
   driverObj.drive();
 }
 
-import { ref, computed, onMounted, watch, nextTick, inject } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, inject, provide } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
 import LayoutThemeConfig from './storefront/LayoutThemeConfig.vue'
 import LayoutHeaderConfig from './storefront/LayoutHeaderConfig.vue'
@@ -490,13 +493,12 @@ const { t, formatCurrency } = useI18n()
 
 // VIP Zen Mode Toggle
 function toggleZenMode() {
-  if (leftCollapsed.value && !activeConfig.value) {
+  if (leftCollapsed.value) {
     // Restore
     leftCollapsed.value = false
   } else {
     // Enter Zen
     leftCollapsed.value = true
-    activeConfig.value = null
   }
 }
 
@@ -522,6 +524,14 @@ const expandedSection = ref(null)
 const showLibrary = ref(false)
 const previewMode = ref('live')
 const previewWidth = ref('100%')
+
+const currentDevice = computed(() => {
+  if (previewWidth.value === '375px') return 'mobile'
+  if (previewWidth.value === '768px') return 'tablet'
+  return 'desktop'
+})
+provide('previewDevice', currentDevice)
+
 const previewKey = ref(0)
 const storefrontUrl = ref(window.location.origin.replace('.cms.', '.'))
 const expandedPageConfig = ref(null)
@@ -864,7 +874,7 @@ const promoConfig = ref({ ...defaultPromoConfig })
 const promoOpen = ref(false)
 
 const leftTab = ref('structure')
-const leftCollapsed = ref(false)
+const leftCollapsed = ref(true)
 const activeConfig = ref(null)
 const activeSectionObj = computed(() => {
   const id = activeConfig.value
@@ -1775,6 +1785,7 @@ async function ensureLayoutPage() {
 async function saveLayout() {
   saving.value = true
   const slug = activeBuiltinPage.value || activeTemplatePage.value || 'home'
+  const isBuiltin = !!activeBuiltinPage.value
   try {
     // CMS dynamic page (numeric ID) — save layout_data to CMS page
     if (activePageId.value && !activeBuiltinPage.value) {
@@ -2035,11 +2046,13 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .cpb-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
 /* Left Panel */
-.cpb-left { width: 280px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; position: relative; flex-shrink: 0; z-index: 5; overflow: hidden; }
-.cpb-left--collapsed { width: 0; border-right: none; }
+.cpb-left { width: 280px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; position: relative; flex-shrink: 0; z-index: 5; }
+.cpb-left:not(.cpb-left--collapsed) { overflow: visible; }
+.cpb-left--collapsed { width: 0; border-right: none; overflow: hidden; }
 .cpb-left--collapsed .cpb-collapse-btn { left: 0; border-radius: 0 8px 8px 0; border-left: none; }
 .cpb-sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); overflow: hidden; }
-.cpb-sidebar-tabs button { flex: 1; padding: 12px 0; background: transparent; border: none; font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+.cpb-sidebar-tabs button { flex: 1; min-width: 0; padding: 12px 6px; background: transparent; border: none; font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+.cpb-sidebar-tabs button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%; }
 .cpb-sidebar-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
 .cpb-sidebar-tabs button:hover:not(.active) { color: var(--text-1); background: var(--bg-2); }
 .cpb-sidebar-content { flex: 1; overflow: auto; display: flex; flex-direction: column; }
@@ -2068,9 +2081,10 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .cpb-center { flex: 1; background: var(--bg-2, #f1f5f9); overflow-y: auto; display: flex; flex-direction: column; align-items: center; transition: padding 0.3s; }
 .cpb-canvas-wrap { width: 100%; min-height: 100%; background: transparent; display: flex; flex-direction: column; transition: max-width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-sizing: border-box; padding: 24px; }
 
-/* Right Panel */
-.cpb-right { width: 380px; background: #fff; border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); flex-shrink: 0; z-index: 5; box-shadow: -4px 0 24px rgba(0,0,0,0.04); }
-.cpb-right:not(.cpb-right--open) { transform: translateX(100%); position: absolute; right: 0; height: 100%; }
+/* Right Panel — always overlays canvas, never pushes layout */
+.cpb-right-backdrop { position: absolute; inset: 0; z-index: 19; cursor: default; }
+.cpb-right { width: 360px; background: #fff; border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); position: absolute; right: 0; top: 0; height: 100%; z-index: 20; box-shadow: -6px 0 32px rgba(0,0,0,0.10); }
+.cpb-right:not(.cpb-right--open) { transform: translateX(100%); pointer-events: none; }
 .cpb-prop-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
 .cpb-prop-header h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-1); }
 .cpb-prop-header button { background: none; border: none; cursor: pointer; color: var(--text-3); padding: 4px; border-radius: 4px; }

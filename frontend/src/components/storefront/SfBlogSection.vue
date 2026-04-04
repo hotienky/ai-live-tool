@@ -2,9 +2,9 @@
   <section class="sf-section sf-blog" v-if="posts.length > 0">
     <h3 class="sf-blog__title">
       <PenSquare :size="18" />
-      {{ config.title || t('admin.latest_posts', 'Bài viết mới nhất') }}
+      {{ responsiveConfig.title || t('admin.latest_posts', 'Bài viết mới nhất') }}
     </h3>
-    <p class="sf-blog__subtitle" v-if="config.subtitle">{{ config.subtitle }}</p>
+    <p class="sf-blog__subtitle" v-if="responsiveConfig.subtitle">{{ responsiveConfig.subtitle }}</p>
 
     <div class="sf-blog__grid">
       <article v-for="post in displayPosts" :key="post.id" class="sf-blog__card" @click="$emit('viewPost', post.slug)">
@@ -34,7 +34,7 @@
       </article>
     </div>
 
-    <div class="sf-blog__footer" v-if="config.showViewAll !== false">
+    <div class="sf-blog__footer" v-if="responsiveConfig.showViewAll !== false">
       <button class="sf-blog__view-all" @click="$emit('viewAll')">
         {{ t('admin.view_all_posts', 'Xem tất cả bài viết') }}
       </button>
@@ -46,17 +46,22 @@
 import { ref, computed, onMounted } from 'vue'
 import { PenSquare, FileText, Clock } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
   storeId: { type: String, default: '' },
 })
 defineEmits(['viewPost', 'viewAll'])
 
+const { responsiveConfig } = useResponsiveConfig(props)
+
 const posts = ref([])
-const maxPosts = computed(() => props.config.maxPosts || 6)
+const maxPosts = computed(() => responsiveConfig.value.maxPosts || 6)
 const displayPosts = computed(() => posts.value.slice(0, maxPosts.value))
 
 function getCategories(post) {
@@ -154,13 +159,13 @@ onMounted(fetchPosts)
 .sf-blog__card-title {
   font-size: 17px; font-weight: 700; line-height: 1.4;
   margin: 0 0 8px; color: var(--color-text-primary);
-  display: -webkit-box; -webkit-line-clamp: 2;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
   -webkit-box-orient: vertical; overflow: hidden;
 }
 .sf-blog__excerpt {
   font-size: 14px; color: var(--color-text-secondary, #4b5563);
   line-height: 1.6; margin: 0 0 12px; flex: 1;
-  display: -webkit-box; -webkit-line-clamp: 3;
+  display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3;
   -webkit-box-orient: vertical; overflow: hidden;
 }
 .sf-blog__read-more {

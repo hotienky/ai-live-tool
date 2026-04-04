@@ -2,10 +2,10 @@
   <section class="sf-section" v-if="products.length > 0">
     <h3 class="sf-section__title">
       <ShoppingBag :size="16" /> {{ title }}
-      <span class="sf-count" v-if="products.length">({{ products.length }})</span>
+      <span class="sf-count" v-if="visibleProducts.length">({{ visibleProducts.length }})</span>
     </h3>
     <div class="sf-products" :style="gridStyle">
-      <div v-for="p in products" :key="p.id" class="sf-product-card" @click="$emit('viewProduct', p.id)">
+      <div v-for="p in visibleProducts" :key="p.id" class="sf-product-card" @click="$emit('viewProduct', p.id)">
         <div class="sf-product-img-wrap">
           <img v-if="p.image_url || p.image" :src="p.image_url || p.image" :alt="p.name" class="sf-product-img" />
           <Package v-else :size="40" class="sf-product-placeholder" />
@@ -29,6 +29,7 @@
 import { computed } from 'vue'
 import { ShoppingBag, Package } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
+import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
 
 const { t } = useI18n()
 
@@ -36,12 +37,22 @@ const props = defineProps({
   products: { type: Array, default: () => [] },
   title: { type: String, default: 'Sản phẩm nổi bật' },
   config: { type: Object, default: () => ({}) },
+  tabletConfig: { type: Object, default: () => ({}) },
+  mobileConfig: { type: Object, default: () => ({}) },
 })
 defineEmits(['viewProduct'])
 
-const columns = computed(() => props.config.columns || 4)
+const { responsiveConfig } = useResponsiveConfig(props)
+
+const visibleProducts = computed(() => {
+  const limit = responsiveConfig.value.count || 8
+  return props.products.slice(0, limit)
+})
+
 const gridStyle = computed(() => ({
-  '--col-count': columns.value
+  '--col-desktop': props.config?.columns || 4,
+  '--col-tablet': props.tabletConfig?.columns || props.config?.columns || 3,
+  '--col-mobile': props.mobileConfig?.columns || props.tabletConfig?.columns || props.config?.columns || 2,
 }))
 
 function isOnPromotion(p) {
@@ -71,7 +82,7 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
   background: var(--color-bg-primary, #f1f5f9); padding: 4px 10px; border-radius: 20px;
 }
 
-.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-count, 4), 1fr); }
+.sf-products { display: grid; gap: 20px; grid-template-columns: repeat(var(--col-desktop, 4), 1fr); }
 .sf-product-card {
   border-radius: 16px; overflow: hidden; background: var(--color-bg-card, #ffffff);
   border: 1px solid var(--color-border, #e2e8f0); cursor: pointer; 
@@ -112,14 +123,14 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 .sf-price--promo { color: var(--color-accent-hot, #ef4444); }
 
 /* Tablet */
-@media (max-width: 1024px) {
-  .sf-products { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@container sf (max-width: 1024px) {
+  .sf-products { grid-template-columns: repeat(var(--col-tablet, 3), 1fr); gap: 16px; }
 }
 /* Mobile */
-@media (max-width: 768px) {
+@container sf (max-width: 768px) {
   .sf-section { padding: 24px 16px; }
   .sf-section__title { font-size: 18px; }
-  .sf-products { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .sf-products { grid-template-columns: repeat(var(--col-mobile, 2), 1fr); gap: 12px; }
   .sf-product-info { padding: 12px; }
   .sf-product-name { font-size: 13px; }
   .sf-price { font-size: 15px; }
