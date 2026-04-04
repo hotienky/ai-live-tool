@@ -19,6 +19,7 @@
             <span class="sf-price" :class="{ 'sf-price--old': isOnPromotion(p) }">{{ formatPrice(p.price) }}</span>
             <span class="sf-price sf-price--promo" v-if="isOnPromotion(p)">{{ formatPrice(p.promotion_price) }}</span>
           </div>
+          <button class="sf-product-add-btn">{{ t('storefront.msg_buy', '+ Chọn mua') }}</button>
         </div>
       </div>
     </div>
@@ -121,6 +122,32 @@ function formatPrice(v) { return Number(v || 0).toLocaleString('vi-VN') + 'đ' }
 .sf-price { font-size: 18px; font-weight: 800; color: var(--color-accent-primary, #6366f1); }
 .sf-price--old { text-decoration: line-through; color: var(--color-text-muted, #94a3b8); font-size: 13px; font-weight: 500; }
 .sf-price--promo { color: var(--color-accent-hot, #ef4444); }
+
+.sf-product-add-btn {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--color-accent-primary, #1b51a3);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.sf-product-card:hover .sf-product-add-btn {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.sf-product-add-btn:hover {
+  background: #004580;
+  filter: brightness(1.1);
+}
 
 /* Tablet */
 @container sf (max-width: 1024px) {

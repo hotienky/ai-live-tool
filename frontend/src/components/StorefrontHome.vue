@@ -18,13 +18,13 @@
     </div>
 
     <!-- Header -->
-    <header class="sf-header" :class="{ 'sf-header--sticky': activeHeaderConfig.sticky !== false }">
+    <header class="sf-header" :class="{ 'sf-header--sticky': activeHeaderConfig.sticky !== false, 'sf-header--branded': !!activeHeaderConfig.bgColor }" :style="activeHeaderConfig.bgColor ? { background: activeHeaderConfig.bgColor, color: activeHeaderConfig.textColor || '#fff', borderBottom: 'none' } : {}">
       <button class="sf-hamburger" @click="mobileMenuOpen = !mobileMenuOpen">
         <Menu :size="20" />
       </button>
       <div class="sf-header__left">
         <Store :size="20" class="sf-header__logo-icon" />
-        <span class="sf-header__name">{{ storeInfo?.shop_name || 'Shop' }}</span>
+        <span class="sf-header__name">{{ storeInfo?.store_name || storeInfo?.shop_name || 'Shop' }}</span>
       </div>
       <!-- Desktop Nav -->
       <nav class="sf-nav sf-nav--desktop" v-if="navLinks.length > 0">
@@ -61,7 +61,7 @@
         <nav class="sf-mobile-nav" @click.stop>
           <div class="sf-mobile-nav__header">
             <Store :size="18" class="sf-header__logo-icon" />
-            <span class="sf-header__name">{{ storeInfo?.shop_name || 'Shop' }}</span>
+            <span class="sf-header__name">{{ storeInfo?.store_name || storeInfo?.shop_name || 'Shop' }}</span>
             <button class="sf-mobile-nav__close" @click="mobileMenuOpen = false"><X :size="18" /></button>
           </div>
           <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-mobile-nav__link" @click="mobileMenuOpen = false">
@@ -99,7 +99,7 @@
         <!-- Pharmacy Hero -->
         <SfPharmacyHeroSection
           v-if="section.type === 'pharmacy_hero'"
-          :config="section.params || {}"
+          :config="{ ...(section.params || {}), _content: section.content || [] }"
           :tablet-config="section.tabletParams || {}"
           :mobile-config="section.mobileParams || {}"
         />
@@ -179,6 +179,36 @@
           :brands="sectionData.brands"
         />
 
+        <!-- Grid / Image Banner Layout -->
+        <div
+          v-else-if="section.type === 'grid'"
+          class="sf-grid-section"
+          :style="{ display: 'grid', gridTemplateColumns: `repeat(${section.params?.columns || 2}, 1fr)`, gap: `${section.params?.gap || 16}px` }"
+        >
+          <template v-for="(item, gi) in (section.content || [])" :key="gi">
+            <a v-if="item.type === 'image_banner'" :href="item.params?.link || '#'" class="sf-grid-banner" style="display: block; border-radius: var(--sf-radius-md, 12px); overflow: hidden;">
+              <img :src="item.params?.desktopImage || ''" :alt="item.params?.title || ''" style="width: 100%; height: auto; display: block;" loading="lazy" />
+            </a>
+          </template>
+        </div>
+
+        <!-- Trust Badges -->
+        <div
+          v-else-if="section.type === 'trust_badges'"
+          class="sf-trust-section"
+          :style="{ background: section.params?.background || '#f8f9fa', padding: '24px', borderRadius: 'var(--sf-radius-lg, 16px)' }"
+        >
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <div v-for="(badge, bi) in (section.content || [])" :key="bi" class="sf-trust-badge" style="display: flex; align-items: center; gap: 12px; padding: 16px; background: #fff; border-radius: var(--sf-radius-md, 12px); box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+              <img v-if="badge.icon" :src="badge.icon" :alt="badge.title" style="width: 40px; height: 40px; object-fit: contain;" />
+              <div>
+                <div style="font-weight: 700; font-size: 14px;">{{ badge.title }}</div>
+                <div style="font-size: 12px; color: #6b7280;">{{ badge.description }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Fallback mocked block for cart, checkout, auth, account, wishlist etc. -->
         <SfMockSection v-else :section="section" :index="idx" />
       </div>
@@ -198,7 +228,7 @@
         </div>
       </div>
       <div class="sf-footer__bottom">
-        <p>{{ activeFooterConfig.copyrightText || `© ${new Date().getFullYear()} ${storeInfo?.shop_name || 'Shop'}. Powered by KAC company` }}</p>
+        <p>{{ activeFooterConfig.copyrightText || `© ${new Date().getFullYear()} ${storeInfo?.store_name || storeInfo?.shop_name || 'Shop'}. Powered by KAC company` }}</p>
       </div>
     </footer>
 
@@ -347,8 +377,19 @@ const enabledSections = computed(() =>
 )
 
 const visibleNavLinks = computed(() => {
-  const max = activeHeaderConfig.value.maxNavLinks || 5
-  return navLinks.value.filter(l => l.is_active !== false).slice(0, max).map(l => resolveConfig(l))
+  // Prioritize Nav Links from Header Config (Dynamic synchronization)
+  const configLinks = activeHeaderConfig.value.navLinks
+  const source = (configLinks && configLinks.length > 0) ? configLinks : (navLinks.value || [])
+  
+  const max = activeHeaderConfig.value.maxNavLinks || 7
+  return source
+    .filter(l => l.is_active !== false)
+    .slice(0, max)
+    .map(l => ({
+      ...l,
+      name: l.name || l.title || '', // Handle both name (config) and title (table)
+      ...resolveConfig(l)
+    }))
 })
 
 // Color derivation logic
@@ -635,6 +676,17 @@ watch(() => props.storeId, bootstrap)
   border-radius: 9px; background: var(--color-accent-hot, #ef4444); color: #fff;
   font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
 }
+
+/* Branded Header (custom bgColor set) */
+.sf-header--branded .sf-header__name { background: none; -webkit-background-clip: initial; background-clip: initial; -webkit-text-fill-color: #fff; color: #fff; }
+.sf-header--branded .sf-header__logo-icon { color: #fff; }
+.sf-header--branded .sf-nav__link { color: rgba(255,255,255,0.9); }
+.sf-header--branded .sf-nav__link:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.sf-header--branded .sf-header__btn { color: #fff; border-color: rgba(255,255,255,0.25); }
+.sf-header--branded .sf-header__btn:hover { border-color: #fff; }
+.sf-header--branded .sf-hamburger { color: #fff; }
+.sf-header--branded .sf-header__search { background: rgba(255,255,255,0.95); }
+.sf-header--branded .sf-lang-select { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.25); }
 
 /* Language Selector */
 .sf-lang-selector { flex-shrink: 0; }

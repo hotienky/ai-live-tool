@@ -1,6 +1,7 @@
 <template>
   <transition name="promo-slide">
-    <div v-if="visible" class="promo-bar" data-vvb-section-id="__promo" data-vvb-global="true" data-section-type="promo-bar">
+    <div v-if="visible" class="promo-bar" data-vvb-section-id="__promo" data-vvb-global="true" data-section-type="promo-bar"
+         :style="promoStyle">
       <div class="promo-bar__content container">
         <span class="promo-bar__text">
           <Sparkles :size="14" />
@@ -9,7 +10,7 @@
         <router-link v-if="promoLink" :to="promoLink" class="promo-bar__cta">
           {{ displayCta }} →
         </router-link>
-        <button class="promo-bar__close" @click="dismiss">
+        <button v-if="isDismissible" class="promo-bar__close" @click="dismiss">
           <X :size="14" />
         </button>
       </div>
@@ -53,6 +54,19 @@ const isEnabled = computed(() => {
 const displayText = computed(() => promoConfig.value.text || props.text || t('storefront.promo.default_text', '🎉 Miễn phí vận chuyển cho đơn từ 500K — Mua ngay!'))
 const displayCta = computed(() => promoConfig.value.ctaText || props.ctaText || t('storefront.promo.shop_now', 'Mua sắm'))
 const promoLink = computed(() => promoConfig.value.link || props.link || '/products')
+
+// Dynamic styles from config
+const promoStyle = computed(() => {
+  const cfg = promoConfig.value
+  const style = {}
+  if (cfg.bgColor) style.background = cfg.bgColor
+  if (cfg.textColor) style.color = cfg.textColor
+  if (cfg.fontSize) style.fontSize = cfg.fontSize
+  return style
+})
+
+// Dismissible: defaults true unless explicitly set false
+const isDismissible = computed(() => promoConfig.value.dismissible !== false)
 
 // Make visible fully reactive to enabled state so it toggles ON/OFF physically inside the Builder without requiring F5
 const visible = computed(() => {

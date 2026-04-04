@@ -239,8 +239,19 @@ function updateTopbarLinks() {
 }
 
 // Nav Links
-const { links: navLinksRaw, fetchLinks: fetchNavLinks, createLink: createNavLink, updateLink: updateNavLink, deleteLink: deleteNavLinkApi } = useNavLinks(apiFetch)
-const navLinks = computed(() => (navLinksRaw.value || []).filter(l => l.group === 'menu' || !l.group).sort((a, b) => (a.sort || 0) - (b.sort || 0)))
+const { links: navLinksRaw, fetchLinks: fetchNavLinks, deleteLink: deleteNavLinkApi } = useNavLinks(apiFetch)
+
+const navLinks = computed(() => {
+  // Synchronize with Header Config (JSON) if it exists, otherwise use global nav items
+  if (props.headerConfig?.navLinks && props.headerConfig.navLinks.length > 0) {
+    return props.headerConfig.navLinks.map((l, i) => ({
+       id: `config-${i}`,
+       ...l,
+       sort: l.sort ?? i
+    }))
+  }
+  return (navLinksRaw.value || []).filter(l => l.group === 'menu' || !l.group).sort((a, b) => (a.sort || 0) - (b.sort || 0))
+})
 const collectionNavLinks = computed(() => (navLinksRaw.value || []).filter(l => l.type === 'collection'))
 
 const showNavLinkModal = ref(false)
@@ -284,20 +295,34 @@ function openEditNavLink(link) {
 }
 async function saveNavLink() {
   if (!navLinkForm.value.name) { showToast(t('admin.msg_c2d389', 'Nhập tên link'), 'error'); return }
-  try {
-    if (navLinkEditing.value) {
-      await updateNavLink(navLinkEditing.value, navLinkForm.value)
-      showToast(t('admin.msg_c0c3aa', 'Đã cập nhật'), 'success')
-    } else {
-      await createNavLink(navLinkForm.value)
-      showToast(t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
-    }
-    showNavLinkModal.value = false
-    fetchNavLinks()
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+
+  // Always save into headerConfig.navLinks (JSON config) — single source of truth
+  const newLinks = [...(config.value?.navLinks || [])]
+  const currentEditId = navLinkEditing.value
+
+  if (currentEditId && String(currentEditId).startsWith('config-')) {
+    const idx = parseInt(String(currentEditId).replace('config-', ''))
+    newLinks[idx] = { ...navLinkForm.value }
+  } else {
+    newLinks.push({ ...navLinkForm.value })
+  }
+
+  config.value = { ...config.value, navLinks: newLinks }
+  showToast(navLinkEditing.value ? t('admin.msg_c0c3aa', 'Đã cập nhật') : t('admin.msg_a3e59f', 'Đã tạo link'), 'success')
+  showNavLinkModal.value = false
 }
+
 async function deleteNavLink(link) {
   if (!confirm(`Xóa link "${link.name}"?`)) return
+  
+  if (config.value?.navLinks && String(link.id).startsWith('config-')) {
+    const idx = parseInt(String(link.id).replace('config-', ''))
+    const newLinks = config.value.navLinks.filter((_, i) => i !== idx)
+    config.value = { ...config.value, navLinks: newLinks }
+    showToast(t('admin.msg_ce5fa6', 'Đã xóa khỏi cấu hình Header'), 'success')
+    return
+  }
+
   await deleteNavLinkApi(link.id)
   fetchNavLinks()
   showToast(t('admin.msg_ce5fa6', 'Đã xóa'), 'success')

@@ -279,7 +279,6 @@ const PRIMITIVE_TYPES = {
   card: 'div',
   row: 'div',
   col: 'div',
-  grid: 'div',
   text: 'p',
   heading: 'h2',
   image: 'img',
@@ -289,7 +288,8 @@ const PRIMITIVE_TYPES = {
   iframe: 'iframe',
   video: 'video'
 }
-const isPrimitiveNode = computed(() => !!PRIMITIVE_TYPES[props.section.type])
+// Only treat as primitive if no component is registered (component registry wins)
+const isPrimitiveNode = computed(() => !!PRIMITIVE_TYPES[props.section.type] && !component.value)
 // === Interpolation Logic ===
 function interpolateContext(str, context) {
   if (!str || typeof str !== 'string' || !context) return str;

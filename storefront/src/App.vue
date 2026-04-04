@@ -1,7 +1,7 @@
 <template>
   <div class="storefront-app" :class="{ 'is-template-preview': isTemplatePreview }">
     <PromoBar v-if="!isTemplatePreview" />
-    <SiteHeader v-if="!isTemplatePreview" :storeName="storeInfo?.shop_name" />
+    <SiteHeader v-if="!isTemplatePreview" :storeName="storeInfo?.store_name || storeInfo?.shop_name" />
     <main class="storefront-main" :class="{ 'storefront-main--preview': isPreviewMode, 'storefront-main--template': isTemplatePreview }">
       <div v-if="!appReady" class="global-loading" style="display:flex;justify-content:center;padding:100px;">
         <div class="loader"></div>
@@ -14,7 +14,7 @@
         </transition>
       </router-view>
     </main>
-    <SiteFooter v-if="!isTemplatePreview" :storeName="storeInfo?.shop_name" />
+    <SiteFooter v-if="!isTemplatePreview" :storeName="storeInfo?.store_name || storeInfo?.shop_name" />
     <SfToastContainer />
     <BackToTop />
     <RouteLoader />
@@ -144,8 +144,9 @@ async function loadSiteConfig() {
 
     // Set SEO from store info
     const info = storeInfo.value
-    if (info?.shop_name) {
-      document.title = info.meta_title || `${info.shop_name} — Cửa hàng trực tuyến`
+    const displayName = info?.store_name || info?.shop_name
+    if (displayName) {
+      document.title = info.meta_title || `${displayName} — Cửa hàng trực tuyến`
       if (info.favicon) {
         let link = document.querySelector("link[rel*='icon']") || document.createElement('link')
         link.type = 'image/x-icon'
@@ -160,7 +161,7 @@ async function loadSiteConfig() {
         document.head.appendChild(meta)
       }
       setOrganizationSeo({
-        name: info.shop_name,
+        name: displayName,
         description: info.description || '',
         logo: info.logo || '',
       })

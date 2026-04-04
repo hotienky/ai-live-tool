@@ -1,16 +1,27 @@
 <template>
-  <!-- Announcement Bar -->
-  <div v-if="headerCfg.showAnnouncement && headerCfg.announcementText" 
-       class="announcement-bar" 
+  <!-- Announcement Bar / Topbar -->
+  <div v-if="headerCfg.showAnnouncement && (headerCfg.announcementText || headerCfg.topbarLinks?.length)"
+       class="announcement-bar"
        :style="{ backgroundColor: headerCfg.announcementBg || 'var(--sf-accent)', color: headerCfg.announcementColor || '#fff' }">
     <div class="container announcement-bar__inner">
-      <router-link v-if="headerCfg.announcementLink?.startsWith('/')" :to="headerCfg.announcementLink" class="announcement-bar__link">
-        {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
-      </router-link>
-      <a v-else-if="headerCfg.announcementLink" :href="headerCfg.announcementLink" class="announcement-bar__link">
-        {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
-      </a>
-      <span v-else>{{ headerCfg.announcementText }}</span>
+      <!-- Announcement text (center) -->
+      <div class="announcement-bar__main">
+        <router-link v-if="headerCfg.announcementLink?.startsWith('/')" :to="headerCfg.announcementLink" class="announcement-bar__link">
+          {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
+        </router-link>
+        <a v-else-if="headerCfg.announcementLink" :href="headerCfg.announcementLink" class="announcement-bar__link">
+          {{ headerCfg.announcementText }} <ArrowRight :size="12" style="margin-left: 4px; vertical-align: middle; display: inline-block;" />
+        </a>
+        <span v-else-if="headerCfg.announcementText">{{ headerCfg.announcementText }}</span>
+      </div>
+      <!-- Topbar utility links (right side) -->
+      <div v-if="headerCfg.topbarLinks?.length" class="announcement-bar__topbar">
+        <template v-for="(lnk, i) in headerCfg.topbarLinks" :key="i">
+          <span v-if="i > 0" class="announcement-bar__sep">|</span>
+          <router-link v-if="lnk.url?.startsWith('/')" :to="lnk.url" class="announcement-bar__topbar-link">{{ lnk.label }}</router-link>
+          <a v-else :href="lnk.url || '#'" class="announcement-bar__topbar-link">{{ lnk.label }}</a>
+        </template>
+      </div>
     </div>
   </div>
 
@@ -324,8 +335,11 @@ const moreOpen = ref(false)
 const moreDropdownRef = ref(null)
 
 const menuLinks = computed(() => {
-  // Prefer provided navLinks from site-config, fallback to locally fetched navLinks
-  let links = providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks.value)
+  // Priority: headerConfig.navLinks (configured in CMS) > provided navLinks (nav_links table) > locally fetched > fallback
+  const configNavLinks = providedHeaderConfig.value?.navLinks
+  let links = (configNavLinks && configNavLinks.length > 0)
+    ? configNavLinks.map((l, i) => ({ id: l.id || `cfg-${i}`, sort: l.sort ?? i, ...l }))
+    : (providedNavLinks.value?.length > 0 ? providedNavLinks.value : (navLinks.value.length > 0 ? navLinks.value : fallbackLinks.value))
   // URLs that belong to specific modules
   const ecomUrls = ['/products', '/product/', '/category/', '/cart', '/checkout', '/order-tracking', '/search', '/categories', '/brands', '/wishlist', '/promotions']
   const blogUrls = ['/blog']
@@ -828,20 +842,52 @@ onBeforeUnmount(() => document.removeEventListener('click', onClickOutside))
 
 /* Announcement Bar */
 .announcement-bar {
-  padding: 8px 16px;
-  text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.2px;
   z-index: 100;
   position: relative;
+}
+.announcement-bar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 16px;
+  position: relative;
+}
+.announcement-bar__main {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
 }
 .announcement-bar__link {
   color: inherit;
   text-decoration: none;
   transition: opacity 0.2s;
 }
-.announcement-bar__link:hover {
-  opacity: 0.8;
+.announcement-bar__link:hover { opacity: 0.8; }
+.announcement-bar__topbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  font-size: 11px;
+  opacity: 0.85;
+}
+.announcement-bar__topbar-link {
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.announcement-bar__topbar-link:hover { opacity: 1; text-decoration: underline; }
+.announcement-bar__sep {
+  opacity: 0.4;
+  font-size: 10px;
+}
+@media (max-width: 768px) {
+  .announcement-bar__topbar { display: none; }
+  .announcement-bar__main { text-align: center; }
 }
 </style>
