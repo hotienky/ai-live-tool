@@ -1,7 +1,7 @@
 <template>
   <div class="layout-navigator">
     <div v-if="!sections || sections.length === 0" class="ln-empty">
-      Chưa có thành phần nào trên trang.
+      {{ t('admin.msg_no_components_on_page', 'Chưa có thành phần nào trên trang.') }}
     </div>
     <div class="ln-tree">
       <LayoutNavigatorNode 
@@ -19,6 +19,9 @@
 <script setup>
 import { provide } from 'vue'
 import LayoutNavigatorNode from './LayoutNavigatorNode.vue'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   sections: { type: Array, required: true },

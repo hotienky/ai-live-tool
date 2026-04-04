@@ -3,29 +3,32 @@
     <!-- TABS Navigation -->
     <div class="sf-config-tabs">
       <button :class="{ active: currentTab === 'content' }" @click="currentTab = 'content'">
-        <LayoutList :size="14" /> Nội dung
+        <LayoutList :size="14" /> {{ t('admin.msg_content', 'Nội dung') }}
       </button>
       <button :class="{ active: currentTab === 'style' }" @click="currentTab = 'style'">
-        <Palette :size="14" /> Giao diện
+        <Palette :size="14" /> {{ t('admin.theme_settings', 'Giao diện') }}
       </button>
       <button :class="{ active: currentTab === 'advanced' }" @click="currentTab = 'advanced'">
-        <Settings2 :size="14" /> Nâng cao
+        <Settings2 :size="14" /> {{ t('admin.msg_advanced_settings', 'Nâng cao') }}
       </button>
     </div>
     
     <div class="sf-device-indicator" v-if="currentDevice !== 'desktop'">
       <component :is="currentDevice === 'mobile' ? 'Smartphone' : 'Tablet'" :size="14" />
-      <span>Đang cấu hình giao diện {{ currentDevice === 'mobile' ? 'Mobile' : 'Tablet' }}</span>
+      <span v-html="t('admin.msg_configuring_device', 'Đang cấu hình giao diện ').replace('{device}', currentDevice === 'mobile' ? 'Mobile' : 'Tablet')"></span>
     </div>
 
     <!-- TABS Body -->
     <div class="sf-config-body">
       <!-- ===== TAB: CONTENT ===== -->
       <div v-show="currentTab === 'content'" class="sf-tab-content">
+        <div v-if="isTranslationMissing" class="translation-missing-banner">
+          <AlertTriangle :size="14" /> {{ t('admin.msg_missing_translation_banner', 'Bản dịch cho ngôn ngữ hiện tại đang bị trống. Hãy điền nội dung bên dưới hoặc bấm nút "Dịch tự động".') }}
+        </div>
         <template v-if="isPrimitiveNode">
           <AdvancedStylePanel :section="section" mode="content" />
           <div v-if="['container', 'grid', 'card', 'row', 'col'].includes(section.type)" class="param-row" style="flex-direction:column; margin-top:16px;">
-            <label>Thành phần con (Elements)</label>
+            <label>{{ t('admin.msg_child_elements', 'Thành phần con (Elements)') }}</label>
             <div class="sub-elements-box" style="border: 1px dashed var(--border-color, rgba(255,255,255,0.2)); border-radius: 4px; padding: 4px; min-height: 50px;">
               <slot name="children-editor" :section="section"></slot>
             </div>
@@ -37,11 +40,11 @@
         <div v-if="dataSourceLink" class="data-source-link">
       <div class="data-source-link__info">
         <Database :size="13" />
-        <span>Dữ liệu lấy từ <strong>{{ dataSourceLink.label }}</strong></span>
+        <span v-html="t('admin.msg_data_sourced_from', 'Dữ liệu lấy từ <strong>{source}</strong>').replace('{source}', dataSourceLink.label)"></span>
       </div>
       <button class="data-source-link__btn" @click="$emit('navigate-tab', dataSourceLink.tab)">
         <ExternalLink :size="12" />
-        Quản lý {{ dataSourceLink.label }}
+        {{ t('admin.msg_manage', 'Quản lý') }} {{ dataSourceLink.label }}
       </button>
     </div>
     <!-- Visual Template Picker -->
@@ -97,7 +100,7 @@
                 <option value="" disabled selected>-- Chọn Form --</option>
                 <option v-for="f in availableForms" :key="f.id" :value="f.id">{{ f.title || f.id }}</option>
               </select>
-              <button v-if="!availableForms.length" class="btn-save" style="margin-top:4px; font-size:10px" @click.prevent="alert('Chưa có Form nào. Hãy đến Tab Quản lý Biểu mẫu ở CMS để tạo mới.')">Chưa có form</button>
+              <button v-if="!availableForms.length" class="btn-save" style="margin-top:4px; font-size:10px" @click.prevent="alert(t('admin.msg_no_form_alert', 'Chưa có Form nào. Hãy đến Tab Quản lý Biểu mẫu ở CMS để tạo mới.'))">{{ t('admin.msg_no_form', 'Chưa có form') }}</button>
             </template>
 
             <template v-else-if="field.type === 'visualEditor'">
@@ -152,20 +155,20 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <small style="color:#888;font-size:11px">Bỏ chọn tất cả = hiện tất cả</small>
+            <small style="color:#888;font-size:11px">{{ t('admin.msg_uncheck_all_show_all', 'Bỏ chọn tất cả = hiện tất cả') }}</small>
           </div>
 
           <!-- RichText -->
           <div class="content-editor" v-if="field.type === 'richtext'">
             <label class="content-editor__label">{{ field.label }}</label>
-            <RichTextEditor :modelValue="getTextBlockContent()" @update:modelValue="setTextBlockContent($event)" placeholder="Nhập nội dung..." />
+            <RichTextEditor :modelValue="getTextBlockContent()" @update:modelValue="setTextBlockContent($event)" :placeholder="t('admin.msg_enter_content', 'Nhập nội dung...')" />
           </div>
 
           <!-- Nested Children grid component slot injection -->
           <div class="content-editor nested-container" v-if="field.type === 'children'" style="padding: 8px; background: rgba(0,0,0,0.02); border: 1px dashed var(--glass-border); border-radius: 8px; margin-top: 12px;">
             <label class="content-editor__label" style="display:flex; justify-content: space-between; align-items:center;">
               <span>{{ field.label }}</span>
-              <span style="font-size: 10px; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px;">Khu vực kéo thả</span>
+              <span style="font-size: 10px; background: var(--accent-color); color: white; padding: 2px 6px; border-radius: 4px;">{{ t('admin.msg_drag_drop_area', 'Kéo thả phần tử') }}</span>
             </label>
             <slot name="children-editor" :field="field" :section="section"></slot>
           </div>
@@ -209,7 +212,7 @@
 
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
-import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink } from 'lucide-vue-next'
+import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink, AlertTriangle } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { useForms } from '../../composables/useForms.js'
@@ -232,6 +235,24 @@ const props = defineProps({
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
 
 const currentTab = ref('content')
+
+const isTranslationMissing = computed(() => {
+  if (props.currentLang === props.defaultLangCode) return false;
+  const trans = props.section.translations?.[props.currentLang];
+  if (!trans) return true;
+
+  let hasAnyNonEmpty = false;
+  if (trans.params && Object.keys(trans.params).length > 0) {
+    for (const key in trans.params) {
+      if (typeof trans.params[key] === 'string' && trans.params[key].trim() !== '') hasAnyNonEmpty = true;
+    }
+  }
+  if (trans.content) {
+    if (Array.isArray(trans.content) && trans.content.length > 0) hasAnyNonEmpty = true;
+    else if (typeof trans.content === 'string' && trans.content.trim() !== '') hasAnyNonEmpty = true;
+  }
+  return !hasAnyNonEmpty;
+});
 
 // Map section types to their external management tabs
 const dataSourceMap = {
@@ -708,4 +729,12 @@ async function autoTranslateSection() {
   border-radius: 6px; font-size: 11px; font-weight: 700; margin-bottom: 12px;
   border: 1px dashed rgba(245, 158, 11, 0.3);
 }
+
+.translation-missing-banner {
+  background: #fffbeb; border: 1px solid #fef3c7; border-left: 3px solid #f59e0b;
+  color: #b45309; padding: 10px 12px; margin-bottom: 16px; border-radius: 4px;
+  font-size: 13px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;
+}
+.translation-missing-banner svg { color: #f59e0b; flex-shrink: 0; margin-top: 2px; }
+
 </style>

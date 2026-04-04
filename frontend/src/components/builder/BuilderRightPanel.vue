@@ -5,13 +5,13 @@
   <!-- RIGHT PANEL (Properties) -->
   <div class="cpb-right" :class="{ 'cpb-right--open': activeConfig }">
     <div v-if="activeConfig && activeConfig !== 'library'" class="cpb-prop-header" style="justify-content: flex-start; gap: 12px;">
-      <button class="cpb-btn-secondary" @click="$emit('update:activeConfig', 'library')" title="Quay lại Kho Layout" style="padding: 6px; border: none; background: var(--bg-2)"><ChevronLeft :size="16"/></button>
+      <button class="cpb-btn-secondary" @click="$emit('update:activeConfig', 'library')" :title="t('admin.msg_back_to_library', 'Quay lại Kho Layout')" style="padding: 6px; border: none; background: var(--bg-2)"><ChevronLeft :size="16"/></button>
       <h4 style="margin: 0; font-size: 14px; font-weight: 600; flex: 1;">{{ rightPanelTitle }}</h4>
-      <button class="cpb-btn-secondary" @click="$emit('update:activeConfig', null)" title="Đóng" style="padding: 6px; border: none;"><X :size="16"/></button>
+      <button class="cpb-btn-secondary" @click="$emit('update:activeConfig', null)" :title="t('admin.msg_close', 'Đóng')" style="padding: 6px; border: none;"><X :size="16"/></button>
     </div>
     <div v-else-if="activeConfig === 'library'" class="cpb-prop-header">
-      <h4>Kho Giao Diện</h4>
-      <button @click="$emit('update:activeConfig', null)" title="Đóng"><X :size="16"/></button>
+      <h4>{{ t('admin.msg_layout_library', 'Kho Giao Diện') }}</h4>
+      <button @click="$emit('update:activeConfig', null)" :title="t('admin.msg_close', 'Đóng')"><X :size="16"/></button>
     </div>
 
     <div class="cpb-prop-body scroll-y" style="padding: 16px;">
@@ -42,8 +42,8 @@
         <SectionConfigEditor
           :section="activeSectionObj"
           :all-categories="allCategories"
-          :current-lang="'vi'"
-          :default-lang-code="'vi'"
+          :current-lang="injectedLang || 'vi'"
+          :default-lang-code="injectedDefaultLang || 'vi'"
           @open-block-editor="s => $emit('open-block-editor', s)"
           @navigate-tab="tab => { $emit('update:activeConfig', null); $emit('navigate-tab', tab) }"
         />
@@ -54,12 +54,18 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
 import { X, ChevronLeft } from 'lucide-vue-next'
 import LayoutHeaderConfig from '../storefront/LayoutHeaderConfig.vue'
 import LayoutFooterConfig from '../storefront/LayoutFooterConfig.vue'
 import SectionConfigEditor from '../storefront/SectionConfigEditor.vue'
 import BuilderPromoConfig from './BuilderPromoConfig.vue'
 import BuilderLibraryPanel from './BuilderLibraryPanel.vue'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
+const injectedLang = inject('currentLang')
+const injectedDefaultLang = inject('defaultLangCode')
 
 defineProps({
   activeConfig: { default: null },

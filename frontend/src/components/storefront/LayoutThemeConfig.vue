@@ -9,7 +9,7 @@
 
       <!-- Preset Palettes -->
       <div class="theme-presets">
-        <label class="theme-presets__label">Bảng màu nhanh</label>
+        <label class="theme-presets__label">{{ t('admin.msg_quick_palette', 'Bảng màu nhanh') }}</label>
         <div class="theme-presets__grid">
           <button 
             v-for="(preset, pi) in presets" :key="pi" class="theme-preset-btn"
@@ -30,7 +30,7 @@
       
       <!-- Primary Color -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Màu chủ đạo (Primary)</label>
+        <label>{{ t('admin.msg_primary_color', 'Màu chủ đạo (Primary)') }}</label>
         <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.primaryColor" class="param-color" />
           <input type="text" v-model="theme.primaryColor" class="param-input param-input--sm" style="flex:1" />
@@ -39,7 +39,7 @@
 
       <!-- Accent Color -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Màu nhấn (Secondary/Action)</label>
+        <label>{{ t('admin.msg_accent_color', 'Màu nhấn (Secondary/Action)') }}</label>
         <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.accentColor" class="param-color" />
           <input type="text" v-model="theme.accentColor" class="param-input param-input--sm" style="flex:1" />
@@ -48,7 +48,7 @@
 
       <!-- Background -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Màu nền trang</label>
+        <label>{{ t('admin.msg_page_bg_color', 'Màu nền trang') }}</label>
         <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.backgroundColor" class="param-color" />
           <input type="text" v-model="theme.backgroundColor" class="param-input param-input--sm" style="flex:1" />
@@ -57,7 +57,7 @@
 
       <!-- Text Color -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Màu chữ chính</label>
+        <label>{{ t('admin.msg_main_text_color', 'Màu chữ chính') }}</label>
         <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.textColor" class="param-color" />
           <input type="text" v-model="theme.textColor" class="param-input param-input--sm" style="flex:1" />
@@ -68,9 +68,9 @@
 
       <!-- Typography -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Phông chữ chính (Body)</label>
+        <label>{{ t('admin.msg_body_font', 'Phông chữ chính (Body)') }}</label>
         <select v-model="theme.fontFamily" class="param-select" style="max-width:100%">
-          <option value="'Inter', sans-serif">Inter (Mặc định)</option>
+          <option value="'Inter', sans-serif">Inter ({{ t('admin.msg_default', 'Mặc định') }})</option>
           <option value="'Roboto', sans-serif">Roboto</option>
           <option value="'Montserrat', sans-serif">Montserrat</option>
           <option value="'Open Sans', sans-serif">Open Sans</option>
@@ -81,15 +81,15 @@
           <option value="'DM Sans', sans-serif">DM Sans</option>
           <option value="system-ui, sans-serif">System UI</option>
         </select>
-        <span class="font-preview" :style="{ fontFamily: theme.fontFamily }" style="text-align: left; margin-top:2px">Xin chào 123</span>
+        <span class="font-preview" :style="{ fontFamily: theme.fontFamily }" style="text-align: left; margin-top:2px">{{ t('admin.msg_hello_123', 'Xin chào 123') }}</span>
       </div>
 
       <!-- Heading Font -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Phông tiêu đề (Heading)</label>
+        <label>{{ t('admin.msg_heading_font', 'Phông tiêu đề (Heading)') }}</label>
         <select v-model="theme.headingFontFamily" class="param-select" style="max-width:100%">
-          <option value="">Giống phông chính</option>
-          <option value="'Playfair Display', serif">Playfair Display (Sang trọng)</option>
+          <option value="">{{ t('admin.msg_same_as_body_font', 'Giống phông chính') }}</option>
+          <option value="'Playfair Display', serif">Playfair Display ({{ t('admin.msg_elegant', 'Sang trọng') }})</option>
           <option value="'Montserrat', sans-serif">Montserrat</option>
           <option value="'Poppins', sans-serif">Poppins</option>
           <option value="'Outfit', sans-serif">Outfit</option>
@@ -102,14 +102,14 @@
 
       <!-- Border Radius -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Bo góc nút/thẻ (Border Radius)</label>
+        <label>{{ t('admin.msg_border_radius', 'Bo góc nút/thẻ (Border Radius)') }}</label>
         <select v-model="theme.borderRadius" class="param-select">
-          <option value="0px">Vuông (0px)</option>
-          <option value="4px">Nhẹ (4px)</option>
-          <option value="8px">Vừa (8px)</option>
-          <option value="12px">Mềm (12px)</option>
-          <option value="16px">Tròn lớn (16px)</option>
-          <option value="99px">Tròn khuyết (Pill)</option>
+          <option value="0px">{{ t('admin.msg_square', 'Vuông') }} (0px)</option>
+          <option value="4px">{{ t('admin.msg_slight_round', 'Nhẹ') }} (4px)</option>
+          <option value="8px">{{ t('admin.msg_medium_round', 'Vừa') }} (8px)</option>
+          <option value="12px">{{ t('admin.msg_soft_round', 'Mềm') }} (12px)</option>
+          <option value="16px">{{ t('admin.msg_large_round', 'Tròn lớn') }} (16px)</option>
+          <option value="99px">{{ t('admin.msg_pill_round', 'Tròn khuyết (Pill)') }}</option>
         </select>
       </div>
 
@@ -117,24 +117,24 @@
 
       <!-- Container Width -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Chiều rộng nội dung (max-width)</label>
+        <label>{{ t('admin.msg_container_width', 'Chiều rộng nội dung (max-width)') }}</label>
         <select v-model="theme.containerWidth" class="param-select">
-          <option value="960px">Hẹp (960px)</option>
-          <option value="1080px">Vừa (1080px)</option>
-          <option value="1200px">Tiêu chuẩn (1200px)</option>
-          <option value="1320px">Rộng (1320px)</option>
-          <option value="1440px">Siêu rộng (1440px)</option>
-          <option value="100%">Toàn trang (100%)</option>
+          <option value="960px">{{ t('admin.msg_narrow', 'Hẹp') }} (960px)</option>
+          <option value="1080px">{{ t('admin.msg_medium', 'Vừa') }} (1080px)</option>
+          <option value="1200px">{{ t('admin.msg_standard', 'Tiêu chuẩn') }} (1200px)</option>
+          <option value="1320px">{{ t('admin.msg_wide', 'Rộng') }} (1320px)</option>
+          <option value="1440px">{{ t('admin.msg_extra_wide', 'Siêu rộng') }} (1440px)</option>
+          <option value="100%">{{ t('admin.msg_full_width', 'Toàn trang') }} (100%)</option>
         </select>
       </div>
 
       <!-- Button Style -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Kiểu nút (Button Style)</label>
+        <label>{{ t('admin.msg_button_style', 'Kiểu nút (Button Style)') }}</label>
         <select v-model="theme.buttonStyle" class="param-select">
-          <option value="solid">Filled (Đặc)</option>
-          <option value="outline">Outline (Viền)</option>
-          <option value="ghost">Ghost (Trong suốt)</option>
+          <option value="solid">Filled ({{ t('admin.msg_solid', 'Đặc') }})</option>
+          <option value="outline">Outline ({{ t('admin.msg_outline', 'Viền') }})</option>
+          <option value="ghost">Ghost ({{ t('admin.msg_transparent', 'Trong suốt') }})</option>
           <option value="gradient">Gradient</option>
         </select>
       </div>
@@ -143,12 +143,12 @@
 
       <!-- Spacing Scale -->
       <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-        <label>Mật độ khoảng cách (Spacing)</label>
+        <label>{{ t('admin.msg_spacing_density', 'Mật độ khoảng cách (Spacing)') }}</label>
         <select v-model="theme.spacingScale" class="param-select">
-          <option value="compact">Chặt (Compact)</option>
-          <option value="normal">Chuẩn (Normal)</option>
-          <option value="relaxed">Thoáng (Relaxed)</option>
-          <option value="spacious">Rộng rãi (Spacious)</option>
+          <option value="compact">{{ t('admin.msg_compact', 'Chặt') }} (Compact)</option>
+          <option value="normal">{{ t('admin.msg_normal', 'Chuẩn') }} (Normal)</option>
+          <option value="relaxed">{{ t('admin.msg_relaxed', 'Thoáng') }} (Relaxed)</option>
+          <option value="spacious">{{ t('admin.msg_spacious', 'Rộng rãi') }} (Spacious)</option>
         </select>
       </div>
       

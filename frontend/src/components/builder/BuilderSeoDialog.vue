@@ -2,8 +2,8 @@
   <div v-if="modelValue" class="media-modal-overlay" @click.self="$emit('update:modelValue', false)">
     <div class="media-modal" style="width: 500px; border-radius: 12px;">
       <div class="media-modal-header">
-        <h3><Globe :size="16" /> Cài đặt SEO ({{ activePageLabel }})</h3>
-        <button @click="$emit('update:modelValue', false)" title="Đóng"><X :size="20" /></button>
+        <h3><Globe :size="16" /> {{ t('admin.msg_seo_settings', 'Cài đặt SEO') }} ({{ activePageLabel }})</h3>
+        <button @click="$emit('update:modelValue', false)" :title="t('admin.msg_close', 'Đóng')"><X :size="20" /></button>
       </div>
       
       <div style="padding: 12px 20px 0 20px;">
@@ -17,25 +17,25 @@
 
       <div style="padding: 20px; max-height: 55vh; overflow-y: auto;">
         <div class="nm-form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 13px; font-weight: 600;">Tiêu đề trang (Meta Title) <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
-          <input v-model="activeFields.meta_title" class="param-input" placeholder="VD: Khuyến mãi Mùa Hè - Cửa hàng ABC" />
+          <label style="font-size: 13px; font-weight: 600;">{{ t('admin.msg_meta_title', 'Tiêu đề trang (Meta Title)') }} <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
+          <input v-model="activeFields.meta_title" class="param-input" :placeholder="t('admin.msg_meta_title_placeholder', 'VD: Khuyến mãi Mùa Hè - Cửa hàng ABC')" />
         </div>
         <div class="nm-form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 13px; font-weight: 600;">Mô tả trang (Meta Description) <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
-          <textarea v-model="activeFields.meta_description" class="param-input" rows="3" placeholder="Mô tả tóm tắt nội dung..."></textarea>
+          <label style="font-size: 13px; font-weight: 600;">{{ t('admin.msg_meta_description', 'Mô tả trang (Meta Description)') }} <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
+          <textarea v-model="activeFields.meta_description" class="param-input" rows="3" :placeholder="t('admin.msg_meta_description_placeholder', 'Mô tả tóm tắt nội dung...')"></textarea>
         </div>
         <div class="nm-form-group" style="margin-bottom: 12px;">
-          <label style="font-size: 13px; font-weight: 600;">Ảnh chia sẻ mạng xã hội (OG Image) <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
-          <input v-model="activeFields.og_image" class="param-input" placeholder="URL hình ảnh hiển thị khi share..." />
+          <label style="font-size: 13px; font-weight: 600;">{{ t('admin.msg_og_image', 'Ảnh chia sẻ mạng xã hội (OG Image)') }} <span style="color:#94a3b8; font-weight: 400; font-size: 11px;">{{ activeLang }}</span></label>
+          <input v-model="activeFields.og_image" class="param-input" :placeholder="t('admin.msg_og_image_placeholder', 'URL hình ảnh hiển thị khi share...')" />
         </div>
         
         <div v-show="isDefaultLang">
           <div class="nm-form-row">
           <div class="nm-form-group" style="flex: 1; margin-bottom: 12px;">
-            <label style="font-size: 13px; font-weight: 600;">Được phép index (Robots)</label>
+            <label style="font-size: 13px; font-weight: 600;">{{ t('admin.msg_robots_index', 'Được phép index (Robots)') }}</label>
             <select v-model="seoConfig.robots" class="param-input">
-              <option value="index, follow">Cho phép Index (Mặc định)</option>
-              <option value="noindex, nofollow">Không cho phép (Noindex)</option>
+              <option value="index, follow">{{ t('admin.msg_allow_index', 'Cho phép Index (Mặc định)') }}</option>
+              <option value="noindex, nofollow">{{ t('admin.msg_noindex', 'Không cho phép (Noindex)') }}</option>
             </select>
           </div>
         </div>
@@ -46,7 +46,7 @@
         </div>
       </div>
       <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
-        <button class="cpb-btn-save" @click="$emit('save')">Áp dụng</button>
+        <button class="cpb-btn-save" @click="$emit('save')">{{ t('admin.msg_apply', 'Áp dụng') }}</button>
       </div>
     </div>
   </div>
@@ -57,7 +57,9 @@ import { Globe, X } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 import LanguageTabs from '../LanguageTabs.vue'
 import { useLanguages } from '../../composables/useLanguages.js'
+import { useI18n } from '../../composables/useI18n.js'
 
+const { t } = useI18n()
 const { defaultLangCode } = useLanguages()
 
 const props = defineProps({

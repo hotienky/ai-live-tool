@@ -7,7 +7,7 @@
     </div>
     <!-- Removed primitive palette, retaining only the actual page layout section manager and saved custom blocks -->
     <div class="element-palette-saved" v-if="savedCustomBlocks.length > 0">
-      <div class="eps-title"><FolderOpen :size="12" /> Mẫu Của Tôi</div>
+      <div class="eps-title"><FolderOpen :size="12" /> {{ t('admin.msg_my_templates', 'Mẫu Của Tôi') }}</div>
       <div class="element-palette">
         <div 
           v-for="(b, bIndex) in savedCustomBlocks" 
@@ -19,7 +19,7 @@
         >
           <Box :size="20" class="ep-icon" />
           <span class="ep-item-name-saved">{{ b.name }}</span>
-          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" title="Xoá mẫu"><Trash2 :size="12"/></button>
+          <button class="btn-icon-soft" @click.stop="removeSavedBlock(bIndex)" :title="t('admin.msg_delete_template', 'Xoá mẫu')"><Trash2 :size="12"/></button>
         </div>
       </div>
     </div>
@@ -27,7 +27,7 @@
     <!-- Quick Search -->
     <div class="section-search" v-if="list.length > 0">
       <Search class="section-search__icon" :size="14" />
-      <input type="text" v-model="searchQuery" placeholder="Tìm kiếm section..." class="section-search__input" />
+      <input type="text" v-model="searchQuery" :placeholder="t('admin.msg_search_section', 'Tìm kiếm section...')" class="section-search__input" />
       <button v-if="searchQuery" class="section-search__clear" @click="searchQuery = ''"><X :size="12" /></button>
     </div>
 
@@ -65,48 +65,54 @@
             <component v-if="sectionMeta[section.type]?.icon" :is="sectionMeta[section.type].icon" :size="14" />
             <Box v-else :size="14" />
           </span>
-          <span 
-            v-if="renamingIndex !== idx" 
-            class="section-item__name"
-            @dblclick.stop="startRename(idx, section)"
-            title="Nhấp đúp để đổi tên"
-          >
-            {{ section.customName || sectionMeta[section.type]?.label || section.type }}
-          </span>
-          <input 
-            v-else
-            v-model="renameValue"
-            class="section-item__rename-input"
-            @blur="finishRename(section, idx)"
-            @keyup.enter="finishRename(section, idx)"
-            @keyup.esc="cancelRename"
-            @click.stop
-          />
+          <div style="flex:1; display:flex; align-items:center; gap: 6px; overflow:hidden;">
+            <span 
+              v-if="renamingIndex !== idx" 
+              class="section-item__name"
+              @dblclick.stop="startRename(idx, section)"
+              :title="t('admin.msg_double_click_rename', 'Nhấp đúp để đổi tên')"
+            >
+              {{ section.customName || sectionMeta[section.type]?.label || section.type }}
+            </span>
+            <!-- Missing Translation Indicator -->
+            <span v-if="isTranslationMissing(section) && renamingIndex !== idx" class="translation-warning-indicator" :title="t('admin.msg_missing_translation_warn', 'Section này chưa được dịch hoàn chỉnh sang ngôn ngữ hiện hành')">
+              <AlertTriangle :size="12" />
+            </span>
+            <input 
+              v-if="renamingIndex === idx"
+              v-model="renameValue"
+              class="section-item__rename-input"
+              @blur="finishRename(section, idx)"
+              @keyup.enter="finishRename(section, idx)"
+              @keyup.esc="cancelRename"
+              @click.stop
+            />
+          </div>
         </div>
         <div class="section-item__right">
           <div class="section-actions-hover">
             <button
               class="btn-action btn-action--style"
               @click.stop="openSectionConfig(section)"
-              data-tooltip="Tùy chỉnh"
+              :data-tooltip="t('admin.customize', 'Tùy chỉnh')"
             ><Settings2 :size="14" /></button>
             <button
               class="btn-action btn-action--dup"
               @click.stop="duplicateSection(idx)"
-              data-tooltip="Nhân đôi"
+              :data-tooltip="t('admin.duplicate', 'Nhân đôi')"
             ><Copy :size="13" /></button>
             <button
               class="btn-action btn-action--del"
               @click.stop="deleteSection(idx)"
-              data-tooltip="Xoá section"
+              :data-tooltip="t('admin.msg_delete_section', 'Xoá section')"
             ><Trash2 :size="13" /></button>
           </div>
           <!-- Move Up/Down -->
           <div class="section-move-btns">
-            <button class="btn-move" :disabled="idx === 0" @click.stop="moveSection(idx, -1)" title="Di chuyển lên"><ChevronUp :size="12" /></button>
-            <button class="btn-move" :disabled="idx === list.length - 1" @click.stop="moveSection(idx, 1)" title="Di chuyển xuống"><ChevronDown :size="12" /></button>
+            <button class="btn-move" :disabled="idx === 0" @click.stop="moveSection(idx, -1)" :title="t('admin.msg_move_up', 'Di chuyển lên')"><ChevronUp :size="12" /></button>
+            <button class="btn-move" :disabled="idx === list.length - 1" @click.stop="moveSection(idx, 1)" :title="t('admin.msg_move_down', 'Di chuyển xuống')"><ChevronDown :size="12" /></button>
           </div>
-          <label class="toggle-switch" data-tooltip="Hiển thị" @click.stop>
+          <label class="toggle-switch" :data-tooltip="t('admin.visibility', 'Hiển thị')" @click.stop>
             <input type="checkbox" v-model="section.enabled" />
             <span class="toggle-slider"></span>
           </label>
@@ -120,14 +126,14 @@
     <Teleport to="body">
       <div v-if="contextMenuVisible" class="context-menu-wrapper" :style="{ left: contextMenuPos.x + 'px', top: contextMenuPos.y + 'px' }" @click.stop>
         <ul class="context-menu">
-          <li @click="cmAction('settings')"><Settings2 :size="14" /> Tuỳ chỉnh</li>
-          <li @click="cmAction('duplicate')"><Copy :size="14" /> Nhân đôi</li>
-          <li @click="cmAction('saveAsBlock')"><FolderPlus :size="14" /> Lưu thành Mẫu</li>
+          <li @click="cmAction('settings')"><Settings2 :size="14" /> {{ t('admin.customize', 'Tuỳ chỉnh') }}</li>
+          <li @click="cmAction('duplicate')"><Copy :size="14" /> {{ t('admin.duplicate', 'Nhân đôi') }}</li>
+          <li @click="cmAction('saveAsBlock')"><FolderPlus :size="14" /> {{ t('admin.msg_save_as_template', 'Lưu thành Mẫu') }}</li>
           <li class="cm-divider"></li>
           <li @click="cmAction('copyStyle')"><ClipboardCopy :size="14" /> Copy Style</li>
           <li @click="cmAction('pasteStyle')" :class="{ disabled: !hasCopiedStyle }"><ClipboardPaste :size="14" /> Paste Style</li>
           <li class="cm-divider"></li>
-          <li @click="cmAction('delete')" class="cm-danger"><Trash2 :size="14" /> Xoá</li>
+          <li @click="cmAction('delete')" class="cm-danger"><Trash2 :size="14" /> {{ t('admin.delete', 'Xoá') }}</li>
         </ul>
       </div>
     </Teleport>
@@ -135,15 +141,15 @@
     <!-- Empty State -->
     <div v-if="list.length === 0" class="section-empty-state">
       <Box :size="32" style="color: #94a3b8" />
-      <p class="section-empty-state__title">Chưa có section nào</p>
-      <p class="section-empty-state__desc">Nhấn <strong>+ Thêm Section</strong> hoặc kéo thả elements từ palette ở trên để bắt đầu.</p>
+      <p class="section-empty-state__title">{{ t('admin.msg_no_sections', 'Chưa có section nào') }}</p>
+      <p class="section-empty-state__desc" v-html="t('admin.msg_add_section_hint', 'Nhấn <strong>+ Thêm Section</strong> hoặc kéo thả elements từ palette ở trên để bắt đầu.')"></p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
-import { GripVertical, Settings2, Trash2, Box, ChevronLeft, ChevronUp, ChevronDown, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X } from 'lucide-vue-next'
+import { ref, computed, watch, nextTick, inject } from 'vue'
+import { GripVertical, Settings2, Trash2, Box, ChevronLeft, ChevronUp, ChevronDown, Copy, ClipboardCopy, ClipboardPaste, FolderPlus, FolderOpen, Type, AlignLeft, Image as ImageIcon, MousePointerClick, Link2, Minus, Frame, Video, List, LayoutGrid, Square, Search, X, AlertTriangle } from 'lucide-vue-next'
 
 // Removed primitiveElements array
 import { useI18n } from '../../composables/useI18n.js'
@@ -160,7 +166,37 @@ const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
 import { onMounted, onBeforeUnmount } from 'vue'
 
 loadLangs()
-const currentLang = ref(defaultLangCode.value)
+const injectedLang = inject('currentLang')
+const currentLang = ref(injectedLang ? injectedLang.value : defaultLangCode.value)
+if (injectedLang) {
+  watch(injectedLang, val => currentLang.value = val)
+}
+
+function isTranslationMissing(section) {
+  if (!currentLang.value || currentLang.value === defaultLangCode.value) return false
+  const trans = section.translations?.[currentLang.value]
+  if (!trans) return true // Không có translation object
+
+  // Helper check: if trans object has keys but all empty values
+  let hasAnyNonEmpty = false
+  if (trans.params && Object.keys(trans.params).length > 0) {
+    for (const key in trans.params) {
+      if (typeof trans.params[key] === 'string' && trans.params[key].trim() !== '') hasAnyNonEmpty = true
+    }
+  }
+  
+  if (trans.content) {
+    if (Array.isArray(trans.content) && trans.content.length > 0) hasAnyNonEmpty = true
+    else if (typeof trans.content === 'string' && trans.content.trim() !== '') hasAnyNonEmpty = true
+  }
+
+  // If both params and content exist but all are completely empty, consider it missing.
+  // Actually, if it's explicitly created but left empty, we might warn.
+  // For simplicity, we just check if it has any non-empty string.
+  // (If a section simply has no text to translate, e.g. an empty divider, trans might be empty naturally. 
+  // We can skip warning if default params are also empty strings.)
+  return !hasAnyNonEmpty
+}
 
 // Context Menu State
 const contextMenuVisible = ref(false)
@@ -294,7 +330,7 @@ const dragNewSavedBlock = ref(null)
 const savedCustomBlocks = ref(JSON.parse(localStorage.getItem('sf_saved_blocks') || '[]'))
 
 function saveAsBlock(section) {
-  const name = prompt('Đặt tên cho Mẫu (Block) này:', 'Custom ' + section.type)
+  const name = prompt(t('admin.msg_name_template', 'Đặt tên cho Mẫu (Block) này:'), 'Custom ' + section.type)
   if (!name) return
   const clone = JSON.parse(JSON.stringify(section))
   const newBlock = { bId: Date.now(), name, data: clone }
@@ -421,7 +457,7 @@ function duplicateSection(idx) {
 }
 
 function deleteSection(idx) {
-  if (!confirm('Bạn có chắc muốn xoá section này?')) return
+  if (!confirm(t('admin.msg_confirm_delete_section', 'Bạn có chắc muốn xoá section này?'))) return
   const currentList = [...list.value]
   currentList.splice(idx, 1)
   currentList.forEach((s, i) => { s.order = i })
@@ -583,6 +619,8 @@ function moveSection(idx, direction) {
 }
 .btn-move:hover:not(:disabled) { background: #e2e8f0; color: #1e293b; }
 .btn-move:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.translation-warning-indicator { color: #f59e0b; display: flex; align-items: center; justify-content: center; }
 
 /* ── Toggle Switch ── */
 .toggle-switch { position: relative; display: inline-block; width: 32px; height: 18px; cursor: pointer; }

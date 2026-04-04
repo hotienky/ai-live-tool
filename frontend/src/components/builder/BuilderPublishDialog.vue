@@ -2,35 +2,35 @@
   <div v-if="modelValue" class="media-modal-overlay" @click.self="$emit('update:modelValue', false)">
     <div class="media-modal" style="width: 440px; border-radius: 12px;">
       <div class="media-modal-header">
-        <h3><Package :size="16" /> Xuất bản layout</h3>
-        <button @click="$emit('update:modelValue', false)" title="Đóng"><X :size="20" /></button>
+        <h3><Package :size="16" /> {{ t('admin.msg_publish_layout', 'Xuất bản layout') }}</h3>
+        <button @click="$emit('update:modelValue', false)" :title="t('admin.msg_close', 'Đóng')"><X :size="20" /></button>
       </div>
       <div style="padding: 20px;">
         <div style="margin-bottom: 16px;">
-          <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">Ghi chú phiên bản (tuỳ chọn)</p>
+          <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">{{ t('admin.msg_version_note_optional', 'Ghi chú phiên bản (tuỳ chọn)') }}</p>
           <input
             :value="publishNote"
             @input="$emit('update:publishNote', $event.target.value)"
             class="param-input"
-            placeholder="VD: Cập nhật banner Tết, thêm section FAQ..."
+            :placeholder="t('admin.msg_version_note_placeholder', 'VD: Cập nhật banner Tết, thêm section FAQ...')"
             @keyup.enter="$emit('confirm')"
           />
         </div>
         <div>
-          <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">Lên lịch xuất bản (tuỳ chọn)</p>
+          <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">{{ t('admin.msg_schedule_publish_optional', 'Lên lịch xuất bản (tuỳ chọn)') }}</p>
           <input
             type="datetime-local"
             :value="publishSchedule"
             @input="$emit('update:publishSchedule', $event.target.value)"
             class="param-input"
           />
-          <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-3);">Nếu bỏ trống, layout sẽ được xuất bản ngay lập tức.</p>
+          <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-3);">{{ t('admin.msg_leave_blank_publish_now', 'Nếu bỏ trống, layout sẽ được xuất bản ngay lập tức.') }}</p>
         </div>
       </div>
       <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
-        <button class="cpb-btn-secondary" @click="$emit('update:modelValue', false)">Huỷ</button>
+        <button class="cpb-btn-secondary" @click="$emit('update:modelValue', false)">{{ t('admin.msg_cancel', 'Huỷ') }}</button>
         <button class="cpb-btn-save" @click="$emit('confirm')" :disabled="saving">
-          <Save :size="14" /> {{ saving ? 'Đang lưu...' : 'Xuất bản' }}
+          <Save :size="14" /> {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_publish', 'Xuất bản') }}
         </button>
       </div>
     </div>
@@ -39,6 +39,9 @@
 
 <script setup>
 import { Package, X, Save } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   modelValue: {

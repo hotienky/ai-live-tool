@@ -24,7 +24,7 @@
             <div class="pp-page-card__title">
               <component :is="page.is_dynamic ? icons.Layout : icons.FileText" :size="12" />
               <span>{{ page.title }}</span>
-              <span v-if="page.is_system" class="pp-badge pp-badge--system">Hệ thống</span>
+              <span v-if="page.is_system" class="pp-badge pp-badge--system">{{ t('admin.msg_system', 'Hệ thống') }}</span>
             </div>
             <span class="pp-page-card__slug">/page/{{ page.alias }}</span>
           </div>
@@ -74,7 +74,7 @@
             <div class="pp-dialog__header">
               <h3>
                 <component :is="dialogEditId ? icons.Pencil : icons.Plus" :size="16" />
-                {{ dialogEditId ? 'Chỉnh sửa trang' : 'Tạo trang mới' }}
+                {{ dialogEditId ? t('admin.edit_page', 'Chỉnh sửa trang') : t('admin.create_page', 'Tạo trang mới') }}
               </h3>
               <button class="pp-dialog__close" @click="showDialog = false">
                 <component :is="icons.X" :size="18" />
@@ -82,18 +82,18 @@
             </div>
             <div class="pp-dialog__body">
               <div class="pp-field">
-                <label>Tiêu đề *</label>
+                <label>{{ t('admin.msg_title_required', 'Tiêu đề *') }}</label>
                 <input
                   v-model="dialogForm.title"
                   type="text"
                   class="pp-input pp-input--title"
-                  placeholder="VD: Giới thiệu, Liên hệ, Chính sách..."
+                  :placeholder="t('admin.msg_page_title_placeholder', 'VD: Giới thiệu, Liên hệ, Chính sách...')"
                   @blur="autoSlug"
                   ref="titleInput"
                 />
               </div>
               <div class="pp-field">
-                <label>Đường dẫn</label>
+                <label>{{ t('admin.msg_slug', 'Đường dẫn') }}</label>
                 <div class="pp-slug-row">
                   <span class="pp-slug-prefix">/page/</span>
                   <input
@@ -106,7 +106,7 @@
                 </div>
               </div>
               <div class="pp-field">
-                <label>Loại trang</label>
+                <label>{{ t('admin.msg_page_type', 'Loại trang') }}</label>
                 <div class="pp-type-cards">
                   <div
                     class="pp-type-card"
@@ -114,8 +114,8 @@
                     @click="dialogForm.is_dynamic = false"
                   >
                     <component :is="icons.FileText" :size="20" />
-                    <strong>Trang tĩnh</strong>
-                    <span>Soạn nội dung HTML</span>
+                    <strong>{{ t('admin.msg_static_page', 'Trang tĩnh') }}</strong>
+                    <span>{{ t('admin.msg_edit_html', 'Soạn nội dung HTML') }}</span>
                   </div>
                   <div
                     class="pp-type-card"
@@ -124,38 +124,38 @@
                   >
                     <component :is="icons.Layout" :size="20" />
                     <strong>Page Builder</strong>
-                    <span>Kéo thả sections</span>
+                    <span>{{ t('admin.msg_drag_drop', 'Kéo thả sections') }}</span>
                   </div>
                 </div>
               </div>
               <!-- Content for static pages -->
               <div v-if="!dialogForm.is_dynamic" class="pp-field">
-                <label>Nội dung</label>
+                <label>{{ t('admin.msg_content', 'Nội dung') }}</label>
                 <textarea
                   v-model="dialogForm.content"
                   rows="8"
                   class="pp-input pp-textarea"
-                  placeholder="Nhập nội dung HTML..."
+                  :placeholder="t('admin.msg_html_placeholder', 'Nhập nội dung HTML...')"
                 ></textarea>
               </div>
               <!-- SEO collapsible -->
               <details class="pp-seo-details">
-                <summary>🔍 SEO (Tùy chọn)</summary>
+                <summary>🔍 SEO ({{ t('admin.msg_optional', 'Tùy chọn') }})</summary>
                 <div class="pp-field">
                   <label>Meta Title</label>
-                  <input v-model="dialogForm.meta_title" class="pp-input" placeholder="Tiêu đề SEO..." />
+                  <input v-model="dialogForm.meta_title" class="pp-input" :placeholder="t('admin.msg_meta_title_placeholder', 'Tiêu đề SEO...')" />
                 </div>
                 <div class="pp-field">
                   <label>Meta Description</label>
-                  <textarea v-model="dialogForm.meta_description" class="pp-input pp-textarea--sm" rows="2" placeholder="Mô tả meta..."></textarea>
+                  <textarea v-model="dialogForm.meta_description" class="pp-input pp-textarea--sm" rows="2" :placeholder="t('admin.msg_meta_desc_placeholder', 'Mô tả meta...')"></textarea>
                 </div>
               </details>
             </div>
             <div class="pp-dialog__footer">
-              <button class="pp-btn pp-btn--ghost" @click="showDialog = false">Hủy</button>
+              <button class="pp-btn pp-btn--ghost" @click="showDialog = false">{{ t('admin.cancel', 'Hủy') }}</button>
               <button class="pp-btn pp-btn--primary" @click="saveDialogPage" :disabled="dialogSaving">
                 <component :is="dialogSaving ? icons.Loader2 : icons.Save" :size="14" :class="{ spin: dialogSaving }" />
-                {{ dialogSaving ? 'Đang lưu...' : (dialogEditId ? 'Cập nhật' : 'Tạo trang') }}
+                {{ dialogSaving ? t('admin.saving', 'Đang lưu...') : (dialogEditId ? t('admin.update', 'Cập nhật') : t('admin.create', 'Tạo trang')) }}
               </button>
             </div>
           </div>
@@ -262,7 +262,7 @@ function autoSlug() {
 
 async function saveDialogPage() {
   if (!dialogForm.value.title.trim()) {
-    showToast('Vui lòng nhập tiêu đề trang', 'error')
+    showToast(t('admin.msg_page_title_required', 'Vui lòng nhập tiêu đề trang'), 'error')
     return
   }
   dialogSaving.value = true
@@ -278,30 +278,30 @@ async function saveDialogPage() {
     }
     if (dialogEditId.value) {
       await updatePage(dialogEditId.value, payload)
-      showToast('Đã cập nhật trang!', 'success')
+      showToast(t('admin.msg_page_updated', 'Đã cập nhật trang!'), 'success')
     } else {
       await createPage(payload)
-      showToast('Đã tạo trang mới!', 'success')
+      showToast(t('admin.msg_page_created', 'Đã tạo trang mới!'), 'success')
     }
     showDialog.value = false
     await loadPages()
     emit('pages-updated')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.error', 'Lỗi: ') + e.message, 'error')
   } finally {
     dialogSaving.value = false
   }
 }
 
 async function handleDeletePage(page) {
-  if (!confirm(`Xóa trang "${page.title}"? Không thể khôi phục!`)) return
+  if (!confirm(t('admin.msg_confirm_delete_page', 'Xóa trang "{title}"? Không thể khôi phục!').replace('{title}', page.title))) return
   try {
     await deletePage(page.id)
-    showToast('Đã xóa trang', 'success')
+    showToast(t('admin.msg_page_deleted', 'Đã xóa trang'), 'success')
     await loadPages()
     emit('pages-updated')
   } catch (e) {
-    showToast('Lỗi xóa trang: ' + e.message, 'error')
+    showToast(t('admin.msg_delete_page_error', 'Lỗi xóa trang: ') + e.message, 'error')
   }
 }
 
@@ -309,11 +309,11 @@ async function togglePageStatus(page) {
   try {
     const newStatus = !page.status
     await updatePage(page.id, { status: newStatus })
-    showToast(newStatus ? 'Đã xuất bản' : 'Đã chuyển sang nháp', 'success')
+    showToast(newStatus ? t('admin.msg_published', 'Đã xuất bản') : t('admin.msg_drafted', 'Đã chuyển sang nháp'), 'success')
     await loadPages()
     emit('pages-updated')
   } catch (e) {
-    showToast('Lỗi: ' + e.message, 'error')
+    showToast(t('admin.error', 'Lỗi: ') + e.message, 'error')
   }
 }
 

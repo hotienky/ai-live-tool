@@ -3,7 +3,7 @@
     <div class="cpb-header__left">
       <!-- Page Picker -->
       <div class="cpb-page-picker" tabindex="-1" @focusout="handlePickerFocusout">
-        <button class="cpb-page-btn" @click="$emit('update:pageDropdownOpen', !pageDropdownOpen)" title="Chọn trang cần chỉnh sửa">
+        <button class="cpb-page-btn" @click="$emit('update:pageDropdownOpen', !pageDropdownOpen)" :title="t('admin.msg_select_page_edit', 'Chọn trang cần chỉnh sửa')">
           <component :is="activePage.icon" :size="14" />
           <span>{{ activePageLabel }}</span>
           <ChevronDown :size="12" :style="{ transform: pageDropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }" />
@@ -11,14 +11,14 @@
 
         <div v-if="pageDropdownOpen" class="cpb-page-menu">
           <button class="cpb-page-item" :class="{ active: activePageId === null }" @click="$emit('select-page', null)">
-            <Home :size="14" /> Trang Chủ (Global)
+            <Home :size="14" /> {{ t('admin.msg_home_global', 'Trang Chủ (Global)') }}
           </button>
-          <div class="cpb-page-group">Trang hệ thống</div>
+          <div class="cpb-page-group">{{ t('admin.msg_system_pages', 'Trang hệ thống') }}</div>
           <button v-for="pg in builtinPageOptions" :key="pg.id" class="cpb-page-item" :class="{ active: activePageId === pg.id }" @click="$emit('select-page', pg.id)">
             <component :is="pg.icon" :size="14" /> <span>{{ pg.label }}</span>
           </button>
           <template v-if="dynamicPages.length">
-            <div class="cpb-page-group">Trang CMS động</div>
+            <div class="cpb-page-group">{{ t('admin.msg_dynamic_cms', 'Trang CMS động') }}</div>
             <button v-for="p in dynamicPages" :key="p.id" class="cpb-page-item" :class="{ active: activePageId === p.id }" @click="$emit('select-page', p.id)">
               <FileText :size="14" /> {{ p.title }}
             </button>
@@ -26,9 +26,18 @@
         </div>
       </div>
 
-      <button v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus" @click="$emit('show-version-history')" title="Xem lịch sử các phiên bản">
-        <History :size="12" style="margin-right: 4px;" /> v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? 'Published' : 'Draft' }}
+      <button v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus" @click="$emit('show-version-history')" :title="t('admin.msg_view_version_history', 'Xem lịch sử các phiên bản')">
+        <History :size="12" style="margin-right: 4px;" /> v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? t('admin.msg_published', 'Đã xuất bản') : t('admin.msg_draft', 'Bản nháp') }}
       </button>
+
+      <!-- Language Picker -->
+      <div class="cpb-lang-picker" style="margin-left: 12px; display:flex; align-items:center;" v-if="installedLanguages.length > 0">
+        <select :value="currentLang" @change="$emit('update:currentLang', $event.target.value)" class="param-select" style="min-width: 130px; height: 28px; font-size: 12px; padding: 0 8px; border-radius: 6px;">
+          <option v-for="lang in installedLanguages" :key="lang.code" :value="lang.code">
+            {{ lang.flag || '🌐' }} {{ lang.name }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <div class="cpb-header__center">
@@ -36,11 +45,11 @@
         <button :class="{ active: previewWidth === '100%' }" @click="$emit('update:previewWidth', '100%')" title="Desktop"><Monitor :size="16" /></button>
         <button :class="{ active: previewWidth === '768px' }" @click="$emit('update:previewWidth', '768px')" title="Tablet"><Tablet :size="16" /></button>
         <button :class="{ active: previewWidth === '375px' }" @click="$emit('update:previewWidth', '375px')" title="Mobile"><Smartphone :size="16" /></button>
-        <button @click="$emit('update:previewMode', previewMode === 'wireframe' ? 'live' : 'wireframe')" style="margin-left: 8px;" :title="previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe'">
+        <button @click="$emit('update:previewMode', previewMode === 'wireframe' ? 'live' : 'wireframe')" style="margin-left: 8px;" :title="previewMode === 'wireframe' ? t('admin.msg_live_preview', 'Xem trực tiếp') : t('admin.msg_wireframe', 'Wireframe')">
           <Eye v-if="previewMode === 'wireframe'" :size="16" />
           <Aperture v-else :size="16" />
         </button>
-        <button @click="$emit('toggle-xray')" :class="{ 'cpb-btn-icon--active': isXRayMode }" style="margin-left: 8px;" title="Chế độ quét khung xương (X)">
+        <button @click="$emit('toggle-xray')" :class="{ 'cpb-btn-icon--active': isXRayMode }" style="margin-left: 8px;" :title="t('admin.msg_xray_mode', 'Chế độ quét khung xương (X)')">
           <Scan :size="16" />
         </button>
       </div>
@@ -49,18 +58,18 @@
     <div class="cpb-header__right">
       <div class="cpb-history cpb-history-container" @focusout="handleHistoryFocusout" tabindex="-1">
         <div class="cpb-history__btn-group">
-          <button @click="$emit('undo')" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="14" /></button>
-          <button @click="$emit('update:historyDropdownOpen', !historyDropdownOpen)" :disabled="undoStack.length <= 1" class="history-dropdown-toggle" title="Xem lịch sử khôi phục"><ChevronDown :size="12" /></button>
+          <button @click="$emit('undo')" :disabled="undoStack.length <= 1" :title="t('admin.msg_undo', 'Hoàn tác')"><Undo2 :size="14" /></button>
+          <button @click="$emit('update:historyDropdownOpen', !historyDropdownOpen)" :disabled="undoStack.length <= 1" class="history-dropdown-toggle" :title="t('admin.msg_view_recovery_history', 'Xem lịch sử khôi phục')"><ChevronDown :size="12" /></button>
         </div>
-        <button @click="$emit('redo')" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="14" /></button>
+        <button @click="$emit('redo')" :disabled="redoStack.length === 0" :title="t('admin.msg_redo', 'Làm lại')"><Redo2 :size="14" /></button>
 
         <div v-if="historyDropdownOpen" class="history-dropdown-menu">
-          <div class="history-dropdown-header">Lịch sử khôi phục</div>
+          <div class="history-dropdown-header">{{ t('admin.msg_recovery_history', 'Lịch sử khôi phục') }}</div>
           <div class="history-dropdown-list">
             <button v-for="(item, idx) in undoStack.slice().reverse()" :key="idx" class="history-dropdown-item" @click="$emit('restore-history', undoStack.length - 1 - idx)">
               <div class="history-dropdown-info">
                 <span class="history-time">{{ item.time }}</span>
-                <span class="history-label" :class="{'current-state': idx === 0}">{{ idx === 0 ? 'Hiện tại' : item.label }}</span>
+                <span class="history-label" :class="{'current-state': idx === 0}">{{ idx === 0 ? t('admin.msg_current', 'Hiện tại') : item.label }}</span>
               </div>
               <Check v-if="idx === 0" :size="14" class="history-current-icon" />
             </button>
@@ -69,22 +78,22 @@
       </div>
 
       <span class="cpb-save-status" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
-        <span v-if="saving" class="status-saving" title="Đang lưu dữ liệu..."><Loader2 :size="16" class="spin"/></span>
-        <span v-else class="status-saved" title="Đã lưu mới nhất"><Check :size="16" style="color: #10b981;"/></span>
+        <span v-if="saving" class="status-saving" :title="t('admin.msg_saving_data', 'Đang lưu dữ liệu...')"><Loader2 :size="16" class="spin"/></span>
+        <span v-else class="status-saved" :title="t('admin.msg_saved_latest', 'Đã lưu mới nhất')"><Check :size="16" style="color: #10b981;"/></span>
       </span>
 
-      <button class="cpb-btn-secondary" @click="$emit('toggle-zen')" :title="leftCollapsed ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed }">
+      <button class="cpb-btn-secondary" @click="$emit('toggle-zen')" :title="leftCollapsed ? t('admin.msg_show_tools', 'Hiển thị công cụ (F)') : t('admin.msg_zen_mode', 'Chế độ tập trung (F)')" :class="{ 'cpb-btn-secondary--active': leftCollapsed }">
         <Focus :size="14" />
       </button>
-      <button class="cpb-btn-secondary" @click="$emit('update:isFullscreen', !isFullscreen)" :title="isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'">
+      <button class="cpb-btn-secondary" @click="$emit('update:isFullscreen', !isFullscreen)" :title="isFullscreen ? t('admin.msg_minimize', 'Thu nhỏ (Esc)') : t('admin.msg_fullscreen', 'Toàn màn hình')">
         <Minimize v-if="isFullscreen" :size="14" />
         <Maximize v-else :size="14" />
       </button>
-      <button class="cpb-btn-secondary" @click="$emit('start-tour')" title="Hướng dẫn sử dụng toàn tập Builder"><HelpCircle :size="14" /></button>
-      <button class="cpb-btn-secondary" @click="$emit('show-custom-css')" title="Tùy chỉnh CSS nâng cao toàn cục"><Code :size="14" /></button>
-      <button class="cpb-btn-secondary" @click="$emit('show-seo-settings')" title="Tùy chỉnh SEO & Thẻ Meta cho trang hiện tại"><Globe :size="14" /></button>
-      <button class="cpb-btn-secondary" @click="$emit('save-draft')" :disabled="saving" title="Lưu nháp hiện trạng mà chưa áp dụng ngay"><Save :size="14" /> Nháp</button>
-      <button class="cpb-btn-save" @click="$emit('publish')" :disabled="saving" title="Xuất bản cập nhật lên website live"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> Xuất bản</button>
+      <button class="cpb-btn-secondary" @click="$emit('start-tour')" :title="t('admin.msg_full_guide', 'Hướng dẫn sử dụng toàn tập Builder')"><HelpCircle :size="14" /></button>
+      <button class="cpb-btn-secondary" @click="$emit('show-custom-css')" :title="t('admin.msg_custom_global_css', 'Tùy chỉnh CSS nâng cao toàn cục')"><Code :size="14" /></button>
+      <button class="cpb-btn-secondary" @click="$emit('show-seo-settings')" :title="t('admin.msg_seo_meta_settings', 'Tùy chỉnh SEO & Thẻ Meta cho trang hiện tại')"><Globe :size="14" /></button>
+      <button class="cpb-btn-secondary" @click="$emit('save-draft')" :disabled="saving" :title="t('admin.msg_save_draft_no_apply', 'Lưu nháp hiện trạng mà chưa áp dụng ngay')"><Save :size="14" /> {{ t('admin.msg_draft', 'Nháp') }}</button>
+      <button class="cpb-btn-save" @click="$emit('publish')" :disabled="saving" :title="t('admin.msg_publish_to_live', 'Xuất bản cập nhật lên website live')"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> {{ t('admin.msg_publish', 'Xuất bản') }}</button>
     </div>
   </header>
 </template>
@@ -96,6 +105,23 @@ import {
   Undo2, Redo2, Check, Loader2,
   Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History, Globe
 } from 'lucide-vue-next'
+import { ref, watch } from 'vue'
+import { useLanguages } from '../../composables/useLanguages.js'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
+
+const { languages, loadLanguages } = useLanguages()
+loadLanguages()
+
+const installedLanguages = ref([])
+watch(languages, (langs) => {
+  if (!langs) return
+  installedLanguages.value = langs.map(l => ({
+    ...l,
+    flag: l.flag || l.icon || (l.code === 'vi' ? '🇻🇳' : l.code === 'en' ? '🇬🇧' : l.code === 'ja' ? '🇯🇵' : '🌐')
+  }))
+}, { immediate: true })
 
 const props = defineProps({
   activePageId: { default: null },
@@ -116,6 +142,7 @@ const props = defineProps({
   leftCollapsed: { type: Boolean, default: false },
   isFullscreen: { type: Boolean, default: false },
   isZen: { type: Boolean, default: false },
+  currentLang: { type: String, default: 'vi' }
 })
 
 const emit = defineEmits([
@@ -124,6 +151,7 @@ const emit = defineEmits([
   'update:previewWidth',
   'update:previewMode',
   'update:isFullscreen',
+  'update:currentLang',
   'select-page',
   'undo',
   'redo',

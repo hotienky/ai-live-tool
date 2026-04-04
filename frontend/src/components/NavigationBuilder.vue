@@ -9,13 +9,23 @@
 
     <div class="nav-content">
       <div class="nav-list-wrapper">
-        <div class="menu-selector">
-          <label>Chọn Menu:</label>
-          <select v-model="selectedMenuLocation" class="param-input" @change="loadMenu">
-            <option value="header">Header Menu</option>
-            <option value="footer">Footer Menu</option>
-            <option value="sidebar">Sidebar Menu</option>
-          </select>
+        <div class="menu-selector" style="justify-content: space-between;">
+          <div style="display:flex; align-items: center; gap: 12px;">
+            <label>Chọn Menu:</label>
+            <select v-model="selectedMenuLocation" class="param-input" @change="loadMenu">
+              <option value="header">Header Menu</option>
+              <option value="footer">Footer Menu</option>
+              <option value="sidebar">Sidebar Menu</option>
+            </select>
+          </div>
+          <LanguageTabs
+            v-if="currentLang"
+            v-model="currentLang"
+            :base-data="{ json_data: rawMenuData.json_data }"
+            :translations="rawMenuData.translations"
+            :fields="['json_data']"
+            @auto-translate="() => alert('Dịch tự động Navigation Menu sẽ được cập nhật sau')"
+          />
         </div>
 
         <div class="tree-container">
@@ -54,19 +64,56 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import draggable from 'vuedraggable'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
+import { useLanguages } from '../composables/useLanguages.js'
+import LanguageTabs from './LanguageTabs.vue'
 import { Link, Save, GripVertical, Plus, Trash2 } from 'lucide-vue-next'
 
 const { showToast } = useToast()
+
+const { defaultLangCode, loadLanguages } = useLanguages()
+loadLanguages()
 
 const saving = ref(false)
 const selectedMenuLocation = ref('header')
 const menuId = ref(null)
 
+const rawMenuData = ref({ json_data: [], translations: {} })
 const menuItems = ref([])
+const currentLang = ref('')
+let isSyncing = false
+
+// Initialize currentLang
+watch(defaultLangCode, (code) => {
+  if (code && !currentLang.value) currentLang.value = code
+}, { immediate: true })
+
+watch(currentLang, (newLang, oldLang) => {
+  if (isSyncing || !newLang) return
+  isSyncing = true
+  
+  // Save old lang state into rawMenuData
+  if (oldLang) {
+    if (oldLang === defaultLangCode.value) {
+      rawMenuData.value.json_data = JSON.parse(JSON.stringify(menuItems.value))
+    } else {
+      if (!rawMenuData.value.translations) rawMenuData.value.translations = {}
+      rawMenuData.value.translations[oldLang] = JSON.parse(JSON.stringify(menuItems.value))
+    }
+  }
+
+  // Load new lang state into menuItems
+  if (newLang === defaultLangCode.value) {
+    menuItems.value = JSON.parse(JSON.stringify(rawMenuData.value.json_data || []))
+  } else {
+    menuItems.value = JSON.parse(JSON.stringify(rawMenuData.value.translations?.[newLang] || rawMenuData.value.json_data || []))
+  }
+  
+  isSyncing = false
+})
 
 function addRootItem() {
   menuItems.value.push({ id: Date.now().toString(), name: 'Menu mới', url: '', children: [] })
@@ -86,14 +133,26 @@ async function loadMenu() {
     const res = await apiFetch(`/navigation-menus/location/${selectedMenuLocation.value}`)
     if (res && res.data) {
       menuId.value = res.data.id
-      menuItems.value = res.data.json_data || []
+      rawMenuData.value.json_data = res.data.json_data || []
+      rawMenuData.value.translations = res.data.translations || {}
     } else {
       menuId.value = null
-      menuItems.value = []
+      rawMenuData.value.json_data = []
+      rawMenuData.value.translations = {}
+    }
+    
+    // Explicitly update menuItems for current lang
+    const lang = currentLang.value || defaultLangCode.value
+    if (lang === defaultLangCode.value) {
+      menuItems.value = JSON.parse(JSON.stringify(rawMenuData.value.json_data || []))
+    } else {
+      menuItems.value = JSON.parse(JSON.stringify(rawMenuData.value.translations?.[lang] || rawMenuData.value.json_data || []))
     }
   } catch (e) {
     if (e.status === 404) {
       menuId.value = null
+      rawMenuData.value.json_data = []
+      rawMenuData.value.translations = {}
       menuItems.value = []
     } else {
       showToast('Lỗi khi tải menu', 'error')
@@ -103,16 +162,31 @@ async function loadMenu() {
 
 async function saveMenu() {
   saving.value = true
+  
+  // Force sync current lang to rawMenuData before saving
+  if (currentLang.value === defaultLangCode.value) {
+    rawMenuData.value.json_data = JSON.parse(JSON.stringify(menuItems.value))
+  } else {
+    if (!rawMenuData.value.translations) rawMenuData.value.translations = {}
+    rawMenuData.value.translations[currentLang.value] = JSON.parse(JSON.stringify(menuItems.value))
+  }
+
+  const payload = {
+    name: selectedMenuLocation.value + ' Menu',
+    json_data: rawMenuData.value.json_data,
+    translations: rawMenuData.value.translations
+  }
+
   try {
     if (menuId.value) {
       await apiFetch(`/navigation-menus/${menuId.value}`, {
         method: 'PUT',
-        body: JSON.stringify({ name: selectedMenuLocation.value + ' Menu', json_data: menuItems.value })
+        body: JSON.stringify(payload)
       })
     } else {
-      const res = await apiFetch('/navigation-menus', {
+      await apiFetch('/navigation-menus', {
         method: 'POST',
-        body: JSON.stringify({ name: selectedMenuLocation.value + ' Menu', location: selectedMenuLocation.value, json_data: menuItems.value })
+        body: JSON.stringify({ ...payload, location: selectedMenuLocation.value })
       })
       if (res.data) menuId.value = res.data.id
     }

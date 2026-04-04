@@ -1,15 +1,5 @@
 <template>
   <div class="language-tabs-wrapper">
-    <div class="lang-actions" v-if="modelValue && !activeLangIsDefault && baseData && fields">
-      <button class="btn-auto-translate" type="button" @click="doAutoTranslate" :disabled="isTranslating" :class="{ translating: isTranslating }">
-        <span class="btn-ai-icon">
-          <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ 'spin': isTranslating }" />
-        </span>
-        <span class="btn-ai-text">{{ isTranslating ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}</span>
-        <span class="btn-ai-badge">AI</span>
-        <span class="btn-shimmer"></span>
-      </button>
-    </div>
     <div class="language-tabs">
       <button
         v-for="lang in installedLanguages"
@@ -26,6 +16,16 @@
           {{ getCompleteness(lang.code) }}%
         </span>
         <span v-if="hasError(lang.code)" class="lang-error">!</span>
+      </button>
+    </div>
+    <div class="lang-actions" v-if="modelValue && !activeLangIsDefault && baseData && fields">
+      <button class="btn-auto-translate" type="button" @click="doAutoTranslate" :disabled="isTranslating" :class="{ translating: isTranslating }">
+        <span class="btn-ai-icon">
+          <component :is="isTranslating ? 'Loader2' : 'Sparkles'" :size="13" :class="{ 'spin': isTranslating }" />
+        </span>
+        <span class="btn-ai-text">{{ isTranslating ? t('admin.msg_4d2e51fa', 'Đang dịch...') : t('admin.msg_e96aea8f', 'Dịch tự động') }}</span>
+        <span class="btn-ai-badge">AI</span>
+        <span class="btn-shimmer"></span>
       </button>
     </div>
   </div>
@@ -164,7 +164,7 @@ async function doAutoTranslate() {
   -webkit-overflow-scrolling: touch;
   gap: 8px;
   border-bottom: 1px solid var(--color-border);
-  margin-bottom: 24px;
+  margin-bottom: 0px;
   align-items: flex-end;
   scrollbar-width: none;
 }
@@ -235,7 +235,8 @@ async function doAutoTranslate() {
 .lang-actions {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 8px; /* space between action button and tabs */
+  margin-top: 12px; /* space between tabs and action button */
+  margin-bottom: 8px;
 }
 .btn-auto-translate {
   position: relative;

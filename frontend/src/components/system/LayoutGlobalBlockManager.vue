@@ -73,11 +73,21 @@
             </div>
             
             <div class="form-group" style="margin-top: 1rem">
-              <label>Cấu trúc layout_json</label>
-              <div style="font-size:12px; color:var(--text-3); margin-bottom: 6px; line-height: 1.4;">
-                Tương lai sẽ thay bằng Visual Layout Builder. Hiện tại, hãy tạo section ở trang bất kỳ, ấn nút <b>Export JSON</b> và paste đoạn block đó vào đây.
+              <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px;">
+                <label style="margin-bottom:0">Cấu trúc layout_json</label>
               </div>
-              <textarea v-model="editForm.block_json" class="form-input json-editor" rows="12" placeholder="{ &quot;type&quot;: &quot;banner&quot;, ... }"></textarea>
+              <LanguageTabs
+                v-if="currentLang"
+                v-model="currentLang"
+                :base-data="{ block_json: editForm.block_json }"
+                :translations="editForm.translations"
+                :fields="['block_json']"
+                @auto-translate="() => alert('Chức năng dịch tự động JSON sẽ được phát triển sau.')"
+              />
+              <div style="font-size:12px; color:var(--text-3); margin-bottom: 6px; margin-top:-16px; line-height: 1.4;">
+                Dán mã JSON block vào đây (tương ứng với ngôn ngữ đang chọn).
+              </div>
+              <textarea v-model="currentBlockJson" class="form-input json-editor" rows="12" placeholder="{ &quot;type&quot;: &quot;banner&quot;, ... }"></textarea>
             </div>
           </div>
           <div class="modal__footer">
@@ -112,12 +122,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { Component as ComponentIcon, Plus, Pencil, Trash2, X, Rocket } from 'lucide-vue-next'
 import { apiFetch } from '../../composables/useApi.js'
 import { useToast } from '../../composables/useToast.js'
+import { useLanguages } from '../../composables/useLanguages.js'
+import LanguageTabs from '../LanguageTabs.vue'
 
 const { showToast } = useToast()
+const { defaultLangCode, loadLanguages } = useLanguages()
+loadLanguages()
+
+const currentLang = ref('')
+watch(defaultLangCode, (code) => {
+  if (code && !currentLang.value) currentLang.value = code
+}, { immediate: true })
 
 const blocks = ref([])
 const loading = ref(true)
@@ -129,7 +148,28 @@ const editForm = ref({
   id: null,
   name: '',
   ref: '',
-  block_json: '{\n  "type": "banner",\n  "params": {}\n}'
+  block_json: '{\n  "type": "banner",\n  "params": {}\n}',
+  translations: {}
+})
+
+const currentBlockJson = computed({
+  get() {
+    if (!currentLang.value || currentLang.value === defaultLangCode.value) {
+      return editForm.value.block_json;
+    }
+    return editForm.value.translations?.[currentLang.value]?.block_json || editForm.value.block_json;
+  },
+  set(val) {
+    if (!currentLang.value || currentLang.value === defaultLangCode.value) {
+      editForm.value.block_json = val;
+    } else {
+      if (!editForm.value.translations) editForm.value.translations = {};
+      if (!editForm.value.translations[currentLang.value]) {
+        editForm.value.translations[currentLang.value] = {};
+      }
+      editForm.value.translations[currentLang.value].block_json = val;
+    }
+  }
 })
 
 async function load() {
@@ -155,8 +195,10 @@ function openCreate() {
     id: null,
     name: '',
     ref: '',
-    block_json: '{\n  "type": "banner",\n  "params": {}\n}'
+    block_json: '{\n  "type": "banner",\n  "params": {}\n}',
+    translations: {}
   }
+  currentLang.value = defaultLangCode.value
   showModal.value = true
 }
 
@@ -169,12 +211,29 @@ function openEdit(block) {
     // leave as is
   }
 
+  let formattedTranslations = {}
+  try {
+    if (block.translations) {
+      for(const k in block.translations) {
+        let bJson = block.translations[k]?.block_json
+        if (bJson) {
+           if (typeof bJson === 'string') bJson = JSON.parse(bJson)
+           formattedTranslations[k] = { block_json: JSON.stringify(bJson, null, 2) }
+        }
+      }
+    }
+  } catch(e) {
+    formattedTranslations = block.translations || {}
+  }
+
   editForm.value = {
     id: block.id,
     name: block.name || '',
     ref: block.ref || '',
-    block_json: prettyJson
+    block_json: prettyJson,
+    translations: formattedTranslations
   }
+  currentLang.value = defaultLangCode.value
   showModal.value = true
 }
 
@@ -190,15 +249,34 @@ async function saveBlock() {
       finalJsonObject = JSON.parse(editForm.value.block_json)
     }
   } catch (e) {
-    showToast('block_json không đúng định dạng JSON hợp lệ!', 'error')
+    showToast('block_json ngôn ngữ gốc không đúng định dạng JSON hợp lệ!', 'error')
     return
+  }
+
+  // Parse translations block_json securely
+  let finalTranslations = {}
+  try {
+    for (const locale in editForm.value.translations) {
+      if (editForm.value.translations[locale] && editForm.value.translations[locale].block_json) {
+        let localeJsonStr = editForm.value.translations[locale].block_json
+        if (typeof localeJsonStr === 'string') {
+          finalTranslations[locale] = { block_json: JSON.parse(localeJsonStr) }
+        } else {
+          finalTranslations[locale] = { block_json: localeJsonStr } // already object
+        }
+      }
+    }
+  } catch(e) {
+    showToast('Mã JSON ở một trong các ngôn ngữ dịch không hợp lệ.', 'error')
+    return 
   }
 
   saving.value = true
   const payload = {
     name: editForm.value.name,
     ref: editForm.value.ref,
-    block_json: finalJsonObject
+    block_json: finalJsonObject,
+    translations: finalTranslations
   }
 
   try {

@@ -5,8 +5,8 @@
     </div>
     <div class="cpb-sidebar-tabs">
       <button :class="{ active: leftTab === 'theme' }" @click="$emit('update:leftTab', 'theme')" title="Theme"><span>Theme</span></button>
-      <button :class="{ active: leftTab === 'structure' }" @click="$emit('update:leftTab', 'structure')" title="Cấu trúc"><span>Cấu trúc</span></button>
-      <button :class="{ active: leftTab === 'pages' }" @click="$emit('update:leftTab', 'pages')" title="Trang"><span>Trang</span></button>
+      <button :class="{ active: leftTab === 'structure' }" @click="$emit('update:leftTab', 'structure')" :title="t('admin.msg_structure', 'Cấu trúc')"><span>{{ t('admin.msg_structure', 'Cấu trúc') }}</span></button>
+      <button :class="{ active: leftTab === 'pages' }" @click="$emit('update:leftTab', 'pages')" :title="t('admin.msg_pages', 'Trang')"><span>{{ t('admin.msg_pages', 'Trang') }}</span></button>
     </div>
 
     <div class="cpb-sidebar-content">
@@ -16,15 +16,15 @@
 
         <!-- Per-Page Theme Config -->
         <div class="lb-section" style="margin-top: 16px;" v-if="activePageId && !String(activePageId).startsWith('__template_')">
-          <h4 class="lb-section__title"><Palette :size="14" /> Cài đặt riêng cho trang này</h4>
-          <p style="font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">Bạn có thể chỉ định màu nền riêng cho <b>{{ activePageLabel }}</b> để ghi đè (override) khai báo màu nền chung của hệ thống.</p>
+          <h4 class="lb-section__title"><Palette :size="14" /> {{ t('admin.msg_page_specific_settings', 'Cài đặt riêng cho trang này') }}</h4>
+          <p style="font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">{{ t('admin.msg_page_bg_override_desc', 'Bạn có thể chỉ định màu nền riêng cho') }} <b>{{ activePageLabel }}</b> {{ t('admin.msg_page_bg_override_desc2', 'để ghi đè (override) khai báo màu nền chung của hệ thống.') }}</p>
 
           <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-            <label>Màu nền trang</label>
+            <label>{{ t('admin.msg_page_bg_color', 'Màu nền trang') }}</label>
             <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
               <input type="color" :value="currentPageBg" @input="$emit('update:currentPageBg', $event.target.value)" class="param-color" style="width:28px; height:28px; border:1px solid #cbd5e1; border-radius:4px; padding:0; background:none; cursor:pointer;" />
-              <input type="text" :value="currentPageBg" @input="$emit('update:currentPageBg', $event.target.value)" class="param-input param-input--sm" style="flex:1" placeholder="Bỏ trống..." />
-              <button v-if="currentPageBg" @click="$emit('update:currentPageBg', '')" class="btn-clear-color" title="Xóa" style="width: 24px; height: 24px; border:none; background:#f1f5f9; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#ef4444; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">
+              <input type="text" :value="currentPageBg" @input="$emit('update:currentPageBg', $event.target.value)" class="param-input param-input--sm" style="flex:1" :placeholder="t('admin.msg_leave_blank', 'Bỏ trống...')" />
+              <button v-if="currentPageBg" @click="$emit('update:currentPageBg', '')" class="btn-clear-color" :title="t('admin.msg_clear', 'Xóa')" style="width: 24px; height: 24px; border:none; background:#f1f5f9; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#ef4444; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">
                 <X :size="12" />
               </button>
             </div>
@@ -33,7 +33,7 @@
 
         <!-- Templates (Only show on Global page) -->
         <div class="lb-section" style="margin-top: 16px;" v-if="!activePageId">
-          <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục</h4>
+          <h4 class="lb-section__title"><Palette :size="14" /> {{ t('admin.msg_layout_templates', 'Mẫu bố cục') }}</h4>
           <div class="template-grid">
             <button v-for="tpl in templates" :key="tpl.key" class="template-card" :class="{ active: activeTemplate === tpl.key }" @click="$emit('apply-template', tpl.key)">
               <component :is="tpl.icon" :size="20" />
@@ -48,20 +48,20 @@
         <div class="cpb-layers">
           <!-- Global Site Blocks -->
           <div v-if="!activePageId">
-            <div class="cpb-layer-item" :class="{ active: activeConfig === 'promo' }" @click="$emit('update:activeConfig', 'promo')" title="Cấu hình Promo Bar">
+            <div class="cpb-layer-item" :class="{ active: activeConfig === 'promo' }" @click="$emit('update:activeConfig', 'promo')" :title="t('admin.msg_config_promo', 'Cấu hình Promo Bar')">
               <div class="cpb-layer-content"><Megaphone :size="14" /> Promo Bar</div>
             </div>
-            <div class="cpb-layer-item" :class="{ active: activeConfig === 'header' }" @click="$emit('update:activeConfig', 'header')" title="Cấu hình Header">
+            <div class="cpb-layer-item" :class="{ active: activeConfig === 'header' }" @click="$emit('update:activeConfig', 'header')" :title="t('admin.msg_config_header', 'Cấu hình Header')">
               <div class="cpb-layer-content"><PanelTop :size="14" /> Header</div>
             </div>
           </div>
 
           <!-- Main Body Content -->
-          <div class="cpb-layer-separator">Nội dung {{ activePageLabel }}</div>
+          <div class="cpb-layer-separator">{{ t('admin.msg_content_of', 'Nội dung') }} {{ activePageLabel }}</div>
 
           <div class="cpb-layer-switch">
-            <button :class="{ active: activeSidebarTab === 'elements' }" @click="$emit('update:activeSidebarTab', 'elements')" title="Quản lý các khối nội dung (Sections)">Section</button>
-            <button :class="{ active: activeSidebarTab === 'navigator' }" @click="$emit('update:activeSidebarTab', 'navigator')" title="Xem cấu trúc các lớp (Layers)">Layers</button>
+            <button :class="{ active: activeSidebarTab === 'elements' }" @click="$emit('update:activeSidebarTab', 'elements')" :title="t('admin.msg_manage_sections', 'Quản lý các khối nội dung (Sections)')">Section</button>
+            <button :class="{ active: activeSidebarTab === 'navigator' }" @click="$emit('update:activeSidebarTab', 'navigator')" :title="t('admin.msg_manage_layers', 'Xem cấu trúc các lớp (Layers)')">Layers</button>
           </div>
 
           <LayoutSectionManager
@@ -81,7 +81,7 @@
           />
 
           <div style="display: flex; gap: 8px; margin-top: 12px;">
-            <button class="cpb-btn-add" style="flex: 1;" @click="$emit('update:activeConfig', 'library')"><Plus :size="14"/> Thêm section</button>
+            <button class="cpb-btn-add" style="flex: 1;" @click="$emit('update:activeConfig', 'library')"><Plus :size="14"/> {{ t('admin.msg_add_section', 'Thêm section') }}</button>
             <div style="display: flex; gap: 4px;">
               <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Export JSON" @click="$emit('export-json')"><Download :size="14"/></button>
               <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Import JSON" @click="$emit('trigger-json-import')"><Upload :size="14"/></button>
@@ -90,7 +90,7 @@
 
           <!-- Global Footer -->
           <div v-if="!activePageId" style="margin-top:8px">
-            <div class="cpb-layer-item" :class="{ active: activeConfig === 'footer' }" @click="$emit('update:activeConfig', 'footer')" title="Cấu hình Footer">
+            <div class="cpb-layer-item" :class="{ active: activeConfig === 'footer' }" @click="$emit('update:activeConfig', 'footer')" :title="t('admin.msg_config_footer', 'Cấu hình Footer')">
               <div class="cpb-layer-content"><PanelBottom :size="14" /> Footer</div>
             </div>
           </div>
@@ -118,7 +118,7 @@
       </div>
     </div>
 
-    <button class="cpb-collapse-btn" @click="$emit('update:leftCollapsed', !leftCollapsed)" title="Đóng/Mở thanh công cụ (Sidebar)">
+    <button class="cpb-collapse-btn" @click="$emit('update:leftCollapsed', !leftCollapsed)" :title="t('admin.msg_toggle_sidebar', 'Đóng/Mở thanh công cụ (Sidebar)')">
       <ChevronLeft :size="16" :style="{ transform: leftCollapsed ? 'rotate(180deg)' : 'rotate(0)' }" />
     </button>
   </div>
@@ -132,6 +132,9 @@ import LayoutSectionManager from '../storefront/LayoutSectionManager.vue'
 import LayoutNavigator from '../storefront/LayoutNavigator.vue'
 import LayoutPageConfigs from '../storefront/LayoutPageConfigs.vue'
 import LayoutPageManager from '../storefront/LayoutPageManager.vue'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   leftTab: { type: String, default: 'structure' },

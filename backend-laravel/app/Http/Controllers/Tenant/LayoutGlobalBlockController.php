@@ -23,6 +23,7 @@ class LayoutGlobalBlockController extends Controller
             'ref' => 'required|string|max:100',
             'name' => 'required|string|max:255',
             'block_json' => 'nullable|array',
+            'translations' => 'nullable|array',
         ]);
 
         // Check if ref exists
@@ -43,6 +44,7 @@ class LayoutGlobalBlockController extends Controller
             'ref' => 'sometimes|string|max:100',
             'name' => 'sometimes|string|max:255',
             'block_json' => 'nullable|array',
+            'translations' => 'nullable|array',
         ]);
 
         if (isset($data['ref']) && $data['ref'] !== $block->ref && LayoutGlobalBlock::where('ref', $data['ref'])->exists()) {

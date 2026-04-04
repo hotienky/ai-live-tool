@@ -50,6 +50,7 @@ class NavigationMenuController extends Controller
                 'name' => 'required|string|max:255',
                 'location' => 'nullable|string',
                 'json_data' => 'nullable|array',
+                'translations' => 'nullable|array',
             ]);
 
             $menu = NavigationMenu::create($data);
@@ -71,6 +72,7 @@ class NavigationMenuController extends Controller
                 'name' => 'nullable|string|max:255',
                 'location' => 'nullable|string',
                 'json_data' => 'nullable|array',
+                'translations' => 'nullable|array',
             ]);
 
             $menu->update($data);

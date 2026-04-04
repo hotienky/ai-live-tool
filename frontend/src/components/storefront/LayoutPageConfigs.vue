@@ -8,21 +8,18 @@
         <LayoutGrid :size="20" />
       </div>
       <div class="page-config-notice__body">
-        <p class="page-config-notice__title">Bố cục linh động</p>
-        <p class="page-config-notice__desc">
-          Trang này được tạo từ các <strong>section blocks</strong> có thể tùy chỉnh tự do. 
-          Chuyển sang tab <strong>Cấu trúc</strong> để thêm, xóa, sắp xếp các blocks.
-        </p>
+        <p class="page-config-notice__title">{{ t('admin.msg_dynamic_layout', 'Bố cục linh động') }}</p>
+        <p class="page-config-notice__desc" v-html="t('admin.msg_dynamic_layout_desc', 'Trang này được tạo từ các <strong>section blocks</strong> có thể tùy chỉnh tự do. Chuyển sang tab <strong>Cấu trúc</strong> để thêm, xóa, sắp xếp các blocks.')"></p>
         <button class="page-config-notice__btn" @click="$emit('go-to-structure')">
-          <Layers :size="14" /> Mở tab Cấu trúc
+          <Layers :size="14" /> {{ t('admin.msg_open_structure_tab', 'Mở tab Cấu trúc') }}
         </button>
       </div>
     </div>
 
     <!-- Quick Setup Wizard for new pages -->
     <div v-if="activePageId && !hasExistingSections" class="page-config-wizard">
-      <p class="page-config-wizard__label">Khởi tạo nhanh</p>
-      <p class="page-config-wizard__hint">Chọn một cấu hình mẫu để bắt đầu:</p>
+      <p class="page-config-wizard__label">{{ t('admin.msg_quick_init', 'Khởi tạo nhanh') }}</p>
+      <p class="page-config-wizard__hint">{{ t('admin.msg_choose_preset', 'Chọn một cấu hình mẫu để bắt đầu:') }}</p>
       
       <div class="page-config-wizard__presets">
         <button 
@@ -70,7 +67,7 @@
           </div>
           <div class="page-config__tip">
             <AlertCircle :size="12" />
-            <span>Tip: Chuyển sang tab <strong>Cấu trúc</strong> với trang Products để tùy chỉnh chi tiết hơn (thêm banner, newsletter...)</span>
+            <span v-html="t('admin.msg_products_tip', 'Tip: Chuyển sang tab <strong>Cấu trúc</strong> với trang Products để tùy chỉnh chi tiết hơn (thêm banner, newsletter...)')"></span>
           </div>
         </div>
       </div>
@@ -196,10 +193,10 @@ const configs = computed({
 
 const expandedPageConfig = ref(null)
 
-const quickPresets = [
-  { key: 'minimal', label: 'Tối giản', desc: 'Breadcrumb + nội dung chính', icon: LayoutGrid },
-  { key: 'full', label: 'Đầy đủ', desc: 'Breadcrumb + heading + nội dung + newsletter', icon: Layers },
-]
+const quickPresets = computed(() => [
+  { key: 'minimal', label: t('admin.msg_preset_minimal', 'Tối giản'), desc: t('admin.msg_preset_minimal_desc', 'Breadcrumb + nội dung chính'), icon: LayoutGrid },
+  { key: 'full', label: t('admin.msg_preset_full', 'Đầy đủ'), desc: t('admin.msg_preset_full_desc', 'Breadcrumb + heading + nội dung + newsletter'), icon: Layers },
+])
 </script>
 
 <style scoped>

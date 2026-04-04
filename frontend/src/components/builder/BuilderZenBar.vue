@@ -1,18 +1,18 @@
 <template>
   <div class="zen-floating-bar" :class="{ 'zen-floating-bar--visible': visible }">
     <div class="zen-actions">
-      <button class="zen-btn" @click="$emit('toggle-zen')" title="Thoát chế độ tập trung (F)"><Focus :size="16" /></button>
+      <button class="zen-btn" @click="$emit('toggle-zen')" :title="t('admin.msg_exit_zen_mode', 'Thoát chế độ tập trung (F)')"><Focus :size="16" /></button>
       <div class="zen-divider"></div>
-      <button class="zen-btn" @click="$emit('update:previewWidth', '100%')" :class="{ active: previewWidth === '100%' }" title="Xem trước trên Desktop"><Monitor :size="16" /></button>
-      <button class="zen-btn" @click="$emit('update:previewWidth', '768px')" :class="{ active: previewWidth === '768px' }" title="Xem trước trên Tablet"><Tablet :size="16" /></button>
-      <button class="zen-btn" @click="$emit('update:previewWidth', '375px')" :class="{ active: previewWidth === '375px' }" title="Xem trước trên Mobile"><Smartphone :size="16" /></button>
+      <button class="zen-btn" @click="$emit('update:previewWidth', '100%')" :class="{ active: previewWidth === '100%' }" :title="t('admin.msg_preview_desktop', 'Xem trước trên Desktop')"><Monitor :size="16" /></button>
+      <button class="zen-btn" @click="$emit('update:previewWidth', '768px')" :class="{ active: previewWidth === '768px' }" :title="t('admin.msg_preview_tablet', 'Xem trước trên Tablet')"><Tablet :size="16" /></button>
+      <button class="zen-btn" @click="$emit('update:previewWidth', '375px')" :class="{ active: previewWidth === '375px' }" :title="t('admin.msg_preview_mobile', 'Xem trước trên Mobile')"><Smartphone :size="16" /></button>
       <div class="zen-divider"></div>
-      <button class="zen-btn" @click="$emit('undo')" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="16" /></button>
-      <button class="zen-btn" @click="$emit('redo')" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="16" /></button>
+      <button class="zen-btn" @click="$emit('undo')" :disabled="undoStack.length <= 1" :title="t('admin.msg_undo', 'Hoàn tác')"><Undo2 :size="16" /></button>
+      <button class="zen-btn" @click="$emit('redo')" :disabled="redoStack.length === 0" :title="t('admin.msg_redo', 'Làm lại')"><Redo2 :size="16" /></button>
       <div class="zen-divider"></div>
       <button class="zen-btn zen-btn--publish" @click="$emit('publish')" :disabled="saving">
         <Loader2 v-if="saving" :size="14" class="spin"/>
-        <Save v-else :size="14"/> Xuất bản
+        <Save v-else :size="14"/> {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_publish', 'Xuất bản') }}
       </button>
     </div>
   </div>
@@ -20,6 +20,9 @@
 
 <script setup>
 import { Focus, Monitor, Tablet, Smartphone, Undo2, Redo2, Loader2, Save } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   visible: {

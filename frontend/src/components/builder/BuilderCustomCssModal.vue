@@ -2,19 +2,19 @@
   <div class="media-modal-overlay" v-if="modelValue" @click.self="$emit('update:modelValue', false)">
     <div class="media-modal" style="width: 600px; height: 400px; border-radius: 8px;">
       <div class="media-modal-header">
-        <h3><Code :size="16" /> CSS tùy chỉnh</h3>
-        <button @click="$emit('update:modelValue', false)" title="Đóng"><X :size="20" /></button>
+        <h3><Code :size="16" /> {{ t('admin.msg_custom_css', 'CSS tùy chỉnh') }}</h3>
+        <button @click="$emit('update:modelValue', false)" :title="t('admin.msg_close', 'Đóng')"><X :size="20" /></button>
       </div>
       <div style="padding: 16px; flex: 1; display:flex">
         <textarea
           :value="customCss"
           @input="$emit('update:customCss', $event.target.value)"
           style="flex:1; width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 13px;"
-          placeholder="/* Custom CSS cho layout này */&#10;.my-class { }"
+          :placeholder="t('admin.msg_custom_css_placeholder', '/* Custom CSS cho layout này */\n.my-class { }')"
         ></textarea>
       </div>
       <div style="padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
-        <button class="cpb-btn-save" @click="$emit('update:modelValue', false)">Xong</button>
+        <button class="cpb-btn-save" @click="$emit('update:modelValue', false)">{{ t('admin.msg_done', 'Xong') }}</button>
       </div>
     </div>
   </div>
@@ -22,6 +22,9 @@
 
 <script setup>
 import { Code, X } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   modelValue: {
