@@ -29,38 +29,38 @@
       <div class="param-divider"></div>
       
       <!-- Primary Color -->
-      <div class="param-row">
+      <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
         <label>Màu chủ đạo (Primary)</label>
-        <div class="color-picker-wrapper">
+        <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.primaryColor" class="param-color" />
-          <input type="text" v-model="theme.primaryColor" class="param-input param-input--sm" style="width: 85px" />
+          <input type="text" v-model="theme.primaryColor" class="param-input param-input--sm" style="flex:1" />
         </div>
       </div>
 
       <!-- Accent Color -->
-      <div class="param-row">
+      <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
         <label>Màu nhấn (Secondary/Action)</label>
-        <div class="color-picker-wrapper">
+        <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.accentColor" class="param-color" />
-          <input type="text" v-model="theme.accentColor" class="param-input param-input--sm" style="width: 85px" />
+          <input type="text" v-model="theme.accentColor" class="param-input param-input--sm" style="flex:1" />
         </div>
       </div>
 
       <!-- Background -->
-      <div class="param-row">
+      <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
         <label>Màu nền trang</label>
-        <div class="color-picker-wrapper">
+        <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.backgroundColor" class="param-color" />
-          <input type="text" v-model="theme.backgroundColor" class="param-input param-input--sm" style="width: 85px" />
+          <input type="text" v-model="theme.backgroundColor" class="param-input param-input--sm" style="flex:1" />
         </div>
       </div>
 
       <!-- Text Color -->
-      <div class="param-row">
+      <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
         <label>Màu chữ chính</label>
-        <div class="color-picker-wrapper">
+        <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
           <input type="color" v-model="theme.textColor" class="param-color" />
-          <input type="text" v-model="theme.textColor" class="param-input param-input--sm" style="width: 85px" />
+          <input type="text" v-model="theme.textColor" class="param-input param-input--sm" style="flex:1" />
         </div>
       </div>
 

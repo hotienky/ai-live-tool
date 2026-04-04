@@ -108,11 +108,11 @@
               <h4 class="lb-section__title"><Palette :size="14" /> Cài đặt riêng cho trang này</h4>
               <p style="font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">Bạn có thể chỉ định màu nền riêng cho <b>{{ activePageLabel }}</b> để ghi đè (override) khai báo màu nền chung của hệ thống.</p>
               
-              <div class="param-row">
+              <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
                 <label>Màu nền trang</label>
                 <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
                   <input type="color" v-model="currentPageBg" class="param-color" style="width:28px; height:28px; border:1px solid #cbd5e1; border-radius:4px; padding:0; background:none; cursor:pointer;" />
-                  <input type="text" v-model="currentPageBg" class="param-input param-input--sm" style="width: 70px" placeholder="Bỏ trống..." />
+                  <input type="text" v-model="currentPageBg" class="param-input param-input--sm" style="flex:1" placeholder="Bỏ trống..." />
                   <button v-if="currentPageBg" @click="currentPageBg = ''" class="btn-clear-color" title="Xóa" style="width: 24px; height: 24px; border:none; background:#f1f5f9; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#ef4444; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">
                     <X :size="12" />
                   </button>
