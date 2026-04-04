@@ -2,50 +2,50 @@
   <div class="blog-settings">
     <div class="blog-settings__header">
       <Settings :size="22" class="blog-settings__icon" />
-      <h2 class="blog-settings__title">Cài đặt Blog</h2>
+      <h2 class="blog-settings__title">{{ t('admin.msg_blog_settings', 'Cài đặt Blog') }}</h2>
     </div>
 
     <div class="blog-settings__grid">
       <!-- General -->
       <div class="blog-settings__card">
-        <h3 class="blog-settings__card-title">Chung</h3>
+        <h3 class="blog-settings__card-title">{{ t('admin.msg_general', 'Chung') }}</h3>
         <div class="blog-settings__field">
-          <label>Số bài mỗi trang</label>
+          <label>{{ t('admin.msg_posts_per_page', 'Số bài mỗi trang') }}</label>
           <input v-model.number="settings.posts_per_page" type="number" min="1" max="50" class="blog-settings__input" />
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.show_reading_time" /> Hiển thị thời gian đọc
+            <input type="checkbox" v-model="settings.show_reading_time" /> {{ t('admin.msg_show_reading_time', 'Hiển thị thời gian đọc') }}
           </label>
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.show_author" /> Hiển thị tác giả
+            <input type="checkbox" v-model="settings.show_author" /> {{ t('admin.msg_show_author', 'Hiển thị tác giả') }}
           </label>
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.show_featured_image" /> Hiển thị ảnh đại diện
+            <input type="checkbox" v-model="settings.show_featured_image" /> {{ t('admin.msg_show_featured_image', 'Hiển thị ảnh đại diện') }}
           </label>
         </div>
       </div>
 
       <!-- Comments -->
       <div class="blog-settings__card">
-        <h3 class="blog-settings__card-title">Bình luận</h3>
+        <h3 class="blog-settings__card-title">{{ t('admin.msg_comments', 'Bình luận') }}</h3>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.comments_enabled" /> Cho phép bình luận
+            <input type="checkbox" v-model="settings.comments_enabled" /> {{ t('admin.msg_enable_comments', 'Cho phép bình luận') }}
           </label>
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.comments_moderation" /> Duyệt bình luận trước khi hiển thị
+            <input type="checkbox" v-model="settings.comments_moderation" /> {{ t('admin.msg_moderate_comments', 'Duyệt bình luận trước khi hiển thị') }}
           </label>
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.nested_comments" /> Cho phép trả lời bình luận (nested)
+            <input type="checkbox" v-model="settings.nested_comments" /> {{ t('admin.msg_nested_comments', 'Cho phép trả lời bình luận (nested)') }}
           </label>
         </div>
       </div>
@@ -55,7 +55,7 @@
         <h3 class="blog-settings__card-title">RSS & SEO</h3>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.rss_enabled" /> Bật RSS Feed
+            <input type="checkbox" v-model="settings.rss_enabled" /> {{ t('admin.msg_enable_rss', 'Bật RSS Feed') }}
           </label>
         </div>
         <div v-if="settings.rss_enabled" class="blog-settings__rss-url">
@@ -64,7 +64,7 @@
         </div>
         <div class="blog-settings__field">
           <label class="blog-settings__check">
-            <input type="checkbox" v-model="settings.auto_sitemap" /> Tự động thêm bài viết vào sitemap
+            <input type="checkbox" v-model="settings.auto_sitemap" /> {{ t('admin.msg_auto_sitemap', 'Tự động thêm bài viết vào sitemap') }}
           </label>
         </div>
         <div class="blog-settings__field">
@@ -79,7 +79,7 @@
       <button class="blog-settings__btn" @click="save" :disabled="saving">
         <Loader2 v-if="saving" :size="14" class="spin" />
         <Save v-else :size="14" />
-        {{ saving ? 'Đang lưu...' : 'Lưu cài đặt' }}
+        {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_save_settings', 'Lưu cài đặt') }}
       </button>
     </div>
   </div>
@@ -89,7 +89,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { Settings, Save, Loader2 } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
+import { useI18n } from '../../../composables/useI18n.js'
 
+const { t } = useI18n()
 const { showToast } = useToast()
 const saving = ref(false)
 
@@ -130,8 +132,8 @@ async function save() {
     for (const entry of entries) {
       await apiFetch('/system-config', { method: 'POST', body: JSON.stringify(entry) })
     }
-    showToast('Đã lưu cài đặt blog', 'success')
-  } catch (e) { showToast('Lỗi lưu: ' + e.message, 'error') }
+    showToast(t('admin.msg_blog_settings_saved', 'Đã lưu cài đặt blog'), 'success')
+  } catch (e) { showToast(t('admin.msg_save_error_detail', 'Lỗi lưu: ') + e.message, 'error') }
   finally { saving.value = false }
 }
 

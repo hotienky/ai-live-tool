@@ -1,7 +1,7 @@
 <template>
   <div class="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8 space-y-6">
     <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold tracking-tight text-foreground">Thanh Toán & Gói Cước</h1>
+      <h1 class="text-3xl font-bold tracking-tight text-foreground">{{ t('admin.msg_billing_title', 'Thanh Toán & Gói Cước') }}</h1>
     </div>
 
     <!-- Tabs -->
@@ -11,19 +11,19 @@
           @click="activeTab = 'overview'"
           :class="[activeTab === 'overview' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm']"
         >
-          Tổng Quan
+          {{ t('admin.msg_overview', 'Tổng Quan') }}
         </button>
         <button 
           @click="activeTab = 'plans'"
           :class="[activeTab === 'plans' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm']"
         >
-          Đổi Gói Cước
+          {{ t('admin.msg_change_plan', 'Đổi Gói Cước') }}
         </button>
         <button 
           @click="activeTab = 'invoices'"
           :class="[activeTab === 'invoices' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground', 'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm']"
         >
-          Lịch Sử Giao Dịch
+          {{ t('admin.msg_transaction_history', 'Lịch Sử Giao Dịch') }}
         </button>
       </nav>
     </div>
@@ -38,26 +38,26 @@
         <!-- Current Plan Card -->
         <div class="bg-card border rounded-lg shadow-sm p-6 flex flex-col md:flex-row justify-between items-start md:items-center">
           <div>
-            <h2 class="text-lg font-medium text-muted-foreground">Gói Cước Hiện Tại</h2>
+            <h2 class="text-lg font-medium text-muted-foreground">{{ t('admin.msg_current_plan_label', 'Gói Cước Hiện Tại') }}</h2>
             <div class="mt-1 flex items-baseline">
               <span class="text-4xl font-extrabold tracking-tight text-foreground">{{ currentPlan?.name || 'Loading...' }}</span>
             </div>
           </div>
           <div class="mt-4 md:mt-0">
             <button @click="activeTab = 'plans'" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none">
-              Nâng Cấp Gói
+              {{ t('admin.msg_upgrade_plan', 'Nâng Cấp Gói') }}
             </button>
           </div>
         </div>
 
         <!-- Usage Stats -->
-        <h3 class="text-xl font-semibold mt-8 mb-4">Mức Sử Dụng Hiện Tại</h3>
+        <h3 class="text-xl font-semibold mt-8 mb-4">{{ t('admin.msg_current_usage', 'Mức Sử Dụng Hiện Tại') }}</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           
           <!-- Pages Used -->
           <div class="bg-card border rounded-lg p-5">
             <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-muted-foreground">Số Trang CMS</span>
+              <span class="text-sm font-medium text-muted-foreground">{{ t('admin.msg_cms_page_count', 'Số Trang CMS') }}</span>
               <FileIcon class="h-5 w-5 text-muted-foreground" />
             </div>
             <div class="text-2xl font-bold">{{ usage.pages }} / {{ currentLimits?.pages || '∞' }}</div>
@@ -69,7 +69,7 @@
           <!-- Storage Used -->
           <div class="bg-card border rounded-lg p-5">
             <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-muted-foreground">Lưu Trữ (MB)</span>
+              <span class="text-sm font-medium text-muted-foreground">{{ t('admin.msg_storage_mb', 'Lưu Trữ (MB)') }}</span>
               <Database class="h-5 w-5 text-muted-foreground" />
             </div>
             <div class="text-2xl font-bold">{{ usage.storage_mb }} / {{ currentLimits?.storage_mb || '∞' }}</div>
@@ -81,7 +81,7 @@
           <!-- Modules Installed -->
           <div class="bg-card border rounded-lg p-5">
             <div class="flex justify-between items-center mb-2">
-              <span class="text-sm font-medium text-muted-foreground">Modules Đã Cài</span>
+              <span class="text-sm font-medium text-muted-foreground">{{ t('admin.msg_modules_installed_label', 'Modules Đã Cài') }}</span>
               <Puzzle class="h-5 w-5 text-muted-foreground" />
             </div>
             <div class="text-2xl font-bold">{{ usage.modules_installed || 0 }} / {{ currentLimits?.modules_free || '∞' }}</div>
@@ -108,17 +108,17 @@
       </div>
       <div v-else-if="invoices.length === 0" class="text-center py-12 border rounded-lg bg-card">
         <Receipt class="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-        <h3 class="text-lg font-medium">Chưa có giao dịch</h3>
-        <p class="text-muted-foreground">Bạn chưa thực hiện bất kỳ giao dịch thanh toán nào.</p>
+        <h3 class="text-lg font-medium">{{ t('admin.msg_no_transactions', 'Chưa có giao dịch') }}</h3>
+        <p class="text-muted-foreground">{{ t('admin.msg_no_payments_yet', 'Bạn chưa thực hiện bất kỳ giao dịch thanh toán nào.') }}</p>
       </div>
       <div v-else class="border rounded-lg overflow-hidden">
         <table class="min-w-full divide-y divide-border">
           <thead class="bg-muted">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Mã HĐ</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Ngày</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Số Tiền</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Trạng Thái</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.msg_invoice_code', 'Mã HĐ') }}</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.msg_date', 'Ngày') }}</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.msg_amount', 'Số Tiền') }}</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.msg_status', 'Trạng Thái') }}</th>
             </tr>
           </thead>
           <tbody class="bg-card divide-y divide-border">
@@ -148,6 +148,9 @@ import { ref, onMounted, watch } from 'vue'
 import { FileIcon, Database, Puzzle, Receipt, Loader2 } from 'lucide-vue-next'
 import PlanSelector from './PlanSelector.vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const activeTab = ref('overview')
 

@@ -7,7 +7,7 @@
           ref="searchInput" 
           type="text" 
           v-model="query" 
-          placeholder="Lệnh tìm kiếm nhanh (Ctrl + K)..." 
+          :placeholder="t('admin.msg_command_search', 'Lệnh tìm kiếm nhanh (Ctrl + K)...')" 
           class="command-input"
           @keydown.down.prevent="moveSelection(1)"
           @keydown.up.prevent="moveSelection(-1)"
@@ -36,13 +36,13 @@
           </div>
         </template>
         <div v-else class="command-empty">
-          Không tìm thấy lệnh nào phù hợp với "{{ query }}"
+          {{ t('admin.msg_no_commands', 'Không tìm thấy lệnh nào phù hợp với') }} "{{ query }}"
         </div>
       </div>
       
       <div class="command-footer">
-        <span class="footer-hint"><span class="key">↑</span><span class="key">↓</span> Chọn</span>
-        <span class="footer-hint"><span class="key">Enter</span> Thực thi</span>
+        <span class="footer-hint"><span class="key">↑</span><span class="key">↓</span> {{ t('admin.msg_select', 'Chọn') }}</span>
+        <span class="footer-hint"><span class="key">Enter</span> {{ t('admin.msg_execute', 'Thực thi') }}</span>
       </div>
     </div>
   </div>
@@ -51,6 +51,9 @@
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { Search, Box, LayoutDashboard, Monitor, Smartphone, Eye, Layout, Type, Image as ImageIcon, BoxSelect } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   visible: Boolean,

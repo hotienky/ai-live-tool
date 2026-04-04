@@ -6,7 +6,7 @@
         <LayoutDashboard :size="24" />
         {{ greeting }}, {{ userName }}
       </h1>
-      <p class="dashboard__subtitle">Quản lý hệ thống website của bạn</p>
+      <p class="dashboard__subtitle">{{ t('admin.msg_manage_website', 'Quản lý hệ thống website của bạn') }}</p>
     </div>
 
     <!-- Stats Cards -->
@@ -27,13 +27,13 @@
       <!-- Installed Modules -->
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
-          <Package :size="16" /> Modules đã cài đặt
+          <Package :size="16" /> {{ t('admin.msg_installed_modules', 'Modules đã cài đặt') }}
         </h3>
         <div v-if="installedModules.length === 0" class="dashboard__empty">
           <Package :size="32" class="dashboard__empty-icon" />
-          <span>Chưa cài module nào</span>
+          <span>{{ t('admin.msg_no_modules', 'Chưa cài module nào') }}</span>
           <button class="dashboard__link-btn" @click="$emit('navigate', 'system/modules')">
-            Đi tới Module Store →
+            {{ t('admin.msg_go_to_module_store', 'Đi tới Module Store →') }}
           </button>
         </div>
         <div v-else class="dashboard__module-list">
@@ -45,7 +45,7 @@
               <span class="dashboard__module-name">{{ mod.name }}</span>
               <span class="dashboard__module-desc">{{ mod.description }}</span>
             </div>
-            <span class="dashboard__module-badge">Đã cài</span>
+            <span class="dashboard__module-badge">{{ t('admin.msg_installed', 'Đã cài') }}</span>
           </div>
         </div>
       </div>
@@ -53,16 +53,16 @@
       <!-- Quick Actions -->
       <div class="dashboard__section">
         <h3 class="dashboard__section-title">
-          <Zap :size="16" /> Thao tác nhanh
+          <Zap :size="16" /> {{ t('admin.msg_quick_actions', 'Thao tác nhanh') }}
         </h3>
         <div class="dashboard__quick-actions">
           <button class="dashboard__action" @click="$emit('navigate', 'shop/info')">
             <Store :size="18" />
-            <span>Cập nhật thông tin</span>
+            <span>{{ t('admin.msg_update_info', 'Cập nhật thông tin') }}</span>
           </button>
           <button class="dashboard__action" @click="$emit('navigate', 'shop/config')">
             <Settings2 :size="18" />
-            <span>Cấu hình hệ thống</span>
+            <span>{{ t('admin.msg_system_config', 'Cấu hình hệ thống') }}</span>
           </button>
           <button class="dashboard__action" @click="$emit('navigate', 'system/modules')">
             <Package :size="18" />
@@ -70,15 +70,15 @@
           </button>
           <button class="dashboard__action" @click="$emit('navigate', 'system/roles')">
             <Shield :size="18" />
-            <span>Phân quyền</span>
+            <span>{{ t('admin.msg_permissions', 'Phân quyền') }}</span>
           </button>
           <button class="dashboard__action" v-if="storefrontUrl" @click="openStorefront">
             <Globe :size="18" />
-            <span>Xem Storefront</span>
+            <span>{{ t('admin.msg_view_storefront', 'Xem Storefront') }}</span>
           </button>
           <button class="dashboard__action" @click="$emit('navigate', 'shop/languages')">
             <Languages :size="18" />
-            <span>Ngôn ngữ</span>
+            <span>{{ t('admin.msg_languages', 'Ngôn ngữ') }}</span>
           </button>
         </div>
       </div>
@@ -87,11 +87,11 @@
     <!-- System Info -->
     <div class="dashboard__section dashboard__section--full">
       <h3 class="dashboard__section-title">
-        <Server :size="16" /> Thông tin hệ thống
+        <Server :size="16" /> {{ t('admin.msg_system_info', 'Thông tin hệ thống') }}
       </h3>
       <div class="dashboard__sys-grid">
         <div class="dashboard__sys-item">
-          <span class="dashboard__sys-label">Tên cửa hàng</span>
+          <span class="dashboard__sys-label">{{ t('admin.msg_shop_name', 'Tên cửa hàng') }}</span>
           <span class="dashboard__sys-value">{{ shopName || '—' }}</span>
         </div>
         <div class="dashboard__sys-item">
@@ -100,10 +100,10 @@
         </div>
         <div class="dashboard__sys-item">
           <span class="dashboard__sys-label">Modules</span>
-          <span class="dashboard__sys-value">{{ installedModules.length }} đã cài</span>
+          <span class="dashboard__sys-value">{{ installedModules.length }} {{ t('admin.msg_installed', 'đã cài') }}</span>
         </div>
         <div class="dashboard__sys-item">
-          <span class="dashboard__sys-label">Phiên bản</span>
+          <span class="dashboard__sys-label">{{ t('admin.msg_version', 'Phiên bản') }}</span>
           <span class="dashboard__sys-value">v1.0.0</span>
         </div>
       </div>
@@ -114,6 +114,9 @@
 <script setup>
 import { ref, computed, onMounted, inject } from 'vue'
 import { apiFetch } from '../composables/useApi.js'
+import { useI18n } from '../composables/useI18n.js'
+
+const { t } = useI18n()
 import {
   LayoutDashboard, Package, Zap, Store, Settings2, Shield, Globe, Languages, Server,
   ShoppingBag, FileText, Image, Radio, BookOpen, Truck, DollarSign, Tag, Receipt
@@ -136,9 +139,9 @@ const userName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 12) return 'Chào buổi sáng'
-  if (h < 18) return 'Chào buổi chiều'
-  return 'Chào buổi tối'
+  if (h < 12) return t('admin.msg_good_morning', 'Chào buổi sáng')
+  if (h < 18) return t('admin.msg_good_afternoon', 'Chào buổi chiều')
+  return t('admin.msg_good_evening', 'Chào buổi tối')
 })
 
 // Installed modules
@@ -146,8 +149,8 @@ const installedModules = ref([])
 const moduleCount = computed(() => installedModules.value.length)
 
 const stats = computed(() => [
-  { label: 'Modules đã cài', value: moduleCount.value, icon: Package, iconBg: 'rgba(139,92,246,0.12)', iconColor: '#a78bfa', accent: 'linear-gradient(180deg, #8b5cf6, #6d28d9)' },
-  { label: 'Cửa hàng', value: shopName.value || '—', icon: Store, iconBg: 'rgba(59,130,246,0.12)', iconColor: '#60a5fa', accent: 'linear-gradient(180deg, #3b82f6, #2563eb)', action: () => emit('navigate', 'shop/info') },
+  { label: t('admin.msg_installed_modules', 'Modules đã cài'), value: moduleCount.value, icon: Package, iconBg: 'rgba(139,92,246,0.12)', iconColor: '#a78bfa', accent: 'linear-gradient(180deg, #8b5cf6, #6d28d9)' },
+  { label: t('admin.msg_shop', 'Cửa hàng'), value: shopName.value || '—', icon: Store, iconBg: 'rgba(59,130,246,0.12)', iconColor: '#60a5fa', accent: 'linear-gradient(180deg, #3b82f6, #2563eb)', action: () => emit('navigate', 'shop/info') },
   { label: 'Domain', value: domain.value, icon: Globe, iconBg: 'rgba(16,185,129,0.12)', iconColor: '#34d399', accent: 'linear-gradient(180deg, #10b981, #059669)' },
 ])
 

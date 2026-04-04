@@ -2,17 +2,17 @@
   <div class="post-editor">
     <div class="post-editor__header">
       <button class="post-editor__back" @click="$emit('back')">
-        <ChevronLeft :size="16" /> Quay lại
+        <ChevronLeft :size="16" /> {{ t('admin.msg_go_back', 'Quay lại') }}
       </button>
-      <h2 class="post-editor__title">{{ editId ? 'Chỉnh sửa bài viết' : 'Viết bài mới' }}</h2>
+      <h2 class="post-editor__title">{{ editId ? t('admin.msg_edit_post', 'Chỉnh sửa bài viết') : t('admin.msg_create_post', 'Viết bài mới') }}</h2>
     </div>
 
     <div class="post-editor__body">
       <!-- Main -->
       <div class="post-editor__main">
         <div class="post-editor__field">
-          <label class="post-editor__label">Tiêu đề *</label>
-          <input v-model="form.title" type="text" class="post-editor__input post-editor__input--title" placeholder="Tiêu đề bài viết..." @blur="autoSlug" />
+          <label class="post-editor__label">{{ t('admin.msg_title_required', 'Tiêu đề *') }}</label>
+          <input v-model="form.title" type="text" class="post-editor__input post-editor__input--title" :placeholder="t('admin.msg_post_title_placeholder', 'Tiêu đề bài viết...')" @blur="autoSlug" />
         </div>
 
         <div class="post-editor__field post-editor__slug-row">
@@ -25,9 +25,9 @@
 
         <div class="post-editor__field">
           <div class="post-editor__content-header">
-            <label class="post-editor__label">Nội dung</label>
+            <label class="post-editor__label">{{ t('admin.msg_content', 'Nội dung') }}</label>
             <button type="button" class="post-editor__ai-btn" @click="showAiPanel = !showAiPanel">
-              <SparklesIcon :size="12" /> AI Viết bài
+              <SparklesIcon :size="12" /> {{ t('admin.msg_ai_write', 'AI Viết bài') }}
             </button>
           </div>
 
@@ -37,47 +37,47 @@
               v-model="aiPrompt"
               class="post-editor__ai-textarea"
               rows="2"
-              placeholder="Mô tả bài viết... VD: Bài viết về lợi ích của thiền định cho sức khỏe tâm thần"
+              :placeholder="t('admin.msg_ai_prompt_placeholder', 'Mô tả bài viết... VD: Bài viết về lợi ích của thiền định cho sức khỏe tâm thần')"
             />
             <div class="post-editor__ai-actions">
               <select v-model="aiTone" class="post-editor__ai-select">
-                <option value="professional">Chuyên nghiệp</option>
-                <option value="friendly">Thân thiện</option>
-                <option value="creative">Sáng tạo</option>
-                <option value="informative">Thông tin</option>
+                <option value="professional">{{ t('admin.msg_tone_professional', 'Chuyên nghiệp') }}</option>
+                <option value="friendly">{{ t('admin.msg_tone_friendly', 'Thân thiện') }}</option>
+                <option value="creative">{{ t('admin.msg_tone_creative', 'Sáng tạo') }}</option>
+                <option value="informative">{{ t('admin.msg_tone_informative', 'Thông tin') }}</option>
               </select>
               <button type="button" class="post-editor__ai-generate" @click="generatePost" :disabled="aiLoading || !aiPrompt.trim()">
                 <Loader2 v-if="aiLoading" :size="12" class="spin" />
                 <SparklesIcon v-else :size="12" />
-                {{ aiLoading ? 'Đang viết...' : 'Tạo bài viết' }}
+                {{ aiLoading ? t('admin.msg_ai_writing', 'Đang viết...') : t('admin.msg_generate_post', 'Tạo bài viết') }}
               </button>
             </div>
           </div>
 
-          <RichTextEditor v-model="form.body" placeholder="Viết nội dung bài viết..." />
+          <RichTextEditor v-model="form.body" :placeholder="t('admin.msg_write_content', 'Viết nội dung bài viết...')" />
         </div>
 
         <div class="post-editor__field">
-          <label class="post-editor__label">Tóm tắt</label>
-          <textarea v-model="form.excerpt" class="post-editor__textarea post-editor__textarea--sm" rows="3" placeholder="Tóm tắt ngắn (tự động tạo nếu để trống)..."></textarea>
+          <label class="post-editor__label">{{ t('admin.msg_excerpt', 'Tóm tắt') }}</label>
+          <textarea v-model="form.excerpt" class="post-editor__textarea post-editor__textarea--sm" rows="3" :placeholder="t('admin.msg_excerpt_placeholder', 'Tóm tắt ngắn (tự động tạo nếu để trống)...')"></textarea>
         </div>
 
         <!-- SEO Fields -->
         <div class="post-editor__meta-section">
-          <h3 class="post-editor__section-title">SEO & Tuỳ chỉnh</h3>
+          <h3 class="post-editor__section-title">{{ t('admin.msg_seo_customization', 'SEO & Tùy chỉnh') }}</h3>
           <div class="post-editor__field">
             <label class="post-editor__label">SEO Title</label>
-            <input v-model="form.meta.seo_title" type="text" class="post-editor__input" placeholder="Tiêu đề SEO..." />
+            <input v-model="form.meta.seo_title" type="text" class="post-editor__input" :placeholder="t('admin.msg_seo_title_placeholder', 'Tiêu đề SEO...')" />
           </div>
           <div class="post-editor__field">
             <label class="post-editor__label">Meta Description</label>
-            <textarea v-model="form.meta.seo_description" class="post-editor__textarea post-editor__textarea--sm" rows="2" placeholder="Mô tả meta..."></textarea>
+            <textarea v-model="form.meta.seo_description" class="post-editor__textarea post-editor__textarea--sm" rows="2" :placeholder="t('admin.msg_meta_desc_placeholder', 'Mô tả meta...')"></textarea>
           </div>
           <div class="post-editor__field post-editor__checkbox-field">
-            <label><input type="checkbox" v-model="form.meta.is_featured" /> Bài viết nổi bật</label>
+            <label><input type="checkbox" v-model="form.meta.is_featured" /> {{ t('admin.msg_featured_post', 'Bài viết nổi bật') }}</label>
           </div>
           <div class="post-editor__field">
-            <label class="post-editor__label">Thời gian đọc (phút)</label>
+            <label class="post-editor__label">{{ t('admin.msg_reading_time', 'Thời gian đọc (phút)') }}</label>
             <input v-model.number="form.meta.reading_time" type="number" class="post-editor__input" placeholder="Auto-calculated" min="1" />
           </div>
         </div>
@@ -87,23 +87,23 @@
       <div class="post-editor__sidebar">
         <!-- Publish -->
         <div class="post-editor__card">
-          <h4 class="post-editor__card-title">Xuất bản</h4>
+          <h4 class="post-editor__card-title">{{ t('admin.msg_publish', 'Xuất bản') }}</h4>
           <div class="post-editor__field">
             <select v-model="form.status" class="post-editor__select">
-              <option value="draft">Nháp</option>
-              <option value="published">Xuất bản</option>
-              <option value="archived">Lưu trữ</option>
+              <option value="draft">{{ t('admin.msg_draft_label', 'Nháp') }}</option>
+              <option value="published">{{ t('admin.msg_published_label', 'Xuất bản') }}</option>
+              <option value="archived">{{ t('admin.msg_archived', 'Lưu trữ') }}</option>
             </select>
           </div>
           <div v-if="form.status === 'published'" class="post-editor__field">
-            <label class="post-editor__label">Ngày xuất bản</label>
+            <label class="post-editor__label">{{ t('admin.msg_publish_date', 'Ngày xuất bản') }}</label>
             <input v-model="form.published_at" type="datetime-local" class="post-editor__input" />
           </div>
         </div>
 
         <!-- Featured Image -->
         <div class="post-editor__card">
-          <h4 class="post-editor__card-title">Ảnh đại diện</h4>
+          <h4 class="post-editor__card-title">{{ t('admin.msg_featured_image', 'Ảnh đại diện') }}</h4>
           <div v-if="form.featured_image" class="post-editor__img-preview">
             <img :src="form.featured_image" alt="" />
             <button @click="form.featured_image = ''" class="post-editor__img-remove">✕</button>
@@ -113,35 +113,35 @@
 
         <!-- Categories -->
         <div class="post-editor__card">
-          <h4 class="post-editor__card-title">Danh mục</h4>
+          <h4 class="post-editor__card-title">{{ t('admin.msg_category', 'Danh mục') }}</h4>
           <div class="post-editor__tags">
             <span v-for="(c, i) in (form.taxonomies.category || [])" :key="i" class="post-editor__tag">
               {{ c }} <button @click="removeTag('category', i)" class="post-editor__tag-x">✕</button>
             </span>
           </div>
           <div class="post-editor__tag-input">
-            <input v-model="newCategory" type="text" placeholder="Thêm danh mục..." class="post-editor__input" @keydown.enter.prevent="addTag('category', newCategory); newCategory = ''" />
+            <input v-model="newCategory" type="text" :placeholder="t('admin.msg_add_category', 'Thêm danh mục...')" class="post-editor__input" @keydown.enter.prevent="addTag('category', newCategory); newCategory = ''" />
             <button @click="addTag('category', newCategory); newCategory = ''" class="post-editor__tag-add">+</button>
           </div>
         </div>
 
         <!-- Tags -->
         <div class="post-editor__card">
-          <h4 class="post-editor__card-title">Thẻ</h4>
+          <h4 class="post-editor__card-title">{{ t('admin.msg_tags', 'Thẻ') }}</h4>
           <div class="post-editor__tags">
-            <span v-for="(t, i) in (form.taxonomies.tag || [])" :key="i" class="post-editor__tag post-editor__tag--tag">
-              {{ t }} <button @click="removeTag('tag', i)" class="post-editor__tag-x">✕</button>
+            <span v-for="(tg, i) in (form.taxonomies.tag || [])" :key="i" class="post-editor__tag post-editor__tag--tag">
+              {{ tg }} <button @click="removeTag('tag', i)" class="post-editor__tag-x">✕</button>
             </span>
           </div>
           <div class="post-editor__tag-input">
-            <input v-model="newTagVal" type="text" placeholder="Thêm thẻ..." class="post-editor__input" @keydown.enter.prevent="addTag('tag', newTagVal); newTagVal = ''" />
+            <input v-model="newTagVal" type="text" :placeholder="t('admin.msg_add_tag', 'Thêm thẻ...')" class="post-editor__input" @keydown.enter.prevent="addTag('tag', newTagVal); newTagVal = ''" />
             <button @click="addTag('tag', newTagVal); newTagVal = ''" class="post-editor__tag-add">+</button>
           </div>
         </div>
 
         <!-- Revisions -->
         <div v-if="revisions.length" class="post-editor__card">
-          <h4 class="post-editor__card-title">Lịch sử ({{ revisions.length }})</h4>
+          <h4 class="post-editor__card-title">{{ t('admin.msg_history', 'Lịch sử') }} ({{ revisions.length }})</h4>
           <ul class="post-editor__revisions">
             <li v-for="rev in revisions.slice(0, 5)" :key="rev.id">
               <Clock :size="12" /> {{ formatDate(rev.created_at) }}
@@ -153,11 +153,11 @@
 
     <!-- Actions -->
     <div class="post-editor__actions">
-      <button class="post-editor__btn post-editor__btn--sec" @click="$emit('back')">Huỷ</button>
+      <button class="post-editor__btn post-editor__btn--sec" @click="$emit('back')">{{ t('admin.msg_cancel', 'Huỷ') }}</button>
       <button class="post-editor__btn post-editor__btn--pri" @click="save" :disabled="saving">
         <Loader2 v-if="saving" :size="14" class="spin" />
         <Save v-else :size="14" />
-        {{ saving ? 'Đang lưu...' : 'Lưu bài viết' }}
+        {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_save_post', 'Lưu bài viết') }}
       </button>
     </div>
   </div>
@@ -167,6 +167,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ChevronLeft, Save, Clock, Loader2, Sparkles as SparklesIcon } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
+import { useI18n } from '../../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const bridge = window.__APP_BRIDGE__ || {}
 const RichTextEditor = bridge.components?.RichTextEditor
@@ -210,12 +213,12 @@ async function generatePost() {
       }
       showAiPanel.value = false
       aiPrompt.value = ''
-      showToast('✨ Đã tạo bài viết!', 'success')
+      showToast(t('admin.msg_post_generated', '✨ Đã tạo bài viết!'), 'success')
     } else {
-      showToast(data.message || 'AI chưa cấu hình', 'error')
+      showToast(data.message || t('admin.msg_ai_not_configured', 'AI chưa cấu hình'), 'error')
     }
   } catch (e) {
-    showToast('Lỗi AI: ' + e.message, 'error')
+    showToast(t('admin.msg_ai_error', 'Lỗi AI: ') + e.message, 'error')
   } finally {
     aiLoading.value = false
   }
@@ -261,11 +264,11 @@ async function loadPost() {
       form.taxonomies = taxMap
     }
     revisions.value = item.revisions || []
-  } catch (e) { showToast('Lỗi tải bài viết', 'error') }
+  } catch (e) { showToast(t('admin.msg_load_posts_error', 'Lỗi tải bài viết'), 'error') }
 }
 
 async function save() {
-  if (!form.title.trim()) return showToast('Vui lòng nhập tiêu đề', 'warning')
+  if (!form.title.trim()) return showToast(t('admin.msg_please_enter_title', 'Vui lòng nhập tiêu đề'), 'warning')
   if (!form.excerpt && form.body) {
     form.excerpt = form.body.replace(/<[^>]*>/g, '').substring(0, 160)
   }
@@ -279,9 +282,9 @@ async function save() {
     const url = props.editId ? `/content/post/${props.editId}` : '/content/post'
     const res = await apiFetch(url, { method, body: JSON.stringify(form) })
     const data = await res.json()
-    if (res.ok) { showToast(data.message || 'Đã lưu', 'success'); emit('saved', data.data || data) }
-    else showToast(data.message || 'Lỗi lưu', 'error')
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+    if (res.ok) { showToast(data.message || t('admin.msg_saved', 'Đã lưu'), 'success'); emit('saved', data.data || data) }
+    else showToast(data.message || t('admin.msg_save_error', 'Lỗi lưu'), 'error')
+  } catch (e) { showToast(t('admin.msg_error_prefix', 'Lỗi: ') + e.message, 'error') }
   finally { saving.value = false }
 }
 

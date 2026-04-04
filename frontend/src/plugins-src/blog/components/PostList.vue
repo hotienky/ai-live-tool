@@ -13,10 +13,10 @@
       <div class="post-list__header">
         <div class="post-list__header-left">
           <PenSquare :size="22" class="post-list__icon" />
-          <h2 class="post-list__title">Bài viết ({{ total }})</h2>
+          <h2 class="post-list__title">{{ t('admin.msg_posts', 'Bài viết') }} ({{ total }})</h2>
         </div>
         <button class="post-list__create-btn" @click="editing = ''">
-          <Plus :size="16" /> Viết bài mới
+          <Plus :size="16" /> {{ t('admin.msg_create_post', 'Viết bài mới') }}
         </button>
       </div>
 
@@ -24,31 +24,31 @@
       <div class="post-list__filters">
         <div class="post-list__search-wrap">
           <Search :size="16" class="post-list__search-icon" />
-          <input v-model="search" type="text" placeholder="Tìm bài viết..." class="post-list__search" @input="debouncedLoad" />
+          <input v-model="search" type="text" :placeholder="t('admin.msg_search_posts', 'Tìm bài viết...')" class="post-list__search" @input="debouncedLoad" />
         </div>
         <select v-model="statusFilter" class="post-list__select" @change="loadPosts">
-          <option value="">Tất cả</option>
-          <option value="draft">Nháp</option>
-          <option value="published">Đã xuất bản</option>
-          <option value="archived">Lưu trữ</option>
+          <option value="">{{ t('admin.msg_all', 'Tất cả') }}</option>
+          <option value="draft">{{ t('admin.msg_draft_label', 'Nháp') }}</option>
+          <option value="published">{{ t('admin.msg_published_label', 'Đã xuất bản') }}</option>
+          <option value="archived">{{ t('admin.msg_archived', 'Lưu trữ') }}</option>
         </select>
         <select v-model="categoryFilter" class="post-list__select" @change="loadPosts">
-          <option value="">Tất cả danh mục</option>
+          <option value="">{{ t('admin.msg_all_categories', 'Tất cả danh mục') }}</option>
           <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
         </select>
       </div>
 
       <!-- Loading -->
       <div v-if="loading" class="post-list__loading">
-        <Loader2 :size="24" class="spin" /> Đang tải...
+        <Loader2 :size="24" class="spin" /> {{ t('admin.msg_loading', 'Đang tải...') }}
       </div>
 
       <!-- Empty -->
       <div v-else-if="items.length === 0" class="post-list__empty">
         <FileText :size="48" />
-        <p>Chưa có bài viết nào</p>
+        <p>{{ t('admin.msg_no_posts', 'Chưa có bài viết nào') }}</p>
         <button class="post-list__create-btn" @click="editing = ''">
-          <Plus :size="16" /> Viết bài đầu tiên
+          <Plus :size="16" /> {{ t('admin.msg_write_first_post', 'Viết bài đầu tiên') }}
         </button>
       </div>
 
@@ -57,11 +57,11 @@
         <table class="post-list__table">
           <thead>
             <tr>
-              <th class="post-list__th" style="width:40%">Tiêu đề</th>
-              <th class="post-list__th">Danh mục</th>
-              <th class="post-list__th">Trạng thái</th>
-              <th class="post-list__th">Ngày</th>
-              <th class="post-list__th" style="width:100px;text-align:center">Thao tác</th>
+              <th class="post-list__th" style="width:40%">{{ t('admin.msg_title', 'Tiêu đề') }}</th>
+              <th class="post-list__th">{{ t('admin.msg_category', 'Danh mục') }}</th>
+              <th class="post-list__th">{{ t('admin.msg_status', 'Trạng thái') }}</th>
+              <th class="post-list__th">{{ t('admin.msg_date', 'Ngày') }}</th>
+              <th class="post-list__th" style="width:100px;text-align:center">{{ t('admin.msg_actions', 'Thao tác') }}</th>
             </tr>
           </thead>
           <tbody>
@@ -86,8 +86,8 @@
                 {{ formatDate(item.published_at || item.created_at) }}
               </td>
               <td class="post-list__td" style="text-align:center">
-                <button class="post-list__action" @click="editing = item.id" title="Sửa"><Pencil :size="14" /></button>
-                <button class="post-list__action post-list__action--danger" @click="confirmDelete(item)" title="Xoá"><Trash2 :size="14" /></button>
+                <button class="post-list__action" @click="editing = item.id" :title="t('admin.msg_edit', 'Sửa')"><Pencil :size="14" /></button>
+                <button class="post-list__action post-list__action--danger" @click="confirmDelete(item)" :title="t('admin.delete', 'Xoá')"><Trash2 :size="14" /></button>
               </td>
             </tr>
           </tbody>
@@ -106,8 +106,10 @@
 import { ref, onMounted } from 'vue'
 import { Plus, Search, FileText, PenSquare, Pencil, Trash2, Star, Loader2 } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
+import { useI18n } from '../../../composables/useI18n.js'
 import PostEditor from './PostEditor.vue'
 
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const items = ref([])
@@ -152,7 +154,7 @@ async function loadPosts() {
     }
     categories.value = [...cats].sort()
   } catch (e) {
-    showToast('Lỗi tải bài viết: ' + e.message, 'error')
+    showToast(t('admin.msg_load_posts_error', 'Lỗi tải bài viết: ') + e.message, 'error')
   } finally {
     loading.value = false
   }
@@ -160,15 +162,15 @@ async function loadPosts() {
 
 function onSaved() { editing.value = null; loadPosts() }
 function getCategories(item) { return (item.taxonomies || []).filter(t => t.taxonomy === 'category') }
-function statusLabel(status) { return { draft: 'Nháp', published: 'Đã xuất bản', archived: 'Lưu trữ' }[status] || status }
+function statusLabel(status) { return { draft: t('admin.msg_draft_label', 'Nháp'), published: t('admin.msg_published_label', 'Đã xuất bản'), archived: t('admin.msg_archived', 'Lưu trữ') }[status] || status }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('vi-VN') : '' }
 
 async function confirmDelete(item) {
-  if (!confirm(`Xoá "${item.title}"?`)) return
+  if (!confirm(t('admin.msg_confirm_delete_item', 'Xoá "{title}"?').replace('{title}', item.title))) return
   try {
     const res = await apiFetch(`/content/post/${item.id}`, { method: 'DELETE' })
-    if (res.ok) { showToast('Đã xoá', 'success'); loadPosts() }
-  } catch (e) { showToast('Lỗi: ' + e.message, 'error') }
+    if (res.ok) { showToast(t('admin.msg_deleted', 'Đã xoá'), 'success'); loadPosts() }
+  } catch (e) { showToast(t('admin.msg_error_prefix', 'Lỗi: ') + e.message, 'error') }
 }
 
 onMounted(loadPosts)

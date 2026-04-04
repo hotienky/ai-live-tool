@@ -1,9 +1,9 @@
 <template>
   <div class="nav-builder">
     <div class="nav-header">
-      <h2><Link class="icon" :size="20"/> Trình tạo Menu Điều hướng (JSON)</h2>
+      <h2><Link class="icon" :size="20"/> {{ t('admin.msg_nav_builder_title', 'Trình tạo Menu Điều hướng (JSON)') }}</h2>
       <button class="cpb-btn-save" @click="saveMenu" :disabled="saving">
-        <Save class="icon" :size="16" /> {{ saving ? 'Đang lưu...' : 'Lưu lại' }}
+        <Save class="icon" :size="16" /> {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_save', 'Lưu lại') }}
       </button>
     </div>
 
@@ -11,7 +11,7 @@
       <div class="nav-list-wrapper">
         <div class="menu-selector" style="justify-content: space-between;">
           <div style="display:flex; align-items: center; gap: 12px;">
-            <label>Chọn Menu:</label>
+            <label>{{ t('admin.msg_select_menu', 'Chọn Menu:') }}</label>
             <select v-model="selectedMenuLocation" class="param-input" @change="loadMenu">
               <option value="header">Header Menu</option>
               <option value="footer">Footer Menu</option>
@@ -34,10 +34,10 @@
               <li class="menu-node">
                 <div class="node-content">
                   <GripVertical class="handle" :size="16" />
-                  <input v-model="element.name" class="param-input menu-input" placeholder="Tên hiển thị" />
-                  <input v-model="element.url" class="param-input menu-input" placeholder="Đường dẫn (URL)" />
-                  <button class="node-btn node-btn--add" @click="addChild(element)" title="Thêm sub-menu"><Plus :size="14"/></button>
-                  <button class="node-btn node-btn--del" @click="removeChild(menuItems, index)" title="Xoá"><Trash2 :size="14"/></button>
+                  <input v-model="element.name" class="param-input menu-input" :placeholder="t('admin.msg_display_name', 'Tên hiển thị')" />
+                  <input v-model="element.url" class="param-input menu-input" :placeholder="t('admin.msg_url_path', 'Đường dẫn (URL)')" />
+                  <button class="node-btn node-btn--add" @click="addChild(element)" :title="t('admin.msg_add_submenu', 'Thêm sub-menu')"><Plus :size="14"/></button>
+                  <button class="node-btn node-btn--del" @click="removeChild(menuItems, index)" :title="t('admin.delete', 'Xoá')"><Trash2 :size="14"/></button>
                 </div>
                 <!-- Vuedraggable nested -->
                 <draggable v-if="element.children" class="drag-area sub-menu" tag="ul" :list="element.children" :group="{ name: 'g1' }" item-key="id">
@@ -45,9 +45,9 @@
                     <li class="menu-node">
                       <div class="node-content">
                         <GripVertical class="handle" :size="16" />
-                        <input v-model="subElement.name" class="param-input menu-input" placeholder="Tên hiển thị" />
-                        <input v-model="subElement.url" class="param-input menu-input" placeholder="Đường dẫn (URL)" />
-                        <button class="node-btn node-btn--del" @click="removeChild(element.children, subIndex)" title="Xoá"><Trash2 :size="14"/></button>
+                        <input v-model="subElement.name" class="param-input menu-input" :placeholder="t('admin.msg_display_name', 'Tên hiển thị')" />
+                        <input v-model="subElement.url" class="param-input menu-input" :placeholder="t('admin.msg_url_path', 'Đường dẫn (URL)')" />
+                        <button class="node-btn node-btn--del" @click="removeChild(element.children, subIndex)" :title="t('admin.delete', 'Xoá')"><Trash2 :size="14"/></button>
                       </div>
                     </li>
                   </template>
@@ -56,7 +56,7 @@
             </template>
           </draggable>
 
-          <button class="btn-add-root" @click="addRootItem"><Plus :size="16" /> Thêm Menu Mới</button>
+          <button class="btn-add-root" @click="addRootItem"><Plus :size="16" /> {{ t('admin.msg_add_new_menu', 'Thêm Menu Mới') }}</button>
         </div>
       </div>
     </div>
@@ -69,9 +69,11 @@ import draggable from 'vuedraggable'
 import { apiFetch } from '../composables/useApi.js'
 import { useToast } from '../composables/useToast.js'
 import { useLanguages } from '../composables/useLanguages.js'
+import { useI18n } from '../composables/useI18n.js'
 import LanguageTabs from './LanguageTabs.vue'
 import { Link, Save, GripVertical, Plus, Trash2 } from 'lucide-vue-next'
 
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const { defaultLangCode, loadLanguages } = useLanguages()
@@ -116,7 +118,7 @@ watch(currentLang, (newLang, oldLang) => {
 })
 
 function addRootItem() {
-  menuItems.value.push({ id: Date.now().toString(), name: 'Menu mới', url: '', children: [] })
+  menuItems.value.push({ id: Date.now().toString(), name: t('admin.msg_new_menu', 'Menu mới'), url: '', children: [] })
 }
 
 function addChild(parent) {
@@ -125,7 +127,7 @@ function addChild(parent) {
 }
 
 function removeChild(list, index) {
-  if (confirm('Xoá menu này?')) list.splice(index, 1)
+  if (confirm(t('admin.msg_confirm_delete_menu', 'Xoá menu này?'))) list.splice(index, 1)
 }
 
 async function loadMenu() {
@@ -155,7 +157,7 @@ async function loadMenu() {
       rawMenuData.value.translations = {}
       menuItems.value = []
     } else {
-      showToast('Lỗi khi tải menu', 'error')
+      showToast(t('admin.msg_load_menu_error', 'Lỗi khi tải menu'), 'error')
     }
   }
 }
@@ -190,9 +192,9 @@ async function saveMenu() {
       })
       if (res.data) menuId.value = res.data.id
     }
-    showToast('Đã lưu cấu trúc menu!', 'success')
+    showToast(t('admin.msg_menu_saved', 'Đã lưu cấu trúc menu!'), 'success')
   } catch (e) {
-    showToast('Lỗi khi lưu menu', 'error')
+    showToast(t('admin.msg_save_menu_error', 'Lỗi khi lưu menu'), 'error')
   }
   saving.value = false
 }

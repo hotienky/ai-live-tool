@@ -7,7 +7,7 @@
           <ArrowLeft :size="16" />
         </button>
         <div class="cpb-title">
-          <input type="text" v-model="pageData.title" placeholder="Tên trang..." class="cpb-title-input" />
+          <input type="text" v-model="pageData.title" :placeholder="t('admin.msg_page_name', 'Tên trang...')" class="cpb-title-input" />
           <span class="cpb-slug">/{{ pageData.alias || '...' }}</span>
         </div>
       </div>
@@ -32,12 +32,12 @@
           <button @click="redo" :disabled="!canRedo" title="Redo (Ctrl+Y)"><Redo2 :size="14" /></button>
         </div>
         <div class="cpb-save-status">
-          <span v-if="isSaving" class="status-saving"><Loader2 class="spin" :size="12" /> Đang lưu...</span>
-          <span v-else-if="hasChanges" class="status-unsaved">Có thay đổi</span>
-          <span v-else class="status-saved"><Check :size="12" /> Đã lưu</span>
+          <span v-if="isSaving" class="status-saving"><Loader2 class="spin" :size="12" /> {{ t('admin.msg_saving', 'Đang lưu...') }}</span>
+          <span v-else-if="hasChanges" class="status-unsaved">{{ t('admin.msg_has_changes', 'Có thay đổi') }}</span>
+          <span v-else class="status-saved"><Check :size="12" /> {{ t('admin.msg_saved', 'Đã lưu') }}</span>
         </div>
         <button class="cpb-btn-save" @click="savePage" :disabled="isSaving">
-          <Save :size="14" /> Lưu Layout
+          <Save :size="14" /> {{ t('admin.msg_save_layout', 'Lưu Layout') }}
         </button>
       </div>
     </header>
@@ -50,7 +50,7 @@
             <Grid :size="14" /> Blocks
           </button>
           <button :class="{ active: leftTab === 'layers' }" @click="leftTab = 'layers'">
-            <Layers :size="14" /> Cấu trúc
+            <Layers :size="14" /> {{ t('admin.msg_structure', 'Cấu trúc') }}
           </button>
         </div>
         <div class="cpb-sidebar-content" v-show="!leftCollapsed">
@@ -97,7 +97,7 @@
         />
         <div v-else class="cpb-right-empty">
           <MousePointerClick :size="32" />
-          <p>Chọn block để sửa</p>
+          <p>{{ t('admin.msg_select_block', 'Chọn block để sửa') }}</p>
         </div>
       </aside>
     </div>
@@ -109,6 +109,9 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { apiFetch, useToast } from '../helpers.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
 import { useBuilderHistory } from '../composables/useBuilderHistory.js'
+import { useI18n } from '../../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 import BlockPalette from './builder/BlockPalette.vue'
 import BlockCanvas from './builder/BlockCanvas.vue'
@@ -342,9 +345,9 @@ async function savePage() {
     }
 
     hasChanges.value = false
-    showToast('Đã lưu bài viết')
+    showToast(t('admin.msg_layout_saved', 'Đã lưu bài viết'))
   } catch (err) {
-    showToast('Lỗi khi lưu', 'error')
+    showToast(t('admin.msg_save_error', 'Lỗi khi lưu'), 'error')
   }
   isSaving.value = false
 }

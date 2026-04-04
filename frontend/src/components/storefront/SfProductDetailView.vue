@@ -15,7 +15,7 @@
       <!-- Right: Product Info -->
       <div class="sp-info">
         <span class="sp-brand" v-if="product?.brand">{{ product.brand }}</span>
-        <h1 class="sp-name">{{ product?.name || 'Tên sản phẩm mẫu' }}</h1>
+        <h1 class="sp-name">{{ product?.name || t('storefront.msg_sample_product', 'Tên sản phẩm mẫu') }}</h1>
 
         <div class="sp-prices" v-if="product">
           <span class="sp-price" :class="{ 'sp-price--old': isOnPromotion }">
@@ -35,20 +35,20 @@
             <span class="sp-meta-value">{{ product.sku }}</span>
           </div>
           <div class="sp-meta-item" v-if="product?.category">
-            <span class="sp-meta-label">Danh mục</span>
+            <span class="sp-meta-label">{{ t('storefront.msg_category', 'Danh mục') }}</span>
             <span class="sp-meta-value">{{ product.category }}</span>
           </div>
           <div class="sp-meta-item">
-            <span class="sp-meta-label">Tình trạng</span>
+            <span class="sp-meta-label">{{ t('storefront.msg_stock_status', 'Tình trạng') }}</span>
             <span class="sp-meta-value" :class="(product?.stock || 10) > 0 ? 'in-stock' : 'out-stock'">
-              {{ (product?.stock || 10) > 0 ? `Còn hàng (${product?.stock || 10})` : 'Hết hàng' }}
+              {{ (product?.stock || 10) > 0 ? t('storefront.msg_in_stock', 'Còn hàng') + ` (${product?.stock || 10})` : t('storefront.msg_out_of_stock', 'Hết hàng') }}
             </span>
           </div>
         </div>
 
         <!-- Quantity -->
         <div class="sp-qty">
-          <label>Số lượng</label>
+          <label>{{ t('storefront.msg_quantity', 'Số lượng') }}</label>
           <div class="sp-qty-ctrl">
             <button @click="localQty = Math.max(1, localQty - 1)"><Minus :size="14" /></button>
             <input v-model.number="localQty" type="number" min="1" :max="product?.stock || 99" />
@@ -61,17 +61,17 @@
           <button class="sp-btn sp-btn--cart" @click="$emit('addToCart', { productId: product?.id, quantity: localQty })"
             :disabled="(product?.stock || 10) <= 0">
             <ShoppingCart :size="16" />
-            Thêm vào giỏ
+            {{ t('storefront.msg_add_to_cart', 'Thêm vào giỏ') }}
           </button>
           <button class="sp-btn sp-btn--buy" @click="$emit('buyNow', { productId: product?.id, quantity: localQty })"
             :disabled="(product?.stock || 10) <= 0">
-            Mua ngay
+            {{ t('storefront.msg_buy_now', 'Mua ngay') }}
           </button>
         </div>
 
         <!-- Description -->
         <div class="sp-desc" v-if="product?.description">
-          <h3>Mô tả sản phẩm</h3>
+          <h3>{{ t('storefront.msg_product_description', 'Mô tả sản phẩm') }}</h3>
           <div class="sp-desc-content" v-html="product.description"></div>
         </div>
       </div>
@@ -82,6 +82,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { Package, Minus, Plus, ShoppingCart } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   product: { type: Object, default: null },

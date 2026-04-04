@@ -378,7 +378,7 @@ class StorefrontController extends Controller
         // LayoutResolver is NOT called here to prevent errors on tenants missing a module.
         $hasEcom = in_array('ecom', $installedModules);
         $hasBlog = in_array('blog', $installedModules);
-        $initialData = $this->buildInitialData($hasEcom, $hasBlog, json_decode(json_encode($categories), true));
+        $initialData = $this->buildInitialData($hasEcom, $hasBlog, json_decode(json_encode($categories), true), $locale);
 
         $storefrontPlugins = array_values(array_filter($installedModules, function($module) {
             return file_exists(public_path("plugins/{$module}/storefront.js"));
@@ -412,34 +412,46 @@ class StorefrontController extends Controller
      * Each module is isolated in try/catch — a missing module never breaks the response.
      * Frontend reads from window.__STOREFRONT_DATA__ populated by App.vue.
      */
-    private function buildInitialData(bool $hasEcom, bool $hasBlog, array $categories): array
+    private function buildInitialData(bool $hasEcom, bool $hasBlog, array $categories, ?string $locale = null): array
     {
         $data = ['categories' => $categories];
 
         // Banners — core feature available on all plans
         try {
-            $data['banners'] = collect($this->bannerRepo->manyBy('status', true))
+            $banners = collect($this->bannerRepo->manyBy('status', true))
                 ->map(fn($b) => is_array($b) ? $b : $b->toArray())
                 ->values()
                 ->all();
+            if ($locale) {
+                $banners = ContentTranslation::mergeIntoItems($banners, 'banners', $locale, ['title', 'description']);
+            }
+            $data['banners'] = $banners;
         } catch (\Exception) {
             $data['banners'] = [];
         }
 
         if ($hasEcom) {
             try {
-                $data['products'] = collect($this->productRepo->getProducts(12)->items())
+                $products = collect($this->productRepo->getProducts(12)->items())
                     ->map(fn($p) => is_array($p) ? $p : $p->toArray())
                     ->all();
+                if ($locale) {
+                    $products = ContentTranslation::mergeIntoItems($products, 'products', $locale, ['name', 'description', 'meta_title', 'meta_description']);
+                }
+                $data['products'] = $products;
             } catch (\Exception) {
                 $data['products'] = [];
             }
 
             try {
-                $data['flashSales'] = collect($this->flashSaleRepo->getActive())
+                $flashSales = collect($this->flashSaleRepo->getActive())
                     ->map(fn($f) => is_array($f) ? $f : $f->toArray())
                     ->values()
                     ->all();
+                if ($locale) {
+                    $flashSales = ContentTranslation::mergeIntoItems($flashSales, 'flash_sales', $locale, ['name']);
+                }
+                $data['flashSales'] = $flashSales;
             } catch (\Exception) {
                 $data['flashSales'] = [];
             }
@@ -447,7 +459,7 @@ class StorefrontController extends Controller
 
         if ($hasBlog) {
             try {
-                $data['blogPosts'] = \App\Models\Content::ofType('post')
+                $blogPosts = \App\Models\Content::ofType('post')
                     ->published()
                     ->orderBy('published_at', 'desc')
                     ->limit(6)
@@ -455,6 +467,10 @@ class StorefrontController extends Controller
                     ->map(fn($p) => is_array($p) ? $p : (is_object($p) && method_exists($p, 'toArray') ? $p->toArray() : (array)$p))
                     ->values()
                     ->all();
+                if ($locale) {
+                    $blogPosts = ContentTranslation::mergeIntoItems($blogPosts, 'contents', $locale, ['title', 'body', 'excerpt']);
+                }
+                $data['blogPosts'] = $blogPosts;
             } catch (\Exception) {
                 $data['blogPosts'] = [];
             }
@@ -843,7 +859,9 @@ class StorefrontController extends Controller
      */
     private function getLocale(Request $request): ?string
     {
-        $locale = $request->header('Accept-Language');
+        // Support both Accept-Language header and ?lang= query param (fallback)
+        $locale = $request->header('Accept-Language')
+                ?? $request->query('lang');
         if (!$locale || !$this->isLanguagesModuleActive()) {
             return null;
         }

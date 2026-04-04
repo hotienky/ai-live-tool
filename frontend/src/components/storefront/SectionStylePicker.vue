@@ -2,7 +2,7 @@
   <div class="style-picker" v-if="templates.length > 0">
     <div class="style-picker__header">
       <Palette :size="13" />
-      <span>Chọn kiểu hiển thị</span>
+      <span>{{ t('admin.msg_choose_style', 'Chọn kiểu hiển thị') }}</span>
     </div>
     <div class="style-picker__grid" :class="{ 'style-picker__grid--compact': templates.length > 4 }">
       <button
@@ -30,6 +30,9 @@
 import { computed } from 'vue'
 import { Palette, Check } from 'lucide-vue-next'
 import { getTemplatesForSection } from './sectionTemplates.js'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   sectionType: { type: String, required: true },

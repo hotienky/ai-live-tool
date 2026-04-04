@@ -10,10 +10,10 @@
     <div class="ce-header">
       <div class="ce-header__left">
         <button class="btn-back" @click="$emit('back')">
-          <ChevronLeft :size="16" /> Quay lại
+          <ChevronLeft :size="16" /> {{ t('admin.msg_go_back', 'Quay lại') }}
         </button>
-        <h2>{{ editId ? 'Chỉnh sửa trang' : 'Tạo trang mới' }}</h2>
-        <span v-if="form.is_system" class="badge badge--system"><Lock :size="10" /> Hệ thống</span>
+        <h2>{{ editId ? t('admin.msg_edit_page', 'Chỉnh sửa trang') : t('admin.msg_create_page', 'Tạo trang mới') }}</h2>
+        <span v-if="form.is_system" class="badge badge--system"><Lock :size="10" /> {{ t('admin.msg_system', 'Hệ thống') }}</span>
         <span v-if="form.is_dynamic" class="badge badge--dynamic"><Layers :size="10" /> Dynamic</span>
       </div>
       <div class="ce-header__right">
@@ -23,12 +23,12 @@
           class="btn-builder"
           @click="openBuilder = true"
         >
-          <Layout :size="14" /> Mở Page Builder
+          <Layout :size="14" /> {{ t('admin.msg_open_page_builder', 'Mở Page Builder') }}
         </button>
         <button class="btn-save" @click="savePage" :disabled="saving">
           <Loader2 v-if="saving" :size="14" class="spin" />
           <Save v-else :size="14" />
-          {{ saving ? 'Đang lưu...' : 'Lưu trang' }}
+          {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_save_page', 'Lưu trang') }}
         </button>
       </div>
     </div>
@@ -37,26 +37,26 @@
       <!-- Main content -->
       <div class="ce-main">
         <div class="ce-field">
-          <label class="ce-label">Tiêu đề trang *</label>
-          <input v-model="form.title" type="text" class="ce-input ce-input--title" placeholder="Ví dụ: Giới thiệu công ty" @blur="autoSlug" />
+          <label class="ce-label">{{ t('admin.msg_page_title', 'Tiêu đề trang *') }}</label>
+          <input v-model="form.title" type="text" class="ce-input ce-input--title" :placeholder="t('admin.msg_page_title_placeholder', 'Ví dụ: Giới thiệu công ty')" @blur="autoSlug" />
         </div>
 
         <div class="ce-field">
-          <label class="ce-label">Đường dẫn (Slug)</label>
+          <label class="ce-label">{{ t('admin.msg_slug_path', 'Đường dẫn (Slug)') }}</label>
           <div class="ce-slug-input">
             <span class="ce-slug-prefix">/page/</span>
             <input v-model="form.alias" type="text" class="ce-input" placeholder="gioi-thieu-cong-ty" :disabled="form.is_system" />
           </div>
-          <small v-if="form.is_system" class="ce-hint ce-hint--warn">Alias trang hệ thống không thể thay đổi.</small>
+          <small v-if="form.is_system" class="ce-hint ce-hint--warn">{{ t('admin.msg_system_alias_locked', 'Alias trang hệ thống không thể thay đổi.') }}</small>
         </div>
 
         <!-- Nội dung thường -->
         <template v-if="!form.is_dynamic">
           <div class="ce-field">
-            <label class="ce-label">Nội dung</label>
-            <component v-if="richEditor" :is="richEditor" v-model="form.content" placeholder="Soạn nội dung trang..." />
-            <textarea v-else v-model="form.content" rows="16" class="ce-input ce-textarea" placeholder="Nhập nội dung HTML hoặc shortcode..."></textarea>
-            <small class="ce-hint">Mẹo: Hỗ trợ HTML và shortcode như <code>[lucky-draw id="1"]</code></small>
+            <label class="ce-label">{{ t('admin.msg_content', 'Nội dung') }}</label>
+            <component v-if="richEditor" :is="richEditor" v-model="form.content" :placeholder="t('admin.msg_compose_content', 'Soạn nội dung trang...')" />
+            <textarea v-else v-model="form.content" rows="16" class="ce-input ce-textarea" :placeholder="t('admin.msg_html_shortcode_placeholder', 'Nhập nội dung HTML hoặc shortcode...')"></textarea>
+            <small class="ce-hint" v-html="t('admin.msg_html_hint', 'Mẹo: Hỗ trợ HTML và shortcode như <code>[lucky-draw id=&quot;1&quot;]</code>')"></small>
           </div>
         </template>
 
@@ -65,8 +65,8 @@
           <div class="ce-builder-cta">
             <div class="ce-builder-cta__icon"><Layout :size="28" /></div>
             <div class="ce-builder-cta__content">
-              <strong>Trang này dùng Page Builder</strong>
-              <p>Thiết kế bố cục bằng hệ thống kéo thả — thêm Hero, Blog, Sản phẩm, và nhiều hơn nữa.</p>
+              <strong>{{ t('admin.msg_page_uses_builder', 'Trang này dùng Page Builder') }}</strong>
+              <p>{{ t('admin.msg_builder_desc', 'Thiết kế bố cục bằng hệ thống kéo thả — thêm Hero, Blog, Sản phẩm, và nhiều hơn nữa.') }}</p>
               <button
                 v-if="editId"
                 class="btn-builder btn-builder--lg"
@@ -74,9 +74,9 @@
                 :disabled="saving"
               >
                 <Layout :size="14" />
-                {{ saving ? 'Đang lưu...' : 'Mở Page Builder' }}
+                {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_open_page_builder', 'Mở Page Builder') }}
               </button>
-              <p v-else class="ce-hint ce-hint--warn" style="margin-top:.5rem">Lưu trang trước để mở Page Builder.</p>
+              <p v-else class="ce-hint ce-hint--warn" style="margin-top:.5rem">{{ t('admin.msg_save_to_open_builder', 'Lưu trang trước để mở Page Builder.') }}</p>
             </div>
           </div>
         </template>
@@ -86,18 +86,18 @@
       <div class="ce-sidebar">
         <!-- Publish -->
         <div class="ce-card">
-          <h4 class="ce-card-title">Xuất bản</h4>
+          <h4 class="ce-card-title">{{ t('admin.msg_publish', 'Xuất bản') }}</h4>
           <div class="ce-field">
             <select v-model="form.status" class="ce-select">
-              <option :value="true">Xuất bản (Published)</option>
-              <option :value="false">Nháp (Draft)</option>
+              <option :value="true">{{ t('admin.msg_published', 'Xuất bản (Published)') }}</option>
+              <option :value="false">{{ t('admin.msg_draft', 'Nháp (Draft)') }}</option>
             </select>
           </div>
         </div>
 
         <!-- Page type -->
         <div class="ce-card">
-          <h4 class="ce-card-title">Loại trang</h4>
+          <h4 class="ce-card-title">{{ t('admin.msg_page_type', 'Loại trang') }}</h4>
           <label
             class="ce-toggle-row"
             :class="{ 'ce-toggle-row--disabled': form.alias === 'home' }"
@@ -108,7 +108,7 @@
             </div>
           </label>
           <p class="ce-hint" style="margin-top:.5rem">
-            Bật để dùng hệ thống kéo thả block. Tắt để dùng trình soạn thảo thông thường.
+            {{ t('admin.msg_toggle_builder_hint', 'Bật để dùng hệ thống kéo thả block. Tắt để dùng trình soạn thảo thông thường.') }}
           </p>
         </div>
 
@@ -117,11 +117,11 @@
           <h4 class="ce-card-title">SEO</h4>
           <div class="ce-field">
             <label class="ce-label">Meta Title</label>
-            <input v-model="form.meta_title" type="text" class="ce-input" placeholder="Tiêu đề SEO..." />
+            <input v-model="form.meta_title" type="text" class="ce-input" :placeholder="t('admin.msg_seo_title_placeholder', 'Tiêu đề SEO...')" />
           </div>
           <div class="ce-field">
             <label class="ce-label">Meta Description</label>
-            <textarea v-model="form.meta_description" class="ce-input ce-textarea--sm" rows="3" placeholder="Mô tả meta..."></textarea>
+            <textarea v-model="form.meta_description" class="ce-input ce-textarea--sm" rows="3" :placeholder="t('admin.msg_meta_desc_placeholder', 'Mô tả meta...')"></textarea>
           </div>
         </div>
       </div>
@@ -134,7 +134,10 @@ import { ref, shallowRef, onMounted } from 'vue'
 import { ChevronLeft, Save, Loader2, Layers, Lock, Layout } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
 import { useCmsPages } from '../composables/useCmsPages.js'
+import { useI18n } from '../../../composables/useI18n.js'
 import CmsPageBuilder from './CmsPageBuilder.vue'
+
+const { t } = useI18n()
 
 const bridge = window.__APP_BRIDGE__ || {}
 const richEditor = shallowRef(bridge.components?.RichTextEditor || null)
@@ -192,12 +195,12 @@ async function loadPage() {
       meta_description: item.meta_description || '',
     }
   } catch (e) {
-    showToast('Lỗi tải trang: ' + e.message, 'error')
+    showToast(t('admin.msg_load_page_error', 'Lỗi tải trang: ') + e.message, 'error')
   }
 }
 
 async function savePage() {
-  if (!form.value.title.trim()) return showToast('Vui lòng nhập tiêu đề', 'error')
+  if (!form.value.title.trim()) return showToast(t('admin.msg_please_enter_title', 'Vui lòng nhập tiêu đề'), 'error')
   saving.value = true
   try {
     const payload = {
@@ -211,10 +214,10 @@ async function savePage() {
     }
     if (props.editId) {
       await updatePage(props.editId, payload)
-      showToast('Đã cập nhật trang!', 'success')
+      showToast(t('admin.msg_page_updated', 'Đã cập nhật trang!'), 'success')
     } else {
       const res = await createPage(payload)
-      showToast('Đã tạo trang mới!', 'success')
+      showToast(t('admin.msg_page_created', 'Đã tạo trang mới!'), 'success')
       // Nếu is_dynamic, đợi emit 'saved' để refresh và lấy id mới
     }
     emit('saved')

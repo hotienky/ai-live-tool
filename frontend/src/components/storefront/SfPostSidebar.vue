@@ -2,17 +2,17 @@
   <aside class="sf-sidebar">
     <!-- Search -->
     <div class="sf-sidebar__card">
-      <h4 class="sf-sidebar__title">Tìm kiếm</h4>
+      <h4 class="sf-sidebar__title">{{ t('storefront.msg_search', 'Tìm kiếm') }}</h4>
       <div class="sf-sidebar__search">
         <Search :size="14" class="sf-sidebar__search-icon" />
-        <input v-model="searchQuery" type="text" placeholder="Tìm bài viết..." class="sf-sidebar__search-input" @keydown.enter="$emit('search', searchQuery)" />
+        <input v-model="searchQuery" type="text" :placeholder="t('storefront.msg_search_posts', 'Tìm bài viết...')" class="sf-sidebar__search-input" @keydown.enter="$emit('search', searchQuery)" />
       </div>
     </div>
 
     <!-- Categories -->
     <div class="sf-sidebar__card" v-if="categories.length">
       <h4 class="sf-sidebar__title">
-        <FolderOpen :size="15" /> Danh mục
+        <FolderOpen :size="15" /> {{ t('storefront.msg_categories', 'Danh mục') }}
       </h4>
       <ul class="sf-sidebar__list">
         <li v-for="cat in categories" :key="cat" @click="$emit('filterCategory', cat)" class="sf-sidebar__list-item">
@@ -25,7 +25,7 @@
     <!-- Recent Posts -->
     <div class="sf-sidebar__card" v-if="recentPosts.length">
       <h4 class="sf-sidebar__title">
-        <Clock :size="15" /> Bài viết gần đây
+        <Clock :size="15" /> {{ t('storefront.msg_recent_posts', 'Bài viết gần đây') }}
       </h4>
       <div class="sf-sidebar__recent">
         <div v-for="post in recentPosts.slice(0, 5)" :key="post.id" class="sf-sidebar__recent-item" @click="$emit('viewPost', post.slug)">
@@ -44,7 +44,7 @@
     <!-- Tags Cloud -->
     <div class="sf-sidebar__card" v-if="tags.length">
       <h4 class="sf-sidebar__title">
-        <Tag :size="15" /> Thẻ
+        <Tag :size="15" /> {{ t('storefront.msg_tags', 'Thẻ') }}
       </h4>
       <div class="sf-sidebar__tags">
         <span v-for="tag in tags" :key="tag" class="sf-sidebar__tag" @click="$emit('filterTag', tag)">
@@ -58,6 +58,9 @@
 <script setup>
 import { ref } from 'vue'
 import { Search, FolderOpen, Clock, Tag, FileText, ChevronRight } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 defineProps({
   categories: { type: Array, default: () => [] },

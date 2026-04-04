@@ -5,11 +5,11 @@
         <div class="gbm-header__icon"><ComponentIcon :size="18" /></div>
         <div>
           <h2 class="gbm-header__title">Global Blocks (Symbols)</h2>
-          <p class="gbm-header__sub">Quản lý các khối giao diện dùng chung theo kiến trúc Modular</p>
+          <p class="gbm-header__sub">{{ t('admin.msg_global_blocks_desc', 'Quản lý các khối giao diện dùng chung theo kiến trúc Modular') }}</p>
         </div>
       </div>
       <button class="btn-add" @click="openCreate">
-        <Plus :size="15" /> Tạo Global Block
+        <Plus :size="15" /> {{ t('admin.msg_create_global_block', 'Tạo Global Block') }}
       </button>
     </div>
 
@@ -21,9 +21,9 @@
     <!-- Empty state -->
     <div v-else-if="blocks.length === 0" class="gbm-empty">
       <div class="gbm-empty__icon"><ComponentIcon :size="32" /></div>
-      <p class="gbm-empty__text">Chưa có Global Block nào</p>
-      <p class="gbm-empty__hint">Tạo một khối dùng chung (như Header, Banner, Popup) để chèn vào nhiều trang giao diện mà chỉ cần bảo trì ở một nơi.</p>
-      <button class="btn-add" @click="openCreate"><Plus :size="15" /> Tạo Global Block đầu tiên</button>
+      <p class="gbm-empty__text">{{ t('admin.msg_no_global_blocks', 'Chưa có Global Block nào') }}</p>
+      <p class="gbm-empty__hint">{{ t('admin.msg_global_block_hint', 'Tạo một khối dùng chung (như Header, Banner, Popup) để chèn vào nhiều trang giao diện mà chỉ cần bảo trì ở một nơi.') }}</p>
+      <button class="btn-add" @click="openCreate"><Plus :size="15" /> {{ t('admin.msg_create_first_block', 'Tạo Global Block đầu tiên') }}</button>
     </div>
 
     <!-- Block list table -->
@@ -31,9 +31,9 @@
       <table class="gbm-table">
         <thead>
           <tr>
-            <th>Tên hiển thị (Name)</th>
-            <th>Mã tham chiếu (Ref)</th>
-            <th>Cập nhật lần cuối</th>
+            <th>{{ t('admin.msg_display_name', 'Tên hiển thị (Name)') }}</th>
+            <th>{{ t('admin.msg_ref_code', 'Mã tham chiếu (Ref)') }}</th>
+            <th>{{ t('admin.msg_last_updated', 'Cập nhật lần cuối') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -43,8 +43,8 @@
             <td class="gbm-table__ref"><span class="badge">{{ block.ref }}</span></td>
             <td class="gbm-table__time">{{ formatDate(block.updated_at) }}</td>
             <td class="gbm-table__actions">
-              <button class="btn-icon" @click="openEdit(block)" title="Sửa JSON Builder"><Pencil :size="14" /></button>
-              <button class="btn-icon btn-icon--danger" @click="confirmDelete(block)" title="Xóa"><Trash2 :size="14" /></button>
+              <button class="btn-icon" @click="openEdit(block)" :title="t('admin.msg_edit_json', 'Sửa JSON Builder')"><Pencil :size="14" /></button>
+              <button class="btn-icon btn-icon--danger" @click="confirmDelete(block)" :title="t('admin.delete', 'Xóa')"><Trash2 :size="14" /></button>
             </td>
           </tr>
         </tbody>
@@ -56,25 +56,25 @@
       <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
         <div class="modal">
           <div class="modal__header">
-            <h3 class="modal__title"><ComponentIcon :size="17" /> {{ editForm.id ? 'Sửa Global Block' : 'Tạo Global Block' }}</h3>
+            <h3 class="modal__title"><ComponentIcon :size="17" /> {{ editForm.id ? t('admin.msg_edit_global_block', 'Sửa Global Block') : t('admin.msg_create_global_block', 'Tạo Global Block') }}</h3>
             <button class="btn-icon" @click="showModal = false"><X :size="16" /></button>
           </div>
           <div class="modal__body">
             <div class="form-row">
               <div class="form-group">
-                <label>Tên hiển thị <span class="required">*</span></label>
+                <label>{{ t('admin.msg_display_name_label', 'Tên hiển thị') }} <span class="required">*</span></label>
                 <input type="text" v-model="editForm.name" class="form-input" placeholder="VD: Banner Sale 2026" />
               </div>
               <div class="form-group">
-                <label>Mã tham chiếu (ref) <span class="required">*</span></label>
+                <label>{{ t('admin.msg_ref_code_label', 'Mã tham chiếu (ref)') }} <span class="required">*</span></label>
                 <input type="text" v-model="editForm.ref" class="form-input" placeholder="VD: promo_banner" :disabled="!!editForm.id" />
-                <small style="color:var(--text-3); font-size: 11px; margin-top:4px; display:block">Sử dụng mã này vào ô "Ref" trong Layour Builder.</small>
+                <small style="color:var(--text-3); font-size: 11px; margin-top:4px; display:block">{{ t('admin.msg_ref_hint', 'Sử dụng mã này vào ô "Ref" trong Layour Builder.') }}</small>
               </div>
             </div>
             
             <div class="form-group" style="margin-top: 1rem">
               <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px;">
-                <label style="margin-bottom:0">Cấu trúc layout_json</label>
+                <label style="margin-bottom:0">{{ t('admin.msg_layout_json_structure', 'Cấu trúc layout_json') }}</label>
               </div>
               <LanguageTabs
                 v-if="currentLang"
@@ -82,19 +82,19 @@
                 :base-data="{ block_json: editForm.block_json }"
                 :translations="editForm.translations"
                 :fields="['block_json']"
-                @auto-translate="() => alert('Chức năng dịch tự động JSON sẽ được phát triển sau.')"
+                @auto-translate="() => alert(t('admin.msg_auto_translate_json_coming', 'Chức năng dịch tự động JSON sẽ được phát triển sau.'))"
               />
               <div style="font-size:12px; color:var(--text-3); margin-bottom: 6px; margin-top:-16px; line-height: 1.4;">
-                Dán mã JSON block vào đây (tương ứng với ngôn ngữ đang chọn).
+                {{ t('admin.msg_paste_json_hint', 'Dán mã JSON block vào đây (tương ứng với ngôn ngữ đang chọn).') }}
               </div>
               <textarea v-model="currentBlockJson" class="form-input json-editor" rows="12" placeholder="{ &quot;type&quot;: &quot;banner&quot;, ... }"></textarea>
             </div>
           </div>
           <div class="modal__footer">
-            <button class="btn-ghost" @click="showModal = false">Hủy</button>
+            <button class="btn-ghost" @click="showModal = false">{{ t('admin.cancel', 'Hủy') }}</button>
             <button class="btn-save" @click="saveBlock" :disabled="saving">
               <Rocket v-if="saving" :size="14" class="spin" />
-              {{ saving ? 'Đang lưu...' : 'Lưu Block' }}
+              {{ saving ? t('admin.msg_saving', 'Đang lưu...') : t('admin.msg_save_block', 'Lưu Block') }}
             </button>
           </div>
         </div>
@@ -104,16 +104,16 @@
       <div v-if="deleteTarget" class="modal-backdrop" @click.self="deleteTarget = null">
         <div class="modal modal--sm">
           <div class="modal__header">
-            <h3 class="modal__title"><Trash2 :size="17" /> Xác nhận xóa</h3>
+            <h3 class="modal__title"><Trash2 :size="17" /> {{ t('admin.msg_confirm_delete', 'Xác nhận xóa') }}</h3>
             <button class="btn-icon" @click="deleteTarget = null"><X :size="16" /></button>
           </div>
           <div class="modal__body">
-            <p>Xóa vĩnh viễn <strong>{{ deleteTarget.name }}</strong>?</p>
-            <p style="color:#ef4444; font-size:12px; margin-top:8px">Nếu bạn xoá block này, tất cả các trang web đang chứa nó sẽ bị mất hiển thị thành phần đó!</p>
+            <p>{{ t('admin.msg_delete_permanent', 'Xóa vĩnh viễn') }} <strong>{{ deleteTarget.name }}</strong>?</p>
+            <p style="color:#ef4444; font-size:12px; margin-top:8px">{{ t('admin.msg_delete_block_warning', 'Nếu bạn xoá block này, tất cả các trang web đang chứa nó sẽ bị mất hiển thị thành phần đó!') }}</p>
           </div>
           <div class="modal__footer">
-            <button class="btn-ghost" @click="deleteTarget = null">Hủy</button>
-            <button class="btn-danger" @click="deleteBlock">Xóa vĩnh viễn</button>
+            <button class="btn-ghost" @click="deleteTarget = null">{{ t('admin.cancel', 'Hủy') }}</button>
+            <button class="btn-danger" @click="deleteBlock">{{ t('admin.msg_delete_permanent', 'Xóa vĩnh viễn') }}</button>
           </div>
         </div>
       </div>
@@ -127,7 +127,10 @@ import { Component as ComponentIcon, Plus, Pencil, Trash2, X, Rocket } from 'luc
 import { apiFetch } from '../../composables/useApi.js'
 import { useToast } from '../../composables/useToast.js'
 import { useLanguages } from '../../composables/useLanguages.js'
+import { useI18n } from '../../composables/useI18n.js'
 import LanguageTabs from '../LanguageTabs.vue'
+
+const { t } = useI18n()
 
 const { showToast } = useToast()
 const { defaultLangCode, loadLanguages } = useLanguages()
@@ -179,7 +182,7 @@ async function load() {
     const data = await res.json()
     blocks.value = Array.isArray(data) ? data : (data?.data || [])
   } catch (e) {
-    showToast('Lỗi tải danh sách block: ' + e.message, 'error')
+    showToast(t('admin.msg_load_error', 'Lỗi tải danh sách block') + ': ' + e.message, 'error')
     blocks.value = []
   }
   loading.value = false
@@ -239,7 +242,7 @@ function openEdit(block) {
 
 async function saveBlock() {
   if (!editForm.value.name || !editForm.value.ref) {
-    showToast('Vui lòng nhập tên và mã tham chiếu', 'error')
+    showToast(t('admin.msg_required_name_ref', 'Vui lòng nhập tên và mã tham chiếu'), 'error')
     return
   }
 
@@ -249,7 +252,7 @@ async function saveBlock() {
       finalJsonObject = JSON.parse(editForm.value.block_json)
     }
   } catch (e) {
-    showToast('block_json ngôn ngữ gốc không đúng định dạng JSON hợp lệ!', 'error')
+    showToast(t('admin.msg_invalid_base_json', 'block_json ngôn ngữ gốc không đúng định dạng JSON hợp lệ!'), 'error')
     return
   }
 
@@ -267,7 +270,7 @@ async function saveBlock() {
       }
     }
   } catch(e) {
-    showToast('Mã JSON ở một trong các ngôn ngữ dịch không hợp lệ.', 'error')
+    showToast(t('admin.msg_invalid_translation_json', 'Mã JSON ở một trong các ngôn ngữ dịch không hợp lệ.'), 'error')
     return 
   }
 
@@ -286,19 +289,19 @@ async function saveBlock() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      showToast('Đã lưu Global Block', 'success')
+      showToast(t('admin.msg_block_saved', 'Đã lưu Global Block'), 'success')
     } else {
       await apiFetch(`/layout-global-blocks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
-      showToast('Đã tạo Global Block', 'success')
+      showToast(t('admin.msg_block_created', 'Đã tạo Global Block'), 'success')
     }
     showModal.value = false
     await load()
   } catch (e) {
-    showToast('Lỗi lưu block: ' + e.message, 'error')
+    showToast(t('admin.msg_save_error', 'Lỗi lưu block') + ': ' + e.message, 'error')
   }
   saving.value = false
 }
@@ -308,11 +311,11 @@ function confirmDelete(block) { deleteTarget.value = block }
 async function deleteBlock() {
   try {
     await apiFetch(`/layout-global-blocks/${deleteTarget.value.id}`, { method: 'DELETE' })
-    showToast('Đã xóa khối dùng chung', 'success')
+    showToast(t('admin.msg_block_deleted', 'Đã xóa khối dùng chung'), 'success')
     deleteTarget.value = null
     await load()
   } catch (e) {
-    showToast('Lỗi xóa block: ' + e.message, 'error')
+    showToast(t('admin.msg_delete_error', 'Lỗi xóa block') + ': ' + e.message, 'error')
   }
 }
 

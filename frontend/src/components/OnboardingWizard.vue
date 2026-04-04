@@ -6,7 +6,7 @@
         <div class="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl">
           <LucideRocket />
         </div>
-        <h1 class="text-2xl font-bold text-gray-900">Khởi tạo Cửa hàng</h1>
+        <h1 class="text-2xl font-bold text-gray-900">{{ t('admin.msg_store_setup', 'Khởi tạo Cửa hàng') }}</h1>
       </div>
       <!-- Steps indicator -->
       <div class="hidden md:flex items-center space-x-2">
@@ -38,8 +38,8 @@
         <!-- STEP 0: Choose Industry (Shopify-style) -->
         <div v-if="step === 0" class="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Bạn muốn tạo website cho lĩnh vực nào?</h2>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Hệ thống sẽ tự động cài đặt mọi tính năng phù hợp. Bạn luôn có thể thay đổi sau.</p>
+            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">{{ t('admin.msg_choose_industry', 'Bạn muốn tạo website cho lĩnh vực nào?') }}</h2>
+            <p class="text-xl text-gray-500 max-w-2xl mx-auto">{{ t('admin.msg_industry_desc', 'Hệ thống sẽ tự động cài đặt mọi tính năng phù hợp. Bạn luôn có thể thay đổi sau.') }}</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,7 +55,7 @@
                 </div>
                 <h3 class="text-xl font-bold text-gray-900 mb-2">{{ ind.label }}</h3>
                 <p class="text-gray-500 text-sm leading-relaxed">{{ ind.description }}</p>
-                <div class="mt-4 text-xs text-indigo-600 font-medium">{{ ind.modules.length }} tính năng tự động</div>
+                <div class="mt-4 text-xs text-indigo-600 font-medium">{{ ind.modules.length }} {{ t('admin.msg_auto_features', 'tính năng tự động') }}</div>
               </div>
               <div v-if="selectedIndustry?.id === ind.id" class="absolute top-4 right-4 text-white bg-indigo-600 rounded-full p-1 shadow-lg">
                 <LucideCheckCircle class="w-5 h-5" />
@@ -67,8 +67,8 @@
         <!-- STEP 1: Choose Template -->
         <div v-if="step === 1" class="animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div class="text-center mb-12">
-            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Chọn giao diện cho Website</h2>
-            <p class="text-xl text-gray-500 max-w-2xl mx-auto">Chọn bố cục phù hợp. Bạn luôn có thể tùy biến mọi chi tiết sau này.</p>
+            <h2 class="text-4xl font-extrabold tracking-tight text-gray-900 mb-4">{{ t('admin.msg_choose_template', 'Chọn giao diện cho Website') }}</h2>
+            <p class="text-xl text-gray-500 max-w-2xl mx-auto">{{ t('admin.msg_template_desc', 'Chọn bố cục phù hợp. Bạn luôn có thể tùy biến mọi chi tiết sau này.') }}</p>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -104,11 +104,11 @@
                 <div class="mt-auto pt-5 border-t border-gray-100">
                   <div class="flex items-center space-x-3 mb-2 text-sm text-gray-600 font-medium">
                     <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
-                    <span>{{ tpl.modules.length > 0 ? tpl.modules.length + ' modules cài sẵn' : 'Tùy biến tự do' }}</span>
+                    <span>{{ tpl.modules.length > 0 ? tpl.modules.length + ' ' + t('admin.msg_modules_preinstalled', 'modules cài sẵn') : t('admin.msg_free_customize', 'Tùy biến tự do') }}</span>
                   </div>
                   <div class="flex items-center space-x-3 text-sm text-gray-600 font-medium">
                     <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><LucideCheck class="w-4 h-4" /></div>
-                    <span>Giao diện: <strong class="text-gray-900">{{ tpl.theme }}</strong></span>
+                    <span>{{ t('admin.msg_theme_label', 'Giao diện:') }} <strong class="text-gray-900">{{ tpl.theme }}</strong></span>
                   </div>
                 </div>
               </div>
@@ -119,31 +119,31 @@
         <!-- STEP 2: Basic Info & Language (was step 1) -->
         <div v-else-if="step === 2" class="max-w-2xl mx-auto w-full animate-in fade-in slide-in-from-right-8 duration-500">
           <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-4">Thông tin cửa hàng</h2>
-            <p class="text-gray-600">Những thông tin này có thể được chỉnh sửa sau trong phần Cài đặt.</p>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ t('admin.msg_store_info', 'Thông tin cửa hàng') }}</h2>
+            <p class="text-gray-600">{{ t('admin.msg_edit_later_note', 'Những thông tin này có thể được chỉnh sửa sau trong phần Cài đặt.') }}</p>
           </div>
           
           <div class="bg-white rounded-xl shadow-sm border p-8 space-y-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Tên gọi (Bắt buộc)</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.msg_name_required', 'Tên gọi (Bắt buộc)') }}</label>
               <input
                 v-model="siteInfo.name"
                 type="text"
                 class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg text-gray-900 bg-white"
-                placeholder="VD: Cửa hàng Thời Trang VIP"
+                :placeholder="t('admin.msg_store_name_placeholder', 'VD: Cửa hàng Thời Trang VIP')"
               >
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Mô tả ngắn</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.msg_short_description', 'Mô tả ngắn') }}</label>
               <textarea
                 v-model="siteInfo.description"
                 rows="2"
                 class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg resize-none text-gray-900 bg-white"
-                placeholder="Tóm tắt về sản phẩm hoặc dịch vụ..."
+                :placeholder="t('admin.msg_site_desc_placeholder', 'Tóm tắt về sản phẩm hoặc dịch vụ...')"
               ></textarea>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">Ngôn ngữ mặc định</label>
+              <label class="block text-sm font-medium text-gray-700 mb-2">{{ t('admin.msg_default_language', 'Ngôn ngữ mặc định') }}</label>
               <div class="grid grid-cols-2 gap-4">
                 <div 
                   v-for="lang in languages" :key="lang.code"
@@ -166,19 +166,19 @@
             <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
               <component :is="getIcon(selectedTemplate.icon)" class="w-10 h-10" />
             </div>
-            <h2 class="text-3xl font-bold mb-4">Mọi thứ đã sẵn sàng!</h2>
+            <h2 class="text-3xl font-bold mb-4">{{ t('admin.msg_all_set', 'Mọi thứ đã sẵn sàng!') }}</h2>
             <p class="text-gray-600 mb-8">
               Hệ thống sẽ cài đặt <strong>{{ selectedTemplate.name }}</strong> với tên site là <strong>"{{ siteInfo.name || 'Site của tôi' }}"</strong>.
             </p>
             
             <div class="bg-white rounded-lg border p-6 text-left mb-8 space-y-4">
-              <h4 class="font-semibold text-gray-900">Chi tiết khởi tạo:</h4>
+              <h4 class="font-semibold text-gray-900">{{ t('admin.msg_setup_details', 'Chi tiết khởi tạo:') }}</h4>
               <ul class="space-y-3 text-sm text-gray-600">
-                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Ngôn ngữ chính: {{ languages.find(l => l.code === siteInfo.language)?.name }}</li>
-                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cài đặt Theme: {{ selectedTemplate.theme }}</li>
-                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cài đặt {{ selectedTemplate.modules.length }} modules chức năng</li>
-                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Cấu hình Storefront Layout tự động</li>
-                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> Tạo {{ selectedTemplate.default_pages.length }} trang nội dung cơ bản</li>
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> {{ t('admin.msg_main_language', 'Ngôn ngữ chính:') }} {{ languages.find(l => l.code === siteInfo.language)?.name }}</li>
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> {{ t('admin.msg_install_theme', 'Cài đặt Theme:') }} {{ selectedTemplate.theme }}</li>
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> {{ t('admin.msg_install_modules_count', 'Cài đặt') }} {{ selectedTemplate.modules.length }} {{ t('admin.msg_function_modules', 'modules chức năng') }}</li>
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> {{ t('admin.msg_auto_storefront', 'Cấu hình Storefront Layout tự động') }}</li>
+                <li class="flex items-center"><LucideCheckCircle class="w-5 h-5 text-green-500 mr-3"/> {{ t('admin.msg_create_pages', 'Tạo') }} {{ selectedTemplate.default_pages.length }} {{ t('admin.msg_basic_pages', 'trang nội dung cơ bản') }}</li>
               </ul>
             </div>
           </div>
@@ -191,8 +191,8 @@
                </svg>
                <component :is="getIcon(selectedTemplate.icon)" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-indigo-600" />
             </div>
-            <h3 class="text-2xl font-bold text-gray-900">Đang khởi tạo hệ thống...</h3>
-            <p class="text-gray-500">Quá trình này có thể mất vài chục giây.<br>Vui lòng không đóng trình duyệt.</p>
+            <h3 class="text-2xl font-bold text-gray-900">{{ t('admin.msg_initializing', 'Đang khởi tạo hệ thống...') }}</h3>
+            <p class="text-gray-500" v-html="t('admin.msg_init_wait', 'Quá trình này có thể mất vài chục giây.<br>Vui lòng không đóng trình duyệt.')"></p>
           </div>
         </div>
 
@@ -206,7 +206,7 @@
         @click="step--"
         class="px-6 py-2.5 text-gray-600 hover:text-gray-900 font-medium transition-colors"
       >
-        Trở lại
+        {{ t('admin.msg_go_back', 'Trở lại') }}
       </button>
       <div v-else></div> <!-- Spacer -->
 
@@ -216,7 +216,7 @@
         :disabled="(step === 0 && !selectedIndustry) || (step === 1 && !selectedTemplate)"
         class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
       >
-        Tiếp tục <LucideArrowRight class="ml-2 w-5 h-5" />
+        {{ t('admin.msg_continue', 'Tiếp tục') }} <LucideArrowRight class="ml-2 w-5 h-5" />
       </button>
 
       <button 
@@ -224,24 +224,26 @@
         @click="processOnboarding"
         class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-medium shadow-md transition-all hover:-translate-y-0.5 flex items-center"
       >
-        Bắt đầu tạo website <LucideCheck class="ml-2 w-5 h-5" />
+        {{ t('admin.msg_start_creating', 'Bắt đầu tạo website') }} <LucideCheck class="ml-2 w-5 h-5" />
       </button>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { apiFetch } from '../composables/useApi'
 import { useToast } from '../composables/useToast'
+import { useI18n } from '../composables/useI18n.js'
 import * as LucideIcons from 'lucide-vue-next'
 // Deconstruct used icons specifically for dynamic component to avoid missing dependencies
 const { ShoppingCart, FileText, User, Target, LayoutGrid, Rocket, Check, ArrowRight, CheckCircle } = LucideIcons
 
+const { t } = useI18n()
 const toast = useToast()
 const emit = defineEmits(['complete'])
 
-const steps = ['Lĩnh vực', 'Bố cục', 'Thông tin', 'Xác nhận']
+const steps = computed(() => [t('admin.msg_step_industry', 'Lĩnh vực'), t('admin.msg_step_layout', 'Bố cục'), t('admin.msg_step_info', 'Thông tin'), t('admin.msg_step_confirm', 'Xác nhận')])
 const step = ref(0)
 const industries = ref([])
 const selectedIndustry = ref(null)
@@ -293,11 +295,11 @@ const selectTemplate = (tpl) => {
 
 const nextStep = () => {
   if (step.value === 0 && !selectedIndustry.value) {
-    toast.error('Vui lòng chọn lĩnh vực cho website của bạn.')
+    toast.error(t('admin.msg_please_select_industry', 'Vui lòng chọn lĩnh vực cho website của bạn.'))
     return
   }
   if (step.value === 1 && !selectedTemplate.value) {
-    toast.error('Vui lòng chọn một giao diện để bắt đầu.')
+    toast.error(t('admin.msg_please_select_template', 'Vui lòng chọn một giao diện để bắt đầu.'))
     return
   }
   step.value++
@@ -324,10 +326,10 @@ const processOnboarding = async () => {
         emit('complete') // Parent component should close this and refresh state
       }, 1500)
     } else {
-      throw new Error(json?.message || 'Có lỗi khi hệ thống khởi tạo')
+      throw new Error(json?.message || t('admin.msg_setup_error', 'Có lỗi khi hệ thống khởi tạo'))
     }
   } catch (err) {
-    toast.error(err.message || 'Lỗi không xác định')
+    toast.error(err.message || t('admin.msg_unknown_error', 'Lỗi không xác định'))
     isApplying.value = false
   }
 }

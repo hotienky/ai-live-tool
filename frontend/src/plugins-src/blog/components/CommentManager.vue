@@ -2,20 +2,20 @@
   <div class="comment-mgr">
     <div class="comment-mgr__header">
       <MessageCircle :size="22" class="comment-mgr__icon" />
-      <h2 class="comment-mgr__title">Bình luận ({{ total }})</h2>
+      <h2 class="comment-mgr__title">{{ t('admin.msg_comments', 'Bình luận') }} ({{ total }})</h2>
       <div class="comment-mgr__badge-row">
-        <span class="comment-mgr__badge comment-mgr__badge--pending" @click="statusFilter = 'pending'; load()">{{ counts.pending }} chờ duyệt</span>
-        <span class="comment-mgr__badge comment-mgr__badge--approved" @click="statusFilter = 'approved'; load()">{{ counts.approved }} đã duyệt</span>
+        <span class="comment-mgr__badge comment-mgr__badge--pending" @click="statusFilter = 'pending'; load()">{{ counts.pending }} {{ t('admin.msg_pending_review', 'chờ duyệt') }}</span>
+        <span class="comment-mgr__badge comment-mgr__badge--approved" @click="statusFilter = 'approved'; load()">{{ counts.approved }} {{ t('admin.msg_approved', 'đã duyệt') }}</span>
         <span class="comment-mgr__badge comment-mgr__badge--spam" @click="statusFilter = 'spam'; load()">{{ counts.spam }} spam</span>
-        <span class="comment-mgr__badge" @click="statusFilter = ''; load()">Tất cả</span>
+        <span class="comment-mgr__badge" @click="statusFilter = ''; load()">{{ t('admin.msg_all', 'Tất cả') }}</span>
       </div>
     </div>
 
-    <div v-if="loading" class="comment-mgr__loading"><Loader2 :size="20" class="spin" /> Đang tải...</div>
+    <div v-if="loading" class="comment-mgr__loading"><Loader2 :size="20" class="spin" /> {{ t('admin.msg_loading', 'Đang tải...') }}</div>
 
     <div v-else-if="items.length === 0" class="comment-mgr__empty">
       <MessageCircle :size="48" />
-      <p>Chưa có bình luận nào</p>
+      <p>{{ t('admin.msg_no_comments', 'Chưa có bình luận nào') }}</p>
     </div>
 
     <div v-else class="comment-mgr__list">
@@ -27,7 +27,7 @@
           <span class="comment-mgr__status" :class="'comment-mgr__status--' + comment.status">{{ statusLabel(comment.status) }}</span>
         </div>
         <div v-if="comment.content" class="comment-mgr__post-ref">
-          Trên: <strong>{{ comment.content.title }}</strong>
+          {{ t('admin.msg_on_post', 'Trên:') }} <strong>{{ comment.content.title }}</strong>
         </div>
         <p class="comment-mgr__body">{{ comment.body }}</p>
 
@@ -42,13 +42,13 @@
 
         <div class="comment-mgr__actions">
           <button v-if="comment.status !== 'approved'" class="comment-mgr__btn comment-mgr__btn--approve" @click="approve(comment.id)">
-            <Check :size="14" /> Duyệt
+            <Check :size="14" /> {{ t('admin.msg_approve', 'Duyệt') }}
           </button>
           <button v-if="comment.status !== 'spam'" class="comment-mgr__btn comment-mgr__btn--spam" @click="markSpam(comment.id)">
             <ShieldAlert :size="14" /> Spam
           </button>
           <button class="comment-mgr__btn comment-mgr__btn--delete" @click="remove(comment.id)">
-            <Trash2 :size="14" /> Xoá
+            <Trash2 :size="14" /> {{ t('admin.delete', 'Xoá') }}
           </button>
         </div>
       </div>
@@ -64,7 +64,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { MessageCircle, Check, ShieldAlert, Trash2, Loader2 } from 'lucide-vue-next'
 import { apiFetch, useToast } from '../helpers.js'
+import { useI18n } from '../../../composables/useI18n.js'
 
+const { t } = useI18n()
 const { showToast } = useToast()
 
 const items = ref([])
@@ -86,7 +88,7 @@ async function load() {
     items.value = result.data || result
     total.value = result.total || items.value.length
     lastPage.value = result.last_page || 1
-  } catch (e) { showToast('Lỗi tải bình luận', 'error') }
+  } catch (e) { showToast(t('admin.msg_load_comments_error', 'Lỗi tải bình luận'), 'error') }
   finally { loading.value = false }
 }
 
@@ -101,20 +103,20 @@ async function loadCounts() {
 }
 
 async function approve(id) {
-  try { await apiFetch(`/comments/${id}/approve`, { method: 'POST' }); showToast('Đã duyệt', 'success'); load(); loadCounts() }
-  catch (e) { showToast('Lỗi', 'error') }
+  try { await apiFetch(`/comments/${id}/approve`, { method: 'POST' }); showToast(t('admin.msg_approved', 'Đã duyệt'), 'success'); load(); loadCounts() }
+  catch (e) { showToast(t('admin.msg_error', 'Lỗi'), 'error') }
 }
 async function markSpam(id) {
-  try { await apiFetch(`/comments/${id}/spam`, { method: 'POST' }); showToast('Đã đánh dấu spam', 'success'); load(); loadCounts() }
-  catch (e) { showToast('Lỗi', 'error') }
+  try { await apiFetch(`/comments/${id}/spam`, { method: 'POST' }); showToast(t('admin.msg_marked_spam', 'Đã đánh dấu spam'), 'success'); load(); loadCounts() }
+  catch (e) { showToast(t('admin.msg_error', 'Lỗi'), 'error') }
 }
 async function remove(id) {
-  if (!confirm('Xoá bình luận này?')) return
-  try { await apiFetch(`/comments/${id}`, { method: 'DELETE' }); showToast('Đã xoá', 'success'); load(); loadCounts() }
-  catch (e) { showToast('Lỗi', 'error') }
+  if (!confirm(t('admin.msg_confirm_delete_comment', 'Xoá bình luận này?'))) return
+  try { await apiFetch(`/comments/${id}`, { method: 'DELETE' }); showToast(t('admin.msg_deleted', 'Đã xoá'), 'success'); load(); loadCounts() }
+  catch (e) { showToast(t('admin.msg_error', 'Lỗi'), 'error') }
 }
 
-function statusLabel(s) { return { pending: 'Chờ duyệt', approved: 'Đã duyệt', spam: 'Spam' }[s] || s }
+function statusLabel(s) { return { pending: t('admin.msg_pending_review', 'Chờ duyệt'), approved: t('admin.msg_approved', 'Đã duyệt'), spam: 'Spam' }[s] || s }
 function formatDate(d) { return d ? new Date(d).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '' }
 
 onMounted(() => { load(); loadCounts() })

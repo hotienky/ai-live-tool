@@ -42,7 +42,7 @@
       <textarea
         :value="modelValue"
         @input="$emit('update:modelValue', $event.target.value)"
-        :placeholder="field.placeholder || 'Nội dung...'"
+        :placeholder="field.placeholder || t('admin.msg_content_placeholder', 'Nội dung...')"
         rows="10"
         class="content-field__textarea content-field__textarea--rich"
       ></textarea>
@@ -73,7 +73,7 @@
       @change="$emit('update:modelValue', $event.target.value)"
       class="content-field__select"
     >
-      <option value="">-- {{ field.placeholder || 'Chọn...' }} --</option>
+      <option value="">-- {{ field.placeholder || t('admin.msg_select_placeholder', 'Chọn...') }} --</option>
       <option v-for="opt in field.options || []" :key="opt.value" :value="opt.value">
         {{ opt.label }}
       </option>
@@ -93,13 +93,13 @@
     <div v-else-if="field.type === 'media'" class="content-field__media">
       <div v-if="modelValue" class="content-field__media-preview">
         <img :src="modelValue" alt="" />
-        <button @click="$emit('update:modelValue', '')" class="content-field__media-remove" title="Xoá">✕</button>
+        <button @click="$emit('update:modelValue', '')" class="content-field__media-remove" :title="t('admin.delete', 'Xoá')">✕</button>
       </div>
       <input
         type="text"
         :value="modelValue"
         @input="$emit('update:modelValue', $event.target.value)"
-        placeholder="URL hình ảnh"
+        :placeholder="t('admin.msg_image_url', 'URL hình ảnh')"
         class="content-field__input"
       />
     </div>
@@ -124,6 +124,9 @@ defineProps({
   modelValue: { default: '' },
 })
 defineEmits(['update:modelValue'])
+
+import { useI18n } from '../composables/useI18n.js'
+const { t } = useI18n()
 </script>
 
 <style scoped>

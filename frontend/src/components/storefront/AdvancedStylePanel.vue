@@ -15,7 +15,7 @@
     
     <!-- 1. Nội dung cấu hình Core -->
     <div class="asp-section" v-if="hasContentConfig && (mode === 'content' || mode === 'all')">
-      <h4 class="asp-section-title">Nội dung ({{ type }})</h4>
+      <h4 class="asp-section-title">{{ t('admin.msg_content_config', 'Nội dung') }} ({{ type }})</h4>
       <div v-if="['text', 'heading', 'button', 'link'].includes(type)" class="asp-row">
         <label style="display:flex;justify-content:space-between;align-items:center">
           Văn bản
@@ -388,7 +388,7 @@
     </details>
 
     <div class="asp-section" v-if="mode === 'advanced' || mode === 'all'">
-      <h4 class="asp-section-title">Nâng cao (Advanced)</h4>
+      <h4 class="asp-section-title">{{ t('admin.msg_advanced', 'Nâng cao (Advanced)') }}</h4>
       <div class="asp-row">
         <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
           <input type="checkbox" v-model="safeSettings.hiddenDesktop"> Ẩn trên Desktop
@@ -413,7 +413,7 @@
     <!-- Magic Wand Popover -->
     <div v-if="wandOpenFor" class="wand-popover">
       <div class="wand-header">
-        Chèn Biến Dữ Liệu
+        {{ t('admin.msg_insert_variable', 'Chèn Biến Dữ Liệu') }}
         <button @click="wandOpenFor = null" class="asp-btn-icon"><X :size="12" /></button>
       </div>
       <div class="wand-list">
@@ -429,6 +429,9 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { Monitor, Tablet, Smartphone, Wand2, X, Sparkles, LayoutGrid, Type, Image as ImageIcon, ChevronDown, AlignLeft, AlignCenter, AlignRight, Move } from 'lucide-vue-next'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   section: {

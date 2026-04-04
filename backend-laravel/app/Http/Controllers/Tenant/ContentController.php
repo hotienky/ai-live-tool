@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Content;
+use App\Models\ContentTranslation;
 use App\Services\ContentTypeRegistry;
 use App\Traits\ApiResponse;
 use App\Traits\LogsActivity;
@@ -94,7 +95,23 @@ class ContentController extends Controller
         }
 
         $perPage = min($request->input('per_page', 20), 100);
-        return $this->successResponse($query->paginate($perPage));
+        $paginated = $query->paginate($perPage);
+
+        // Merge translations if locale specified
+        $locale = $request->header('Accept-Language') ?? $request->query('lang');
+        if ($locale) {
+            $items = collect($paginated->items())->map(fn($p) => $p->toArray())->all();
+            $items = ContentTranslation::mergeIntoItems($items, 'contents', $locale, ['title', 'body', 'excerpt']);
+            return $this->successResponse([
+                'data' => $items,
+                'current_page' => $paginated->currentPage(),
+                'last_page' => $paginated->lastPage(),
+                'per_page' => $paginated->perPage(),
+                'total' => $paginated->total(),
+            ]);
+        }
+
+        return $this->successResponse($paginated);
     }
 
     /**
@@ -177,7 +194,7 @@ class ContentController extends Controller
     /**
      * Storefront API: Show a single published content item
      */
-    public function showStorefront(string $type, $id)
+    public function showStorefront(Request $request, string $type, $id)
     {
         if (!ContentTypeRegistry::exists($type)) {
             return response()->json(['error' => "Unknown content type: {$type}"], 404);
@@ -195,6 +212,12 @@ class ContentController extends Controller
 
         if (!$content) {
             return $this->notFoundResponse("{$type} not found or not published");
+        }
+
+        // Merge translations if locale specified
+        $locale = $request->header('Accept-Language') ?? $request->query('lang');
+        if ($locale) {
+            $content = ContentTranslation::mergeIntoSingleItem($content, 'contents', $locale, ['title', 'body', 'excerpt']);
         }
 
         return $this->successResponse($content);

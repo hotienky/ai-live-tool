@@ -11,9 +11,9 @@
           <input 
             type="text" 
             class="sf-ph-search-input" 
-            :placeholder="responsiveConfig.searchPlaceholder || 'Bạn đang tìm gì hôm nay...'" 
+            :placeholder="responsiveConfig.searchPlaceholder || t('storefront.msg_search_hint', 'Bạn đang tìm gì hôm nay...')" 
           />
-          <button class="sf-ph-search-btn">Tìm kiếm</button>
+          <button class="sf-ph-search-btn">{{ t('storefront.msg_search', 'Tìm kiếm') }}</button>
         </div>
         
         <!-- Hot Keywords -->
@@ -38,7 +38,7 @@
             <component v-else-if="card.lucideIcon" :is="getIcon(card.lucideIcon)" :size="28" />
             <span v-else class="sf-ph-icon-placeholder">✨</span>
           </div>
-          <span class="sf-ph-card-title">{{ card.title || 'Chức năng' }}</span>
+          <span class="sf-ph-card-title">{{ card.title || t('storefront.msg_feature', 'Chức năng') }}</span>
           <ChevronRight :size="16" class="sf-ph-card-arrow" />
         </a>
       </div>
@@ -50,6 +50,9 @@
 import { computed } from 'vue'
 import { Search, ChevronRight, Activity, Heart, Stethoscope, Pill, ShieldPlus } from 'lucide-vue-next'
 import { useResponsiveConfig } from '../../composables/useResponsiveConfig.js'
+import { useI18n } from '../../composables/useI18n.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   config: { type: Object, default: () => ({}) },
