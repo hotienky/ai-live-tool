@@ -54,6 +54,17 @@
           <label>Link (Tùy chọn)</label>
           <input type="text" v-model="config.announcementLink" class="param-input param-input--wide" placeholder="/promotions" />
         </div>
+        <div class="param-row" style="margin-top: 10px; flex-direction: column; align-items: stretch; gap: 8px;">
+          <label style="font-size: 11px; font-weight: 600; color: #64748b;">Các liên kết tiện ích (App, Hotline)</label>
+          <div v-for="(lnk, lidx) in (config.topbarLinks || [])" :key="lidx" style="display:flex; gap:6px; margin-bottom: 6px;">
+            <input type="text" v-model="lnk.label" class="param-input" placeholder="Tên (VD: Hotline)" style="flex:1">
+            <input type="text" v-model="lnk.url" class="param-input" placeholder="URL" style="flex:1">
+            <button class="btn-remove-item" @click="config.topbarLinks.splice(lidx, 1)" style="padding: 6px;"><Trash2 :size="12" /></button>
+          </div>
+          <button class="btn-add-item" style="padding: 6px; width: auto; align-self: flex-start" @click="(config.topbarLinks = config.topbarLinks || []).push({label: '', url: ''})">
+            Thêm liên kết Topbar
+          </button>
+        </div>
         <div class="footer-colors" style="margin-top: 10px;">
           <div class="footer-color-row">
             <div class="footer-color-item">

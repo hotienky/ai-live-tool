@@ -79,6 +79,14 @@
           :mobile-config="section.mobileParams || {}"
         />
 
+        <!-- Pharmacy Hero -->
+        <SfPharmacyHeroSection
+          v-if="section.type === 'pharmacy_hero'"
+          :config="section.params || {}"
+          :tablet-config="section.tabletParams || {}"
+          :mobile-config="section.mobileParams || {}"
+        />
+
         <!-- Categories -->
         <SfCategoriesSection
           v-if="section.type === 'categories'"
@@ -196,6 +204,7 @@ import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
 import SfContentSection from './storefront/SfContentSection.vue'
 import SfMockSection from './storefront/SfMockSection.vue'
 import SfBlogSection from './storefront/SfBlogSection.vue'
+import SfPharmacyHeroSection from './storefront/SfPharmacyHeroSection.vue'
 
 
 const contentSectionTypes = ['testimonials', 'faq', 'image_gallery', 'video_embed', 'text_block', 'newsletter', 'brands_slider', 'social_feed']

@@ -5,7 +5,7 @@
       <div class="cpb-header__left">
         <!-- Page Picker -->
         <div class="cpb-page-picker" tabindex="-1" @focusout="handlePickerFocusout">
-          <button class="cpb-page-btn" @click="pageDropdownOpen = !pageDropdownOpen">
+          <button class="cpb-page-btn" @click="pageDropdownOpen = !pageDropdownOpen" title="Chọn trang cần chỉnh sửa">
             <component :is="activePage.icon" :size="14" />
             <span>{{ activePageLabel }}</span>
             <ChevronDown :size="12" :style="{ transform: pageDropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }" />
@@ -52,7 +52,7 @@
         <div class="cpb-history cpb-history-container" @focusout="handleHistoryFocusout" tabindex="-1">
           <div class="cpb-history__btn-group">
             <button @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="14" /></button>
-            <button @click="historyDropdownOpen = !historyDropdownOpen" :disabled="undoStack.length <= 1" class="history-dropdown-toggle"><ChevronDown :size="12" /></button>
+            <button @click="historyDropdownOpen = !historyDropdownOpen" :disabled="undoStack.length <= 1" class="history-dropdown-toggle" title="Xem lịch sử khôi phục"><ChevronDown :size="12" /></button>
           </div>
           <button @click="redo" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="14" /></button>
           
@@ -70,9 +70,9 @@
           </div>
         </div>
         
-        <span class="cpb-save-status">
-          <span v-if="saving" class="status-saving"><Loader2 :size="12" class="spin"/> Lưu...</span>
-          <span v-else class="status-saved">✅ Đã lưu</span>
+        <span class="cpb-save-status" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+          <span v-if="saving" class="status-saving" title="Đang lưu dữ liệu..."><Loader2 :size="16" class="spin"/></span>
+          <span v-else class="status-saved" title="Đã lưu mới nhất"><Check :size="16" style="color: #10b981;"/></span>
         </span>
 
         <button class="cpb-btn-secondary" @click="toggleZenMode" :title="leftCollapsed ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed }">
@@ -82,9 +82,10 @@
           <Minimize v-if="isFullscreen" :size="14" />
           <Maximize v-else :size="14" />
         </button>
-        <button class="cpb-btn-secondary" @click="showCustomCss = true"><Code :size="14" /> CSS</button>
-        <button class="cpb-btn-secondary" @click="saveDraft" :disabled="saving">Nháp</button>
-        <button class="cpb-btn-save" @click="handlePublish" :disabled="saving">Xuất bản</button>
+        <button class="cpb-btn-secondary" @click="startTour" title="Hướng dẫn sử dụng toàn tập Builder"><HelpCircle :size="14" /></button>
+        <button class="cpb-btn-secondary" @click="showCustomCss = true" title="Tùy chỉnh CSS nâng cao toàn cục"><Code :size="14" /></button>
+        <button class="cpb-btn-secondary" @click="saveDraft" :disabled="saving" title="Lưu nháp hiện trạng mà chưa áp dụng ngay"><Save :size="14" /> Nháp</button>
+        <button class="cpb-btn-save" @click="handlePublish" :disabled="saving" title="Xuất bản cập nhật lên website live"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> Xuất bản</button>
       </div>
     </header>
 
@@ -119,10 +120,10 @@
             <div class="cpb-layers">
               <!-- Global Site Blocks -->
               <div v-if="!activePageId">
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'promo' }" @click="activeConfig = 'promo'">
+                <div class="cpb-layer-item" :class="{ active: activeConfig === 'promo' }" @click="activeConfig = 'promo'" title="Cấu hình Promo Bar">
                   <div class="cpb-layer-content"><Megaphone :size="14" /> Promo Bar</div>
                 </div>
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'header' }" @click="activeConfig = 'header'">
+                <div class="cpb-layer-item" :class="{ active: activeConfig === 'header' }" @click="activeConfig = 'header'" title="Cấu hình Header">
                   <div class="cpb-layer-content"><PanelTop :size="14" /> Header</div>
                 </div>
               </div>
@@ -131,8 +132,8 @@
               <div class="cpb-layer-separator">Nội dung {{ activePageLabel }}</div>
 
               <div class="cpb-layer-switch">
-                <button :class="{ active: activeSidebarTab === 'elements' }" @click="activeSidebarTab = 'elements'">Section</button>
-                <button :class="{ active: activeSidebarTab === 'navigator' }" @click="activeSidebarTab = 'navigator'">Layers</button>
+                <button :class="{ active: activeSidebarTab === 'elements' }" @click="activeSidebarTab = 'elements'" title="Quản lý các khối nội dung (Sections)">Section</button>
+                <button :class="{ active: activeSidebarTab === 'navigator' }" @click="activeSidebarTab = 'navigator'" title="Xem cấu trúc các lớp (Layers)">Layers</button>
               </div>
               
               <LayoutSectionManager
@@ -151,7 +152,7 @@
               />
 
               <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <button class="cpb-btn-add" style="flex: 1;" @click="showLibrary = true"><Plus :size="14"/> Thêm section</button>
+                <button class="cpb-btn-add" style="flex: 1;" @click="activeConfig = 'library'"><Plus :size="14"/> Thêm section</button>
                 <div style="display: flex; gap: 4px;">
                   <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Export JSON" @click="exportJson"><Download :size="14"/></button>
                   <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Import JSON" @click="triggerJsonImport"><Upload :size="14"/></button>
@@ -161,7 +162,7 @@
 
               <!-- Global Footer -->
               <div v-if="!activePageId" style="margin-top:8px">
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'footer' }" @click="activeConfig = 'footer'">
+                <div class="cpb-layer-item" :class="{ active: activeConfig === 'footer' }" @click="activeConfig = 'footer'" title="Cấu hình Footer">
                   <div class="cpb-layer-content"><PanelBottom :size="14" /> Footer</div>
                 </div>
               </div>
@@ -189,7 +190,7 @@
           </div>
         </div>
 
-        <button class="cpb-collapse-btn" @click="leftCollapsed = !leftCollapsed">
+        <button class="cpb-collapse-btn" @click="leftCollapsed = !leftCollapsed" title="Đóng/Mở thanh công cụ (Sidebar)">
           <ChevronLeft :size="16" :style="{ transform: leftCollapsed ? 'rotate(180deg)' : 'rotate(0)' }" />
         </button>
       </div>
@@ -234,9 +235,14 @@
 
       <!-- RIGHT PANEL (Properties) -->
       <div class="cpb-right" :class="{ 'cpb-right--open': activeConfig }">
-        <div v-if="activeConfig" class="cpb-prop-header">
-          <h4>{{ rightPanelTitle }}</h4>
-          <button @click="activeConfig = null"><X :size="14"/></button>
+        <div v-if="activeConfig && activeConfig !== 'library'" class="cpb-prop-header" style="justify-content: flex-start; gap: 12px;">
+          <button class="cpb-btn-secondary" @click="activeConfig = 'library'" title="Quay lại Kho Layout" style="padding: 6px; border: none; background: var(--bg-2)"><ChevronLeft :size="16"/></button>
+          <h4 style="margin: 0; font-size: 14px; font-weight: 600; flex: 1;">{{ rightPanelTitle }}</h4>
+          <button class="cpb-btn-secondary" @click="activeConfig = null" title="Đóng" style="padding: 6px; border: none;"><X :size="16"/></button>
+        </div>
+        <div v-else-if="activeConfig === 'library'" class="cpb-prop-header">
+          <h4>Kho Giao Diện</h4>
+          <button @click="activeConfig = null" title="Đóng"><X :size="16"/></button>
         </div>
         
         <div class="cpb-prop-body scroll-y" style="padding: 16px;">
@@ -298,6 +304,42 @@
               </div>
             </template>
           </div>
+          <!-- Library (Kho Layout) -->
+          <div v-if="activeConfig === 'library'" class="library-container">
+            <!-- Templates Grid -->
+            <div class="lb-section" v-if="!activePageId" style="margin-bottom: 24px;">
+              <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục ưu tiên</h4>
+              <div class="template-grid">
+                <button v-for="tpl in templates" :key="tpl.key" class="template-card" :class="{ active: activeTemplate === tpl.key }" @click="applyTemplate(tpl.key)">
+                  <component :is="tpl.icon" :size="20" />
+                  <span class="template-card__name">{{ tpl.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sections Library Grid -->
+            <div class="library-grouped">
+              <div v-for="(items, category) in groupedLibraryItems" :key="category" class="library-group">
+                <h4 class="library-group__title">{{ category }}</h4>
+                <div class="library-grid-sidebar">
+                  <button
+                    v-for="lib in items"
+                    :key="lib.type"
+                    class="library-card-row"
+                    :class="{ added: sections.some(s => s.type === lib.type), 'library-card-row--disabled': !lib.available }"
+                    @click="lib.available ? addLibrarySection(lib) : null"
+                    :disabled="!lib.available"
+                  >
+                    <span class="library-card-row__icon"><component :is="sectionIconMap[lib.icon] || Box" :size="20" /></span>
+                    <div class="library-card-row__text" style="flex:1; text-align:left">
+                      <strong>{{ lib.label }}</strong>
+                      <span style="display:block; font-size: 11.5px; margin-top:2px; font-weight: normal; color: var(--text-3); line-height: 1.3">{{ lib.description }}</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <!-- Section Config (Content + Style) -->
           <template v-else-if="activeSectionObj">
@@ -321,7 +363,7 @@
       <div class="media-modal" style="width: 600px; height: 400px; border-radius: 8px;">
         <div class="media-modal-header">
           <h3><Code :size="16" /> CSS tùy chỉnh</h3>
-          <button @click="showCustomCss = false"><X :size="20" /></button>
+          <button @click="showCustomCss = false" title="Đóng"><X :size="20" /></button>
         </div>
         <div style="padding: 16px; flex: 1; display:flex">
           <textarea v-model="customCss" style="flex:1; width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 12px; font-family: monospace; font-size: 13px;" placeholder="/* Custom CSS cho layout này */&#10;.my-class { }"></textarea>
@@ -332,42 +374,13 @@
       </div>
     </div>
 
-    <!-- Section Library -->
-    <div class="modal-overlay" v-if="showLibrary" @click.self="showLibrary = false">
-      <div class="modal modal--library">
-        <div class="modal__header">
-          <h3><Layers :size="16" /> Thêm Section</h3>
-          <button class="btn-close" @click="showLibrary = false"><X :size="18" /></button>
-        </div>
-        <div class="library-grouped">
-          <div v-for="(items, category) in groupedLibraryItems" :key="category" class="library-group">
-            <h4 class="library-group__title">{{ category }}</h4>
-            <div class="library-grid">
-              <button
-                v-for="lib in items"
-                :key="lib.type"
-                class="library-card"
-                :class="{ added: sections.some(s => s.type === lib.type), 'library-card--disabled': !lib.available }"
-                @click="lib.available ? addLibrarySection(lib) : null"
-                :disabled="!lib.available"
-              >
-                <span class="library-card__icon"><component :is="sectionIconMap[lib.icon] || Box" :size="22" /></span>
-                <strong>{{ lib.label }}</strong>
-                <span class="library-card__desc">{{ lib.description }}</span>
-                <span v-if="sections.some(s => s.type === lib.type)" class="library-card__badge">Đã thêm</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
+
     <!-- Publish Note Dialog -->
     <div v-if="showPublishDialog" class="media-modal-overlay" @click.self="showPublishDialog = false">
       <div class="media-modal" style="width: 440px; border-radius: 12px;">
         <div class="media-modal-header">
           <h3><Package :size="16" /> Xuất bản layout</h3>
-          <button @click="showPublishDialog = false"><X :size="20" /></button>
+          <button @click="showPublishDialog = false" title="Đóng"><X :size="20" /></button>
         </div>
         <div style="padding: 20px;">
           <p style="margin: 0 0 12px; font-size: 13px; color: var(--text-2);">Ghi chú cho lần publish này (tuỳ chọn)</p>
@@ -397,9 +410,9 @@
       <div class="zen-actions">
         <button class="zen-btn" @click="toggleZenMode" title="Thoát chế độ tập trung (F)"><Focus :size="16" /></button>
         <div class="zen-divider"></div>
-        <button class="zen-btn" @click="previewWidth = '100%'" :class="{ active: previewWidth === '100%' }"><Monitor :size="16" /></button>
-        <button class="zen-btn" @click="previewWidth = '768px'" :class="{ active: previewWidth === '768px' }"><Tablet :size="16" /></button>
-        <button class="zen-btn" @click="previewWidth = '375px'" :class="{ active: previewWidth === '375px' }"><Smartphone :size="16" /></button>
+        <button class="zen-btn" @click="previewWidth = '100%'" :class="{ active: previewWidth === '100%' }" title="Xem trước trên Desktop"><Monitor :size="16" /></button>
+        <button class="zen-btn" @click="previewWidth = '768px'" :class="{ active: previewWidth === '768px' }" title="Xem trước trên Tablet"><Tablet :size="16" /></button>
+        <button class="zen-btn" @click="previewWidth = '375px'" :class="{ active: previewWidth === '375px' }" title="Xem trước trên Mobile"><Smartphone :size="16" /></button>
         <div class="zen-divider"></div>
         <button class="zen-btn" @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="16" /></button>
         <button class="zen-btn" @click="redo" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="16" /></button>
@@ -431,12 +444,16 @@ function startTour() {
   const driverObj = driver({
     showProgress: true,
     steps: [
-      { popover: { title: 'Chào mừng bạn đến với Mebifarm Builder', description: 'Trang bị engine nâng cấp mới nhất, giờ đây bạn có thể trực tiếp tuỳ chỉnh từng thẻ HTML (Text, Image, Button, Grid) như Webflow.' } },
-      { element: '.element-palette', popover: { title: '1. Element Palette (Khối Sơ Cấp)', description: 'Đây là bộ nguyên liệu gốc. Bạn có thể kéo thả bất kỳ Container, Text, Image, Button từ đây thả ngẫu nhiên vào Canvas hoặc vào sơ đồ Layout Tree.' } },
-      { element: '.lb-structure-body', popover: { title: '2. Cây Thư Mục (Layout Tree)', description: 'Nơi quản lý cấu trúc dọc của các thẻ. Bạn có thể kéo thả để re-order khối nhỏ ngẫu nhiên, hay nhấp chọn 1 phần tử.' } },
-      { element: '.layout-builder__preview', popover: { title: '3. Live Canvas', description: 'Trình xem trước trang Storefront. Rê chuột vào nội dung nào sẽ tự bôi khung ngay đó. Nhấp trái 1 cái để chỉnh CSS nâng cao ngay lập tức.' } },
-      { element: '.lb-controls-toggle', popover: { title: '4. Panel Thu Gọn', description: 'Bấm vào nút này để ẩn giao diện Layout dọc, nhường không gian cho Canvas to hơn.' } },
-      { element: '.preview-responsive', popover: { title: '5. Responsive View', description: 'Góc tinh chỉnh Mobile / Tablet. Mọi kích thước màn hình đều có thể chỉnh sửa tại Viewport này.' } }
+      { popover: { title: 'Chào mừng đến Mebifarm Builder 🚀', description: 'Đây là công cụ dàn trang (Page Builder) mượt mà và trực quan nhất. Hãy theo dõi các tính năng chính nhé!' } },
+      { element: '.cpb-page-picker', popover: { title: '1. Quản lý Trang (Pages)', description: 'Chuyển đổi thiết kế cho Trang chủ, Giỏ hàng, Tài khoản hoặc tạo các trang CMS động.' } },
+      { element: '.cpb-viewport', popover: { title: '2. Responsive & X-Ray', description: 'Chỉnh sửa giao diện trên Desktop/Tablet/Mobile. Bật nút (X) để quét khung xương HTML.' } },
+      { element: '.cpb-history-container', popover: { title: '3. Lịch sử (Undo/Redo)', description: 'Bạn lỡ tay xoá nhầm? Đừng lo, mọi thao tác đều được lưu vết để dễ dàng phục hồi.' } },
+      { element: 'button[title*="Lưu lại cấu hình"]', popover: { title: '4. Lưu & Xuất bản', description: 'Nơi lưu nháp và ra mắt giao diện thật cho Tenant.' } },
+      { element: 'button[title*="Chế độ tập trung"]', popover: { title: '5. Chế độ Tập Trung (Zen Mode)', description: 'Ấn phím F hoặc nút này để mở rộng tối đa màn hình thiết kế, loại bỏ mọi bảng công cụ dư thừa.' } },
+      { element: '.cpb-left', popover: { title: '6. Quản lý Theme & Layers', description: 'Cột trái chứa tuỳ chỉnh màu sắc Theme tổng thể, hoặc sơ đồ lớp (Layer Tree) của tất cả thành phần đang có.' } },
+      { element: '.cpb-center', popover: { title: '7. Live Canvas (Khung xem trước)', description: 'Click vào chữ, ảnh hay khối bất kỳ trên Live Canvas này để bắt đầu chỉnh sửa tức thì.' } },
+      { element: '.cpb-right', popover: { title: '8. Hub Inspector (Trạm Điều Khiển)', description: 'Mọi thao tác Thêm khối mới, Chọn Layout, hoặc hiển thị Bảng Tuỳ Chỉnh tham số đều diễn ra mượt mà tại cột này!' } },
+      { popover: { title: 'Hoàn tất! Cùng bắt đầu.', description: 'Vọc vạch đã đời rồi nhớ Lưu Nháp hoặc Xuất Bản nhé. Chúc bạn tạo ra một giao diện tuyệt vời!' } }
     ]
   });
   driverObj.drive();
@@ -1212,7 +1229,7 @@ function onPreviewSectionToggle({ type }) {
 
 function onPreviewAddSectionAt({ index }) {
   addSectionAtInsertIndex.value = index
-  showLibrary.value = true
+  activeConfig.value = 'library'
 }
 
 // ── Inline Image Editing via Builder Overlay ──
@@ -1396,6 +1413,7 @@ function addLibrarySection(lib) {
   
   showLibrary.value = false
   expandedSection.value = lib.type
+  activeConfig.value = lib.type
 }
 
 // ─── Page List ───
@@ -2131,6 +2149,11 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
 .library-grouped { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 32px; background: var(--bg-1); }
 .library-group__title { margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--text-1); padding-bottom: 8px; border-bottom: 2px solid var(--bg-2); }
 .library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+.library-grid-sidebar { display: flex; flex-direction: column; gap: 8px; }
+.library-card-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.library-card-row:hover:not(.library-card-row--disabled) { border-color: var(--accent); background: rgba(99,102,241,0.02); }
+.library-card-row__icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.08); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.library-card-row--disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-2); }
 .library-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 8px; text-align: left; cursor: pointer; outline: none; position: relative; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
 .library-card:hover:not(.library-card--disabled) { border-color: var(--accent); box-shadow: 0 4px 12px rgba(124,58,237,0.1); transform: translateY(-2px); }
 .library-card__icon { color: var(--accent); opacity: 0.8; }

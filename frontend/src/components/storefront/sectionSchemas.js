@@ -32,6 +32,7 @@ export const sectionMeta = {
   custom_block:  { label: 'Visual Block',        moduleId: null, category: 'Bố cục',       icon: 'Box', description: 'Block builder nâng cao' },
 
   // ── E-Commerce (requires 'ecom' module) ──
+  pharmacy_hero:     { label: 'Hero Banner Dược',    moduleId: 'ecom', category: 'E-Commerce', icon: 'Heart', description: 'Banner + Search + Action Box' },
   categories:        { label: 'Danh mục SP',         moduleId: 'ecom', category: 'E-Commerce', icon: 'FolderOpen', description: 'Hiển thị danh mục sản phẩm' },
   featured_products: { label: 'Sản phẩm nổi bật',    moduleId: 'ecom', category: 'E-Commerce', icon: 'ShoppingBag', description: 'Grid sản phẩm nổi bật' },
   new_arrivals:      { label: 'Hàng mới về',         moduleId: 'ecom', category: 'E-Commerce', icon: 'Sparkles', description: 'Sản phẩm mới nhất' },
@@ -247,6 +248,19 @@ export const sectionSchemas = {
     { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 1, max: 12 },
     { key: 'gap', type: 'range', label: 'Khoảng cách (px)', min: 0, max: 64, step: 4 },
     { key: '_children', type: 'children', label: 'Nội dung lưới' }
+  ],
+  
+  pharmacy_hero: [
+    { key: 'desktopImage', type: 'media', label: 'Ảnh Background Desktop' },
+    { key: 'mobileImage', type: 'media', label: 'Ảnh Background Mobile (Tuỳ chọn)' },
+    { key: 'primaryText', type: 'text', label: 'Tiêu đề/Slogan chính', placeholder: 'Theo dõi chỉ số sinh tồn...' },
+    { key: 'searchPlaceholder', type: 'text', label: 'Search Placeholder', placeholder: 'Bạn đang tìm gì hôm nay...' },
+    { key: 'hotKeywords', type: 'text', label: 'Từ khoá hot (cách nhau bằng phẩy)', placeholder: 'Khẩu trang, Nước rửa tay...' },
+    { key: '_content', type: 'list', label: 'Action Cards', fields: [
+      { key: 'title', type: 'text', placeholder: 'Tên chức năng (VD: Đặt đơn thuốc)' },
+      { key: 'icon', type: 'media', placeholder: 'URL icon ảnh' },
+      { key: 'url', type: 'url', placeholder: 'Link đích' }
+    ]}
   ],
 
   // ── Trust Badges (was missing entirely) ──

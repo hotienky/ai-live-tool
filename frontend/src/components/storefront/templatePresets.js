@@ -1,4 +1,51 @@
 export const industryTemplates = {
+  pharmacy_store: [
+    {
+      id: "pharmacy_store_hero",
+      type: "pharmacy_hero",
+      enabled: true,
+      order: 0,
+      params: { 
+        desktopImage: "https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop",
+        primaryText: "Đồng hành cùng sức khoẻ của bạn",
+        searchPlaceholder: "Bạn đang tìm thuốc gì...",
+        hotKeywords: "Khẩu trang, Bổ gan, Vitamin C, Nước muối sinh lý"
+      },
+      content: [
+        { url: "#", title: "Đặt toa thuốc", lucideIcon: "Pill" },
+        { url: "#", title: "Tư vấn dược sĩ", lucideIcon: "Stethoscope" },
+        { url: "#", title: "Hệ thống nhà thuốc", lucideIcon: "Heart" }
+      ]
+    },
+    {
+      id: "pharmacy_store_grid",
+      type: "grid",
+      enabled: true,
+      order: 1,
+      params: { columns: 2, gap: 24, tabletColumns: 2, mobileColumns: 1 },
+      content: [
+        { type: "image_banner", params: { desktopImage: "https://images.unsplash.com/photo-1550831107-1553da8c8464?q=80&w=900&auto=format&fit=crop", height: "min" } },
+        { type: "image_banner", params: { desktopImage: "https://images.unsplash.com/photo-1576602976047-174e57a47881?q=80&w=900&auto=format&fit=crop", height: "min" } }
+      ]
+    },
+    {
+      id: "pharmacy_store_categories",
+      type: "categories",
+      enabled: true,
+      order: 2,
+      params: { title: "Danh Mục Nổi Bật", columns: 6, layoutStyle: "circle_icon" },
+      content: []
+    },
+    {
+      id: "pharmacy_store_featured",
+      type: "featured_products",
+      enabled: true,
+      order: 3,
+      params: { title: "Thuốc Không Kê Đơn", count: 8, columns: 4, layoutStyle: "carousel" },
+      content: []
+    }
+  ],
+
   pharmacy: [
     {
       id: "pharmacy_banner",
