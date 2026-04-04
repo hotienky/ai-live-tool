@@ -16,6 +16,7 @@ export const sectionMeta = {
   image_banner:  { label: 'Promo Banner',        moduleId: null, category: 'Cơ bản',       icon: 'Tag', description: 'Banner ảnh đơn (FullWidth)' },
   feature_links: { label: 'Tính năng nhanh',     moduleId: null, category: 'Cơ bản',       icon: 'Zap', description: 'Các thẻ chức năng nổi bật' },
   cms_pages:     { label: 'Trang CMS',           moduleId: 'cms', category: 'Cơ bản',      icon: 'FileText', description: 'Hiển thị danh sách trang' },
+  global_block:  { label: 'Global Block',        moduleId: null, category: 'Cơ bản',       icon: 'Component', description: 'Khối dùng chung (Symbols)' },
   text_block:    { label: 'Khối văn bản',        moduleId: null, category: 'Cơ bản',       icon: 'Type', description: 'Đoạn text tùy chỉnh' },
   image_gallery: { label: 'Bộ sưu tập ảnh',     moduleId: null, category: 'Cơ bản',       icon: 'Images', description: 'Gallery hình ảnh' },
   video_embed:   { label: 'Video nhúng',         moduleId: null, category: 'Cơ bản',       icon: 'Film', description: 'YouTube/Vimeo embed' },
@@ -127,12 +128,13 @@ export const sectionSchemas = {
   featured_products: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}, {value: 'elegant', label: 'Sang trọng'}, {value: 'minimal', label: 'Tối giản'}] },
-    { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 16 },
-    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
-    { key: 'filterCategory', type: 'categorySelect', label: 'Lọc danh mục' },
-    { key: 'sortOrder', type: 'select', label: 'Sắp xếp', options: [
+    { key: 'dataSourceType', type: 'select', label: 'Nguồn dữ liệu (Data Source)', options: [{value: 'auto', label: 'Tự động (Mới nhất/Bán chạy)'}, {value: 'manual', label: 'Chọn Danh mục (Collection)'}] },
+    { key: 'filterCategory', type: 'categorySelect', label: 'Lọc danh mục', condition: 'dataSourceType', conditionValue: 'manual' },
+    { key: 'sortOrder', type: 'select', label: 'Sắp xếp', condition: 'dataSourceType', conditionValue: 'auto', options: [
       {value: 'newest', label: 'Mới nhất'}, {value: 'bestselling', label: 'Bán chạy'},
       {value: 'price_asc', label: 'Giá tăng'}, {value: 'price_desc', label: 'Giá giảm'}] },
+    { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 16 },
+    { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
     { key: 'slidesPerView', type: 'select', label: 'Slides/hàng', options: [{value: 2, label: '2'}, {value: 3, label: '3'}, {value: 4, label: '4'}] },
     { key: 'autoplay', type: 'boolean', label: 'Auto-scroll' },
     { key: 'autoplaySpeed', type: 'range', label: 'Tốc độ (ms)', condition: 'autoplay', min: 2000, max: 8000, step: 500 }
@@ -140,9 +142,11 @@ export const sectionSchemas = {
   new_arrivals: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}, {value: 'lookbook', label: 'Lookbook'}] },
+    { key: 'dataSourceType', type: 'select', label: 'Nguồn dữ liệu (Data Source)', options: [{value: 'auto', label: 'Tự động (Hàng mới nhất)'}, {value: 'manual', label: 'Chọn Danh mục'}] },
+    { key: 'filterCategory', type: 'categorySelect', label: 'Lọc danh mục', condition: 'dataSourceType', conditionValue: 'manual' },
     { key: 'count', type: 'range', label: 'Số lượng', min: 4, max: 12 },
     { key: 'columns', type: 'range', label: 'Số cột', min: 2, max: 5 },
-    { key: 'sortOrder', type: 'select', label: 'Sắp xếp', options: [
+    { key: 'sortOrder', type: 'select', label: 'Sắp xếp', condition: 'dataSourceType', conditionValue: 'auto', options: [
       {value: 'newest', label: 'Mới nhất'}, {value: 'bestselling', label: 'Bán chạy'},
       {value: 'price_asc', label: 'Giá tăng'}, {value: 'price_desc', label: 'Giá giảm'}] },
     { key: 'slidesPerView', type: 'select', label: 'Slides/hàng', options: [{value: 2, label: '2'}, {value: 3, label: '3'}] },
@@ -151,6 +155,10 @@ export const sectionSchemas = {
   cms_pages: [
     { key: 'layout', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'list', label: 'Danh sách'}] },
     { key: 'maxPages', type: 'range', label: 'Tối đa (trang)', min: 3, max: 12 }
+  ],
+  global_block: [
+    { key: 'ref', type: 'text', label: 'Mã tham chiếu (ref)' },
+    { key: 'helpText', type: 'visualEditor', label: 'Lưu ý: Bạn cần tạo Global Block từ mục quản lý chung trước khi kết nối mã tham chiếu (ref).' }
   ],
   video_embed: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },

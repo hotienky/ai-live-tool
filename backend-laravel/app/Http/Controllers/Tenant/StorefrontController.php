@@ -272,14 +272,31 @@ class StorefrontController extends Controller
             }
         }
 
-        // Try layout_pages table first (new Dynamic UI Engine)
+        // Try loading from CDN Push Simulator (Phase 4 Edge Cache)
         $layoutPageSections = null;
         $layoutPageMeta = null;
+        $tenantId = tenant('id') ?? 'default';
+        
         try {
-            $homePage = \App\Models\LayoutPage::bySlug('home')->published()->first();
-            if ($homePage && !empty($homePage->layout_json)) {
-                $layoutPageSections = $homePage->layout_json;
-                $layoutPageMeta = $homePage->meta;
+            $cdnPath = "cdn/tenants/{$tenantId}/layout_published_home.json";
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($cdnPath)) {
+                $fileContent = \Illuminate\Support\Facades\Storage::disk('public')->get($cdnPath);
+                $layoutPageSections = json_decode($fileContent, true);
+                
+                // For meta, we still need to fetch DB or we should have saved it to CDN.
+                // In a true edge setup, meta would be packed into the same JSON. 
+                // For now, we fetch DB if CDN doesn't have meta.
+                $homePage = \App\Models\LayoutPage::bySlug('home')->published()->first();
+                if ($homePage) {
+                    $layoutPageMeta = $homePage->meta;
+                }
+            } else {
+                // Fallback to database
+                $homePage = \App\Models\LayoutPage::bySlug('home')->published()->first();
+                if ($homePage && !empty($homePage->layout_json)) {
+                    $layoutPageSections = is_array($homePage->layout_json) ? $homePage->layout_json : json_decode($homePage->layout_json, true);
+                    $layoutPageMeta = $homePage->meta;
+                }
             }
         } catch (\Exception $e) {
             // layout_pages table may not exist yet — graceful fallback

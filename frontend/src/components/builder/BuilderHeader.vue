@@ -26,9 +26,9 @@
         </div>
       </div>
 
-      <span v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus">
-        v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? 'Published' : 'Draft' }}
-      </span>
+      <button v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus" @click="$emit('show-version-history')" title="Xem lịch sử các phiên bản">
+        <History :size="12" style="margin-right: 4px;" /> v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? 'Published' : 'Draft' }}
+      </button>
     </div>
 
     <div class="cpb-header__center">
@@ -93,7 +93,7 @@ import {
   ChevronDown, Home, FileText,
   Monitor, Tablet, Smartphone, Eye, Aperture, Scan,
   Undo2, Redo2, Check, Loader2,
-  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package
+  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History
 } from 'lucide-vue-next'
 
 const props = defineProps({

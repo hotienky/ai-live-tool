@@ -56,7 +56,7 @@
         <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
           
           <!-- Standard Prop Inputs -->
-          <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || getParams()[field.condition] !== false)">
+          <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || (field.conditionValue ? getParams()[field.condition] === field.conditionValue : getParams()[field.condition] !== false))">
             <label v-if="field.type !== 'visualEditor'">{{ field.label }}</label>
             
             <template v-if="field.type === 'boolean'">

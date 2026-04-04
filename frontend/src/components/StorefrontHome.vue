@@ -208,20 +208,20 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, defineAsyncComponent } from 'vue'
 import { Store, Search, ShoppingCart, User, Loader2, Menu, X } from 'lucide-vue-next'
 import { API_BASE } from '../config.js'
 
-// Section components
-import SfBannerSection from './storefront/SfBannerSection.vue'
-import SfCategoriesSection from './storefront/SfCategoriesSection.vue'
-import SfProductGridSection from './storefront/SfProductGridSection.vue'
-import SfFlashSaleSection from './storefront/SfFlashSaleSection.vue'
-import SfCmsPagesSection from './storefront/SfCmsPagesSection.vue'
-import SfContentSection from './storefront/SfContentSection.vue'
-import SfMockSection from './storefront/SfMockSection.vue'
-import SfBlogSection from './storefront/SfBlogSection.vue'
-import SfPharmacyHeroSection from './storefront/SfPharmacyHeroSection.vue'
+// Section components (Lazy Loaded)
+const SfBannerSection = defineAsyncComponent(() => import('./storefront/SfBannerSection.vue'))
+const SfCategoriesSection = defineAsyncComponent(() => import('./storefront/SfCategoriesSection.vue'))
+const SfProductGridSection = defineAsyncComponent(() => import('./storefront/SfProductGridSection.vue'))
+const SfFlashSaleSection = defineAsyncComponent(() => import('./storefront/SfFlashSaleSection.vue'))
+const SfCmsPagesSection = defineAsyncComponent(() => import('./storefront/SfCmsPagesSection.vue'))
+const SfContentSection = defineAsyncComponent(() => import('./storefront/SfContentSection.vue'))
+const SfMockSection = defineAsyncComponent(() => import('./storefront/SfMockSection.vue'))
+const SfBlogSection = defineAsyncComponent(() => import('./storefront/SfBlogSection.vue'))
+const SfPharmacyHeroSection = defineAsyncComponent(() => import('./storefront/SfPharmacyHeroSection.vue'))
 
 
 const contentSectionTypes = ['testimonials', 'faq', 'image_gallery', 'video_embed', 'text_block', 'newsletter', 'brands_slider', 'social_feed']
@@ -477,6 +477,20 @@ async function bootstrap() {
       }
       // Load UI translations for current locale
       loadUiTranslations()
+    }
+    
+    // SEO Meta Update (Phase 4)
+    if (storeInfo.value?.shop_name) {
+       document.title = storeInfo.value.shop_name;
+    }
+    if (config.theme?.seo_description) {
+       let metaDesc = document.querySelector('meta[name="description"]');
+       if (!metaDesc) {
+           metaDesc = document.createElement('meta');
+           metaDesc.name = "description";
+           document.head.appendChild(metaDesc);
+       }
+       metaDesc.content = config.theme.seo_description;
     }
 
     // Store categories from config (saves an extra API call)

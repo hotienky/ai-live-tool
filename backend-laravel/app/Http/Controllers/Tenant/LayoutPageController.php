@@ -47,30 +47,22 @@ class LayoutPageController extends Controller
      * P5 – BFF: resolve data cho mọi section trước khi trả về.
      * P6 – Cache contract: tenant:{tenant_id}:page:{slug}.
      */
-    public function showBySlug(string $slug): JsonResponse
+    public function showBySlug(Request $request, string $slug): JsonResponse
     {
         $tenantId = tenant('id') ?? 'default';
+        $isPreview = $request->query('preview_token') === 'draft';
         $cacheKey = "tenant:{$tenantId}:page:{$slug}";
 
-        $data = Cache::remember($cacheKey, 300, function () use ($slug) {
-            $page = LayoutPage::bySlug($slug)->published()->first();
-            if (!$page) {
-                return null;
-            }
-
-            $pageArr = $page->toArray();
-
-            // BFF: resolve data cho sections trong layout_json
-            if (!empty($pageArr['layout_json'])) {
-                $layoutJson = is_array($pageArr['layout_json'])
-                    ? $pageArr['layout_json']
-                    : json_decode($pageArr['layout_json'], true) ?? [];
-
-                $pageArr['layout_json'] = $this->layoutResolver->resolve($layoutJson);
-            }
-
-            return $pageArr;
-        });
+        // If preview mode, bypass cache and fetch latest (including draft)
+        if ($isPreview) {
+            $page = LayoutPage::bySlug($slug)->first();
+            $data = $this->resolvePageData($page);
+        } else {
+            $data = Cache::remember($cacheKey, 300, function () use ($slug) {
+                $page = LayoutPage::bySlug($slug)->published()->first();
+                return $this->resolvePageData($page);
+            });
+        }
 
         if (!$data) {
             return response()->json(['type' => 'error', 'message' => 'Page not found'], 404);
@@ -78,6 +70,25 @@ class LayoutPageController extends Controller
 
         return response()->json(['type' => 'success', 'data' => $data]);
     }
+
+    private function resolvePageData(?LayoutPage $page): ?array
+    {
+        if (!$page) return null;
+        $pageArr = $page->toArray();
+
+        // BFF: resolve data cho sections trong layout_json
+        if (!empty($pageArr['layout_json'])) {
+            $layoutJson = is_array($pageArr['layout_json'])
+                ? $pageArr['layout_json']
+                : json_decode($pageArr['layout_json'], true) ?? [];
+
+            $pageArr['layout_json'] = $this->layoutResolver->resolve($layoutJson);
+        }
+
+        return $pageArr;
+    }
+
+
 
     /* ── Create page ── */
     public function store(Request $request): JsonResponse

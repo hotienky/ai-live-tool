@@ -85,6 +85,31 @@ class BlockRegistry {
     return this.types[type] || null
   }
 
+  // Schema Validation (Enterprise Architecture Phase 1)
+  validate(block) {
+    const typeDef = this.get(block.type)
+    if (!typeDef || !typeDef.schema) return { valid: true, errors: [] }
+    
+    // Basic JSON Schema Validator Implementation
+    const errors = []
+    const schema = typeDef.schema
+    const content = block.content || {}
+    
+    if (schema.required) {
+       schema.required.forEach(key => {
+         if (content[key] === undefined || content[key] === null || content[key] === '') {
+           errors.push(`Missing required field: ${key}`)
+         }
+       })
+    }
+    
+    // Type checking could be expanded here based on Zod/AJV rules
+    return {
+      valid: errors.length === 0,
+      errors
+    }
+  }
+
   all() {
     return Object.values(this.types)
   }

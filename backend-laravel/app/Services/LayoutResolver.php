@@ -69,6 +69,30 @@ class LayoutResolver
      */
     private function resolveNode(array $node, ?string $locale = null): array
     {
+        // ── P5 Edge: Khối Dùng Chung (Global Block) ──
+        // Nếu là global_block, fetch và thay thế toàn bộ node bằng block_json, sau đó resolve tiếp
+        if (!empty($node['type']) && $node['type'] === 'global_block' && !empty($node['ref'])) {
+            try {
+                $block = \App\Models\LayoutGlobalBlock::where('ref', $node['ref'])->first();
+                if ($block) {
+                    $blockJson = is_array($block->block_json) ? $block->block_json : json_decode($block->block_json, true) ?? [];
+                    
+                    // Merge override params (nếu frontend có cấu hình đè)
+                    if (!empty($node['params'])) {
+                        $blockJson['params'] = array_replace_recursive($blockJson['params'] ?? [], $node['params']);
+                    }
+                    
+                    // Đánh dấu để dev/UI nhận biết đây là global block đã được render
+                    $blockJson['_is_global'] = true;
+                    $blockJson['_global_ref'] = $node['ref'];
+                    
+                    return $this->resolveNode($blockJson, $locale);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::warning("LayoutResolver: global_block resolve failed [{$node['ref']}]", ['error' => $e->getMessage()]);
+            }
+        }
+
         // Nguồn 1: node có data.endpoint tường minh
         if (!empty($node['data']['endpoint'])) {
             try {

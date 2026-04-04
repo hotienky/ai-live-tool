@@ -427,6 +427,11 @@
         <StorefrontLayoutBuilder @navigate-tab="tab => activeTab = tab" />
       </div>
 
+      <!-- ═══ Tab: Global Blocks ═══ -->
+      <div v-if="activeTab === 'layout-global-blocks'" class="settings__panel">
+        <LayoutGlobalBlockManager />
+      </div>
+
 
 
       <!-- ═══ Tab: Media Library ═══ -->
@@ -650,7 +655,7 @@ import {
   Image as ImageIcon,
   CalendarDays, PartyPopper, MessagesSquare, Building2, Scissors,
   Home, Gift, UserCheck, UtensilsCrossed, GraduationCap,
-  PanelLeftClose, PanelLeftOpen,
+  PanelLeftClose, PanelLeftOpen, Component as ComponentIcon
 } from 'lucide-vue-next'
 // E-com components removed — loaded dynamically via PluginRenderer
 // Module components removed — loaded dynamically via PluginRenderer
@@ -675,6 +680,7 @@ import PaymentSettings from './PaymentSettings.vue'
 // ShippingManagement → PluginRenderer moduleId="shipping"
 // TaxManagement + AccountingDashboard removed — loaded via plugin bundles
 import StorefrontLayoutBuilder from './StorefrontLayoutBuilder.vue'
+import LayoutGlobalBlockManager from './system/LayoutGlobalBlockManager.vue'
 import StoreInfoConfig from './StoreInfoConfig.vue'
 import { apiFetch } from '../composables/useApi.js'
 import { useCategories } from '../composables/useCategories.js'
@@ -844,7 +850,7 @@ async function loadStorefrontUrl() {
   } catch { /* ignore */ }
 }
 
-const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
+const validTabKeys = ['connection', 'products', 'categories', 'brands', 'keywords', 'replies', 'moderation', 'appearance', 'shop-customers', 'promotions', 'flash-sales', 'orders', 'order-detail', 'cms', 'media', 'system-config', 'store-info', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'payment', 'shipping', 'tax', 'accounting', 'storefront-layout', 'layout-global-blocks', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 const activeTab = ref('connection')
 // Order detail
 const orderDetailId = ref(null)
@@ -945,10 +951,10 @@ const tabGroups = [
     label: t('admin.theme', 'Giao diện'),
     items: [
       { key: 'cms', label: t('admin.cms_pages', 'Trang CMS'), icon: BookOpen },
-
       { key: 'media', label: 'Media', icon: ImageIcon },
       { key: 'appearance', label: 'Theme', icon: Palette },
       { key: 'storefront-layout', label: t('admin.storefront_layout', 'Bố cục Cửa Hàng'), icon: LayoutList },
+      { key: 'layout-global-blocks', label: 'Khối dùng chung', icon: ComponentIcon },
     ],
   },
   {
@@ -1044,7 +1050,7 @@ const tabToRoute = {
   'promotions': 'shop/promotions', 'flash-sales': 'shop/flash-sales',
   // Giao diện
   'cms': 'shop/cms', 'media': 'shop/media',
-  'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout',
+  'appearance': 'shop/appearance', 'storefront-layout': 'shop/layout', 'layout-global-blocks': 'shop/layout-global-blocks',
   // Content
   'forms': 'forms', 'form-submissions': 'forms/submissions',
   'reviews': 'shop/reviews',
@@ -1087,7 +1093,7 @@ const moduleTabMap = {
   // E-commerce (products, orders, storefront layout)
   'products': 'ecom', 'categories': 'ecom', 'brands': 'ecom',
   'orders': 'ecom', 'shop-customers': 'ecom', 'order-detail': 'ecom',
-  'payment': 'ecom', 'storefront-layout': 'ecom',
+  'payment': 'ecom', 'storefront-layout': 'ecom', 'layout-global-blocks': 'ecom',
   // Shipping
   'shipping': 'shipping',
   // Warehouse
@@ -1138,7 +1144,7 @@ function isModuleInstalled(moduleId) {
 
 // Section-specific sidebar groups
 const liveTabs = ['connection', 'keywords', 'replies', 'moderation']
-const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'cms', 'media', 'appearance', 'storefront-layout', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
+const shopTabs = ['products', 'categories', 'brands', 'orders', 'shop-customers', 'accounting', 'promotions', 'flash-sales', 'cms', 'media', 'appearance', 'storefront-layout', 'layout-global-blocks', 'store-info', 'system-config', 'payment', 'shipping', 'tax', 'api-keys', 'webhooks', 'languages', 'custom-fields', 'activity-logs', 'roles', 'stock-receipts', 'suppliers', 'payment-vouchers', 'purchase-orders', 'inventory-reports', 'modules', 'forms', 'form-submissions', 'reviews', 'seo', 'ai-assistant', 'blog-posts', 'blog-categories', 'blog-comments', 'blog-settings', 'booking', 'events', 'restaurant', 'salon', 'lms', 'forum', 'jobboard', 'realestate', 'lucky-draw', 'membership']
 
 const activeTabGroups = computed(() => {
   const tab = activeTab.value

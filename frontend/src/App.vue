@@ -505,7 +505,7 @@ const coreRouteToTab = {
   // Core (always available)
   'shop/info': 'store-info', 'shop/config': 'system-config', 'shop/languages': 'languages',
   'shop/media': 'media',
-  'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout',
+  'shop/appearance': 'appearance', 'shop/layout': 'storefront-layout', 'shop/layout-global-blocks': 'layout-global-blocks',
   'system/api-keys': 'api-keys', 'system/webhooks': 'webhooks',
   'system/logs': 'activity-logs', 'system/roles': 'roles',
   'system/modules': 'modules',

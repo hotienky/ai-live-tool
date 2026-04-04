@@ -133,3 +133,11 @@ Route::prefix('layout-pages')->group(function () {
     Route::get('/{id}/versions', [\App\Http\Controllers\Tenant\LayoutPageController::class, 'versions'])->middleware('permission:settings.view');
 });
 
+// Global Blocks API (Phase 5)
+Route::prefix('layout-global-blocks')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Tenant\LayoutGlobalBlockController::class, 'index'])->middleware('permission:settings.view');
+    Route::post('/', [\App\Http\Controllers\Tenant\LayoutGlobalBlockController::class, 'store'])->middleware('permission:settings.edit');
+    Route::put('/{id}', [\App\Http\Controllers\Tenant\LayoutGlobalBlockController::class, 'update'])->middleware('permission:settings.edit');
+    Route::delete('/{id}', [\App\Http\Controllers\Tenant\LayoutGlobalBlockController::class, 'destroy'])->middleware('permission:settings.edit');
+});
+

@@ -67,6 +67,14 @@ class LayoutPage extends Model
         $this->increment('version');
         $this->update(['status' => 'published']);
 
+        // CDN Push Simulator (Phase 4): Write absolute static JSON file for storefront to consume without DB query
+        try {
+            $cdnPath = "cdn/tenants/{$this->tenant_id}/layout_published_{$this->slug}.json";
+            \Illuminate\Support\Facades\Storage::disk('public')->put($cdnPath, json_encode($this->layout_json, JSON_UNESCAPED_UNICODE));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("CDN Push Failed: " . $e->getMessage());
+        }
+
         return $this;
     }
 
@@ -81,6 +89,14 @@ class LayoutPage extends Model
             'layout_json' => $snapshot->layout_json,
             'status' => 'published',
         ]);
+
+        // CDN Push Simulator (Phase 4): Rollback the static file
+        try {
+            $cdnPath = "cdn/tenants/{$this->tenant_id}/layout_published_{$this->slug}.json";
+            \Illuminate\Support\Facades\Storage::disk('public')->put($cdnPath, json_encode($snapshot->layout_json, JSON_UNESCAPED_UNICODE));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("CDN Push Failed on Rollback: " . $e->getMessage());
+        }
 
         // Create a new version entry recording the rollback
         $this->versions()->create([
