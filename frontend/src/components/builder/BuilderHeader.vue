@@ -160,6 +160,7 @@ const emit = defineEmits([
   'toggle-xray',
   'start-tour',
   'show-custom-css',
+  'show-seo-settings',
   'save-draft',
   'publish',
   'show-version-history',

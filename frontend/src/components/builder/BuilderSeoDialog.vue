@@ -68,7 +68,7 @@ const props = defineProps({
   seoConfig: { type: Object, required: true },
 })
 
-const emit = defineEmits(['update:modelValue', 'save'])
+const emit = defineEmits(['update:modelValue', 'save', 'init-lang'])
 
 const activeLang = ref(null)
 
@@ -79,18 +79,14 @@ const isDefaultLang = computed(() => {
 const activeFields = computed(() => {
   if (isDefaultLang.value) return props.seoConfig
 
-  if (!props.seoConfig.translations) {
-    props.seoConfig.translations = {}
-  }
   const lang = activeLang.value
-  if (!props.seoConfig.translations[lang]) {
-    props.seoConfig.translations[lang] = {
-      meta_title: '',
-      meta_description: '',
-      og_image: ''
-    }
+  const translations = props.seoConfig.translations || {}
+  if (!translations[lang]) {
+    // emit để parent khởi tạo, tránh mutate prop trực tiếp
+    emit('init-lang', lang)
+    return { meta_title: '', meta_description: '', og_image: '' }
   }
-  return props.seoConfig.translations[lang]
+  return translations[lang]
 })
 </script>
 

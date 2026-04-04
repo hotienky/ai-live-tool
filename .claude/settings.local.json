@@ -32,7 +32,10 @@
       "Bash(grep -r \"mergeIntoItems\\\\|mergeIntoSingleItem\\\\|ContentTranslation\" /Users/hotienky/datas/App/read-comment/backend-laravel/app/Actions --include=*.php)",
       "WebSearch",
       "Bash(grep -r \"livestream_sessions\\\\|shop_keywords\" /Users/hotienky/datas/App/read-comment/backend-laravel/app --include=*.php)",
-      "Bash(grep -rn \"modules/livestream\\\\|migrations/modules\\\\|module.*migration\" /Users/hotienky/datas/App/read-comment/backend-laravel/app --include=*.php -l)"
+      "Bash(grep -rn \"modules/livestream\\\\|migrations/modules\\\\|module.*migration\" /Users/hotienky/datas/App/read-comment/backend-laravel/app --include=*.php -l)",
+      "Bash(ls -1 /Users/hotienky/datas/App/read-comment/frontend/src/components/storefront/Layout*.vue)",
+      "Bash(grep -r '$emit.*show-seo-settings' /Users/hotienky/datas/App/read-comment/frontend/src/components/builder/ '--include=*.vue')",
+      "Bash(grep '$emit\\\\|defineEmits' /Users/hotienky/datas/App/read-comment/frontend/src/components/builder/BuilderSeoDialog.vue)"
     ]
   }
 }

@@ -154,6 +154,7 @@
       :active-page-label="activePageLabel"
       :seo-config="currentSeoConfig"
       @save="saveSeoConfig"
+      @init-lang="lang => { if (!currentSeoConfig.translations) currentSeoConfig.translations = {}; if (!currentSeoConfig.translations[lang]) currentSeoConfig.translations[lang] = { meta_title: '', meta_description: '', og_image: '' } }"
     />
 
     <!-- Publish Note Dialog -->
@@ -202,6 +203,8 @@
 </template>
 
 <script setup>
+defineEmits(['navigate-tab'])
+
 import { driver } from "driver.js"
 import "driver.js/dist/driver.css"
 
@@ -277,6 +280,7 @@ const { defaultLangCode, loadLanguages } = useLanguages()
 loadLanguages()
 const currentLang = ref(defaultLangCode.value || 'vi')
 provide('currentLang', currentLang)
+provide('defaultLangCode', defaultLangCode)
 
 // ─── Core state ───
 const sections = ref([])
