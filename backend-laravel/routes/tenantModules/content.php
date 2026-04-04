@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Tenant\CmsPagesController;
 use App\Http\Controllers\Tenant\BannersController;
 use App\Http\Controllers\Tenant\NavLinksController;
+use App\Http\Controllers\Tenant\NavigationMenuController;
 
 // CMS Pages
 Route::get('/cms-pages', [CmsPagesController::class, 'index'])->middleware('permission:cms.view');
@@ -34,6 +35,14 @@ Route::put('/nav-links/{id}', [NavLinksController::class, 'update'])->middleware
 Route::delete('/nav-links/{id}', [NavLinksController::class, 'destroy'])->middleware('permission:settings.edit');
 Route::post('/nav-links/reorder', [NavLinksController::class, 'reorder'])->middleware('permission:settings.edit');
 
+// Navigation Menus (JSON Builder)
+Route::get('/navigation-menus', [NavigationMenuController::class, 'index'])->middleware('permission:settings.view');
+Route::post('/navigation-menus', [NavigationMenuController::class, 'store'])->middleware('permission:settings.edit');
+Route::get('/navigation-menus/location/{location}', [NavigationMenuController::class, 'getByLocation'])->middleware('permission:settings.view');
+Route::get('/navigation-menus/{id}', [NavigationMenuController::class, 'show'])->middleware('permission:settings.view');
+Route::put('/navigation-menus/{id}', [NavigationMenuController::class, 'update'])->middleware('permission:settings.edit');
+Route::delete('/navigation-menus/{id}', [NavigationMenuController::class, 'destroy'])->middleware('permission:settings.edit');
+
 // Redirects
 Route::get('/redirects', [\App\Http\Controllers\Tenant\RedirectsController::class, 'index'])->middleware('permission:settings.view');
 Route::post('/redirects', [\App\Http\Controllers\Tenant\RedirectsController::class, 'store'])->middleware('permission:settings.edit');
@@ -51,6 +60,14 @@ Route::delete('/media/{id}', [\App\Http\Controllers\Tenant\MediaController::clas
 // Allows plugins to register content types (post, course, listing, etc.)
 // and get full CRUD via a single controller.
 use App\Http\Controllers\Tenant\ContentController;
+use App\Http\Controllers\Tenant\TenantContentTypeController;
+
+// Tenant's Custom Schema Builder API
+Route::get('/tenant-content-types', [TenantContentTypeController::class, 'index'])->middleware('permission:settings.view');
+Route::post('/tenant-content-types', [TenantContentTypeController::class, 'store'])->middleware('permission:settings.edit');
+Route::get('/tenant-content-types/{id}', [TenantContentTypeController::class, 'show'])->middleware('permission:settings.view');
+Route::put('/tenant-content-types/{id}', [TenantContentTypeController::class, 'update'])->middleware('permission:settings.edit');
+Route::delete('/tenant-content-types/{id}', [TenantContentTypeController::class, 'destroy'])->middleware('permission:settings.edit');
 
 Route::get('/content-types', [ContentController::class, 'types']);
 Route::prefix('content/{type}')->group(function () {

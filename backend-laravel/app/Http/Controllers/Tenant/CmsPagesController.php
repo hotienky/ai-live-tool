@@ -100,6 +100,7 @@ class CmsPagesController extends Controller
                 'meta_keywords' => 'nullable|string',
                 'is_dynamic' => 'nullable|boolean',
                 'layout_data' => 'nullable|array',
+                'seo_meta' => 'nullable|array',
             ]);
             // Convert status to boolean for DB
             if (isset($data['status'])) {
@@ -144,6 +145,7 @@ class CmsPagesController extends Controller
                 'meta_keywords' => 'nullable|string',
                 'is_dynamic' => 'nullable|boolean',
                 'layout_data' => 'nullable|array',
+                'seo_meta' => 'nullable|array',
             ]);
             // Convert status to boolean for DB
             if (isset($data['status'])) {

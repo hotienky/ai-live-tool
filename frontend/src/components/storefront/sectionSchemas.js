@@ -22,6 +22,7 @@ export const sectionMeta = {
   video_embed:   { label: 'Video nhúng',         moduleId: null, category: 'Cơ bản',       icon: 'Film', description: 'YouTube/Vimeo embed' },
   testimonials:  { label: 'Đánh giá khách hàng', moduleId: null, category: 'Cơ bản',       icon: 'Star', description: 'Testimonials / Reviews' },
   faq:           { label: 'Câu hỏi thường gặp', moduleId: null, category: 'Cơ bản',       icon: 'HelpCircle', description: 'FAQ accordion' },
+  collection_list: { label: 'Collection List',moduleId: null, category: 'Cơ bản',       icon: 'Database', description: 'Danh sách dữ liệu động' },
   newsletter:    { label: 'Đăng ký nhận tin',    moduleId: null, category: 'Cơ bản',       icon: 'Mail', description: 'Form đăng ký email' },
   form:          { label: 'Biểu mẫu (Form)',     moduleId: 'forms',category: 'Cơ bản',     icon: 'MousePointerClick', description: 'Biểu mẫu tương tác' },
   social_feed:   { label: 'Mạng xã hội',        moduleId: null, category: 'Cơ bản',       icon: 'Share2', description: 'Links social media' },
@@ -178,6 +179,28 @@ export const sectionSchemas = {
       { key: 'question', type: 'text', placeholder: 'Câu hỏi' },
       { key: 'answer', type: 'textarea', placeholder: 'Trả lời' }
     ]}
+  ],
+  collection_list: [
+    { key: 'contentType', type: 'text', label: 'Data Source (VD: portfolio, faq)', placeholder: ' portfolio' },
+    { key: 'limit', type: 'number', label: 'Số lượng tối đa', min: 1, max: 50 },
+    { key: 'sort', type: 'select', label: 'Sắp xếp theo', options: [
+      {value: 'published_at', label: 'Ngày xuất bản'},
+      {value: 'title', label: 'Tiêu đề'}
+    ]},
+    { key: 'order', type: 'select', label: 'Thứ tự', options: [
+      {value: 'desc', label: 'Mới nhất / Z-A'},
+      {value: 'asc', label: 'Cũ nhất / A-Z'}
+    ]},
+    { key: 'listLayout', type: 'select', label: 'Bố cục', options: [
+      {value: 'grid', label: 'Dạng lưới (Grid)'},
+      {value: 'list', label: 'Danh sách dọc (List)'}
+    ]},
+    { key: 'columns', type: 'select', label: 'Số cột', condition: 'listLayout', conditionValue: 'grid', options: [
+      {value: 2, label: '2 Cột'},
+      {value: 3, label: '3 Cột'},
+      {value: 4, label: '4 Cột'}
+    ]},
+    { key: 'itemTemplate', type: 'textarea', label: 'Item Template (HTML / Tailwind)', placeholder: '<div class="shadow p-4">\n  <h3>{{ item.title }}</h3>\n  <p>{{ item.excerpt }}</p>\n</div>' }
   ],
   image_gallery: [
     { key: 'title', type: 'text', label: 'Tiêu đề' },

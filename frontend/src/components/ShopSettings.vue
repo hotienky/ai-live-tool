@@ -432,11 +432,21 @@
         <LayoutGlobalBlockManager />
       </div>
 
+      <!-- ═══ Tab: Navigation Menus ═══ -->
+      <div v-if="activeTab === 'navigation-menus'" class="settings__panel settings__panel--fullheight settings__panel--no-padding" style="border: none; border-radius: 0;">
+        <NavigationBuilder />
+      </div>
+
 
 
       <!-- ═══ Tab: Media Library ═══ -->
       <div v-if="activeTab === 'media'" class="settings__panel">
         <MediaLibrary />
+      </div>
+
+      <!-- ═══ Tab: Content Schema Builder ═══ -->
+      <div v-if="activeTab === 'content-schema'" class="settings__panel">
+        <ContentSchemaBuilder />
       </div>
 
 
@@ -655,13 +665,14 @@ import {
   Image as ImageIcon,
   CalendarDays, PartyPopper, MessagesSquare, Building2, Scissors,
   Home, Gift, UserCheck, UtensilsCrossed, GraduationCap,
-  PanelLeftClose, PanelLeftOpen, Component as ComponentIcon
+  PanelLeftClose, PanelLeftOpen, Component as ComponentIcon, Share2, Database
 } from 'lucide-vue-next'
 // E-com components removed — loaded dynamically via PluginRenderer
 // Module components removed — loaded dynamically via PluginRenderer
 
 import MediaLibrary from './MediaLibrary.vue'
-import NavLinkManager from './NavLinkManager.vue'
+import NavigationBuilder from './NavigationBuilder.vue'
+import ContentSchemaBuilder from './ContentSchemaBuilder.vue'
 import ModuleManager from './ModuleManager.vue'
 import PluginRenderer from './PluginRenderer.vue'
 // ProductManager, CategoryManager, BrandManager → PluginRenderer moduleId="ecom"
@@ -955,6 +966,7 @@ const tabGroups = [
       { key: 'appearance', label: 'Theme', icon: Palette },
       { key: 'storefront-layout', label: t('admin.storefront_layout', 'Bố cục Cửa Hàng'), icon: LayoutList },
       { key: 'layout-global-blocks', label: 'Khối dùng chung', icon: ComponentIcon },
+      { key: 'navigation-menus', label: 'Menu & Điều hướng', icon: Share2 },
     ],
   },
   {
@@ -970,6 +982,7 @@ const tabGroups = [
     items: [
       { key: 'forms', label: 'Form Builder', icon: ClipboardList },
       { key: 'reviews', label: t('admin.reviews', 'Đánh giá'), icon: Award },
+      { key: 'content-schema', label: 'Schema Builder', icon: Database },
     ],
   },
   {

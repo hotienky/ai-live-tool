@@ -140,6 +140,46 @@
     </div>
 
     <!-- Modals -->
+    <!-- SEO Settings Dialog -->
+    <div v-if="showSeoSettings" class="media-modal-overlay" @click.self="showSeoSettings = false">
+      <div class="media-modal" style="width: 500px; border-radius: 12px;">
+        <div class="media-modal-header">
+          <h3><Globe :size="16" /> Cài đặt SEO ({{ activePageLabel }})</h3>
+          <button @click="showSeoSettings = false" title="Đóng"><X :size="20" /></button>
+        </div>
+        <div style="padding: 20px; max-height: 60vh; overflow-y: auto;">
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Tiêu đề trang (Meta Title)</label>
+            <input v-model="currentSeoConfig.meta_title" class="param-input" placeholder="VD: Khuyến mãi Mùa Hè - Cửa hàng ABC" />
+          </div>
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Mô tả trang (Meta Description)</label>
+            <textarea v-model="currentSeoConfig.meta_description" class="param-input" rows="3" placeholder="Mô tả tóm tắt nội dung..."></textarea>
+          </div>
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Ảnh chia sẻ mạng xã hội (OG Image)</label>
+            <input v-model="currentSeoConfig.og_image" class="param-input" placeholder="URL hình ảnh hiển thị khi share..." />
+          </div>
+          <div style="display: flex; gap: 12px;">
+            <div class="nm-form-group" style="flex: 1; margin-bottom: 12px;">
+              <label style="font-size: 13px; font-weight: 600;">Được phép index (Robots)</label>
+              <select v-model="currentSeoConfig.robots" class="param-input">
+                <option value="index, follow">Cho phép Index (Mặc định)</option>
+                <option value="noindex, nofollow">Không cho phép (Noindex)</option>
+              </select>
+            </div>
+          </div>
+          <div class="nm-form-group">
+            <label style="font-size: 13px; font-weight: 600;">Schema.org (JSON-LD)</label>
+            <textarea v-model="currentSeoConfig.schema_json" class="param-input" rows="4" placeholder="{&#10;  &quot;@context&quot;: &quot;https://schema.org&quot;,&#10;  &quot;@type&quot;: &quot;WebPage&quot;&#10;}"></textarea>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="cpb-btn-save" @click="saveSeoConfig">Áp dụng</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Custom CSS Modal -->
     <div class="media-modal-overlay" v-if="showCustomCss" @click.self="showCustomCss = false">
       <div class="media-modal" style="width: 600px; height: 400px; border-radius: 8px;">
@@ -157,6 +197,47 @@
     </div>
 
 
+    <!-- SEO Settings Dialog -->
+    <div v-if="showSeoSettings" class="media-modal-overlay" @click.self="showSeoSettings = false">
+      <div class="media-modal" style="width: 500px; border-radius: 12px;">
+        <div class="media-modal-header">
+          <h3><Globe :size="16" /> Cài đặt SEO ({{ activePageLabel }})</h3>
+          <button @click="showSeoSettings = false" title="Đóng"><X :size="20" /></button>
+        </div>
+        <div style="padding: 20px; max-height: 60vh; overflow-y: auto;">
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Tiêu đề trang (Meta Title)</label>
+            <input v-model="currentSeoConfig.meta_title" class="param-input" placeholder="VD: Khuyến mãi Mùa Hè - Cửa hàng ABC" />
+          </div>
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Mô tả trang (Meta Description)</label>
+            <textarea v-model="currentSeoConfig.meta_description" class="param-input" rows="3" placeholder="Mô tả tóm tắt nội dung..."></textarea>
+          </div>
+          <div class="nm-form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px; font-weight: 600;">Ảnh chia sẻ mạng xã hội (OG Image)</label>
+            <input v-model="currentSeoConfig.og_image" class="param-input" placeholder="URL hình ảnh hiển thị khi share..." />
+          </div>
+          <div class="nm-form-row">
+            <div class="nm-form-group" style="flex: 1; margin-bottom: 12px;">
+              <label style="font-size: 13px; font-weight: 600;">Được phép index (Robots)</label>
+              <select v-model="currentSeoConfig.robots" class="param-input">
+                <option value="index, follow">Cho phép Index (Mặc định)</option>
+                <option value="noindex, nofollow">Không cho phép (Noindex)</option>
+              </select>
+            </div>
+          </div>
+          <div class="nm-form-group">
+            <label style="font-size: 13px; font-weight: 600;">Schema.org (JSON-LD)</label>
+            <textarea v-model="currentSeoConfig.schema_json" class="param-input" rows="4" placeholder="{&#10;  &quot;@context&quot;: &quot;https://schema.org&quot;,&#10;  &quot;@type&quot;: &quot;WebPage&quot;&#10;}"></textarea>
+          </div>
+        </div>
+        <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
+          <button class="cpb-btn-save" @click="saveSeoConfig">Áp dụng</button>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Publish Note Dialog -->
     <div v-if="showPublishDialog" class="media-modal-overlay" @click.self="showPublishDialog = false">
       <div class="media-modal" style="width: 440px; border-radius: 12px;">
@@ -165,8 +246,15 @@
           <button @click="showPublishDialog = false" title="Đóng"><X :size="20" /></button>
         </div>
         <div style="padding: 20px;">
-          <p style="margin: 0 0 12px; font-size: 13px; color: var(--text-2);">Ghi chú cho lần publish này (tuỳ chọn)</p>
-          <input v-model="publishNote" class="param-input" placeholder="VD: Cập nhật banner Tết, thêm section FAQ..." @keyup.enter="confirmPublish" />
+          <div style="margin-bottom: 16px;">
+            <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">Ghi chú phiên bản (tuỳ chọn)</p>
+            <input v-model="publishNote" class="param-input" placeholder="VD: Cập nhật banner Tết, thêm section FAQ..." @keyup.enter="confirmPublish" />
+          </div>
+          <div>
+            <p style="margin: 0 0 6px; font-size: 13px; color: var(--text-2); font-weight: 600;">Lên lịch xuất bản (tuỳ chọn)</p>
+            <input type="datetime-local" v-model="publishSchedule" class="param-input" />
+            <p style="margin: 4px 0 0; font-size: 11px; color: var(--text-3);">Nếu bỏ trống, layout sẽ được xuất bản ngay lập tức.</p>
+          </div>
         </div>
         <div style="padding: 12px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px;">
           <button class="cpb-btn-secondary" @click="showPublishDialog = false">Huỷ</button>
@@ -341,6 +429,48 @@ const leftTab = ref('structure')
 const leftCollapsed = ref(true)
 const activeConfig = ref(null)
 const showCustomCss = ref(false)
+const showSeoSettings = ref(false)
+
+// ─── Current SEO Config ───
+const currentSeoConfig = ref({
+  meta_title: '',
+  meta_description: '',
+  og_image: '',
+  robots: 'index, follow',
+  schema_json: ''
+})
+
+watch(showSeoSettings, (val) => {
+  if (val) {
+    if (activePageId.value && !activeBuiltinPage.value) {
+      // CmsPage SEO
+      const p = dynamicPages.value.find(dp => dp.id === activePageId.value)
+      if (p) {
+        currentSeoConfig.value = p.seo_meta || { meta_title: p.meta_title || '', meta_description: p.meta_description || '' }
+      }
+    } else {
+      // LayoutPage SEO
+      const key = activePageId.value || 'home'
+      if (!pageConfigs.value[key]) pageConfigs.value[key] = {}
+      currentSeoConfig.value = pageConfigs.value[key].seo || {}
+    }
+  }
+})
+
+function saveSeoConfig() {
+  if (activePageId.value && !activeBuiltinPage.value) {
+    // CmsPage mode -> We just update dynamicPages, real save uses useBuilderPersistence
+    const p = dynamicPages.value.find(dp => dp.id === activePageId.value)
+    if (p) p.seo_meta = { ...currentSeoConfig.value }
+  } else {
+    // LayoutPage mode
+    const key = activePageId.value || 'home'
+    if (!pageConfigs.value[key]) pageConfigs.value[key] = {}
+    pageConfigs.value[key].seo = { ...currentSeoConfig.value }
+  }
+  showSeoSettings.value = false
+  window.dispatchEvent(new CustomEvent('toast', { detail: { msg: 'Đã lưu cấu hình SEO. (Cần xuất bản để lưu vĩnh viễn trên server)', type: 'success' }}))
+}
 
 const activePageId = ref(null)
 const activeSidebarTab = ref('elements')
@@ -607,6 +737,7 @@ const {
   showVersionHistory,
   showPublishDialog,
   publishNote,
+  publishSchedule,
   publishNoteInput,
   jsonInputRef,
   loadLayout,

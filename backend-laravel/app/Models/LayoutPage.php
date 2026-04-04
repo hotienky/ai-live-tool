@@ -59,6 +59,7 @@ class LayoutPage extends Model
         $this->versions()->create([
             'layout_json' => $this->layout_json,
             'version' => $this->version,
+            'status' => 'published',
             'published_by' => $publishedBy,
             'note' => $note,
         ]);
@@ -73,6 +74,53 @@ class LayoutPage extends Model
             \Illuminate\Support\Facades\Storage::disk('public')->put($cdnPath, json_encode($this->layout_json, JSON_UNESCAPED_UNICODE));
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("CDN Push Failed: " . $e->getMessage());
+        }
+
+        return $this;
+    }
+
+    /**
+     * Schedule a publish config snapshot.
+     * This creates a LayoutPageVersion with 'scheduled' status, without modifying the Live LayoutPage.
+     */
+    public function schedulePublish(array $layoutJson, string $scheduledAt, ?string $scheduledBy = null, ?string $note = null): self
+    {
+        // 1. Snapshot into versions table, but marked as scheduled
+        $this->versions()->create([
+            'layout_json' => $layoutJson,
+            'version' => $this->version + 1, // Advance the version conceptually
+            'status' => 'scheduled',
+            'scheduled_at' => \Carbon\Carbon::parse($scheduledAt),
+            'published_by' => $scheduledBy,
+            'note' => $note,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Execute a scheduled version and publish it.
+     */
+    public function executeScheduledPublish(int $versionId): self
+    {
+        $snapshot = $this->versions()->where('id', $versionId)->where('status', 'scheduled')->firstOrFail();
+
+        // 1. Mark snapshot as published
+        $snapshot->update(['status' => 'published']);
+
+        // 2. Overwrite the current active LayoutPage
+        $this->update([
+            'layout_json' => $snapshot->layout_json,
+            'status' => 'published',
+            'version' => $snapshot->version,
+        ]);
+
+        // 3. Optional: Push to CDN
+        try {
+            $cdnPath = "cdn/tenants/{$this->tenant_id}/layout_published_{$this->slug}.json";
+            \Illuminate\Support\Facades\Storage::disk('public')->put($cdnPath, json_encode($snapshot->layout_json, JSON_UNESCAPED_UNICODE));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("CDN Push Failed on Scheduled Publish: " . $e->getMessage());
         }
 
         return $this;

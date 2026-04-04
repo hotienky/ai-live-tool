@@ -33,6 +33,7 @@ export function useBuilderPersistence(
   const showVersionHistory = ref(false)
   const showPublishDialog = ref(false)
   const publishNote = ref('')
+  const publishSchedule = ref('')
   const publishNoteInput = ref(null)
   const jsonInputRef = ref(null)
 
@@ -276,6 +277,7 @@ export function useBuilderPersistence(
           body: JSON.stringify({
             layout_json: sections.value,
             note: publishNote.value || null,
+            scheduled_at: publishSchedule.value || null,
           }),
         })
         if (slug === 'home') {
@@ -284,10 +286,15 @@ export function useBuilderPersistence(
             body: JSON.stringify({ meta: buildMeta() }),
           })
         }
-        layoutPageVersion.value++
-        layoutPageStatus.value = 'published'
+        if (!publishSchedule.value) {
+          layoutPageVersion.value++
+          layoutPageStatus.value = 'published'
+          showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng') + ` (v${layoutPageVersion.value})`, 'success')
+        } else {
+          showToast('Đã lên lịch xuất bản vào lúc ' + publishSchedule.value, 'success')
+        }
         publishNote.value = ''
-        showToast(t('admin.msg_32ac40', 'Đã xuất bản bố cục Cửa Hàng') + ` (v${layoutPageVersion.value})`, 'success')
+        publishSchedule.value = ''
       } else {
         const itemsToSave = [
           { key: 'layout_pages', value: JSON.stringify(pages.value) },
@@ -422,6 +429,7 @@ export function useBuilderPersistence(
     showVersionHistory,
     showPublishDialog,
     publishNote,
+    publishSchedule,
     publishNoteInput,
     jsonInputRef,
     ensureParams,

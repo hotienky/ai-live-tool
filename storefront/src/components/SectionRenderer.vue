@@ -160,6 +160,7 @@ const coreRegistry = {
   product_categories: defineAsyncComponent(() => import('../views/sections/ProductCategoriesSection.vue')),
 
   // ── Custom library sections ──
+  collection_list: defineAsyncComponent(() => import('./sections/CollectionListSection.vue')),
   testimonials:  defineAsyncComponent(() => import('./sections/HomeSectionTestimonials.vue')),
   faq:           defineAsyncComponent(() => import('./sections/HomeSectionFaq.vue')),
   image_gallery: defineAsyncComponent(() => import('./sections/HomeSectionGallery.vue')),

@@ -10,13 +10,14 @@ class LayoutPageVersion extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'page_id', 'layout_json', 'version', 'published_by', 'note',
+        'page_id', 'layout_json', 'status', 'scheduled_at', 'version', 'published_by', 'note',
     ];
 
     protected $casts = [
         'layout_json' => 'array',
         'version' => 'integer',
         'created_at' => 'datetime',
+        'scheduled_at' => 'datetime',
     ];
 
     public function page(): BelongsTo

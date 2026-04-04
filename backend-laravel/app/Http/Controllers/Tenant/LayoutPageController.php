@@ -147,25 +147,42 @@ class LayoutPageController extends Controller
     {
         $page = LayoutPage::findOrFail($id);
 
-        // published_by dùng authenticated user, không nhận từ request (bảo mật)
+        $data = $request->validate([
+            'layout_json' => 'nullable|array',
+            'note' => 'nullable|string|max:500',
+            'scheduled_at' => 'nullable|date',
+        ]);
+
         $user = $request->user();
         $publishedBy = $user?->name ?? $user?->email ?? 'admin';
-        $note = $request->input('note', null);
+        $note = $data['note'] ?? null;
+        $scheduledAt = $data['scheduled_at'] ?? null;
+        $layoutJson = $data['layout_json'] ?? $page->layout_json;
 
-        if ($request->has('layout_json')) {
-            $page->update(['layout_json' => $request->input('layout_json')]);
+        if ($scheduledAt) {
+            // Schedule the publish
+            $page->schedulePublish($layoutJson, $scheduledAt, $publishedBy, $note);
+            return response()->json([
+                'type' => 'success', 
+                'message' => 'Lên lịch xuất bản thành công vào ' . $scheduledAt,
+                'data' => $page
+            ]);
+        } else {
+            // Immediate publish
+            if ($request->has('layout_json')) {
+                $page->update(['layout_json' => $layoutJson]);
+            }
+            $page->publish($publishedBy, $note);
+            
+            // Cache contract: clear cache khi publish
+            $this->clearLayoutCache($page->slug);
+
+            return response()->json([
+                'type'    => 'success',
+                'message' => "Published v{$page->version}",
+                'data'    => $page,
+            ]);
         }
-
-        $page->publish($publishedBy, $note);
-
-        // Cache contract: clear cache khi publish
-        $this->clearLayoutCache($page->slug);
-
-        return response()->json([
-            'type'    => 'success',
-            'message' => "Published v{$page->version}",
-            'data'    => $page,
-        ]);
     }
 
     /**

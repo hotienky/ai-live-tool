@@ -56,6 +56,25 @@ class PluginResolverRegistrar
                 ContentTypeRegistry::register($typeKey, $config);
             }
         }
+
+        // P4.2: Register Tenant-specific Content Types from DB
+        try {
+            $tenantTypes = \App\Models\TenantContentType::all();
+            foreach ($tenantTypes as $type) {
+                ContentTypeRegistry::register($type->type_key, [
+                    'label' => $type->name,
+                    'label_plural' => $type->name,
+                    'icon' => $type->icon ?? 'FileText',
+                    'supports' => $type->supports ?? [],
+                    'has_revisions' => $type->has_revisions,
+                    'has_comments' => $type->has_comments,
+                    'meta_fields' => $type->meta_fields ?? [],
+                ]);
+            }
+        } catch (\Exception $e) {
+            // In case table does not exist or db not migrated yet
+            \Illuminate\Support\Facades\Log::warning("Could not load TenantContentTypes: " . $e->getMessage());
+        }
     }
 
     /**

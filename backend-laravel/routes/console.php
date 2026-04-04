@@ -34,3 +34,10 @@ Schedule::command('notifications:cleanup')
 
 // Horizon metrics snapshot — mỗi 5 phút (hiển thị đồ thị trong dashboard)
 Schedule::command('horizon:snapshot')->everyFiveMinutes();
+
+// Kiểm tra trang bố cục (layout) được lên lịch xuất bản — mỗi phút
+Schedule::command('layout:publish-scheduled')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+

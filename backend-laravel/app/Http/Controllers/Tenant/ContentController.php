@@ -68,6 +68,36 @@ class ContentController extends Controller
     }
 
     /**
+     * Storefront API: List published content items for a given type
+     */
+    public function indexStorefront(Request $request, string $type)
+    {
+        if (!ContentTypeRegistry::exists($type)) {
+            return response()->json(['error' => "Unknown content type: {$type}"], 404);
+        }
+
+        $query = Content::ofType($type)->where('status', 'published')->with('taxonomies');
+
+        // Search
+        if ($search = $request->input('search')) {
+            $query->where('title', 'ilike', "%{$search}%");
+        }
+
+        // Sort
+        $sort = $request->input('sort', 'published_at');
+        $order = $request->input('order', 'desc');
+        $allowedSorts = ['created_at', 'updated_at', 'title', 'published_at'];
+        if (in_array($sort, $allowedSorts)) {
+            $query->orderBy($sort, $order === 'asc' ? 'asc' : 'desc');
+        } else {
+            $query->orderBy('published_at', 'desc');
+        }
+
+        $perPage = min($request->input('per_page', 20), 100);
+        return $this->successResponse($query->paginate($perPage));
+    }
+
+    /**
      * Create a new content item
      */
     public function store(Request $request, string $type)
@@ -139,6 +169,32 @@ class ContentController extends Controller
         $content = Content::ofType($type)->with(['taxonomies', 'revisions'])->find($id);
         if (!$content) {
             return $this->notFoundResponse("{$type} not found");
+        }
+
+        return $this->successResponse($content);
+    }
+
+    /**
+     * Storefront API: Show a single published content item
+     */
+    public function showStorefront(string $type, $id)
+    {
+        if (!ContentTypeRegistry::exists($type)) {
+            return response()->json(['error' => "Unknown content type: {$type}"], 404);
+        }
+
+        // Use either ID or Slug
+        $content = Content::ofType($type)
+            ->where('status', 'published')
+            ->where(function ($q) use ($id) {
+                $q->where('id', $id)
+                  ->orWhere('slug', $id);
+            })
+            ->with(['taxonomies']) // No revisions needed for storefront
+            ->first();
+
+        if (!$content) {
+            return $this->notFoundResponse("{$type} not found or not published");
         }
 
         return $this->successResponse($content);

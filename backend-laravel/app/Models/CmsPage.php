@@ -9,7 +9,7 @@ class CmsPage extends Model
     protected $fillable = [
         'title', 'alias', 'content', 'image', 'status',
         'published_at', 'created_by', 'updated_by',
-        'meta_title', 'meta_description', 'meta_keywords',
+        'meta_title', 'meta_description', 'meta_keywords', 'seo_meta',
         'is_dynamic', 'layout_data', 'is_system',
     ];
 
@@ -20,6 +20,7 @@ class CmsPage extends Model
         'is_dynamic' => 'boolean',
         'is_system' => 'boolean',
         'layout_data' => 'array',
+        'seo_meta' => 'array',
     ];
 
     /* Scopes */

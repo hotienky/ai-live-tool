@@ -459,6 +459,8 @@ async function autoTranslateFooter() {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .footer-auto-translate {
   display: flex;
   justify-content: flex-end;
@@ -504,7 +506,6 @@ async function autoTranslateFooter() {
   to { transform: rotate(360deg); }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 .lb-section {
   font-family: 'Inter', sans-serif;

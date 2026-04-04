@@ -82,6 +82,7 @@
       </button>
       <button class="cpb-btn-secondary" @click="$emit('start-tour')" title="Hướng dẫn sử dụng toàn tập Builder"><HelpCircle :size="14" /></button>
       <button class="cpb-btn-secondary" @click="$emit('show-custom-css')" title="Tùy chỉnh CSS nâng cao toàn cục"><Code :size="14" /></button>
+      <button class="cpb-btn-secondary" @click="$emit('show-seo-settings')" title="Tùy chỉnh SEO & Thẻ Meta cho trang hiện tại"><Globe :size="14" /></button>
       <button class="cpb-btn-secondary" @click="$emit('save-draft')" :disabled="saving" title="Lưu nháp hiện trạng mà chưa áp dụng ngay"><Save :size="14" /> Nháp</button>
       <button class="cpb-btn-save" @click="$emit('publish')" :disabled="saving" title="Xuất bản cập nhật lên website live"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> Xuất bản</button>
     </div>
@@ -93,7 +94,7 @@ import {
   ChevronDown, Home, FileText,
   Monitor, Tablet, Smartphone, Eye, Aperture, Scan,
   Undo2, Redo2, Check, Loader2,
-  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History
+  Focus, Minimize, Maximize, HelpCircle, Code, Save, Package, History, Globe
 } from 'lucide-vue-next'
 
 const props = defineProps({
