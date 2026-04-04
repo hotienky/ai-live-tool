@@ -1,16 +1,16 @@
 <template>
   <div class="sf" :style="customCssVars">
     <!-- Announcement / Top Utility Bar -->
-    <div class="sf-announcement-border" v-if="headerConfig.showAnnouncement" :style="{ backgroundColor: headerConfig.announcementBg || 'var(--sf-accent)', color: headerConfig.announcementColor || '#fff' }">
+    <div class="sf-announcement-border" v-if="activeHeaderConfig.showAnnouncement" :style="{ backgroundColor: activeHeaderConfig.announcementBg || 'var(--sf-accent)', color: activeHeaderConfig.announcementColor || '#fff' }">
       <div class="sf-announcement-inner" style="max-width: var(--sf-container-width, 1200px); margin: 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 4px 16px; font-size: 11px; font-weight: 500;">
         <div class="sf-announcement__text" style="flex: 1;">
-          <a v-if="headerConfig.announcementLink" :href="headerConfig.announcementLink" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-            {{ headerConfig.announcementText || 'Tùy chỉnh thông báo...' }}
+          <a v-if="activeHeaderConfig.announcementLink" :href="activeHeaderConfig.announcementLink" style="color: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+            {{ activeHeaderConfig.announcementText || 'Tùy chỉnh thông báo...' }}
           </a>
-          <span v-else>{{ headerConfig.announcementText || 'Tùy chỉnh thông báo...' }}</span>
+          <span v-else>{{ activeHeaderConfig.announcementText || 'Tùy chỉnh thông báo...' }}</span>
         </div>
-        <div class="sf-announcement__topbar" v-if="headerConfig.topbarLinks && headerConfig.topbarLinks.length" style="display: flex; gap: 16px; align-items: center;">
-          <a v-for="(lnk, idx) in headerConfig.topbarLinks" :key="idx" :href="lnk.url || '#'" class="sf-announcement__toplink" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 4px; opacity: 0.9; cursor: pointer;">
+        <div class="sf-announcement__topbar" v-if="activeHeaderConfig.topbarLinks && activeHeaderConfig.topbarLinks.length" style="display: flex; gap: 16px; align-items: center;">
+          <a v-for="(lnk, idx) in activeHeaderConfig.topbarLinks" :key="idx" :href="lnk.url || '#'" class="sf-announcement__toplink" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 4px; opacity: 0.9; cursor: pointer;">
             {{ lnk.label }}
           </a>
         </div>
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Header -->
-    <header class="sf-header" :class="{ 'sf-header--sticky': headerConfig.sticky !== false }">
+    <header class="sf-header" :class="{ 'sf-header--sticky': activeHeaderConfig.sticky !== false }">
       <button class="sf-hamburger" @click="mobileMenuOpen = !mobileMenuOpen">
         <Menu :size="20" />
       </button>
@@ -32,7 +32,7 @@
           {{ link.name }}
         </a>
       </nav>
-      <div class="sf-header__search" v-if="headerConfig.showSearch !== false">
+      <div class="sf-header__search" v-if="activeHeaderConfig.showSearch !== false">
         <Search :size="16" />
         <input v-model="search" type="text" :placeholder="t('search_placeholder')" class="sf-search-input" @keyup.enter="doSearch" />
       </div>
@@ -186,19 +186,19 @@
 
     <!-- Footer -->
     <footer class="sf-footer">
-      <div class="sf-footer__columns" v-if="footerConfig.columns?.length">
-        <div v-for="(col, i) in footerConfig.columns" :key="i" class="sf-footer__col">
+      <div class="sf-footer__columns" v-if="activeFooterConfig.columns?.length">
+        <div v-for="(col, i) in activeFooterConfig.columns" :key="i" class="sf-footer__col">
           <h5>{{ col.title }}</h5>
           <template v-if="col.type === 'links'">
             <a v-for="(link, j) in (col.links || [])" :key="j" :href="link.url" class="sf-footer__link">{{ link.label }}</a>
           </template>
           <template v-if="col.type === 'contact'">
-            <p v-for="(item, j) in (col.items || [])" :key="j" class="sf-footer__contact">{{ item }}</p>
+            <p v-for="(item, j) in (col.items || [])" :key="j" class="sf-footer__contact">{{ item.label ? (item.label + ': ' + item.value) : item.value }}</p>
           </template>
         </div>
       </div>
       <div class="sf-footer__bottom">
-        <p>{{ footerConfig.copyrightText || `© ${new Date().getFullYear()} ${storeInfo?.shop_name || 'Shop'}. Powered by KAC company` }}</p>
+        <p>{{ activeFooterConfig.copyrightText || `© ${new Date().getFullYear()} ${storeInfo?.shop_name || 'Shop'}. Powered by KAC company` }}</p>
       </div>
     </footer>
 
@@ -308,16 +308,46 @@ const sectionData = ref({
   brands: [],
 })
 
+// Resolve translated objects
+function resolveConfig(configInfo) {
+  if (!configInfo) return {}
+  const lang = currentLocale.value
+  const defaultLang = availableLanguages.value.find(l => l.is_default)?.code
+  if (!lang || lang === defaultLang) return configInfo
+
+  const trans = configInfo.translations?.[lang]
+  if (!trans) return configInfo
+
+  return { ...configInfo, ...trans }
+}
+
+const activeHeaderConfig = computed(() => resolveConfig(headerConfig.value))
+const activeFooterConfig = computed(() => resolveConfig(footerConfig.value))
+
 // Computed
 const enabledSections = computed(() =>
   sections.value
     .filter(s => s.enabled !== false)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(s => {
+       const lang = currentLocale.value
+       const defaultLang = availableLanguages.value.find(l => l.is_default)?.code
+       if (!lang || lang === defaultLang) return s
+       
+       const contentTrans = s.translations?.[lang]?.content
+       const paramsTrans = s.translations?.[lang]?.params
+       
+       return {
+         ...s,
+         content: contentTrans || s.content,
+         params: paramsTrans ? { ...s.params, ...paramsTrans } : s.params
+       }
+    })
 )
 
 const visibleNavLinks = computed(() => {
-  const max = headerConfig.value.maxNavLinks || 5
-  return navLinks.value.filter(l => l.is_active !== false).slice(0, max)
+  const max = activeHeaderConfig.value.maxNavLinks || 5
+  return navLinks.value.filter(l => l.is_active !== false).slice(0, max).map(l => resolveConfig(l))
 })
 
 // Color derivation logic

@@ -1,29 +1,29 @@
 <template>
   <div class="block-renderer" :style="computedStyle" :class="[animClass, responsiveClass]" :data-block-id="block.id">
     <!-- Heading -->
-    <component v-if="block.type === 'heading'" :is="'h' + (block.content.level || 2)" class="br-heading" :contenteditable="editable" @blur="onTextEdit($event, 'text')" v-text="block.content.text" />
+    <component v-if="block.type === 'heading'" :is="'h' + (activeContent.level || 2)" class="br-heading" :contenteditable="editable" @blur="onTextEdit($event, 'text')" v-text="activeContent.text" />
 
     <!-- Text -->
-    <div v-else-if="block.type === 'text'" class="br-text" :contenteditable="editable" @blur="onHtmlEdit" v-html="block.content.html" />
+    <div v-else-if="block.type === 'text'" class="br-text" :contenteditable="editable" @blur="onHtmlEdit" v-html="activeContent.html" />
 
     <!-- Image -->
     <div v-else-if="block.type === 'image'" class="br-image">
-      <img v-if="block.content.src" :src="block.content.src" :alt="block.content.alt || ''" :style="{ width: block.content.width || '100%' }" loading="lazy" />
+      <img v-if="activeContent.src" :src="activeContent.src" :alt="activeContent.alt || ''" :style="{ width: activeContent.width || '100%' }" loading="lazy" />
       <div v-else class="br-image__placeholder"><ImageIcon :size="32" /><span>Click to add image</span></div>
     </div>
 
     <!-- Button -->
     <div v-else-if="block.type === 'button'" class="br-button-wrap">
-      <a :href="editable ? '#' : (block.content.url || '#')" :target="block.content.target" class="br-button" :class="'br-button--' + (block.content.variant || 'primary')" @click.prevent>
-        {{ block.content.text || 'Button' }}
+      <a :href="editable ? '#' : (activeContent.url || '#')" :target="activeContent.target" class="br-button" :class="'br-button--' + (activeContent.variant || 'primary')" @click.prevent>
+        {{ activeContent.text || 'Button' }}
       </a>
     </div>
 
     <!-- Spacer -->
-    <div v-else-if="block.type === 'spacer'" class="br-spacer" :style="{ height: (block.content.height || 40) + 'px' }" />
+    <div v-else-if="block.type === 'spacer'" class="br-spacer" :style="{ height: (activeContent.height || 40) + 'px' }" />
 
     <!-- Divider -->
-    <hr v-else-if="block.type === 'divider'" class="br-divider" :style="{ borderStyle: block.content.style || 'solid', borderColor: block.content.color || '#e5e7eb', borderWidth: (block.content.width || 1) + 'px 0 0 0' }" />
+    <hr v-else-if="block.type === 'divider'" class="br-divider" :style="{ borderStyle: activeContent.style || 'solid', borderColor: activeContent.color || '#e5e7eb', borderWidth: (activeContent.width || 1) + 'px 0 0 0' }" />
 
     <!-- Video -->
     <div v-else-if="block.type === 'video'" class="br-video">
@@ -32,17 +32,17 @@
     </div>
 
     <!-- Icon -->
-    <div v-else-if="block.type === 'icon'" class="br-icon" :style="{ color: block.content.color || 'currentColor', fontSize: (block.content.size || 48) + 'px' }">
-      <component :is="resolveIcon(block.content.name)" :size="block.content.size || 48" />
+    <div v-else-if="block.type === 'icon'" class="br-icon" :style="{ color: activeContent.color || 'currentColor', fontSize: (activeContent.size || 48) + 'px' }">
+      <component :is="resolveIcon(activeContent.name)" :size="activeContent.size || 48" />
     </div>
 
     <!-- HTML -->
-    <div v-else-if="block.type === 'html'" class="br-html" v-html="block.content.code" />
+    <div v-else-if="block.type === 'html'" class="br-html" v-html="activeContent.code" />
 
     <!-- Shortcode (admin preview only) -->
     <div v-else-if="block.type === 'shortcode'" class="br-shortcode">
       <Braces :size="14" />
-      <code>{{ block.content.code }}</code>
+      <code>{{ activeContent.code }}</code>
     </div>
 
     <!-- Columns -->
@@ -58,15 +58,24 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, inject, ref } from 'vue'
 import { Image as ImageIcon, PlayCircle, AlertCircle, Star, Braces } from 'lucide-vue-next'
 import { blockStyleToCSS } from '../../core/blocks.js'
+import { useLanguages } from '../../composables/useLanguages.js'
 
 const props = defineProps({
   block: { type: Object, required: true },
   editable: { type: Boolean, default: false },
 })
 const emit = defineEmits(['update'])
+
+const { defaultLangCode } = useLanguages()
+const currentLang = inject('currentLang', ref(defaultLangCode.value))
+
+const activeContent = computed(() => {
+  if (currentLang.value === defaultLangCode.value) return props.block.content || {}
+  return props.block.translations?.[currentLang.value]?.content ?? (props.block.content || {})
+})
 
 const computedStyle = computed(() => blockStyleToCSS(props.block.style))
 
@@ -82,7 +91,7 @@ const responsiveClass = computed(() => {
 })
 
 const embedUrl = computed(() => {
-  const url = props.block.content?.url
+  const url = activeContent.value?.url
   if (!url) return null
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
   if (m) return `https://www.youtube.com/embed/${m[1]}`
@@ -93,7 +102,7 @@ const embedUrl = computed(() => {
 })
 
 const columnWidths = computed(() => {
-  const layout = props.block.content?.layout || 2
+  const layout = activeContent.value?.layout || 2
   const presets = { 1: '1fr', 2: '1fr 1fr', 3: '1fr 1fr 1fr', 4: '1fr 1fr 1fr 1fr', '2-1': '2fr 1fr', '1-2': '1fr 2fr' }
   return presets[layout] || '1fr'
 })

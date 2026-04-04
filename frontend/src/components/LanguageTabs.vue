@@ -109,23 +109,41 @@ async function doAutoTranslate() {
   const code = props.modelValue;
   isTranslating.value = true;
   try {
+    const textsToTranslate = [];
+    const mappings = [];
+    
     for (const f of props.fields) {
       const text = props.baseData[f];
       if (!text || !String(text).trim()) continue;
+      textsToTranslate.push(text);
+      mappings.push(f);
+    }
+
+    if (textsToTranslate.length === 0) {
+      isTranslating.value = false;
+      return;
+    }
+
+    const defaultLang = installedLanguages.value.find(l => l.is_default)?.code || 'vi';
+    const res = await apiFetch('/languages/auto-translate-batch', {
+      method: 'POST',
+      body: JSON.stringify({ texts: textsToTranslate, from: defaultLang, to: code })
+    });
+    
+    const data = await res.json();
+    const translatedArray = data?.data?.translated || data?.translated;
+
+    if (Array.isArray(translatedArray) && translatedArray.length === textsToTranslate.length) {
+      if (!props.translations[code]) props.translations[code] = {};
       
-      const defaultLang = installedLanguages.value.find(l => l.is_default)?.code || 'vi'
-      const res = await apiFetch('/languages/auto-translate', {
-        method: 'POST',
-        body: JSON.stringify({ text, from: defaultLang, to: code })
-      })
-      const data = await res.json()
-      if (data?.translated) {
-        if (!props.translations[code]) props.translations[code] = {}
-        props.translations[code][f] = data.translated;
+      for (let i = 0; i < mappings.length; i++) {
+        if (translatedArray[i]) {
+          props.translations[code][mappings[i]] = translatedArray[i];
+        }
       }
     }
   } catch (e) {
-    console.error('Translation failed', e)
+    console.error('Translation failed', e);
   } finally {
     isTranslating.value = false;
   }

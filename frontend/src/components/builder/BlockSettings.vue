@@ -17,41 +17,42 @@
 
     <!-- Content Tab -->
     <div v-if="tab === 'content'" class="bs-panel">
+      <LanguageTabs v-model="currentLang" style="margin-bottom: 12px" />
       <div v-for="field in (typeDef?.settings || [])" :key="field.key" class="bs-field">
         <label class="bs-label">{{ field.label }}</label>
 
         <!-- Text input -->
-        <input v-if="field.type === 'text'" type="text" :value="block.content[field.key]" @input="updateContent(field.key, $event.target.value)" class="bs-input" />
+        <input v-if="field.type === 'text'" type="text" :value="getContent(field.key)" @input="updateContent(field.key, $event.target.value)" class="bs-input" />
 
         <!-- Number -->
-        <input v-else-if="field.type === 'number'" type="number" :value="block.content[field.key]" @input="updateContent(field.key, Number($event.target.value))" class="bs-input bs-input--sm" />
+        <input v-else-if="field.type === 'number'" type="number" :value="getContent(field.key)" @input="updateContent(field.key, Number($event.target.value))" class="bs-input bs-input--sm" />
 
         <!-- Select -->
-        <select v-else-if="field.type === 'select'" :value="block.content[field.key]" @change="updateContent(field.key, $event.target.value)" class="bs-select">
+        <select v-else-if="field.type === 'select'" :value="getContent(field.key)" @change="updateContent(field.key, $event.target.value)" class="bs-select">
           <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
         </select>
 
         <!-- Color -->
         <div v-else-if="field.type === 'color'" class="bs-color-group">
-          <input type="color" :value="block.content[field.key] || '#000000'" @input="updateContent(field.key, $event.target.value)" class="bs-color" />
-          <input type="text" :value="block.content[field.key]" @input="updateContent(field.key, $event.target.value)" class="bs-input bs-input--sm" maxlength="7" />
+          <input type="color" :value="getContent(field.key) || '#000000'" @input="updateContent(field.key, $event.target.value)" class="bs-color" />
+          <input type="text" :value="getContent(field.key)" @input="updateContent(field.key, $event.target.value)" class="bs-input bs-input--sm" maxlength="7" />
         </div>
 
         <!-- Toggle -->
         <label v-else-if="field.type === 'toggle'" class="bs-toggle">
-          <input type="checkbox" :checked="block.content[field.key]" @change="updateContent(field.key, $event.target.checked)" />
+          <input type="checkbox" :checked="getContent(field.key)" @change="updateContent(field.key, $event.target.checked)" />
           <span class="bs-toggle__slider"></span>
         </label>
 
         <!-- Richtext (textarea fallback) -->
-        <textarea v-else-if="field.type === 'richtext'" :value="block.content[field.key]" @input="updateContent(field.key, $event.target.value)" rows="4" class="bs-textarea" />
+        <textarea v-else-if="field.type === 'richtext'" :value="getContent(field.key)" @input="updateContent(field.key, $event.target.value)" rows="4" class="bs-textarea" />
 
         <!-- Code -->
-        <textarea v-else-if="field.type === 'code'" :value="block.content[field.key]" @input="updateContent(field.key, $event.target.value)" rows="6" class="bs-textarea bs-textarea--code" />
+        <textarea v-else-if="field.type === 'code'" :value="getContent(field.key)" @input="updateContent(field.key, $event.target.value)" rows="6" class="bs-textarea bs-textarea--code" />
 
         <!-- Image -->
         <div v-else-if="field.type === 'image'" class="bs-image-field">
-          <input type="text" :value="block.content[field.key]" @input="updateContent(field.key, $event.target.value)" class="bs-input" placeholder="Image URL" />
+          <input type="text" :value="getContent(field.key)" @input="updateContent(field.key, $event.target.value)" class="bs-input" placeholder="Image URL" />
         </div>
       </div>
     </div>
@@ -64,10 +65,21 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 import { X, PenLine, Palette } from 'lucide-vue-next'
 import { blockRegistry } from '../../core/blocks.js'
 import StyleControls from './StyleControls.vue'
+import LanguageTabs from '../LanguageTabs.vue'
+import { useLanguages } from '../../composables/useLanguages.js'
+
+const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
+loadLangs()
+const injectedLang = inject('currentLang')
+const currentLang = ref(injectedLang ? injectedLang.value : defaultLangCode.value)
+if (injectedLang) {
+  watch(injectedLang, (newVal) => currentLang.value = newVal)
+  watch(currentLang, (newVal) => injectedLang.value = newVal)
+}
 
 const props = defineProps({
   block: { type: Object, default: null },
@@ -78,11 +90,34 @@ const tab = ref('content')
 
 const typeDef = computed(() => props.block ? blockRegistry.get(props.block.type) : null)
 
+function getContent(key) {
+  if (currentLang.value === defaultLangCode.value) {
+    return props.block.content[key]
+  }
+  return props.block.translations?.[currentLang.value]?.content?.[key] ?? props.block.content[key]
+}
+
 function updateContent(key, value) {
-  emit('update', {
-    ...props.block,
-    content: { ...props.block.content, [key]: value },
-  })
+  if (currentLang.value === defaultLangCode.value) {
+    emit('update', {
+      ...props.block,
+      content: { ...props.block.content, [key]: value },
+    })
+  } else {
+    const translations = props.block.translations || {}
+    const langTrans = translations[currentLang.value] || { content: {} }
+    
+    emit('update', {
+      ...props.block,
+      translations: {
+        ...translations,
+        [currentLang.value]: {
+          ...langTrans,
+          content: { ...langTrans.content, [key]: value }
+        }
+      }
+    })
+  }
 }
 
 function updateStyle(newStyle) {

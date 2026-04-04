@@ -1,219 +1,82 @@
 <template>
   <div class="cpb" :class="{ 'cpb--fullscreen': isFullscreen, 'cpb--zen': isFullscreen && leftCollapsed }">
     <!-- Header Toolbar -->
-    <header class="cpb-header">
-      <div class="cpb-header__left">
-        <!-- Page Picker -->
-        <div class="cpb-page-picker" tabindex="-1" @focusout="handlePickerFocusout">
-          <button class="cpb-page-btn" @click="pageDropdownOpen = !pageDropdownOpen" title="Chọn trang cần chỉnh sửa">
-            <component :is="activePage.icon" :size="14" />
-            <span>{{ activePageLabel }}</span>
-            <ChevronDown :size="12" :style="{ transform: pageDropdownOpen ? 'rotate(180deg)' : 'rotate(0)' }" />
-          </button>
-          
-          <div v-if="pageDropdownOpen" class="cpb-page-menu">
-            <button class="cpb-page-item" :class="{ active: activePageId === null }" @click="selectPage(null)">
-              <Home :size="14" /> Trang Chủ (Global)
-            </button>
-            <div class="cpb-page-group">Trang hệ thống</div>
-            <button v-for="pg in builtinPageOptions" :key="pg.id" class="cpb-page-item" :class="{ active: activePageId === pg.id }" @click="selectPage(pg.id)">
-              <component :is="pg.icon" :size="14" /> <span>{{ pg.label }}</span>
-            </button>
-            <template v-if="dynamicPages.length">
-              <div class="cpb-page-group">Trang CMS động</div>
-              <button v-for="p in dynamicPages" :key="p.id" class="cpb-page-item" :class="{ active: activePageId === p.id }" @click="selectPage(p.id)">
-                <FileText :size="14" /> {{ p.title }}
-              </button>
-            </template>
-          </div>
-        </div>
-        
-        <span v-if="layoutPageVersion" class="cpb-status-badge" :class="'cpb-status-badge--' + layoutPageStatus">
-          v{{ layoutPageVersion }} · {{ layoutPageStatus === 'published' ? 'Published' : 'Draft' }}
-        </span>
-      </div>
-
-      <div class="cpb-header__center">
-        <div class="cpb-viewport">
-          <button :class="{ active: previewWidth === '100%' }" @click="previewWidth = '100%'" title="Desktop"><Monitor :size="16" /></button>
-          <button :class="{ active: previewWidth === '768px' }" @click="previewWidth = '768px'" title="Tablet"><Tablet :size="16" /></button>
-          <button :class="{ active: previewWidth === '375px' }" @click="previewWidth = '375px'" title="Mobile"><Smartphone :size="16" /></button>
-          <button @click="previewMode = previewMode === 'wireframe' ? 'live' : 'wireframe'" style="margin-left: 8px;" :title="previewMode === 'wireframe' ? 'Live Preview' : 'Wireframe'">
-            <Eye v-if="previewMode === 'wireframe'" :size="16" />
-            <Aperture v-else :size="16" />
-          </button>
-          <button @click="toggleXRay" :class="{ 'cpb-btn-icon--active': isXRayMode }" style="margin-left: 8px;" title="Chế độ quét khung xương (X)">
-            <Scan :size="16" />
-          </button>
-        </div>
-      </div>
-
-      <div class="cpb-header__right">
-        <div class="cpb-history cpb-history-container" @focusout="handleHistoryFocusout" tabindex="-1">
-          <div class="cpb-history__btn-group">
-            <button @click="undo" :disabled="undoStack.length <= 1" title="Hoàn tác"><Undo2 :size="14" /></button>
-            <button @click="historyDropdownOpen = !historyDropdownOpen" :disabled="undoStack.length <= 1" class="history-dropdown-toggle" title="Xem lịch sử khôi phục"><ChevronDown :size="12" /></button>
-          </div>
-          <button @click="redo" :disabled="redoStack.length === 0" title="Làm lại"><Redo2 :size="14" /></button>
-          
-          <div v-if="historyDropdownOpen" class="history-dropdown-menu">
-            <div class="history-dropdown-header">Lịch sử khôi phục</div>
-            <div class="history-dropdown-list">
-              <button v-for="(item, idx) in undoStack.slice().reverse()" :key="idx" class="history-dropdown-item" @click="restoreHistory(undoStack.length - 1 - idx)">
-                <div class="history-dropdown-info">
-                  <span class="history-time">{{ item.time }}</span>
-                  <span class="history-label" :class="{'current-state': idx === 0}">{{ idx === 0 ? 'Hiện tại' : item.label }}</span>
-                </div>
-                <Check v-if="idx === 0" :size="14" class="history-current-icon" />
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        <span class="cpb-save-status" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
-          <span v-if="saving" class="status-saving" title="Đang lưu dữ liệu..."><Loader2 :size="16" class="spin"/></span>
-          <span v-else class="status-saved" title="Đã lưu mới nhất"><Check :size="16" style="color: #10b981;"/></span>
-        </span>
-
-        <button class="cpb-btn-secondary" @click="toggleZenMode" :title="leftCollapsed ? 'Hiển thị công cụ (F)' : 'Chế độ tập trung (F)'" :class="{ 'cpb-btn-secondary--active': leftCollapsed }">
-          <Focus :size="14" />
-        </button>
-        <button class="cpb-btn-secondary" @click="isFullscreen = !isFullscreen" :title="isFullscreen ? 'Thu nhỏ (Esc)' : 'Toàn màn hình'">
-          <Minimize v-if="isFullscreen" :size="14" />
-          <Maximize v-else :size="14" />
-        </button>
-        <button class="cpb-btn-secondary" @click="startTour" title="Hướng dẫn sử dụng toàn tập Builder"><HelpCircle :size="14" /></button>
-        <button class="cpb-btn-secondary" @click="showCustomCss = true" title="Tùy chỉnh CSS nâng cao toàn cục"><Code :size="14" /></button>
-        <button class="cpb-btn-secondary" @click="saveDraft" :disabled="saving" title="Lưu nháp hiện trạng mà chưa áp dụng ngay"><Save :size="14" /> Nháp</button>
-        <button class="cpb-btn-save" @click="handlePublish" :disabled="saving" title="Xuất bản cập nhật lên website live"><Package v-if="!saving" :size="14" /><Loader2 v-else class="spin" :size="14" /> Xuất bản</button>
-      </div>
-    </header>
+    <BuilderHeader
+      :active-page-id="activePageId"
+      :active-page-label="activePageLabel"
+      :active-page="activePage"
+      :builtin-page-options="builtinPageOptions"
+      :dynamic-pages="dynamicPages"
+      :page-dropdown-open="pageDropdownOpen"
+      :layout-page-version="layoutPageVersion"
+      :layout-page-status="layoutPageStatus"
+      :preview-width="previewWidth"
+      :preview-mode="previewMode"
+      :is-x-ray-mode="isXRayMode"
+      :undo-stack="undoStack"
+      :redo-stack="redoStack"
+      :history-dropdown-open="historyDropdownOpen"
+      :saving="saving"
+      :left-collapsed="leftCollapsed"
+      :is-fullscreen="isFullscreen"
+      :is-zen="isFullscreen && leftCollapsed"
+      @update:page-dropdown-open="pageDropdownOpen = $event"
+      @update:history-dropdown-open="historyDropdownOpen = $event"
+      @update:preview-width="previewWidth = $event"
+      @update:preview-mode="previewMode = $event"
+      @update:is-fullscreen="isFullscreen = $event"
+      @select-page="selectPage"
+      @undo="undo"
+      @redo="redo"
+      @restore-history="restoreHistory"
+      @toggle-zen="toggleZenMode"
+      @toggle-xray="toggleXRay"
+      @start-tour="startTour"
+      @show-custom-css="showCustomCss = true"
+      @save-draft="saveDraft"
+      @publish="handlePublish"
+      @show-version-history="showVersionHistory = true"
+    />
 
     <div class="cpb-body">
       <!-- LEFT SIDEBAR -->
-      <div class="cpb-left" :class="{ 'cpb-left--collapsed': leftCollapsed }">
-        <div style="background: var(--bg-1); border-bottom: 1px solid var(--border);">
-          <LanguageTabs v-model="currentLang" :fields="[]" :baseData="{}" />
-        </div>
-        <div class="cpb-sidebar-tabs">
-          <button :class="{ active: leftTab === 'theme' }" @click="leftTab = 'theme'" title="Theme"><span>Theme</span></button>
-          <button :class="{ active: leftTab === 'structure' }" @click="leftTab = 'structure'" title="Cấu trúc"><span>Cấu trúc</span></button>
-          <button :class="{ active: leftTab === 'pages' }" @click="leftTab = 'pages'" title="Trang"><span>Trang</span></button>
-        </div>
-
-        <div class="cpb-sidebar-content">
-          <!-- THEME TAB -->
-          <div v-show="leftTab === 'theme'" class="side-pad scroll-y">
-            <LayoutThemeConfig v-model="themeConfig" :active-page-id="activePageId" />
-            
-            <!-- Per-Page Theme Config -->
-            <div class="lb-section" style="margin-top: 16px;" v-if="activePageId && !String(activePageId).startsWith('__template_')">
-              <h4 class="lb-section__title"><Palette :size="14" /> Cài đặt riêng cho trang này</h4>
-              <p style="font-size: 11px; color: #64748b; margin-bottom: 12px; line-height: 1.4;">Bạn có thể chỉ định màu nền riêng cho <b>{{ activePageLabel }}</b> để ghi đè (override) khai báo màu nền chung của hệ thống.</p>
-              
-              <div class="param-row" style="flex-direction: column; align-items: stretch; gap: 6px;">
-                <label>Màu nền trang</label>
-                <div class="color-picker-wrapper" style="display:flex; align-items:center; gap:8px;">
-                  <input type="color" v-model="currentPageBg" class="param-color" style="width:28px; height:28px; border:1px solid #cbd5e1; border-radius:4px; padding:0; background:none; cursor:pointer;" />
-                  <input type="text" v-model="currentPageBg" class="param-input param-input--sm" style="flex:1" placeholder="Bỏ trống..." />
-                  <button v-if="currentPageBg" @click="currentPageBg = ''" class="btn-clear-color" title="Xóa" style="width: 24px; height: 24px; border:none; background:#f1f5f9; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#ef4444; transition: 0.2s;" onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#f1f5f9'">
-                    <X :size="12" />
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Templates (Only show on Global page) -->
-            <div class="lb-section" style="margin-top: 16px;" v-if="!activePageId">
-              <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục</h4>
-              <div class="template-grid">
-                <button v-for="tpl in templates" :key="tpl.key" class="template-card" :class="{ active: activeTemplate === tpl.key }" @click="applyTemplate(tpl.key)">
-                  <component :is="tpl.icon" :size="20" />
-                  <span class="template-card__name">{{ tpl.name }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- STRUCTURE TAB -->
-          <div v-show="leftTab === 'structure'" class="side-pad scroll-y">
-            <div class="cpb-layers">
-              <!-- Global Site Blocks -->
-              <div v-if="!activePageId">
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'promo' }" @click="activeConfig = 'promo'" title="Cấu hình Promo Bar">
-                  <div class="cpb-layer-content"><Megaphone :size="14" /> Promo Bar</div>
-                </div>
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'header' }" @click="activeConfig = 'header'" title="Cấu hình Header">
-                  <div class="cpb-layer-content"><PanelTop :size="14" /> Header</div>
-                </div>
-              </div>
-
-              <!-- Main Body Content -->
-              <div class="cpb-layer-separator">Nội dung {{ activePageLabel }}</div>
-
-              <div class="cpb-layer-switch">
-                <button :class="{ active: activeSidebarTab === 'elements' }" @click="activeSidebarTab = 'elements'" title="Quản lý các khối nội dung (Sections)">Section</button>
-                <button :class="{ active: activeSidebarTab === 'navigator' }" @click="activeSidebarTab = 'navigator'" title="Xem cấu trúc các lớp (Layers)">Layers</button>
-              </div>
-              
-              <LayoutSectionManager
-                v-if="activeSidebarTab === 'elements'"
-                v-model:sections="sections"
-                :section-meta="sectionMeta"
-                :all-categories="allCategories"
-                @open-block-editor="s => showBlockEditorFor = s"
-                @active-change="id => activeConfig = id"
-              />
-              <LayoutNavigator
-                v-if="activeSidebarTab === 'navigator'"
-                :sections="sections"
-                :expanded-section="expandedSection"
-                @select-node="handleNavigatorSelect"
-              />
-
-              <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <button class="cpb-btn-add" style="flex: 1;" @click="activeConfig = 'library'"><Plus :size="14"/> Thêm section</button>
-                <div style="display: flex; gap: 4px;">
-                  <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Export JSON" @click="exportJson"><Download :size="14"/></button>
-                  <button class="cpb-btn-add" style="padding: 0 10px; background: rgba(99,102,241,0.1); color: #6366f1" title="Import JSON" @click="triggerJsonImport"><Upload :size="14"/></button>
-                  <input type="file" ref="jsonInputRef" accept=".json" style="display:none" @change="onJsonImportFile" />
-                </div>
-              </div>
-
-              <!-- Global Footer -->
-              <div v-if="!activePageId" style="margin-top:8px">
-                <div class="cpb-layer-item" :class="{ active: activeConfig === 'footer' }" @click="activeConfig = 'footer'" title="Cấu hình Footer">
-                  <div class="cpb-layer-content"><PanelBottom :size="14" /> Footer</div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- PAGES TAB -->
-          <div v-show="leftTab === 'pages'" class="side-pad scroll-y">
-            <!-- Active Built-in Page Config (Trang cụ thể) -->
-            <LayoutPageConfigs
-              v-if="activeBuiltinPage"
-              :page-configs="pageConfigs"
-              :active-page-id="activePageId"
-              @update:page-configs="v => pageConfigs = v"
-            />
-            
-            <hr v-if="activeBuiltinPage" />
-            
-            <LayoutPageManager
-              :active-page-id="activePageId"
-              @select-page="selectPage"
-              @pages-updated="loadDynamicPages"
-            />
-          </div>
-        </div>
-
-        <button class="cpb-collapse-btn" @click="leftCollapsed = !leftCollapsed" title="Đóng/Mở thanh công cụ (Sidebar)">
-          <ChevronLeft :size="16" :style="{ transform: leftCollapsed ? 'rotate(180deg)' : 'rotate(0)' }" />
-        </button>
-      </div>
+      <BuilderLeftSidebar
+        :left-tab="leftTab"
+        :left-collapsed="leftCollapsed"
+        :sections="sections"
+        :section-meta="sectionMeta"
+        :all-categories="allCategories"
+        :active-config="activeConfig"
+        :active-page-id="activePageId"
+        :active-page-label="activePageLabel"
+        :active-builtin-page="activeBuiltinPage"
+        :active-sidebar-tab="activeSidebarTab"
+        :expanded-section="expandedSection"
+        :theme-config="themeConfig"
+        :templates="templates"
+        :active-template="activeTemplate"
+        :current-page-bg="currentPageBg"
+        :current-lang="currentLang"
+        :page-configs="pageConfigs"
+        @update:left-tab="leftTab = $event"
+        @update:left-collapsed="leftCollapsed = $event"
+        @update:active-sidebar-tab="activeSidebarTab = $event"
+        @update:active-config="activeConfig = $event"
+        @update:current-lang="currentLang = $event"
+        @update:theme-config="themeConfig = $event"
+        @update:current-page-bg="currentPageBg = $event"
+        @update:page-configs="pageConfigs = $event"
+        @update:sections="sections = $event"
+        @open-block-editor="s => showBlockEditorFor = s"
+        @apply-template="applyTemplate"
+        @export-json="exportJson"
+        @trigger-json-import="triggerJsonImport"
+        @navigator-select="handleNavigatorSelect"
+        @select-page="selectPage"
+        @pages-updated="loadDynamicPages"
+      />
+      <!-- hidden file input for JSON import -->
+      <input type="file" ref="jsonInputRef" accept=".json" style="display:none" @change="onJsonImportFile" />
 
       <!-- CENTER CANVAS -->
       <div class="cpb-center">
@@ -250,131 +113,30 @@
         </div>
       </div>
 
-      <!-- RIGHT PANEL backdrop (click outside to close) -->
-      <div v-if="activeConfig" class="cpb-right-backdrop" @click="activeConfig = null"></div>
-
-      <!-- RIGHT PANEL (Properties) -->
-      <div class="cpb-right" :class="{ 'cpb-right--open': activeConfig }">
-        <div v-if="activeConfig && activeConfig !== 'library'" class="cpb-prop-header" style="justify-content: flex-start; gap: 12px;">
-          <button class="cpb-btn-secondary" @click="activeConfig = 'library'" title="Quay lại Kho Layout" style="padding: 6px; border: none; background: var(--bg-2)"><ChevronLeft :size="16"/></button>
-          <h4 style="margin: 0; font-size: 14px; font-weight: 600; flex: 1;">{{ rightPanelTitle }}</h4>
-          <button class="cpb-btn-secondary" @click="activeConfig = null" title="Đóng" style="padding: 6px; border: none;"><X :size="16"/></button>
-        </div>
-        <div v-else-if="activeConfig === 'library'" class="cpb-prop-header">
-          <h4>Kho Giao Diện</h4>
-          <button @click="activeConfig = null" title="Đóng"><X :size="16"/></button>
-        </div>
-        
-        <div class="cpb-prop-body scroll-y" style="padding: 16px;">
-          <!-- Header Config -->
-          <LayoutHeaderConfig v-if="activeConfig === 'header'" :header-config="headerConfig" :active-page-id="activePageId" @update:header-config="v => headerConfig = v" />
-          
-          <!-- Footer Config -->
-          <LayoutFooterConfig v-else-if="activeConfig === 'footer'" :footer-config="footerConfig" :active-page-id="activePageId" @update:footer-config="v => footerConfig = v" />
-          
-          <!-- Promo Config -->
-          <div v-else-if="activeConfig === 'promo'">
-            <label class="toggle-row">
-              <input type="checkbox" v-model="promoConfig.enabled" />
-              <span>Hiển thị thanh thông báo (Promo Bar)</span>
-            </label>
-            <template v-if="promoConfig.enabled">
-              <div class="form-group" style="margin-top: 12px">
-                <label>Nội dung</label>
-                <input v-model="promoConfig.text" class="param-input" placeholder="Miễn phí vận chuyển..." />
-              </div>
-              <div class="form-group" style="margin-top: 12px">
-                <label>Link trỏ tới</label>
-                <input v-model="promoConfig.link" class="param-input" placeholder="/products" />
-              </div>
-              <div class="form-group" style="margin-top: 12px">
-                <label>Tên Nút (CTA Text)</label>
-                <input v-model="promoConfig.ctaText" class="param-input" placeholder="Mua ngay" />
-              </div>
-              <div class="param-divider"></div>
-              <div class="form-group">
-                <label>Màu nền</label>
-                <div style="display:flex;gap:6px;align-items:center">
-                  <input type="color" v-model="promoConfig.bgColor" class="param-color" />
-                  <input v-model="promoConfig.bgColor" class="param-input" placeholder="#7c3aed" />
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Màu chữ</label>
-                <div style="display:flex;gap:6px;align-items:center">
-                  <input type="color" v-model="promoConfig.textColor" class="param-color" />
-                  <input v-model="promoConfig.textColor" class="param-input" placeholder="#ffffff" />
-                </div>
-              </div>
-              <div class="form-group">
-                <label>Cỡ chữ</label>
-                <select v-model="promoConfig.fontSize" class="param-select">
-                  <option value="12px">Nhỏ (12px)</option>
-                  <option value="13px">Vừa (13px)</option>
-                  <option value="14px">Lớn (14px)</option>
-                  <option value="15px">Rất lớn (15px)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Có thể đóng</label>
-                <label class="toggle-switch toggle-switch--sm" @click.stop>
-                  <input type="checkbox" v-model="promoConfig.dismissible" />
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </template>
-          </div>
-          <!-- Library (Kho Layout) -->
-          <div v-if="activeConfig === 'library'" class="library-container">
-            <!-- Templates Grid -->
-            <div class="lb-section" v-if="!activePageId" style="margin-bottom: 24px;">
-              <h4 class="lb-section__title"><Palette :size="14" /> Mẫu bố cục ưu tiên</h4>
-              <div class="template-grid">
-                <button v-for="tpl in templates" :key="tpl.key" class="template-card" :class="{ active: activeTemplate === tpl.key }" @click="applyTemplate(tpl.key)">
-                  <component :is="tpl.icon" :size="20" />
-                  <span class="template-card__name">{{ tpl.name }}</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Sections Library Grid -->
-            <div class="library-grouped">
-              <div v-for="(items, category) in groupedLibraryItems" :key="category" class="library-group">
-                <h4 class="library-group__title">{{ category }}</h4>
-                <div class="library-grid-sidebar">
-                  <button
-                    v-for="lib in items"
-                    :key="lib.type"
-                    class="library-card-row"
-                    :class="{ added: sections.some(s => s.type === lib.type), 'library-card-row--disabled': !lib.available }"
-                    @click="lib.available ? addLibrarySection(lib) : null"
-                    :disabled="!lib.available"
-                  >
-                    <span class="library-card-row__icon"><component :is="sectionIconMap[lib.icon] || Box" :size="20" /></span>
-                    <div class="library-card-row__text" style="flex:1; text-align:left">
-                      <strong>{{ lib.label }}</strong>
-                      <span style="display:block; font-size: 11.5px; margin-top:2px; font-weight: normal; color: var(--text-3); line-height: 1.3">{{ lib.description }}</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Section Config (Content + Style) -->
-          <template v-else-if="activeSectionObj">
-            <SectionConfigEditor
-              :section="activeSectionObj"
-              :all-categories="allCategories"
-              :current-lang="'vi'"
-              :default-lang-code="'vi'"
-              @open-block-editor="s => showBlockEditorFor = s"
-              @navigate-tab="tab => { activeConfig = null; $emit('navigate-tab', tab) }"
-            />
-          </template>
-
-        </div>
-      </div>
+      <!-- RIGHT PANEL -->
+      <BuilderRightPanel
+        :active-config="activeConfig"
+        :active-section-obj="activeSectionObj"
+        :right-panel-title="rightPanelTitle"
+        :header-config="headerConfig"
+        :footer-config="footerConfig"
+        :promo-config="promoConfig"
+        :all-categories="allCategories"
+        :active-page-id="activePageId"
+        :grouped-library-items="groupedLibraryItems"
+        :section-icon-map="sectionIconMap"
+        :sections="sections"
+        :templates="templates"
+        :active-template="activeTemplate"
+        @update:active-config="activeConfig = $event"
+        @update:header-config="headerConfig = $event"
+        @update:footer-config="footerConfig = $event"
+        @update:promo-config="promoConfig = $event"
+        @open-block-editor="s => showBlockEditorFor = s"
+        @navigate-tab="tab => { activeConfig = null; $emit('navigate-tab', tab) }"
+        @add-section="addLibrarySection"
+        @apply-template="applyTemplate"
+      />
     </div>
 
     <!-- Modals -->
@@ -495,6 +257,9 @@ import LayoutPageManager from './storefront/LayoutPageManager.vue'
 import CommandPalette from './storefront/CommandPalette.vue'
 import LanguageTabs from './LanguageTabs.vue'
 import BlockEditor from './builder/BlockEditor.vue'
+import BuilderHeader from './builder/BuilderHeader.vue'
+import BuilderLeftSidebar from './builder/BuilderLeftSidebar.vue'
+import BuilderRightPanel from './builder/BuilderRightPanel.vue'
 import MediaPicker from './MediaPicker.vue'
 import { VisualBuilder, BuilderRegistry, StyleControlPanel } from '../lib/vue-visual-builder'
 import { useToast } from '../composables/useToast.js'
@@ -1291,134 +1056,13 @@ onMounted(() => { loadDynamicPages(); loadLayout(); loadCategories(); fetchNavLi
   0% { transform: scale(0.97) translateY(10px); opacity: 0; border-radius: 16px; }
   100% { transform: scale(1) translateY(0); opacity: 1; border-radius: 0; }
 }
-.cpb-header { display: flex; align-items: center; justify-content: space-between; height: 54px; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--border, #e5e7eb); z-index: 10; font-size: 13px; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s; }
-.cpb--zen .cpb-header { transform: translateY(-100%); opacity: 0; pointer-events: none; position: absolute; width: 100%; }
-.cpb-header__left, .cpb-header__center, .cpb-header__right { display: flex; align-items: center; gap: 12px; }
-.cpb-header__left { flex: 1; min-width: 0; }
-.cpb-header__center { flex: 1; justify-content: center; }
-.cpb-header__right { flex: 1; justify-content: flex-end; align-items: center; }
 
-/* Page Picker */
-.cpb-page-picker { position: relative; }
-.cpb-page-btn { display: flex; align-items: center; gap: 6px; background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer; color: var(--text-1); transition: 0.2s; }
-.cpb-page-btn:hover { background: #fff; border-color: var(--text-3); }
-.cpb-page-menu { position: absolute; top: calc(100% + 4px); left: 0; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 220px; max-height: 400px; overflow-y: auto; z-index: 100; padding: 6px; }
-.cpb-page-item { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: none; border: none; padding: 8px 10px; border-radius: 4px; cursor: pointer; color: var(--text-2); font-size: 13px; font-weight: 500;}
-.cpb-page-item:hover { background: var(--bg-2, #f3f4f6); color: var(--text-1); }
-.cpb-page-item.active { background: rgba(124, 58, 237, 0.1); color: var(--accent); font-weight: 600; }
-.cpb-page-group { padding: 8px 10px 4px; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; border-top: 1px solid var(--border); margin-top: 4px; }
-
-/* Global Toolbar Elements */
-.cpb-viewport { display: flex; background: var(--bg-2); padding: 4px; border-radius: 8px; border: 1px solid var(--border); }
-.cpb-viewport button { background: transparent; border: none; padding: 4px 10px; min-width: 32px; height: 28px; display: flex; align-items: center; justify-content: center; color: var(--text-3); border-radius: 4px; cursor: pointer; transition: 0.2s; }
-.cpb-viewport button.active, .cpb-btn-icon--active { background: #fff !important; color: var(--accent, #7c3aed) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.cpb-history-container { position: relative; display: flex; align-items: center; justify-content: flex-end; outline: none; }
-.cpb-history__btn-group { display: flex; align-items: center; border-radius: 4px; background: transparent; transition: 0.2s; }
-.cpb-history__btn-group:hover { background: var(--bg-2, #f3f4f6); }
-.cpb-history__btn-group button { border-radius: 4px; }
-.cpb-history__btn-group button.history-dropdown-toggle { padding: 0 4px; width: 20px; border-left: 1px solid rgba(0,0,0,0.05); border-top-left-radius: 0; border-bottom-left-radius: 0; }
-.cpb-history__btn-group button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-
-.history-dropdown-menu { position: absolute; top: 100%; right: 0; margin-top: 8px; background: #fff; width: 260px; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid var(--border); z-index: 100; display: flex; flex-direction: column; overflow: hidden; }
-.history-dropdown-header { padding: 12px; font-size: 11px; font-weight: 700; color: var(--text-3); text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg-2); }
-.history-dropdown-list { max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; }
-.history-dropdown-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; text-align: left; transition: 0.2s; }
-.history-dropdown-item:last-child { border-bottom: none; }
-.history-dropdown-item:hover { background: var(--bg-2); }
-.history-dropdown-info { display: flex; flex-direction: column; gap: 2px; }
-.history-time { font-size: 11px; color: var(--text-3); font-family: monospace; }
-.history-label { font-size: 13px; font-weight: 500; color: var(--text-1); }
-.current-state { color: var(--accent); font-weight: 700; }
-.history-current-icon { color: var(--accent); }
-
-.cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
-.cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.cpb-btn-secondary--active { background: rgba(124, 58, 237, 0.1) !important; color: var(--accent) !important; border-color: rgba(124, 58, 237, 0.3) !important; }
-.cpb-section-shortcut { display: flex; align-items: center; gap: 6px; padding: 7px 10px; margin-bottom: 10px; background: var(--color-bg-secondary, rgba(0,0,0,0.04)); border: 1px solid var(--color-border); border-radius: 8px; font-size: 12px; color: var(--color-text-muted); }
-.cpb-section-shortcut span { flex: 1; }
-.cpb-shortcut-btn { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 3px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.cpb-shortcut-btn:hover { filter: brightness(1.12); }
-.cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
-C.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
-.cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
-
-/* Status badge */
-.cpb-status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid transparent; }
-.cpb-status-badge--published { background: rgba(16, 185, 129, 0.1); color: #059669; border-color: rgba(16, 185, 129, 0.2); }
-.cpb-status-badge--draft { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2); }
 /* Body Area */
 .cpb-body { display: flex; flex: 1; overflow: hidden; position: relative; }
-
-/* Left Panel */
-.cpb-left { width: 280px; background: #fff; border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width 0.3s; position: relative; flex-shrink: 0; z-index: 5; }
-.cpb-left:not(.cpb-left--collapsed) { overflow: visible; }
-.cpb-left--collapsed { width: 0; border-right: none; overflow: hidden; }
-.cpb-left--collapsed .cpb-collapse-btn { left: 0; border-radius: 0 8px 8px 0; border-left: none; }
-.cpb-sidebar-tabs { display: flex; border-bottom: 1px solid var(--border); overflow: hidden; }
-.cpb-sidebar-tabs button { flex: 1; min-width: 0; padding: 12px 6px; background: transparent; border: none; font-size: 12px; font-weight: 600; color: var(--text-3); cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-.cpb-sidebar-tabs button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: 100%; }
-.cpb-sidebar-tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
-.cpb-sidebar-tabs button:hover:not(.active) { color: var(--text-1); background: var(--bg-2); }
-.cpb-sidebar-content { flex: 1; overflow: auto; display: flex; flex-direction: column; }
-.side-pad { padding: 16px; }
-.scroll-y { overflow-y: auto; }
-
-/* Collapse Button */
-.cpb-collapse-btn { position: absolute; right: -12px; top: 16px; width: 24px; height: 32px; background: #fff; border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-2); cursor: pointer; z-index: 10; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-.cpb-collapse-btn:hover { color: var(--accent); border-color: var(--accent); }
-
-/* Layers */
-.cpb-layers { display: flex; flex-direction: column; gap: 4px; }
-.cpb-layer-item { padding: 10px 12px; border-radius: 6px; background: var(--bg-2); border: 1px solid transparent; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.cpb-layer-content { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-1); }
-.cpb-layer-item:hover { border-color: var(--border); background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-.cpb-layer-item.active { border-color: var(--accent); background: rgba(124, 58, 237, 0.05); color: var(--accent); }
-.cpb-layer-item.active .cpb-layer-content { color: var(--accent); font-weight: 600; }
-.cpb-layer-separator { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-3); margin: 16px 0 8px; }
-.cpb-layer-switch { display: flex; background: var(--bg-2); border-radius: 6px; padding: 4px; margin-bottom: 12px; }
-.cpb-layer-switch button { flex: 1; border: none; background: transparent; padding: 6px; font-size: 12px; font-weight: 600; color: var(--text-2); border-radius: 4px; cursor: pointer; }
-.cpb-layer-switch button.active { background: #fff; color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-.cpb-btn-add { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: 1px dashed var(--border); background: transparent; padding: 10px; border-radius: 6px; color: var(--accent); font-weight: 600; cursor: pointer; margin-top: 12px; transition: 0.2s; }
-.cpb-btn-add:hover { background: rgba(124, 58, 237, 0.05); border-color: var(--accent); }
 
 /* Center Canvas */
 .cpb-center { flex: 1; background: var(--bg-2, #f1f5f9); overflow-y: auto; display: flex; flex-direction: column; align-items: center; transition: padding 0.3s; }
 .cpb-canvas-wrap { width: 100%; min-height: 100%; background: transparent; display: flex; flex-direction: column; transition: max-width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); box-sizing: border-box; padding: 24px; }
-
-/* Right Panel — always overlays canvas, never pushes layout */
-.cpb-right-backdrop { position: absolute; inset: 0; z-index: 19; cursor: default; }
-.cpb-right { width: 360px; background: #fff; border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); position: absolute; right: 0; top: 0; height: 100%; z-index: 20; box-shadow: -6px 0 32px rgba(0,0,0,0.10); }
-.cpb-right:not(.cpb-right--open) { transform: translateX(100%); pointer-events: none; }
-.cpb-prop-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid var(--border); background: #fff; }
-.cpb-prop-header h4 { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-1); }
-.cpb-prop-header button { background: none; border: none; cursor: pointer; color: var(--text-3); padding: 4px; border-radius: 4px; }
-.cpb-prop-header button:hover { background: #fff; color: var(--text-1); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-.cpb-prop-body { flex: 1; display:flex; flex-direction: column; }
-
-/* Shared forms */
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.form-group label { font-size: 13px; font-weight: 600; color: var(--text-2); }
-.param-input { width: 100%; padding: 8px 10px; font-size: 13px; border: 1px solid var(--border); border-radius: 6px; outline: none; transition: 0.2s; background: #fff; color: var(--text-1); }
-.param-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.1); }
-.param-input--wide { width: 100%; }
-.toggle-row { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-1); }
-
-/* Param Controls */
-.param-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; font-size: 13px; color: var(--text-2); }
-.param-row label:first-child { font-weight: 600; white-space: nowrap; min-width: 80px; }
-.param-divider { height: 1px; background: var(--border); margin: 12px 0; }
-.param-select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: #fff; color: var(--text-1); font-size: 13px; width: 100%; outline: none; }
-.param-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,58,237,0.1); }
-.param-range { flex: 1; accent-color: var(--accent); }
-.param-value { font-weight: 700; color: var(--accent); min-width: 24px; text-align: right; }
-
-/* Templates Grid */
-.template-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 8px; }
-.template-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 12px; border-radius: 12px; border: 2px solid var(--border); background: #fff; cursor: pointer; transition: all 0.2s; color: var(--text-2); text-align: center; }
-.template-card:hover { border-color: var(--accent); color: var(--text-1); box-shadow: 0 4px 12px rgba(124,58,237,0.1); transform: translateY(-2px); }
-.template-card.active { border-color: var(--accent); background: rgba(124,58,237,0.05); color: var(--accent); }
-.template-card__name { font-size: 12px; font-weight: 700; }
-.template-card__desc { font-size: 11px; color: var(--text-3); }
 
 /* Modals */
 .modal-overlay, .media-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
@@ -1427,28 +1071,6 @@ C.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px
 .media-modal-header h3 { margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--text-1); }
 .media-modal-header button { background: none; border: none; cursor: pointer; color: var(--text-3); }
 .media-modal-header button:hover { color: var(--text-1); }
-
-/* Library Styles */
-.modal--library { background: #fff; border-radius: 12px; width: 85vw; max-width: 1000px; height: 80vh; max-height: 800px; display: flex; flex-direction: column; }
-.modal__header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-.modal__header h3 { margin: 0; font-size: 16px; display:flex; align-items: center; gap: 8px; font-weight: 800;}
-.library-grouped { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 32px; background: var(--bg-1); }
-.library-group__title { margin: 0 0 16px; font-size: 15px; font-weight: 700; color: var(--text-1); padding-bottom: 8px; border-bottom: 2px solid var(--bg-2); }
-.library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-.library-grid-sidebar { display: flex; flex-direction: column; gap: 8px; }
-.library-card-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border: 1px solid var(--border); border-radius: 8px; text-align: left; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-.library-card-row:hover:not(.library-card-row--disabled) { border-color: var(--accent); background: rgba(99,102,241,0.02); }
-.library-card-row__icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(99,102,241,0.08); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.library-card-row--disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-2); }
-.library-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 8px; text-align: left; cursor: pointer; outline: none; position: relative; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-.library-card:hover:not(.library-card--disabled) { border-color: var(--accent); box-shadow: 0 4px 12px rgba(124,58,237,0.1); transform: translateY(-2px); }
-.library-card__icon { color: var(--accent); opacity: 0.8; }
-.library-card strong { font-size: 13px; color: var(--text-1); }
-.library-card__desc { font-size: 11px; color: var(--text-3); line-height: 1.4; }
-.library-card.added { border-color: var(--accent); background: rgba(124,58,237,0.03); opacity: 0.7; }
-.library-card__badge { position: absolute; top: -8px; right: -8px; font-size: 10px; font-weight: 700; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 12px; }
-.library-card--disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-2); }
-.btn-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-3); }
 
 /* Zen Mode Floating Bar */
 .zen-floating-bar {
@@ -1480,147 +1102,10 @@ C.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px
 }
 .zen-btn--publish:hover:not(:disabled) { background: var(--accent); filter: brightness(1.1); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(124,58,237,0.4); }
 
-.spin { animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
-</style>
-
-<style>
-/* 
- * Global Control Panel Utilities for Child Components 
- * Defines sleek inputs, toggles, selects, and grids for builder configs.
- */
-.lb-section {
-  font-family: 'Inter', sans-serif;
-  color: #334155;
-  margin-bottom: 24px;
-}
-.lb-section__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-  color: #0f172a;
-}
-.lb-section__hint {
-  font-size: 13px;
-  color: #64748b;
-  margin: 0 0 16px 0;
-  line-height: 1.5;
-}
-.param-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 12px;
-}
-.param-row label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  white-space: nowrap;
-}
-.param-input, .param-select {
-  flex: 1;
-  min-width: 0;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #0f172a;
-  transition: all 0.2s;
-}
-.param-input:focus, .param-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-.param-range {
-  flex: 1;
-  accent-color: #3b82f6;
-  height: 4px;
-  border-radius: 4px;
-  background: #e2e8f0;
-  outline: none;
-}
-.param-value {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  min-width: 24px;
-  text-align: right;
-}
-.toggle-switch {
-  position: relative;
-  width: 40px;
-  height: 22px;
-  cursor: pointer;
-  display: inline-block;
-  margin: 0;
-  flex-shrink: 0;
-}
-.toggle-switch--sm {
-  width: 32px;
-  height: 18px;
-}
-.toggle-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-  position: absolute;
-}
-.toggle-slider {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #cbd5e1;
-  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 24px;
-}
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 2px;
-  bottom: 2px;
-  background-color: #ffffff;
-  transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-.toggle-switch--sm .toggle-slider:before {
-  height: 14px;
-  width: 14px;
-}
-.toggle-switch input:checked + .toggle-slider {
-  background-color: #3b82f6;
-}
-.toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(18px);
-}
-.toggle-switch--sm input:checked + .toggle-slider:before {
-  transform: translateX(14px);
-}
-.param-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 20px 0;
-}
-.param-color {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  cursor: pointer;
-  background: transparent;
-  transition: transform 0.2s;
-}
-.param-color:hover {
-  transform: scale(1.05);
-}
+/* Buttons used in modals */
+.cpb-btn-secondary { background: var(--bg-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 6px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
+.cpb-btn-secondary:hover:not(:disabled) { background: #fff; color: var(--text-1); border-color: var(--text-3); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.cpb-btn-save { background: var(--accent, #7c3aed); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; flex-shrink: 0; }
+.cpb-btn-save:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 2px 8px rgba(124,58,237,0.3); }
+.cpb-btn-save:disabled { opacity: 0.6; cursor: wait; }
 </style>

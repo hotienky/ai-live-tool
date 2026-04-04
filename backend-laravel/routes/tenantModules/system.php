@@ -102,6 +102,7 @@ Route::get('/translations/{langCode}', [LanguagesController::class, 'translation
 Route::get('/languages/content/{table}/{id}', [LanguagesController::class, 'getContent'])->middleware('permission:settings.view');
 Route::put('/languages/content/{table}/{id}', [LanguagesController::class, 'updateContent'])->middleware('permission:settings.edit');
 Route::post('/languages/auto-translate', [LanguagesController::class, 'autoTranslate'])->middleware('permission:settings.edit');
+Route::post('/languages/auto-translate-batch', [LanguagesController::class, 'autoTranslateBatchApi'])->middleware('permission:settings.edit');
 Route::post('/languages/sync-defaults', [LanguagesController::class, 'syncDefaults'])->middleware('permission:settings.edit');
 
 // Custom Fields

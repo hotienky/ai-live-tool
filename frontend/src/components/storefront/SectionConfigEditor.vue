@@ -423,22 +423,20 @@ async function autoTranslateSection() {
     getParams() // ensure base
     const tp = section.translations[lang].params
     const tc = section.translations[lang].content
+    
+    // 1. Gather all texts to translate
+    const textsToTranslate = []
+    const mappings = [] // keep track of where to place the results
 
-    // Translate top-level params (text, richtext)
+    // Top-level params
     for (const field of schema) {
       if ((field.type === 'text' || field.type === 'richtext') && section.params[field.key]) {
-        try {
-          const res = await apiFetch('/languages/auto-translate', {
-            method: 'POST',
-            body: JSON.stringify({ text: section.params[field.key], from: props.defaultLangCode, to: lang })
-          })
-          const data = await res.json()
-          if (data?.translated) tp[field.key] = data.translated
-        } catch {}
+        textsToTranslate.push(section.params[field.key])
+        mappings.push({ type: 'param', key: field.key })
       }
     }
 
-    // Translate content array items
+    // Content array items
     const listField = schema.find(f => f.type === 'list')
     if (listField && Array.isArray(section.content) && Array.isArray(tc)) {
       const translatableKeys = listField.fields.filter(f => f.type === 'text' || f.type === 'textarea').map(f => f.key)
@@ -447,28 +445,46 @@ async function autoTranslateSection() {
         if (!tc[i]) tc[i] = {}
         for (const k of translatableKeys) {
           if (!item[k] || !String(item[k]).trim()) continue
-          try {
-            const res = await apiFetch('/languages/auto-translate', {
-              method: 'POST',
-              body: JSON.stringify({ text: item[k], from: props.defaultLangCode, to: lang })
-            })
-            const data = await res.json()
-            if (data?.translated) tc[i][k] = data.translated
-          } catch {}
+          textsToTranslate.push(item[k])
+          mappings.push({ type: 'content_list', index: i, key: k })
         }
       }
     }
 
-    // Translate old plain string content block if any
+    // Plain string content block
     if (typeof section.content === 'string' && section.content.trim()) {
-      try {
-        const res = await apiFetch('/languages/auto-translate', {
-          method: 'POST',
-          body: JSON.stringify({ text: section.content, from: props.defaultLangCode, to: lang })
-        })
-        const data = await res.json()
-        if (data?.translated) section.translations[lang].content = data.translated
-      } catch {}
+      textsToTranslate.push(section.content)
+      mappings.push({ type: 'content_string' })
+    }
+
+    if (textsToTranslate.length === 0) {
+      isTranslating.value = false
+      return
+    }
+
+    // 2. Perform Batch Translation
+    const res = await apiFetch('/languages/auto-translate-batch', {
+      method: 'POST',
+      body: JSON.stringify({ texts: textsToTranslate, from: props.defaultLangCode, to: lang })
+    })
+    const data = await res.json()
+    const translatedArray = data?.data?.translated || data?.translated
+
+    if (Array.isArray(translatedArray) && translatedArray.length === textsToTranslate.length) {
+      // 3. Scatter results back
+      for (let i = 0; i < mappings.length; i++) {
+        const tr = translatedArray[i]
+        const map = mappings[i]
+        if (!tr) continue
+        
+        if (map.type === 'param') {
+          tp[map.key] = tr
+        } else if (map.type === 'content_list') {
+          tc[map.index][map.key] = tr
+        } else if (map.type === 'content_string') {
+          section.translations[lang].content = tr
+        }
+      }
     }
   } catch (e) {
     console.error('Section auto-translate failed:', e)

@@ -48,20 +48,20 @@
       <template v-if="config.showAnnouncement">
         <div class="param-row">
           <label>Nội dung</label>
-          <input type="text" v-model="config.announcementText" class="param-input param-input--wide" placeholder="VD: Freeship mọi đơn hàng từ 500k!" />
+          <input type="text" v-model="fAnnouncementText" class="param-input param-input--wide" placeholder="VD: Freeship mọi đơn hàng từ 500k!" />
         </div>
         <div class="param-row">
           <label>Link (Tùy chọn)</label>
-          <input type="text" v-model="config.announcementLink" class="param-input param-input--wide" placeholder="/promotions" />
+          <input type="text" v-model="fAnnouncementLink" class="param-input param-input--wide" placeholder="/promotions" />
         </div>
         <div class="param-row" style="margin-top: 10px; flex-direction: column; align-items: stretch; gap: 8px;">
           <label style="font-size: 11px; font-weight: 600; color: #64748b;">Các liên kết tiện ích (App, Hotline)</label>
-          <div v-for="(lnk, lidx) in (config.topbarLinks || [])" :key="lidx" style="display:flex; gap:6px; margin-bottom: 6px;">
-            <input type="text" v-model="lnk.label" class="param-input" placeholder="Tên (VD: Hotline)" style="flex:1">
-            <input type="text" v-model="lnk.url" class="param-input" placeholder="URL" style="flex:1">
-            <button class="btn-remove-item" @click="config.topbarLinks.splice(lidx, 1)" style="padding: 6px;"><Trash2 :size="12" /></button>
+          <div v-for="(lnk, lidx) in (fTopbarLinks || [])" :key="lidx" style="display:flex; gap:6px; margin-bottom: 6px;">
+            <input type="text" v-model="lnk.label" @input="updateTopbarLinks" class="param-input" placeholder="Tên (VD: Hotline)" style="flex:1">
+            <input type="text" v-model="lnk.url" @input="updateTopbarLinks" class="param-input" placeholder="URL" style="flex:1">
+            <button class="btn-remove-item" @click="() => { fTopbarLinks.splice(lidx, 1); updateTopbarLinks() }" style="padding: 6px;"><Trash2 :size="12" /></button>
           </div>
-          <button class="btn-add-item" style="padding: 6px; width: auto; align-self: flex-start" @click="(config.topbarLinks = config.topbarLinks || []).push({label: '', url: ''})">
+          <button class="btn-add-item" style="padding: 6px; width: auto; align-self: flex-start" @click="() => { fTopbarLinks = fTopbarLinks || []; fTopbarLinks.push({label: '', url: ''}); updateTopbarLinks() }">
             Thêm liên kết Topbar
           </button>
         </div>
@@ -121,7 +121,7 @@
           <LanguageTabs v-model="currentLang" style="margin-bottom: 20px" :translations="navLinkForm.translations" :fields="['name']" :baseData="navLinkForm" />
           <div class="hl-form-group">
             <label>{{ t('admin.msg_6cccad8f', 'Tên hiển thị') }} <span style="color:#ef4444">*</span></label>
-            <input v-model="navLinkForm.name" :placeholder="t('admin.msg_92db95', 'VD: Trang chủ, Sản phẩm...')" />
+            <input :value="getNavLinkField(currentLang, 'name')" @input="setNavLinkField(currentLang, 'name', $event.target.value)" :placeholder="currentLang === defaultLangCode ? t('admin.msg_92db95', 'VD: Trang chủ, Sản phẩm...') : navLinkForm.name" />
           </div>
           <div class="hl-form-group">
             <label>{{ t('admin.msg_e81c94dc', 'Đường dẫn') }}</label>
@@ -197,12 +197,19 @@ import { useToast } from '../../composables/useToast.js'
 import { useI18n } from '../../composables/useI18n.js'
 import LanguageTabs from '../LanguageTabs.vue'
 import { useLanguages } from '../../composables/useLanguages.js'
+import { useContentTranslations } from '../../composables/useContentTranslations.js'
+import { inject, watch } from 'vue'
 
 const { t } = useI18n()
 
 const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
 loadLangs()
-const currentLang = ref(defaultLangCode.value)
+const injectedLang = inject('currentLang')
+const currentLang = ref(injectedLang ? injectedLang.value : defaultLangCode.value)
+if (injectedLang) {
+  watch(injectedLang, (newVal) => currentLang.value = newVal)
+  watch(currentLang, (newVal) => injectedLang.value = newVal)
+}
 
 const props = defineProps({
   headerConfig: { type: Object, required: true },
@@ -216,6 +223,21 @@ const config = computed({
   set: v => emit('update:headerConfig', v),
 })
 
+const { tField } = useContentTranslations(config, currentLang)
+
+const fAnnouncementText = tField('announcementText')
+const fAnnouncementLink = tField('announcementLink')
+const fTopbarLinksRaw = tField('topbarLinks')
+
+const fTopbarLinks = ref(fTopbarLinksRaw.value ? JSON.parse(JSON.stringify(fTopbarLinksRaw.value)) : [])
+watch(() => fTopbarLinksRaw.value, (newVal) => {
+  fTopbarLinks.value = newVal ? JSON.parse(JSON.stringify(newVal)) : []
+}, { deep: true })
+
+function updateTopbarLinks() {
+  fTopbarLinksRaw.value = JSON.parse(JSON.stringify(fTopbarLinks.value))
+}
+
 // Nav Links
 const { links: navLinksRaw, fetchLinks: fetchNavLinks, createLink: createNavLink, updateLink: updateNavLink, deleteLink: deleteNavLinkApi } = useNavLinks(apiFetch)
 const navLinks = computed(() => (navLinksRaw.value || []).filter(l => l.group === 'menu' || !l.group).sort((a, b) => (a.sort || 0) - (b.sort || 0)))
@@ -225,6 +247,20 @@ const showNavLinkModal = ref(false)
 const navLinkEditing = ref(null)
 const navLinkForm = ref({ name: '', url: '/', type: 'single', target: '_self', collectionId: null, sort: 0, group: 'menu', translations: {} })
 const pageSelectMode = ref('builtin')
+
+function getNavLinkField(lang, field) {
+  if (lang === defaultLangCode.value) return navLinkForm.value[field] || ''
+  return navLinkForm.value.translations[lang]?.[field] || ''
+}
+function setNavLinkField(lang, field, val) {
+  if (lang === defaultLangCode.value) {
+    navLinkForm.value[field] = val
+  } else {
+    if (!navLinkForm.value.translations) navLinkForm.value.translations = {}
+    if (!navLinkForm.value.translations[lang]) navLinkForm.value.translations[lang] = {}
+    navLinkForm.value.translations[lang][field] = val
+  }
+}
 
 // CMS pages
 const { pages: cmsPageListRaw, fetchPages: fetchCmsPageList } = useCmsPages(apiFetch)

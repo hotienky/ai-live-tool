@@ -256,7 +256,7 @@ class LanguagesController extends Controller
 
     /**
      * Batch auto-translate an array of key => value pairs using Google Translate.
-     * Translates values in chunks to avoid URL length limits.
+     * Uses a delimiter to translate multiple strings in a single API call to avoid 429 errors.
      */
     private function autoTranslateBatch(array $source, string $from, string $to): array
     {
@@ -264,38 +264,50 @@ class LanguagesController extends Controller
         $keys = array_keys($source);
         $values = array_values($source);
 
-        // Translate in chunks of 20 to avoid URL length limits
-        $chunks = array_chunk($values, 20);
-        $keyChunks = array_chunk($keys, 20);
+        // Translate in chunks of 50 to avoid URL length limits
+        $chunks = array_chunk($values, 50);
+        $keyChunks = array_chunk($keys, 50);
 
         foreach ($chunks as $i => $chunk) {
             try {
-                foreach ($chunk as $j => $text) {
-                    if (empty($text)) {
-                        $result[$keyChunks[$i][$j]] = '';
-                        continue;
-                    }
-                    $url = 'https://translate.googleapis.com/translate_a/single?client=gtx'
-                        . '&sl=' . urlencode($from)
-                        . '&tl=' . urlencode($to)
-                        . '&dt=t'
-                        . '&q=' . urlencode($text);
+                // Prepare a single string with delimiter
+                // We use " ||| " as a safe delimiter that Google Translate preserves
+                $joined = implode(" \n ||| \n ", $chunk);
 
-                    $response = @file_get_contents($url);
-                    if ($response) {
-                        $data = json_decode($response, true);
-                        $translated = '';
-                        if (!empty($data[0])) {
-                            foreach ($data[0] as $segment) {
-                                $translated .= $segment[0] ?? '';
-                            }
+                $url = 'https://translate.googleapis.com/translate_a/single?client=gtx'
+                    . '&sl=' . urlencode($from)
+                    . '&tl=' . urlencode($to)
+                    . '&dt=t'
+                    . '&q=' . urlencode($joined);
+
+                $response = @file_get_contents($url);
+                if ($response) {
+                    $data = json_decode($response, true);
+                    $translated = '';
+                    if (!empty($data[0])) {
+                        foreach ($data[0] as $segment) {
+                            $translated .= $segment[0] ?? '';
                         }
-                        $result[$keyChunks[$i][$j]] = $translated ?: $text;
-                    } else {
-                        $result[$keyChunks[$i][$j]] = $text; // Fallback to source
                     }
-                    // Small delay to avoid rate limiting
-                    usleep(50000); // 50ms
+                    
+                    // Split back by delimiter
+                    $splitTranslated = explode("|||", $translated);
+                    
+                    foreach ($chunk as $j => $text) {
+                        if (isset($splitTranslated[$j])) {
+                            $val = trim($splitTranslated[$j]);
+                            // Clean up any stray boundary whitespaces/newlines from GT
+                            $val = preg_replace('/^\s*\|\s*/', '', $val);
+                            $val = preg_replace('/\s*\|\s*$/', '', $val);
+                            $result[$keyChunks[$i][$j]] = $val ?: $text;
+                        } else {
+                            $result[$keyChunks[$i][$j]] = $text;
+                        }
+                    }
+                } else {
+                    foreach ($chunk as $j => $text) {
+                        $result[$keyChunks[$i][$j]] = $text;
+                    }
                 }
             } catch (\Exception $e) {
                 // On failure, use source text as fallback
@@ -377,6 +389,43 @@ class LanguagesController extends Controller
             ]);
         } catch (\Exception $e) {
             return $this->errorResponse('Lỗi dịch tự động: ' . $e->getMessage());
+        }
+    }
+
+    public function autoTranslateBatchApi(Request $request) {
+        $texts = $request->input('texts', []); // array of strings
+        $from = $request->input('from', Language::getDefaultCode());
+        $to = $request->input('to', 'en');
+
+        if (empty($texts) || !is_array($texts)) {
+            return $this->errorResponse('Texts array is required');
+        }
+
+        try {
+            // Convert to assoc array to reuse autoTranslateBatch
+            $assoc = [];
+            foreach ($texts as $i => $text) {
+                if (empty($text)) {
+                    $assoc["idx_$i"] = '';
+                } else {
+                    $assoc["idx_$i"] = $text;
+                }
+            }
+            
+            $translatedAssoc = $this->autoTranslateBatch($assoc, $from, $to);
+            
+            $resultArray = [];
+            foreach ($texts as $i => $text) {
+                $resultArray[] = $translatedAssoc["idx_$i"] ?? $text;
+            }
+
+            return $this->successResponse([
+                'translated' => $resultArray,
+                'from' => $from,
+                'to' => $to,
+            ]);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Lỗi dịch tự động hàng loạt: ' . $e->getMessage());
         }
     }
 }

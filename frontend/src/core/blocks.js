@@ -18,6 +18,7 @@ export function createBlock(type, overrides = {}) {
     id: generateBlockId(),
     type,
     content: { ...(typeDef?.defaultContent || {}), ...(overrides.content || {}) },
+    translations: overrides.translations || {},
     style: {
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
       padding: { top: 16, right: 16, bottom: 16, left: 16 },

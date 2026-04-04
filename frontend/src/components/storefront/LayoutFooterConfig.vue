@@ -232,6 +232,7 @@ import { useI18n } from '../../composables/useI18n.js'
 import LanguageTabs from '../LanguageTabs.vue'
 import MediaPicker from '../MediaPicker.vue'
 import { useLanguages } from '../../composables/useLanguages.js'
+import { inject, watch } from 'vue'
 
 const { t, stripEmoji } = useI18n()
 
@@ -243,7 +244,12 @@ const emit = defineEmits(['update:footerConfig'])
 
 const { defaultLangCode, loadLanguages: loadLangs } = useLanguages()
 loadLangs()
-const currentLang = ref(defaultLangCode.value)
+const injectedLang = inject('currentLang')
+const currentLang = ref(injectedLang ? injectedLang.value : defaultLangCode.value)
+if (injectedLang) {
+  watch(injectedLang, (newVal) => currentLang.value = newVal)
+  watch(currentLang, (newVal) => injectedLang.value = newVal)
+}
 
 const config = computed({
   get: () => {
@@ -350,6 +356,9 @@ async function autoTranslateFooter() {
     const base = props.footerConfig
     const target = config.value
 
+    const textsToTranslate = []
+    const mappings = []
+
     // Translate column titles, link labels, contact items, text content
     for (let ci = 0; ci < base.columns.length; ci++) {
       const baseCol = base.columns[ci]
@@ -358,16 +367,16 @@ async function autoTranslateFooter() {
 
       // Column title
       if (baseCol.title) {
-        const translated = await translateText(baseCol.title, lang)
-        if (translated) targetCol.title = translated
+        textsToTranslate.push(baseCol.title)
+        mappings.push({ type: 'col_title', ci })
       }
 
       // Links labels
       if (baseCol.links) {
         for (let li = 0; li < baseCol.links.length; li++) {
           if (baseCol.links[li]?.label && targetCol.links?.[li]) {
-            const translated = await translateText(baseCol.links[li].label, lang)
-            if (translated) targetCol.links[li].label = translated
+            textsToTranslate.push(baseCol.links[li].label)
+            mappings.push({ type: 'col_link', ci, li })
           }
         }
       }
@@ -376,33 +385,70 @@ async function autoTranslateFooter() {
       if (baseCol.items) {
         for (let ii = 0; ii < baseCol.items.length; ii++) {
           if (baseCol.items[ii]?.label && targetCol.items?.[ii]) {
-            const translated = await translateText(baseCol.items[ii].label, lang)
-            if (translated) targetCol.items[ii].label = translated
+            textsToTranslate.push(baseCol.items[ii].label)
+            mappings.push({ type: 'col_item_label', ci, ii })
           }
-          if (baseCol.items[ii]?.value && targetCol.items?.[ii]) {
-            const translated = await translateText(baseCol.items[ii].value, lang)
-            if (translated) targetCol.items[ii].value = translated
+           // Only translate text value if it does not look like a phone number or email
+          if (baseCol.items[ii]?.value && targetCol.items?.[ii] && !/^[\d\s\+\-\(\)]+$/.test(baseCol.items[ii].value) && !baseCol.items[ii].value.includes('@')) {
+            textsToTranslate.push(baseCol.items[ii].value)
+            mappings.push({ type: 'col_item_value', ci, ii })
           }
         }
       }
 
       // Text content
       if (baseCol.content && baseCol.type === 'text') {
-        const translated = await translateText(baseCol.content, lang)
-        if (translated) targetCol.content = translated
+         textsToTranslate.push(baseCol.content)
+         mappings.push({ type: 'col_content', ci })
       }
     }
 
     // Legal text
     if (base.legalText) {
-      const translated = await translateText(base.legalText, lang)
-      if (translated) target.legalText = translated
+      textsToTranslate.push(base.legalText)
+      mappings.push({ type: 'legal_text' })
     }
 
     // Copyright
     if (base.copyrightText) {
-      const translated = await translateText(base.copyrightText, lang)
-      if (translated) target.copyrightText = translated
+      textsToTranslate.push(base.copyrightText)
+      mappings.push({ type: 'copyright_text' })
+    }
+
+    if (textsToTranslate.length === 0) {
+      isTranslating.value = false
+      return
+    }
+
+    const res = await apiFetch('/languages/auto-translate-batch', {
+      method: 'POST',
+      body: JSON.stringify({ texts: textsToTranslate, from: defaultLangCode.value, to: lang })
+    })
+    const data = await res.json()
+    const translatedArray = data?.data?.translated || data?.translated
+
+    if (Array.isArray(translatedArray) && translatedArray.length === textsToTranslate.length) {
+      for (let i = 0; i < mappings.length; i++) {
+        const tr = translatedArray[i]
+        const map = mappings[i]
+        if (!tr) continue
+
+        if (map.type === 'col_title') {
+          target.columns[map.ci].title = tr
+        } else if (map.type === 'col_link') {
+          target.columns[map.ci].links[map.li].label = tr
+        } else if (map.type === 'col_item_label') {
+          target.columns[map.ci].items[map.ii].label = tr
+        } else if (map.type === 'col_item_value') {
+          target.columns[map.ci].items[map.ii].value = tr
+        } else if (map.type === 'col_content') {
+          target.columns[map.ci].content = tr
+        } else if (map.type === 'legal_text') {
+          target.legalText = tr
+        } else if (map.type === 'copyright_text') {
+          target.copyrightText = tr
+        }
+      }
     }
   } catch (e) {
     console.error('Footer auto-translate failed:', e)

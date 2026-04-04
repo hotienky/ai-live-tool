@@ -219,23 +219,40 @@ async function autoTranslateField(lang, field) {
 // Auto-translate all fields for a language
 async function autoTranslateAll(lang) {
   translatingAll.value = true
+  
+  const textsToTranslate = []
+  const mappings = []
+  
   for (const field of props.fields) {
     const text = getDefaultValue(field.key)
     if (!text) continue
+    textsToTranslate.push(text)
+    mappings.push(field.key)
+  }
+
+  if (textsToTranslate.length > 0) {
     try {
-      const res = await apiFetch('/languages/auto-translate', {
+      const res = await apiFetch('/languages/auto-translate-batch', {
         method: 'POST',
-        body: JSON.stringify({ text, from: defaultLangCode.value, to: lang.code }),
+        body: JSON.stringify({ texts: textsToTranslate, from: defaultLangCode.value, to: lang.code }),
       })
       const json = await res.json()
-      const translated = json?.data?.translated || json?.translated
-      if (translated) {
-        setFieldValue(lang.code, field.key, translated)
+      const translatedArray = json?.data?.translated || json?.translated
+      
+      if (Array.isArray(translatedArray) && translatedArray.length === textsToTranslate.length) {
+        for (let i = 0; i < mappings.length; i++) {
+          if (translatedArray[i]) {
+            setFieldValue(lang.code, mappings[i], translatedArray[i])
+          }
+        }
+        showToast(t('admin.msg_2ec816', 'Đã dịch tự động tất cả'), 'success')
       }
-    } catch { /* skip */ }
+    } catch { 
+      showToast(t('admin.msg_7c7d29', 'Lỗi dịch tự động'), 'error')
+    }
   }
+  
   translatingAll.value = false
-  showToast(t('admin.msg_2ec816', 'Đã dịch tự động tất cả'), 'success')
 }
 
 onMounted(async () => {
