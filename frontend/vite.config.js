@@ -12,6 +12,9 @@ export default defineConfig({
     },
   },
   server: {
+    fs: {
+      allow: ['..', '/storefront', '/']
+    },
     allowedHosts: true,
     proxy: {
       '/api': {

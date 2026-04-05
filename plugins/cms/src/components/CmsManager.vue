@@ -1,8 +1,15 @@
 <template>
   <div class="cms-mgr">
+    <!-- LAYOUT PAGE EDITOR VIEW -->
+    <LayoutPageEditor
+      v-if="layoutEditorSlug !== null"
+      :pageSlug="layoutEditorSlug"
+      @back="layoutEditorSlug = null"
+    />
+
     <!-- PAGE BUILDER VIEW -->
     <CmsPageBuilder
-      v-if="builderPageId !== null"
+      v-else-if="builderPageId !== null"
       :pageId="builderPageId"
       @back="builderPageId = null; fetchPages({})"
     />
@@ -19,7 +26,12 @@
     <template v-else>
       <div class="cm-header">
         <h3><FileText :size="16" />{{ t('admin.msg_a503d10c', 'Trang nội dung CMS') }}</h3>
-        <button class="btn-add" @click="editId = ''">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
+        <div class="cm-header__actions">
+          <button class="btn-layout" @click="layoutEditorSlug = 'home'" title="Chỉnh sửa layout trang chủ">
+            <LayoutTemplate :size="14" /> Layout Trang Chủ
+          </button>
+          <button class="btn-add" @click="editId = ''">{{ t('admin.msg_47eef3e5', '+ Thêm trang') }}</button>
+        </div>
       </div>
 
       <div class="cm-list" v-if="pages.length">
@@ -102,9 +114,10 @@
 import { useI18n, useToast, apiFetch } from '../helpers.js'
 import { ref, onMounted } from 'vue'
 import { useCmsPages } from '../composables/useCmsPages.js'
-import { FileText, Lock, Layers, Layout } from 'lucide-vue-next'
+import { FileText, Lock, Layers, Layout, LayoutTemplate } from 'lucide-vue-next'
 import CmsEditor from './CmsEditor.vue'
 import CmsPageBuilder from './CmsPageBuilder.vue'
+import LayoutPageEditor from './layout/LayoutPageEditor.vue'
 
 const { showToast } = useToast()
 const { t } = useI18n()
@@ -113,6 +126,7 @@ const { pages, fetchPages, updatePage, deletePage } = useCmsPages(apiFetch)
 // editId: null = list, '' = create, <number> = edit
 const editId = ref(null)
 const builderPageId = ref(null)
+const layoutEditorSlug = ref(null)
 const showPreview = ref(false)
 const previewData = ref({})
 
@@ -149,8 +163,11 @@ async function handleDelete(p) {
 .cms-mgr { padding: 0; }
 .cm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
 .cm-header h3 { margin: 0; font-size: 1rem; display: flex; align-items: center; gap: .4rem; }
+.cm-header__actions { display: flex; align-items: center; gap: .5rem; }
 .btn-add { background: var(--accent); color: #fff; border: none; padding: .5rem 1rem; border-radius: 8px; cursor: pointer; font-size: .85rem; font-weight: 600; }
 .btn-add:hover { filter: brightness(1.1); }
+.btn-layout { display: flex; align-items: center; gap: .35rem; padding: .45rem .9rem; border-radius: 8px; border: 1px solid rgba(124,58,237,.35); background: rgba(124,58,237,.06); color: #7c3aed; font-size: .82rem; font-weight: 600; cursor: pointer; }
+.btn-layout:hover { background: rgba(124,58,237,.12); }
 .cm-list { display: flex; flex-direction: column; gap: .4rem; }
 .cm-card { display: flex; align-items: center; justify-content: space-between; padding: .6rem .8rem; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; gap: .5rem; }
 .cm-card__info { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; flex: 1; }

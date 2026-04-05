@@ -14,10 +14,16 @@
 
 import featuredProducts from './featured_products.schema.js'
 import newArrivals from './new_arrivals.schema.js'
+import banner from './banner.schema.js'
+import categories from './categories.schema.js'
+import pharmacyHero from './pharmacy_hero.schema.js'
 
 export const SECTION_SCHEMAS = {
   featured_products: featuredProducts,
   new_arrivals: newArrivals,
+  banner: banner,
+  categories: categories,
+  pharmacy_hero: pharmacyHero,
 }
 
 export function getSectionSchema(type) {

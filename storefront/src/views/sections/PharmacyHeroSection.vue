@@ -78,7 +78,10 @@ const resolvedParams = computed(() => {
 })
 
 const heroStyle = computed(() => {
-  const bg = resolvedParams.value.desktopImage || 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop'
+  let bg = resolvedParams.value.desktopImage || 'https://images.unsplash.com/photo-1585435557343-3b092031a831?q=80&w=2070&auto=format&fit=crop'
+  if (isMobile.value && resolvedParams.value.mobileImage) {
+    bg = resolvedParams.value.mobileImage
+  }
   return {
     backgroundImage: `url(${bg})`
   }

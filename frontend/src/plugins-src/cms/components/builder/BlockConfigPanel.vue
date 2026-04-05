@@ -7,7 +7,14 @@
       </div>
     </div>
 
-    <div class="cp-tabs">
+    <div class="cp-tabs" v-if="blockDef?.groups?.length">
+      <button v-for="group in blockDef.groups" :key="group.key"
+        class="cp-tab" :class="{ 'cp-tab--active': activeTab === group.key }" 
+        @click="activeTab = group.key">
+        {{ group.label }}
+      </button>
+    </div>
+    <div class="cp-tabs" v-else>
       <button class="cp-tab" :class="{ 'cp-tab--active': activeTab === 'content' }" @click="activeTab = 'content'">
         <Type :size="14" /> Nội dung
       </button>
@@ -17,51 +24,113 @@
     </div>
 
     <div class="cp-scroll">
-      <!-- CONTENT TAB -->
-      <div v-show="activeTab === 'content'" class="cp-body">
-        <template v-for="field in (blockDef?.settingsSchema || [])" :key="field.key">
-          
-          <div class="cp-field" v-if="field.type === 'text'">
-            <label>{{ field.label }}</label>
-            <input type="text" :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" />
-          </div>
-
-          <div class="cp-field" v-else-if="field.type === 'textarea'">
-            <label>{{ field.label }}</label>
-            <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="3"></textarea>
-          </div>
-
-          <div class="cp-field" v-else-if="field.type === 'richtext' || field.type === 'code'">
-            <label>{{ field.label }}</label>
-            <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="6" style="font-family: monospace; font-size: 12px;"></textarea>
-            <p class="cp-help" v-if="field.type === 'richtext'">Hỗ trợ HTML cơ bản.</p>
-          </div>
-
-          <div class="cp-field" v-else-if="field.type === 'select'">
-            <label>{{ field.label }}</label>
-            <div class="cp-select-wrap">
-              <select :value="s[field.key]" @change="update(field.key, $event.target.value)">
-                <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-              </select>
-              <ChevronDown :size="14" class="cp-select-icon" />
+      <!-- DYNAMIC GROUPS -->
+      <template v-if="blockDef?.groups?.length">
+        <div v-for="group in blockDef.groups" :key="group.key" v-show="activeTab === group.key" class="cp-body">
+          <template v-for="field in group.fields" :key="field.key">
+            
+            <div class="cp-field" v-if="field.type === 'text' || field.type === 'url' || field.type === 'number'">
+              <label>{{ field.label }}</label>
+              <input :type="field.type === 'number' ? 'number' : 'text'" :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" />
             </div>
-          </div>
 
-          <div class="cp-field" v-else-if="field.type === 'toggle'">
-            <label class="cp-check-label">
-              <input type="checkbox" :checked="s[field.key]" @change="update(field.key, $event.target.checked)" />
-              <span>{{ field.label }}</span>
-            </label>
-          </div>
+            <div class="cp-field" v-else-if="field.type === 'textarea'">
+              <label>{{ field.label }}</label>
+              <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="3"></textarea>
+            </div>
+            
+            <div class="cp-field" v-else-if="field.type === 'richtext' || field.type === 'code'">
+              <label>{{ field.label }}</label>
+              <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="6" style="font-family: monospace; font-size: 12px;"></textarea>
+            </div>
 
-          <div class="cp-field" v-else-if="field.type === 'image'">
-            <label>{{ field.label }}</label>
-            <MediaPicker :modelValue="s[field.key]" @update:modelValue="update(field.key, $event)" />
-          </div>
+            <div class="cp-field" v-else-if="field.type === 'select' || field.type === 'radio'">
+              <label>{{ field.label }}</label>
+              <div class="cp-select-wrap">
+                <select :value="s[field.key]" @change="update(field.key, $event.target.value)">
+                  <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+                <ChevronDown :size="14" class="cp-select-icon" />
+              </div>
+            </div>
 
-        </template>
-        <p v-if="!blockDef?.settingsSchema?.length" class="cp-empty">Block này không có tùy chọn nội dung.</p>
-      </div>
+            <div class="cp-field" v-else-if="field.type === 'toggle'">
+              <label class="cp-check-label">
+                <input type="checkbox" :checked="s[field.key] !== false" @change="update(field.key, $event.target.checked)" />
+                <span>{{ field.label }}</span>
+              </label>
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'color'">
+              <label>{{ field.label }}</label>
+              <div class="cp-color">
+                <input type="color" :value="s[field.key] || '#ffffff'" @input="update(field.key, $event.target.value)" />
+                <input type="text" :value="s[field.key]" @input="update(field.key, $event.target.value)" placeholder="Inherit" />
+                <button v-if="s[field.key]" class="cp-btn-icon" @click="update(field.key, '')"><X :size="12" /></button>
+              </div>
+            </div>
+            
+            <div class="cp-field" v-else-if="field.type === 'slider' || field.type === 'range'">
+              <label>{{ field.label }} ({{ s[field.key] || field.default }})</label>
+              <input type="range" :value="s[field.key] !== undefined ? s[field.key] : field.default" :min="field.min" :max="field.max" :step="field.step || 1" @input="update(field.key, Number($event.target.value))" />
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'image'">
+              <label>{{ field.label }}</label>
+              <MediaPicker :modelValue="s[field.key]" @update:modelValue="update(field.key, $event)" />
+            </div>
+
+          </template>
+        </div>
+      </template>
+
+      <!-- FALLBACK FOR OLD NON-GROUPED SCHEMAS -->
+      <template v-else>
+        <!-- CONTENT TAB -->
+        <div v-show="activeTab === 'content'" class="cp-body">
+          <template v-for="field in (blockDef?.settingsSchema || [])" :key="field.key">
+            
+            <div class="cp-field" v-if="field.type === 'text'">
+              <label>{{ field.label }}</label>
+              <input type="text" :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" />
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'textarea'">
+              <label>{{ field.label }}</label>
+              <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="3"></textarea>
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'richtext' || field.type === 'code'">
+              <label>{{ field.label }}</label>
+              <textarea :value="s[field.key]" @input="update(field.key, $event.target.value)" :placeholder="field.placeholder" rows="6" style="font-family: monospace; font-size: 12px;"></textarea>
+              <p class="cp-help" v-if="field.type === 'richtext'">Hỗ trợ HTML cơ bản.</p>
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'select'">
+              <label>{{ field.label }}</label>
+              <div class="cp-select-wrap">
+                <select :value="s[field.key]" @change="update(field.key, $event.target.value)">
+                  <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+                <ChevronDown :size="14" class="cp-select-icon" />
+              </div>
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'toggle'">
+              <label class="cp-check-label">
+                <input type="checkbox" :checked="s[field.key]" @change="update(field.key, $event.target.checked)" />
+                <span>{{ field.label }}</span>
+              </label>
+            </div>
+
+            <div class="cp-field" v-else-if="field.type === 'image'">
+              <label>{{ field.label }}</label>
+              <MediaPicker :modelValue="s[field.key]" @update:modelValue="update(field.key, $event)" />
+            </div>
+
+          </template>
+          <p v-if="!blockDef?.settingsSchema?.length" class="cp-empty">Block này không có tùy chọn nội dung.</p>
+        </div>
 
       <!-- STYLE TAB -->
       <div v-show="activeTab === 'style'" class="cp-body cp-style">
@@ -107,6 +176,7 @@
         </div>
 
       </div>
+      </template>
     </div>
 
 

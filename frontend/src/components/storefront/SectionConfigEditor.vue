@@ -56,7 +56,7 @@
 
         <!-- Schema-Driven Inputs -->
         <div class="advanced-config__body" style="padding:0; border:none;">
-        <template v-for="field in sectionSchemas[section.type] || []" :key="field.key">
+        <template v-for="field in mergedFieldsContent" :key="field.key">
           
           <!-- Standard Prop Inputs -->
           <div class="param-row" v-if="(field.type !== 'list' && field.type !== 'richtext' && field.type !== 'categoryList' && field.type !== 'children') && (!field.condition || (field.conditionValue ? activeParams[field.condition] === field.conditionValue : activeParams[field.condition] !== false))">
@@ -200,6 +200,50 @@
 
       <!-- ===== TAB: STYLE ===== -->
       <div v-show="currentTab === 'style'" class="sf-tab-content">
+        <!-- Schema-Driven Inputs for Layout & Style -->
+        <div class="advanced-config__body" style="padding:0; border:none; margin-bottom: 24px;" v-if="mergedFieldsLayoutAndStyle.length">
+          <template v-for="field in mergedFieldsLayoutAndStyle" :key="field.key">
+            <div class="param-row" v-if="!field.condition || (field.conditionValue ? activeParams[field.condition] === field.conditionValue : activeParams[field.condition] !== false)">
+              <label>{{ field.label }}</label>
+              
+              <template v-if="field.type === 'boolean' || field.type === 'toggle'">
+                <label class="toggle-switch toggle-switch--sm" @click.stop>
+                  <input type="checkbox" v-model="activeParams[field.key]" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </template>
+              
+              <template v-else-if="field.type === 'select' || field.type === 'radio'">
+                <select v-model="activeParams[field.key]" class="param-select">
+                  <option v-for="opt in field.options" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+              </template>
+              
+              <template v-else-if="field.type === 'color'">
+                <div class="color-picker-wrap" style="display:flex;gap:8px;align-items:center;">
+                  <input type="color" v-model="activeParams[field.key]" style="width:32px;height:32px;padding:0;border-radius:4px;cursor:pointer" />
+                  <input type="text" v-model="activeParams[field.key]" class="param-input" placeholder="Inherit" style="flex:1" />
+                </div>
+              </template>
+              
+              <template v-else-if="field.type === 'slider' || field.type === 'range'">
+                <div style="display:flex; align-items:center; gap: 8px; width:100%">
+                  <input type="range" v-model.number="activeParams[field.key]" :min="field.min" :max="field.max" :step="field.step || 1" class="param-range" style="flex:1" />
+                  <span class="param-value" style="font-size:12px; min-width: 24px;">{{ activeParams[field.key] !== undefined ? activeParams[field.key] : field.default }}</span>
+                </div>
+              </template>
+              
+              <template v-else-if="field.type === 'number'">
+                <input type="number" v-model.number="activeParams[field.key]" class="param-input param-input--wide" />
+              </template>
+              
+              <template v-else-if="field.type === 'image'">
+                <MediaPicker v-model="activeParams[field.key]" :placeholder="field.placeholder" />
+              </template>
+            </div>
+          </template>
+        </div>
+
         <AdvancedStylePanel :section="section" mode="style" />
       </div>
 
@@ -246,7 +290,8 @@ import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Pal
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
 import { useForms } from '../../composables/useForms.js'
-import { sectionSchemas, styleSchema } from './sectionSchemas.js'
+import { sectionSchemas as oldSectionSchemas } from './sectionSchemas.js'
+import { SECTION_SCHEMAS as newSectionSchemas } from '../../../../storefront/src/views/sections/schemas/index.js'
 import { hasVisualTemplates } from './sectionTemplates.js'
 import SectionStylePicker from './SectionStylePicker.vue'
 import MediaPicker from '../MediaPicker.vue'
@@ -263,6 +308,25 @@ const props = defineProps({
   defaultLangCode: { type: String, required: true }
 })
 const isPrimitiveNode = computed(() => ['container', 'grid', 'card', 'row', 'col', 'heading', 'text', 'image', 'button', 'link', 'divider', 'iframe', 'video'].includes(props.section.type))
+
+const mergedFieldsContent = computed(() => {
+  const schema = newSectionSchemas[props.section.type]
+  if (schema && schema.groups) {
+    const cGroup = schema.groups.find(g => g.key === 'content')
+    return cGroup ? cGroup.fields : []
+  }
+  return oldSectionSchemas[props.section.type] || []
+})
+
+const mergedFieldsLayoutAndStyle = computed(() => {
+  const schema = newSectionSchemas[props.section.type]
+  if (schema && schema.groups) {
+    const lGroup = schema.groups.find(g => g.key === 'layout')?.fields || []
+    const sGroup = schema.groups.find(g => g.key === 'style')?.fields || []
+    return [...lGroup, ...sGroup]
+  }
+  return []
+})
 
 // Ensure conditions proxy for clean Vue reactivity binding without mutating props during render loop
 const activeConditions = new Proxy({}, {
@@ -491,7 +555,7 @@ async function autoTranslateSection() {
   const section = props.section
   if (!lang || lang === props.defaultLangCode) return
   isTranslating.value = true
-  const schema = sectionSchemas[section.type] || []
+  const schema = mergedFieldsContent.value || []
 
   try {
     getParams() // ensure base

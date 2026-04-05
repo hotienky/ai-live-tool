@@ -12,7 +12,7 @@
         </router-link>
       </div>
       
-      <div class="sf-cat-grid" :class="[layoutClass]">
+      <div class="sf-cat-grid" :class="[layoutClass]" :style="gridVars">
         <router-link 
           v-for="cat in categoriesData" 
           :key="cat.id" 
@@ -102,6 +102,18 @@ const categoriesData = computed(() => {
   const limit = resolvedParams.value.maxCategories || 10
   return list.slice(0, limit)
 })
+
+// Responsive grid columns 
+const responsiveCols = computed(() => {
+  if (isMobile.value) return resolvedParams.value.mobileColumns || 3
+  if (isTablet.value) return resolvedParams.value.tabletColumns || 4
+  return resolvedParams.value.columns || 6
+})
+
+const gridVars = computed(() => ({
+  '--grid-cols': responsiveCols.value,
+  '--grid-gap': (resolvedParams.value.gap || 16) + 'px',
+}))
 </script>
 
 <style scoped>
@@ -160,17 +172,17 @@ const categoriesData = computed(() => {
 /* ── Grid base ── */
 .sf-cat-grid {
   display: grid;
-  gap: 20px;
+  gap: var(--grid-gap, 16px);
 }
 
 /* ── Circle Layout (default, also used for circle_icon) ── */
 .sf-cat-grid.layout-circle {
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(var(--grid-cols, 6), 1fr);
 }
 
 /* ── Grid Layout (standard card grid) ── */
 .sf-cat-grid.layout-grid {
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(var(--grid-cols, 6), 1fr);
 }
 
 /* ── Carousel Layout ── */
