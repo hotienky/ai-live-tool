@@ -1,11 +1,15 @@
 <template>
   <section class="home-section container" v-if="productsData.length > 0" :class="['layout-' + (resolvedParams.layoutStyle || 'grid')]">
     <div class="home-section__header">
-      <h2 class="section-title">
+      <h2 class="section-title" :style="resolvedParams.titleColor ? { color: resolvedParams.titleColor } : {}">
         <Sparkles :size="22" class="section-title__accent" />
         {{ resolvedParams.title || t('storefront.featured_products', 'Sản phẩm nổi bật') }}
       </h2>
-      <router-link :to="resolvedParams.viewAllLink || '/products'" class="home-section__viewall">
+      <router-link
+        v-if="resolvedParams.showViewAll !== false"
+        :to="resolvedParams.viewAllLink || '/products'"
+        class="home-section__viewall"
+      >
         {{ t('storefront.view_all', 'Xem tất cả') }} <ArrowRight :size="14" />
       </router-link>
     </div>
@@ -47,8 +51,8 @@ const isTablet = computed(() => windowWidth.value > 768 && windowWidth.value <= 
 
 const resolvedParams = computed(() => {
   const p = { ...(props.params || {}) }
-  const tablet = props.section.tabletParams || {}
-  const mobile = props.section.mobileParams || {}
+  const tablet = props.section?.tabletParams || {}
+  const mobile = props.section?.mobileParams || {}
   
   if (isTablet.value || isMobile.value) {
     for (const k in tablet) if (tablet[k] !== undefined && tablet[k] !== '') p[k] = tablet[k]
@@ -87,25 +91,64 @@ const productsData = computed(() => {
   return allProducts.slice(0, count)
 })
 
-// Responsive grid columns
+// Responsive grid columns 
 const responsiveCols = computed(() => {
-  const desktopCols = resolvedParams.value.columns || 4
-  if (isMobile.value) return Math.min(desktopCols, 2)
-  if (isTablet.value) return Math.min(desktopCols, 3)
-  return desktopCols
+  if (isMobile.value) return resolvedParams.value.mobileColumns || 2
+  if (isTablet.value) return resolvedParams.value.tabletColumns || 3
+  return resolvedParams.value.columns || 4
 })
 
 const gridVars = computed(() => ({
   '--grid-cols': responsiveCols.value,
+  '--grid-gap': (resolvedParams.value.gap || 16) + 'px',
 }))
 </script>
 
 <style scoped>
+/* ── Section Header ── */
+.home-section__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+.section-title__accent {
+  color: #f59e0b;
+}
+.home-section__viewall {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0e62bc;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+.home-section__viewall:hover {
+  opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+  .section-title { font-size: 18px; }
+  .home-section__viewall { font-size: 13px; }
+  .home-section__header { margin-bottom: 16px; }
+}
+
 /* ── Grid Layout ── */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(var(--grid-cols, 4), 1fr);
-  gap: 16px;
+  gap: var(--grid-gap, 16px);
 }
 
 /* ── Carousel Layout ── */

@@ -1,9 +1,7 @@
 <template>
   <section class="sf-pharmacy-hero" :style="heroStyle">
-    <div class="sf-ph-overlay"></div>
-    <div class="sf-ph-content">
-      <h1 class="sf-ph-title" v-if="resolvedParams.primaryText">{{ resolvedParams.primaryText }}</h1>
-      
+    <!-- Floating Unified Panel (Search + Keywords + Actions) -->
+    <div class="sf-ph-overlay-panel">
       <!-- Search Box -->
       <div class="sf-ph-search-wrap">
         <div class="sf-ph-search-box">
@@ -13,19 +11,16 @@
             class="sf-ph-search-input" 
             :placeholder="resolvedParams.searchPlaceholder || t('storefront.msg_search_hint', 'Bạn đang tìm gì hôm nay...')" 
           />
-          <button class="sf-ph-search-btn">{{ t('storefront.msg_search', 'Tìm kiếm') }}</button>
-        </div>
-        
-        <!-- Hot Keywords -->
-        <div class="sf-ph-keywords" v-if="keywordsList.length">
-          <span v-for="(kw, idx) in keywordsList" :key="idx" class="sf-ph-keyword">{{ kw }}</span>
         </div>
       </div>
-    </div>
 
-    <!-- Action Cards -->
-    <div class="sf-ph-actions-container" v-if="actionCards.length">
-      <div class="sf-ph-actions-grid" :style="{ gridTemplateColumns: `repeat(${Math.min(actionCards.length, 3)}, 1fr)` }">
+      <!-- Hot Keywords -->
+      <div class="sf-ph-keywords" v-if="keywordsList.length">
+        <span v-for="(kw, idx) in keywordsList" :key="idx" class="sf-ph-keyword">{{ kw }}</span>
+      </div>
+
+      <!-- Action Cards -->
+      <div class="sf-ph-actions-row" v-if="actionCards.length">
         <a 
           v-for="(card, idx) in actionCards" 
           :key="idx" 
@@ -35,7 +30,7 @@
         >
           <div class="sf-ph-card-icon">
             <img v-if="card.icon" :src="card.icon" alt="icon" />
-            <component v-else-if="card.lucideIcon" :is="getIcon(card.lucideIcon)" :size="28" />
+            <component v-else-if="card.lucideIcon" :is="getIcon(card.lucideIcon)" :size="24" />
             <span v-else class="sf-ph-icon-placeholder">✨</span>
           </div>
           <span class="sf-ph-card-title">{{ card.title || t('storefront.msg_feature', 'Chức năng') }}</span>
@@ -112,168 +107,130 @@ function getIcon(name) {
 .sf-pharmacy-hero {
   position: relative;
   width: 100%;
-  min-height: 480px;
+  min-height: 520px;
   background-size: cover;
   background-position: center;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  margin-bottom: 60px;
+  padding-bottom: 20px;
+  margin-bottom: 40px;
   font-family: var(--sf-font-family, 'Inter', sans-serif);
 }
 
-.sf-ph-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, rgba(0, 48, 91, 0.7) 0%, rgba(0, 48, 91, 0.3) 100%);
-}
-
-.sf-ph-content {
+.sf-ph-overlay-panel {
   position: relative;
-  z-index: 2;
+  z-index: 10;
   width: 100%;
-  max-width: 800px;
-  padding: 0 20px;
-  text-align: center;
-  margin-top: -40px;
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin: 0 20px;
+  transform: translateY(40px); /* Hang an overlap out of the hero */
 }
 
-.sf-ph-title {
-  color: #fff;
-  font-size: 36px;
-  font-weight: 800;
-  margin-bottom: 30px;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
+/* ── Search Box ── */
 .sf-ph-search-wrap {
   width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 99px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.sf-ph-search-wrap:focus-within {
+  border-color: #1B51A3;
 }
 
 .sf-ph-search-box {
   display: flex;
-  background: #fff;
-  border-radius: 99px;
-  padding: 6px 6px 6px 20px;
   align-items: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  background: #fff;
+  padding: 8px 16px;
 }
 
 .search-icon {
   color: #64748b;
-  flex-shrink: 0;
+  margin-right: 8px;
 }
 
 .sf-ph-search-input {
   flex: 1;
   border: none;
   outline: none;
-  padding: 12px 16px;
-  font-size: 16px;
-  color: #1e293b;
-  background: transparent;
-}
-
-.sf-ph-search-btn {
-  background: #00305b; /* Pharmacity dark blue */
-  color: #fff;
-  border: none;
-  border-radius: 99px;
-  padding: 12px 28px;
-  font-weight: 600;
+  padding: 10px 0;
   font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s;
+  color: #1e293b;
 }
 
-.sf-ph-search-btn:hover {
-  background: #004580;
-}
-
+/* ── Keywords ── */
 .sf-ph-keywords {
   display: flex;
-  gap: 12px;
-  justify-content: center;
+  gap: 16px;
   flex-wrap: wrap;
-  margin-top: 16px;
+  margin: 16px 0 24px;
+  padding: 0 12px;
 }
 
 .sf-ph-keyword {
-  color: #fff;
+  color: #475569;
   font-size: 13px;
-  background: rgba(255,255,255,0.2);
-  padding: 4px 12px;
-  border-radius: 20px;
-  backdrop-filter: blur(4px);
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: color 0.2s;
 }
 
 .sf-ph-keyword:hover {
-  background: rgba(255,255,255,0.3);
+  color: #1B51A3;
+  text-decoration: underline;
 }
 
-.sf-ph-actions-container {
-  position: absolute;
-  bottom: -40px;
-  left: 0;
-  width: 100%;
+/* ── Action Cards Row ── */
+.sf-ph-actions-row {
   display: flex;
-  justify-content: center;
-  z-index: 10;
-  padding: 0 20px;
-}
-
-.sf-ph-actions-grid {
-  display: grid;
+  justify-content: space-between;
   gap: 16px;
-  width: 100%;
-  max-width: 900px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
 }
 
 .sf-ph-action-card {
-  background: #ffffff;
-  border-radius: 16px;
-  padding: 16px 24px;
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   text-decoration: none;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  transition: all 0.3s ease;
-  border: 1px solid #f1f5f9;
+  padding: 8px;
+  border-radius: 12px;
+  transition: background 0.2s;
 }
 
 .sf-ph-action-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 40px rgba(0,48,91,0.12);
-  border-color: #e2e8f0;
+  background: #f8fafc;
 }
 
 .sf-ph-card-icon {
-  width: 48px;
-  height: 48px;
-  background: #f8fafc;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00305b;
+  color: #1B51A3;
 }
 
 .sf-ph-card-icon img {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   object-fit: contain;
 }
 
 .sf-ph-card-title {
   flex: 1;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: #1e293b;
 }
 
@@ -284,7 +241,7 @@ function getIcon(name) {
 
 .sf-ph-action-card:hover .sf-ph-card-arrow {
   transform: translateX(4px);
-  color: #00305b;
+  color: #1B51A3;
 }
 
 @media (max-width: 768px) {
@@ -293,17 +250,13 @@ function getIcon(name) {
     margin-bottom: 20px;
     padding-bottom: 80px;
   }
-  .sf-ph-title {
-    font-size: 28px;
+  .sf-ph-overlay-panel {
+    transform: translateY(20px);
+    padding: 16px;
   }
-  .sf-ph-actions-container {
-    bottom: -60px;
-    position: relative;
-    padding: 0 16px;
+  .sf-ph-actions-row {
+    flex-direction: column;
   }
-  .sf-ph-actions-grid {
-    grid-template-columns: 1fr !important;
-    max-width: 100%;
-  }
+
 }
 </style>

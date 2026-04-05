@@ -33,7 +33,7 @@
         </span>
       </div>
       <button class="product-card__add-btn" @click.prevent.stop="onAddToCart(product)">
-        {{ t('storefront.msg_buy') || '+ Chọn mua' }}
+        {{ t('storefront.msg_buy') || 'Chọn mua' }}
       </button>
     </div>
   </router-link>
@@ -81,38 +81,40 @@ const onAddToCart = (p) => {
 
 <style scoped>
 .product-card {
-  display: block;
-  border-radius: var(--sf-radius-lg);
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
   overflow: hidden;
-  background: var(--sf-bg-card);
-  border: 1px solid var(--sf-border);
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease-in-out;
   text-decoration: none;
   color: inherit;
+  height: 100%;
 }
 
 .product-card:hover {
-  transform: translateY(-6px);
-  border-color: var(--sf-accent);
-  box-shadow: var(--sf-shadow-lg), 0 0 40px var(--sf-accent-glow);
+  border-color: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .product-card__image {
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  background: var(--sf-bg-card-hover);
+  background: #f8fafc;
 }
 
 .product-card__image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  object-fit: contain;
+  mix-blend-mode: multiply;
+  transition: transform 0.3s ease;
 }
 
 .product-card:hover .product-card__image img {
-  transform: scale(1.08);
+  transform: scale(1.03);
 }
 
 .product-card__placeholder {
@@ -121,72 +123,77 @@ const onAddToCart = (p) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sf-text-muted);
+  color: #94a3b8;
 }
 
 .product-card__badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 4px 12px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  top: 8px;
+  left: 8px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #ef4444;
   color: #fff;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
   z-index: 2;
 }
 
 .product-card__overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sf-accent-glow);
-  opacity: 0;
-  transition: opacity 0.3s;
-  color: #fff;
-}
-
-.product-card:hover .product-card__overlay {
-  opacity: 1;
+  display: none; /* Removed eye on hover */
 }
 
 .product-card__body {
-  padding: 14px 16px 16px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
 }
 
 .product-card__cat {
   font-size: 11px;
   font-weight: 600;
-  color: var(--sf-text-muted);
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .product-card__name {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 500;
   margin: 4px 0 8px;
-  line-height: 1.35;
+  line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  color: var(--sf-text-primary);
+  color: rgb(43, 43, 43);
+  flex-grow: 1;
 }
 
 .product-card__prices {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.price--current, .price--sale {
+  color: #1e293b;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.price--original {
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: line-through;
 }
 
 .product-card__stock {
-  margin-top: 6px;
   font-size: 11px;
   font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .in-stock { color: #10b981; }
@@ -196,10 +203,11 @@ const onAddToCart = (p) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 6px;
   font-size: 11px;
-  color: var(--sf-text-muted);
+  color: #64748b;
+  margin-bottom: 12px;
 }
+
 .product-card__rating {
   display: inline-flex;
   align-items: center;
@@ -208,45 +216,48 @@ const onAddToCart = (p) => {
   font-weight: 700;
 }
 .product-card__sold {
-  color: var(--sf-text-muted);
   font-weight: 500;
 }
 
 .product-card__add-btn {
   width: 100%;
-  margin-top: 12px;
-  background: var(--sf-accent, #00305b); /* Fallback to Pharmacity blue */
-  color: #fff;
-  border: none;
-  border-radius: 99px;
-  padding: 8px 16px;
-  font-weight: 800;
+  margin-top: auto;
+  background: transparent;
+  color: #1B51A3;
+  border: 1px solid #1B51A3;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 600;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateY(0);
-  opacity: 1; /* Always visible for Pharmacity style */
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.product-card__add-btn::before {
+  content: '+';
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
 }
 
 .product-card:hover .product-card__add-btn {
-  filter: brightness(1.15);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--sf-accent-glow);
+  background: rgba(27, 81, 163, 0.05); /* very light blue hover */
 }
 
 @media (max-width: 768px) {
-  .product-card { border-radius: 10px; }
-  .product-card:hover { transform: none; }
-  .product-card__add-btn { font-size: 11px; padding: 6px 12px; }
+  .product-card { border-radius: 8px; }
+  .product-card__add-btn { font-size: 12px; padding: 6px 8px; }
   .product-card__image { aspect-ratio: 1; }
-  .product-card__body { padding: 10px 10px 12px; }
+  .product-card__body { padding: 8px; }
   .product-card__cat { font-size: 10px; }
   .product-card__name { font-size: 13px; margin: 3px 0 6px; -webkit-line-clamp: 2; }
-  .product-card__prices { gap: 4px; flex-wrap: wrap; }
+  .product-card__prices { gap: 4px; flex-wrap: wrap; margin-bottom: 6px; }
   .product-card__prices .price--original { font-size: 11px; }
   .product-card__prices .price--sale,
   .product-card__prices .price--current { font-size: 14px; }
-  .product-card__stock { font-size: 10px; margin-top: 4px; }
-  .product-card__badge { top: 8px; right: 8px; padding: 3px 8px; font-size: 10px; border-radius: 6px; }
+  .product-card__badge { top: 6px; left: 6px; padding: 2px 6px; font-size: 10px; border-radius: 4px; }
 }
 </style>
