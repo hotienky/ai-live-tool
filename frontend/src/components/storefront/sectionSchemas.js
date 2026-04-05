@@ -115,12 +115,14 @@ export const sectionSchemas = {
     ]}
   ],
   categories: [
+    { key: 'title', type: 'text', label: 'Tiêu đề' },
     { key: 'columns', type: 'range', label: 'Số cột (Desktop)', min: 3, max: 10 },
     { key: 'tabletColumns', type: 'range', label: 'Số cột (Tablet)', min: 2, max: 8 },
     { key: 'mobileColumns', type: 'range', label: 'Số cột (Mobile)', min: 2, max: 6 },
     { key: 'showDescription', type: 'boolean', label: 'Hiện mô tả' },
     { key: 'layoutStyle', type: 'select', label: 'Bố cục', options: [{value: 'grid', label: 'Lưới'}, {value: 'carousel', label: 'Carousel'}, {value: 'circle_icon', label: 'Icon tròn'}, {value: 'masonry', label: 'Lưới bất đối xứng'}] },
     { key: 'showCount', type: 'boolean', label: 'Hiện số SP' },
+    { key: 'showViewAll', type: 'boolean', label: 'Hiện nút Xem tất cả' },
     { key: 'selectedCategoryIds', type: 'categoryList', label: 'Chọn danh mục', multiple: true }
   ],
   flash_sale: [

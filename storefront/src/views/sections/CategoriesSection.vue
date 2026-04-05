@@ -12,7 +12,7 @@
         </router-link>
       </div>
       
-      <div class="sf-cat-grid" :class="['layout-' + (resolvedParams.layoutStyle || 'circle')]">
+      <div class="sf-cat-grid" :class="[layoutClass]">
         <router-link 
           v-for="cat in categoriesData" 
           :key="cat.id" 
@@ -20,7 +20,7 @@
           class="sf-cat-card"
         >
           <div class="sf-cat-image-wrap">
-            <img v-if="cat.image" :src="cat.image" :alt="cat.name" loading="lazy" />
+            <img v-if="cat.image || cat.image_url" :src="cat.image || cat.image_url" :alt="cat.name" loading="lazy" />
             <div v-else class="sf-cat-placeholder">
               <FolderOpen :size="32" />
             </div>
@@ -68,6 +68,20 @@ const resolvedParams = computed(() => {
     for (const k in mobile) if (mobile[k] !== undefined && mobile[k] !== '') p[k] = mobile[k]
   }
   return p
+})
+
+// Normalize layoutStyle to CSS class — map all CMS values to valid CSS classes
+const layoutClass = computed(() => {
+  const style = resolvedParams.value.layoutStyle || 'circle'
+  // Map all possible CMS values to supported CSS layout classes
+  const map = {
+    circle: 'layout-circle',
+    circle_icon: 'layout-circle',
+    grid: 'layout-grid',
+    carousel: 'layout-carousel',
+    masonry: 'layout-grid',
+  }
+  return map[style] || 'layout-circle'
 })
 
 const categoriesData = computed(() => {
@@ -143,16 +157,39 @@ const categoriesData = computed(() => {
   opacity: 0.7;
 }
 
+/* ── Grid base ── */
 .sf-cat-grid {
   display: grid;
   gap: 20px;
 }
 
-/* Circle Layout */
+/* ── Circle Layout (default, also used for circle_icon) ── */
 .sf-cat-grid.layout-circle {
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 }
 
+/* ── Grid Layout (standard card grid) ── */
+.sf-cat-grid.layout-grid {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+/* ── Carousel Layout ── */
+.sf-cat-grid.layout-carousel {
+  display: flex;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  gap: 16px;
+  padding-bottom: 16px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.sf-cat-grid.layout-carousel::-webkit-scrollbar { display: none; }
+.sf-cat-grid.layout-carousel .sf-cat-card {
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+/* ── Card ── */
 .sf-cat-card {
   display: flex;
   flex-direction: column;
@@ -166,6 +203,7 @@ const categoriesData = computed(() => {
   transform: translateY(-8px);
 }
 
+/* ── Image ── */
 .sf-cat-image-wrap {
   width: 100px;
   height: 100px;
@@ -204,6 +242,12 @@ const categoriesData = computed(() => {
   font-weight: 700;
   color: #334155;
   text-align: center;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   transition: color 0.2s;
 }
 
@@ -211,12 +255,17 @@ const categoriesData = computed(() => {
   color: #00305b;
 }
 
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .sf-categories-section { padding: 30px 0; }
   .sf-cat-title { font-size: 20px; }
   .sf-cat-grid.layout-circle {
     grid-template-columns: repeat(4, 1fr);
     gap: 16px 8px;
+  }
+  .sf-cat-grid.layout-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
   }
   .sf-cat-image-wrap {
     width: 72px;
@@ -230,6 +279,9 @@ const categoriesData = computed(() => {
 @media (max-width: 480px) {
   .sf-cat-grid.layout-circle {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .sf-cat-grid.layout-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

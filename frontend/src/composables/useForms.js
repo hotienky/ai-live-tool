@@ -18,7 +18,7 @@ export function useForms() {
   const fetchForms = async () => {
     try {
       // Thử gọi Real API trước
-      const res = await apiFetch('/api/forms')
+      const res = await apiFetch('/forms')
       if (res.ok) {
         const data = await res.json()
         forms.value = Array.isArray(data) ? data : (data?.items || [])
@@ -37,14 +37,14 @@ export function useForms() {
     try {
       // Phân tách Create vs Update
       if (formData.id) {
-        // await apiFetch(`/api/forms/${formData.id}`, { method: 'PUT', body: formData })
+        // await apiFetch(`/forms/${formData.id}`, { method: 'PUT', body: formData })
         const list = _getLocal(STORAGE_KEY_FORMS)
         const idx = list.findIndex(f => f.id === formData.id)
         if (idx > -1) list[idx] = formData
         _setLocal(STORAGE_KEY_FORMS, list)
       } else {
         formData.id = 'form_' + Date.now() + Math.random().toString(36).substr(2, 5)
-        // await apiFetch('/api/forms', { method: 'POST', body: formData })
+        // await apiFetch('/forms', { method: 'POST', body: formData })
         const list = _getLocal(STORAGE_KEY_FORMS)
         list.push(formData)
         _setLocal(STORAGE_KEY_FORMS, list)

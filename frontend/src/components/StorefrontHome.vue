@@ -9,7 +9,7 @@
           </a>
           <span v-else>{{ activeHeaderConfig.announcementText || t('customize_announcement') }}</span>
         </div>
-        <div class="sf-announcement__topbar" v-if="activeHeaderConfig.topbarLinks && activeHeaderConfig.topbarLinks.length" style="display: flex; gap: 16px; align-items: center;">
+        <div class="sf-announcement__topbar" v-if="activeHeaderConfig.topbarLinks?.length" style="display: flex; gap: 16px; align-items: center;">
           <a v-for="(lnk, idx) in activeHeaderConfig.topbarLinks" :key="idx" :href="lnk.url || '#'" class="sf-announcement__toplink" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 4px; opacity: 0.9; cursor: pointer;">
             {{ lnk.label }}
           </a>
@@ -18,41 +18,53 @@
     </div>
 
     <!-- Header -->
-    <header class="sf-header" :class="{ 'sf-header--sticky': activeHeaderConfig.sticky !== false, 'sf-header--branded': !!activeHeaderConfig.bgColor }" :style="activeHeaderConfig.bgColor ? { background: activeHeaderConfig.bgColor, color: activeHeaderConfig.textColor || '#fff', borderBottom: 'none' } : {}">
-      <button class="sf-hamburger" @click="mobileMenuOpen = !mobileMenuOpen">
-        <Menu :size="20" />
-      </button>
-      <div class="sf-header__left">
-        <Store :size="20" class="sf-header__logo-icon" />
-        <span class="sf-header__name">{{ storeInfo?.store_name || storeInfo?.shop_name || 'Shop' }}</span>
+    <header class="sf-header" :class="{ 'sf-header--sticky': activeHeaderConfig.sticky !== false }" :style="{ backgroundColor: activeHeaderConfig.bgColor || '#fff', color: activeHeaderConfig.textColor || '#000' }">
+      <div class="sf-header-nav-container">
+        <!-- Main header flex row -->
+        <div class="sf-header__left" :class="{ 'sf-header__center-logo': activeHeaderConfig.logoPosition === 'center' }">
+          <button class="sf-hamburger" @click="mobileMenuOpen = true">
+            <Menu :size="20" />
+          </button>
+          <a href="#" class="sf-header__logo" @click.prevent="$emit('navigate', 'home')">
+            <Store :size="28" class="sf-header__logo-icon" />
+            <span class="sf-header__name">{{ storeInfo?.store_name || storeInfo?.shop_name || 'Shop' }}</span>
+          </a>
+        </div>
+
+        <nav class="sf-header__nav" v-if="activeHeaderConfig.logoPosition !== 'center'">
+          <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-header__link">
+            {{ link.name }}
+          </a>
+        </nav>
+
+        <div class="sf-header__right">
+          <!-- Language Selector -->
+          <div class="sf-lang-selector" v-if="availableLanguages.length > 1">
+            <select v-model="currentLocale" @change="onLocaleChange" class="sf-lang-select">
+              <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
+                {{ lang.code.toUpperCase() }} — {{ lang.name }}
+              </option>
+            </select>
+          </div>
+          <button v-if="activeHeaderConfig.showSearch !== false" class="sf-header__btn" @click="doSearch">
+            <Search :size="18" />
+          </button>
+          <button class="sf-header__btn sf-cart-btn" @click="$emit('navigate', 'cart')">
+            <ShoppingCart :size="18" />
+            <span class="sf-cart-count" v-if="cartCount > 0">{{ cartCount }}</span>
+          </button>
+          <button class="sf-header__btn" @click="$emit('navigate', 'account')">
+            <User :size="18" />
+          </button>
+        </div>
       </div>
-      <!-- Desktop Nav -->
-      <nav class="sf-nav sf-nav--desktop" v-if="navLinks.length > 0">
-        <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-nav__link">
+      
+      <!-- Nav underneath if logo is centered -->
+      <nav class="sf-header__nav sf-header__nav--bottom" v-if="activeHeaderConfig.logoPosition === 'center'">
+        <a v-for="link in visibleNavLinks" :key="link.id" :href="link.url" :target="link.target || '_self'" class="sf-header__link">
           {{ link.name }}
         </a>
       </nav>
-      <div class="sf-header__search" v-if="activeHeaderConfig.showSearch !== false">
-        <Search :size="16" />
-        <input v-model="search" type="text" :placeholder="t('search_placeholder')" class="sf-search-input" @keyup.enter="doSearch" />
-      </div>
-      <div class="sf-header__right">
-        <!-- Language Selector (only if >1 language) -->
-        <div class="sf-lang-selector" v-if="availableLanguages.length > 1">
-          <select v-model="currentLocale" @change="onLocaleChange" class="sf-lang-select">
-            <option v-for="lang in availableLanguages" :key="lang.code" :value="lang.code">
-              {{ lang.code.toUpperCase() }} — {{ lang.name }}
-            </option>
-          </select>
-        </div>
-        <button class="sf-header__btn" @click="$emit('navigate', 'cart')">
-          <ShoppingCart :size="18" />
-          <span class="sf-cart-count" v-if="cartCount > 0">{{ cartCount }}</span>
-        </button>
-        <button class="sf-header__btn" @click="$emit('navigate', 'account')">
-          <User :size="18" />
-        </button>
-      </div>
     </header>
 
     <!-- Mobile Nav Drawer -->
@@ -215,10 +227,13 @@
     </template>
 
     <!-- Footer -->
-    <footer class="sf-footer">
+    <footer class="sf-footer" :style="{ 
+      backgroundColor: activeFooterConfig.bgColor || 'var(--color-header-bg, #fff)', 
+      color: activeFooterConfig.textColor || 'inherit' 
+    }">
       <div class="sf-footer__columns" v-if="activeFooterConfig.columns?.length">
         <div v-for="(col, i) in activeFooterConfig.columns" :key="i" class="sf-footer__col">
-          <h5>{{ col.title }}</h5>
+          <h5 :style="{ color: activeFooterConfig.headingColor || 'inherit' }">{{ col.title }}</h5>
           <template v-if="col.type === 'links'">
             <a v-for="(link, j) in (col.links || [])" :key="j" :href="link.url" class="sf-footer__link">{{ link.label }}</a>
           </template>
@@ -607,6 +622,7 @@ function handleBuilderMessage(evt) {
     if (payload.footerConfig) footerConfig.value = payload.footerConfig
     if (payload.headerConfig) headerConfig.value = payload.headerConfig
     if (payload.themeConfig) themeConfig.value = payload.themeConfig
+    if (payload.customCss !== undefined) customCss.value = payload.customCss
   } else if (type === 'builder:navigate') {
     // Used in live preview to dynamically swap out what we're rendering
     if (payload?.path === '/product/preview-demo') {

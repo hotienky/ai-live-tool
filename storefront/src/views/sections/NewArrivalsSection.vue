@@ -1,28 +1,28 @@
 <template>
-  <section class="home-section container" v-if="productsData.length > 0" :class="['layout-' + (params?.layoutStyle || 'grid')]">
+  <section class="home-section container" v-if="productsData.length > 0" :class="['layout-' + (resolvedParams.layoutStyle || 'grid')]">
     <div class="home-section__header">
       <h2 class="section-title">
         <Clock :size="22" class="section-title__accent" />
-        {{ params?.title || t('storefront.new_arrivals', 'Hàng mới về') }}
+        {{ resolvedParams.title || t('storefront.new_arrivals', 'Hàng mới về') }}
       </h2>
-      <router-link :to="params?.viewAllLink || '/products'" class="home-section__viewall">
+      <router-link :to="resolvedParams.viewAllLink || '/products'" class="home-section__viewall">
         {{ t('storefront.view_all', 'Xem tất cả') }} <ArrowRight :size="14" />
       </router-link>
     </div>
     
-    <!-- Grid Layout -->
-    <div v-if="params?.layoutStyle !== 'carousel'" class="product-grid" :style="gridStyle">
-      <ProductCard v-for="p in productsData" :key="p.id" :product="p" />
-    </div>
     <!-- Carousel Layout -->
-    <div v-else class="product-carousel" :style="{ '--cols': params?.slidesPerView || 4 }">
+    <div v-if="resolvedParams.layoutStyle === 'carousel'" class="product-carousel">
       <ProductCard class="carousel-item" v-for="p in productsData" :key="p.id" :product="p" />
+    </div>
+    <!-- Grid Layout -->
+    <div v-else class="product-grid" :style="gridVars">
+      <ProductCard v-for="p in productsData" :key="p.id" :product="p" />
     </div>
   </section>
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed, inject, ref, onMounted, onUnmounted } from 'vue'
 import ProductCard from '../../components/ProductCard.vue'
 import { Clock, ArrowRight } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
@@ -36,6 +36,29 @@ const props = defineProps({
 })
 
 const isPreviewMode = inject('isPreviewMode', false)
+
+// === Responsive logic ===
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+const onResize = () => { windowWidth.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+
+const isMobile = computed(() => windowWidth.value <= 768)
+const isTablet = computed(() => windowWidth.value > 768 && windowWidth.value <= 1024)
+
+const resolvedParams = computed(() => {
+  const p = { ...(props.params || {}) }
+  const tablet = props.section.tabletParams || {}
+  const mobile = props.section.mobileParams || {}
+  
+  if (isTablet.value || isMobile.value) {
+    for (const k in tablet) if (tablet[k] !== undefined && tablet[k] !== '') p[k] = tablet[k]
+  }
+  if (isMobile.value) {
+    for (const k in mobile) if (mobile[k] !== undefined && mobile[k] !== '') p[k] = mobile[k]
+  }
+  return p
+})
 
 // Dummy product generator for preview
 const dummyProducts = Array.from({ length: 6 }).map((_, i) => ({
@@ -54,7 +77,6 @@ const productsData = computed(() => {
   if (props.params?.resolvedData) {
     allProducts = props.params.resolvedData
   } else {
-    // Fallback: assume the newest are at the beginning or explicitly provided
     allProducts = window.__STOREFRONT_DATA__?.newProducts || window.__STOREFRONT_DATA__?.products || []
   }
   
@@ -62,21 +84,32 @@ const productsData = computed(() => {
     allProducts = dummyProducts
   }
   
-  const count = props.params?.count || 6
+  const count = resolvedParams.value.count || 6
   return allProducts.slice(0, count)
 })
 
-const gridStyle = computed(() => {
-  const cols = props.params?.columns || 4
-  return {
-    display: 'grid',
-    gridTemplateColumns: `repeat(auto-fill, minmax(calc(100% / ${cols} - 16px), 1fr))`,
-    gap: '16px'
-  }
+// Responsive grid columns 
+const responsiveCols = computed(() => {
+  const desktopCols = resolvedParams.value.columns || 4
+  if (isMobile.value) return Math.min(desktopCols, 2)
+  if (isTablet.value) return Math.min(desktopCols, 3)
+  return desktopCols
 })
+
+const gridVars = computed(() => ({
+  '--grid-cols': responsiveCols.value,
+}))
 </script>
 
 <style scoped>
+/* ── Grid Layout ── */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols, 4), 1fr);
+  gap: 16px;
+}
+
+/* ── Carousel Layout ── */
 .product-carousel {
   display: flex;
   overflow-x: auto;
@@ -100,11 +133,21 @@ const gridStyle = computed(() => {
 
 .carousel-item {
   scroll-snap-align: start;
-  flex: 0 0 calc(100% / max(2, var(--cols)) - 16px);
-  min-width: 200px;
+  flex: 0 0 220px;
+  min-width: 180px;
 }
 
-/* Lookbook Layout */
+@media (max-width: 768px) {
+  .product-grid {
+    gap: 10px;
+  }
+  .carousel-item {
+    flex: 0 0 160px;
+    min-width: 140px;
+  }
+}
+
+/* ── Lookbook Layout ── */
 .layout-lookbook :deep(.product-card) {
   border: none !important;
   background: transparent !important;

@@ -58,6 +58,12 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\Tenant\SitemapController::clas
 // Robots.txt
 Route::get('/robots.txt', [\App\Http\Controllers\Tenant\RobotsTxtController::class, 'index']);
 
+// Error Logging (Frontend)
+Route::post('/error-log', function (\Illuminate\Http\Request $request) {
+    // Optionally log to Laravel's logging system: \Log::warning('Storefront Error:', $request->all());
+    return response()->json(['status' => 'ok']);
+});
+
 // Generic Content (Headless CMS Layer for Storefront)
 Route::get('/content/{type}', [\App\Http\Controllers\Tenant\ContentController::class, 'indexStorefront']);
 Route::get('/content/{type}/{id}', [\App\Http\Controllers\Tenant\ContentController::class, 'showStorefront']);

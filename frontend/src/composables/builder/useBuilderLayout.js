@@ -197,6 +197,7 @@ body { background: ${currentBg}; color: ${tCfg.textColor}; font-family: ${tCfg.f
       headerConfig: headerConfig.value,
       footerConfig: footerConfig.value,
       promoConfig: promoConfig.value,
+      themeConfig: tCfg // Fix: Missing themeConfig was preventing live colors/fonts updates
     }))
 
     clearTimeout(undoTimer)

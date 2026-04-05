@@ -241,7 +241,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, inject } from 'vue'
+import { ref, computed, onMounted, inject, watch } from 'vue'
 import { Sparkles, Trash2, Plus, X, Loader2, SlidersHorizontal, ChevronDown, Palette, LayoutList, Settings2, Database, ExternalLink, AlertTriangle, Users } from 'lucide-vue-next'
 import { useI18n } from '../../composables/useI18n.js'
 import { apiFetch } from '../../composables/useApi.js'
@@ -373,10 +373,18 @@ watch(
 
 const activeParams = computed(() => {
   const section = props.section
+  if (!section.params) section.params = {}
+  
   const isDefaultLang = props.currentLang === props.defaultLangCode
-  const baseParams = isDefaultLang 
-    ? section.params 
-    : (section.translations?.[props.currentLang]?.params || {})
+  let baseParams
+  if (isDefaultLang) {
+    baseParams = section.params
+  } else {
+    if (!section.translations) section.translations = {}
+    if (!section.translations[props.currentLang]) section.translations[props.currentLang] = {}
+    if (!section.translations[props.currentLang].params) section.translations[props.currentLang].params = {}
+    baseParams = section.translations[props.currentLang].params
+  }
 
   return new Proxy(baseParams, {
     get(target, prop) {
@@ -469,8 +477,9 @@ function toggleCategoryId(catId, key = 'selectedCategoryIds') {
 }
 
 function applyTemplateConfig(config) {
+  if (!props.section.params) props.section.params = {}
   Object.keys(config).forEach(k => {
-    props.section.params[k] = config[k]
+    activeParams.value[k] = config[k]
   })
 }
 
